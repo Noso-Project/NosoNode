@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="11"/>
+    <PathDelim Value="\"/>
+    <General>
+      <SessionStorage Value="InProjectDir"/>
+      <MainUnit Value="0"/>
+      <Title Value="Noso"/>
+      <Scaled Value="True"/>
+      <ResourceType Value="res"/>
+      <UseXPManifest Value="True"/>
+      <XPManifest>
+        <DpiAware Value="True"/>
+      </XPManifest>
+      <Icon Value="0"/>
+    </General>
+    <BuildModes Count="1">
+      <Item1 Name="Default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+      <DestinationDirectory Value="C:\Users\Pedro\Desktop\Proyectos lazarus\Kreditz\Publicar"/>
+      <CompressFinally Value="False"/>
+      <UseFileFilters Value="True"/>
+    </PublishOptions>
+    <RunParams>
+      <FormatVersion Value="2"/>
+      <Modes Count="0"/>
+    </RunParams>
+    <RequiredPackages Count="3">
+      <Item1>
+        <PackageName Value="dcpcrypt"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="indylaz"/>
+      </Item2>
+      <Item3>
+        <PackageName Value="LCL"/>
+      </Item3>
+    </RequiredPackages>
+    <Units Count="14">
+      <Unit0>
+        <Filename Value="Noso.lpr"/>
+        <IsPartOfProject Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="masterpaskalform.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form1"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="MasterPaskalForm"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="mpgui.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="mpGUI"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="mpdisk.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="mpparser.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="mpParser"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="mpred.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="mpRed"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="Info.txt"/>
+        <IsPartOfProject Value="True"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="mptime.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="mpTime"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="mpcripto.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="mpCripto"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="mpprotocol.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="mpProtocol"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="mpblock.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="mpBlock"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="mpminer.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="mpMiner"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="mplang.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="mpLang"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="mpcoin.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="mpCoin"/>
+      </Unit13>
+    </Units>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="11"/>
+    <PathDelim Value="\"/>
+    <Target>
+      <Filename Value="Noso"/>
+    </Target>
+    <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+    </SearchPaths>
+    <Linking>
+      <Debugging>
+        <GenerateDebugInfo Value="False"/>
+      </Debugging>
+      <Options>
+        <Win32>
+          <GraphicApplication Value="True"/>
+        </Win32>
+      </Options>
+    </Linking>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="6">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+      <Item4>
+        <Name Value="EIdConnClosedGracefully"/>
+      </Item4>
+      <Item5>
+        <Name Value="EIdClosedSocket"/>
+      </Item5>
+      <Item6>
+        <Name Value="EIdNotConnected"/>
+      </Item6>
+    </Exceptions>
+  </Debugging>
+</CONFIG>
