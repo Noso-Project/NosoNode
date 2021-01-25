@@ -9,11 +9,10 @@ uses
 
 Procedure VerifyMiner();
 Procedure ResetMinerInfo();
-function GetCharsFromDifficult(texto:string):integer;
-function GetStepsFromDifficult(texto:string):integer;
+function GetCharsFromDifficult(Dificult,step:integer):integer;
 function EjecutarMinero(aParam:Pointer):PtrInt;
 Procedure IncreaseHashSeed();
-function VerifySolutionForBlock(objetivo:String; pasos: integer; Direccion, Solucion:string):boolean;
+function VerifySolutionForBlock(Dificultad:integer; objetivo,Direccion, Solucion:string):boolean;
 
 implementation
 
@@ -35,32 +34,35 @@ if MyConStatus = 3 then
 if ((Miner_BlockFOund) and (not Miner_SolutionVerified)) then
    begin
    KillThread(Miner_Thread);
-   if VerifySolutionForBlock(Miner_Target, Miner_Steps, Miner_Address, Miner_Solution) then
+   if VerifySolutionForBlock(Miner_Difficult, Miner_Target, Miner_Address, Miner_Solution) then
       begin
       consoleLines.Add(LangLine(40)+IntToStr(Miner_BlockToMine));  //Miner solution found and Verified for block
       Miner_SolutionVerified := true;
       OutgoingMsjs.Add(ProtocolLine(6)+UTCTime+' '+IntToStr(Miner_BlockToMine)+' '+
          Miner_Address+' '+StringReplace(Miner_Solution,' ','_',[rfReplaceAll, rfIgnoreCase]));
+      Miner_Waiting := StrToInt(UTCTime);
       end
    else
       begin
       consolelines.Add(LangLine(132)); //'Miner solution invalid?'
       ResetMinerInfo;
       end;
+If ((Miner_Waiting>-1) and (Miner_Waiting+10<StrToInt(UTCTime))) then
+   ResetMinerInfo();
    end;
 End;
 
 // Resetea la informacion para uso del minero
 Procedure ResetMinerInfo();
 Begin
+Miner_Waiting := -1;
 Miner_BlockToMine := LastBlockData.Number+1;
 Miner_Difficult := LastBlockData.NxtBlkDiff;
-Miner_DifChars := GetCharsFromDifficult(Miner_Difficult);
-Miner_Steps := GetStepsFromDifficult(Miner_Difficult);
-Miner_Target := copy(MyLastBlockHash,1,Miner_DifChars);
 MINER_FoundedSteps := 0;
+Miner_DifChars := GetCharsFromDifficult(Miner_Difficult, MINER_FoundedSteps);
+Miner_Target := copy(MyLastBlockHash,1,Miner_DifChars);
 MINER_HashCounter := 100000000;
-MINER_HashSeed := '!!!!!!';
+MINER_HashSeed := '!!!!!!!!!';
 Miner_Address := ListaDirecciones[0].Hash;
 Miner_BlockFOund := False;
 Miner_Solution := '';
@@ -68,15 +70,10 @@ Miner_SolutionVerified := false;
 End;
 
 // Obtiene el nivel de dificultad de un bloque
-function GetCharsFromDifficult(texto:string):integer;
+function GetCharsFromDifficult(Dificult,step:integer):integer;
 Begin
-result := StrToInt(GetCommand(texto));
-End;
-
-// obtiene la cantidad de steps necesarios para el minado de un bloque
-function GetStepsFromDifficult(texto:string):integer;
-Begin
-result := StrToInt(Parameter(texto,1));
+result := Dificult div 10;
+if (Dificult mod 10) > step then result := result + 1;
 End;
 
 // La ejecucion del minero
@@ -87,9 +84,10 @@ Begin
 while Miner_IsON do
    begin
    Solucion := HashSha256String(MINER_HashSeed+Miner_Address+inttostr(MINER_HashCounter));
-   if AnsiContainsStr(Solucion,Miner_Target) then
+   if AnsiContainsStr(Solucion,copy(Miner_Target,1,Miner_DifChars)) then
       begin
       MINER_FoundedSteps := MINER_FoundedSteps+1;
+      Miner_DifChars := GetCharsFromDifficult(Miner_Difficult, MINER_FoundedSteps);
       Miner_Solution := Miner_Solution+MINER_HashSeed+IntToStr(MINER_HashCounter)+' ';
       if Miner_Steps = MINER_FoundedSteps then
          begin
@@ -116,7 +114,7 @@ var
 Begin
 LastChar := Ord(MINER_HashSeed[6])+1;
 MINER_HashSeed[6] := chr(LastChar);
-for contador := 6 downto 1 do
+for contador := 9 downto 1 do
    begin
    if Ord(MINER_HashSeed[contador])>126 then
       begin
@@ -127,7 +125,7 @@ for contador := 6 downto 1 do
 End;
 
 // Verifica una solucion para un bloque
-function VerifySolutionForBlock(objetivo:String; pasos: integer; Direccion, Solucion:string):boolean;
+function VerifySolutionForBlock(Dificultad:integer; objetivo,Direccion, Solucion:string):boolean;
 var
   ListaSoluciones : TStringList;
   contador : integer = 1;
@@ -136,16 +134,17 @@ Begin
 result:= true;
 ListaSoluciones := TStringList.Create;
 ListaSoluciones.Add(GetCommand(Solucion));
-for contador := 1 to pasos-1 do
+for contador := 1 to Miner_Steps-1 do
    ListaSoluciones.Add(Parameter(Solucion,contador));
 for contador := 0 to ListaSoluciones.Count-1 do
    Begin
-   HashSolucion := HashSha256String(copy(ListaSoluciones[contador],1,6)+Direccion+copy(ListaSoluciones[contador],7,9));
+   objetivo := copy(objetivo,1,GetCharsFromDifficult(dificultad,contador));
+   HashSolucion := HashSha256String(copy(ListaSoluciones[contador],1,9)+Direccion+copy(ListaSoluciones[contador],10,9));
    if not AnsiContainsStr(HashSolucion,objetivo) then
       begin
       result := false;
-      consolelines.Add(LangLine(133)+copy(ListaSoluciones[contador],1,6)+  //'Failed block verification step: '
-      copy(ListaSoluciones[contador],7,9));
+      consolelines.Add(LangLine(133)+IntToStr(contador)+' '+copy(ListaSoluciones[contador],1,9)+  //'Failed block verification step: '
+      Direccion+copy(ListaSoluciones[contador],10,9)+' not '+objetivo);
       end;
    end;
 ListaSoluciones.Free;

@@ -18,6 +18,7 @@ Function AddrText(hash:String):String;
 Procedure UpdateMyTrxGrid();
 Procedure Info(text:string);
 Procedure Processhint(sender:TObject);
+Procedure ShowGlobo(Titulo,texto:string);
 
 implementation
 
@@ -59,6 +60,20 @@ GridScrowSell.Cells[4,0]:=LangLine(115);  //'Status'
 SGridSC.Cells[0,0]:=LangLine(116);  //'Destination'
 SGridSC.Cells[0,1]:=LangLine(111);  //'Amount'
 SGridSC.Cells[0,2]:=LangLine(117);  //'Concept'
+
+GridNodes.Cells[0,0]:='IP';
+GridNodes.Cells[1,0]:='Port';
+
+GridOptions.Cells[0,0]:='Language';
+GridOptions.Cells[0,1]:='Port';
+GridOptions.Cells[0,2]:='Max Peers';
+GridOptions.Cells[0,3]:='Min Peers';
+GridOptions.Cells[0,4]:='GetNodes';
+GridOptions.Cells[0,5]:='Autoserver';
+GridOptions.Cells[0,6]:='Autoconnect';
+GridOptions.Cells[0,7]:='AutoUpdate';
+GridOptions.Cells[0,8]:='BlockAddress';
+GridOptions.Cells[0,9]:='To Tray';
 
 //Direccionespanel
 Direccionespanel.RowCount:=length(listadirecciones)+1;
@@ -106,9 +121,10 @@ if (Miner_IsOn) then
    Miner_UltimoRecuento := MINER_HashCounter;
    DataPanel.Cells[3,0]:=BoolToStr(Miner_IsOn,true)+'('+IntToStr(Miner_DifChars)+') '+IntToStr(Miner_FoundedSteps)+'/'+IntToStr(Miner_Steps);
    DataPanel.Cells[3,1]:=IntToStr(Miner_EsteIntervalo*5 div 1000) +' KHs/sec';
-   DataPanel.Cells[3,2]:=Miner_Target;
+   DataPanel.Cells[3,2]:='['+IntToStr(Miner_Difficult)+'] '+copy(Miner_Target,1,Miner_DifChars);
    DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
    DataPanel.Cells[3,4]:=TimeSinceStamp(LastblockData.TimeEnd);
+   DataPanel.Cells[3,5]:=MINER_HashSeed+inttostr(MINER_HashCounter);
    if MinerButton.Caption = '' then
       begin MinerButton.Caption := ' '; Form1.imagenes.GetBitmap(5,MinerButton.Glyph);end
    else if MinerButton.Caption = ' ' then
@@ -117,13 +133,12 @@ if (Miner_IsOn) then
       begin MinerButton.Caption := '   ';Form1.imagenes.GetBitmap(5,MinerButton.Glyph);end
    else if MinerButton.Caption = '   ' then
       begin MinerButton.Caption := '';Form1.imagenes.GetBitmap(4,MinerButton.Glyph);end;
-   DataPanel.Cells[3,5]:=MINER_HashSeed+IntToStr(MINER_HashCounter);
    end
 else
    begin
    DataPanel.Cells[3,0]:=BoolToStr(Miner_IsOn,true)+'('+IntToStr(Miner_DifChars)+') '+IntToStr(Miner_FoundedSteps)+'/'+IntToStr(Miner_Steps);
    DataPanel.Cells[3,1]:=LangLine(119); //'Not minning'
-   DataPanel.Cells[3,2]:=Miner_Target;
+   DataPanel.Cells[3,2]:='['+IntToStr(Miner_Difficult)+'] '+copy(Miner_Target,1,Miner_DifChars);
    DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
    DataPanel.Cells[3,4]:=TimeSinceStamp(LastblockData.TimeEnd);
    Form1.imagenes.GetBitmap(4,MinerButton.Glyph);
@@ -315,6 +330,14 @@ if sender=ImageOut then
    begin
    ImageOut.Hint:='Outgoing: '+Int2curr(MontoOutgoing);
    end;
+End;
+
+Procedure ShowGlobo(Titulo,texto:string);
+Begin
+if not Form1.SystrayIcon.Visible then exit;
+form1.SystrayIcon.BalloonTitle:=Titulo;
+Form1.SystrayIcon.BalloonHint:=Texto;
+form1.SystrayIcon.ShowBalloonHint;
 End;
 
 END. // END UNIT

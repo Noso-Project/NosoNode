@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, LCLType,
   Grids, ExtCtrls, Buttons, IdTCPServer, IdContext, IdGlobal, IdTCPClient,
-  fileutil,Clipbrd;
+  fileutil,Clipbrd, Menus, crt;
 
 type
 
@@ -22,6 +22,7 @@ type
      Auto_Updater : boolean;
      JustUpdated : boolean;
      VersionPage : String[255];
+     ToTray : boolean;
      end;
 
   BotData = Packed Record
@@ -84,10 +85,10 @@ type
      TimeTotal      : integer;
      TimeLast20     : integer;
      TrxTotales     : integer;
-     Difficult      : String[5];
+     Difficult      : integer;
      TargetHash     : String[32];
      Solution       : String[255];
-     NxtBlkDiff     : string[5];
+     NxtBlkDiff     : integer;
      AccountMiner   : String[40];
      MinerFee       : Int64;
      Reward         : Int64;
@@ -147,8 +148,11 @@ type
     Latido : TTimer;
     InfoTimer : TTimer;
     Server: TIdTCPServer;
+    SystrayIcon: TTrayIcon;
 
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
+    procedure FormWindowStateChange(Sender: TObject);
+    Procedure LoadOptionsToPanel();
     procedure FormShow(Sender: TObject);
     Procedure ConsoleLineKeyup(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Grid1PrepareCanvas(sender: TObject; aCol, aRow: Integer; aState: TGridDrawState);
@@ -160,13 +164,14 @@ type
     procedure IdTCPServer1Connect(AContext: TIdContext);
     procedure IdTCPServer1Disconnect(AContext: TIdContext);
     procedure IdTCPServer1Exception(AContext: TIdContext;AException: Exception);
-    Procedure BotonConsolaOnClick(Sender: TObject);
-    Procedure BotonWalletOnClick(Sender: TObject);
+    Procedure DoubleClickSysTray(Sender: TObject);
     Procedure ConnectCircleOnClick(Sender: TObject);
     Procedure MinerCircleOnClick(Sender: TObject);
     Procedure LangSelectOnChange(Sender: TObject);
     Procedure GridMyTxsOnDoubleClick(Sender: TObject);
     Procedure BCloseTrxDetailsOnClick(Sender: TObject);
+    Procedure BCustomAddrOnClick(Sender: TObject);
+    Procedure PanelCustomMouseLeave(Sender: TObject);
     Procedure BNewAddrOnClick(Sender: TObject);
     Procedure BCopyAddrClick(Sender: TObject);
     Procedure CheckForHint(Sender:TObject);
@@ -182,6 +187,23 @@ type
     Procedure SCBitCancelOnClick(Sender:TObject);
     Procedure SCBitConfOnClick(Sender:TObject);
     Procedure ResetearValoresEnvio(Sender:TObject);
+    Procedure SBOptionsOnClick(Sender:TObject);
+    Procedure SBDelNodeOnClick(Sender:TObject);
+    Procedure SBNewNodeOnClick(Sender:TObject);
+    Procedure CBGetNodesOnChange(Sender:TObject);
+    Procedure CBAutoserverOnChange(Sender:TObject);
+    Procedure CBAutoConnectOnChange(Sender:TObject);
+    Procedure CBAutoUpdateOnChange(Sender:TObject);
+    Procedure CBToTrayOnChange(Sender:TObject);
+    // MAIN MENU
+    Procedure CheckMMCaptions(Sender:TObject);
+    Procedure MMServer(Sender:TObject);
+    Procedure MMConnect(Sender:TObject);
+    Procedure MMMiner(Sender:TObject);
+    Procedure MMImpWallet(Sender:TObject);
+    Procedure MMExpWallet(Sender:TObject);
+    Procedure MMChangeLang(Sender:TObject);
+    Procedure MMVerConsola(Sender:TObject);
 
   private
 
@@ -197,7 +219,7 @@ CONST
   B58Alphabet : string = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
   B36Alphabet : string = '0123456789abcdefghijklmnopqrstuvwxyz';
   ReservedWords : string = 'NULL,DELADDR';
-  ProgramVersion = '0.1.0';
+  ProgramVersion = '0.1.1';
   ADMINHash = 'NUBy1bsprQKeFrVU4K8eKP46QG2ABs';
   OptionsFileName = 'NOSODATA/options.psk';
   BotDataFilename = 'NOSODATA/botdata.psk';
@@ -212,14 +234,14 @@ CONST
   MyTrxFilename = 'NOSODATA/mytrx.nos';
   TranslationFilename = 'NOSODATA/English_empty.txt';
   DefaultServerPort = 8080;
-  MaxConecciones = 15;
+  MaxConecciones  = 15;
   Protocolo = 1;
-  MinConexToWork = 1;
+  Miner_Steps = 10;
   // Custom values for coin
   SecondsPerBlock = 600;            // 10 minutes
-  PremineAmount = 0;                // Ammount premined in genesys block
-  InitialReward = 10000000000;      // Initial reward
-  BlockHalvingInterval = 105000;    // Number of blocks between halvings. 2 years   105120
+  PremineAmount = 1030390730000;                // Ammount premined in genesys block
+  InitialReward = 5000000000;      // Initial reward
+  BlockHalvingInterval = 210000;    // Number of blocks between halvings. 2 years   105120
   HalvingSteps = 10;                // total number of halvings
   Comisiontrfr = 10000;             // ammount/Comisiontrfr = 0.01 % of the ammount
   ComisionCustom = 200000;          // 0.05 % of the Initial reward
@@ -230,8 +252,11 @@ CONST
   ComisionBlockCheck = 12960;       // +- 90 days
   DeadAddressFee = 5000;            // unactive acount fee
   ComisionScrow = 200;              // Coin/BTC market comision = 0.5%
+  InitialBlockDiff = 60;            // Dificultad durante los 20 primeros bloques
 
 var
+  FirstShow : boolean = false;
+  MinConexToWork : integer = 1;
   Customizationfee : int64 = InitialReward div ComisionCustom;
   G_TimeOffSet : Int64 = 0;
   G_NTPServer : String = '';
@@ -251,10 +276,7 @@ var
   ConsoleLines : TStringList;
   DataPanel : TStringGrid;
     U_DataPanel : boolean = true;
-  BotonConsola: TButton;
-  BotonWallet: TButton;
   LabelBigBalance : TLabel;
-  LangSelect : TComboBox;
 
     U_DirPanel : boolean = false;
   FileMyTrx  : File of MyTrxData;
@@ -312,14 +334,14 @@ var
   // Variables asociadas al minero
   Miner_IsON : Boolean = false;
   Miner_Active : Boolean = false;
+  Miner_Waiting : int64 = -1;
   Miner_BlockToMine : integer =0;
-  Miner_Difficult : string = '';
+  Miner_Difficult : integer = 0;
   Miner_DifChars : integer = 0;
-  Miner_Steps : integer = 0;
   Miner_Target : String = '';
   MINER_FoundedSteps : integer = 0;
   MINER_HashCounter : Int64 = 100000000;
-  Miner_HashSeed : String = '!!!!!!';
+  Miner_HashSeed : String = '!!!!!!!!!';
   Miner_Thread : Int64 = 0;
   Miner_Address : string = '';
   Miner_BlockFOund : boolean = False;
@@ -328,6 +350,8 @@ var
   Miner_UltimoRecuento : int64 = 100000000;
   Miner_EsteIntervalo : int64 = 0;
   // COmponentes visuales
+  MainMenu : TMainMenu;
+  MenuItem : TMenuItem;
   ConnectButton : TSpeedButton;
   MinerButton : TSpeedButton;
   ImageInc :TImage;
@@ -335,6 +359,9 @@ var
   ImageOut :TImage;
     MontoOutgoing : Int64 = 0;
   DireccionesPanel : TStringGrid;
+    BCustomAddr : TSpeedButton;
+      PanelCustom : TPanel;
+        EditCustom : TEdit;
     BNewAddr : TSpeedButton;
     BCopyAddr : TSpeedButton;
     BSendCoins : TSpeedButton;
@@ -365,6 +392,28 @@ var
     BScrowBuy  : TButton;
     GridScrowSell :TStringGrid;
 
+  OptionsPanel : Tpanel;
+    LabelNodes : TLabel;
+    SBDelNode : TSpeedButton;
+    GridNodes : TStringGrid;
+    EditIP : TEdit;
+    EditPort : TEdit;
+    SBNewNode :TSpeedButton;
+    LabelOptions:Tlabel;
+    OptionsScroll : TScrollBox;
+    GridOptions : TStringgrid;
+      LangSelect : TComboBox;
+      EditMyPort : TEdit;
+      EditMaxpeer : TEdit;
+      EditMinpeer : TEdit;
+      CBGetNodes : TCheckBox;
+      CBAutoserver : TCheckBox;
+      CBAutoConnect: TCheckBox;
+      CBAutoUpdate : TCheckBox;
+      CBToTray : TCheckBox;
+
+  SBOptions : TSpeedButton;
+
   InfoPanel : TPanel;
     InfoPanelTime : integer = 0;
 
@@ -382,6 +431,8 @@ procedure TForm1.FormShow(Sender: TObject);
 var
   contador : integer;
 begin
+// Se ejecuta solo la primera vez
+if FirstShow then exit;
 //inicializar lo basico para cargar el idioma
 if not directoryexists('NOSODATA') then CreateDir('NOSODATA');
 if not FileExists(OptionsFileName) then CrearArchivoOpciones() else CargarOpciones();
@@ -398,11 +449,13 @@ InitTime();
 UpdateMyData();
 ResetMinerInfo();
 // Ajustes a mostrar
+LoadOptionsToPanel();
 form1.Caption:=coinname+LangLine(61)+ProgramVersion;    // Wallet
 Application.Title := coinname+LangLine(61)+ProgramVersion;  // Wallet
 for contador := 0 to IdiomasDisponibles.Count-1 do
    LangSelect.Items.Add(IdiomasDisponibles[contador]);
 LangSelect.ItemIndex:=0;
+FillNodeList();
 G_Launching := false;
 ConsoleLines.Add(coinname+LangLine(61)+ProgramVersion);  // wallet
 RebuildMyTrx(MyLastBlock);
@@ -417,13 +470,38 @@ if useroptions.JustUpdated then
    S_Options := true;
    end;
 Form1.Latido.Enabled:=true;
+FirstShow := true;
 end;
+
+// Carga las opciones de usuario al panel de opciones
+Procedure TForm1.LoadOptionsToPanel();
+Begin
+EditMyPort.Text:=IntToStr(UserOptions.Port);
+EditMaxpeer.Text :=IntToStr(Maxconecciones);
+EditMinpeer.text := IntToStr(MinConexToWork);
+CBGetNodes.Checked := UserOptions.GetNodes;
+CBAutoserver.Checked := UserOptions.AutoServer;
+CBAutoConnect.Checked := UserOptions.AutoConnect;
+CBAutoUpdate.Checked := UserOptions.AutoConnect;
+CBTotray.Checked := UserOptions.ToTray;
+End;
 
 // Cuando se solicita cerrar el programa
 procedure TForm1.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 begin
 G_CloseRequested := true;
 canclose := false;
+end;
+
+// Al minimizar verifica si hay que llevarlo a barra de tareas
+procedure TForm1.FormWindowStateChange(Sender: TObject);
+begin
+if not UserOptions.ToTray then exit;
+if Form1.WindowState = wsMinimized then
+   begin
+   SysTrayIcon.visible:=true;
+   form1.hide;
+   end;
 end;
 
 // Chequea las teclas presionadas en la linea de comandos
@@ -535,6 +613,7 @@ Begin
 info(LangLine(62));  //   Closing wallet
 CerrarClientes();
 StopServer();
+KillThread(Miner_Thread);
 //Showmessage(LangLine(63));  //Closed gracefully
 Application.Terminate;
 End;
@@ -545,6 +624,34 @@ var
   contador : integer = 0;
 Begin
 // Elementos visuales
+MainMenu := TMainMenu.create(form1);
+
+MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Network';MainMenu.items.Add(MenuItem);
+MenuItem.OnClick:=@form1.CheckMMCaptions;
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Start Server';MenuItem.OnClick:=@Form1.MMServer;
+  Form1.imagenes.GetBitmap(27,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Connect';MenuItem.OnClick:=@Form1.MMConnect;
+  Form1.imagenes.GetBitmap(29,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Miner';MenuItem.OnClick:=@Form1.MMMiner;
+  Form1.imagenes.GetBitmap(4,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Import Wallet';MenuItem.OnClick:=@Form1.MMImpWallet;
+  Form1.imagenes.GetBitmap(31,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Export Wallet';MenuItem.OnClick:=@Form1.MMExpWallet;
+  Form1.imagenes.GetBitmap(32,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
+
+MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Language';MainMenu.items.Add(MenuItem);
+MenuItem.OnClick:=@form1.CheckMMCaptions;
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Change';
+  Form1.imagenes.GetBitmap(35,MenuItem.bitmap); MainMenu.items[1].Add(MenuItem);
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Import';//MenuItem.OnClick:=@Form1.MMConnect;
+  Form1.imagenes.GetBitmap(33,MenuItem.bitmap); MainMenu.items[1].Add(MenuItem);
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='New file';//MenuItem.OnClick:=@Form1.MMConnect;
+  Form1.imagenes.GetBitmap(34,MenuItem.bitmap); MainMenu.items[1].Add(MenuItem);
+
+MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='View';MenuItem.RightJustify:=true;MainMenu.items.Add(MenuItem);
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Console';MenuItem.OnClick:=@Form1.MMVerConsola;
+  Form1.imagenes.GetBitmap(25,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
+
 Memoconsola := TMemo.Create(Form1);
 Memoconsola.Parent:=form1;
 Memoconsola.Left:=2;Memoconsola.Top:=2;Memoconsola.Height:=280;Memoconsola.Width:=396;
@@ -585,13 +692,19 @@ Form1.imagenes.GetBitmap(4,MinerButton.Glyph);
 MinerButton.Caption:='';MinerButton.OnClick:=@Form1.MinerCircleOnClick;
 MinerButton.ShowHint:=true;MinerButton.OnMouseEnter:=@Form1.CheckForHint;
 
+SBOptions := TSpeedButton.Create(Form1);SBOptions.Parent:=Form1;
+SBOptions.Left:=58;SBOptions.Top:=2;SBOptions.Height:=26;SBOptions.Width:=26;
+Form1.imagenes.GetBitmap(22,SBOptions.Glyph);
+SBOptions.Visible:=true;SBOptions.OnClick:=@form1.SBOptionsOnClick;
+SBOptions.hint:='Show/Hide options';SBOptions.ShowHint:=true;
+
 ImageInc := TImage.Create(form1);ImageInc.Parent:=form1;
-ImageInc.Top:=2;ImageInc.Left:=58;ImageInc.Height:=17;ImageInc.Width:=17;
+ImageInc.Top:=2;ImageInc.Left:=86;ImageInc.Height:=17;ImageInc.Width:=17;
 Form1.imagenes.GetIcon(9,ImageInc.Picture.Icon);ImageInc.Visible:=false;
 ImageInc.ShowHint:=true;ImageInc.OnMouseEnter:=@Form1.CheckForHint;
 
 ImageOut := TImage.Create(form1);ImageOut.Parent:=form1;
-ImageOut.Top:=12;ImageOut.Left:=65;ImageOut.Height:=17;ImageOut.Width:=17;
+ImageOut.Top:=12;ImageOut.Left:=93;ImageOut.Height:=17;ImageOut.Width:=17;
 Form1.imagenes.GetIcon(10,Imageout.Picture.Icon);ImageOut.Visible:=false;
 ImageOut.ShowHint:=true;ImageOut.OnMouseEnter:=@Form1.CheckForHint;
 
@@ -604,6 +717,26 @@ DireccionesPanel.Options:= DireccionesPanel.Options+[goRowSelect]-[goRangeSelect
 DireccionesPanel.Font.Name:='consolas'; DireccionesPanel.Font.Size:=10;
 DireccionesPanel.ColWidths[0]:= 260;DireccionesPanel.ColWidths[1]:= 115;
 DireccionesPanel.OnPrepareCanvas:= @Form1.Grid2PrepareCanvas;
+
+  BCustomAddr := TSpeedButton.Create(form1);BCustomAddr.Parent:=DireccionesPanel;
+  BCustomAddr.Top:=2;BCustomAddr.Left:=192;BCustomAddr.Height:=18;BCustomAddr.Width:=18;
+  Form1.imagenes.GetBitmap(12,BCustomAddr.Glyph);
+  BCustomAddr.Caption:='';BCustomAddr.OnClick:=@Form1.BCustomAddrOnClick;
+  BCustomAddr.Hint:='Customize address';BCustomAddr.ShowHint:=true;
+
+    PanelCustom := TPanel.Create(Form1);PanelCustom.Parent:=DireccionesPanel;
+    PanelCustom.Left:=0;PanelCustom.Top:=0;PanelCustom.Height:=20;PanelCustom.Width:=250;
+    PanelCustom.BevelColor:=clBlack;PanelCustom.Visible:=false;
+    PanelCustom.font.Name:='consolas';PanelCustom.Font.Size:=14;
+    PanelCustom.BringToFront;PanelCustom.OnMouseLeave:=@Form1.PanelCustomMouseLeave;
+
+      EditCustom := TEdit.Create(Form1);EditCustom.Parent:=PanelCustom;EditCustom.AutoSize:=false;
+      EditCustom.Left:=1;EditCustom.Top:=1;EditCustom.Height:=18;EditCustom.Width:=230;
+      EditCustom.Font.Name:='consolas'; EditCustom.Font.Size:=8;
+      EditCustom.Alignment:=taLeftJustify;EditCustom.Visible:=true;
+      EditCustom.Color:=clBlack;EditCustom.Font.color:=clwhite;
+      //EditCustom.OnChange:=@form1.EditCustomChange;
+      EditCustom.OnContextPopup:=@form1.DisablePopUpMenu;
 
   BNewAddr := TSpeedButton.Create(form1);BNewAddr.Parent:=DireccionesPanel;
   BNewAddr.Top:=2;BNewAddr.Left:=240;BNewAddr.Height:=18;BNewAddr.Width:=18;
@@ -743,23 +876,6 @@ PanelTrxDetails.font.Name:='consolas';PanelTrxDetails.Font.Size:=14;
    BCloseTrxDetails.BiDiMode:= bdRightToLeft;
    BCloseTrxDetails.Visible:=true;BCloseTrxDetails.OnClick:=@form1.BCloseTrxDetailsOnClick;
 
-BotonConsola := TButton.Create(Form1);BotonConsola.Parent:=form1;
-BotonConsola.Left:=338;BotonConsola.Top:=490;BotonConsola.Height:=18;BotonConsola.Width:=60;
-BotonConsola.Caption:='ᐅ';BotonConsola.Font.Name:='consolas';
-BotonConsola.Visible:=true;BotonConsola.OnClick:=@form1.BotonConsolaOnClick;
-
-BotonWallet := TButton.Create(Form1);BotonWallet.Parent:=form1;
-BotonWallet.Left:=2;BotonWallet.Top:=490;BotonWallet.Height:=18;BotonWallet.Width:=60;
-BotonWallet.Caption:='ᐊ';BotonWallet.Font.Name:='consolas';
-BotonWallet.Visible:=false;BotonWallet.OnClick:=@Form1.BotonWalletOnClick;
-
-LangSelect := TComboBox.Create(form1);LangSelect.Parent :=Form1 ;
-LangSelect.Font.Name:='candara';LangSelect.Font.Size:=7;
-LangSelect.Left:=70;LangSelect.Top:=491;
-LangSelect.Height:=12;LangSelect.Width:=60;
-LangSelect.Style:=csDropDownList ;
-LangSelect.OnChange:=@form1.LangSelectOnChange;
-
 PanelScrow := TPanel.Create(Form1);PanelScrow.Parent:=form1;
 PanelScrow.Left:=2;PanelScrow.Top:=307;PanelScrow.Height:=181;PanelScrow.Width:=396;
 PanelScrow.BevelColor:=clBlack;PanelScrow.Visible:=true;
@@ -798,6 +914,122 @@ InfoPanel.Top:=245;InfoPanel.Font.Color:=clBlack;
 InfoPanel.Width:=200;InfoPanel.Height:=20;InfoPanel.Alignment:=tacenter;
 InfoPanel.Caption:='';InfoPanel.Visible:=false;
 
+OptionsPanel := TPanel.Create(Form1);OptionsPanel.Parent:=form1;
+OptionsPanel.Left:=2;OptionsPanel.Top:=307;OptionsPanel.Height:=181;OptionsPanel.Width:=396;
+OptionsPanel.BevelColor:=clBlack;OptionsPanel.Visible:=false;
+OptionsPanel.font.Name:='consolas';OptionsPanel.Font.Size:=14;
+
+  LabelNodes := TLabel.Create(nil);LabelNodes.Parent := OptionsPanel;
+  LabelNodes.Top :=2;LabelNodes.Left:=2;LabelNodes.AutoSize:=true;
+  LabelNodes.Caption:='Nodes';
+
+  GridNodes := TStringGrid.Create(Form1);GridNodes.Parent:=OptionsPanel;
+  GridNodes.Left:=2;GridNodes.Top:=22;GridNodes.Height:=136;GridNodes.Width:=172;
+  GridNodes.ColCount:=2;GridNodes.rowcount:=1;GridNodes.FixedCols:=0;GridNodes.FixedRows:=1;
+  GridNodes.Options:= GridNodes.Options+[goRowSelect]-[goRangeSelect];
+  GridNodes.ScrollBars:=ssvertical;
+  GridNodes.ColWidths[0]:= 100;GridNodes.ColWidths[1]:= 50;
+  GridNodes.font.Name:='consolas';GridNodes.Font.Size:=8;
+
+    SBDelNode := TSpeedButton.Create(Form1);SBDelNode.Parent:=GridNodes;
+    SBDelNode.Left:=78;SBDelNode.Top:=0;SBDelNode.Height:=18;SBDelNode.Width:=18;
+    Form1.imagenes.GetBitmap(23,SBDelNode.Glyph);
+    SBDelNode.Visible:=true;SBDelNode.OnClick:=@form1.SBDelNodeOnClick;
+    SBDelNode.hint:='Delete node';SBDelNode.ShowHint:=true;
+
+  EditIP := TEdit.Create(Form1);EditIP.Parent:=OptionsPanel;EditIP.AutoSize:=false;
+  EditIP.Left:=2;EditIP.Top:=160;EditIP.Height:=18;EditIP.Width:=100;
+  EditIP.Font.Name:='consolas'; EditIP.Font.Size:=8;
+  EditIP.Color:=clBlack;EditIP.Font.color:=clwhite;
+  EditIP.Alignment:=taRightJustify;EditIP.Visible:=true;
+  EditIP.OnContextPopup:=@form1.DisablePopUpMenu;
+
+  EditPort := TEdit.Create(Form1);EditPort.Parent:=OptionsPanel;EditPort.AutoSize:=false;
+  EditPort.Left:=102;EditPort.Top:=160;EditPort.Height:=18;EditPort.Width:=50;
+  EditPort.Font.Name:='consolas'; EditPort.Font.Size:=8;
+  EditPort.Color:=clBlack;EditPort.Font.color:=clwhite;
+  EditPort.Alignment:=taRightJustify;EditPort.Visible:=true;
+  EditPort.OnContextPopup:=@form1.DisablePopUpMenu;
+
+  SBNewNode := TSpeedButton.Create(Form1);SBNewNode.Parent:=OptionsPanel;
+  SBNewNode.Left:=154;SBNewNode.Top:=160;SBNewNode.Height:=18;SBNewNode.Width:=18;
+  Form1.imagenes.GetBitmap(6,SBNewNode.Glyph);
+  SBNewNode.Visible:=true;SBNewNode.OnClick:=@form1.SBNewNodeOnClick;
+  SBNewNode.hint:='Add new node';SBNewNode.ShowHint:=true;
+
+  LabelOptions := TLabel.Create(nil);LabelOptions.Parent := OptionsPanel;
+  LabelOptions.Top :=2;LabelOptions.Left:=176; LabelOptions.AutoSize:=true;
+  LabelOptions.Caption:='Options';
+
+  OptionsScroll := TScrollBox.Create(Form1);OptionsScroll.Parent:=OptionsPanel;
+  OptionsScroll.Left:=176;OptionsScroll.Top:=22;OptionsScroll.Height:=156;
+  OptionsScroll.Width:=218;
+  OptionsScroll.Color:=clWhite;
+  OptionsScroll.Visible:=true;
+
+    GridOptions := TStringGrid.Create(Form1);GridOptions.Parent:=OptionsScroll;
+    GridOptions.Left:=2;GridOptions.Top:=2;GridOptions.Height:=202;GridOptions.Width:=192;
+    GridOptions.DefaultColWidth:= 80;GridOptions.DefaultRowHeight:=20;
+    GridOptions.ColCount:=2;GridOptions.rowcount:=10;GridOptions.FixedCols:=1;GridOptions.FixedRows:=0;
+    GridOptions.Options:= GridOptions.Options+[goRowSelect]-[goRangeSelect];
+    GridOptions.ScrollBars:=ssnone;GridOptions.enabled:= false;
+    GridOptions.font.Name:='consolas';GridOptions.Font.Size:=8;
+    GridOptions.ColWidths[0]:= 110;GridOptions.ColWidths[1]:= 80;
+
+      LangSelect := TComboBox.Create(form1);LangSelect.Parent :=OptionsScroll ;
+      LangSelect.Font.Name:='candara';LangSelect.Font.Size:=8;
+      LangSelect.Left:=114;LangSelect.Top:=2;
+      LangSelect.Height:=12;LangSelect.Width:=80;
+      LangSelect.Style:=csDropDownList ;
+      LangSelect.OnChange:=@form1.LangSelectOnChange;
+
+      EditMyPort := TEdit.Create(Form1);EditMyPort.Parent:=OptionsScroll;EditMyPort.AutoSize:=false;
+      EditMyPort.Left:=114;EditMyPort.Top:=22;EditMyPort.Height:=20;EditMyPort.Width:=80;
+      EditMyPort.Font.Name:='consolas'; EditMyPort.Font.Size:=8;
+      EditMyPort.Color:=clBlack;EditMyPort.Font.color:=clwhite;
+      EditMyPort.Alignment:=taRightJustify;EditMyPort.Visible:=true;
+      EditMyPort.OnContextPopup:=@form1.DisablePopUpMenu;
+
+      EditMaxpeer := TEdit.Create(Form1);EditMaxpeer.Parent:=OptionsScroll;EditMaxpeer.AutoSize:=false;
+      EditMaxpeer.Left:=114;EditMaxpeer.Top:=42;EditMaxpeer.Height:=20;EditMaxpeer.Width:=80;
+      EditMaxpeer.Font.Name:='consolas'; EditMaxpeer.Font.Size:=8;
+      EditMaxpeer.Color:=clBlack;EditMaxpeer.Font.color:=clwhite;
+      EditMaxpeer.Alignment:=taRightJustify;EditMaxpeer.Visible:=true;
+      EditMaxpeer.Enabled:=false;
+      EditMaxpeer.OnContextPopup:=@form1.DisablePopUpMenu;
+
+      EditMinpeer := TEdit.Create(Form1);EditMinpeer.Parent:=OptionsScroll;EditMinpeer.AutoSize:=false;
+      EditMinpeer.Left:=114;EditMinpeer.Top:=62;EditMinpeer.Height:=20;EditMinpeer.Width:=80;
+      EditMinpeer.Font.Name:='consolas'; EditMinpeer.Font.Size:=8;
+      EditMinpeer.Color:=clBlack;EditMinpeer.Font.color:=clwhite;
+      EditMinpeer.Alignment:=taRightJustify;EditMinpeer.Visible:=true;
+      EditMinpeer.OnContextPopup:=@form1.DisablePopUpMenu;
+
+      CBGetNodes :=TcheckBox.Create(form1);CBGetNodes.Parent:=OptionsScroll;
+      CBGetNodes.AutoSize:=false;
+      CBGetNodes.Left:=176;CBGetNodes.Top:=86;CBGetNodes.Height:=14;CBGetNodes.Width:=14;
+      CBGetNodes.Visible:=true;CBGetNodes.OnChange:=@Form1.CBGetNodesOnChange;
+
+      CBAutoserver :=TcheckBox.Create(form1);CBAutoserver.Parent:=OptionsScroll;
+      CBAutoserver.AutoSize:=false;
+      CBAutoserver.Left:=176;CBAutoserver.Top:=106;CBAutoserver.Height:=14;CBAutoserver.Width:=14;
+      CBAutoserver.Visible:=true;CBAutoserver.OnChange:=@Form1.CBAutoserverOnChange;
+
+      CBAutoConnect :=TcheckBox.Create(form1);CBAutoConnect.Parent:=OptionsScroll;
+      CBAutoConnect.AutoSize:=false;
+      CBAutoConnect.Left:=176;CBAutoConnect.Top:=126;CBAutoConnect.Height:=14;CBAutoConnect.Width:=14;
+      CBAutoConnect.Visible:=true;CBAutoConnect.OnChange:=@Form1.CBAutoConnectOnChange;
+
+      CBAutoUpdate :=TcheckBox.Create(form1);CBAutoUpdate.Parent:=OptionsScroll;
+      CBAutoUpdate.AutoSize:=false;
+      CBAutoUpdate.Left:=176;CBAutoUpdate.Top:=146;CBAutoUpdate.Height:=14;CBAutoUpdate.Width:=14;
+      CBAutoUpdate.Visible:=true;CBAutoUpdate.OnChange:=@Form1.CBAutoUpdateOnChange;
+
+      CBToTray :=TcheckBox.Create(form1);CBToTray.Parent:=OptionsScroll;
+      CBToTray.AutoSize:=false;
+      CBToTray.Left:=176;CBToTray.Top:=186;CBToTray.Height:=14;CBToTray.Width:=14;
+      CBToTray.Visible:=true;CBToTray.OnChange:=@Form1.CBToTrayOnChange;
+
 //Elementos no visuales
 ProcessLines := TStringlist.Create;
 OutgoingMsjs := TStringlist.Create;
@@ -814,6 +1046,13 @@ Form1.Latido.OnTimer:= @form1.LatidoEjecutar;
 Form1.InfoTimer:= TTimer.Create(Form1);
 Form1.InfoTimer.Enabled:=false;Form1.InfoTimer.Interval:=10;
 Form1.InfoTimer.OnTimer:= @form1.InfoTimerEnd;
+
+form1.SystrayIcon := TTrayIcon.Create(form1);
+form1.SystrayIcon.BalloonTimeout:=3000;
+form1.SystrayIcon.BalloonTitle:=CoinName+' Wallet';
+form1.SystrayIcon.Hint:=Coinname+' Ver. '+ProgramVersion;
+form1.SysTrayIcon.OnDblClick:=@form1.DoubleClickSysTray;
+form1.imagenes.GetIcon(39,form1.SystrayIcon.icon);
 
 Form1.Server := TIdTCPServer.Create(Form1);
 Form1.Server.DefaultPort:=DefaultServerPort;
@@ -901,6 +1140,8 @@ if Copy(LLine,1,4) <> 'PSK ' then  // La linea no contiene un comando valido
    Consolelines.Add(LangLine(8)+IPUser);     //INVALID CLIENT :
    AContext.Connection.Disconnect;
    Acontext.Connection.IOHandler.InputBuffer.Clear;
+   UpdateBotData(IPUser);
+   S_BotData := true;
    exit;
    end
 else
@@ -964,36 +1205,12 @@ Begin
 ConsoleLines.Add(LangLine(6)+AException.Message);    //Server Excepcion:
 End;
 
-//mostrar consola
-Procedure Tform1.BotonConsolaOnClick(Sender: TObject);
+// DOUBLE CLICK TRAY ICON TO RESTORE
+Procedure TForm1.DoubleClickSysTray(Sender: TObject);
 Begin
-Memoconsola.Visible:=true;
-memoconsola.SelStart := Length(memoconsola.Lines.Text)-1;
-ConsoleLine.Visible:=true;
-DataPanel.Visible:=true;
-BotonWallet.Visible:=true;
-
-DireccionesPanel.Visible:=false;
-BotonConsola.Visible:=false;
-GridMyTxs.Visible:=false;
-PanelTrxDetails.Visible:=false;
-PanelScrow.Visible:=false;
-ConsoleLine.SetFocus;
-End;
-
-//mostrar wallet
-Procedure Tform1.BotonWalletOnClick(Sender: TObject);
-Begin
-Memoconsola.Visible:=false;
-ConsoleLine.Visible:=false;
-DataPanel.Visible:=false;
-BotonWallet.Visible:=false;
-PanelTrxDetails.Visible:=false;
-
-DireccionesPanel.Visible:=true;
-BotonConsola.Visible:=true;
-GridMyTxs.Visible:=true;
-PanelScrow.Visible:=true;
+SysTrayIcon.visible:=false;
+Form1.WindowState:=wsNormal;
+Form1.Show;
 End;
 
 Procedure TForm1.ConnectCircleOnClick(Sender: TObject);
@@ -1090,6 +1307,16 @@ End;
 Procedure TForm1.BCloseTrxDetailsOnClick(Sender: TObject);
 Begin
 PanelTrxDetails.visible := false;
+End;
+
+Procedure TForm1.BCustomAddrOnClick(Sender: TObject);
+Begin
+PanelCustom.Visible := true;PanelCustom.BringToFront;
+End;
+
+Procedure TForm1.PanelCustomMouseLeave(Sender: TObject);
+Begin
+PanelCustom.Visible := false;
 End;
 
 // El boton para crear una nueva direccion
@@ -1274,6 +1501,157 @@ SCBitSend.Visible:=true;
 SCBitConf.Visible:=false;
 SCBitCancel.Visible:=false;
 End;
+
+// Mostrar/ocultar opciones
+Procedure Tform1.SBOptionsOnClick(Sender:TObject);
+Begin
+If OptionsPanel.Visible then optionspanel.Visible:=false
+else optionspanel.Visible:=true;
+LoadOptionsToPanel();
+End;
+
+Procedure Tform1.SBDelNodeOnClick(Sender:TObject);
+Begin
+Processlines.Add('DELNODE '+IntToStr(Gridnodes.row-1));
+End;
+
+Procedure Tform1.SBNewNodeOnClick(Sender:TObject);
+Begin
+Processlines.Add('ADDNODE '+EditIP.Text+' '+EditPort.Text);
+EditIP.Text := '';EditPort.Text := '';
+End;
+
+// ACTIVA/DESACTIVA GETNODES
+Procedure TForm1.CBGetNodesOnChange(Sender:TObject);
+Begin
+if G_Launching then exit;
+If UserOptions.GetNodes then Processlines.Add('GETNODESOFF')
+else Processlines.Add('GETNODESON');
+End;
+
+Procedure TForm1.CBAutoserverOnChange(Sender:TObject);
+Begin
+if G_Launching then exit;
+If UserOptions.AutoServer then Processlines.Add('AUTOSERVEROFF')
+else Processlines.Add('AUTOSERVERON');
+End;
+
+Procedure TForm1.CBAutoConnectOnChange(Sender:TObject);
+Begin
+if G_Launching then exit;
+If UserOptions.AutoConnect then Processlines.Add('AUTOCONNECTOFF')
+else Processlines.Add('AUTOCONNECTON');
+End;
+
+Procedure TForm1.CBAutoUpdateOnChange(Sender:TObject);
+Begin
+if G_Launching then exit;
+If UserOptions.Auto_Updater then Processlines.Add('AUTOUPDATEOFF')
+else Processlines.Add('AUTOUPDATEON');
+End;
+
+Procedure TForm1.CBToTrayOnChange(Sender:TObject);
+Begin
+if G_Launching then exit;
+If UserOptions.ToTray then Processlines.Add('TOTRAYOFF')
+else Processlines.Add('TOTRAYON');
+End;
+
+//******************************************************************************
+// MAINMENU
+//******************************************************************************
+
+Procedure Tform1.CheckMMCaptions(Sender:TObject);
+var
+  contador: integer;
+Begin
+if Form1.Server.Active then MainMenu.Items[0].Items[0].Caption:='Stop Server'
+else MainMenu.Items[0].Items[0].Caption:='Start Server';
+if CONNECT_Try then MainMenu.Items[0].Items[1].Caption:='Disconnect'
+else MainMenu.Items[0].Items[1].Caption:='Connect';
+if Miner_Active then MainMenu.Items[0].Items[2].Caption:='Stop mining'
+else MainMenu.Items[0].Items[2].Caption:='Mine';
+MainMenu.Items[1].Items[0].Clear;
+for contador := 0 to LangSelect.Items.Count-1 do
+  begin
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:=LangSelect.Items[contador];MenuItem.OnClick:=@Form1.MMChangeLang;
+  if LangSelect.Items[contador] = 'English' then Form1.imagenes.GetBitmap(36,MenuItem.bitmap);
+  if LangSelect.Items[contador] = 'Español' then Form1.imagenes.GetBitmap(37,MenuItem.bitmap);
+  if LangSelect.Items[contador] = 'Polskie' then Form1.imagenes.GetBitmap(38,MenuItem.bitmap);
+  MainMenu.items[1].Items[0].Add(MenuItem);
+  end;
+End;
+
+Procedure Tform1.MMServer(Sender:TObject);
+Begin
+if Form1.Server.Active then ProcessLines.Add('serveroff')
+else ProcessLines.Add('serveron');
+End;
+
+Procedure Tform1.MMConnect(Sender:TObject);
+Begin
+if CONNECT_Try then ProcessLines.Add('disconnect')
+else ProcessLines.Add('connect');
+End;
+
+Procedure Tform1.MMMiner(Sender:TObject);
+Begin
+if Miner_Active then ProcessLines.Add('mineroff')
+else ProcessLines.Add('mineron');
+End;
+
+Procedure Tform1.MMImpWallet (Sender:TObject);
+Begin
+info('Only in consola');
+End;
+
+Procedure Tform1.MMExpWallet(Sender:TObject);
+Begin
+info('Only in consola');
+End;
+
+Procedure Tform1.MMChangeLang(Sender:TObject);
+var
+  valor : integer;
+Begin
+valor := (sender as TMenuItem).MenuIndex;
+ProcessLines.Add('lang '+IntToStr(valor));
+End;
+
+
+
+Procedure Tform1.MMVerConsola(Sender:TObject);
+Begin
+if memoconsola.Visible then
+   begin
+   Memoconsola.Visible:=false;
+   ConsoleLine.Visible:=false;
+   DataPanel.Visible:=false;
+   PanelTrxDetails.Visible:=false;
+   DireccionesPanel.Visible:=true;
+   GridMyTxs.Visible:=true;
+   PanelScrow.Visible:=true;
+   optionspanel.Visible:=false;
+   MainMenu.Items[2].Items[0].Caption:='Console';
+   Form1.imagenes.GetBitmap(25,MainMenu.Items[2].Items[0].bitmap);
+   end
+else
+   begin
+   Memoconsola.Visible:=true;
+   memoconsola.SelStart := Length(memoconsola.Lines.Text)-1;
+   ConsoleLine.Visible:=true;
+   DataPanel.Visible:=true;
+   DireccionesPanel.Visible:=false;
+   GridMyTxs.Visible:=false;
+   PanelTrxDetails.Visible:=false;
+   PanelScrow.Visible:=false;
+   optionspanel.Visible:=false;
+   ConsoleLine.SetFocus;
+   MainMenu.Items[2].Items[0].Caption:='Wallet';
+   Form1.imagenes.GetBitmap(30,MainMenu.Items[2].Items[0].bitmap);
+   end;
+End;
+
 
 END. // END PROGRAM
 

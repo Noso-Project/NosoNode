@@ -101,10 +101,10 @@ result := 'Number:'+IntToStr(BlockHeader.Number)+' '+
           'Total:'+IntToStr(BlockHeader.TimeTotal)+' '+
           '20:'+IntToStr(BlockHeader.TimeLast20)+' '+
           'Trxs:'+IntToStr(BlockHeader.TrxTotales)+' '+
-          'Diff:'+BlockHeader.Difficult+' '+
+          'Diff:'+IntToStr(BlockHeader.Difficult)+' '+
           'Target:'+BlockHeader.TargetHash+' '+
           'Solution:'+BlockHeader.Solution+' '+
-          'NextDiff:'+BlockHeader.NxtBlkDiff+' '+
+          'NextDiff:'+IntToStr(BlockHeader.NxtBlkDiff)+' '+
           'Miner:'+BlockHeader.AccountMiner+' '+
           'Fee:'+IntToStr(BlockHeader.MinerFee)+' '+
           'Reward:'+IntToStr(BlockHeader.Reward);
@@ -383,7 +383,7 @@ Solucion        := Parameter (Texto,8);
 solucion        := StringReplace(Solucion,'_',' ',[rfReplaceAll, rfIgnoreCase]);
 // Se recibe una solucion del siguiente bloque
 if ((StrToIntDef(NumeroBloque,-1) = LastBlockData.Number+1) and
-     (VerifySolutionForBlock(Miner_Target,Miner_Steps,DireccionMinero,Solucion)))then
+     (VerifySolutionForBlock(lastblockdata.NxtBlkDiff,MyLastBlockHash,DireccionMinero,Solucion)))then
    begin
    consoleLines.Add(LangLine(21)+NumeroBloque); //Solution for block received and verified:
    CrearNuevoBloque(StrToInt(NumeroBloque),StrToInt64(TimeStamp),Miner_Target,DireccionMinero,Solucion);
@@ -391,7 +391,7 @@ if ((StrToIntDef(NumeroBloque,-1) = LastBlockData.Number+1) and
 // se recibe una solucion distinta del ultimo bloque pero mas antigua
 else if ( (StrToIntDef(NumeroBloque,-1) = LastBlockData.Number) and
    (StrToInt64(timestamp)<LastBlockData.TimeEnd) and
-   (VerifySolutionForBlock(LastBlockData.TargetHash,GetStepsFromDifficult(lastblockdata.Difficult),DireccionMinero,Solucion)
+   (VerifySolutionForBlock(lastblockdata.Difficult,LastBlockData.TargetHash,DireccionMinero,Solucion)
    and (StrToInt64(timestamp)+15 > StrToInt64(UTCTime))) ) then
       begin
       UndoneLastBlock;
@@ -400,7 +400,7 @@ else if ( (StrToIntDef(NumeroBloque,-1) = LastBlockData.Number) and
 // solucion distinta del ultimo con el mismo timestamp se elige la mas corta
 else if ( (StrToIntDef(NumeroBloque,-1) = LastBlockData.Number) and
    (StrToInt64(timestamp)=LastBlockData.TimeEnd) and
-   (VerifySolutionForBlock(LastBlockData.TargetHash,GetStepsFromDifficult(lastblockdata.Difficult),DireccionMinero,Solucion) and
+   (VerifySolutionForBlock(lastblockdata.Difficult,LastBlockData.TargetHash,DireccionMinero,Solucion) and
    (StrToInt64(timestamp)+15 > StrToInt64(UTCTime))) and
    (DireccionMinero<>LastBlockData.AccountMiner) and
    (Solucion<LastBlockData.Solution) ) then
@@ -408,6 +408,7 @@ else if ( (StrToIntDef(NumeroBloque,-1) = LastBlockData.Number) and
       UndoneLastBlock;
       CrearNuevoBloque(StrToInt(NumeroBloque),StrToInt64(TimeStamp),Miner_Target,DireccionMinero,Solucion);
       end;
+
 End;
 
 // Envia el archivo resumen

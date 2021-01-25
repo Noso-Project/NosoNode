@@ -117,7 +117,7 @@ DLSL.Add('Sent blocks interval: ');
 DLSL.Add('Duplicate sender in order');
 DLSL.Add('Balance');                                //95
 DLSL.Add('Server');
-DLSL.Add('Resumen');
+DLSL.Add('Headers');
 DLSL.Add('Connections');
 DLSL.Add('Summary');
 DLSL.Add('Blocks');                                //100

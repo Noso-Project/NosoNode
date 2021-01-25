@@ -25,6 +25,8 @@ Procedure SetGetNodesOFF();
 Procedure ConnectTo(LineText:string);
 Procedure MinerOn();
 Procedure MinerOff();
+Procedure ToTrayON();
+Procedure ToTrayOFF();
 Procedure ShowSumary();
 Procedure AutoServerON();
 Procedure AutoServerOFF();
@@ -45,11 +47,13 @@ Procedure ShowHalvings();
 Procedure GroupCoins(linetext:string);
 Procedure CreateTraslationFile();
 Procedure ImportLanguage(linetext:string);
+Procedure SetServerPort(LineText:string);
+Procedure Sha256(LineText:string);
 
 implementation
 
 uses
-  mpProtocol;
+  mpProtocol, mpMiner;
 
 
 Procedure ProcesarLineas();
@@ -120,6 +124,12 @@ else if UpperCase(Command) = 'REBUILDSUMARY' then RebuildSumario()
 else if UpperCase(Command) = 'GROUPCOINS' then Groupcoins(linetext)
 else if UpperCase(Command) = 'GENLANG' then CreateTraslationFile()
 else if UpperCase(Command) = 'IMPLANG' then ImportLanguage(LineText)
+else if UpperCase(Command) = 'SETPORT' then SetServerPort(LineText)
+else if UpperCase(Command) = 'RESETMINER' then ResetMinerInfo
+else if UpperCase(Command) = 'SHA256' then Sha256(LineText)
+else if UpperCase(Command) = 'TOTRAYON' then ToTrayON()
+else if UpperCase(Command) = 'TOTRAYOFF' then ToTrayOFF()
+
 
 else ConsoleLines.Add(LangLine(0)+Command);  // Unknow command
 ConsoleLines.Add('');
@@ -180,6 +190,7 @@ var
 Begin
 ip := Parameter(Linea,1);
 Port := Parameter(Linea,2);
+if ip = '' then exit;
 if ((port = '') or (StrToIntDef(port,-1)<0)) then port := '8080';
 if NodeExists(Ip,Port)<0 then
    begin
@@ -226,6 +237,7 @@ else
    setlength(listanodos,length(listanodos)-1);
    S_NodeData := True;
    ConsoleLines.Add(LangLine(44)+IntToStr(numero));  //Node deleted :
+   FillNodeList();
    end;
 End;
 
@@ -320,6 +332,21 @@ Miner_Active := true;
 U_Datapanel := true;
 ConsoleLines.Add(LangLine(50)+LAngLine(48));   // miner //active
 End;
+
+Procedure ToTrayON();
+Begin
+UserOptions.ToTray :=true;
+S_Options := true;
+ConsoleLines.Add('Minimize to tray is now '+LangLine(48)); //GetNodes option is now  // INACTIVE
+End;
+
+Procedure ToTrayOFF();
+Begin
+UserOptions.ToTray :=false;
+S_Options := true;
+ConsoleLines.Add('Minimize to tray is now '+LangLine(49)); //GetNodes option is now  // INACTIVE
+End;
+
 
 // desactiva el minero
 Procedure Mineroff();
@@ -547,10 +574,10 @@ consolelines.Add('Time end:     '+IntToStr(LastBlockData.TimeEnd));
 consolelines.Add('Time total:   '+IntToStr(LastBlockData.TimeTotal));
 consolelines.Add('L20 average:  '+IntToStr(LastBlockData.TimeLast20));
 consolelines.Add('Transactions: '+IntToStr(LastBlockData.TrxTotales));
-consolelines.Add('Difficult:    '+LastBlockData.Difficult);
+consolelines.Add('Difficult:    '+IntToStr(LastBlockData.Difficult));
 consolelines.Add('Target:       '+LastBlockData.TargetHash);
 consolelines.Add('Solution:     '+LastBlockData.Solution);
-consolelines.Add('Next Diff:    '+LastBlockData.NxtBlkDiff);
+consolelines.Add('Next Diff:    '+IntToStr(LastBlockData.NxtBlkDiff));
 consolelines.Add('Miner:        '+LastBlockData.AccountMiner);
 consolelines.Add('Fees:         '+IntToStr(LastBlockData.MinerFee));
 consolelines.Add('Reward:       '+IntToStr(LastBlockData.Reward));
@@ -776,6 +803,7 @@ var
   Nombrearchivo : string;
   Archivo : Textfile;
   Idiomas : integer;
+  Original : string[255];
   linea : string[255];
   NombreIdioma : string;
   arrayofstrings : array of string;
@@ -799,7 +827,12 @@ setlength(arrayofstrings,0);
 // leer lineas del nuevo idioma
 while not eof(archivo) do
    begin
-   ReadLn(archivo);ReadLn(archivo,linea);
+   ReadLn(archivo,original);
+   ReadLn(archivo,linea);
+   if ((Original[1] = ' ') and (Linea[1] <> ' ')) then
+     linea := ' '+linea;
+   if ((Original[length(original)] = ' ') and (Linea[length(linea)] <> ' ')) then
+     linea := linea+' ';
    insert(linea,arrayofstrings,length(arrayofstrings));
    end;
 closefile(archivo);
@@ -857,6 +890,28 @@ InicializarGUI();
 ConsoleLines.Add('Loaded: '+NombreIdioma);
 End;
 
+Procedure SetServerPort(LineText:string);
+var
+  NewPort:string = '';
+Begin
+NewPort := parameter(linetext,1);
+if ((StrToIntDef(NewPort,0) < 1) or (StrToIntDef(NewPort,0)>65535)) then
+   begin
+   Consolelines.Add('Invalid Port');
+   exit;
+   end;
+UserOptions.Port :=StrToIntDef(NewPort,0);
+ConsoleLines.Add('New listening port: '+NewPort);
+S_Options := true;
+End;
+
+Procedure Sha256(LineText:string);
+var
+  TextToSha : string = '';
+Begin
+TextToSha :=  parameter(linetext,1);
+consolelines.Add(HashSha256String(TextToSha));
+End;
 
 END. // END UNIT
 

@@ -22,6 +22,7 @@ Procedure SaveBotData();
 Procedure CrearNodeData();
 Procedure CargarNodeData();
 Procedure UpdateNodeData(IPUser:String;Port:string;LastTime:String='');
+Procedure FillNodeList();
 Procedure SaveNodeData();
 Procedure DepurarNodos();
 Procedure CrearNTPData();
@@ -113,6 +114,7 @@ DefOptions.AutoConnect:=false;
 DefOptions.Auto_Updater:=false;
 DefOptions.JustUpdated:=false;
 DefOptions.VersionPage:='';
+DefOptions.ToTray:=false;
 write(FileOptions,DefOptions);
 closefile(FileOptions);
 UserOptions := DefOptions;
@@ -346,7 +348,25 @@ SetLength(ListaNodos,Length(ListaNodos)+1);
 ListaNodos[Length(ListaNodos)-1].ip:=IPUser;
 ListaNodos[Length(ListaNodos)-1].port:=port;
 ListaNodos[Length(ListaNodos)-1].LastConexion:=LastTime;
+FillNodeList();
 S_NodeData := true;
+End;
+
+Procedure FillNodeList();
+var
+  cont : integer;
+Begin
+GridNodes.RowCount:=1;
+if Length(ListaNodos)>0 then
+   begin
+   for cont := 0 to Length(ListaNodos)-1 do
+      begin
+      GridNodes.RowCount:=GridNodes.RowCount+1;
+      GridNodes.Cells[0,GridNodes.RowCount-1] := Listanodos[cont].ip;
+      GridNodes.Cells[1,GridNodes.RowCount-1] := Listanodos[cont].port;
+      end;
+
+   end;
 End;
 
 // Guarda la informacion de los nodos al disco

@@ -9,9 +9,7 @@ uses
 
 Procedure CrearBloqueCero();
 Procedure CrearNuevoBloque(Numero,TimeStamp: Int64; TargetHash, Minero, Solucion:String);
-function IncreaseDiff(oldDiff:String):String;
-function DecreaseDiff(oldDiff:String):String;
-function GetDiffForNextBlock(UltimoBloque,Last20Average,lastblocktime:integer;previous:string):string;
+function GetDiffForNextBlock(UltimoBloque,Last20Average,lastblocktime,previous:integer):integer;
 function GetLast20Time(LastBlTime:integer):integer;
 function GetBlockReward(BlNumber:int64):Int64;
 Procedure GuardarBloque(NombreArchivo:string;Cabezera:BlockHeaderData;Ordenes:array of OrderData);
@@ -154,11 +152,11 @@ BlockHeader.TimeEnd:= timeStamp;
 BlockHeader.TimeTotal:= TimeStamp - StartBlockTime;
 BlockHeader.TimeLast20:=GetLast20Time(BlockHeader.TimeTotal);
 BlockHeader.TrxTotales:=length(ListaOrdenes);
-if numero = 0 then BlockHeader.Difficult:= '7 1'
+if numero = 0 then BlockHeader.Difficult:= InitialBlockDiff
 else BlockHeader.Difficult:= LastBlockData.NxtBlkDiff;
 BlockHeader.TargetHash:=TargetHash;
 BlockHeader.Solution:= Solucion;
-BlockHeader.NxtBlkDiff:=GetDiffForNextBlock(numero,BlockHeader.TimeLast20,BlockHeader.TimeTotal,LastBlockData.NxtBlkDiff);
+BlockHeader.NxtBlkDiff:=GetDiffForNextBlock(numero,BlockHeader.TimeLast20,BlockHeader.TimeTotal,BlockHeader.Difficult);
 BlockHeader.AccountMiner:=Minero;
 BlockHeader.MinerFee:=MinerFee;
 BlockHeader.Reward:=GetBlockReward(Numero);
@@ -174,61 +172,33 @@ MySumarioHash := HashMD5File(SumarioFilename);
 AddBlchHead(Numero,MyLastBlockHash,MySumarioHash);
 MyResumenHash := HashMD5File(ResumenFilename);
 ResetMinerInfo();
-OutgoingMsjs.Add(ProtocolLine(6)+IntToStr(timeStamp)+' '+IntToStr(Numero)+
-' '+Minero+' '+StringReplace(Solucion,' ','_',[rfReplaceAll, rfIgnoreCase]));
-OutgoingMsjs.Add(ProtocolLine(ping));
+if Numero>0 then
+   begin
+   OutgoingMsjs.Add(ProtocolLine(6)+IntToStr(timeStamp)+' '+IntToStr(Numero)+
+   ' '+Minero+' '+StringReplace(Solucion,' ','_',[rfReplaceAll, rfIgnoreCase]));
+   OutgoingMsjs.Add(ProtocolLine(ping));
+   end;
 ConsoleLines.Add(LangLine(89)+IntToStr(numero));  //'Block builded: '
 if Numero > 0 then RebuildMyTrx(Numero);
 CheckForMyPending;
+if DIreccionEsMia(Minero)>-1 then showglobo('Miner','Block found!');
 U_DataPanel := true;
 End;
 
-// incrementa la cadena de dificultad
-function IncreaseDiff(oldDiff:String):String;
-var
-  data1,data2 : integer;
-Begin
-data1 := StrToInt(Getcommand(oldDiff));
-data2 := StrToInt(Parameter(oldDiff,1));
-data2 := data2+1;
-if data2 > 15 then
-   begin
-   Data2:=1;
-   Data1:= Data1+1;
-   end;
-Result := IntToStr(data1)+' '+IntToStr(Data2);
-End;
-
-// Disminute la cadena de dificultad
-function DecreaseDiff(oldDiff:String):String;
-var
-  data1,data2 : integer;
-Begin
-data1 := StrToInt(Getcommand(oldDiff));
-data2 := StrToInt(Parameter(oldDiff,1));
-data2 := data2-1;
-if data2 < 1 then
-   begin
-   Data2:=15;
-   Data1 := Data1-1;
-   end;
-Result := IntToStr(data1)+' '+IntToStr(Data2);
-End;
-
 // Devuelve cuantos caracteres compondran el targethash del siguiente bloque
-function GetDiffForNextBlock(UltimoBloque,Last20Average, lastblocktime:integer;previous:string):string;
+function GetDiffForNextBlock(UltimoBloque,Last20Average, lastblocktime,previous:integer):integer;
 Begin
 result := previous;
-if UltimoBloque < 21 then result := '7 1'
+if UltimoBloque < 21 then result := InitialBlockDiff
 else
    begin
    if Last20Average < SecondsPerBlock then
       begin
-      if lastblocktime<SecondsPerBlock then result := IncreaseDiff(result)
+      if lastblocktime<SecondsPerBlock then result := Previous+1
       end
    else if Last20Average > SecondsPerBlock then
       begin
-      if lastblocktime>SecondsPerBlock then result := DecreaseDiff(result)
+      if lastblocktime>SecondsPerBlock then result := Previous-1
       end
    else result := previous;
    end;
