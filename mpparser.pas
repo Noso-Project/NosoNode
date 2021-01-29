@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, mpCripto, mpTime, mpblock, mpcoin,
-  dialogs;
+  dialogs, fileutil;
 
 Procedure ProcesarLineas();
 function GetOpData(textLine:string):String;
@@ -37,6 +37,7 @@ Procedure EnviarUpdate(LineText:string);
 Procedure AutoUpdateON();
 Procedure AutoUpdateOFF();
 Procedure ImportarWallet(LineText:string);
+Procedure ExportarWallet(LineText:string);
 Procedure ShowBlchHead();
 Procedure SetDefaultAddress(linetext:string);
 Procedure ShowLastBlockInfo();
@@ -49,6 +50,7 @@ Procedure CreateTraslationFile();
 Procedure ImportLanguage(linetext:string);
 Procedure SetServerPort(LineText:string);
 Procedure Sha256(LineText:string);
+Procedure CheckFile(linetext:string);
 
 implementation
 
@@ -111,6 +113,7 @@ else if UpperCase(Command) = 'AUTOUPDATEOFF' then AutoUpdateOFF()
 else if UpperCase(Command) = 'SHOWWALLET' then ShowWallet()
 else if UpperCase(Command) = 'SENDUPDATE' then EnviarUpdate(LineText)
 else if UpperCase(Command) = 'IMPWALLET' then ImportarWallet(LineText)
+else if UpperCase(Command) = 'EXPWALLET' then ExportarWallet(LineText)
 else if UpperCase(Command) = 'RESUMEN' then ShowBlchHead()
 else if UpperCase(Command) = 'SETDEFAULTADDRESS' then SetDefaultAddress(LineText)
 else if UpperCase(Command) = 'LBINFO' then ShowLastBlockInfo()
@@ -129,6 +132,7 @@ else if UpperCase(Command) = 'RESETMINER' then ResetMinerInfo
 else if UpperCase(Command) = 'SHA256' then Sha256(LineText)
 else if UpperCase(Command) = 'TOTRAYON' then ToTrayON()
 else if UpperCase(Command) = 'TOTRAYOFF' then ToTrayOFF()
+else if UpperCase(Command) = 'CHECKFILE' then CheckFile(LineText)
 
 
 else ConsoleLines.Add(LangLine(0)+Command);  // Unknow command
@@ -190,7 +194,12 @@ var
 Begin
 ip := Parameter(Linea,1);
 Port := Parameter(Linea,2);
-if ip = '' then exit;
+if ip = '' then
+  begin
+  consolelines.Add('Invalid node');
+  info('Invalid node');
+  exit;
+  end;
 if ((port = '') or (StrToIntDef(port,-1)<0)) then port := '8080';
 if NodeExists(Ip,Port)<0 then
    begin
@@ -484,6 +493,27 @@ S_Options := true;
 ConsoleLines.Add(LangLine(58)+LangLine(49));     //autoupdate //inactive
 End;
 
+Procedure ExportarWallet(LineText:string);
+var
+  destino : string = '';
+Begin
+destino := Parameter(linetext,1);
+destino := StringReplace(destino,'*',' ',[rfReplaceAll, rfIgnoreCase]);
+if fileexists(destino+'.pkw') then
+   begin
+   consolelines.Add('Error: Can not overwrite existing wallets');
+   exit;
+   end;
+if copyfile(useroptions.Wallet,destino+'.pkw',[]) then
+   begin
+   consolelines.Add('Wallet saved as '+destino+'.pkw');
+   end
+else
+   begin
+   consolelines.Add('Failed');
+   end;
+End;
+
 Procedure ImportarWallet(LineText:string);
 var
   Cartera : string = '';
@@ -493,6 +523,7 @@ var
   Nuevos: integer = 0;
 Begin
 Cartera := Parameter(linetext,1);
+Cartera := StringReplace(Cartera,'*',' ',[rfReplaceAll, rfIgnoreCase]);
 if not FileExists(cartera) then
    begin
    consolelines.Add(langLine(60));//Specified wallet file do not exists.
@@ -501,6 +532,14 @@ if not FileExists(cartera) then
 assignfile(CarteraFile,Cartera);
 try
 reset(CarteraFile);
+seek(CarteraFile,0);
+Read(CarteraFile,DatoLeido);
+if not IsValidAddress(DatoLeido.Hash) then
+   begin
+   closefile(CarteraFile);
+   consolelines.Add('The file is not a valid wallet');
+   exit;
+   end;
 for contador := 0 to filesize(CarteraFile)-1 do
    begin
    seek(CarteraFile,contador);
@@ -527,15 +566,19 @@ End;
 Procedure ShowBlchHead();
 var
   Dato: ResumenData;
+  Registros : integer = 0;
 Begin
+consolelines.Add('Block hash - Sumary hash');
 assignfile(FileResumen,ResumenFilename);
 reset(FileResumen);
+Registros := filesize(FileResumen);
 while not eof (fileresumen) do
    begin
    read(fileresumen, dato);
    consolelines.Add(IntToStr(dato.block)+' '+dato.blockhash+' '+dato.SumHash);
    end;
 closefile(FileResumen);
+Consolelines.Add(IntToStr(Registros)+' registers');
 End;
 
 // Cambiar la primera direccion de la wallet
@@ -594,6 +637,7 @@ End;
 Procedure CustomizeAddress(linetext:string);
 var
   address, AddAlias, TrfrHash, OrderHash, CurrTime : String;
+  cont : integer;
 Begin
 address := Parameter(linetext,1);
 AddAlias := Parameter(linetext,2);
@@ -626,6 +670,15 @@ if AddressAlreadyCustomized(Address) then
    begin
    consolelines.Add(LangLine(141)); //'Address already have a custom alias'
    exit;
+   end;
+for cont := 1 to length(addalias) do
+   begin
+   if pos(addalias[cont],CustomValid)=0 then
+      begin
+      consolelines.Add('Invalid character in alias: '+addalias[cont]);
+      info('Invalid character in alias: '+addalias[cont]);
+      exit;
+      end;
    end;
 CurrTime := UTCTime;
 TrfrHash := GetTransferHash(CurrTime+Address+addalias+IntToStr(MyLastblock));
@@ -813,6 +866,7 @@ var
   LineasViejas : array of string;
 Begin
 Nombrearchivo := parameter(linetext,1);
+Nombrearchivo := StringReplace(Nombrearchivo,'*',' ',[rfReplaceAll, rfIgnoreCase]);
 if ((nombrearchivo='') or (not fileexists(Nombrearchivo))) then
    begin
    consolelines.Add('Invalid file name');
@@ -911,6 +965,15 @@ var
 Begin
 TextToSha :=  parameter(linetext,1);
 consolelines.Add(HashSha256String(TextToSha));
+End;
+
+Procedure CheckFile(linetext:string);
+var
+  filetocheck : string = '';
+Begin
+filetocheck :=  parameter(linetext,1);
+if fileexists(filetocheck) then consolelines.Add(filetocheck+' FOUND')
+else consolelines.Add(filetocheck+' NOT FOUND')
 End;
 
 END. // END UNIT

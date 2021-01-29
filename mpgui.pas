@@ -337,6 +337,7 @@ Begin
 if not Form1.SystrayIcon.Visible then exit;
 form1.SystrayIcon.BalloonTitle:=Titulo;
 Form1.SystrayIcon.BalloonHint:=Texto;
+form1.SystrayIcon.BalloonTimeout:=3000;
 form1.SystrayIcon.ShowBalloonHint;
 End;
 

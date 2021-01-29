@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, LCLType,
   Grids, ExtCtrls, Buttons, IdTCPServer, IdContext, IdGlobal, IdTCPClient,
-  fileutil,Clipbrd, Menus, crt;
+  fileutil,Clipbrd, Menus, crt, formexplore;
 
 type
 
@@ -171,6 +171,8 @@ type
     Procedure GridMyTxsOnDoubleClick(Sender: TObject);
     Procedure BCloseTrxDetailsOnClick(Sender: TObject);
     Procedure BCustomAddrOnClick(Sender: TObject);
+    Procedure EditCustomKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+    Procedure BOkCustomClick(Sender: TObject);
     Procedure PanelCustomMouseLeave(Sender: TObject);
     Procedure BNewAddrOnClick(Sender: TObject);
     Procedure BCopyAddrClick(Sender: TObject);
@@ -202,7 +204,10 @@ type
     Procedure MMMiner(Sender:TObject);
     Procedure MMImpWallet(Sender:TObject);
     Procedure MMExpWallet(Sender:TObject);
+    Procedure MMQuit(Sender:TObject);
     Procedure MMChangeLang(Sender:TObject);
+    Procedure MMImpLang(Sender:TObject);
+    Procedure MMNewLang(Sender:TObject);
     Procedure MMVerConsola(Sender:TObject);
 
   private
@@ -219,6 +224,7 @@ CONST
   B58Alphabet : string = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
   B36Alphabet : string = '0123456789abcdefghijklmnopqrstuvwxyz';
   ReservedWords : string = 'NULL,DELADDR';
+  CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
   ProgramVersion = '0.1.1';
   ADMINHash = 'NUBy1bsprQKeFrVU4K8eKP46QG2ABs';
   OptionsFileName = 'NOSODATA/options.psk';
@@ -362,6 +368,7 @@ var
     BCustomAddr : TSpeedButton;
       PanelCustom : TPanel;
         EditCustom : TEdit;
+        BOkCustom : TSpeedButton;
     BNewAddr : TSpeedButton;
     BCopyAddr : TSpeedButton;
     BSendCoins : TSpeedButton;
@@ -605,6 +612,8 @@ VerifyConnectionStatus();
 VerifyMiner();
 if G_CloseRequested then CerrarPrograma();
 Form1.Latido.Enabled:=true;
+if form1.SystrayIcon.Visible then
+   form1.SystrayIcon.Hint:=Coinname+' Ver. '+ProgramVersion+SLINEBREAK+LabelBigBalance.Caption;
 end;
 
 //procesa el cierre de la aplicacion
@@ -638,14 +647,16 @@ MenuItem.OnClick:=@form1.CheckMMCaptions;
   Form1.imagenes.GetBitmap(31,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Export Wallet';MenuItem.OnClick:=@Form1.MMExpWallet;
   Form1.imagenes.GetBitmap(32,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Quit Forced';MenuItem.OnClick:=@Form1.MMQuit;
+  Form1.imagenes.GetBitmap(18,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
 
 MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Language';MainMenu.items.Add(MenuItem);
 MenuItem.OnClick:=@form1.CheckMMCaptions;
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Change';
   Form1.imagenes.GetBitmap(35,MenuItem.bitmap); MainMenu.items[1].Add(MenuItem);
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Import';//MenuItem.OnClick:=@Form1.MMConnect;
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Import';MenuItem.OnClick:=@Form1.MMImpLang;
   Form1.imagenes.GetBitmap(33,MenuItem.bitmap); MainMenu.items[1].Add(MenuItem);
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='New file';//MenuItem.OnClick:=@Form1.MMConnect;
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='New file';MenuItem.OnClick:=@Form1.MMNewLang;
   Form1.imagenes.GetBitmap(34,MenuItem.bitmap); MainMenu.items[1].Add(MenuItem);
 
 MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='View';MenuItem.RightJustify:=true;MainMenu.items.Add(MenuItem);
@@ -735,8 +746,15 @@ DireccionesPanel.OnPrepareCanvas:= @Form1.Grid2PrepareCanvas;
       EditCustom.Font.Name:='consolas'; EditCustom.Font.Size:=8;
       EditCustom.Alignment:=taLeftJustify;EditCustom.Visible:=true;
       EditCustom.Color:=clBlack;EditCustom.Font.color:=clwhite;
-      //EditCustom.OnChange:=@form1.EditCustomChange;
+      EditCustom.OnKeyUp :=@form1.EditCustomKeyUp;
       EditCustom.OnContextPopup:=@form1.DisablePopUpMenu;
+
+      BOkCustom := TSpeedButton.Create(form1);BOkCustom.Parent:=PanelCustom;
+      BOkCustom.Top:=1;BOkCustom.Left:=231;BOkCustom.Height:=18;BOkCustom.Width:=18;
+      Form1.imagenes.GetBitmap(17,BOkCustom.Glyph);
+      BOkCustom.Caption:='';
+      BOkCustom.OnClick:=@Form1.BOkCustomClick;
+      BOkCustom.Hint:='Confirm';BOkCustom.ShowHint:=true;
 
   BNewAddr := TSpeedButton.Create(form1);BNewAddr.Parent:=DireccionesPanel;
   BNewAddr.Top:=2;BNewAddr.Left:=240;BNewAddr.Height:=18;BNewAddr.Width:=18;
@@ -1213,6 +1231,7 @@ Form1.WindowState:=wsNormal;
 Form1.Show;
 End;
 
+// Click en conectar
 Procedure TForm1.ConnectCircleOnClick(Sender: TObject);
 Begin
 if Form1.Server.Active then
@@ -1229,6 +1248,7 @@ else
    end;
 End;
 
+// click en el boton de minar
 Procedure Tform1.MinerCircleOnClick(Sender: TObject);
 Begin
 if Miner_Active then
@@ -1248,7 +1268,7 @@ if LangSelect.Items[LangSelect.ItemIndex] <> CurrentLanguage then
    ProcessLines.Add('lang '+IntToStr(LangSelect.ItemIndex ));
 End;
 
-
+// Mostrar los detalles de una transaccion
 Procedure TForm1.GridMyTxsOnDoubleClick(Sender: TObject);
 var
   cont : integer;
@@ -1309,14 +1329,46 @@ Begin
 PanelTrxDetails.visible := false;
 End;
 
+// Mostrar el panel de personalizacion
 Procedure TForm1.BCustomAddrOnClick(Sender: TObject);
+var
+  Address : string;
 Begin
-PanelCustom.Visible := true;PanelCustom.BringToFront;
+Address := DireccionesPanel.Cells[0,DireccionesPanel.Row];
+if not IsValidAddress(address) then info('Address already customized')
+else if AddressAlreadyCustomized(address) then info('Address already customized')
+else if GetAddressBalance(Address)-GetAddressPendingPays(address)< Customizationfee then info('Insufficient funds')
+else
+   begin
+   PanelCustom.Visible := true;
+   PanelCustom.BringToFront;
+   EditCustom.SetFocus;
+   end;
 End;
 
+Procedure Tform1.EditCustomKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+Begin
+if Key=VK_RETURN then
+   begin
+   ProcessLines.Add('Customize '+DireccionesPanel.Cells[0,DireccionesPanel.Row]+' '+EditCustom.Text);
+   PanelCustom.Visible := false;
+   EditCustom.Text := '';
+   end;
+End;
+
+// Aceptar la personalizacion
+Procedure TForm1.BOkCustomClick(Sender: TObject);
+Begin
+ProcessLines.Add('Customize '+DireccionesPanel.Cells[0,DireccionesPanel.Row]+' '+EditCustom.Text);
+PanelCustom.Visible := false;
+EditCustom.Text := '';
+End;
+
+// Cerrar el panel de personalizacion cuando el boton sale de el
 Procedure TForm1.PanelCustomMouseLeave(Sender: TObject);
 Begin
 PanelCustom.Visible := false;
+
 End;
 
 // El boton para crear una nueva direccion
@@ -1338,6 +1390,7 @@ Begin
 PanelSend.Visible:=true;
 End;
 
+// Cerrar el panel de envio de dinero
 Procedure Tform1.BCLoseSendOnClick(Sender: TObject);
 Begin
 PanelSend.Visible:=false;
@@ -1602,12 +1655,17 @@ End;
 
 Procedure Tform1.MMImpWallet (Sender:TObject);
 Begin
-info('Only in consola');
+ShowExplorer(GetCurrentDir,'Import Wallet','*.pkw','impwallet (-resultado-)',true);
 End;
 
 Procedure Tform1.MMExpWallet(Sender:TObject);
 Begin
-info('Only in consola');
+ShowExplorer(GetCurrentDir,'Export Wallet to','*.pkw','expwallet (-resultado-)',false);
+End;
+
+Procedure Tform1.MMQuit(Sender:TObject);
+Begin
+Application.Terminate;
 End;
 
 Procedure Tform1.MMChangeLang(Sender:TObject);
@@ -1618,7 +1676,15 @@ valor := (sender as TMenuItem).MenuIndex;
 ProcessLines.Add('lang '+IntToStr(valor));
 End;
 
+Procedure TForm1.MMImpLang(Sender:TObject);
+Begin
+ShowExplorer(GetCurrentDir,'Import Language','English_*.txt','implang (-resultado-)',true);
+End;
 
+Procedure TForm1.MMNewLang(Sender:TObject);
+Begin
+CreateTraslationFile();
+End;
 
 Procedure Tform1.MMVerConsola(Sender:TObject);
 Begin

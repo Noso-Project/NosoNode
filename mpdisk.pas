@@ -365,7 +365,6 @@ if Length(ListaNodos)>0 then
       GridNodes.Cells[0,GridNodes.RowCount-1] := Listanodos[cont].ip;
       GridNodes.Cells[1,GridNodes.RowCount-1] := Listanodos[cont].port;
       end;
-
    end;
 End;
 
@@ -740,9 +739,12 @@ var
   ArrayOrders : BlockOrdersArray;
   cont : integer;
   newblocks : integer = 0;
+  HeaderRegistrosIniciando : integer = 0;
+  HeaderRegistrosTerminando : integer = 0;
 Begin
 assignfile(FileResumen,ResumenFilename);
 reset(FileResumen);
+HeaderRegistrosIniciando := Filesize(FileResumen);
 MyLastBlock := GetMyLastUpdatedBlock;
 consolelines.Add(LangLine(127)+IntToStr(MyLastBlock)); //'Rebuilding until block '
 for contador := 0 to MyLastBlock do
@@ -750,12 +752,11 @@ for contador := 0 to MyLastBlock do
    info(LangLine(127)+IntToStr(contador)); //'Rebuild block: '
    dato := default(ResumenData);
    seek(FileResumen,contador);
-   if filesize(FileResumen)>contador then Read(FileResumen,dato);
+   if filesize(FileResumen)>contador then
+      Read(FileResumen,dato);
    CurrHash := HashMD5File(BlockDirectory+IntToStr(contador)+'.blk');
    if  CurrHash <> Dato.blockhash then
       begin
-      BlockHeader := Default(BlockHeaderData);
-      BlockHeader := LoadBlockDataHeader(contador);
       NewDato := Default(ResumenData);
       NewDato := Dato;
       NewDato.block:=contador;
@@ -787,19 +788,21 @@ for contador := 0 to MyLastBlock do
       ListaSumario[0].LastOP:=contador;
       GuardarSumario();
       end;
-   //////////////////
-   // ERROR CRITICO//
-   //////////////////
-   // El hash del sumario no coincide con el de las cabeceras
-   {
-   if dato.SumHash <> HashMD5File(SumarioFilename) then
+   // VErificar si el sumario hash no esta en blanco
+   seek(FileResumen,contador);
+   Read(FileResumen,dato);
+   if dato.SumHash = '' then
       begin
-      ShowMessage('CRITICAL ERROR'+SLINEBREAK+'ERROR ON SUMHASH BLOCK '+IntToStr(contador)+SLINEBREAK+
-      dato.SumHash+' '+HashMD5File(SumarioFilename));
+      NewDato := Default(ResumenData);
+      NewDato := Dato;
+      NewDato.SumHash:=HashMD5File(SumarioFilename);
+      seek(FileResumen,contador);
+      Write(FileResumen,Newdato);
       end;
-   }
    end;
+HeaderRegistrosTerminando := Filesize(FileResumen);
 closefile(FileResumen);
+consolelines.Add(IntToStr(HeaderRegistrosIniciando)+'-'+IntToStr(HeaderRegistrosTerminando));
 if newblocks>0 then ConsoleLines.Add(IntToStr(newblocks)+LangLine(129)); //' added to headers'
 GuardarSumario();
 UpdateMyData();
