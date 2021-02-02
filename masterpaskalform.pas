@@ -144,9 +144,12 @@ type
   { TForm1 }
 
   TForm1 = class(TForm)
+    Image1: TImage;
     Imagenes: TImageList;
     Latido : TTimer;
     InfoTimer : TTimer;
+    InicioTimer : TTimer;
+    CloseTimer : TTimer;
     Server: TIdTCPServer;
     SystrayIcon: TTrayIcon;
 
@@ -154,12 +157,15 @@ type
     procedure FormWindowStateChange(Sender: TObject);
     Procedure LoadOptionsToPanel();
     procedure FormShow(Sender: TObject);
+    Procedure InicoTimerEjecutar(Sender: TObject);
+    Procedure EjecutarInicio();
     Procedure ConsoleLineKeyup(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Grid1PrepareCanvas(sender: TObject; aCol, aRow: Integer; aState: TGridDrawState);
     procedure Grid2PrepareCanvas(sender: TObject; aCol, aRow: Integer; aState: TGridDrawState);
     Procedure GridMyTxsPrepareCanvas(sender: TObject; aCol, aRow: Integer;aState: TGridDrawState);
     Procedure LatidoEjecutar(Sender: TObject);
     Procedure InfoTimerEnd(Sender: TObject);
+    Procedure CloseTimerEnd(Sender: TObject);
     procedure IdTCPServer1Execute(AContext: TIdContext);
     procedure IdTCPServer1Connect(AContext: TIdContext);
     procedure IdTCPServer1Disconnect(AContext: TIdContext);
@@ -205,10 +211,12 @@ type
     Procedure MMImpWallet(Sender:TObject);
     Procedure MMExpWallet(Sender:TObject);
     Procedure MMQuit(Sender:TObject);
+    Procedure MMAbout(Sender:TObject);
     Procedure MMChangeLang(Sender:TObject);
     Procedure MMImpLang(Sender:TObject);
     Procedure MMNewLang(Sender:TObject);
     Procedure MMVerConsola(Sender:TObject);
+    Procedure MMVerLog(Sender:TObject);
 
   private
 
@@ -225,7 +233,8 @@ CONST
   B36Alphabet : string = '0123456789abcdefghijklmnopqrstuvwxyz';
   ReservedWords : string = 'NULL,DELADDR';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
-  ProgramVersion = '0.1.1';
+  ProgramVersion = '0.1.4';
+  BuildDate = 'January 2021';
   ADMINHash = 'NUBy1bsprQKeFrVU4K8eKP46QG2ABs';
   OptionsFileName = 'NOSODATA/options.psk';
   BotDataFilename = 'NOSODATA/botdata.psk';
@@ -239,6 +248,7 @@ CONST
   ResumenFilename = 'NOSODATA/blchhead.nos';
   MyTrxFilename = 'NOSODATA/mytrx.nos';
   TranslationFilename = 'NOSODATA/English_empty.txt';
+  ErrorLogFilename = 'NOSODATA/errorlog.txt';
   DefaultServerPort = 8080;
   MaxConecciones  = 15;
   Protocolo = 1;
@@ -303,7 +313,10 @@ var
     S_Resumen : Boolean = false;
   UserOptions : Options;
   CurrentLanguage : String = '';
+  CurrentJob : String = '';
+  ForcedQuit : boolean = false;
   LanguageLines : integer = 0;
+  NewLogLines : integer = 0;
   Conexiones : array [1..MaxConecciones] of conectiondata;
   SlotLines : array [1..MaxConecciones] of TStringList;
   CanalCliente : array [1..MaxConecciones] of TIdTCPClient;
@@ -435,13 +448,34 @@ Uses
 
 // Al iniciar el programa
 procedure TForm1.FormShow(Sender: TObject);
-var
-  contador : integer;
 begin
 // Se ejecuta solo la primera vez
 if FirstShow then exit;
 //inicializar lo basico para cargar el idioma
+CreateFormInicio();
+CreateFormLog();
+CreateFormAbout();
+form1.Visible:=false;
+forminicio.Visible:=true;
+Form1.InicioTimer:= TTimer.Create(Form1);
+Form1.InicioTimer.Enabled:=true;Form1.InicioTimer.Interval:=1;
+Form1.InicioTimer.OnTimer:= @form1.InicoTimerEjecutar;
+end;
+
+Procedure TForm1.InicoTimerEjecutar(Sender: TObject);
+Begin
+InicioTimer.Enabled:=false;
+EjecutarInicio;
+End;
+
+// Ejecuta todo el proceso de carga y lo muestra en el form inicio
+Procedure TForm1.EjecutarInicio();
+var
+  contador : integer;
+Begin
+// A partir de aqui se inicializa todo
 if not directoryexists('NOSODATA') then CreateDir('NOSODATA');
+OutText('✓ Data directory ok',false,1);
 if not FileExists(OptionsFileName) then CrearArchivoOpciones() else CargarOpciones();
 StringListLang := TStringlist.Create;
 ConsoleLines := TStringlist.Create;
@@ -450,20 +484,23 @@ IdiomasDisponibles := TStringlist.Create;
 if not FileExists (LanguageFileName) then CrearIdiomaFile() else CargarIdioma(UserOptions.language);
 // finalizar la inicializacion
 InicializarFormulario();
+OutText('✓ GUI initialized',false,1);
 VerificarArchivos();
 InicializarGUI();
 InitTime();
 UpdateMyData();
+OutText('✓ My data updated',false,1);
 ResetMinerInfo();
+OutText('✓ Miner configuration set',false,1);
 // Ajustes a mostrar
 LoadOptionsToPanel();
 form1.Caption:=coinname+LangLine(61)+ProgramVersion;    // Wallet
 Application.Title := coinname+LangLine(61)+ProgramVersion;  // Wallet
 for contador := 0 to IdiomasDisponibles.Count-1 do
    LangSelect.Items.Add(IdiomasDisponibles[contador]);
+OutText('✓ '+IntToStr(IdiomasDisponibles.count)+' languages available',false,1);
 LangSelect.ItemIndex:=0;
 FillNodeList();
-G_Launching := false;
 ConsoleLines.Add(coinname+LangLine(61)+ProgramVersion);  // wallet
 RebuildMyTrx(MyLastBlock);
 UpdateMyTrxGrid();
@@ -475,10 +512,15 @@ if useroptions.JustUpdated then
    useroptions.JustUpdated := false;
    Deletefile('mpupdater.exe');
    S_Options := true;
+   OutText('✓ Just updated to a new version',false,1);
    end;
 Form1.Latido.Enabled:=true;
+G_Launching := false;
+OutText('Noso is ready',false,1);
+FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
 FirstShow := true;
-end;
+Tolog('Noso session started'); NewLogLines := NewLogLines-1;
+End;
 
 // Carga las opciones de usuario al panel de opciones
 Procedure TForm1.LoadOptionsToPanel();
@@ -624,6 +666,7 @@ CerrarClientes();
 StopServer();
 KillThread(Miner_Thread);
 //Showmessage(LangLine(63));  //Closed gracefully
+if ForcedQuit then Showmessage('Forced Quit: '+CurrentJob);
 Application.Terminate;
 End;
 
@@ -647,7 +690,9 @@ MenuItem.OnClick:=@form1.CheckMMCaptions;
   Form1.imagenes.GetBitmap(31,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Export Wallet';MenuItem.OnClick:=@Form1.MMExpWallet;
   Form1.imagenes.GetBitmap(32,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Quit Forced';MenuItem.OnClick:=@Form1.MMQuit;
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='About...';MenuItem.OnClick:=@Form1.MMAbout;
+  Form1.imagenes.GetBitmap(39,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Quit';MenuItem.OnClick:=@Form1.MMQuit;
   Form1.imagenes.GetBitmap(18,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
 
 MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Language';MainMenu.items.Add(MenuItem);
@@ -660,8 +705,11 @@ MenuItem.OnClick:=@form1.CheckMMCaptions;
   Form1.imagenes.GetBitmap(34,MenuItem.bitmap); MainMenu.items[1].Add(MenuItem);
 
 MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='View';MenuItem.RightJustify:=true;MainMenu.items.Add(MenuItem);
+MenuItem.OnClick:=@form1.CheckMMCaptions;
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Console';MenuItem.OnClick:=@Form1.MMVerConsola;
   Form1.imagenes.GetBitmap(25,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Log';MenuItem.OnClick:=@Form1.MMVerLog;
+  Form1.imagenes.GetBitmap(42,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
 
 Memoconsola := TMemo.Create(Form1);
 Memoconsola.Parent:=form1;
@@ -683,6 +731,7 @@ DataPanel.ScrollBars:=ssnone;
 DataPanel.ColWidths[0]:= 79;DataPanel.ColWidths[1]:= 119;DataPanel.ColWidths[2]:= 79;DataPanel.ColWidths[3]:= 119;
 DataPanel.Visible:=false;
 DataPanel.OnPrepareCanvas:= @Form1.Grid1PrepareCanvas;
+DataPanel.FocusRectVisible:=false;
 
 LabelBigBalance := TLabel.Create(Form1);LabelBigBalance.Parent:=form1;
 LabelBigBalance.Caption:='0 '+Coinsimbol;LabelBigBalance.Font.Size:=18;LabelBigBalance.AutoSize:=false;
@@ -728,6 +777,7 @@ DireccionesPanel.Options:= DireccionesPanel.Options+[goRowSelect]-[goRangeSelect
 DireccionesPanel.Font.Name:='consolas'; DireccionesPanel.Font.Size:=10;
 DireccionesPanel.ColWidths[0]:= 260;DireccionesPanel.ColWidths[1]:= 115;
 DireccionesPanel.OnPrepareCanvas:= @Form1.Grid2PrepareCanvas;
+DireccionesPanel.FocusRectVisible:=false;
 
   BCustomAddr := TSpeedButton.Create(form1);BCustomAddr.Parent:=DireccionesPanel;
   BCustomAddr.Top:=2;BCustomAddr.Left:=192;BCustomAddr.Height:=18;BCustomAddr.Width:=18;
@@ -794,6 +844,7 @@ PanelSend.font.Name:='consolas';PanelSend.Font.Size:=14;
   SGridSC.ColCount:=1;SGridSC.rowcount:=3;SGridSC.FixedCols:=1;SGridSC.FixedRows:=0;
   SGridSC.DefaultColWidth:=120;SGridSC.DefaultRowHeight:=18;
   SGridSC.ScrollBars:=ssnone;SGridSC.Font.Size:=9;SGridSC.Enabled := false;
+  SGridSC.FocusRectVisible:=false;
 
   SBSCPaste := TSpeedButton.Create(nil);SBSCPaste.Parent:=PanelSend;
   SBSCPaste.Left:=132;SBSCPaste.Top:=24;SBSCPaste.Height:=18;SBSCPaste.Width:=18;
@@ -868,6 +919,7 @@ GridMyTxs.Font.Name:='consolas'; GridMyTxs.Font.Size:=10;
 GridMyTxs.ColWidths[0]:= 60;GridMyTxs.ColWidths[1]:= 60;GridMyTxs.ColWidths[2]:= 100;
 GridMyTxs.ColWidths[3]:= 155;
 GridMyTxs.OnPrepareCanvas:= @Form1.GridMyTxsPrepareCanvas;
+GridMyTxs.FocusRectVisible:=false;
 
   BitInfoTrx := TSpeedButton.Create(Form1);BitInfoTrx.Parent:=GridMyTxs;
   BitInfoTrx.Left:=224;BitInfoTrx.Top:=2;BitInfoTrx.Height:=18;BitInfoTrx.Width:=18;
@@ -920,6 +972,7 @@ PanelScrow.font.Name:='consolas';PanelScrow.Font.Size:=14;
    GridScrowSell.ColWidths[0]:= 75;GridScrowSell.ColWidths[1]:= 75;GridScrowSell.ColWidths[2]:= 75;
    GridScrowSell.ColWidths[3]:= 75;GridScrowSell.ColWidths[4]:= 71;
    GridScrowSell.Font.Name:='consolas'; GridScrowSell.Font.Size:=8;
+   GridScrowSell.FocusRectVisible:=false;
 
    //GridScrowSell.OnPrepareCanvas:= @Form1.GridScrowSellPrepareCanvas;
    //GridScrowSell.OnDblClick:= @Form1.GridScrowSellOnDoubleClick;
@@ -948,6 +1001,7 @@ OptionsPanel.font.Name:='consolas';OptionsPanel.Font.Size:=14;
   GridNodes.ScrollBars:=ssvertical;
   GridNodes.ColWidths[0]:= 100;GridNodes.ColWidths[1]:= 50;
   GridNodes.font.Name:='consolas';GridNodes.Font.Size:=8;
+  GridNodes.FocusRectVisible:=false;
 
     SBDelNode := TSpeedButton.Create(Form1);SBDelNode.Parent:=GridNodes;
     SBDelNode.Left:=78;SBDelNode.Top:=0;SBDelNode.Height:=18;SBDelNode.Width:=18;
@@ -993,6 +1047,7 @@ OptionsPanel.font.Name:='consolas';OptionsPanel.Font.Size:=14;
     GridOptions.ScrollBars:=ssnone;GridOptions.enabled:= false;
     GridOptions.font.Name:='consolas';GridOptions.Font.Size:=8;
     GridOptions.ColWidths[0]:= 110;GridOptions.ColWidths[1]:= 80;
+    GridOptions.FocusRectVisible:=false;
 
       LangSelect := TComboBox.Create(form1);LangSelect.Parent :=OptionsScroll ;
       LangSelect.Font.Name:='candara';LangSelect.Font.Size:=8;
@@ -1057,6 +1112,7 @@ For contador := 1 to MaxConecciones do
    SlotLines[contador] := TStringlist.Create;
    CanalCliente[contador] := TIdTCPClient.Create(form1);
    end;
+
 Form1.Latido:= TTimer.Create(Form1);
 Form1.Latido.Enabled:=false;Form1.Latido.Interval:=200;
 Form1.Latido.OnTimer:= @form1.LatidoEjecutar;
@@ -1064,6 +1120,10 @@ Form1.Latido.OnTimer:= @form1.LatidoEjecutar;
 Form1.InfoTimer:= TTimer.Create(Form1);
 Form1.InfoTimer.Enabled:=false;Form1.InfoTimer.Interval:=10;
 Form1.InfoTimer.OnTimer:= @form1.InfoTimerEnd;
+
+Form1.CloseTimer:= TTimer.Create(Form1);
+Form1.CloseTimer.Enabled:=false;Form1.CloseTimer.Interval:=2000;
+Form1.CloseTimer.OnTimer:= @form1.CloseTimerEnd;
 
 form1.SystrayIcon := TTrayIcon.Create(form1);
 form1.SystrayIcon.BalloonTimeout:=3000;
@@ -1159,7 +1219,6 @@ if Copy(LLine,1,4) <> 'PSK ' then  // La linea no contiene un comando valido
    AContext.Connection.Disconnect;
    Acontext.Connection.IOHandler.InputBuffer.Clear;
    UpdateBotData(IPUser);
-   S_BotData := true;
    exit;
    end
 else
@@ -1170,7 +1229,6 @@ else
       ConsoleLines.Add(LangLine(9));  //INCOMING CLOSED: OWN CONNECTION
       AContext.Connection.Disconnect;
       Acontext.Connection.IOHandler.InputBuffer.Clear;
-      UpdateBotData(IPUser);
       exit;
       end;
    end;
@@ -1198,13 +1256,12 @@ if SaveConection('CLI',IPUser,Acontext) = 0 then   // Servidor lleno
    end
 else
    begin    // Se acepta la nueva conexion
-   ConsoleLines.Add(LangLine(13)+IPUser);             //New Connection from:
+   OutText(LangLine(13)+IPUser,true);             //New Connection from:
    If UserOptions.GetNodes then
       Acontext.Connection.IOHandler.WriteLn(ProtocolLine(getnodes));
    MyPublicIP := MiIp;
    U_DataPanel := true;
    end;
-
 End;
 
 // Un cliente se desconecta del servidor
@@ -1306,7 +1363,8 @@ if GridMyTxs.Row>0 then
       MemoTrxDetails.Text:=
       LangLine(81)+SLINEBREAK+                   //'Address customization'
       LangLine(82)+ListaDirecciones[DireccionEsMia(GridMyTxs.Cells[6,GridMyTxs.Row])].Hash+SLINEBREAK+//'Address  : '
-      LangLine(83)+ListaDirecciones[DireccionEsMia(GridMyTxs.Cells[6,GridMyTxs.Row])].Custom;//'Alias    : '
+      LangLine(83)+ListaDirecciones[DireccionEsMia(GridMyTxs.Cells[6,GridMyTxs.Row])].Custom+SLINEBREAK+//'Alias    : '
+      'Amount   : '+Int2Curr(Customizationfee);
       end;
    if GridMyTxs.Cells[2,GridMyTxs.Row] = 'FEE' then
       begin
@@ -1346,6 +1404,7 @@ else
    end;
 End;
 
+// Leer la pulsacion de enter en la customizacion de una direccion
 Procedure Tform1.EditCustomKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
 Begin
 if Key=VK_RETURN then
@@ -1368,7 +1427,6 @@ End;
 Procedure TForm1.PanelCustomMouseLeave(Sender: TObject);
 Begin
 PanelCustom.Visible := false;
-
 End;
 
 // El boton para crear una nueva direccion
@@ -1408,6 +1466,14 @@ if InfoPanelTime <= 0 then
   end;
 end;
 
+// EL timer para forzar el cierre de la aplicacion
+Procedure TForm1.CloseTimerEnd(Sender: TObject);
+Begin
+ToLog('Forced quit : '+CurrentJob);
+ForcedQuit := true;
+cerrarprograma();
+end;
+
 // Procesa el hint a mostrar segun el control
 Procedure TForm1.CheckForHint(Sender:TObject);
 Begin
@@ -1432,7 +1498,7 @@ End;
 Procedure Tform1.EditSCDestChange(Sender:TObject);
 Begin
 EditSCDest.Text :=StringReplace(EditSCDest.Text,' ','',[rfReplaceAll, rfIgnoreCase]);
-if IsValidAddress(EditSCDest.Text) then
+if ((IsValidAddress(EditSCDest.Text)) or (AddressSumaryIndex(EditSCDest.Text)>=0)) then
   Form1.imagenes.GetIcon(17,ImgSCDest.Picture.Icon)
 else Form1.imagenes.GetIcon(14,ImgSCDest.Picture.Icon);
 if EditSCDest.Text = '' then ImgSCDest.Picture.Clear;
@@ -1474,7 +1540,7 @@ if EditSCMont.SelStart <= length(EditSCMont.Text)-9 then // Es un decimal
       begin
       if length(parteentera)>7 then exit;
       ParteEntera := ParteEntera+Ultimo;
-      ParteEntera := IntToStr(StrToInt(ParteEntera));
+      ParteEntera := IntToStr(StrToIntDef(ParteEntera,0));
       actualmente := parteentera+'.'+partedecimal;
       EditSCMont.Text:=Actualmente;
       EditSCMont.SelStart := Length(Actualmente)-9;
@@ -1483,7 +1549,7 @@ if EditSCMont.SelStart <= length(EditSCMont.Text)-9 then // Es un decimal
       begin
       Actualmente[currpos+1] := ultimo;
       ParteEntera := copy(actualmente,1,length(Actualmente)-9);
-      ParteEntera := IntToStr(StrToInt(ParteEntera));
+      ParteEntera := IntToStr(StrToIntDef(ParteEntera,0));
       actualmente := parteentera+'.'+partedecimal;
       EditSCMont.Text:=Actualmente;
       EditSCMont.SelStart := currpos+1;
@@ -1524,8 +1590,9 @@ End;
 // enviar el dinero
 Procedure Tform1.SCBitSendOnClick(Sender:TObject);
 Begin
-if ((IsValidAddress(EditSCDest.Text)) and (((StrToInt64Def(StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase]),-1)>0) and
-   (StrToInt64Def(StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase]),-1)<=GetMaximunToSend)))) then
+if ( (IsValidAddress(EditSCDest.Text) or (AddressSumaryIndex(EditSCDest.Text)>=0) ) and
+   (((StrToInt64Def(StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase]),-1)>0) and
+   (StrToInt64Def(StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase]),-1)<=GetMaximunToSend))) ) then
    begin
    MemoSCCon.Text:=GetCommand(MemoSCCon.text);
    EditSCDest.Enabled:=false;
@@ -1563,11 +1630,13 @@ else optionspanel.Visible:=true;
 LoadOptionsToPanel();
 End;
 
+// Boton para borrar un nodo
 Procedure Tform1.SBDelNodeOnClick(Sender:TObject);
 Begin
 Processlines.Add('DELNODE '+IntToStr(Gridnodes.row-1));
 End;
 
+// boton para añadir un nuevo nodo
 Procedure Tform1.SBNewNodeOnClick(Sender:TObject);
 Begin
 Processlines.Add('ADDNODE '+EditIP.Text+' '+EditPort.Text);
@@ -1582,6 +1651,7 @@ If UserOptions.GetNodes then Processlines.Add('GETNODESOFF')
 else Processlines.Add('GETNODESON');
 End;
 
+// activa/desactiva autoserver
 Procedure TForm1.CBAutoserverOnChange(Sender:TObject);
 Begin
 if G_Launching then exit;
@@ -1589,6 +1659,7 @@ If UserOptions.AutoServer then Processlines.Add('AUTOSERVEROFF')
 else Processlines.Add('AUTOSERVERON');
 End;
 
+// activa/desactiva autoconnect
 Procedure TForm1.CBAutoConnectOnChange(Sender:TObject);
 Begin
 if G_Launching then exit;
@@ -1596,6 +1667,7 @@ If UserOptions.AutoConnect then Processlines.Add('AUTOCONNECTOFF')
 else Processlines.Add('AUTOCONNECTON');
 End;
 
+// activa/desactiva autoupdate
 Procedure TForm1.CBAutoUpdateOnChange(Sender:TObject);
 Begin
 if G_Launching then exit;
@@ -1603,6 +1675,7 @@ If UserOptions.Auto_Updater then Processlines.Add('AUTOUPDATEOFF')
 else Processlines.Add('AUTOUPDATEON');
 End;
 
+// activa/desactiva minimizar
 Procedure TForm1.CBToTrayOnChange(Sender:TObject);
 Begin
 if G_Launching then exit;
@@ -1614,6 +1687,7 @@ End;
 // MAINMENU
 //******************************************************************************
 
+// Chequea el estado de todo para actualizar los botones del menu principal
 Procedure Tform1.CheckMMCaptions(Sender:TObject);
 var
   contador: integer;
@@ -1633,41 +1707,58 @@ for contador := 0 to LangSelect.Items.Count-1 do
   if LangSelect.Items[contador] = 'Polskie' then Form1.imagenes.GetBitmap(38,MenuItem.bitmap);
   MainMenu.items[1].Items[0].Add(MenuItem);
   end;
+if NewLogLines>0 then MainMenu.Items[2].Items[1].Caption:='View Log ('+IntToStr(NewLogLines)+')'
+else MainMenu.Items[2].Items[1].Caption:='View Log';
+
+
 End;
 
+// menu principal servidor
 Procedure Tform1.MMServer(Sender:TObject);
 Begin
 if Form1.Server.Active then ProcessLines.Add('serveroff')
 else ProcessLines.Add('serveron');
 End;
 
+// menu principal conexion
 Procedure Tform1.MMConnect(Sender:TObject);
 Begin
 if CONNECT_Try then ProcessLines.Add('disconnect')
 else ProcessLines.Add('connect');
 End;
 
+// menu principal minero
 Procedure Tform1.MMMiner(Sender:TObject);
 Begin
 if Miner_Active then ProcessLines.Add('mineroff')
 else ProcessLines.Add('mineron');
 End;
 
+// menu principal importar cartera
 Procedure Tform1.MMImpWallet (Sender:TObject);
 Begin
 ShowExplorer(GetCurrentDir,'Import Wallet','*.pkw','impwallet (-resultado-)',true);
 End;
 
+// menu principal exportar cartera
 Procedure Tform1.MMExpWallet(Sender:TObject);
 Begin
 ShowExplorer(GetCurrentDir,'Export Wallet to','*.pkw','expwallet (-resultado-)',false);
 End;
 
-Procedure Tform1.MMQuit(Sender:TObject);
+// menuprincipal about
+Procedure Tform1.MMAbout(Sender:TObject);
 Begin
-Application.Terminate;
+formabout.Visible:=true;
 End;
 
+// menuprincipal salir
+Procedure Tform1.MMQuit(Sender:TObject);
+Begin
+G_CloseRequested := true;
+End;
+
+// menu principal cambiar idioma
 Procedure Tform1.MMChangeLang(Sender:TObject);
 var
   valor : integer;
@@ -1676,16 +1767,19 @@ valor := (sender as TMenuItem).MenuIndex;
 ProcessLines.Add('lang '+IntToStr(valor));
 End;
 
+// menu principal importar idioma
 Procedure TForm1.MMImpLang(Sender:TObject);
 Begin
 ShowExplorer(GetCurrentDir,'Import Language','English_*.txt','implang (-resultado-)',true);
 End;
 
+// menu principal generar archivo de idioma
 Procedure TForm1.MMNewLang(Sender:TObject);
 Begin
 CreateTraslationFile();
 End;
 
+// Menu principal ver consola
 Procedure Tform1.MMVerConsola(Sender:TObject);
 Begin
 if memoconsola.Visible then
@@ -1708,6 +1802,7 @@ else
    ConsoleLine.Visible:=true;
    DataPanel.Visible:=true;
    DireccionesPanel.Visible:=false;
+   PanelSend.Visible:=false;
    GridMyTxs.Visible:=false;
    PanelTrxDetails.Visible:=false;
    PanelScrow.Visible:=false;
@@ -1718,15 +1813,13 @@ else
    end;
 End;
 
+// Ver el formulario del log
+Procedure Tform1.MMVerLog(Sender:TObject);
+Begin
+FormLog.Visible:=true;
+NewLogLines := 0;
+FormLog.BringToFront;
+End;
 
 END. // END PROGRAM
-
-
-
-
-
-
-
-
-
 

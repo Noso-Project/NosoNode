@@ -10,6 +10,8 @@ uses
 
 Procedure VerificarArchivos();
 Procedure VerificarSSL();
+Procedure CreateLog();
+Procedure ToLog(Texto:string);
 Procedure CrearArchivoOpciones();
 Procedure CargarOpciones();
 Procedure CrearIdiomaFile();
@@ -62,21 +64,34 @@ Procedure VerificarArchivos();
 Begin
 LoadDefLangList();
 if not directoryexists(BlockDirectory) then CreateDir(BlockDirectory);
+OutText('✓ Block folder ok',false,1);
 if not directoryexists(UpdatesDirectory) then CreateDir(UpdatesDirectory);
+OutText('✓ Updates folder ok',false,1);
 
+if not FileExists (ErrorLogFilename) then Createlog;
+OutText('✓ Log file ok',false,1);
 if not FileExists (UserOptions.SSLPath) then VerificarSSL() else G_OpenSSLPath:=UserOptions.SSLPath;
+OutText('✓ OpenSSL installed',false,1);
 if not FileExists (UserOptions.wallet) then CrearWallet() else CargarWallet(UserOptions.wallet);
+OutText('✓ Wallet file ok',false,1);
 
 if not Fileexists(BotDataFilename) then CrearBotData() else CargarBotData();
+OutText('✓ Bots file ok',false,1);
 if not Fileexists(NodeDataFilename) then CrearNodeData() else CargarNodeData();
+OutText('✓ Nodes file ok',false,1);
 if not Fileexists(NTPDataFilename) then CrearNTPData() else CargarNTPData();
+OutText('✓ NTP servers file ok',false,1);
 if not Fileexists(SumarioFilename) then CreateSumario() else CargarSumario();
+OutText('✓ Sumary file ok',false,1);
 if not Fileexists(ResumenFilename) then CreateResumen();
+OutText('✓ Headers file ok',false,1);
 if not FileExists(BlockDirectory+'0.blk') then CrearBloqueCero();
 if not FileExists(MyTrxFilename) then CrearMistrx() else CargarMisTrx();
+OutText('✓ My transactions file ok',false,1);
 BuildHeaderFile(); // PROBABLY IT IS NOT NECESAARY
 
 UpdateWalletFromSumario();
+OutText('✓ Wallet updated',false,1);
 End;
 
 // Hace los ajustes para SSL
@@ -97,55 +112,105 @@ else
    end;
 End;
 
+// Crea el archivo del log
+Procedure CreateLog();
+var
+  archivo : textfile;
+Begin
+   try
+   Assignfile(archivo, ErrorLogFilename);
+   rewrite(archivo);
+   Closefile(archivo);
+   Except on E:Exception do
+      tolog ('Error creating the log file');
+   end;
+End;
+
+// Guarda una linea al log
+Procedure ToLog(Texto:string);
+var
+  archivo : textfile;
+Begin
+   try
+   Assignfile(archivo, ErrorLogFilename);
+   Append(archivo);
+   Writeln(archivo, timetostr(now)+' '+texto);
+   Closefile(archivo);
+   LogMemo.Lines.Add(timetostr(now)+' '+texto);
+   if not formlog.Visible then NewLogLines := NewLogLines+1;
+   Except on E:Exception do
+      tolog ('Error saving to the log file');
+   end;
+End;
+
 // Crea el archivo de opciones
 Procedure CrearArchivoOpciones();
 var
   DefOptions : Options;
 Begin
-assignfile(FileOptions,OptionsFileName);
-rewrite(FileOptions);
-DefOptions.language:=0;
-DefOptions.Port:=8080;
-DefOptions.GetNodes:=false;
-DefOptions.SSLPath := '';
-DefOptions.wallet:= 'NOSODATA/wallet.pkw';
-DefOptions.AutoServer:=false;
-DefOptions.AutoConnect:=false;
-DefOptions.Auto_Updater:=false;
-DefOptions.JustUpdated:=false;
-DefOptions.VersionPage:='';
-DefOptions.ToTray:=false;
-write(FileOptions,DefOptions);
-closefile(FileOptions);
-UserOptions := DefOptions;
+   try
+   assignfile(FileOptions,OptionsFileName);
+   rewrite(FileOptions);
+   DefOptions.language:=0;
+   DefOptions.Port:=8080;
+   DefOptions.GetNodes:=false;
+   DefOptions.SSLPath := '';
+   DefOptions.wallet:= 'NOSODATA/wallet.pkw';
+   DefOptions.AutoServer:=false;
+   DefOptions.AutoConnect:=false;
+   DefOptions.Auto_Updater:=false;
+   DefOptions.JustUpdated:=false;
+   DefOptions.VersionPage:='';
+   DefOptions.ToTray:=false;
+   write(FileOptions,DefOptions);
+   closefile(FileOptions);
+   UserOptions := DefOptions;
+   OutText('✓ Options file created',false,1);
+   Except on E:Exception do
+      tolog ('Error creating options file');
+   end;
 End;
 
 // Carga las opciones desde el disco
 Procedure CargarOpciones();
 Begin
-assignfile(FileOptions,OptionsFileName);
-reset(FileOptions);
-read(FileOptions,UserOptions);
-closefile(FileOptions);
+   try
+   assignfile(FileOptions,OptionsFileName);
+   reset(FileOptions);
+   read(FileOptions,UserOptions);
+   closefile(FileOptions);
+   OutText('✓ Options file loaded',false,1);
+   Except on E:Exception do
+      tolog ('Error loading user options');
+   end;
 End;
 
 // Guarda las opciones al disco
 Procedure GuardarOpciones();
 Begin
-assignfile(FileOptions,OptionsFileName);
-reset(FileOptions);
-seek(FileOptions,0);
-write(FileOptions,UserOptions);
-closefile(FileOptions);
-S_Options := false;
+   try
+   assignfile(FileOptions,OptionsFileName);
+   reset(FileOptions);
+   seek(FileOptions,0);
+   write(FileOptions,UserOptions);
+   closefile(FileOptions);
+   S_Options := false;
+   Except on E:Exception do
+      tolog ('Error saving user options');
+   end;
 End;
 
 // Crear el archivo de idioma por defecto
 Procedure CrearIdiomaFile();
 Begin
-CrearArchivoLang();
-CargarIdioma(0);
-ConsoleLines.Add(LangLine(18));
+   try
+   CrearArchivoLang();
+   CargarIdioma(0);
+   ConsoleLines.Add(LangLine(18));
+   OutText('✓ Language file created',false,1);
+   Except on E:Exception do
+      tolog ('Error creating default language file');
+   end;
 End;
 
 // Cargar el idioma especificado
@@ -159,60 +224,70 @@ var
   Lineas : integer = 0;
   contador : integer = 0;
 Begin
-if FileExists(LanguageFileName) then
-   begin
-   AssignFile(Archivo,LanguageFileName);
-   reset(archivo);
-   Registros := filesize(archivo);
-   seek(archivo,0);read(archivo,datoleido);
-   idiomas := StrToInt64Def(Datoleido,1);
-   if numero > Idiomas-1 then // El idioma especificado no existe
+   try
+   if FileExists(LanguageFileName) then
       begin
+      AssignFile(Archivo,LanguageFileName);
+      reset(archivo);
+      Registros := filesize(archivo);
+      seek(archivo,0);read(archivo,datoleido);
+      idiomas := CadToNum(Datoleido,1,'Failed Converting language number: '+Datoleido);
+      if numero > Idiomas-1 then // El idioma especificado no existe
+         begin
+         closefile(archivo);
+         exit;
+         end;
+      StringListLang.Clear;
+      IdiomasDisponibles.Clear;
+      for contador := 1 to idiomas do
+         begin
+         seek(archivo,contador);read(archivo,datoleido);
+         IdiomasDisponibles.Add(datoleido);
+         end;
+      seek(archivo,1+numero);read(archivo,datoleido);
+      CurrentLanguage := datoleido;
+      Lineas := (Registros - 1 - idiomas) div idiomas;
+      LanguageLines := lineas;
+      StartPos := (1+idiomas)+(lineas*numero);
+      for contador := 0 to lineas-1 do
+         begin
+         seek(archivo,startpos+contador);read(archivo,datoleido);
+         StringListLang.Add(datoleido);
+         end;
       closefile(archivo);
-      exit;
-      end;
-   StringListLang.Clear;
-   IdiomasDisponibles.Clear;
-   for contador := 1 to idiomas do
+      if not G_Launching then
+         begin
+         InicializarGUI();
+         BNewAddr.Hint:=LAngLine(64);BCopyAddr.Hint:=LAngLine(65);BSendCoins.Hint:=LangLine(66);
+         LSCTop.Caption:=LangLine(66);SBSCPaste.hint:=LangLine(67);SBSCMax.hint:=LangLine(68);
+         SCBitClea.Caption:=LangLine(69);SCBitSend.Caption:=LangLine(70);SCBitCancel.Caption:=LangLine(71);
+         SCBitConf.Caption:=LangLine(72);BitInfoTrx.hint:=LangLine(73);
+         end;
+      UserOptions.language:=numero;
+      S_Options := true;
+      if G_Launching then OutText('✓ Language file loaded',false,1);
+      end
+   else // si el archivo no existe
       begin
-      seek(archivo,contador);read(archivo,datoleido);
-      IdiomasDisponibles.Add(datoleido);
-      end;
-   seek(archivo,1+numero);read(archivo,datoleido);
-   CurrentLanguage := datoleido;
-   Lineas := (Registros - 1 - idiomas) div idiomas;
-   LanguageLines := lineas;
-   StartPos := (1+idiomas)+(lineas*numero);
-   for contador := 0 to lineas-1 do
-      begin
-      seek(archivo,startpos+contador);read(archivo,datoleido);
-      StringListLang.Add(datoleido);
-      end;
-   closefile(archivo);
-   if not G_Launching then
-      begin
-      InicializarGUI();
-      BNewAddr.Hint:=LAngLine(64);BCopyAddr.Hint:=LAngLine(65);BSendCoins.Hint:=LangLine(66);
-      LSCTop.Caption:=LangLine(66);SBSCPaste.hint:=LangLine(67);SBSCMax.hint:=LangLine(68);
-      SCBitClea.Caption:=LangLine(69);SCBitSend.Caption:=LangLine(70);SCBitCancel.Caption:=LangLine(71);
-      SCBitConf.Caption:=LangLine(72);BitInfoTrx.hint:=LangLine(73);
-      end;
-   UserOptions.language:=numero;
-   S_Options := true;
-   end
-else // si el archivo no existe
-   begin
-   ConsoleLines.Add('noso.lng not found');
+      ConsoleLines.Add('noso.lng not found');
+      tolog('noso.lng not found');
+      end
+   Except on E:Exception do
+      tolog ('Error loading language file');
    end;
 End;
 
 // Crea el archivo con la informacion de los bots
 Procedure CrearBotData();
 Begin
-assignfile(FileBotData,BotDataFilename);
-rewrite(FileBotData);
-closefile(FileBotData);
-SetLength(ListadoBots,0);
+   try
+   assignfile(FileBotData,BotDataFilename);
+   rewrite(FileBotData);
+   closefile(FileBotData);
+   SetLength(ListadoBots,0);
+   Except on E:Exception do
+      tolog ('Error creating bot data');
+   end;
 End;
 
 // Cargar el archivo con los datos de los bots al array 'ListadoBots' en memoria
@@ -221,20 +296,24 @@ Var
   Leido : BotData;
   contador: integer = 0;
 Begin
-assignfile (FileBotData,BotDataFilename);
-contador := 0;
-reset (FileBotData);
-SetLength(ListadoBots,0);
-SetLength(ListadoBots, filesize(FileBotData));
-while contador < (filesize(FileBotData)) do
-   begin
-   seek (FileBotData, contador);
-   read (FileBotData, Leido);
-   ListadoBots[contador] := Leido;
-   contador := contador + 1;
+   try
+   assignfile (FileBotData,BotDataFilename);
+   contador := 0;
+   reset (FileBotData);
+   SetLength(ListadoBots,0);
+   SetLength(ListadoBots, filesize(FileBotData));
+   while contador < (filesize(FileBotData)) do
+      begin
+      seek (FileBotData, contador);
+      read (FileBotData, Leido);
+      ListadoBots[contador] := Leido;
+      contador := contador + 1;
+      end;
+   closefile(FileBotData);
+   //DepurarBots();
+   Except on E:Exception do
+      tolog ('Error loading bot data');
    end;
-closefile(FileBotData);
-DepurarBots();
 End;
 
 //Depura los bots para evitar las listas negras eternas
@@ -244,11 +323,11 @@ var
   LimiteTiempo : Int64 = 0;
   NodeDeleted : boolean;
 Begin
-LimiteTiempo := StrToInt64(UTCTime)-2592000; // Los menores que esto deben ser eliminados(2592000 un mes)
-While contador < length(ListadoBots) do
+LimiteTiempo := CadToNum(UTCTime,0,'Failed converting UTC time on depurarbots')-2592000; // Los menores que esto deben ser eliminados(2592000 un mes)
+While contador < length(ListadoBots)-1 do
    begin
    NodeDeleted := false;
-   if StrToInt64(ListadoBots[contador].LastRefused) < LimiteTiempo then
+   if CadToNum(ListadoBots[contador].LastRefused,999999999999,'Failed converting last refused on depurarbots: '+ListadoBots[contador].LastRefused) < LimiteTiempo then
       Begin
       Delete(ListadoBots,Contador,1);
       contador := contador-1;
@@ -264,7 +343,6 @@ Procedure UpdateBotData(IPUser:String);
 var
   contador : integer = 0;
 Begin
-S_BotData := true;
 for contador := 0 to length(ListadoBots)-1 do
    begin
    if ListadoBots[Contador].ip = IPUser then
@@ -285,25 +363,40 @@ Procedure SaveBotData();
 Var
   contador : integer = 0;
 Begin
-assignfile (FileBotData,NodeDataFilename);
-contador := 0;
-rewrite (FileBotData);
-for contador := 0 to length(ListadoBots)-1 do
-   begin
-   seek (FileBotData, contador);
-   write (FileBotData, ListadoBots[contador]);
+   try
+   assignfile (FileBotData,BotDataFilename);
+   contador := 0;
+   reset (FileBotData);
+   for contador := 0 to length(ListadoBots)-1 do
+      begin
+      seek (FileBotData, contador);
+      write (FileBotData, ListadoBots[contador]);
+      end;
+   closefile(FileBotData);
+   S_BotData := false;
+   Except on E:Exception do
+         tolog ('Error saving bots to file');
    end;
-closefile(FileBotData);
-S_BotData := false;
 End;
 
 // Crea el archivo con la informacion de los nodos
 Procedure CrearNodeData();
+var
+  nodoinicial : nodedata;
 Begin
-assignfile(FileNodeData,NodeDataFilename);
-rewrite(FileNodeData);
-closefile(FileNodeData);
-SetLength(ListaNodos,0);
+   try
+   assignfile(FileNodeData,NodeDataFilename);
+   rewrite(FileNodeData);
+   NodoInicial.ip:='107.172.188.149';
+   NodoInicial.port:='8080';
+   NodoInicial.LastConexion:=UTCTime;
+   write(FileNodeData,nodoinicial);
+   closefile(FileNodeData);
+   SetLength(ListaNodos,0);
+   CargarNodeData();
+   Except on E:Exception do
+         tolog ('Error creating node file');
+   end;
 End;
 
 // Carga los nodos desde el disco
@@ -312,20 +405,24 @@ Var
   Leido : NodeData;
   contador: integer = 0;
 Begin
-assignfile (FileNodeData,NodeDataFilename);
-contador := 0;
-reset (FileNodeData);
-SetLength(ListaNodos,0);
-SetLength(ListaNodos, filesize(FileNodeData));
-while contador < (filesize(FileNodeData)) do
-   begin
-   seek (FileNodeData, contador);
-   read (FileNodeData, Leido);
-   ListaNodos[contador] := Leido;
-   contador := contador + 1;
+   try
+   assignfile (FileNodeData,NodeDataFilename);
+   contador := 0;
+   reset (FileNodeData);
+   SetLength(ListaNodos,0);
+   SetLength(ListaNodos, filesize(FileNodeData));
+   while contador < (filesize(FileNodeData)) do
+      begin
+      seek (FileNodeData, contador);
+      read (FileNodeData, Leido);
+      ListaNodos[contador] := Leido;
+      contador := contador + 1;
+      end;
+   closefile(FileNodeData);
+   //DepurarNodos();
+   Except on E:Exception do
+         tolog ('Error loading node data');
    end;
-closefile(FileNodeData);
-DepurarNodos();
 End;
 
 // Actualiza o añade la informacion de un nodo
@@ -352,6 +449,7 @@ FillNodeList();
 S_NodeData := true;
 End;
 
+// Rellena los nodos en el listado de opciones
 Procedure FillNodeList();
 var
   cont : integer;
@@ -373,16 +471,20 @@ Procedure SaveNodeData();
 Var
   contador : integer = 0;
 Begin
-assignfile (FileNodeData,NodeDataFilename);
-contador := 0;
-rewrite (FileNodeData);
-for contador := 0 to length(ListaNodos)-1 do
-   begin
-   seek (FileNodeData, contador);
-   write (FileNodeData, ListaNodos[contador]);
+   try
+   assignfile (FileNodeData,NodeDataFilename);
+   contador := 0;
+   rewrite (FileNodeData);
+   for contador := 0 to length(ListaNodos)-1 do
+      begin
+      seek (FileNodeData, contador);
+      write (FileNodeData, ListaNodos[contador]);
+      end;
+   closefile(FileNodeData);
+   S_NodeData := false;
+   Except on E:Exception do
+      tolog ('Error saving nodes to disk');
    end;
-closefile(FileNodeData);
-S_NodeData := false;
 End;
 
 // Depura los nodos para eliminar los que son muy antiguos
@@ -392,11 +494,11 @@ var
   LimiteTiempo : Int64 = 0;
   NodeDeleted : boolean;
 Begin
-LimiteTiempo := StrToInt64(UTCTime)-2592000; // Los menores que esto deben ser eliminados(2592000 un mes)
-While contador < length(ListaNodos) do
+LimiteTiempo := CadToNum(UTCTime,0,'STI failed UTCTime depurarnodos')-2592000; // Los menores que esto deben ser eliminados(2592000 un mes)
+While contador < length(ListaNodos)-1 do
    begin
    NodeDeleted := false;
-   if StrToInt64(ListaNodos[contador].LastConexion) < LimiteTiempo then
+   if CadToNum(ListaNodos[contador].LastConexion,999999999999,'STI failed lastconexion depurarnodos: '+ListaNodos[contador].LastConexion) < LimiteTiempo then
       Begin
       Delete(ListaNodos,Contador,1);
       contador := contador-1;
@@ -412,25 +514,29 @@ Procedure CrearNTPData();
 Var
   contador : integer = 0;
 Begin
-assignfile(FileNTPData,NTPDataFilename);
-setlength(ListaNTP,10);
-ListaNTP[0].host := 'ntp.amnic.net'; ListaNTP[0].LastUsed:='0';
-ListaNTP[1].host := 'ts2.aco.net'; ListaNTP[1].LastUsed:='0';
-ListaNTP[2].host := 'hora.roa.es'; ListaNTP[2].LastUsed:='0';
-ListaNTP[3].host := 'ntp.atomki.mta.hu'; ListaNTP[3].LastUsed:='0';
-ListaNTP[4].host := 'time.esa.int'; ListaNTP[4].LastUsed:='0';
-ListaNTP[5].host := 'time.stdtime.gov.tw'; ListaNTP[5].LastUsed:='0';
-ListaNTP[6].host := 'stratum-1.sjc02.svwh.net'; ListaNTP[6].LastUsed:='0';
-ListaNTP[7].host := 'ntp3.indypl.org'; ListaNTP[7].LastUsed:='0';
-ListaNTP[8].host := 'ntp1.sp.se'; ListaNTP[8].LastUsed:='0';
-ListaNTP[9].host := 'ntp.ntp-servers.com'; ListaNTP[9].LastUsed:='0';
-rewrite(FileNTPData);
-for contador := 0 to 9 do
-   begin
-   seek (FileNTPData,contador);
-   write(FileNTPData,ListaNTP[contador]);
+   try
+   assignfile(FileNTPData,NTPDataFilename);
+   setlength(ListaNTP,10);
+   ListaNTP[0].host := 'ntp.amnic.net'; ListaNTP[0].LastUsed:='0';
+   ListaNTP[1].host := 'ts2.aco.net'; ListaNTP[1].LastUsed:='0';
+   ListaNTP[2].host := 'hora.roa.es'; ListaNTP[2].LastUsed:='0';
+   ListaNTP[3].host := 'ntp.atomki.mta.hu'; ListaNTP[3].LastUsed:='0';
+   ListaNTP[4].host := 'time.esa.int'; ListaNTP[4].LastUsed:='0';
+   ListaNTP[5].host := 'time.stdtime.gov.tw'; ListaNTP[5].LastUsed:='0';
+   ListaNTP[6].host := 'stratum-1.sjc02.svwh.net'; ListaNTP[6].LastUsed:='0';
+   ListaNTP[7].host := 'ntp3.indypl.org'; ListaNTP[7].LastUsed:='0';
+   ListaNTP[8].host := 'ntp1.sp.se'; ListaNTP[8].LastUsed:='0';
+   ListaNTP[9].host := 'ntp.ntp-servers.com'; ListaNTP[9].LastUsed:='0';
+   rewrite(FileNTPData);
+   for contador := 0 to 9 do
+      begin
+      seek (FileNTPData,contador);
+      write(FileNTPData,ListaNTP[contador]);
+      end;
+   closefile(FileNTPData);
+   Except on E:Exception do
+      tolog ('Error creating NTP servers file');
    end;
-closefile(FileNTPData);
 End;
 
 // Carga los servidores NTP en la array ListaNTP
@@ -438,15 +544,19 @@ Procedure CargarNTPData();
 Var
   contador : integer = 0;
 Begin
-assignfile(FileNTPData,NTPDataFilename);
-reset(FileNTPData);
-setlength(ListaNTP,filesize(FileNTPData));
-for contador := 0 to filesize(FileNTPData)-1 do
-   begin
-   seek(FileNTPData,contador);
-   Read(FileNTPData,ListaNTP[contador]);
+   try
+   assignfile(FileNTPData,NTPDataFilename);
+   reset(FileNTPData);
+   setlength(ListaNTP,filesize(FileNTPData));
+   for contador := 0 to filesize(FileNTPData)-1 do
+      begin
+      seek(FileNTPData,contador);
+      Read(FileNTPData,ListaNTP[contador]);
+      end;
+   closefile(FileNTPData);
+   Except on E:Exception do
+      tolog ('Error loading NTP servers');
    end;
-closefile(FileNTPData);
 End;
 
 // Verifica las filas que deben guardarse desde el ultimo latido
@@ -501,18 +611,22 @@ End;
 // Crea una nueva cartera
 Procedure CrearWallet();
 Begin
-if not fileexists (WalletFilename) then // asegurarse de no borrar una cartera previa
-   begin
-   assignfile(FileWallet,WalletFilename);
-   setlength(ListaDirecciones,1);
-   rewrite(FileWallet);
-   listadirecciones[0] := CreateNewAddress();
-   seek(FileWallet,0);
-   write(FileWallet,listadirecciones[0]);
-   closefile(FileWallet);
+   try
+   if not fileexists (WalletFilename) then // asegurarse de no borrar una cartera previa
+      begin
+      assignfile(FileWallet,WalletFilename);
+      setlength(ListaDirecciones,1);
+      rewrite(FileWallet);
+      listadirecciones[0] := CreateNewAddress();
+      seek(FileWallet,0);
+      write(FileWallet,listadirecciones[0]);
+      closefile(FileWallet);
+      end;
+   UserOptions.Wallet:=WalletFilename;
+   S_Options := true;
+   Except on E:Exception do
+      tolog ('Error creating wallet file');
    end;
-UserOptions.Wallet:=WalletFilename;
-S_Options := true;
 End;
 
 // Carga el Wallet elegido
@@ -520,20 +634,24 @@ Procedure CargarWallet(wallet:String);
 var
   contador : integer = 0;
 Begin
-if fileExists(wallet) then
-   begin
-   assignfile(FileWallet,Wallet);
-   setlength(ListaDirecciones,0);
-   reset(FileWallet);
-   setlength(ListaDirecciones,FileSize(FileWallet));
-   for contador := 0 to Length(ListaDirecciones)-1 do
+   try
+   if fileExists(wallet) then
       begin
-      seek(FileWallet,contador);
-      Read(FileWallet,ListaDirecciones[contador]);
+      assignfile(FileWallet,Wallet);
+      setlength(ListaDirecciones,0);
+      reset(FileWallet);
+      setlength(ListaDirecciones,FileSize(FileWallet));
+      for contador := 0 to Length(ListaDirecciones)-1 do
+         begin
+         seek(FileWallet,contador);
+         Read(FileWallet,ListaDirecciones[contador]);
+         end;
+      closefile(FileWallet);
       end;
-   closefile(FileWallet);
+   UpdateWalletFromSumario();
+   Except on E:Exception do
+      tolog ('Error loading wallet from file');
    end;
-UpdateWalletFromSumario();
 End;
 
 // Guarda la ListaDirecciones al archivo useroptions.wallet
@@ -541,15 +659,20 @@ Procedure GuardarWallet();
 var
   contador : integer = 0;
 Begin
-assignfile(FileWallet,UserOptions.Wallet);
-reset(FileWallet);
-for contador := 0 to Length(ListaDirecciones)-1 do
+   try
+   copyfile (UserOptions.Wallet,UserOptions.Wallet+'.bak');
+   assignfile(FileWallet,UserOptions.Wallet);
+   reset(FileWallet);
+   for contador := 0 to Length(ListaDirecciones)-1 do
       begin
       seek(FileWallet,contador);
       write(FileWallet,ListaDirecciones[contador]);
       end;
-closefile(FileWallet);
-S_Wallet := false;
+   closefile(FileWallet);
+   S_Wallet := false;
+   Except on E:Exception do
+      tolog ('Error saving wallet to disk');
+   end;
 End;
 
 // Actualiza los datos de las direcciones en la wallet
@@ -587,11 +710,16 @@ End;
 // Crea el archivo de sumario
 Procedure CreateSumario();
 Begin
-SetLength(ListaSumario,0);
-assignfile(FileSumario,SumarioFilename);
-Rewrite(FileSumario);
-CloseFile(FileSumario);
-if FileExists(BlockDirectory+'0.blk') then UpdateSumario(ADMINHash,PremineAmount,0,'0');
+   try
+   SetLength(ListaSumario,0);
+   assignfile(FileSumario,SumarioFilename);
+   Rewrite(FileSumario);
+   CloseFile(FileSumario);
+   // para los casos en que se recontruye el sumario
+   if FileExists(BlockDirectory+'0.blk') then UpdateSumario(ADMINHash,PremineAmount,0,'0');
+   Except on E:Exception do
+      tolog ('Error creating sumary file');
+   end;
 End;
 
 // Carga la informacion del archivo sumario al array ListaSumario
@@ -599,16 +727,20 @@ Procedure CargarSumario();
 var
   contador : integer = 0;
 Begin
-SetLength(ListaSumario,0);
-assignfile(FileSumario,SumarioFilename);
-Reset(FileSumario);
-SetLength(ListaSumario,fileSize(FileSumario));
-for contador := 0 to Filesize(fileSumario)-1 do
-   Begin
-   seek(filesumario,contador);
-   read(FileSumario,Listasumario[contador]);
+   try
+   SetLength(ListaSumario,0);
+   assignfile(FileSumario,SumarioFilename);
+   Reset(FileSumario);
+   SetLength(ListaSumario,fileSize(FileSumario));
+   for contador := 0 to Filesize(fileSumario)-1 do
+      Begin
+      seek(filesumario,contador);
+      read(FileSumario,Listasumario[contador]);
+      end;
+   CloseFile(FileSumario);
+   Except on E:Exception do
+      tolog ('Error loading sumary from file');
    end;
-CloseFile(FileSumario);
 End;
 
 // Guarda el archivo sumario al disco
@@ -616,18 +748,22 @@ Procedure GuardarSumario();
 var
   contador : integer = 0;
 Begin
-assignfile(FileSumario,SumarioFilename);
-Reset(FileSumario);
-for contador := 0 to length(ListaSumario)-1 do
-   Begin
-   seek(filesumario,contador);
-   write(FileSumario,Listasumario[contador]);
+   try
+   assignfile(FileSumario,SumarioFilename);
+   Reset(FileSumario);
+   for contador := 0 to length(ListaSumario)-1 do
+      Begin
+      seek(filesumario,contador);
+      write(FileSumario,Listasumario[contador]);
+      end;
+   Truncate(filesumario);
+   CloseFile(FileSumario);
+   MySumarioHash := HashMD5File(SumarioFilename);
+   S_Sumario := false;
+   U_DataPanel := true;
+   Except on E:Exception do
+      tolog ('Error saving sumary file');
    end;
-Truncate(filesumario);
-CloseFile(FileSumario);
-MySumarioHash := HashMD5File(SumarioFilename);
-S_Sumario := false;
-U_DataPanel := true;
 End;
 
 // RETURNS THE LAST DOWNLOADED BLOCK
@@ -638,16 +774,21 @@ Var
   LastBlock : int64 = 0;
   OnlyNumbers : String;
 Begin
-BlockFiles := TStringList.Create;
-FindAllFiles(BlockFiles, BlockDirectory, '*.blk', true);
-while contador < BlockFiles.Count do
-   begin
-   OnlyNumbers := copy(BlockFiles[contador], 17, length(BlockFiles[contador])-20);
-   if StrToInt(OnlyNumbers) > Lastblock then LastBlock := StrToInt(OnlyNumbers);
-   contador := contador+1;
+   try
+   BlockFiles := TStringList.Create;
+   FindAllFiles(BlockFiles, BlockDirectory, '*.blk', true);
+   while contador < BlockFiles.Count do
+      begin
+      OnlyNumbers := copy(BlockFiles[contador], 17, length(BlockFiles[contador])-20);
+      if CadToNum(OnlyNumbers,0,'Failed converting block to number:'+OnlyNumbers) > Lastblock then
+         LastBlock := CadToNum(OnlyNumbers,0,'Failed converting block to number:'+OnlyNumbers);
+      contador := contador+1;
+      end;
+   BlockFiles.Free;
+   Result := LastBlock;
+   Except on E:Exception do
+      tolog ('Error getting my last updated block');
    end;
-BlockFiles.Free;
-Result := LastBlock;
 end;
 
 // Actualiza el sumario
@@ -666,7 +807,7 @@ for contador := 0 to length(ListaSumario)-1 do
       NuevoRegistro.Custom:=ListaSumario[contador].Custom;
       NuevoRegistro.Balance:=ListaSumario[contador].Balance+Monto;
       NuevoRegistro.Score:=ListaSumario[contador].Score+score;;
-      NuevoRegistro.LastOP:=StrToInt64(LastOpBlock);
+      NuevoRegistro.LastOP:=CadToNum(LastOpBlock,0,'**CRITICAL: STI fail lastop on update sumario:'+LastOpBlock);
       ListaSumario[contador] := NuevoRegistro;
       Yaexiste := true;
       break;
@@ -680,7 +821,7 @@ if not YaExiste then
    NuevoRegistro.Custom:='';
    NuevoRegistro.Balance:=Monto;
    NuevoRegistro.Score:=0;
-   NuevoRegistro.LastOP:=StrToInt64(LastOpBlock);
+   NuevoRegistro.LastOP:=CadToNum(LastOpBlock,0,'**CRITICAL: STI fail lastop on update sumario:'+LastOpBlock);
    ListaSumario[length(listasumario)-1] := NuevoRegistro;
    end;
 S_Sumario := true;
@@ -693,7 +834,7 @@ var
   cont : integer;
 Begin
 result := false;
-for cont := 0 to length(ListaSumario) do
+for cont := 0 to length(ListaSumario)-1 do
    begin
    if ((ListaSumario[cont].Hash=Address)and (ListaSumario[cont].custom='')) then
       begin
@@ -702,6 +843,7 @@ for cont := 0 to length(ListaSumario) do
       break;
       end;
    end;
+if not result then tolog('Error assigning custom alias to address:'+Address);
 End;
 
 // Descomprime un archivo ZIP y lo borra despues si es asi requerido
@@ -709,24 +851,32 @@ procedure UnzipBlockFile(filename:String;delFile:boolean);
 var
   UnZipper: TUnZipper;
 begin
-UnZipper := TUnZipper.Create;
    try
-   UnZipper.FileName := filename;
-   UnZipper.OutputPath := '';
-   UnZipper.Examine;
-   UnZipper.UnZipAllFiles;
-   finally
-   UnZipper.Free;
+   UnZipper := TUnZipper.Create;
+      try
+      UnZipper.FileName := filename;
+      UnZipper.OutputPath := '';
+      UnZipper.Examine;
+      UnZipper.UnZipAllFiles;
+      finally
+      UnZipper.Free;
+      end;
+   if delfile then deletefile(filename);
+   Except on E:Exception do
+      tolog ('Error unzipping block file');
    end;
-if delfile then deletefile(filename);
 end;
 
 // Crea el archivo resumen
 Procedure CreateResumen();
 Begin
-assignfile(FileResumen,ResumenFilename);
-rewrite(FileResumen);
-closefile(FileResumen);
+   try
+   assignfile(FileResumen,ResumenFilename);
+   rewrite(FileResumen);
+   closefile(FileResumen);
+   Except on E:Exception do
+      tolog ('Error creating headers file');
+   end;
 End;
 
 // Contruir archivo de resumen
@@ -739,15 +889,13 @@ var
   ArrayOrders : BlockOrdersArray;
   cont : integer;
   newblocks : integer = 0;
-  HeaderRegistrosIniciando : integer = 0;
-  HeaderRegistrosTerminando : integer = 0;
 Begin
 assignfile(FileResumen,ResumenFilename);
 reset(FileResumen);
-HeaderRegistrosIniciando := Filesize(FileResumen);
 MyLastBlock := GetMyLastUpdatedBlock;
 consolelines.Add(LangLine(127)+IntToStr(MyLastBlock)); //'Rebuilding until block '
-for contador := 0 to MyLastBlock do
+contador := 0;
+while contador <= MyLastBlock do
    begin
    info(LangLine(127)+IntToStr(contador)); //'Rebuild block: '
    dato := default(ResumenData);
@@ -798,14 +946,22 @@ for contador := 0 to MyLastBlock do
       NewDato.SumHash:=HashMD5File(SumarioFilename);
       seek(FileResumen,contador);
       Write(FileResumen,Newdato);
+      tolog ('Readjusted sumhash for block '+inttostr(contador));
       end;
+   contador := contador+1;
    end;
-HeaderRegistrosTerminando := Filesize(FileResumen);
+while filesize(FileResumen)> MyLastBlock+1 do  // cabeceras presenta un numero anomalo de registros
+   begin
+   seek(FileResumen,MyLastBlock+1);
+   truncate(fileResumen);
+   tolog ('Readjusted headers size');
+   end;
 closefile(FileResumen);
-consolelines.Add(IntToStr(HeaderRegistrosIniciando)+'-'+IntToStr(HeaderRegistrosTerminando));
 if newblocks>0 then ConsoleLines.Add(IntToStr(newblocks)+LangLine(129)); //' added to headers'
 GuardarSumario();
 UpdateMyData();
+U_Dirpanel := true;
+if g_launching then OutText('✓ '+IntToStr(MyLastblock+1)+' blocks rebuilded',false,1);
 End;
 
 // Reconstruye totalmente el sumario desde el bloque 0
@@ -816,6 +972,7 @@ var
   ArrayOrders : BlockOrdersArray;
 Begin
 SetLength(ListaSumario,0);
+// incluir el pago del bloque genesys
 UpdateSumario(ADMINHash,PremineAmount,0,'0');
 for contador := 1 to mylastblock do
    begin
@@ -856,25 +1013,33 @@ Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
 var
   Dato: ResumenData;
 Begin
-assignfile(FileResumen,ResumenFilename);
-reset(FileResumen);
-Dato := Default(ResumenData);
-Dato.block:=Numero;
-Dato.blockhash:=hash;
-Dato.SumHash:=sumhash;
-seek(fileResumen,filesize(fileResumen));
-write(fileResumen,dato);
-closefile(FileResumen);
+   try
+   assignfile(FileResumen,ResumenFilename);
+   reset(FileResumen);
+   Dato := Default(ResumenData);
+   Dato.block:=Numero;
+   Dato.blockhash:=hash;
+   Dato.SumHash:=sumhash;
+   seek(fileResumen,filesize(fileResumen));
+   write(fileResumen,dato);
+   closefile(FileResumen);
+   Except on E:Exception do
+      tolog ('Error adding new register to headers');
+   end;
 End;
 
 // Borra el ultimo registro del archivo de cabeceras para deshacer el ultimo bloque
 Procedure DelBlChHeadLast();
 Begin
-assignfile(FileResumen,ResumenFilename);
-reset(FileResumen);
-seek(fileResumen,filesize(fileResumen)-1);
-truncate(fileResumen);
-closefile(FileResumen);
+   try
+   assignfile(FileResumen,ResumenFilename);
+   reset(FileResumen);
+   seek(fileResumen,filesize(fileResumen)-1);
+   truncate(fileResumen);
+   closefile(FileResumen);
+   Except on E:Exception do
+      tolog ('Error deleting last record from headers');
+   end;
 End;
 
 // Crea el archivo de mis transacciones
@@ -882,14 +1047,18 @@ Procedure CrearMistrx();
 var
   DefaultOrder : MyTrxData;
 Begin
-DefaultOrder := Default(MyTrxData);
-DefaultOrder.Block:=0;
-assignfile(FileMyTrx,MyTrxFilename);
-rewrite(FileMyTrx);
-write(FileMyTrx,DefaultOrder);
-closefile(FileMyTrx);
-SetLength(ListaMisTrx,1);
-ListaMisTrx[0] := DefaultOrder;
+   try
+   DefaultOrder := Default(MyTrxData);
+   DefaultOrder.Block:=0;
+   assignfile(FileMyTrx,MyTrxFilename);
+   rewrite(FileMyTrx);
+   write(FileMyTrx,DefaultOrder);
+   closefile(FileMyTrx);
+   SetLength(ListaMisTrx,1);
+   ListaMisTrx[0] := DefaultOrder;
+   Except on E:Exception do
+      tolog ('Error creating my trx file');
+   end;
 End;
 
 // CArga mis transacciones desde el disco
@@ -897,17 +1066,21 @@ Procedure CargarMisTrx();
 var
   dato : MyTrxData;
 Begin
-assignfile(FileMyTrx,MyTrxFilename);
-reset(FileMyTrx);
-setlength(ListaMisTrx,0);
-while not eof(FileMyTrx) do
-   begin
-   Dato := Default(MyTrxData);
-   setlength(ListaMisTrx,length(ListaMisTrx)+1);
-   read(FileMyTrx,dato);
-   ListaMisTrx[length(ListaMisTrx)-1] := dato;
+   try
+   assignfile(FileMyTrx,MyTrxFilename);
+   reset(FileMyTrx);
+   setlength(ListaMisTrx,0);
+   while not eof(FileMyTrx) do
+      begin
+      Dato := Default(MyTrxData);
+      setlength(ListaMisTrx,length(ListaMisTrx)+1);
+      read(FileMyTrx,dato);
+      ListaMisTrx[length(ListaMisTrx)-1] := dato;
+      end;
+   closefile(FileMyTrx);
+   Except on E:Exception do
+      tolog ('Error loading my trx from file');
    end;
-closefile(FileMyTrx);
 End;
 
 // Guarda el valor del ultimo bloque chekeado para mis transacciones
@@ -915,13 +1088,17 @@ Procedure SaveMyTrxsLastUpdatedblock(Number:integer);
 var
   FirstTrx : MyTrxData;
 Begin
-FirstTrx := Default(MyTrxData);
-FirstTrx.block:=Number;
-assignfile (FileMyTrx,MyTrxFilename);
-reset(FileMyTrx);
-seek(FileMyTrx,0);
-write(FileMyTrx,FirstTrx);
-Closefile(FileMyTrx);
+   try
+   FirstTrx := Default(MyTrxData);
+   FirstTrx.block:=Number;
+   assignfile (FileMyTrx,MyTrxFilename);
+   reset(FileMyTrx);
+   seek(FileMyTrx,0);
+   write(FileMyTrx,FirstTrx);
+   Closefile(FileMyTrx);
+   Except on E:Exception do
+      tolog ('Error setting last block checked for my trx');
+   end;
 End;
 
 // Reconstruye el archivo de mis transacciones hasta cierto bloque
@@ -934,10 +1111,7 @@ var
   ArrTrxs : BlockOrdersArray;
 Begin
 Existentes := Length(ListaMisTrx);
-if ListaMisTrx[0].Block = blocknumber then // el numero de bloque ya ha sido construido
-   begin
-   exit;
-   end;
+if ListaMisTrx[0].Block = blocknumber then exit;  // el numero de bloque ya ha sido construido
 for contador := ListaMisTrx[0].Block+1 to blocknumber do
    begin
    Header := LoadBlockDataHeader(contador);
@@ -1004,15 +1178,20 @@ Procedure SaveMyTrxsToDisk(Cantidad:integer);
 var
   contador : integer;
 Begin
-assignfile (FileMyTrx,MyTrxFilename);
-reset(FileMyTrx);
-for contador := cantidad to length(ListaMisTrx)-1 do
-   begin
-   seek(FileMyTrx,contador);
-   write(FileMyTrx,ListaMisTrx[contador]);
+   try
+   assignfile (FileMyTrx,MyTrxFilename);
+   reset(FileMyTrx);
+   for contador := cantidad to length(ListaMisTrx)-1 do
+      begin
+      seek(FileMyTrx,contador);
+      write(FileMyTrx,ListaMisTrx[contador]);
+      end;
+   Closefile(FileMyTrx);
+   Except on E:Exception do
+      tolog ('Error saving my trx to disk');
    end;
-Closefile(FileMyTrx);
 End;
+
 
 END. // END UNIT
 

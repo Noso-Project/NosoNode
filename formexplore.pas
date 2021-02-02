@@ -72,6 +72,7 @@ begin
   BorderStyle := bssingle;
   Position := poOwnerFormCenter;
   BorderIcons := BorderIcons - [biminimize];
+  ShowInTaskBar:=sTAlways;
 
   FilesDir := TStringList.Create;
   FoldersDir := TStringList.Create;

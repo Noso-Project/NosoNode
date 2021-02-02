@@ -27,6 +27,8 @@ Procedure CrearBloqueCero();
 Begin
 CrearNuevoBloque(0,1610660160,'','NUBy1bsprQKeFrVU4K8eKP46QG2ABs','');
 if G_Launching then Consolelines.Add(LangLine(88)); //'Block 0 created.'
+if G_Launching then OutText('✓ Block 0 created',false,1);
+
 End;
 
 // Crea un bloque nuevo con la informacion suministrada
@@ -178,7 +180,7 @@ if Numero>0 then
    ' '+Minero+' '+StringReplace(Solucion,' ','_',[rfReplaceAll, rfIgnoreCase]));
    OutgoingMsjs.Add(ProtocolLine(ping));
    end;
-ConsoleLines.Add(LangLine(89)+IntToStr(numero));  //'Block builded: '
+OutText(LangLine(89)+IntToStr(numero),true);  //'Block builded: '
 if Numero > 0 then RebuildMyTrx(Numero);
 CheckForMyPending;
 if DIreccionEsMia(Minero)>-1 then showglobo('Miner','Block found!');

@@ -251,7 +251,7 @@ CanalCliente[Slot].Port:=StrToIntDef(Port,8080);
    CanalCliente[Slot].ConnectTimeout:= 200;
    CanalCliente[Slot].Connect;
    SaveConection('SER',Address,ConContext);
-   ConsoleLines.Add(LangLine(30)+Address);          //Connected TO:
+   OutText(LangLine(30)+Address,true);          //Connected TO:
    UpdateNodeData(Address,Port);
    CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address);
    CanalCliente[Slot].IOHandler.WriteLn(ProtocolLine(3));   // Send PING
@@ -653,7 +653,7 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
         (MySumarioHash<>NetSumarioHash.Value)) then
    begin  // Reconstruir sumario
    RebuildSumario();
-   end;
+   end
 End;
 
 

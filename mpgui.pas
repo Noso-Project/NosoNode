@@ -5,9 +5,33 @@ unit mpGUI;
 interface
 
 uses
-  Classes, SysUtils, MasterPaskalForm, mpTime, graphics, strutils;
+  Classes, SysUtils, MasterPaskalForm, mpTime, graphics, strutils, forms, controls, grids,stdctrls,
+  crt,ExtCtrls ;
 
+type
+  TFormInicio = class(Tform)
+    procedure closeFormInicio(Sender: TObject; var CanClose: boolean);
+    private
+    public
+    end;
+
+  TFormLog = class(Tform)
+    procedure closeFormLog(Sender: TObject; var CanClose: boolean);
+    private
+    public
+    end;
+
+  TFormAbout = class(Tform)
+    //procedure closeFormLog(Sender: TObject; var CanClose: boolean);
+    private
+    public
+    end;
+
+Procedure CreateFormInicio();
+Procedure CreateFormLog();
+Procedure CreateFormAbout();
 Procedure InicializarGUI();
+Procedure OutText(Texto:String;inctime:boolean = false;canal : integer =0);
 Procedure MostrarLineasDeConsola();
 Procedure ActualizarGUI();
 function LangLine(linea:integer):string;
@@ -20,10 +44,110 @@ Procedure Info(text:string);
 Procedure Processhint(sender:TObject);
 Procedure ShowGlobo(Titulo,texto:string);
 
+var
+  FormInicio : TFormInicio;
+    GridInicio : TStringgrid;
+  FormLog : TFormLog;
+    LogMemo : TMemo;
+  FormAbout : TFormAbout;
+    ImgAbout : TImage;
+    LabelAbout : Tlabel;
 implementation
 
 Uses
   mpParser, mpDisk, mpRed, mpProtocol,mpcoin, mpblock;
+
+// Crea el formulario para el inicio
+Procedure CreateFormInicio();
+Begin
+FormInicio := TFormInicio.Createnew(form1);
+FormInicio.caption := 'Noso Launcher';
+FormInicio.SetBounds(0, 0, 350, 200);
+FormInicio.BorderStyle := bssingle;
+FormInicio.Position:=poOwnerFormCenter;
+FormInicio.BorderIcons:=FormInicio.BorderIcons-[biminimize]-[bisystemmenu];
+forminicio.ShowInTaskBar:=sTAlways;
+forminicio.OnCloseQuery:=@FormInicio.closeFormInicio;
+
+GridInicio := TStringGrid.Create(nil);GridInicio.Parent:=forminicio;
+GridInicio.Font.Name:='consolas'; GridInicio.Font.Size:=10;
+GridInicio.Left:=1;GridInicio.Top:=1;GridInicio.Height:=198;GridInicio.width:=348;
+GridInicio.FixedCols:=0;GridInicio.FixedRows:=0;
+GridInicio.rowcount := 0;GridInicio.ColCount:=1;
+GridInicio.ScrollBars:=ssAutoVertical;
+GridInicio.Options:= GridInicio.Options-[goRangeSelect];
+GridInicio.ColWidths[0]:= 298;
+GridInicio.FocusRectVisible:=false;
+GridInicio.Enabled := true;
+GridInicio.GridLineWidth := 0;
+End;
+
+// Al cerrar el formulario de inicio
+Procedure TFormInicio.closeFormInicio(Sender: TObject; var CanClose: boolean);
+Begin
+if G_launching then
+  begin
+  canclose := false;
+  exit;
+  end;
+forminicio.Visible:=false;
+form1.Visible:=true;
+End;
+
+// Crear el formulario de log viewer
+Procedure CreateFormLog();
+Begin
+FormLog := TFormLog.Createnew(form1);
+FormLog.caption := 'Log Viewer';
+FormLog.SetBounds(0, 0, 450, 200);
+FormLog.BorderStyle := bssingle;
+FormLog.Position:=poOwnerFormCenter;
+FormLog.BorderIcons:=FormLog.BorderIcons-[biminimize];
+FormLog.ShowInTaskBar:=sTAlways;
+FormLog.OnCloseQuery:=@FormLog.closeFormLog;
+
+LogMemo := TMemo.Create(FormLog);
+LogMemo.Parent:=FormLog;
+LogMemo.Left:=1;LogMemo.Top:=1;LogMemo.Height:=198;LogMemo.Width:=448;
+LogMemo.Color:=clblack;LogMemo.Font.Color:=clwhite;LogMemo.ReadOnly:=true;
+LogMemo.Font.Size:=10;LogMemo.Font.Name:='consolas';
+LogMemo.Visible:=true;LogMemo.ScrollBars:=ssvertical;
+End;
+
+// Al cerrar el formulario de log viewer
+Procedure TFormLog.closeFormLog(Sender: TObject; var CanClose: boolean);
+Begin
+FormLog.Visible:=false;
+End;
+
+// Crear el formulario de about
+Procedure CreateFormAbout();
+Begin
+FormAbout := TFormAbout.Createnew(form1);
+FormAbout.caption := 'About '+coinname;
+FormAbout.SetBounds(0, 0, 200, 200);
+FormAbout.BorderStyle := bssingle;
+FormAbout.Position:=poOwnerFormCenter;
+FormAbout.BorderIcons:=FormLog.BorderIcons-[biminimize];
+FormAbout.ShowInTaskBar:=sTAlways;
+//FormAbout.OnCloseQuery:=@FormLog.closeFormLog;
+
+ImgAbout:= TImage.Create(FormAbout);
+ImgAbout.Parent := FormAbout;
+ImgAbout.Width:= 100; ImgAbout.Height:= 100;
+ImgAbout.Top:= 10; ImgAbout.Left:= 50;
+ImgAbout.Picture:=form1.Image1.Picture;
+
+LabelAbout := TLabel.Create(FormAbout);
+LabelAbout.Parent := FormAbout;LabelAbout.AutoSize:=false;
+LabelAbout.Width:= 200; LabelAbout.Height:= 90;
+LabelAbout.Top:= 112; LabelAbout.Left:= 1;
+LabelAbout.Caption:=CoinName+' project'+SLINEBREAK+'Designed by PedroJOR'+SLINEBREAK+
+'Version '+ProgramVersion+SLINEBREAK+'Protocol '+IntToStr(Protocolo)+SLINEBREAK+BuildDate;
+LabelAbout.Alignment:=taCenter;
+
+
+End;
 
 // Inicializa el grid donde se muestran los datos
 Procedure InicializarGUI();
@@ -33,7 +157,7 @@ Begin
 // datapanel
 DataPanel.Cells[0,0]:=LangLine(95);  //'Balance'
 DataPanel.Cells[0,1]:=LangLine(96); //'Server'
-DataPanel.Cells[0,2]:=LangLine(97);  //'Resumen'
+DataPanel.Cells[0,2]:=LangLine(97);  //'Headers'
 DataPanel.Cells[0,3]:=LangLine(98);  //'Connections'
 DataPanel.Cells[0,4]:=LangLine(99);  //'Summary'
 DataPanel.Cells[0,5]:=LangLine(100);  //'Blocks'
@@ -89,6 +213,21 @@ NetLastBlock.Value:='?';
 NetResumenHash.Value:='?';
 End;
 
+// Ordena las salidas de informacion
+Procedure OutText(Texto:String;inctime:boolean = false;canal : integer =0);
+Begin
+if inctime then texto := timetostr(now)+' '+texto;
+if canal = 0 then Consolelines.Add(texto);
+if canal = 1 then  // Salida al grid de inicio
+   begin
+   gridinicio.RowCount:=gridinicio.RowCount+1;
+   gridinicio.Cells[0,gridinicio.RowCount-1]:=Texto;
+   gridinicio.TopRow:=gridinicio.RowCount;
+   Application.ProcessMessages;
+   Delay(50);
+   end;
+End;
+
 // Muestra las lineas en la consola
 Procedure MostrarLineasDeConsola();
 Begin
@@ -123,8 +262,7 @@ if (Miner_IsOn) then
    DataPanel.Cells[3,1]:=IntToStr(Miner_EsteIntervalo*5 div 1000) +' KHs/sec';
    DataPanel.Cells[3,2]:='['+IntToStr(Miner_Difficult)+'] '+copy(Miner_Target,1,Miner_DifChars);
    DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
-   DataPanel.Cells[3,4]:=TimeSinceStamp(LastblockData.TimeEnd);
-   DataPanel.Cells[3,5]:=MINER_HashSeed+inttostr(MINER_HashCounter);
+   DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+TimeSinceStamp(LastblockData.TimeEnd);
    if MinerButton.Caption = '' then
       begin MinerButton.Caption := ' '; Form1.imagenes.GetBitmap(5,MinerButton.Glyph);end
    else if MinerButton.Caption = ' ' then
@@ -140,7 +278,7 @@ else
    DataPanel.Cells[3,1]:=LangLine(119); //'Not minning'
    DataPanel.Cells[3,2]:='['+IntToStr(Miner_Difficult)+'] '+copy(Miner_Target,1,Miner_DifChars);
    DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
-   DataPanel.Cells[3,4]:=TimeSinceStamp(LastblockData.TimeEnd);
+   DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+TimeSinceStamp(LastblockData.TimeEnd);
    Form1.imagenes.GetBitmap(4,MinerButton.Glyph);
    end;
 
@@ -177,7 +315,7 @@ if ((linea <= LanguageLines-1) and (StringListLang[linea]<>'')) then
    begin
    result := StringListLang[linea];
    end
-else result := 'ErrLine: '+IntToStr(linea);
+else result := 'ErrLng: '+IntToStr(linea);
 End;
 
 // Carga el idioma espeficicado o muestra la informacion del idioma  activo

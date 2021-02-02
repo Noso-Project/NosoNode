@@ -351,14 +351,30 @@ var
   contador : integer;
   Encab : string;
   Textline : String;
+  TextOrder : String;
 Begin
 Encab := GetPTCEcn;
+TextOrder := encab+'ORDER ';
 if Length(PendingTXs) > 0 then
    begin
    for contador := 0 to Length(PendingTXs)-1 do
       begin
       Textline := GetStringFromOrder(PendingTXs[contador]);
-      PTC_SendLine(Slot, encab+textline);
+      if (Pendingtxs[contador].OrderType='CUSTOM') then
+         begin
+         PTC_SendLine(slot,Encab+'$'+TextLine);
+         end;
+      if (Pendingtxs[contador].OrderType='TRFR') then
+         begin
+         if Pendingtxs[contador].TrxLine=1 then TextOrder:= TextOrder+IntToStr(Pendingtxs[contador].OrderLines)+' ';
+         TextOrder := TextOrder+'$'+GetStringfromOrder(Pendingtxs[contador])+' ';
+         if Pendingtxs[contador].OrderLines=Pendingtxs[contador].TrxLine then
+            begin
+            Setlength(TextOrder,length(TextOrder)-1);
+            PTC_SendLine(slot,TextOrder);
+            TextOrder := encab+'ORDER ';
+            end;
+         end;
       end;
    end;
 End;
@@ -485,6 +501,7 @@ if TranxAlreadyPending(OrderInfo.TrfrID ) then exit;
 if OrderInfo.TimeStamp < LastBlockData.TimeStart then exit;
 if TrxExistsInLastBlock(OrderInfo.TrfrID) then exit;
 if AddressAlreadyCustomized(Address) then exit;
+If AddressSumaryIndex(OrderInfo.Receiver) >=0 then exit;
 if not VerifySignedString('Customize this '+Address+' '+OrderInfo.Receiver,OrderInfo.Signature,OrderInfo.Sender ) then exit;
 OpData := GetOpData(TextLine); // Eliminar el encabezado
 AddPendingTxs(OrderInfo);

@@ -28,18 +28,23 @@ var
   local : int64 = 0;
   Global : int64 = 0;
 Begin
+OutText('? Initializing time',false,1);
 global := strtoint64Def(getSNTPStringTime,-1);
 local := strtoint64Def(GetLocalTimestamp,-1);
 if global = -1 then
    begin
    consolelines.Add(LangLine(59)); //Unable to connect to NTP servers. Check your internet connection
+   gridinicio.RowCount:=gridinicio.RowCount-1;
+   OutText('✗ Failed initializing time',false,1);
    G_TimeOffSet := 0;
    Exit;
    end;
 G_TimeOffSet:= global-Local;
+gridinicio.RowCount:=gridinicio.RowCount-1;
+OutText('✓ Time initialized',false,1);
 if Abs(G_TimeOffSet) > 5 then
    begin
-   ShowMessage('Your time is incorrect by '+IntToStr(G_TimeOffSet div 60)+' minutes'+ sLineBreak +'MasterPascal will close automatically'+ sLineBreak +'Fix it and try again');
+   ShowMessage('Your time is incorrect by '+IntToStr(G_TimeOffSet)+' seconds'+ sLineBreak +'MasterPascal will close automatically'+ sLineBreak +'Fix it and try again');
    Application.Terminate;
    end;
 End;
@@ -47,7 +52,7 @@ End;
 // Devuelve el tiempo de la red
 function UTCTime():string;
 Begin
-result := IntToStr(StrToInt64(GetLocalTimestamp)+(GetLocalTimeOffset*60)+G_TimeOffSet);
+result := IntToStr(StrToInt64Def(GetLocalTimestamp,0)+(GetLocalTimeOffset*60)+G_TimeOffSet);
 End;
 
 // Intenta en los servidores hasta obtener un valor valido
@@ -76,7 +81,7 @@ NTPClient := TIdSNTP.Create(nil);
    NTPClient.Active := True;
    NTPClient.ReceiveTimeout:=500;
    result := IntToStr(DateTimeToUnix(NTPClient.DateTime));
-   if StrToInt64(result) < 0 then result := '';
+   if StrToInt64Def(result,-1) < 0 then result := '';
    Except on E:Exception do
       begin
       result := '';
@@ -97,7 +102,7 @@ var
   AsInteger: integer;
   Fecha : TDateTime;
 begin
-AsInteger := StrToInt64(timestamp);
+AsInteger := StrToInt64def(timestamp,-1);
 fecha := UnixToDateTime(AsInteger);
 result := DateTimeToStr(fecha);
 end;
@@ -108,7 +113,7 @@ var
 CurrStamp : Int64 = 0;
 Diferencia : Int64 = 0;
 Begin
-CurrStamp := StrToInt64(UTCTime);
+CurrStamp := StrToInt64Def(UTCTime,0);
 Diferencia := CurrStamp - value;
 if diferencia div 60 < 1 then result := '<1m'
 else if diferencia div 3600 < 1 then result := IntToStr(diferencia div 60)+'m'

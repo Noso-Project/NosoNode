@@ -39,7 +39,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="14">
+    <Units Count="15">
       <Unit0>
         <Filename Value="Noso.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -110,6 +110,10 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpCoin"/>
       </Unit13>
+      <Unit14>
+        <Filename Value="log 0.1.4.txt"/>
+        <IsPartOfProject Value="True"/>
+      </Unit14>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

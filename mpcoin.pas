@@ -21,12 +21,14 @@ Function SendFundsFromAddress(Origen, Destino:String; monto, comision:int64; con
 Procedure CheckForMyPending();
 function HaveAddressAnyPending(Address:string):boolean;
 function GetMaximunToSend():int64;
+function cadtonum(cadena:string;pordefecto:int64;erroroutput:string):int64;
+
 
 
 implementation
 
 Uses
-  mpblock, Mpred, mpcripto, mpparser;
+  mpblock, Mpred, mpcripto, mpparser,mpdisk, mpProtocol;
 
 // Devuelve el saldo en sumario de una direccion/alias
 function GetAddressBalance(address:string):int64;
@@ -273,6 +275,21 @@ comision := maximo div Comisiontrfr;
 Envio := maximo + comision;
 Diferencia := Disponible-envio;
 result := maximo+diferencia;
+End;
+
+// Convierte una cadena a un numero y devuelve un error si se llega a generar
+function cadtonum(cadena:string;pordefecto:int64;erroroutput:string):int64;
+Begin
+   try
+   result := strtoint64(cadena)
+   Except on E:Exception do
+      begin
+      result := pordefecto;
+      tolog(erroroutput);
+      if copy(erroroutput,1,9) = '**CRITICAL:' then
+         raise exception.Create(erroroutput+SLINEBREAK+'We recomend to restart the program after this');
+      end;
+   end;
 End;
 
 END. // END UNIT

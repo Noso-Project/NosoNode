@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, mpCripto, mpTime, mpblock, mpcoin,
-  dialogs, fileutil;
+  dialogs, fileutil, forms;
 
 Procedure ProcesarLineas();
 function GetOpData(textLine:string):String;
@@ -50,14 +50,15 @@ Procedure CreateTraslationFile();
 Procedure ImportLanguage(linetext:string);
 Procedure SetServerPort(LineText:string);
 Procedure Sha256(LineText:string);
-Procedure CheckFile(linetext:string);
+Procedure TestParser(LineText:String);
+Procedure DeleteBot(LineText:String);
 
 implementation
 
 uses
   mpProtocol, mpMiner;
 
-
+// Procesa las lineas de la linea de comandos
 Procedure ProcesarLineas();
 Begin
 While ProcessLines.Count > 0 do
@@ -132,8 +133,9 @@ else if UpperCase(Command) = 'RESETMINER' then ResetMinerInfo
 else if UpperCase(Command) = 'SHA256' then Sha256(LineText)
 else if UpperCase(Command) = 'TOTRAYON' then ToTrayON()
 else if UpperCase(Command) = 'TOTRAYOFF' then ToTrayOFF()
-else if UpperCase(Command) = 'CHECKFILE' then CheckFile(LineText)
-
+else if UpperCase(Command) = 'CLEAR' then Memoconsola.Lines.clear
+else if UpperCase(Command) = 'TP' then TestParser(LineText)
+else if UpperCase(Command) = 'DELBOT' then DeleteBot(LineText)
 
 else ConsoleLines.Add(LangLine(0)+Command);  // Unknow command
 ConsoleLines.Add('');
@@ -167,11 +169,33 @@ var
   ThisChar : Char;
   Contador : int64 = 1;
   WhiteSpaces : int64 = 0;
+  parentesis : boolean = false;
 Begin
 while contador <= Length(LineText) do
    begin
+   {memoconsola.Lines.Add(inttostr(contador)+' '+booltostr(parentesis,true)+' ['+temp+']');
+   application.ProcessMessages;}
    ThisChar := Linetext[contador];
-   if  ThisChar = ' ' then
+   if ((thischar = '(') and (not parentesis)) then parentesis := true
+   else if ((thischar = '(') and (parentesis)) then
+      begin
+      result := '';
+      exit;
+      end
+   else if ((ThisChar = ')') and (parentesis)) then
+      begin
+      if WhiteSpaces = ParamNumber then
+         begin
+         result := temp;
+         exit;
+         end
+      else
+         begin
+         parentesis := false;
+         temp := '';
+         end;
+      end
+   else if ((ThisChar = ' ') and (not parentesis)) then
       begin
       WhiteSpaces := WhiteSpaces +1;
       if WhiteSpaces > Paramnumber then
@@ -180,9 +204,14 @@ while contador <= Length(LineText) do
          exit;
          end;
       end
+   else if ((ThisChar = ' ') and (parentesis) and (WhiteSpaces = ParamNumber)) then
+      begin
+      temp := temp+ ThisChar;
+      end
    else if WhiteSpaces = ParamNumber then temp := temp+ ThisChar;
    contador := contador+1;
    end;
+if temp = ' ' then temp := '';
 Result := Temp;
 End;
 
@@ -220,7 +249,7 @@ var
 Begin
 for contador := 0 to length(ListaNodos) - 1 do
    consoleLines.Add(IntToStr(contador)+'- '+Listanodos[contador].ip+':'+Listanodos[contador].port+
-   ' '+TimeSinceStamp(StrToInt64(Listanodos[contador].LastConexion)));
+   ' '+TimeSinceStamp(CadToNum(Listanodos[contador].LastConexion,0,'STI fails on shownodes')));
 End;
 
 // Elimina el nodo indicado por su numero
@@ -375,6 +404,7 @@ Begin
 For contador := 0 to length(ListaSumario)-1 do
    begin
    consolelines.Add(ListaSumario[contador].Hash+' '+Int2Curr(ListaSumario[contador].Balance)+' '+
+   SLINEBREAK+ListaSumario[contador].custom+' '+
    IntToStr(ListaSumario[contador].LastOP)+' '+IntToStr(ListaSumario[contador].Score));
    TotalCOins := totalCoins+ ListaSumario[contador].Balance;
    end;
@@ -671,6 +701,11 @@ if AddressAlreadyCustomized(Address) then
    consolelines.Add(LangLine(141)); //'Address already have a custom alias'
    exit;
    end;
+if AddressSumaryIndex(addalias) >= 0 then
+   begin
+   consolelines.Add('Alias already exists');
+   exit;
+   end;
 for cont := 1 to length(addalias) do
    begin
    if pos(addalias[cont],CustomValid)=0 then
@@ -877,6 +912,12 @@ reset(archivo);
 readln(archivo);readln(archivo);readln(archivo);readln(archivo);
 // leer nombre del nuevo idioma
 readln(archivo,NombreIdioma);
+if NombreIDioma = '' then
+  begin
+  closefile(archivo);
+  consolelines.Add('Empty file');
+  exit;
+  end;
 setlength(arrayofstrings,0);
 // leer lineas del nuevo idioma
 while not eof(archivo) do
@@ -899,7 +940,7 @@ if length(arrayofstrings) <> DLSL.Count-2 then
 assignfile(archivo2,LanguageFileName);
 reset(archivo2);
 read(archivo2,linea); // leer la cantidad de idiomas ya instalados
-Idiomas := StrToInt(linea)+1;
+Idiomas := StrToIntDef(linea,1)+1;
 setlength(ListaDeIdiomas,0);
 // leer los idiomas preexistentes
 for contador := 1 to idiomas-1 do
@@ -944,6 +985,7 @@ InicializarGUI();
 ConsoleLines.Add('Loaded: '+NombreIdioma);
 End;
 
+// cambia el puerto de escucha
 Procedure SetServerPort(LineText:string);
 var
   NewPort:string = '';
@@ -959,6 +1001,7 @@ ConsoleLines.Add('New listening port: '+NewPort);
 S_Options := true;
 End;
 
+// regresa el sha256 de una cadena
 Procedure Sha256(LineText:string);
 var
   TextToSha : string = '';
@@ -967,13 +1010,50 @@ TextToSha :=  parameter(linetext,1);
 consolelines.Add(HashSha256String(TextToSha));
 End;
 
-Procedure CheckFile(linetext:string);
+// prueba la lectura de parametros de la linea de comandos
+Procedure TestParser(LineText:String);
 var
-  filetocheck : string = '';
+  contador : integer = 1;
+  continuar : boolean;
+  parametro : string;
 Begin
-filetocheck :=  parameter(linetext,1);
-if fileexists(filetocheck) then consolelines.Add(filetocheck+' FOUND')
-else consolelines.Add(filetocheck+' NOT FOUND')
+consolelines.Add(GetCommand(LineText));
+continuar := true;
+repeat
+   begin
+   parametro := Parameter(linetext,contador);
+   if parametro = '' then continuar := false
+   else
+     begin
+     consolelines.Add(inttostr(contador)+' '+parametro);
+     contador := contador+1;
+     end;
+   end;
+until not continuar
+End;
+
+// Borra la IP enviada de la lista de bots si existe
+Procedure DeleteBot(LineText:String);
+var
+  IPBot : String;
+  contador : integer;
+Begin
+IPBot := Parameter(linetext,1);
+if IPBot = '' then
+   begin
+   consolelines.Add('Invalid IP');
+   exit;
+   end;
+for contador := 0 to length(ListadoBots)-1 do
+   begin
+   if ListadoBots[contador].ip = IPBot then
+      begin
+      Delete(ListadoBots,Contador,1);
+      consolelines.Add(IPBot+' deleted from bot list');
+      exit;
+      end;
+   end;
+consolelines.Add('IP do not exists in Bot list');
 End;
 
 END. // END UNIT
