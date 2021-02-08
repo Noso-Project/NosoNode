@@ -43,6 +43,7 @@ Procedure SetDefaultAddress(linetext:string);
 Procedure ShowLastBlockInfo();
 Procedure showmd160(linetext:string);
 Procedure CustomizeAddress(linetext:string);
+Procedure Parse_SendFunds(LineText:string);
 Procedure SendFunds(LineText:string);
 Procedure ShowHalvings();
 Procedure GroupCoins(linetext:string);
@@ -52,6 +53,7 @@ Procedure SetServerPort(LineText:string);
 Procedure Sha256(LineText:string);
 Procedure TestParser(LineText:String);
 Procedure DeleteBot(LineText:String);
+Procedure showCriptoThreadinfo();
 
 implementation
 
@@ -122,7 +124,7 @@ else if UpperCase(Command) = 'TIMESTAMP' then ConsoleLines.Add(UTCTime)
 else if UpperCase(Command) = 'MD160' then showmd160(LineText)
 else if UpperCase(Command) = 'UNDONEBLOCK' then UndoneLastBlock  // to be removed
 else if UpperCase(Command) = 'CUSTOMIZE' then CustomizeAddress(LineText)
-else if UpperCase(Command) = 'SENDTO' then SendFunds(LineText)
+else if UpperCase(Command) = 'SENDTO' then Parse_SendFunds(LineText)
 else if UpperCase(Command) = 'HALVING' then ShowHalvings()
 else if UpperCase(Command) = 'REBUILDSUMARY' then RebuildSumario()
 else if UpperCase(Command) = 'GROUPCOINS' then Groupcoins(linetext)
@@ -136,9 +138,13 @@ else if UpperCase(Command) = 'TOTRAYOFF' then ToTrayOFF()
 else if UpperCase(Command) = 'CLEAR' then Memoconsola.Lines.clear
 else if UpperCase(Command) = 'TP' then TestParser(LineText)
 else if UpperCase(Command) = 'DELBOT' then DeleteBot(LineText)
+else if UpperCase(Command) = 'CRIPTO' then showCriptoThreadinfo()
+else if UpperCase(Command) = 'MTON' then CheckMonitor := true
+else if UpperCase(Command) = 'MTOFF' then CheckMonitor := false
+else if UpperCase(Command) = 'MONITOR' then FormMonitor.Visible := true
 
 else ConsoleLines.Add(LangLine(0)+Command);  // Unknow command
-ConsoleLines.Add('');
+//ConsoleLines.Add('');
 end;
 
 // Obtiene el comando de una linea
@@ -173,8 +179,6 @@ var
 Begin
 while contador <= Length(LineText) do
    begin
-   {memoconsola.Lines.Add(inttostr(contador)+' '+booltostr(parentesis,true)+' ['+temp+']');
-   application.ProcessMessages;}
    ThisChar := Linetext[contador];
    if ((thischar = '(') and (not parentesis)) then parentesis := true
    else if ((thischar = '(') and (parentesis)) then
@@ -329,9 +333,9 @@ Begin
 for contador := 0 to length(Listadirecciones)-1 do
    begin
    totalEnSumario := totalEnSumario+Listadirecciones[contador].Balance;
-   TotalPendiente := TotalPendiente+GetAddressPendingPays(ListaDirecciones[contador].Hash)
+   //TotalPendiente := TotalPendiente+GetAddressPendingPays(ListaDirecciones[contador].Hash)
    end;
-result := totalEnSumario-TotalPendiente;
+result := totalEnSumario-MontoOutgoing;
 End;
 
 // activa la opcion de usuario para solicitar nodos la conectarse
@@ -589,6 +593,7 @@ if nuevos > 0 then
    begin
    ConsoleLines.Add(LangLine(135)+IntToStr(nuevos)); //'Addresses imported: '
    UpdateWalletFromSumario;
+   //RebulidTrxThread := Beginthread(tthreadfunc(@NewMyTrx));
    end
 else ConsoleLines.Add(LangLine(136));  //'No new addreses found.'
 End;
@@ -718,20 +723,28 @@ for cont := 1 to length(addalias) do
 CurrTime := UTCTime;
 TrfrHash := GetTransferHash(CurrTime+Address+addalias+IntToStr(MyLastblock));
 OrderHash := GetOrderHash('1'+currtime+TrfrHash);
-OutgoingMsjs.Add(ProtocolLine(9)+    // CUSTOM
-   OrderHash+' '+  // OrderID
-   '1'+' '+        // OrderLines
-   'CUSTOM'+' '+   // OrderType
-   CurrTime+' '+   // Timestamp
-   'null'+' '+     // concept
-   '1'+' '+        // Trxline
-   ListaDirecciones[DireccionEsMia(address)].PublicKey+' '+    // sender
-   AddAlias+' '+   // receiver
-   IntToStr(Customizationfee)+' '+  // Amountfee
-   '0'+' '+                         // amount trfr
-   GetStringSigned('Customize this '+address+' '+addalias,ListaDirecciones[DireccionEsMia(address)].PrivateKey)+' '+
-   TrfrHash);      // trfrhash
-ConsoleLines.Add('Customization requirement sent');
+AddCriptoOp(2,'Customize this '+address+' '+addalias+'$'+ListaDirecciones[DireccionEsMia(address)].PrivateKey,
+           ProtocolLine(9)+    // CUSTOM
+           OrderHash+' '+  // OrderID
+           '1'+' '+        // OrderLines
+           'CUSTOM'+' '+   // OrderType
+           CurrTime+' '+   // Timestamp
+           'null'+' '+     // concept
+           '1'+' '+        // Trxline
+           ListaDirecciones[DireccionEsMia(address)].PublicKey+' '+    // sender
+           AddAlias+' '+   // receiver
+           IntToStr(Customizationfee)+' '+  // Amountfee
+           '0'+' '+                         // amount trfr
+           '[[RESULT]] '+//GetStringSigned('Customize this '+address+' '+addalias,ListaDirecciones[DireccionEsMia(address)].PrivateKey)+' '+
+           TrfrHash);      // trfrhash
+StartCriptoThread();
+End;
+
+// Incluye una solicitud de envio de fondos a la cola de transacciones cripto
+Procedure Parse_SendFunds(LineText:string);
+Begin
+AddCriptoOp(3,linetext,'');
+StartCriptoThread();
 End;
 
 // Ejecuta una orden de transferencia
@@ -997,7 +1010,7 @@ if ((StrToIntDef(NewPort,0) < 1) or (StrToIntDef(NewPort,0)>65535)) then
    exit;
    end;
 UserOptions.Port :=StrToIntDef(NewPort,0);
-ConsoleLines.Add('New listening port: '+NewPort);
+OutText('New listening port: '+NewPort,false,2);
 S_Options := true;
 End;
 
@@ -1054,6 +1067,14 @@ for contador := 0 to length(ListadoBots)-1 do
       end;
    end;
 consolelines.Add('IP do not exists in Bot list');
+End;
+
+Procedure showCriptoThreadinfo();
+Begin
+consolelines.Add(Booltostr(CriptoThreadRunning,true)+' '+
+                 inttostr(length(CriptoOpstipo))+' '+
+                 inttostr(length(CriptoOpsoper))+' '+
+                 inttostr(length(CriptoOpsResu)));
 End;
 
 END. // END UNIT

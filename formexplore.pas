@@ -278,4 +278,4 @@ finalization
   explorer.Free;
   explorer := Nil;
 
-end.
+END.

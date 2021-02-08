@@ -12,6 +12,7 @@ function GetAddressPendingPays(Address:string):int64;
 function TranxAlreadyPending(TrxHash:string):boolean;
 function TrxExistsInLastBlock(trfrhash:String):boolean;
 function AddPendingTxs(order:OrderData):boolean;
+Procedure VerifyIfPendingIsMine(order:orderdata);
 function AddressAlreadyCustomized(address:string):boolean;
 function Restar(number:int64):int64;
 function AddressSumaryIndex(Address:string):integer;
@@ -101,6 +102,7 @@ var
   insertar : boolean = false;
   resultado : integer = 0;
 Begin
+setmilitime('AddPendingTxs',1);
 if order.OrderType='FEE' then exit;
 if TranxAlreadyPending(order.TrfrID) then exit;
 while cont < length(PendingTxs) do
@@ -134,7 +136,28 @@ while cont < length(PendingTxs) do
 if not insertar then resultado := length(pendingTXs);
 Insert(order,PendingTxs,resultado);
 result := true;
-CheckForMyPending();
+VerifyIfPendingIsMine(order);
+setmilitime('AddPendingTxs',2);
+End;
+
+// Verifica si una orden especifica es del usuario
+Procedure VerifyIfPendingIsMine(order:orderdata);
+var
+  DireccionEnvia: string;
+Begin
+DireccionEnvia := GetAddressFromPublicKey(order.Sender);
+if DireccionEsMia(DireccionEnvia)>=0 then
+   begin
+   ListaDirecciones[DireccionEsMia(DireccionEnvia)].Pending:=ListaDirecciones[DireccionEsMia(DireccionEnvia)].Pending+
+      Order.AmmountFee+order.AmmountTrf;
+   montooutgoing := montooutgoing+Order.AmmountFee+order.AmmountTrf;
+   if not ImageOut.Visible then ImageOut.Visible:= true;
+   end;
+if DireccionEsMia(Order.Receiver)>=0 then
+   begin
+   montoincoming := montoincoming+Order.AmmountFee+order.AmmountTrf;
+   if not ImageInc.Visible then ImageInc.Visible:= true;
+   end;
 End;
 
 // Devuelve si una direccion ya posee un alias
@@ -226,6 +249,7 @@ End;
 Procedure CheckForMyPending();
 var
   counter : integer = 0;
+  DireccionEnvia : string;
 Begin
 MontoIncoming := 0;
 MontoOutgoing := 0;
@@ -235,10 +259,17 @@ if length(PendingTxs) = 0 then
    ImageOut.Visible:=false;
    exit;
    end;
+for counter := 0 to length(ListaDirecciones)-1 do
+   ListaDirecciones[counter].Pending:=0;
 for counter := 0 to length(PendingTXs)-1 do
    begin
-   if DireccionEsMia(GetAddressFromPublicKey(PendingTxs[counter].Sender))>=0 then
+   DireccionEnvia := GetAddressFromPublicKey(PendingTxs[counter].Sender);
+   if DireccionEsMia(DireccionEnvia)>=0 then
+      begin
       MontoOutgoing := MontoOutgoing+PendingTxs[counter].AmmountFee+PendingTxs[counter].AmmountTrf;
+      ListaDirecciones[DireccionEsMia(DireccionEnvia)].Pending:=ListaDirecciones[DireccionEsMia(DireccionEnvia)].Pending+
+        PendingTxs[counter].AmmountFee+PendingTxs[counter].AmmountTrf;
+      end;
    If DireccionEsMia(PendingTxs[counter].Receiver)>=0 then
       MontoIncoming := MontoIncoming+PendingTxs[counter].AmmountTrf;
    end;

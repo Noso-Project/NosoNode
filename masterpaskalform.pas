@@ -66,6 +66,7 @@ type
      PublicKey : String[255]; // clave publica
      PrivateKey : String[255]; // clave privada
      Balance : int64; // el ultimo saldo conocido de la direccion
+     Pending : int64; // el ultimo saldo de pagos pendientes
      Score : int64; // estado del registro de la direccion.
      LastOP : int64;// tiempo de la ultima operacion en UnixTime.
      end;
@@ -138,6 +139,14 @@ type
      Concepto : String[64];
      end;
 
+  MilitimeData = Packed Record
+     Name : string[255];
+     Start : int64;
+     finish : int64;
+     duration : int64;
+     Maximo : int64;
+     Minimo : int64;
+     end;
 
   BlockOrdersArray = Array of OrderData;
 
@@ -198,6 +207,7 @@ type
     Procedure SBOptionsOnClick(Sender:TObject);
     Procedure SBDelNodeOnClick(Sender:TObject);
     Procedure SBNewNodeOnClick(Sender:TObject);
+    Procedure EditMyportEditingDone(Sender:TObject);
     Procedure CBGetNodesOnChange(Sender:TObject);
     Procedure CBAutoserverOnChange(Sender:TObject);
     Procedure CBAutoConnectOnChange(Sender:TObject);
@@ -217,6 +227,7 @@ type
     Procedure MMNewLang(Sender:TObject);
     Procedure MMVerConsola(Sender:TObject);
     Procedure MMVerLog(Sender:TObject);
+    Procedure MMVerMonitor(Sender:TObject);
 
   private
 
@@ -234,7 +245,7 @@ CONST
   ReservedWords : string = 'NULL,DELADDR';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
   ProgramVersion = '0.1.4';
-  BuildDate = 'January 2021';
+  BuildDate = 'Febraury 2021';
   ADMINHash = 'NUBy1bsprQKeFrVU4K8eKP46QG2ABs';
   OptionsFileName = 'NOSODATA/options.psk';
   BotDataFilename = 'NOSODATA/botdata.psk';
@@ -254,8 +265,8 @@ CONST
   Protocolo = 1;
   Miner_Steps = 10;
   // Custom values for coin
-  SecondsPerBlock = 600;            // 10 minutes
-  PremineAmount = 1030390730000;                // Ammount premined in genesys block
+  SecondsPerBlock = 150;            // 10 minutes
+  PremineAmount = 0;                // Ammount premined in genesys block
   InitialReward = 5000000000;      // Initial reward
   BlockHalvingInterval = 210000;    // Number of blocks between halvings. 2 years   105120
   HalvingSteps = 10;                // total number of halvings
@@ -273,6 +284,9 @@ CONST
 var
   FirstShow : boolean = false;
   MinConexToWork : integer = 1;
+  CheckMonitor : boolean = true;
+  MilitimeArray : array of MilitimeData;
+  MyCurrentBalance : Int64 = 0;
   Customizationfee : int64 = InitialReward div ComisionCustom;
   G_TimeOffSet : Int64 = 0;
   G_NTPServer : String = '';
@@ -368,9 +382,18 @@ var
   Miner_SolutionVerified : boolean = false;
   Miner_UltimoRecuento : int64 = 100000000;
   Miner_EsteIntervalo : int64 = 0;
+
+  // Threads
+  RebulidTrxThread : Int64 = 0;
+  CriptoOPsThread : Int64 = 0;
+    CriptoOpsTipo : Array of integer;
+    CriptoOpsOper : Array of string;
+    CriptoOpsResu : Array of string;
+    CriptoThreadRunning : boolean = false;
+
   // COmponentes visuales
   MainMenu : TMainMenu;
-  MenuItem : TMenuItem;
+    MenuItem : TMenuItem;
   ConnectButton : TSpeedButton;
   MinerButton : TSpeedButton;
   ImageInc :TImage;
@@ -455,6 +478,7 @@ if FirstShow then exit;
 CreateFormInicio();
 CreateFormLog();
 CreateFormAbout();
+CreateFormMilitime();
 form1.Visible:=false;
 forminicio.Visible:=true;
 Form1.InicioTimer:= TTimer.Create(Form1);
@@ -519,7 +543,13 @@ G_Launching := false;
 OutText('Noso is ready',false,1);
 FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
 FirstShow := true;
+Setlength(CriptoOpsTipo,0);
+Setlength(CriptoOpsOper,0);
+Setlength(CriptoOpsResu,0);
+Setlength(MilitimeArray,0);
 Tolog('Noso session started'); NewLogLines := NewLogLines-1;
+info('Noso session started');
+infopanel.BringToFront;
 End;
 
 // Carga las opciones de usuario al panel de opciones
@@ -644,18 +674,35 @@ End;
 Procedure TForm1.LatidoEjecutar(Sender: TObject);
 Begin
 Form1.Latido.Enabled:=false;
+setmilitime('ActualizarGUI',1);
 ActualizarGUI();
+setmilitime('ActualizarGUI',2);
+setmilitime('MostrarLineasDeConsola',1);
 MostrarLineasDeConsola();
+setmilitime('MostrarLineasDeConsola',2);
+setmilitime('SaveUpdatedFiles',1);
 SaveUpdatedFiles();
+setmilitime('SaveUpdatedFiles',2);
+setmilitime('ProcesarLineas',1);
 ProcesarLineas();
+setmilitime('ProcesarLineas',2);
+setmilitime('LeerLineasDeClientes',1);
 LeerLineasDeClientes();
+setmilitime('LeerLineasDeClientes',2);
+setmilitime('ParseProtocolLines',1);
 ParseProtocolLines();
+setmilitime('ParseProtocolLines',2);
+setmilitime('VerifyConnectionStatus',1);
 VerifyConnectionStatus();
+setmilitime('VerifyConnectionStatus',2);
+setmilitime('VerifyMiner',1);
 VerifyMiner();
+setmilitime('VerifyMiner',2);
 if G_CloseRequested then CerrarPrograma();
-Form1.Latido.Enabled:=true;
 if form1.SystrayIcon.Visible then
    form1.SystrayIcon.Hint:=Coinname+' Ver. '+ProgramVersion+SLINEBREAK+LabelBigBalance.Caption;
+if ((CheckMonitor) and (FormMonitor.Visible)) then UpdateMiliTimeForm();
+Form1.Latido.Enabled:=true;
 end;
 
 //procesa el cierre de la aplicacion
@@ -710,6 +757,8 @@ MenuItem.OnClick:=@form1.CheckMMCaptions;
   Form1.imagenes.GetBitmap(25,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Log';MenuItem.OnClick:=@Form1.MMVerLog;
   Form1.imagenes.GetBitmap(42,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Monitor';MenuItem.OnClick:=@Form1.MMVerMonitor;
+  Form1.imagenes.GetBitmap(44,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
 
 Memoconsola := TMemo.Create(Form1);
 Memoconsola.Parent:=form1;
@@ -983,7 +1032,8 @@ InfoPanel.Left:=100;InfoPanel.AutoSize:=false;
 InfoPanel.Color:=clMedGray;
 InfoPanel.Top:=245;InfoPanel.Font.Color:=clBlack;
 InfoPanel.Width:=200;InfoPanel.Height:=20;InfoPanel.Alignment:=tacenter;
-InfoPanel.Caption:='';InfoPanel.Visible:=false;
+InfoPanel.Caption:='';InfoPanel.Visible:=true;
+InfoPanel.BringToFront;
 
 OptionsPanel := TPanel.Create(Form1);OptionsPanel.Parent:=form1;
 OptionsPanel.Left:=2;OptionsPanel.Top:=307;OptionsPanel.Height:=181;OptionsPanel.Width:=396;
@@ -1061,6 +1111,7 @@ OptionsPanel.font.Name:='consolas';OptionsPanel.Font.Size:=14;
       EditMyPort.Font.Name:='consolas'; EditMyPort.Font.Size:=8;
       EditMyPort.Color:=clBlack;EditMyPort.Font.color:=clwhite;
       EditMyPort.Alignment:=taRightJustify;EditMyPort.Visible:=true;
+      EditMyport.OnEditingDone:=@form1.EditMyportEditingDone;
       EditMyPort.OnContextPopup:=@form1.DisablePopUpMenu;
 
       EditMaxpeer := TEdit.Create(Form1);EditMaxpeer.Parent:=OptionsScroll;EditMaxpeer.AutoSize:=false;
@@ -1118,7 +1169,7 @@ Form1.Latido.Enabled:=false;Form1.Latido.Interval:=200;
 Form1.Latido.OnTimer:= @form1.LatidoEjecutar;
 
 Form1.InfoTimer:= TTimer.Create(Form1);
-Form1.InfoTimer.Enabled:=false;Form1.InfoTimer.Interval:=10;
+Form1.InfoTimer.Enabled:=false;Form1.InfoTimer.Interval:=50;
 Form1.InfoTimer.OnTimer:= @form1.InfoTimerEnd;
 
 Form1.CloseTimer:= TTimer.Create(Form1);
@@ -1457,12 +1508,12 @@ End;
 // Cada miniciclo del infotimer
 Procedure TForm1.InfoTimerEnd(Sender: TObject);
 Begin
-InfoPanelTime := InfoPanelTime-10;
+InfoPanelTime := InfoPanelTime-50;
 if InfoPanelTime <= 0 then
   begin
+  InfoPanelTime := 0;
   InfoPanel.Caption:='';
-  InfoPanel.Visible:=false;
-  Infotimer.Enabled:=false;
+  InfoPanel.sendtoback;
   end;
 end;
 
@@ -1643,6 +1694,12 @@ Processlines.Add('ADDNODE '+EditIP.Text+' '+EditPort.Text);
 EditIP.Text := '';EditPort.Text := '';
 End;
 
+Procedure Tform1.EditMyportEditingDone(Sender:TObject);
+Begin
+if StrToIntDef(EditMyport.Text,0) <> UserOptions.port then
+  processlines.Add('SETPORT '+EditMyport.Text);
+End;
+
 // ACTIVA/DESACTIVA GETNODES
 Procedure TForm1.CBGetNodesOnChange(Sender:TObject);
 Begin
@@ -1756,6 +1813,7 @@ End;
 Procedure Tform1.MMQuit(Sender:TObject);
 Begin
 G_CloseRequested := true;
+tolog(currentjob);
 End;
 
 // menu principal cambiar idioma
@@ -1820,6 +1878,14 @@ FormLog.Visible:=true;
 NewLogLines := 0;
 FormLog.BringToFront;
 End;
+
+// Ver monitor
+Procedure TForm1.MMVerMonitor(Sender:TObject);
+Begin
+FormMonitor.Visible:=true;
+FormMonitor.BringToFront;
+End;
+
 
 END. // END PROGRAM
 

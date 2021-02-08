@@ -53,6 +53,7 @@ Procedure CargarMisTrx();
 Procedure SaveMyTrxsLastUpdatedblock(Number:integer);
 Procedure RebuildMyTrx(blocknumber:integer);
 Procedure SaveMyTrxsToDisk(Cantidad:integer);
+function NewMyTrx(aParam:Pointer):PtrInt;
 
 implementation
 
@@ -1190,6 +1191,13 @@ Begin
    Except on E:Exception do
       tolog ('Error saving my trx to disk');
    end;
+End;
+
+// Ejecutar en segundo plano la reconstruccion de mis transacciones
+Function NewMyTrx(aParam:Pointer):PtrInt;
+Begin
+
+NewMyTrx := -1;
 End;
 
 

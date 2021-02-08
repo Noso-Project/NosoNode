@@ -188,6 +188,7 @@ begin
 if Length(listanodos) = 0 then
    begin
    ConsoleLines.Add(LangLine(161));  //'You need add some nodes first'
+   CONNECT_Try := false;
    exit;
    end;
 if not CONNECT_Try then

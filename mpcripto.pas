@@ -26,7 +26,11 @@ function GetBase64TextFromFile(fileb64:string):string;
 function VerifySignedString(StringToVerify,B64String,PublicKey:String):boolean;
 function GetTransferHash(TextLine:string):String;
 function GetOrderHash(TextLine:string):String;
-
+Procedure AddCriptoOp(tipo:integer;proceso, resultado:string);
+Procedure StartCriptoThread();
+Procedure DeleteCriptoOp();
+Function ProcessCriptoOP(aParam:Pointer):PtrInt;
+// Big Maths
 function ClearLeadingCeros(numero:string):string;
 function BMAdicion(numero1,numero2:string):string;
 Function PonerCeros(numero:String;cuantos:integer):string;
@@ -43,7 +47,7 @@ function BMDecTo58(numero:string):string;
 implementation
 
 uses
-  mpParser, mpGui;
+  mpParser, mpGui, mpProtocol;
 
 // Crea una nueva direecion
 function CreateNewAddress():WalletData;
@@ -61,6 +65,7 @@ Mydata.Custom:='';
 Mydata.PublicKey:=PublicKey;
 MyData.PrivateKey:=PrivateKey;
 MyData.Balance:=0;
+MyData.Pending:=0;
 MyData.Score:=0;
 MyData.LastOP:= 0;
 Deletefile('private.pem');
@@ -155,6 +160,7 @@ var
   PubSHAHashed,Hash1,Hash2,clave:String;
   sumatoria : string;
 Begin
+setmilitime('GetAddressFromPublicKey',1);
 PubSHAHashed := HashSha256String(PubKey);
 Hash1 := HashMD160String(PubSHAHashed);
 hash1 := BMHexTo58(Hash1,58);
@@ -162,6 +168,7 @@ sumatoria := BMB58resumen(Hash1);
 clave := BMDecTo58(sumatoria);
 hash2 := hash1+clave;
 Result := CoinChar+hash2;
+setmilitime('GetAddressFromPublicKey',2);
 End;
 
 // RETURNS THE SHA256 OF A STRING
@@ -228,13 +235,9 @@ cantidad := StrToIntDef(parameter(linetext,1),1);
 if cantidad > 100 then cantidad := 100;
 for cont := 1 to cantidad do
    begin
-   setlength(listadirecciones,length(listadirecciones)+1);
-   listadirecciones[length(listadirecciones)-1] := CreateNewAddress;
-   //consolelines.Add(LangLine(24)+listadirecciones[length(listadirecciones)-1].Hash); //New address created :
+   AddCRiptoOp(1,'','');
    end;
-consolelines.Add(IntToStr(cantidad)+LangLine(165)); //' new address(s).'
-S_Wallet := true;
-U_DirPanel := true;
+StartCriptoThread();
 End;
 
 // Devuelve el hash MD5 de un archivo
@@ -451,10 +454,87 @@ clave := BMDecTo58(sumatoria);
 Result := 'tR'+Resultado+clave;
 End;
 
+// Devuelve el hash de una orden
 function GetOrderHash(TextLine:string):String;
 Begin
 Result := HashSHA256String(TextLine);
 Result := 'OR'+BMHexTo58(Result,36);
+End;
+
+// Añade una operacion a la espera de cripto
+Procedure AddCriptoOp(tipo:integer;proceso, resultado:string);
+Begin
+SetLength(CriptoOpsTipo,length(CriptoOpsTipo)+1);
+CriptoOpsTipo[length(CriptoOpsTipo)-1] := tipo;
+SetLength(CriptoOpsOper,length(CriptoOpsOper)+1);
+CriptoOpsOper[length(CriptoOpsOper)-1] := proceso;
+SetLength(CriptoOpsResu,length(CriptoOpsResu)+1);
+CriptoOpsResu[length(CriptoOpsResu)-1] := resultado;
+End;
+
+// Indica que se pueden empezar a realizar las operaciones del cripto thread
+Procedure StartCriptoThread();
+Begin
+if not CriptoThreadRunning then CriptoOPsThread := Beginthread(tthreadfunc(@ProcessCriptoOP));
+End;
+
+// Elimina la operacion cripto
+Procedure DeleteCriptoOp();
+Begin
+Delete(CriptoOpsTipo,0,1);
+Delete(CriptoOpsOper,0,1);
+Delete(CriptoOpsResu,0,1);
+End;
+
+// Procesa las operaciones criptograficas en segundo plano
+Function ProcessCriptoOP(aParam:Pointer):PtrInt;
+var
+  NewAddrss : integer = 0;
+  PosRef : integer; cadena,claveprivada,firma, resultado:string;
+Begin
+CriptoThreadRunning := true;
+Repeat
+   begin
+   if CriptoOpsTipo[0] = 0 then // actualizar balance
+      begin
+      MyCurrentBalance := GetWalletBalance();
+      end
+   else if CriptoOpsTipo[0] = 1 then // Crear direccion
+      begin
+      SetLength(ListaDirecciones,Length(ListaDirecciones)+1);
+      ListaDirecciones[Length(ListaDirecciones)-1] := CreateNewAddress;
+      S_Wallet := true;
+      U_DirPanel := true;
+      NewAddrss := NewAddrss + 1;
+      end
+   else if CriptoOpsTipo[0] = 2 then // customizar
+      begin
+      posRef := pos('$',CriptoOpsOper[0]);
+      cadena := copy(CriptoOpsOper[0],1,posref-1);
+      claveprivada := copy (CriptoOpsOper[0],posref+1,length(CriptoOpsOper[0]));
+      firma := GetStringSigned(cadena,claveprivada);
+      resultado := StringReplace(CriptoOpsResu[0],'[[RESULT]]',firma,[rfReplaceAll, rfIgnoreCase]);
+      OutgoingMsjs.Add(resultado);
+      OutText('Customization sent',false,2);
+      end
+    else if CriptoOpsTipo[0] = 3 then // enviar fondos
+      begin
+      Sendfunds(CriptoOpsOper[0]);
+      end
+    else if CriptoOpsTipo[0] = 4 then // recibir customizacion
+      begin
+      PTC_Custom(CriptoOpsOper[0]);
+      end
+    else if CriptoOpsTipo[0] = 5 then // recibir transferencia
+      begin
+      PTC_Order(CriptoOpsOper[0]);
+      end;
+   DeleteCriptoOp();
+   end;
+until length(CriptoOpsTipo) = 0;
+if NewAddrss > 0 then OutText(IntToStr(NewAddrss)+' new addresses',false,2);
+CriptoThreadRunning := false;
+ProcessCriptoOP := 0;
 End;
 
 // *****************************************************************************

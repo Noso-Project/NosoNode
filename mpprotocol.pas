@@ -27,8 +27,10 @@ procedure PTC_SendPending(Slot:int64);
 Procedure PTC_Newblock(Texto:String);
 Procedure PTC_SendResumen(Slot:int64);
 Procedure PTC_SendBlocks(Slot:integer;TextLine:String);
+Procedure INC_PTC_Custom(TextLine:String);
 Procedure PTC_Custom(TextLine:String);
 function ValidateTrfr(order:orderdata;Origen:String):Boolean;
+Procedure INC_PTC_Order(TextLine:String);
 Procedure PTC_Order(TextLine:String);
 
 CONST
@@ -172,8 +174,8 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = '$NEWBL' then PTC_NewBlock(SlotLines[contador][0])
       else if UpperCase(LineComando) = '$GETRESUMEN' then PTC_SendResumen(contador)
       else if UpperCase(LineComando) = '$LASTBLOCK' then PTC_SendBlocks(contador,SlotLines[contador][0])
-      else if UpperCase(LineComando) = '$CUSTOM' then PTC_Custom(GetOpData(SlotLines[contador][0]))
-      else if UpperCase(LineComando) = 'ORDER' then PTC_Order(SlotLines[contador][0])
+      else if UpperCase(LineComando) = '$CUSTOM' then INC_PTC_Custom(GetOpData(SlotLines[contador][0]))
+      else if UpperCase(LineComando) = 'ORDER' then INC_PTC_Order(SlotLines[contador][0])
       else
          Begin  // El comando recibido no se reconoce. Verificar protocolos posteriores.
          ConsoleLines.Add(LangLine(23)+SlotLines[contador][0]+') '+intToStr(contador)); //Unknown command () in slot: (
@@ -485,6 +487,12 @@ deletefile(BlockDirectory+'Blocks_'+IntToStr(FirstBlock)+'_'+IntToStr(LastBlock)
 ConsoleLines.Add(LangLine(93)+IntToStr(FirstBlock)+'->'+IntToStr(LastBlock)); //'Sent blocks interval: '
 End;
 
+Procedure INC_PTC_Custom(TextLine:String);
+Begin
+AddCriptoOp(4,TextLine,'');
+StartCriptoThread();
+End;
+
 // Procesa una solicitud de customizacion
 Procedure PTC_Custom(TextLine:String);
 var
@@ -527,6 +535,12 @@ if not VerifySignedString(IntToStr(order.TimeStamp)+origen+order.Receiver+IntToS
 result := true;
 End;
 
+Procedure INC_PTC_Order(TextLine:String);
+Begin
+AddCriptoOp(5,TextLine,'');
+StartCriptoThread();
+End;
+
 Procedure PTC_Order(TextLine:String);
 var
   NumTransfers : integer;
@@ -560,7 +574,6 @@ for cont := 0 to NumTransfers-1 do
    if not ValidateTrfr(TrxArray[cont],SenderTrx[cont]) then
       begin
       TodoValido := false;
-      break;
       end;
    end;
 if not todovalido then exit;

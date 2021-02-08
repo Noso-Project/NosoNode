@@ -27,9 +27,19 @@ type
     public
     end;
 
+  TFormMonitor = class(Tform)
+    //procedure closeFormLog(Sender: TObject; var CanClose: boolean);
+    private
+    public
+    end;
+
+
+
 Procedure CreateFormInicio();
 Procedure CreateFormLog();
 Procedure CreateFormAbout();
+Procedure CreateFormMilitime();
+Procedure UpdateMiliTimeForm();
 Procedure InicializarGUI();
 Procedure OutText(Texto:String;inctime:boolean = false;canal : integer =0);
 Procedure MostrarLineasDeConsola();
@@ -43,6 +53,7 @@ Procedure UpdateMyTrxGrid();
 Procedure Info(text:string);
 Procedure Processhint(sender:TObject);
 Procedure ShowGlobo(Titulo,texto:string);
+Procedure SetMiliTime(Name:string;tipo:integer);
 
 var
   FormInicio : TFormInicio;
@@ -52,6 +63,9 @@ var
   FormAbout : TFormAbout;
     ImgAbout : TImage;
     LabelAbout : Tlabel;
+  FormMonitor : TFormMonitor;
+    GridMiTime : TStringgrid;
+    GridMValues : TStringgrid;
 implementation
 
 Uses
@@ -128,7 +142,7 @@ FormAbout.caption := 'About '+coinname;
 FormAbout.SetBounds(0, 0, 200, 200);
 FormAbout.BorderStyle := bssingle;
 FormAbout.Position:=poOwnerFormCenter;
-FormAbout.BorderIcons:=FormLog.BorderIcons-[biminimize];
+FormAbout.BorderIcons:=FormAbout.BorderIcons-[biminimize];
 FormAbout.ShowInTaskBar:=sTAlways;
 //FormAbout.OnCloseQuery:=@FormLog.closeFormLog;
 
@@ -145,8 +159,68 @@ LabelAbout.Top:= 112; LabelAbout.Left:= 1;
 LabelAbout.Caption:=CoinName+' project'+SLINEBREAK+'Designed by PedroJOR'+SLINEBREAK+
 'Version '+ProgramVersion+SLINEBREAK+'Protocol '+IntToStr(Protocolo)+SLINEBREAK+BuildDate;
 LabelAbout.Alignment:=taCenter;
+End;
 
+// Crear el formulario del monitor
+Procedure CreateFormMilitime();
+Begin
+FormMonitor := TFormMonitor.Createnew(form1);
+FormMonitor.caption := CoinName+' Monitor';;
+FormMonitor.SetBounds(0, 0, 400, 400);
+FormMonitor.BorderStyle := bssingle;
+//FormMonitor.Position:=poOwnerFormCenter;
+FormMonitor.Top:=1;FormMonitor.Left:=1;
+FormMonitor.BorderIcons:=FormMonitor.BorderIcons-[biminimize];
+FormMonitor.ShowInTaskBar:=sTAlways;
 
+GridMiTime := TStringGrid.Create(FormMonitor);GridMiTime.Parent:=FormMonitor;
+GridMiTime.Font.Name:='consolas'; GridMiTime.Font.Size:=10;
+GridMiTime.Left:=1;GridMiTime.Top:=1;GridMiTime.Height:=200;GridMiTime.width:=300;
+GridMiTime.FixedCols:=0;GridMiTime.FixedRows:=0;
+GridMiTime.rowcount := 0;GridMiTime.ColCount:=4;
+GridMiTime.ScrollBars:=ssVertical;
+GridMiTime.FocusRectVisible:=false;
+GridMiTime.Options:= GridMiTime.Options+[goRowSelect]-[goRangeSelect];
+GridMiTime.ColWidths[0]:= 160;GridMiTime.ColWidths[1]:= 40;GridMiTime.ColWidths[2]:= 40;GridMiTime.ColWidths[3]:= 40;
+GridMiTime.Enabled := true;
+GridMiTime.GridLineWidth := 1;
+
+GridMValues := TStringGrid.Create(FormMonitor);GridMValues.Parent:=FormMonitor;
+GridMValues.Font.Name:='consolas'; GridMValues.Font.Size:=8;
+GridMValues.Left:=1;GridMValues.Top:=202;GridMValues.Height:=100;GridMValues.width:=180;
+GridMValues.FixedCols:=0;GridMValues.FixedRows:=0;
+GridMValues.rowcount := 4;GridMValues.ColCount:=2;
+GridMValues.ScrollBars:=ssVertical;
+GridMValues.FocusRectVisible:=false;
+GridMValues.Options:= GridMValues.Options+[goRowSelect]-[goRangeSelect];
+GridMValues.ColWidths[0]:= 100;GridMValues.ColWidths[1]:= 60;
+GridMValues.Enabled := true;
+GridMValues.GridLineWidth := 1;
+End;
+
+// Actualizar el monitor
+Procedure UpdateMiliTimeForm();
+var
+  count : integer;
+Begin
+if Length(MilitimeArray) < 1 then exit;
+GridMiTime.RowCount:=Length(MilitimeArray);
+for count := 0 to Length(MilitimeArray)-1 do
+   begin
+   GridMiTime.Cells[0,count]:=MilitimeArray[count].Name;
+   GridMiTime.Cells[1,count]:=IntToStr(MilitimeArray[count].duration);
+   GridMiTime.Cells[2,count]:=IntToStr(MilitimeArray[count].maximo);
+   GridMiTime.Cells[3,count]:=IntToStr(MilitimeArray[count].minimo);
+   end;
+
+GridMValues.Cells[0,0]:='InfoPanelTime';
+  GridMValues.Cells[1,0]:=IntToStr(InfoPanelTime);
+GridMValues.Cells[0,1]:='CriptoThread';
+  GridMValues.Cells[1,1]:=IntToStr(length(CriptoOpsTipo));
+GridMValues.Cells[0,2]:='MinerSeed';
+  GridMValues.Cells[1,2]:=MINER_HashSeed;
+GridMValues.Cells[0,3]:='MinerCounter';
+  GridMValues.Cells[1,3]:=IntToStr(MINER_HashCounter);
 End;
 
 // Inicializa el grid donde se muestran los datos
@@ -203,6 +277,7 @@ GridOptions.Cells[0,9]:='To Tray';
 Direccionespanel.RowCount:=length(listadirecciones)+1;
 Direccionespanel.Cells[0,0] := LangLine(118);  //'Address'
 Direccionespanel.Cells[1,0] := LangLine(95);  //'Balance'
+
 for contador := 0 to length(ListaDirecciones)-1 do
    begin
    Direccionespanel.Cells[0,contador+1] := ListaDirecciones[contador].Hash;
@@ -226,6 +301,11 @@ if canal = 1 then  // Salida al grid de inicio
    Application.ProcessMessages;
    Delay(50);
    end;
+if canal = 2 then // A consola y label info
+   begin
+   Consolelines.Add(texto);
+   info(texto);
+   end;
 End;
 
 // Muestra las lineas en la consola
@@ -243,6 +323,7 @@ Procedure ActualizarGUI();
 var
   contador : integer = 0;
 Begin
+
 if U_DataPanel then
    begin
    DataPanel.Cells[1,1]:=Booltostr(form1.Server.Active, true)+'('+IntToStr(UserOptions.Port)+')';
@@ -284,9 +365,10 @@ else
 
 // Esta se muestra siempre aparte ya que la funcion GetTotalConexiones es la que permite
 // verificar si los clientes siguen conectados
+
 DataPanel.Cells[1,3]:=IntToStr(GetTotalConexiones)+' ('+IntToStr(MyConStatus)+') ['+IntToStr(G_TotalPings)+']';
-DataPanel.Cells[1,0]:= Int2Curr(GetWalletBalance)+' '+CoinSimbol;
 DataPanel.Cells[1,7]:= IntToStr(Length(PendingTXs))+'/'+NetPendingTrxs.Value;
+DataPanel.Cells[1,0]:= Int2Curr(GetWalletBalance)+' '+CoinSimbol;
 
 if U_DirPanel then
    begin
@@ -296,16 +378,18 @@ if U_DirPanel then
       if ListaDirecciones[contador].Custom<>'' then
         Direccionespanel.Cells[0,contador+1] := ListaDirecciones[contador].Custom
       else Direccionespanel.Cells[0,contador+1] := ListaDirecciones[contador].Hash;
-      Direccionespanel.Cells[1,contador+1] := Int2Curr(ListaDirecciones[contador].Balance-GetAddressPendingPays(ListaDirecciones[contador].hash));
+      Direccionespanel.Cells[1,contador+1] := Int2Curr(ListaDirecciones[contador].Balance-ListaDirecciones[contador].pending);
       end;
    LabelBigBalance.Caption := DataPanel.Cells[1,0];
    U_DirPanel := false;
    end;
+
 if U_Mytrxs then
    begin
    UpdateMyTrxGrid();
    U_Mytrxs := false;
    end;
+
 End;
 
 // Devuelve Una linea del idioma
@@ -432,12 +516,12 @@ End;
 // Actualiza la informacion de la label info
 Procedure Info(text:string);
 Begin
+InfoPanel.Caption:=copy(text,1,33);
+InfoPanelTime := 1000;
 InfoPanel.Visible:=true;
 InfoPanel.BringToFront;
 InfoPanel.Refresh;
-InfoPanel.Caption:=copy(text,1,33);
-InfoPanelTime := 1000;
-if not form1.InfoTimer.Enabled then form1.InfoTimer.Enabled := true;
+if form1.InfoTimer.Enabled=false then form1.InfoTimer.Enabled:=true;
 End;
 
 // Fija el texto de hint
@@ -470,6 +554,7 @@ if sender=ImageOut then
    end;
 End;
 
+// Mostrar el globo del trayicon
 Procedure ShowGlobo(Titulo,texto:string);
 Begin
 if not Form1.SystrayIcon.Visible then exit;
@@ -477,6 +562,47 @@ form1.SystrayIcon.BalloonTitle:=Titulo;
 Form1.SystrayIcon.BalloonHint:=Texto;
 form1.SystrayIcon.BalloonTimeout:=3000;
 form1.SystrayIcon.ShowBalloonHint;
+End;
+
+// El procemiento para llevar el control del monitoreo del tiempo
+Procedure SetMiliTime(Name:string;tipo:integer);
+var
+  count : integer;
+Begin
+if not CheckMonitor then exit;
+if ((tipo = 1) and (length(MilitimeArray)>0)) then // tipo iniciar
+   begin
+   for count := 0 to length(MilitimeArray) -1 do
+      begin
+      if name = MilitimeArray[count].Name then
+        begin
+        MilitimeArray[count].Start:=GetTickCount64;
+        currentjob := currentjob+'>'+name;
+        exit;
+        end;
+      end;
+   end;
+if tipo= 2 then
+   begin
+   for count := 0 to length(MilitimeArray) -1 do
+      begin
+      if name = MilitimeArray[count].Name then
+        begin
+        MilitimeArray[count].finish:=GetTickCount64;
+        MilitimeArray[count].duration:=MilitimeArray[count].finish-MilitimeArray[count].Start;
+        if MilitimeArray[count].duration>MilitimeArray[count].Maximo then
+          MilitimeArray[count].Maximo := MilitimeArray[count].duration;
+        if MilitimeArray[count].duration<MilitimeArray[count].Minimo then
+          MilitimeArray[count].Minimo := MilitimeArray[count].duration;
+        currentjob := StringReplace(currentjob,'>'+name,'',[rfReplaceAll, rfIgnoreCase]);
+        exit;
+        end;
+      end;
+   end;
+setlength(MilitimeArray,length(MilitimeArray)+1);
+MilitimeArray[length(MilitimeArray)-1].Name:=name;
+MilitimeArray[length(MilitimeArray)-1].Start:=GetTickCount64;
+currentjob := currentjob+'>'+name;
 End;
 
 END. // END UNIT
