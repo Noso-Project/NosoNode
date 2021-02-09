@@ -229,6 +229,17 @@ type
     Procedure MMVerLog(Sender:TObject);
     Procedure MMVerMonitor(Sender:TObject);
 
+    // CONSOLE POPUP
+    Procedure CheckConsolePopUp(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
+    Procedure ConsolePopUpClear(Sender:TObject);
+    Procedure ConsolePopUpCopy(Sender:TObject);
+
+    // CONSOLE LINE POPUP
+    Procedure CheckConsoLinePopUp(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
+    Procedure ConsoLinePopUpClear(Sender:TObject);
+    Procedure ConsoLinePopUpCopy(Sender:TObject);
+    Procedure ConsoLinePopUpPaste(Sender:TObject);
+
   private
 
   public
@@ -244,7 +255,8 @@ CONST
   B36Alphabet : string = '0123456789abcdefghijklmnopqrstuvwxyz';
   ReservedWords : string = 'NULL,DELADDR';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
-  ProgramVersion = '0.1.4';
+  ProgramVersion = '0.1.5';
+  OficialRelease = false;
   BuildDate = 'Febraury 2021';
   ADMINHash = 'NUBy1bsprQKeFrVU4K8eKP46QG2ABs';
   OptionsFileName = 'NOSODATA/options.psk';
@@ -394,6 +406,9 @@ var
   // COmponentes visuales
   MainMenu : TMainMenu;
     MenuItem : TMenuItem;
+  ConsolePopUp : TPopupMenu;
+  ConsoLinePopUp : TPopupMenu;
+
   ConnectButton : TSpeedButton;
   MinerButton : TSpeedButton;
   ImageInc :TImage;
@@ -550,6 +565,7 @@ Setlength(MilitimeArray,0);
 Tolog('Noso session started'); NewLogLines := NewLogLines-1;
 info('Noso session started');
 infopanel.BringToFront;
+SetCurrentJob('Main',true);
 End;
 
 // Carga las opciones de usuario al panel de opciones
@@ -760,17 +776,35 @@ MenuItem.OnClick:=@form1.CheckMMCaptions;
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Monitor';MenuItem.OnClick:=@Form1.MMVerMonitor;
   Form1.imagenes.GetBitmap(44,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
 
+ConsolePopUp := TPopupMenu.Create(form1);
+MenuItem := TMenuItem.Create(ConsolePopUp);MenuItem.Caption := 'Clear';//Form1.imagenes.GetBitmap(0,MenuItem.Bitmap);
+  MenuItem.OnClick := @form1.ConsolePopUpClear;ConsolePopUp.Items.Add(MenuItem);
+MenuItem := TMenuItem.Create(ConsolePopUp);MenuItem.Caption := 'Copy';Form1.imagenes.GetBitmap(7,MenuItem.Bitmap);
+  MenuItem.OnClick := @form1.ConsolePopUpCopy;ConsolePopUp.Items.Add(MenuItem);
+
+ConsoLinePopUp := TPopupMenu.Create(form1);
+MenuItem := TMenuItem.Create(ConsoLinePopUp);MenuItem.Caption := 'Clear';//Form1.imagenes.GetBitmap(0,MenuItem.Bitmap);
+  MenuItem.OnClick := @form1.ConsoLinePopUpClear;ConsoLinePopUp.Items.Add(MenuItem);
+MenuItem := TMenuItem.Create(ConsoLinePopUp);MenuItem.Caption := 'Copy';Form1.imagenes.GetBitmap(7,MenuItem.Bitmap);
+  MenuItem.OnClick := @form1.ConsoLinePopUpCopy;ConsoLinePopUp.Items.Add(MenuItem);
+MenuItem := TMenuItem.Create(ConsoLinePopUp);MenuItem.Caption := 'Paste';Form1.imagenes.GetBitmap(15,MenuItem.Bitmap);
+  MenuItem.OnClick := @form1.ConsoLinePopUpPaste;ConsoLinePopUp.Items.Add(MenuItem);
+
 Memoconsola := TMemo.Create(Form1);
 Memoconsola.Parent:=form1;
 Memoconsola.Left:=2;Memoconsola.Top:=2;Memoconsola.Height:=280;Memoconsola.Width:=396;
 Memoconsola.Color:=clblack;Memoconsola.Font.Color:=clwhite;Memoconsola.ReadOnly:=true;
 Memoconsola.Font.Size:=10;Memoconsola.Font.Name:='consolas';
 Memoconsola.Visible:=false;Memoconsola.ScrollBars:=ssvertical;
+MemoConsola.OnContextPopup:=@Form1.CheckConsolePopUp;
+MemoConsola.PopupMenu:=ConsolePopUp ;
 
 ConsoleLine := TEdit.Create(Form1); ConsoleLine.Parent:=Form1;ConsoleLine.Font.Name:='consolas';
 ConsoleLine.Left:=2;ConsoleLine.Top:=282;ConsoleLine.Height:=12;ConsoleLine.Width:=396;
 ConsoleLine.AutoSize:=true;ConsoleLine.Color:=clBlack;ConsoleLine.Font.Color:=clWhite;
 ConsoleLine.Visible:=false;ConsoleLine.OnKeyUp:=@form1.ConsoleLineKeyup;
+ConsoleLine.OnContextPopup:=@Form1.CheckConsoLinePopUp;
+ConsoleLine.PopupMenu:=ConsoLinePopUp ;
 
 DataPanel := TStringGrid.Create(Form1);DataPanel.Parent:=Form1;
 DataPanel.Left:=2;DataPanel.Top:=310;DataPanel.Height:=180;DataPanel.Width:=396;
@@ -1886,6 +1920,67 @@ FormMonitor.Visible:=true;
 FormMonitor.BringToFront;
 End;
 
+//******************************************************************************
+// ConsolePopUp
+//******************************************************************************
+
+// VErifica que mostrar en el consolepopup
+Procedure TForm1.CheckConsolePopUp(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
+Begin
+if MemoConsola.Text <> '' then ConsolePopUp.Items[0].Enabled:= true
+else ConsolePopUp.Items[0].Enabled:= false;
+if length(Memoconsola.SelText)>0 then ConsolePopUp.Items[1].Enabled:= true
+else ConsolePopUp.Items[1].Enabled:= false;
+End;
+
+Procedure TForm1.ConsolePopUpClear(Sender:TObject);
+Begin
+Processlines.Add('clear');
+End;
+
+Procedure TForm1.ConsolePopUpCopy(Sender:TObject);
+Begin
+Clipboard.AsText:= Memoconsola.SelText;
+info('Copied to clipboard');
+End;
+
+//******************************************************************************
+// LinePopUp
+//******************************************************************************
+
+// VErifica que mostrar en el consolepopup
+Procedure TForm1.CheckConsoLinePopUp(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
+Begin
+if ConsoleLine.Text <> '' then ConsoLinePopUp.Items[0].Enabled:= true
+else ConsoLinePopUp.Items[0].Enabled:= false;
+if length(ConsoleLine.SelText)>0 then ConsoLinePopUp.Items[1].Enabled:= true
+else ConsoLinePopUp.Items[1].Enabled:= false;
+if length(Clipboard.AsText)>0 then ConsoLinePopUp.Items[2].Enabled:= true
+else ConsoLinePopUp.Items[2].Enabled:= false;
+End;
+
+Procedure TForm1.ConsoLinePopUpClear(Sender:TObject);
+Begin
+ConsoleLine.Text:='';
+ConsoleLine.Setfocus;
+End;
+
+Procedure TForm1.ConsoLinePopUpCopy(Sender:TObject);
+Begin
+Clipboard.AsText:= ConsoleLine.SelText;
+info('Copied to clipboard');
+End;
+
+Procedure TForm1.ConsoLinePopUpPaste(Sender:TObject);
+var
+  CurrText : String; Currpos : integer;
+Begin
+CurrText := ConsoleLine.Text;
+Currpos := ConsoleLine.SelStart;
+Insert(Clipboard.AsText,CurrText,ConsoleLine.SelStart+1);
+ConsoleLine.Text := CurrText;ConsoleLine.SelStart:=currpos+length(Clipboard.AsText);
+ConsoleLine.Setfocus;
+End;
 
 END. // END PROGRAM
 

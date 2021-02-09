@@ -82,6 +82,7 @@ var
   contador : integer = 1;
   Slot : int64 = 0;
 begin
+SetCurrentJob('SaveConection',true);
 For contador := 1 to MaxConecciones do
    begin
    if Conexiones[contador].tipo = '' then
@@ -106,6 +107,7 @@ For contador := 1 to MaxConecciones do
       end;
    end;
 result := slot;
+SetCurrentJob('SaveConection',false);
 end;
 
 // Activa el servidor
@@ -124,7 +126,7 @@ if Form1.Server.Active then
    U_DataPanel := true;
    except
    on E : Exception do
-   ConsoleLines.Add(LangLine(15));       //Unable to start Server
+     ConsoleLines.Add(LangLine(15));       //Unable to start Server
    end;
 end;
 
@@ -133,6 +135,7 @@ procedure StopServer();
 var
   Contador: integer;
 Begin
+SetCurrentJob('StopServer',true);
 for contador := 1 to MaxConecciones do
    begin
    if conexiones[contador].tipo='CLI' then CerrarSlot(contador);
@@ -140,11 +143,13 @@ for contador := 1 to MaxConecciones do
 Form1.Server.Active:=false;
 ConsoleLines.Add(LangLine(16));             //Server stopped
 U_DataPanel := true;
+SetCurrentJob('StopServer',false);
 end;
 
 // Cierra la conexion del slot especificado
 procedure CerrarSlot(Slot:integer);
 begin
+SetCurrentJob('CerrarSlot',true);
 if conexiones[Slot].tipo='CLI' then
    begin
    SlotLines[slot].Clear;
@@ -159,6 +164,7 @@ if conexiones[Slot].tipo='SER' then
    CanalCliente[Slot].Disconnect;
    Conexiones[Slot] := Default(conectiondata);
    end;
+SetCurrentJob('CerrarSlot',false);
 end;
 
 // ANTICUADO
@@ -185,10 +191,12 @@ Procedure ConnectToServers();
 var
   contador : integer = 0;
 begin
+SetCurrentJob('ConnectToServers',true);
 if Length(listanodos) = 0 then
    begin
    ConsoleLines.Add(LangLine(161));  //'You need add some nodes first'
    CONNECT_Try := false;
+   SetCurrentJob('ConnectToServers',false);
    exit;
    end;
 if not CONNECT_Try then
@@ -210,6 +218,7 @@ while contador < length(ListaNodos) do
    contador := contador +1;
    end;
 CONNECT_LastTime := UTCTime();
+SetCurrentJob('ConnectToServers',false);
 end;
 
 // regresa el primer slot dispoinible, o 0 si no hay ninguno
@@ -234,6 +243,7 @@ var
   Slot : integer = 0;
   ConContext : TIdContext; // EMPTY
 Begin
+SetCurrentJob('ConnectClient',true);
 ConContext := Default(TIdContext);
 if Address = '127.0.0.1' then
    begin
@@ -259,12 +269,14 @@ CanalCliente[Slot].Port:=StrToIntDef(Port,8080);
    If UserOptions.GetNodes then
      CanalCliente[Slot].IOHandler.WriteLn(ProtocolLine(GetNodes));
    result := Slot;
+   SetCurrentJob('ConnectClient',false);
    Except
    on E:Exception do
       begin
       if E.Message<>'localhost: Connect timed out.' then
         ConsoleLines.Add(Address+': '+E.Message);
       result := 0;
+      SetCurrentJob('ConnectClient',false);
       exit;
       end;
    end;
@@ -293,11 +305,13 @@ Procedure CerrarClientes();
 var
   Contador: integer;
 Begin
+SetCurrentJob('CerrarClientes',true);
 for contador := 1 to MaxConecciones do
    begin
    if conexiones[contador].tipo='SER' then CerrarSlot(contador);
    end;
 CONNECT_Try := false;
+SetCurrentJob('CerrarClientes',false);
 End;
 
 // Lee las lineas linea de los CanalesCliente
@@ -309,10 +323,15 @@ var
   AFileStream : TFileStream;
   BlockZipName : string = '';
 begin
+SetCurrentJob('ReadClientLines',true);
 if CanalCliente[Slot].IOHandler.InputBufferIsEmpty then
    begin
    CanalCliente[Slot].IOHandler.CheckForDataOnSource(10);
-   if CanalCliente[Slot].IOHandler.InputBufferIsEmpty then Exit;
+   if CanalCliente[Slot].IOHandler.InputBufferIsEmpty then
+      begin
+      SetCurrentJob('ReadClientLines',false);
+      Exit;
+      end;
    end;
 While not CanalCliente[Slot].IOHandler.InputBufferIsEmpty do
    begin
@@ -355,6 +374,7 @@ While not CanalCliente[Slot].IOHandler.InputBufferIsEmpty do
    else
       SlotLines[Slot].Add(LLine);
    end;
+SetCurrentJob('ReadClientLines',false);
 End;
 
 // Verifica todas las conexiones tipo SER y lee las lineas entrantes que puedan tener
@@ -363,6 +383,7 @@ Procedure LeerLineasDeClientes();
 var
   contador : integer = 0;
 Begin
+SetCurrentJob('LeerLineasDeClientes',true);
 for contador := 1 to Maxconecciones do
    begin
    if Conexiones[contador].tipo = 'SER' then
@@ -378,6 +399,7 @@ for contador := 1 to Maxconecciones do
         end;
      end;
    end;
+SetCurrentJob('LeerLineasDeClientes',false);
 End;
 
 // Verifica el estado de la conexion
@@ -385,6 +407,7 @@ Procedure VerifyConnectionStatus();
 var
   NumeroConexiones : integer = 0;
 Begin
+SetCurrentJob('VerifyConnectionStatus',true);
 if ((CONNECT_Try) and (StrToInt64(UTCTime)>StrToInt64(CONNECT_LastTime)+5)) then ConnectToServers;
 NumeroConexiones := GetTotalConexiones;
 if NumeroConexiones = 0 then  // Desconeectado
@@ -462,6 +485,7 @@ if MyConStatus = 3 then
    begin
 
    end;
+SetCurrentJob('VerifyConnectionStatus',false);
 End;
 
 // Rellena el array consenso
@@ -631,6 +655,7 @@ Procedure ActualizarseConLaRed();
 var
   NLBV : integer = 0; // network last block valur
 Begin
+SetCurrentJob('ActualizarseConLaRed',true);
 NLBV := StrToInt(NetLastBlock.Value);
 if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // solicitar cabeceras de bloque
    begin
@@ -654,7 +679,8 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
         (MySumarioHash<>NetSumarioHash.Value)) then
    begin  // Reconstruir sumario
    RebuildSumario();
-   end
+   end;
+SetCurrentJob('ActualizarseConLaRed',false);
 End;
 
 

@@ -54,6 +54,7 @@ Procedure Info(text:string);
 Procedure Processhint(sender:TObject);
 Procedure ShowGlobo(Titulo,texto:string);
 Procedure SetMiliTime(Name:string;tipo:integer);
+Procedure SetCurrentJob(CurrJob:String;status:boolean);
 
 var
   FormInicio : TFormInicio;
@@ -66,6 +67,7 @@ var
   FormMonitor : TFormMonitor;
     GridMiTime : TStringgrid;
     GridMValues : TStringgrid;
+    LabelCurrJob : TLabel;
 implementation
 
 Uses
@@ -139,7 +141,7 @@ Procedure CreateFormAbout();
 Begin
 FormAbout := TFormAbout.Createnew(form1);
 FormAbout.caption := 'About '+coinname;
-FormAbout.SetBounds(0, 0, 200, 200);
+FormAbout.SetBounds(0, 0, 200, 210);
 FormAbout.BorderStyle := bssingle;
 FormAbout.Position:=poOwnerFormCenter;
 FormAbout.BorderIcons:=FormAbout.BorderIcons-[biminimize];
@@ -157,6 +159,7 @@ LabelAbout.Parent := FormAbout;LabelAbout.AutoSize:=false;
 LabelAbout.Width:= 200; LabelAbout.Height:= 90;
 LabelAbout.Top:= 112; LabelAbout.Left:= 1;
 LabelAbout.Caption:=CoinName+' project'+SLINEBREAK+'Designed by PedroJOR'+SLINEBREAK+
+'Crypto routines by Xor-el'+SLINEBREAK+
 'Version '+ProgramVersion+SLINEBREAK+'Protocol '+IntToStr(Protocolo)+SLINEBREAK+BuildDate;
 LabelAbout.Alignment:=taCenter;
 End;
@@ -176,26 +179,33 @@ FormMonitor.ShowInTaskBar:=sTAlways;
 GridMiTime := TStringGrid.Create(FormMonitor);GridMiTime.Parent:=FormMonitor;
 GridMiTime.Font.Name:='consolas'; GridMiTime.Font.Size:=10;
 GridMiTime.Left:=1;GridMiTime.Top:=1;GridMiTime.Height:=200;GridMiTime.width:=300;
-GridMiTime.FixedCols:=0;GridMiTime.FixedRows:=0;
-GridMiTime.rowcount := 0;GridMiTime.ColCount:=4;
+GridMiTime.FixedCols:=0;GridMiTime.FixedRows:=1;
+GridMiTime.rowcount := 1;GridMiTime.ColCount:=4;
 GridMiTime.ScrollBars:=ssVertical;
 GridMiTime.FocusRectVisible:=false;
 GridMiTime.Options:= GridMiTime.Options+[goRowSelect]-[goRangeSelect];
 GridMiTime.ColWidths[0]:= 160;GridMiTime.ColWidths[1]:= 40;GridMiTime.ColWidths[2]:= 40;GridMiTime.ColWidths[3]:= 40;
 GridMiTime.Enabled := true;
+GridMiTime.Cells[0,0]:='Function';GridMiTime.Cells[1,0]:='Last';GridMiTime.Cells[2,0]:='Max';GridMiTime.Cells[3,0]:='Min';
 GridMiTime.GridLineWidth := 1;
 
 GridMValues := TStringGrid.Create(FormMonitor);GridMValues.Parent:=FormMonitor;
 GridMValues.Font.Name:='consolas'; GridMValues.Font.Size:=8;
-GridMValues.Left:=1;GridMValues.Top:=202;GridMValues.Height:=100;GridMValues.width:=180;
+GridMValues.Left:=1;GridMValues.Top:=202;GridMValues.Height:=100;GridMValues.width:=190;
 GridMValues.FixedCols:=0;GridMValues.FixedRows:=0;
 GridMValues.rowcount := 4;GridMValues.ColCount:=2;
 GridMValues.ScrollBars:=ssVertical;
 GridMValues.FocusRectVisible:=false;
 GridMValues.Options:= GridMValues.Options+[goRowSelect]-[goRangeSelect];
-GridMValues.ColWidths[0]:= 100;GridMValues.ColWidths[1]:= 60;
+GridMValues.ColWidths[0]:= 100;GridMValues.ColWidths[1]:= 70;
 GridMValues.Enabled := true;
 GridMValues.GridLineWidth := 1;
+
+LabelCurrJob := TLabel.Create(FormMonitor);
+LabelCurrJob.Parent := FormMonitor;LabelCurrJob.AutoSize:=true;
+LabelCurrJob.Top:= 304; LabelCurrJob.Left:= 1;
+LabelCurrJob.Caption:='';
+//LabelCurrJob.Alignment:=taCenter;
 End;
 
 // Actualizar el monitor
@@ -204,13 +214,13 @@ var
   count : integer;
 Begin
 if Length(MilitimeArray) < 1 then exit;
-GridMiTime.RowCount:=Length(MilitimeArray);
+GridMiTime.RowCount:=Length(MilitimeArray)+1;
 for count := 0 to Length(MilitimeArray)-1 do
    begin
-   GridMiTime.Cells[0,count]:=MilitimeArray[count].Name;
-   GridMiTime.Cells[1,count]:=IntToStr(MilitimeArray[count].duration);
-   GridMiTime.Cells[2,count]:=IntToStr(MilitimeArray[count].maximo);
-   GridMiTime.Cells[3,count]:=IntToStr(MilitimeArray[count].minimo);
+   GridMiTime.Cells[0,count+1]:=MilitimeArray[count].Name;
+   GridMiTime.Cells[1,count+1]:=IntToStr(MilitimeArray[count].duration);
+   GridMiTime.Cells[2,count+1]:=IntToStr(MilitimeArray[count].maximo);
+   GridMiTime.Cells[3,count+1]:=IntToStr(MilitimeArray[count].minimo);
    end;
 
 GridMValues.Cells[0,0]:='InfoPanelTime';
@@ -577,7 +587,6 @@ if ((tipo = 1) and (length(MilitimeArray)>0)) then // tipo iniciar
       if name = MilitimeArray[count].Name then
         begin
         MilitimeArray[count].Start:=GetTickCount64;
-        currentjob := currentjob+'>'+name;
         exit;
         end;
       end;
@@ -594,7 +603,6 @@ if tipo= 2 then
           MilitimeArray[count].Maximo := MilitimeArray[count].duration;
         if MilitimeArray[count].duration<MilitimeArray[count].Minimo then
           MilitimeArray[count].Minimo := MilitimeArray[count].duration;
-        currentjob := StringReplace(currentjob,'>'+name,'',[rfReplaceAll, rfIgnoreCase]);
         exit;
         end;
       end;
@@ -602,7 +610,19 @@ if tipo= 2 then
 setlength(MilitimeArray,length(MilitimeArray)+1);
 MilitimeArray[length(MilitimeArray)-1].Name:=name;
 MilitimeArray[length(MilitimeArray)-1].Start:=GetTickCount64;
-currentjob := currentjob+'>'+name;
+End;
+
+Procedure SetCurrentJob(CurrJob:String;status:boolean);
+Begin
+if not OficialRelease then
+  begin
+  if status then
+    currentjob := CurrentJob+'>'+CurrJob
+  else
+    currentjob := StringReplace(currentjob,'>'+CurrJob,'',[rfReplaceAll, rfIgnoreCase]);
+  LabelCurrJob.Caption := currentjob;
+  LabelCurrJob.Refresh;
+  end;
 End;
 
 END. // END UNIT

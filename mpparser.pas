@@ -85,7 +85,7 @@ var
 begin
 Command :=GetCommand(Linetext);
 if Command = '' then exit;
-ConsoleLines.Add('>> '+Linetext);
+if UpperCase(Command) <> 'CLEAR' then ConsoleLines.Add('>> '+Linetext);
 if UpperCase(Command) = 'LANG' then Language(linetext)
 else if UpperCase(Command) = 'SERVERON' then StartServer()
 else if UpperCase(Command) = 'SERVEROFF' then StopServer()

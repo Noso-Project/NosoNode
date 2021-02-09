@@ -1,0 +1,23 @@
+Version 0.1.5 log
+
+- Added filter to avoid duplicated customizations.
+- Update dirpanel after rebuilding headers.
+- Hide panelsend when switch to console.
+- Fixed bug sending pendings transactions to new connections.
+- Fixed bug saving bots to node file.
+- Removed FocusRectVisible from grids.
+- Added log viewer.
+- Added function to delete a specified bot from list.
+- Shows customization cost in transaction details.
+- Added timer to verify closing correctly the application.
+- Added currentjob trace in monitor for crashinfo.
+- Added about info.
+- Listen port can be changed via GUI.
+- Added aplication monitor.
+- Fixed bug not showing infopanel properly.
+- Added pending parameter to wallet data to optimize display functions.
+- Added custom popup menu to memoconsola.
+- Added custom popup menu to consoleline.
+- Added own crypto routines to eliminate OpenSSL dependency. (thanks Xor-el)
+
+

@@ -5,7 +5,8 @@ unit mpCripto;
 interface
 
 uses
-  Classes, SysUtils, MasterPaskalForm, process, strutils, MD5, DCPsha256, dcpRipemd160;
+  Classes, SysUtils, MasterPaskalForm, process, strutils, MD5, DCPsha256, dcpRipemd160,
+  mpsignerutils, base64;
 
 function CreateNewAddress(): WalletData;
 Procedure CreateKeysPair();
@@ -52,25 +53,31 @@ uses
 // Crea una nueva direecion
 function CreateNewAddress():WalletData;
 var
-  PublicKey, PrivateKey : String;
+  //PublicKey, PrivateKey : String;
   MyData: WalletData;
   Address: String;
+  KeysPair: TKeyPair;
 Begin
-CreateKeysPair();
+setmilitime('CreateNewAddress',1);
+{CreateKeysPair();
 PublicKey := GetPublicKeyFromPem();
-Privatekey := GetPrivateKeyFromPem();
-Address := GetAddressFromPublicKey(PublicKey);
+Privatekey := GetPrivateKeyFromPem();}
+KeysPair := TSignerUtils.GenerateECKeyPair(TKeyType.SECP256K1);
+Address := GetAddressFromPublicKey(KeysPair.PublicKey);
 MyData.Hash:=Address;
 Mydata.Custom:='';
-Mydata.PublicKey:=PublicKey;
-MyData.PrivateKey:=PrivateKey;
+Mydata.PublicKey:=KeysPair.PublicKey;
+MyData.PrivateKey:=KeysPair.PrivateKey;
 MyData.Balance:=0;
 MyData.Pending:=0;
 MyData.Score:=0;
 MyData.LastOP:= 0;
+{
 Deletefile('private.pem');
 Deletefile('public.pem');
+}
 Result := MyData;
+setmilitime('CreateNewAddress',2);
 End;
 
 // Crea las claves publicas y privadas
@@ -347,9 +354,15 @@ end;
 // Regresa la firma de la cadena especificada usando la clave privada
 function GetStringSigned(StringtoSign, PrivateKey:String):String;
 var
-  FileToSign :Textfile;
-  FilePrivate : TextFile;
+  //FileToSign :Textfile;
+  //FilePrivate : TextFile;
+  Signature, MessageAsBytes: TBytes;
 Begin
+MessageAsBytes :=StrToByte(DecodeStringBase64(StringtoSign));
+Signature := TSignerUtils.SignMessage(MessageAsBytes, StrToByte(DecodeStringBase64(PrivateKey)),
+      TKeyType.SECP256K1);
+Result := EncodeStringBase64(ByteToString(Signature));
+{
 //creates the file with the string to be signed
 AssignFile(FileToSign, 'temp_string.txt');
 rewrite(FileToSign);
@@ -371,6 +384,7 @@ Deletefile('temp_string.txt');
 Deletefile('temp_priv.pem');
 DeleteFile('temp_test.bin');
 Deletefile('temp_test.b64');
+}
 End;
 
 // RETURNS THE BASE64 STRING FROM A FILE
@@ -400,10 +414,16 @@ end;
 // VERIFY IF A SIGNED STRING IS VALID
 function VerifySignedString(StringToVerify,B64String,PublicKey:String):boolean;
 var
-  FileToSign :Textfile;
-  FilePublic : TextFile;
-  FileB64 : Textfile;
+  //FileToSign :Textfile;
+  //FilePublic : TextFile;
+  //FileB64 : Textfile;
+  Signature, MessageAsBytes: TBytes;
 Begin
+MessageAsBytes := StrToByte(DecodeStringBase64(StringToVerify));
+Signature := StrToByte(DecodeStringBase64(B64String));
+Result := TSignerUtils.VerifySignature(Signature, MessageAsBytes,
+      StrToByte(DecodeStringBase64(PublicKey)), TKeyType.SECP256K1);
+{
 //creates the file with the string to be verified
 AssignFile(FileToSign, 'temp_string.txt');
 rewrite(FileToSign);
@@ -439,6 +459,7 @@ Deletefile('temp_string.txt');
 Deletefile('temp_pub.pem');
 DeleteFile('temp_test.bin');
 Deletefile('temp_test.b64');
+}
 End;
 
 // Devuelve el hash para una trx
@@ -733,6 +754,7 @@ var
   Resultado : string = '';
   AlpahbetUsed : String;
 Begin
+setmilitime('BMHexTo58',1);
 AlpahbetUsed := B58Alphabet;
 if alphabetnumber=36 then AlpahbetUsed := B36Alphabet;
 decimalvalue := BMHexToDec(numerohex);
@@ -752,6 +774,7 @@ if StrToInt(decimalValue) >= alphabetnumber then
    end;
 if StrToInt(decimalvalue) > 0 then resultado := AlpahbetUsed[StrToInt(decimalvalue)+1]+resultado;
 result := resultado;
+setmilitime('BMHexTo58',2);
 End;
 
 // RETURN THE SUMATORY OF A BASE58
