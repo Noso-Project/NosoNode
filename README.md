@@ -3,9 +3,9 @@ Noso wallet up to date
 
 Noso Windows Wallet
 
-This sofware is in current development (january 2021) so new versions will be available very often
+This sofware is in current development (Febraury 2021) so new versions will be available very often
 
-Unofficial Release Ver 0.1.4
+Unofficial Release Ver 0.1.5
 
 -- THIS VERSION IS INCOMPLETE: Some features not added yet.
 
@@ -14,6 +14,12 @@ Requirements:
 Library Indy 10
 
 DCPCrypt
+
+HashLib4PascalPackage
+
+SimpleBaseLib4PascalPackage
+
+CryptoLib4PascalPackage
 
 Tested on Windows 7, 8.1 and 10
 
@@ -25,11 +31,10 @@ Install lazarus
 
 Run lazarus. Package > Online Package Manager.
 
-Select 2 packages: DCPcrypt and Indy10; then click install.
+Select the packages mentioned above and then click install.
 
 File > Open > Select the .LPI file from this repository.
 
 To compile, just click CTRL+F9; it will create the .EXE file in the same folder
 
 
-In order to run the app, you will need OpenSSL installed in your pc.
