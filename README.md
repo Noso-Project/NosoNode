@@ -21,6 +21,8 @@ CryptoLib4PascalPackage
 
 Tested on Windows 7, 8.1 and 10
 
+Tested runs on uUbuntu usings Wine
+
 How to built.
 
 Download lazarus IDE from https://www.lazarus-ide.org/index.php?page=downloads
