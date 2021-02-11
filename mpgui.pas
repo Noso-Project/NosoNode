@@ -28,7 +28,7 @@ type
     end;
 
   TFormMonitor = class(Tform)
-    //procedure closeFormLog(Sender: TObject; var CanClose: boolean);
+    Procedure closeFormMonitor(Sender: TObject; var CanClose: boolean);
     private
     public
     end;
@@ -85,7 +85,7 @@ FormInicio.BorderIcons:=FormInicio.BorderIcons-[biminimize]-[bisystemmenu];
 forminicio.ShowInTaskBar:=sTAlways;
 forminicio.OnCloseQuery:=@FormInicio.closeFormInicio;
 
-GridInicio := TStringGrid.Create(nil);GridInicio.Parent:=forminicio;
+GridInicio := TStringGrid.Create(forminicio);GridInicio.Parent:=forminicio;
 GridInicio.Font.Name:='consolas'; GridInicio.Font.Size:=10;
 GridInicio.Left:=1;GridInicio.Top:=1;GridInicio.Height:=198;GridInicio.width:=348;
 GridInicio.FixedCols:=0;GridInicio.FixedRows:=0;
@@ -175,6 +175,7 @@ FormMonitor.BorderStyle := bssingle;
 FormMonitor.Top:=1;FormMonitor.Left:=1;
 FormMonitor.BorderIcons:=FormMonitor.BorderIcons-[biminimize];
 FormMonitor.ShowInTaskBar:=sTAlways;
+FormMonitor.OnCloseQuery:=@FormMonitor.closeFormMonitor;
 
 GridMiTime := TStringGrid.Create(FormMonitor);GridMiTime.Parent:=FormMonitor;
 GridMiTime.Font.Name:='consolas'; GridMiTime.Font.Size:=10;
@@ -193,7 +194,7 @@ GridMValues := TStringGrid.Create(FormMonitor);GridMValues.Parent:=FormMonitor;
 GridMValues.Font.Name:='consolas'; GridMValues.Font.Size:=8;
 GridMValues.Left:=1;GridMValues.Top:=202;GridMValues.Height:=100;GridMValues.width:=190;
 GridMValues.FixedCols:=0;GridMValues.FixedRows:=0;
-GridMValues.rowcount := 4;GridMValues.ColCount:=2;
+GridMValues.rowcount := 5;GridMValues.ColCount:=2;
 GridMValues.ScrollBars:=ssVertical;
 GridMValues.FocusRectVisible:=false;
 GridMValues.Options:= GridMValues.Options+[goRowSelect]-[goRangeSelect];
@@ -205,7 +206,6 @@ LabelCurrJob := TLabel.Create(FormMonitor);
 LabelCurrJob.Parent := FormMonitor;LabelCurrJob.AutoSize:=true;
 LabelCurrJob.Top:= 304; LabelCurrJob.Left:= 1;
 LabelCurrJob.Caption:='';
-//LabelCurrJob.Alignment:=taCenter;
 End;
 
 // Actualizar el monitor
@@ -231,6 +231,14 @@ GridMValues.Cells[0,2]:='MinerSeed';
   GridMValues.Cells[1,2]:=MINER_HashSeed;
 GridMValues.Cells[0,3]:='MinerCounter';
   GridMValues.Cells[1,3]:=IntToStr(MINER_HashCounter);
+GridMValues.Cells[0,4]:='MinerThreads';
+  GridMValues.Cells[1,4]:=IntToStr(Length(Miner_Thread));
+End;
+
+// Al cerrar el formulario de log viewer
+Procedure TFormMonitor.closeFormMonitor(Sender: TObject; var CanClose: boolean);
+Begin
+CheckMonitor := false;
 End;
 
 // Inicializa el grid donde se muestran los datos
@@ -276,11 +284,11 @@ GridOptions.Cells[0,0]:='Language';
 GridOptions.Cells[0,1]:='Port';
 GridOptions.Cells[0,2]:='Max Peers';
 GridOptions.Cells[0,3]:='Min Peers';
-GridOptions.Cells[0,4]:='GetNodes';
-GridOptions.Cells[0,5]:='Autoserver';
-GridOptions.Cells[0,6]:='Autoconnect';
-GridOptions.Cells[0,7]:='AutoUpdate';
-GridOptions.Cells[0,8]:='BlockAddress';
+GridOptions.Cells[0,4]:='Miner CPUs';
+GridOptions.Cells[0,5]:='GetNodes';
+GridOptions.Cells[0,6]:='Autoserver';
+GridOptions.Cells[0,7]:='Autoconnect';
+GridOptions.Cells[0,8]:='AutoUpdate';
 GridOptions.Cells[0,9]:='To Tray';
 
 //Direccionespanel
@@ -309,7 +317,7 @@ if canal = 1 then  // Salida al grid de inicio
    gridinicio.Cells[0,gridinicio.RowCount-1]:=Texto;
    gridinicio.TopRow:=gridinicio.RowCount;
    Application.ProcessMessages;
-   Delay(50);
+   Delay(1);
    end;
 if canal = 2 then // A consola y label info
    begin
@@ -333,7 +341,6 @@ Procedure ActualizarGUI();
 var
   contador : integer = 0;
 Begin
-
 if U_DataPanel then
    begin
    DataPanel.Cells[1,1]:=Booltostr(form1.Server.Active, true)+'('+IntToStr(UserOptions.Port)+')';
@@ -350,7 +357,7 @@ if (Miner_IsOn) then
    else Miner_EsteIntervalo := MINER_HashCounter+900000000-Miner_UltimoRecuento;
    Miner_UltimoRecuento := MINER_HashCounter;
    DataPanel.Cells[3,0]:=BoolToStr(Miner_IsOn,true)+'('+IntToStr(Miner_DifChars)+') '+IntToStr(Miner_FoundedSteps)+'/'+IntToStr(Miner_Steps);
-   DataPanel.Cells[3,1]:=IntToStr(Miner_EsteIntervalo*5 div 1000) +' KHs/sec';
+   DataPanel.Cells[3,1]:=IntToStr(G_MiningCPUs)+' CPU   '+IntToStr(Miner_EsteIntervalo*5 div 1000) +' k/s';
    DataPanel.Cells[3,2]:='['+IntToStr(Miner_Difficult)+'] '+copy(Miner_Target,1,Miner_DifChars);
    DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
    DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+TimeSinceStamp(LastblockData.TimeEnd);
@@ -399,7 +406,6 @@ if U_Mytrxs then
    UpdateMyTrxGrid();
    U_Mytrxs := false;
    end;
-
 End;
 
 // Devuelve Una linea del idioma
@@ -433,7 +439,7 @@ else
    if (strToIntDef(number,-1) > -1) and (strToIntDef(number,-1)<=IdiomasDisponibles.Count-1) then
       begin
       CargarIdioma(strToint(number));
-      ConsoleLines.Add(LangLine(3)+IdiomasDisponibles[StrToInt(number)]); //Language changed to:
+      Outtext(LangLine(3)+IdiomasDisponibles[StrToInt(number)],false,2); //Language changed to:
       U_DataPanel := true;
       LangSelect.ItemIndex := StrToInt(number);
       end
@@ -614,15 +620,15 @@ End;
 
 Procedure SetCurrentJob(CurrJob:String;status:boolean);
 Begin
-if not OficialRelease then
-  begin
-  if status then
-    currentjob := CurrentJob+'>'+CurrJob
-  else
-    currentjob := StringReplace(currentjob,'>'+CurrJob,'',[rfReplaceAll, rfIgnoreCase]);
-  LabelCurrJob.Caption := currentjob;
-  LabelCurrJob.Refresh;
-  end;
+if status then
+   currentjob := CurrentJob+'>'+CurrJob
+else
+   currentjob := StringReplace(currentjob,'>'+CurrJob,'',[rfReplaceAll, rfIgnoreCase]);
+if CheckMonitor then
+   begin
+   LabelCurrJob.Caption := currentjob;
+   LabelCurrJob.Refresh;
+   end;
 End;
 
 END. // END UNIT

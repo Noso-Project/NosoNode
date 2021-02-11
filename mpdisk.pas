@@ -54,6 +54,9 @@ Procedure SaveMyTrxsLastUpdatedblock(Number:integer);
 Procedure RebuildMyTrx(blocknumber:integer);
 Procedure SaveMyTrxsToDisk(Cantidad:integer);
 function NewMyTrx(aParam:Pointer):PtrInt;
+Procedure CrearBatFileForRestart();
+
+
 
 implementation
 
@@ -71,8 +74,8 @@ OutText('✓ Updates folder ok',false,1);
 
 if not FileExists (ErrorLogFilename) then Createlog;
 OutText('✓ Log file ok',false,1);
-if not FileExists (UserOptions.SSLPath) then VerificarSSL() else G_OpenSSLPath:=UserOptions.SSLPath;
-OutText('✓ OpenSSL installed',false,1);
+{if not FileExists (UserOptions.SSLPath) then VerificarSSL() else G_OpenSSLPath:=UserOptions.SSLPath;
+OutText('✓ OpenSSL installed',false,1);}
 if not FileExists (UserOptions.wallet) then CrearWallet() else CargarWallet(UserOptions.wallet);
 OutText('✓ Wallet file ok',false,1);
 
@@ -384,14 +387,27 @@ End;
 Procedure CrearNodeData();
 var
   nodoinicial : nodedata;
+  continuar : boolean = true;
+  contador : integer = 1;
+  NodoStr : String;
 Begin
    try
    assignfile(FileNodeData,NodeDataFilename);
    rewrite(FileNodeData);
-   NodoInicial.ip:='107.172.188.149';
-   NodoInicial.port:='8080';
-   NodoInicial.LastConexion:=UTCTime;
-   write(FileNodeData,nodoinicial);
+   Repeat
+     begin
+     NodoStr := Parameter(DefaultNodes,contador);
+     if NodoStr = '' then continuar := false
+     else
+        begin
+        NodoInicial.ip:=NodoStr;
+        NodoInicial.port:='8080';
+        NodoInicial.LastConexion:=UTCTime;
+        write(FileNodeData,nodoinicial);
+        contador := contador+1;
+        end;
+     end;
+   until not continuar ;
    closefile(FileNodeData);
    SetLength(ListaNodos,0);
    CargarNodeData();
@@ -624,6 +640,7 @@ Begin
       closefile(FileWallet);
       end;
    UserOptions.Wallet:=WalletFilename;
+   if FileExists(MyTrxFilename) then DeleteFile(MyTrxFilename);
    S_Options := true;
    Except on E:Exception do
       tolog ('Error creating wallet file');
@@ -646,10 +663,12 @@ Begin
          begin
          seek(FileWallet,contador);
          Read(FileWallet,ListaDirecciones[contador]);
+         ListaDirecciones[contador].Pending:=0;
          end;
       closefile(FileWallet);
       end;
    UpdateWalletFromSumario();
+   GuardarWallet();                         // Permite corregir cualquier problema con los pending
    Except on E:Exception do
       tolog ('Error loading wallet from file');
    end;
@@ -659,6 +678,7 @@ End;
 Procedure GuardarWallet();
 var
   contador : integer = 0;
+  previous : int64;
 Begin
    try
    copyfile (UserOptions.Wallet,UserOptions.Wallet+'.bak');
@@ -667,7 +687,10 @@ Begin
    for contador := 0 to Length(ListaDirecciones)-1 do
       begin
       seek(FileWallet,contador);
+      Previous := ListaDirecciones[contador].Pending;
+      ListaDirecciones[contador].Pending := 0;
       write(FileWallet,ListaDirecciones[contador]);
+      ListaDirecciones[contador].Pending := Previous;
       end;
    closefile(FileWallet);
    S_Wallet := false;
@@ -958,7 +981,12 @@ while filesize(FileResumen)> MyLastBlock+1 do  // cabeceras presenta un numero a
    tolog ('Readjusted headers size');
    end;
 closefile(FileResumen);
-if newblocks>0 then ConsoleLines.Add(IntToStr(newblocks)+LangLine(129)); //' added to headers'
+if newblocks>0 then
+   begin
+   ConsoleLines.Add(IntToStr(newblocks)+LangLine(129)); //' added to headers'
+   U_Mytrxs := true;
+   U_DirPanel := true;
+   end;
 GuardarSumario();
 UpdateMyData();
 U_Dirpanel := true;
@@ -1196,9 +1224,27 @@ End;
 // Ejecutar en segundo plano la reconstruccion de mis transacciones
 Function NewMyTrx(aParam:Pointer):PtrInt;
 Begin
-
+CrearMistrx();
+CargarMisTrx();
+RebuildMyTrx(MyLastBlock);
 NewMyTrx := -1;
 End;
+
+Procedure CrearBatFileForRestart();
+var
+  archivo : textfile;
+Begin
+try
+  Assignfile(archivo, 'nosolauncher.bat');
+  rewrite(archivo);
+  writeln(archivo,'echo Restarting Noso...');
+  writeln(archivo,'TIMEOUT 5');
+  writeln(archivo,'start noso.exe');
+  Closefile(archivo);
+  Except on E:Exception do
+    tolog ('Error creating restart file');
+  end;
+end;
 
 
 END. // END UNIT

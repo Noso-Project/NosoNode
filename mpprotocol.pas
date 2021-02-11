@@ -388,12 +388,15 @@ var
   NumeroBloque    : string = '';
   DireccionMinero : string = '';
   Solucion        : string = '';
+  Proceder : boolean = true;
 Begin
 if MyConStatus < 3 then
    begin
    OutgoingMsjs.Add(Texto);
-   Exit;
+   Proceder := false;
    end;
+if proceder then
+begin // proceder 1
 TimeStamp       := Parameter (Texto,5);
 NumeroBloque    := Parameter (Texto,6);
 DireccionMinero := Parameter (Texto,7);
@@ -426,7 +429,7 @@ else if ( (StrToIntDef(NumeroBloque,-1) = LastBlockData.Number) and
       UndoneLastBlock;
       CrearNuevoBloque(StrToInt(NumeroBloque),StrToInt64(TimeStamp),Miner_Target,DireccionMinero,Solucion);
       end;
-
+end; // proceder 1
 End;
 
 // Envia el archivo resumen
@@ -499,40 +502,43 @@ var
   OrderInfo : OrderData;
   Address : String = '';
   OpData : String = '';
+  Proceder : boolean = true;
 Begin
 OrderInfo := Default(OrderData);
 OrderInfo := GetOrderFromString(TextLine);
 Address := GetAddressFromPublicKey(OrderInfo.Sender);
 // La direccion no dispone de fondos
-if GetAddressBalance(Address)-GetAddressPendingPays(Address) < Customizationfee then exit;
-if TranxAlreadyPending(OrderInfo.TrfrID ) then exit;
-if OrderInfo.TimeStamp < LastBlockData.TimeStart then exit;
-if TrxExistsInLastBlock(OrderInfo.TrfrID) then exit;
-if AddressAlreadyCustomized(Address) then exit;
-If AddressSumaryIndex(OrderInfo.Receiver) >=0 then exit;
-if not VerifySignedString('Customize this '+Address+' '+OrderInfo.Receiver,OrderInfo.Signature,OrderInfo.Sender ) then exit;
-OpData := GetOpData(TextLine); // Eliminar el encabezado
-AddPendingTxs(OrderInfo);
-OutgoingMsjs.Add(GetPTCEcn+opdata);
+if GetAddressBalance(Address)-GetAddressPendingPays(Address) < Customizationfee then Proceder:=false;
+if TranxAlreadyPending(OrderInfo.TrfrID ) then Proceder:=false;
+if OrderInfo.TimeStamp < LastBlockData.TimeStart then Proceder:=false;
+if TrxExistsInLastBlock(OrderInfo.TrfrID) then Proceder:=false;
+if AddressAlreadyCustomized(Address) then Proceder:=false;
+If AddressSumaryIndex(OrderInfo.Receiver) >=0 then Proceder:=false;
+if not VerifySignedString('Customize this '+Address+' '+OrderInfo.Receiver,OrderInfo.Signature,OrderInfo.Sender ) then Proceder:=false;
+if proceder then
+   begin
+   OpData := GetOpData(TextLine); // Eliminar el encabezado
+   AddPendingTxs(OrderInfo);
+   OutgoingMsjs.Add(GetPTCEcn+opdata);
+   end;
 End;
 
 // Valida que una transferencia cumpla los requisitos
 function ValidateTrfr(order:orderdata;Origen:String):Boolean;
 Begin
-Result := false;
+Result := true;
 if GetAddressBalance(Origen)-GetAddressPendingPays(Origen) < Order.AmmountFee+order.AmmountTrf then
-   begin {consolelines.Add('1: '+Int2curr(GetAddressBalance(Origen)))};exit;end;
+   result:=false;
 if TranxAlreadyPending(order.TrfrID ) then
-   begin {consolelines.Add('2')};exit;end;
+   result:=false;
 if Order.TimeStamp < LastBlockData.TimeStart then
-   begin {consolelines.Add('3 '+IntToStr(Order.TimeStamp)+'<'+IntToStr(LastBlockData.TimeStart))};
-   exit;end;
+   result:=false;
 if TrxExistsInLastBlock(Order.TrfrID) then
-   begin {consolelines.Add('4')};exit;end;
+   result:=false;
 if not VerifySignedString(IntToStr(order.TimeStamp)+origen+order.Receiver+IntToStr(order.AmmountTrf)+
    IntToStr(order.AmmountFee)+IntToStr(order.TrxLine),
-   Order.Signature,Order.Sender ) then exit;
-result := true;
+   Order.Signature,Order.Sender ) then
+   result:=false;
 End;
 
 Procedure INC_PTC_Order(TextLine:String);
@@ -550,6 +556,7 @@ var
   Textbak : string;
   SendersString : String = '';
   TodoValido : boolean = true;
+  Proceder : boolean = true;
 Begin
 NumTransfers := StrToInt(Parameter(TextLine,5));
 Textbak := GetOpData(TextLine);
@@ -563,7 +570,7 @@ for cont := 0 to NumTransfers-1 do
    if pos(SendersString,SenderTrx[cont]) > 0 then
       begin
       consolelines.Add(LangLine(94)); //'Duplicate sender in order'
-      exit; // hay una direccion de envio repetida
+      Proceder:=false; // hay una direccion de envio repetida
       end;
    SendersString := SendersString + SenderTrx[cont];
    Textbak := copy(textBak,2,length(textbak));
@@ -576,13 +583,16 @@ for cont := 0 to NumTransfers-1 do
       TodoValido := false;
       end;
    end;
-if not todovalido then exit;
-Textbak := GetOpData(TextLine);
-Textbak := GetPTCEcn+'ORDER '+IntToStr(NumTransfers)+' '+Textbak;
-for cont := 0 to NumTransfers-1 do
-   AddPendingTxs(TrxArray[cont]);
-OutgoingMsjs.Add(Textbak);
-U_DirPanel := true;
+if not todovalido then Proceder := false;
+if proceder then
+   begin
+   Textbak := GetOpData(TextLine);
+   Textbak := GetPTCEcn+'ORDER '+IntToStr(NumTransfers)+' '+Textbak;
+   for cont := 0 to NumTransfers-1 do
+      AddPendingTxs(TrxArray[cont]);
+   OutgoingMsjs.Add(Textbak);
+   U_DirPanel := true;
+   end;
 End;
 
 END. // END UNIT

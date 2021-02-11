@@ -8,6 +8,7 @@ uses
   Classes, SysUtils, MasterPaskalForm, mpCripto, StrUtils, mpTime, dialogs;
 
 Procedure VerifyMiner();
+Procedure KillAllMiningThreads();
 Procedure ResetMinerInfo();
 function GetCharsFromDifficult(Dificult,step:integer):integer;
 function EjecutarMinero(aParam:Pointer):PtrInt;
@@ -28,12 +29,16 @@ if MyConStatus = 3 then
       begin
       ConsoleLines.Add(LangLine(39)+IntToStr(Miner_BlockToMine));  //Mining block number:
       Miner_IsOn := true;
-      Miner_Thread := Beginthread(tthreadfunc(@EjecutarMinero));
+      while Length(Miner_Thread) < G_MiningCPUs do
+        begin
+        SetLength(Miner_Thread,Length(Miner_Thread)+1);
+        Miner_Thread[Length(Miner_Thread)-1] := Beginthread(tthreadfunc(@EjecutarMinero));
+        end;
       end;
    end;
 if ((Miner_BlockFOund) and (not Miner_SolutionVerified)) then
    begin
-   KillThread(Miner_Thread);
+   KillAllMiningThreads;
    if VerifySolutionForBlock(Miner_Difficult, Miner_Target, Miner_Address, Miner_Solution) then
       begin
       consoleLines.Add(LangLine(40)+IntToStr(Miner_BlockToMine));  //Miner solution found and Verified for block
@@ -50,6 +55,23 @@ if ((Miner_BlockFOund) and (not Miner_SolutionVerified)) then
 If ((Miner_Waiting>-1) and (Miner_Waiting+10<StrToInt(UTCTime))) then
    ResetMinerInfo();
    end;
+End;
+
+Procedure KillAllMiningThreads();
+Var
+  Counter : integer;
+Begin
+for counter := 0 to Length(Miner_Thread)-1 do
+   begin
+      Try
+      KillThread(Miner_Thread[counter]);
+      except on E:Exception do
+         begin
+         // do nothing
+         end;
+      end;
+   end;
+SetLength(Miner_Thread,0);
 End;
 
 // Resetea la informacion para uso del minero
@@ -80,15 +102,17 @@ End;
 function EjecutarMinero(aParam:Pointer):PtrInt;
 var
   Solucion : string = '';
+  MSeed : string; Mnumber : int64;
 Begin
 while Miner_IsON do
    begin
-   Solucion := HashSha256String(MINER_HashSeed+Miner_Address+inttostr(MINER_HashCounter));
+   Mseed := MINER_HashSeed;Mnumber := MINER_HashCounter;
+   Solucion := HashSha256String(Mseed+Miner_Address+inttostr(Mnumber));
    if AnsiContainsStr(Solucion,copy(Miner_Target,1,Miner_DifChars)) then
       begin
       MINER_FoundedSteps := MINER_FoundedSteps+1;
       Miner_DifChars := GetCharsFromDifficult(Miner_Difficult, MINER_FoundedSteps);
-      Miner_Solution := Miner_Solution+MINER_HashSeed+IntToStr(MINER_HashCounter)+' ';
+      Miner_Solution := Miner_Solution+Mseed+IntToStr(Mnumber)+' ';
       if Miner_Steps = MINER_FoundedSteps then
          begin
          Miner_BlockFOund := true;
@@ -103,7 +127,8 @@ while Miner_IsON do
       MINER_HashCounter := 100000000;
       end;
    end;
-Result := 0;
+Result := 1;
+if length(Miner_Thread)>0 then Setlength(Miner_Thread,length(Miner_Thread)-1);
 End;
 
 // Incrementa paso a paso el seed del minero
@@ -130,14 +155,22 @@ var
   ListaSoluciones : TStringList;
   contador : integer = 1;
   HashSolucion : String = '';
+  AllSolutions : String = '';
 Begin
 result:= true;
 ListaSoluciones := TStringList.Create;
 ListaSoluciones.Add(GetCommand(Solucion));
 for contador := 1 to Miner_Steps-1 do
    ListaSoluciones.Add(Parameter(Solucion,contador));
+AllSolutions := ListaSoluciones.CommaText;
 for contador := 0 to ListaSoluciones.Count-1 do
    Begin
+   AllSolutions := StringReplace(AllSolutions,ListaSoluciones[contador],'',[rfReplaceAll, rfIgnoreCase]);
+   if AnsiContainsStr(AllSolutions,ListaSoluciones[contador]) then
+      begin
+      OutText('Duplicated solution for block: '+ListaSoluciones[contador]);
+      result := false;
+      end;
    objetivo := copy(objetivo,1,GetCharsFromDifficult(dificultad,contador));
    HashSolucion := HashSha256String(copy(ListaSoluciones[contador],1,9)+Direccion+copy(ListaSoluciones[contador],10,9));
    if not AnsiContainsStr(HashSolucion,objetivo) then

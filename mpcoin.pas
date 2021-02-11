@@ -21,8 +21,9 @@ Function SendFundsFromAddress(Origen, Destino:String; monto, comision:int64; con
   ordertime:String;linea:integer):OrderData;
 Procedure CheckForMyPending();
 function HaveAddressAnyPending(Address:string):boolean;
-function GetMaximunToSend():int64;
+function GetMaximunToSend(monto:int64):int64;
 function cadtonum(cadena:string;pordefecto:int64;erroroutput:string):int64;
+Function IsValidIP(IpString:String):boolean;
 
 
 
@@ -56,7 +57,8 @@ Result := 0;
 for cont := 0 to length(PendingTXs)-1 do
    begin
    if address = GetAddressFromPublicKey(PendingTXS[cont].Sender) then
-     result := result+PendingTXS[cont].AmmountFee+PendingTXS[cont].AmmountTrf;
+      result := result+PendingTXS[cont].AmmountFee+PendingTXS[cont].AmmountTrf;
+
    end;
 End;
 
@@ -155,9 +157,10 @@ if DireccionEsMia(DireccionEnvia)>=0 then
    end;
 if DireccionEsMia(Order.Receiver)>=0 then
    begin
-   montoincoming := montoincoming+Order.AmmountFee+order.AmmountTrf;
+   montoincoming := montoincoming+order.AmmountTrf;
    if not ImageInc.Visible then ImageInc.Visible:= true;
    end;
+U_DirPanel := true;
 End;
 
 // Devuelve si una direccion ya posee un alias
@@ -197,6 +200,7 @@ var
   cont : integer = 0;
 Begin
 result := -1;
+if address = '' then exit;
 for cont := 0 to length(ListaSumario)-1 do
    begin
    if ((listasumario[cont].Hash=address) or (Listasumario[cont].Custom=address)) then
@@ -259,15 +263,14 @@ if length(PendingTxs) = 0 then
    ImageOut.Visible:=false;
    exit;
    end;
-for counter := 0 to length(ListaDirecciones)-1 do
-   ListaDirecciones[counter].Pending:=0;
 for counter := 0 to length(PendingTXs)-1 do
    begin
    DireccionEnvia := GetAddressFromPublicKey(PendingTxs[counter].Sender);
    if DireccionEsMia(DireccionEnvia)>=0 then
       begin
       MontoOutgoing := MontoOutgoing+PendingTxs[counter].AmmountFee+PendingTxs[counter].AmmountTrf;
-      ListaDirecciones[DireccionEsMia(DireccionEnvia)].Pending:=ListaDirecciones[DireccionEsMia(DireccionEnvia)].Pending+
+      ListaDirecciones[DireccionEsMia(DireccionEnvia)].Pending:=
+        ListaDirecciones[DireccionEsMia(DireccionEnvia)].Pending+
         PendingTxs[counter].AmmountFee+PendingTxs[counter].AmmountTrf;
       end;
    If DireccionEsMia(PendingTxs[counter].Receiver)>=0 then
@@ -275,6 +278,7 @@ for counter := 0 to length(PendingTXs)-1 do
    end;
 if MontoIncoming>0 then ImageInc.Visible := true else ImageInc.Visible:= false;
 if MontoOutgoing>0 then ImageOut.Visible := true else ImageOut.Visible:= false;
+U_DirPanel := true;
 End;
 
 // Verifica si la direccion posee transacciones pendientes
@@ -292,7 +296,7 @@ for cont := 0 to length(PendingTXs)-1 do
 End;
 
 // Retorna cuanto es lo maximo que se puede enviar
-function GetMaximunToSend():int64;
+function GetMaximunToSend(monto:int64):int64;
 var
   Disponible : int64;
   maximo : int64;
@@ -300,7 +304,7 @@ var
   Envio : int64;
   Diferencia : int64;
 Begin
-Disponible := GetWalletBalance;
+Disponible := monto;
 maximo := (Disponible * Comisiontrfr) div (Comisiontrfr+1);
 comision := maximo div Comisiontrfr;
 Envio := maximo + comision;
@@ -321,6 +325,22 @@ Begin
          raise exception.Create(erroroutput+SLINEBREAK+'We recomend to restart the program after this');
       end;
    end;
+End;
+
+Function IsValidIP(IpString:String):boolean;
+var
+  valor1,valor2,valor3,valor4: integer;
+Begin
+result := true;
+IPString := StringReplace(IPString,'.',' ',[rfReplaceAll, rfIgnoreCase]);
+valor1 := StrToIntDef(GetCommand(IPString),-1);
+valor2 := StrToIntDef(Parameter(IPString,1),-1);
+valor3 := StrToIntDef(Parameter(IPString,2),-1);
+valor4 := StrToIntDef(Parameter(IPString,3),-1);
+if ((valor1 <0) or (valor1>255)) then result := false;
+if ((valor2 <0) or (valor2>255)) then result := false;
+if ((valor3 <0) or (valor3>255)) then result := false;
+if ((valor4 <0) or (valor4>255)) then result := false;
 End;
 
 END. // END UNIT

@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, mpCripto, mpTime, mpblock, mpcoin,
-  dialogs, fileutil, forms;
+  dialogs, fileutil, forms, idglobal;
 
 Procedure ProcesarLineas();
 function GetOpData(textLine:string):String;
@@ -54,6 +54,7 @@ Procedure Sha256(LineText:string);
 Procedure TestParser(LineText:String);
 Procedure DeleteBot(LineText:String);
 Procedure showCriptoThreadinfo();
+Procedure SetMiningCPUS(LineText:string);
 
 implementation
 
@@ -139,9 +140,7 @@ else if UpperCase(Command) = 'CLEAR' then Memoconsola.Lines.clear
 else if UpperCase(Command) = 'TP' then TestParser(LineText)
 else if UpperCase(Command) = 'DELBOT' then DeleteBot(LineText)
 else if UpperCase(Command) = 'CRIPTO' then showCriptoThreadinfo()
-else if UpperCase(Command) = 'MTON' then CheckMonitor := true
-else if UpperCase(Command) = 'MTOFF' then CheckMonitor := false
-else if UpperCase(Command) = 'MONITOR' then FormMonitor.Visible := true
+else if UpperCase(Command) = 'CPUMINE' then SetMiningCPUS(LineText)
 
 else ConsoleLines.Add(LangLine(0)+Command);  // Unknow command
 //ConsoleLines.Add('');
@@ -226,13 +225,12 @@ var
   port : String = '';
 Begin
 ip := Parameter(Linea,1);
-Port := Parameter(Linea,2);
-if ip = '' then
+if not isvalidip(IP) then
   begin
-  consolelines.Add('Invalid node');
-  info('Invalid node');
+  OutText('Invalid node',false,2);
   exit;
   end;
+Port := Parameter(Linea,2);
 if ((port = '') or (StrToIntDef(port,-1)<0)) then port := '8080';
 if NodeExists(Ip,Port)<0 then
    begin
@@ -388,7 +386,6 @@ UserOptions.ToTray :=false;
 S_Options := true;
 ConsoleLines.Add('Minimize to tray is now '+LangLine(49)); //GetNodes option is now  // INACTIVE
 End;
-
 
 // desactiva el minero
 Procedure Mineroff();
@@ -591,9 +588,10 @@ consolelines.Add(LangLine(134)); //'The file is not a valid wallet'
 end;
 if nuevos > 0 then
    begin
-   ConsoleLines.Add(LangLine(135)+IntToStr(nuevos)); //'Addresses imported: '
+   OutText(LangLine(135)+IntToStr(nuevos),false,2); //'Addresses imported: '
    UpdateWalletFromSumario;
-   //RebulidTrxThread := Beginthread(tthreadfunc(@NewMyTrx));
+   Deletefile(MyTrxFilename);
+   RebulidTrxThread := Beginthread(tthreadfunc(@NewMyTrx));
    end
 else ConsoleLines.Add(LangLine(136));  //'No new addreses found.'
 End;
@@ -625,19 +623,19 @@ Begin
 Numero := StrToIntDef(Parameter(linetext,1),-1);
 if ((Numero < 0) or (numero > length(ListaDirecciones)-1)) then
    begin
-   consolelines.Add(LangLine(137));  //'Invalid address number.'
+   OutText(LangLine(137),false,2);  //'Invalid address number.'
    exit;
    end
 else if numero = 0 then
    begin
-   consolelines.Add(LangLine(138)); //'Address 0 is already the default.'
+   OutText(LangLine(138),false,2); //'Address 0 is already the default.'
    exit;
    end;
 OldData := ListaDirecciones[0];
 NewData := ListaDirecciones[numero];
 ListaDirecciones[numero] := OldData;
 ListaDirecciones[0] := NewData;
-ConsoleLines.Add(LangLine(139)+NewData.Hash); //'New default address: '
+OutText(LangLine(139)+NewData.Hash,false,2); //'New default address: '
 S_Wallet := true;
 U_DirPanel := true;
 End;
@@ -688,7 +686,7 @@ if ListaDirecciones[DireccionEsMia(address)].Custom <> '' then
    end;
 if length(AddAlias)<5 then
    begin
-   consolelines.Add(LangLine(142)); //'Alias must have between 5 and 40 chars'
+   OutText(LangLine(142),false,2); //'Alias must have between 5 and 40 chars'
    exit;
    end;
 if IsValidAddress(addalias) then
@@ -861,14 +859,14 @@ Begin
 Proceder := Parameter(linetext,1);
 if length(listaDirecciones)>0 then
   for cont := 1 to length(listaDirecciones)-1 do
-    Total := Total+GetAddressBalance(ListaDirecciones[cont].Hash);
+    Total += GetAddressBalance(ListaDirecciones[cont].Hash);
 ConsoleLines.Add(LangLine(153)+Int2curr(Total)+' '+Coinsimbol); //'Coins to group: '
 if uppercase(Proceder) = 'DO' then
    begin
    if Total = 0 then
      ConsoleLines.Add(LangLine(154)) //'You do not have coins to group.'
    else
-     ProcessLines.Add('SENDTO '+Listadirecciones[0].Hash+' '+IntToStr(Total));
+     ProcessLines.Add('SENDTO '+Listadirecciones[0].Hash+' '+IntToStr(GetMaximunToSend(Total)));
    end;
 End;
 
@@ -1075,6 +1073,30 @@ consolelines.Add(Booltostr(CriptoThreadRunning,true)+' '+
                  inttostr(length(CriptoOpstipo))+' '+
                  inttostr(length(CriptoOpsoper))+' '+
                  inttostr(length(CriptoOpsResu)));
+End;
+
+Procedure SetMiningCPUS(LineText:string);
+var
+  numero : integer;
+Begin
+numero := StrToIntDef(Parameter(linetext,1),0);
+if numero < 1 then
+  begin
+  outtext('You must set 1 or more CPUs for mining',false,2);
+  exit;
+  end;
+if numero > G_CpuCount then
+  begin
+  outtext('Maximun  number of CPUs: '+IntToStr(G_CpuCount),false,2);
+  exit;
+  end;
+G_MiningCPUs := numero;
+outtext('Mining CPUs set to: '+IntToStr(numero),false,2);
+ResetMinerInfo;
+KillAllMiningThreads;
+Miner_Active := false;
+if Miner_IsOn then Miner_IsOn := false;
+U_Datapanel := true;
 End;
 
 END. // END UNIT

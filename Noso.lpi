@@ -48,7 +48,7 @@
         <PackageName Value="LCL"/>
       </Item6>
     </RequiredPackages>
-    <Units Count="16">
+    <Units Count="17">
       <Unit0>
         <Filename Value="Noso.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -128,6 +128,10 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpSignerUtils"/>
       </Unit15>
+      <Unit16>
+        <Filename Value="log 0.2.0.txt"/>
+        <IsPartOfProject Value="True"/>
+      </Unit16>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

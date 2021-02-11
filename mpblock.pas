@@ -146,6 +146,8 @@ GuardarSumario();
 // Limpiar las pendientes
 SetLength(PendingTXs,0);
 PendingTXs := copy(IgnoredTrxs,0,length(IgnoredTrxs));
+for contador := 0 to length(ListaDirecciones)-1 do
+   ListaDirecciones[contador].Pending:=0;
 // Definir la cabecera del bloque *****
 BlockHeader := Default(BlockHeaderData);
 BlockHeader.Number := Numero;

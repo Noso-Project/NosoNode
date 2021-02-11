@@ -150,6 +150,7 @@ end;
 procedure CerrarSlot(Slot:integer);
 begin
 SetCurrentJob('CerrarSlot',true);
+try
 if conexiones[Slot].tipo='CLI' then
    begin
    SlotLines[slot].Clear;
@@ -164,6 +165,11 @@ if conexiones[Slot].tipo='SER' then
    CanalCliente[Slot].Disconnect;
    Conexiones[Slot] := Default(conectiondata);
    end;
+Except on E:Exception do
+  begin
+  ToLog('Error: Closing slot '+IntToStr(Slot)+SLINEBREAK+E.Message);
+  end;
+end;
 SetCurrentJob('CerrarSlot',false);
 end;
 
