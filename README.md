@@ -19,6 +19,8 @@ SimpleBaseLib4PascalPackage
 
 CryptoLib4PascalPackage
 
+This librarys are in the Packages folder (rar files) 
+
 Tested on Windows 7, 8.1 and 10
 
 Tested runs on uUbuntu usings Wine
