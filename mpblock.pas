@@ -16,6 +16,7 @@ Procedure GuardarBloque(NombreArchivo:string;Cabezera:BlockHeaderData;Ordenes:ar
 function LoadBlockDataHeader(BlockNumber:integer):BlockHeaderData;
 function GetBlockTrxs(BlockNumber:integer):BlockOrdersArray;
 Procedure UndoneLastBlock();
+function GetBlockWork(solucion:string):int64;
 
 implementation
 
@@ -43,10 +44,10 @@ var
   Contador : integer = 0;
   OperationAddress : string = '';
   // Variables para la inclusion de Feecomision
-  FeeCom : int64 = 0;
+  {FeeCom : int64 = 0;
   FeeOrder : OrderData;
   DelAddr : String = '';
-  LastOP : integer = 0;
+  LastOP : integer = 0;}
 Begin
 if Numero = 0 then StartBlockTime := 1531896783
 else StartBlockTime := LastBlockData.TimeEnd+1;
@@ -91,6 +92,7 @@ for contador := 0 to length(pendingTXs)-1 do
       end;
    end;
 //** Fin del procesado de las operaciones Pending
+{
 // Procesar si hay que descontar comisiones por inactividad
 if ((numero>0) and (Numero mod ComisionBlockCheck = 0)) then
    begin
@@ -137,6 +139,7 @@ if ((numero>0) and (Numero mod ComisionBlockCheck = 0)) then
       end;
    end;
 //** Fin comisiones por inactividad
+}
 // Pago del minero
 UpdateSumario(Minero,GetBlockReward(Numero)+MinerFee,0,IntToStr(numero));
 // Actualizar el ultimo bloque añadido al sumario
@@ -160,6 +163,8 @@ if numero = 0 then BlockHeader.Difficult:= InitialBlockDiff
 else BlockHeader.Difficult:= LastBlockData.NxtBlkDiff;
 BlockHeader.TargetHash:=TargetHash;
 BlockHeader.Solution:= Solucion;
+if numero = 0 then BlockHeader.LastBlockHash:='NOSO GENESYS BLOCK'
+else BlockHeader.LastBlockHash:=MyLastBlockHash;
 BlockHeader.NxtBlkDiff:=GetDiffForNextBlock(numero,BlockHeader.TimeLast20,BlockHeader.TimeTotal,BlockHeader.Difficult);
 BlockHeader.AccountMiner:=Minero;
 BlockHeader.MinerFee:=MinerFee;
@@ -228,7 +233,7 @@ var
   NumHalvings : integer;
 Begin
 if BlNumber = 0 then result := PremineAmount
-else if ((BlNumber > 0) and (blnumber <= BlockHalvingInterval*(HalvingSteps+1))) then
+else if ((BlNumber > 0) and (blnumber < BlockHalvingInterval*(HalvingSteps+1))) then
    begin
    numHalvings := BlNumber div BlockHalvingInterval;
    result := InitialReward div StrToInt(BMExponente('2',IntToStr(numHalvings)));
@@ -336,6 +341,22 @@ consolelines.Add('****************************');
 consolelines.Add(LAngLine(90)+IntToStr(blocknumber)); //'Block undone: '
 consolelines.Add('****************************');
 End;
+
+// devuelve la suma de los valores de la solucion de un bloque (eliminar?)
+function GetBlockWork(solucion:string):int64;
+var
+  contador : integer;
+  paso: string;
+Begin
+result := 0;
+for contador := 0 to Miner_Steps-1 do
+   begin
+   paso := Parameter(solucion,contador);
+   paso := copy(paso,10,9);
+   result += CadToNum(paso,0,'**CRITICAL: Error reading value of block solution.');
+   end;
+End;
+
 
 END. // END UNIT
 

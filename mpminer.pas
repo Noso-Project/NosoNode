@@ -5,7 +5,7 @@ unit mpMiner;
 interface
 
 uses
-  Classes, SysUtils, MasterPaskalForm, mpCripto, StrUtils, mpTime, dialogs;
+  Classes,SysUtils, MasterPaskalForm, mpCripto, StrUtils, mpTime, dialogs, crt;
 
 Procedure VerifyMiner();
 Procedure KillAllMiningThreads();

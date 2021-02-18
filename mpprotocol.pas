@@ -155,18 +155,28 @@ for contador := 1 to MaxConecciones do
    begin
    While SlotLines[contador].Count > 0 do
       begin
-      UsedProtocol := StrToInt(Parameter(SlotLines[contador][0],1));
+      UsedProtocol := StrToIntDef(Parameter(SlotLines[contador][0],1),1);
       UsedVersion := Parameter(SlotLines[contador][0],2);
       PeerTime := Parameter(SlotLines[contador][0],3);
       LineComando := Parameter(SlotLines[contador][0],4);
       if ((not IsValidProtocol(SlotLines[contador][0])) and (not Conexiones[contador].Autentic)) then
          // La linea no es valida y proviene de una conexion no autentificada
          begin
-         ConsoleLines.Add(LangLine(22)+conexiones[contador].ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
+         ConsoleLines.Add(LangLine(22)+conexiones[contador].ip+'->'+SlotLines[contador][0]); //CONNECTION REJECTED: INVALID PROTOCOL ->
          UpdateBotData(conexiones[contador].ip);
          CerrarSlot(contador);
-         end;
-      if UpperCase(LineComando) = '$GETNODES' then PTC_Getnodes(contador)
+         end
+      else if UpperCase(LineComando) = 'DUPLICATED' then
+         begin
+         ConsoleLines.Add('You are already connected to '+conexiones[contador].ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
+         CerrarSlot(contador);
+         end
+      else if UpperCase(LineComando) = 'OLDVERSION' then
+         begin
+         ConsoleLines.Add('You need update your wallet to connect to '+conexiones[contador].ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
+         CerrarSlot(contador);
+         end
+      else if UpperCase(LineComando) = '$GETNODES' then PTC_Getnodes(contador)
       else if UpperCase(LineComando) = '$NODES' then PTC_SaveNodes(SlotLines[contador][0])
       else if UpperCase(LineComando) = '$PING' then ProcessPing(SlotLines[contador][0],contador,true)
       else if UpperCase(LineComando) = '$PONG' then ProcessPing(SlotLines[contador][0],contador,false)

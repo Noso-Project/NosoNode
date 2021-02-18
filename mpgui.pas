@@ -22,13 +22,19 @@ type
     end;
 
   TFormAbout = class(Tform)
-    //procedure closeFormLog(Sender: TObject; var CanClose: boolean);
+
     private
     public
     end;
 
   TFormMonitor = class(Tform)
     Procedure closeFormMonitor(Sender: TObject; var CanClose: boolean);
+    private
+    public
+    end;
+
+  TFormSlots = class(Tform)
+
     private
     public
     end;
@@ -40,6 +46,8 @@ Procedure CreateFormLog();
 Procedure CreateFormAbout();
 Procedure CreateFormMilitime();
 Procedure UpdateMiliTimeForm();
+Procedure CreateFormSlots();
+Procedure UpdateSlotsGrid();
 Procedure InicializarGUI();
 Procedure OutText(Texto:String;inctime:boolean = false;canal : integer =0);
 Procedure MostrarLineasDeConsola();
@@ -68,6 +76,9 @@ var
     GridMiTime : TStringgrid;
     GridMValues : TStringgrid;
     LabelCurrJob : TLabel;
+  FormSlots : TFormSlots;
+    GridMSlots : TStringgrid;
+
 implementation
 
 Uses
@@ -169,7 +180,7 @@ Procedure CreateFormMilitime();
 Begin
 FormMonitor := TFormMonitor.Createnew(form1);
 FormMonitor.caption := CoinName+' Monitor';;
-FormMonitor.SetBounds(0, 0, 400, 400);
+FormMonitor.SetBounds(0, 0, 302, 320);
 FormMonitor.BorderStyle := bssingle;
 //FormMonitor.Position:=poOwnerFormCenter;
 FormMonitor.Top:=1;FormMonitor.Left:=1;
@@ -241,6 +252,65 @@ Begin
 CheckMonitor := false;
 End;
 
+// Crea el formulario de monitorizacion de los slots
+Procedure CreateFormSlots();
+Begin
+FormSlots := TFormSlots.Createnew(form1);
+FormSlots.caption := coinname+' Slots Monitor';
+FormSlots.SetBounds(0, 0, 500, 210);
+FormSlots.BorderStyle := bssingle;
+//FormSlots.Position:=poOwnerFormCenter;
+FormSlots.Top:=1;FormSlots.Left:=1;
+FormSlots.BorderIcons:=FormSlots.BorderIcons-[biminimize];
+FormSlots.ShowInTaskBar:=sTAlways;
+
+GridMSlots := TStringGrid.Create(FormSlots);GridMSlots.Parent:=FormSlots;
+GridMSlots.Font.Name:='consolas'; GridMSlots.Font.Size:=8;
+GridMSlots.Left:=1;GridMSlots.Top:=1;GridMSlots.Height:=208;GridMSlots.width:=498;
+GridMSlots.FixedCols:=0;GridMSlots.FixedRows:=1;
+GridMSlots.rowcount := MaxConecciones+1;GridMSlots.ColCount:=14;
+GridMSlots.ScrollBars:=ssVertical;
+GridMSlots.FocusRectVisible:=false;
+GridMSlots.Options:= GridMSlots.Options+[goRowSelect]-[goRangeSelect];
+GridMSlots.ColWidths[0]:= 20;GridMSlots.ColWidths[1]:= 80;GridMSlots.ColWidths[2]:= 25;
+GridMSlots.ColWidths[3]:= 20;GridMSlots.ColWidths[4]:= 48;GridMSlots.ColWidths[5]:= 40;
+GridMSlots.ColWidths[6]:= 40;GridMSlots.ColWidths[7]:= 25;GridMSlots.ColWidths[8]:= 25;
+GridMSlots.ColWidths[9]:= 35;GridMSlots.ColWidths[10]:= 30;GridMSlots.ColWidths[11]:= 25;
+GridMSlots.ColWidths[12]:= 40;GridMSlots.ColWidths[13]:= 25;
+GridMSlots.Enabled := true;
+GridMSlots.Cells[0,0]:='N';GridMSlots.Cells[1,0]:='IP';GridMSlots.Cells[2,0]:='T';
+GridMSlots.Cells[3,0]:='Cx';GridMSlots.Cells[4,0]:='LBl';GridMSlots.Cells[5,0]:='LBlH';
+GridMSlots.Cells[6,0]:='SumH';GridMSlots.Cells[7,0]:='Pen';GridMSlots.Cells[8,0]:='Pro';
+GridMSlots.Cells[9,0]:='Ver';GridMSlots.Cells[10,0]:='LiP';GridMSlots.Cells[11,0]:='Off';
+GridMSlots.Cells[12,0]:='HeaH';GridMSlots.Cells[13,0]:='Sta';
+GridMSlots.GridLineWidth := 1;
+End;
+
+Procedure UpdateSlotsGrid();
+var
+  contador : integer;
+Begin
+setmilitime('UpdateSlotsGrid',1);
+for contador := 1 to MaxConecciones do
+   begin
+   GridMSlots.Cells[0,contador]:= inttostr(contador);
+   GridMSlots.Cells[1,contador]:= Conexiones[contador].ip;
+   GridMSlots.Cells[2,contador]:= Conexiones[contador].tipo;
+   GridMSlots.Cells[3,contador]:= IntToStr(Conexiones[contador].Connections);
+   GridMSlots.Cells[4,contador]:= Conexiones[contador].Lastblock;
+   GridMSlots.Cells[5,contador]:= copy(Conexiones[contador].LastblockHash,0,5);
+   GridMSlots.Cells[6,contador]:= copy(Conexiones[contador].SumarioHash,0,5);
+   GridMSlots.Cells[7,contador]:= IntToStr(Conexiones[contador].Pending);
+   GridMSlots.Cells[8,contador]:= IntToStr(Conexiones[contador].Protocol);
+   GridMSlots.Cells[9,contador]:= Conexiones[contador].Version;
+   GridMSlots.Cells[10,contador]:= IntToStr(Conexiones[contador].ListeningPort);
+   GridMSlots.Cells[11,contador]:= IntToStr(Conexiones[contador].offset);
+   GridMSlots.Cells[12,contador]:= copy(Conexiones[contador].ResumenHash,0,5);
+   GridMSlots.Cells[13,contador]:= IntToStr(Conexiones[contador].ConexStatus);
+   end;
+setmilitime('UpdateSlotsGrid',2);
+End;
+
 // Inicializa el grid donde se muestran los datos
 Procedure InicializarGUI();
 var
@@ -249,11 +319,11 @@ Begin
 // datapanel
 DataPanel.Cells[0,0]:=LangLine(95);  //'Balance'
 DataPanel.Cells[0,1]:=LangLine(96); //'Server'
-DataPanel.Cells[0,2]:=LangLine(97);  //'Headers'
-DataPanel.Cells[0,3]:=LangLine(98);  //'Connections'
+DataPanel.Cells[0,2]:=LangLine(98);  //'Connections'
+DataPanel.Cells[0,3]:=LangLine(97);  //'Headers'
 DataPanel.Cells[0,4]:=LangLine(99);  //'Summary'
-DataPanel.Cells[0,5]:=LangLine(100);  //'Blocks'
-DataPanel.Cells[0,6]:=LangLine(101);  //'Public IP'
+DataPanel.Cells[0,5]:='LastBlock';
+DataPanel.Cells[0,6]:=LangLine(100);  //'Blocks'
 DataPanel.Cells[0,7]:=LangLine(102);  //'Pending'
 
 DataPanel.Cells[2,0]:=LangLine(103);  //'Miner'
@@ -344,10 +414,10 @@ Begin
 if U_DataPanel then
    begin
    DataPanel.Cells[1,1]:=Booltostr(form1.Server.Active, true)+'('+IntToStr(UserOptions.Port)+')';
-   DataPanel.Cells[1,2]:=copy(myResumenHash,0,5)+'/'+copy(NetResumenHash.Value,0,5);
-   DataPanel.Cells[1,4]:=Copy(MySumarioHash,28,5)+'/'+Copy(NetSumarioHash.Value,28,5);
-   DataPanel.Cells[1,5]:=IntToStr(MyLastBlock)+'/'+NetLastBlock.Value;
-   DataPanel.Cells[1,6]:=MyPublicIP;
+   DataPanel.Cells[1,3]:=copy(myResumenHash,0,5)+'/'+copy(NetResumenHash.Value,0,5)+'('+IntToStr(NetResumenHash.Porcentaje)+')';
+   DataPanel.Cells[1,4]:=Copy(MySumarioHash,0,5)+'/'+Copy(NetSumarioHash.Value,0,5)+'('+IntToStr(NetSumarioHash.Porcentaje)+')';
+   DataPanel.Cells[1,6]:=IntToStr(MyLastBlock)+'/'+NetLastBlock.Value+'('+IntToStr(NetLastBlock.Porcentaje)+')';
+   DataPanel.Cells[1,5]:=Copy(MyLastBlockHash,0,5)+'/'+copy(NetLastBlockHash.Value,0,5)+'('+IntToStr(NetLastBlockHash.Porcentaje)+')';
    U_DataPanel := false;
    end;
 
@@ -360,15 +430,7 @@ if (Miner_IsOn) then
    DataPanel.Cells[3,1]:=IntToStr(G_MiningCPUs)+' CPU   '+IntToStr(Miner_EsteIntervalo*5 div 1000) +' k/s';
    DataPanel.Cells[3,2]:='['+IntToStr(Miner_Difficult)+'] '+copy(Miner_Target,1,Miner_DifChars);
    DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
-   DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+TimeSinceStamp(LastblockData.TimeEnd);
-   if MinerButton.Caption = '' then
-      begin MinerButton.Caption := ' '; Form1.imagenes.GetBitmap(5,MinerButton.Glyph);end
-   else if MinerButton.Caption = ' ' then
-      begin MinerButton.Caption := '  ';Form1.imagenes.GetBitmap(11,MinerButton.Glyph);end
-   else if MinerButton.Caption = '  ' then
-      begin MinerButton.Caption := '   ';Form1.imagenes.GetBitmap(5,MinerButton.Glyph);end
-   else if MinerButton.Caption = '   ' then
-      begin MinerButton.Caption := '';Form1.imagenes.GetBitmap(4,MinerButton.Glyph);end;
+   DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+TimeSinceStamp(LastblockData.TimeEnd)
    end
 else
    begin
@@ -377,14 +439,13 @@ else
    DataPanel.Cells[3,2]:='['+IntToStr(Miner_Difficult)+'] '+copy(Miner_Target,1,Miner_DifChars);
    DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
    DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+TimeSinceStamp(LastblockData.TimeEnd);
-   Form1.imagenes.GetBitmap(4,MinerButton.Glyph);
    end;
 
 // Esta se muestra siempre aparte ya que la funcion GetTotalConexiones es la que permite
 // verificar si los clientes siguen conectados
 
-DataPanel.Cells[1,3]:=IntToStr(GetTotalConexiones)+' ('+IntToStr(MyConStatus)+') ['+IntToStr(G_TotalPings)+']';
-DataPanel.Cells[1,7]:= IntToStr(Length(PendingTXs))+'/'+NetPendingTrxs.Value;
+DataPanel.Cells[1,2]:=IntToStr(GetTotalConexiones)+' ('+IntToStr(MyConStatus)+') ['+IntToStr(G_TotalPings)+']';
+DataPanel.Cells[1,7]:= IntToStr(Length(PendingTXs))+'/'+NetPendingTrxs.Value+'('+IntToStr(NetPendingTrxs.Porcentaje)+')';
 DataPanel.Cells[1,0]:= Int2Curr(GetWalletBalance)+' '+CoinSimbol;
 
 if U_DirPanel then

@@ -44,8 +44,8 @@ Procedure UpdateSumario(Direccion:string;monto:Int64;score:integer;LastOpBlock:s
 function SetCustomAlias(Address,Addalias:String):Boolean;
 procedure UnzipBlockFile(filename:String;delfile:boolean);
 Procedure CreateResumen();
-Procedure BuildHeaderFile();
-Procedure RebuildSumario();
+Procedure BuildHeaderFile(untilblock:integer);
+Procedure RebuildSumario(UntilBlock:integer);
 Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
 Procedure DelBlChHeadLast();
 Procedure CrearMistrx();
@@ -55,6 +55,7 @@ Procedure RebuildMyTrx(blocknumber:integer);
 Procedure SaveMyTrxsToDisk(Cantidad:integer);
 function NewMyTrx(aParam:Pointer):PtrInt;
 Procedure CrearBatFileForRestart();
+Procedure RestartNoso();
 
 
 
@@ -92,7 +93,8 @@ OutText('✓ Headers file ok',false,1);
 if not FileExists(BlockDirectory+'0.blk') then CrearBloqueCero();
 if not FileExists(MyTrxFilename) then CrearMistrx() else CargarMisTrx();
 OutText('✓ My transactions file ok',false,1);
-BuildHeaderFile(); // PROBABLY IT IS NOT NECESAARY
+MyLastBlock := GetMyLastUpdatedBlock;
+BuildHeaderFile(MyLastBlock); // PROBABLY IT IS NOT NECESAARY
 
 UpdateWalletFromSumario();
 OutText('✓ Wallet updated',false,1);
@@ -164,7 +166,7 @@ Begin
    DefOptions.AutoConnect:=false;
    DefOptions.Auto_Updater:=false;
    DefOptions.JustUpdated:=false;
-   DefOptions.VersionPage:='';
+   DefOptions.VersionPage:='https://nosocoin.blogspot.com';
    DefOptions.ToTray:=false;
    write(FileOptions,DefOptions);
    closefile(FileOptions);
@@ -904,11 +906,12 @@ Begin
 End;
 
 // Contruir archivo de resumen
-Procedure BuildHeaderFile();
+Procedure BuildHeaderFile(untilblock:integer);
 var
   Dato, NewDato: ResumenData;
   Contador : integer = 0;
   CurrHash : String = '';
+  LastHash : String = '';
   BlockHeader : BlockHeaderData;
   ArrayOrders : BlockOrdersArray;
   cont : integer;
@@ -916,16 +919,24 @@ var
 Begin
 assignfile(FileResumen,ResumenFilename);
 reset(FileResumen);
-MyLastBlock := GetMyLastUpdatedBlock;
-consolelines.Add(LangLine(127)+IntToStr(MyLastBlock)); //'Rebuilding until block '
-contador := 0;
-while contador <= MyLastBlock do
+consolelines.Add(LangLine(127)+IntToStr(untilblock)); //'Rebuilding until block '
+contador := MyLastBlock;
+while contador <= untilblock do
    begin
+   if ((contador = MyLastBlock) and (contador>0)) then
+      LastHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock-1)+'.blk');
    info(LangLine(127)+IntToStr(contador)); //'Rebuild block: '
+   BlockHeader := LoadBlockDataHeader(contador);
    dato := default(ResumenData);
    seek(FileResumen,contador);
    if filesize(FileResumen)>contador then
       Read(FileResumen,dato);
+   If ((contador>0) and (BlockHeader.LastBlockHash <> LastHash)) then
+      begin // El hash del bloque anterior no coincide con el puntero de este bloque
+      ShowMessage ('Something is wrong with your blockchain'+slinebreak+'Noso will close now'+
+      slinebreak+'If the problem is not fixed, please, read the guide to fix it.');
+      CerrarPrograma();
+      end;
    CurrHash := HashMD5File(BlockDirectory+IntToStr(contador)+'.blk');
    if  CurrHash <> Dato.blockhash then
       begin
@@ -939,7 +950,6 @@ while contador <= MyLastBlock do
    if contador > ListaSumario[0].LastOP then // el bloque analizado es mayor que el ultimo incluido
       begin                                  // en el sumario asi que se procesan sus trxs
       newblocks := newblocks + 1;
-      BlockHeader := LoadBlockDataHeader(contador);
       UpdateSumario(BlockHeader.AccountMiner,BlockHeader.Reward+BlockHeader.MinerFee,0,IntToStr(contador));
       // AQUI LEER LAS TRANSACCIONES Y PROCESARLAS
       ArrayOrders := Default(BlockOrdersArray);
@@ -973,10 +983,11 @@ while contador <= MyLastBlock do
       tolog ('Readjusted sumhash for block '+inttostr(contador));
       end;
    contador := contador+1;
+   LastHash := CurrHash;
    end;
-while filesize(FileResumen)> MyLastBlock+1 do  // cabeceras presenta un numero anomalo de registros
+while filesize(FileResumen)> Untilblock+1 do  // cabeceras presenta un numero anomalo de registros
    begin
-   seek(FileResumen,MyLastBlock+1);
+   seek(FileResumen,Untilblock+1);
    truncate(fileResumen);
    tolog ('Readjusted headers size');
    end;
@@ -990,11 +1001,11 @@ if newblocks>0 then
 GuardarSumario();
 UpdateMyData();
 U_Dirpanel := true;
-if g_launching then OutText('✓ '+IntToStr(MyLastblock+1)+' blocks rebuilded',false,1);
+if g_launching then OutText('✓ '+IntToStr(untilblock+1)+' blocks rebuilded',false,1);
 End;
 
 // Reconstruye totalmente el sumario desde el bloque 0
-Procedure RebuildSumario();
+Procedure RebuildSumario(UntilBlock:integer);
 var
   contador, cont : integer;
   BlockHeader : BlockHeaderData;
@@ -1003,7 +1014,7 @@ Begin
 SetLength(ListaSumario,0);
 // incluir el pago del bloque genesys
 UpdateSumario(ADMINHash,PremineAmount,0,'0');
-for contador := 1 to mylastblock do
+for contador := 1 to UntilBlock do
    begin
    info(LangLine(130)+inttoStr(contador));  //'Rebuilding sumary block: '
    BlockHeader := Default(BlockHeaderData);
@@ -1023,12 +1034,12 @@ for contador := 1 to mylastblock do
          UpdateSumario(ArrayOrders[cont].Sender,Restar(ArrayOrders[cont].AmmountFee+ArrayOrders[cont].AmmountTrf),0,IntToStr(contador));
          UpdateSumario(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,0,IntToStr(contador));
          end;
-      if ArrayOrders[cont].OrderType='FEE' then
+      {if ArrayOrders[cont].OrderType='FEE' then
          begin
          UpdateSumario(ArrayOrders[cont].Sender,Restar(ArrayOrders[cont].AmmountFee),0,IntToStr(contador));
          if ArrayOrders[cont].TrfrID='YES' then // Hay que eliminar la direccion del sumario
             Delete(ListaSumario,AddressSumaryIndex(ArrayOrders[cont].Sender),1);
-         end;
+         end;}
       end;
    end;
 ListaSumario[0].LastOP:=contador;
@@ -1230,6 +1241,7 @@ RebuildMyTrx(MyLastBlock);
 NewMyTrx := -1;
 End;
 
+// Crea un archivo BAT para reiniciar
 Procedure CrearBatFileForRestart();
 var
   archivo : textfile;
@@ -1246,6 +1258,13 @@ try
   end;
 end;
 
+// Reiniciar el programa
+Procedure RestartNoso();
+Begin
+CrearBatFileForRestart();
+RunExternalProgram('nosolauncher.bat');
+CerrarPrograma();
+End;
 
 END. // END UNIT
 

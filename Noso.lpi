@@ -30,16 +30,16 @@
     </RunParams>
     <RequiredPackages Count="6">
       <Item1>
-        <PackageName Value="CryptoLib4PascalPackage"/>
+        <PackageName Value="dcpcrypt"/>
       </Item1>
       <Item2>
-        <PackageName Value="SimpleBaseLib4PascalPackage"/>
+        <PackageName Value="CryptoLib4PascalPackage"/>
       </Item2>
       <Item3>
-        <PackageName Value="HashLib4PascalPackage"/>
+        <PackageName Value="SimpleBaseLib4PascalPackage"/>
       </Item3>
       <Item4>
-        <PackageName Value="dcpcrypt"/>
+        <PackageName Value="HashLib4PascalPackage"/>
       </Item4>
       <Item5>
         <PackageName Value="indylaz"/>
@@ -48,7 +48,7 @@
         <PackageName Value="LCL"/>
       </Item6>
     </RequiredPackages>
-    <Units Count="17">
+    <Units Count="14">
       <Unit0>
         <Filename Value="Noso.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -81,57 +81,45 @@
         <UnitName Value="mpRed"/>
       </Unit5>
       <Unit6>
-        <Filename Value="Info.txt"/>
-        <IsPartOfProject Value="True"/>
-      </Unit6>
-      <Unit7>
         <Filename Value="mptime.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpTime"/>
-      </Unit7>
-      <Unit8>
+      </Unit6>
+      <Unit7>
         <Filename Value="mpcripto.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpCripto"/>
-      </Unit8>
-      <Unit9>
+      </Unit7>
+      <Unit8>
         <Filename Value="mpprotocol.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpProtocol"/>
-      </Unit9>
-      <Unit10>
+      </Unit8>
+      <Unit9>
         <Filename Value="mpblock.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpBlock"/>
-      </Unit10>
-      <Unit11>
+      </Unit9>
+      <Unit10>
         <Filename Value="mpminer.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpMiner"/>
-      </Unit11>
-      <Unit12>
+      </Unit10>
+      <Unit11>
         <Filename Value="mplang.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpLang"/>
-      </Unit12>
-      <Unit13>
+      </Unit11>
+      <Unit12>
         <Filename Value="mpcoin.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpCoin"/>
-      </Unit13>
-      <Unit14>
-        <Filename Value="log 0.1.4.txt"/>
-        <IsPartOfProject Value="True"/>
-      </Unit14>
-      <Unit15>
+      </Unit12>
+      <Unit13>
         <Filename Value="mpsignerutils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpSignerUtils"/>
-      </Unit15>
-      <Unit16>
-        <Filename Value="log 0.2.0.txt"/>
-        <IsPartOfProject Value="True"/>
-      </Unit16>
+      </Unit13>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

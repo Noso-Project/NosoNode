@@ -5,8 +5,8 @@ unit mpCripto;
 interface
 
 uses
-  Classes, SysUtils, MasterPaskalForm, process, strutils, MD5, DCPsha256, dcpRipemd160,
-  mpsignerutils, base64;
+  Classes, SysUtils, MasterPaskalForm, process, strutils, MD5, DCPsha256,
+  mpsignerutils, base64, HlpHashFactory;
 
 function CreateNewAddress(): WalletData;
 Procedure CreateKeysPair();
@@ -187,6 +187,8 @@ var
   i: integer;
   str1: string;
 begin
+{result :=
+THashFactory.TCrypto.CreateSHA2_256().ComputeString(StringToHash, TEncoding.UTF8).ToString();}
 Source:= StringToHash;  // here your string for get sha256
 if Source <> '' then
    begin
@@ -204,14 +206,16 @@ end;
 
 // RETURNS HASH MD160 OF A STRING
 function HashMD160String(StringToHash:string):String;
-var
+{var
   Hash: TDCP_ripemd160;
   Digest: array[0..19] of byte;
   Source: string;
   i: integer;
-  str1: string;
+  str1: string;}
 Begin
-Source:= StringToHash;
+result :=
+THashFactory.TCrypto.CreateRIPEMD160().ComputeString(StringToHash, TEncoding.UTF8).ToString();
+{Source:= StringToHash;
 if Source <> '' then
    begin
    Hash:= TDCP_ripemd160.Create(nil);
@@ -223,7 +227,7 @@ if Source <> '' then
    str1:= str1 + IntToHex(Digest[i],2);
    Result:=UpperCase(str1);
    Hash.Free;
-   end;
+   end; }
 End;
 
 // RETURNS THE MD5 HASH OF A STRING
@@ -496,7 +500,11 @@ End;
 // Indica que se pueden empezar a realizar las operaciones del cripto thread
 Procedure StartCriptoThread();
 Begin
-if not CriptoThreadRunning then CriptoOPsThread := Beginthread(tthreadfunc(@ProcessCriptoOP));
+if not CriptoThreadRunning then
+   begin
+   CriptoThreadRunning := true;
+   CriptoOPsThread := Beginthread(tthreadfunc(@ProcessCriptoOP));
+   end;
 End;
 
 // Elimina la operacion cripto
@@ -513,7 +521,6 @@ var
   NewAddrss : integer = 0;
   PosRef : integer; cadena,claveprivada,firma, resultado:string;
 Begin
-CriptoThreadRunning := true;
 Repeat
    begin
    if CriptoOpsTipo[0] = 0 then // actualizar balance

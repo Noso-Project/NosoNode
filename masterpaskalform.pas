@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, LCLType,
   Grids, ExtCtrls, Buttons, IdTCPServer, IdContext, IdGlobal, IdTCPClient,
-  fileutil,Clipbrd, Menus, crt, formexplore;
+  fileutil,Clipbrd, Menus, crt, formexplore, lclintf;
 
 type
 
@@ -89,6 +89,7 @@ type
      Difficult      : integer;
      TargetHash     : String[32];
      Solution       : String[255];
+     LastBlockHash  : String[32];
      NxtBlkDiff     : integer;
      AccountMiner   : String[40];
      MinerFee       : Int64;
@@ -112,9 +113,11 @@ type
      end;
 
   NetworkData = Packed Record
-     Value : String[64];
-     Count : integer;
-     Slot : integer;
+     Value : String[64];   // el valor almacenado
+     total : integer;      // total de peers analizados
+     Porcentaje : integer; // porcentake de peers que tienen el valor
+     Count : integer;      // cuantos peers comparten ese valor
+     Slot : integer;       // en que slots estan esos peers
      end;
 
   ResumenData = Packed Record
@@ -225,11 +228,14 @@ type
     Procedure MMExpWallet(Sender:TObject);
     Procedure MMQuit(Sender:TObject);
     Procedure MMAbout(Sender:TObject);
+    Procedure MMRestart(Sender:TObject);
     Procedure MMChangeLang(Sender:TObject);
     Procedure MMImpLang(Sender:TObject);
     Procedure MMNewLang(Sender:TObject);
     Procedure MMVerConsola(Sender:TObject);
     Procedure MMVerLog(Sender:TObject);
+    Procedure MMVerWeb(Sender:TObject);
+    Procedure MMVerSlots(Sender:TObject);
     Procedure MMVerMonitor(Sender:TObject);
 
     // CONSOLE POPUP
@@ -272,11 +278,11 @@ CONST
   B36Alphabet : string = '0123456789abcdefghijklmnopqrstuvwxyz';
   ReservedWords : string = 'NULL,DELADDR';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
-  DefaultNodes : String = 'DefNodes 23.95.233.179 107.172.188.149';
-  ProgramVersion = '0.1.6';
+  DefaultNodes : String = 'DefNodes 23.95.233.179';
+  ProgramVersion = '0.1.7';
   OficialRelease = false;
   BuildDate = 'Febraury 2021';
-  ADMINHash = 'NUBy1bsprQKeFrVU4K8eKP46QG2ABs';
+  ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   OptionsFileName = 'NOSODATA/options.psk';
   BotDataFilename = 'NOSODATA/botdata.psk';
   NodeDataFilename = 'NOSODATA/nodes.psk';
@@ -295,10 +301,10 @@ CONST
   Protocolo = 1;
   Miner_Steps = 10;
   // Custom values for coin
-  SecondsPerBlock = 60;            // 10 minutes
+  SecondsPerBlock = 30;            // 10 minutes
   PremineAmount = 0;                // Ammount premined in genesys block
   InitialReward = 5000000000;      // Initial reward
-  BlockHalvingInterval = 210;    // Number of blocks between halvings. 2 years   105120
+  BlockHalvingInterval = 2000;    // Number of blocks between halvings. 2 years   105120
   HalvingSteps = 10;                // total number of halvings
   Comisiontrfr = 10000;             // ammount/Comisiontrfr = 0.01 % of the ammount
   ComisionCustom = 200000;          // 0.05 % of the Initial reward
@@ -306,8 +312,8 @@ CONST
   CoinName = 'Noso';                // Coin name
   CoinChar = 'N';                   // Char for addresses
   MinimunFee = 10;                  // Minimun fee for transfer
-  ComisionBlockCheck = 420;       // +- 90 days
-  DeadAddressFee = 5000;            // unactive acount fee
+  ComisionBlockCheck = 0;       // +- 90 days
+  DeadAddressFee = 0;            // unactive acount fee
   ComisionScrow = 200;              // Coin/BTC market comision = 0.5%
   InitialBlockDiff = 60;            // Dificultad durante los 20 primeros bloques
 
@@ -387,8 +393,10 @@ var
   LastBlockData : BlockHeaderData;
 
   NetSumarioHash : NetworkData;
+    SumaryRebuilded : boolean = false;
   NetLastBlock : NetworkData;
     LastTimeRequestBlock : int64 = 0;
+  NetLastBlockHash : NetworkData;
   NetPendingTrxs : NetworkData;
   NetResumenHash : NetworkData;
     LastTimeRequestResumen : int64 = 0;
@@ -407,7 +415,7 @@ var
   MINER_FoundedSteps : integer = 0;
   MINER_HashCounter : Int64 = 100000000;
   Miner_HashSeed : String = '!!!!!!!!!';
-  Miner_Thread : array of Int64;
+  Miner_Thread : array of TThreadID;
   Miner_Address : string = '';
   Miner_BlockFOund : boolean = False;
   Miner_Solution : String = '';
@@ -533,6 +541,7 @@ if proceder then
    CreateFormLog();
    CreateFormAbout();
    CreateFormMilitime();
+   CreateFormSlots();
    form1.Visible:=false;
    forminicio.Visible:=true;
    Form1.InicioTimer:= TTimer.Create(Form1);
@@ -766,6 +775,7 @@ if G_CloseRequested then CerrarPrograma();
 if form1.SystrayIcon.Visible then
    form1.SystrayIcon.Hint:=Coinname+' Ver. '+ProgramVersion+SLINEBREAK+LabelBigBalance.Caption;
 if ((CheckMonitor) and (FormMonitor.Visible)) then UpdateMiliTimeForm();
+if FormSlots.Visible then UpdateSlotsGrid();
 UpdateStatusBar;
 Form1.Latido.Enabled:=true;
 end;
@@ -805,7 +815,9 @@ MenuItem.OnClick:=@form1.CheckMMCaptions;
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Export Wallet';MenuItem.OnClick:=@Form1.MMExpWallet;
   Form1.imagenes.GetBitmap(32,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='About...';MenuItem.OnClick:=@Form1.MMAbout;
-  Form1.imagenes.GetBitmap(39,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
+  Form1.imagenes.GetBitmap(48,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Restart';MenuItem.OnClick:=@Form1.MMRestart;
+  Form1.imagenes.GetBitmap(49,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Quit';MenuItem.OnClick:=@Form1.MMQuit;
   Form1.imagenes.GetBitmap(18,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
 
@@ -826,6 +838,10 @@ MenuItem.OnClick:=@form1.CheckMMCaptions;
   Form1.imagenes.GetBitmap(42,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Monitor';MenuItem.OnClick:=@Form1.MMVerMonitor;
   Form1.imagenes.GetBitmap(44,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='WebPage';MenuItem.OnClick:=@Form1.MMVerWeb;
+  Form1.imagenes.GetBitmap(47,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='ConSlots';MenuItem.OnClick:=@Form1.MMVerSlots;
+  Form1.imagenes.GetBitmap(29,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
 
 ConsolePopUp := TPopupMenu.Create(form1);
 MenuItem := TMenuItem.Create(ConsolePopUp);MenuItem.Caption := 'Clear';//Form1.imagenes.GetBitmap(0,MenuItem.Bitmap);
@@ -1347,7 +1363,7 @@ form1.SystrayIcon.BalloonTimeout:=3000;
 form1.SystrayIcon.BalloonTitle:=CoinName+' Wallet';
 form1.SystrayIcon.Hint:=Coinname+' Ver. '+ProgramVersion;
 form1.SysTrayIcon.OnDblClick:=@form1.DoubleClickSysTray;
-form1.imagenes.GetIcon(39,form1.SystrayIcon.icon);
+form1.imagenes.GetIcon(48,form1.SystrayIcon.icon);
 
 Form1.Server := TIdTCPServer.Create(Form1);
 Form1.Server.DefaultPort:=DefaultServerPort;
@@ -1409,7 +1425,7 @@ else if LLine = 'BLOCKZIP' then
    AFileStream.Free;
    UnzipBlockFile(BlockDirectory+'blocks.zip',true);
    MyLastBlock := GetMyLastUpdatedBlock();
-   BuildHeaderFile();
+   BuildHeaderFile(MyLastBlock);
    ResetMinerInfo();
    LastTimeRequestBlock := 0;
    end
@@ -1427,9 +1443,12 @@ var
   IPUser : string;
   LLine : String;
   MiIp: String = '';
+  Peerversion : string = '';
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
 LLine := AContext.Connection.IOHandler.ReadLn('',200,-1,IndyTextEncoding_UTF8);
+MiIp := Parameter(LLine,1);
+Peerversion := Parameter(LLine,2);
 if Copy(LLine,1,4) <> 'PSK ' then  // La linea no contiene un comando valido
    begin
    Consolelines.Add(LangLine(8)+IPUser);     //INVALID CLIENT :
@@ -1440,7 +1459,6 @@ if Copy(LLine,1,4) <> 'PSK ' then  // La linea no contiene un comando valido
    end
 else
    begin
-   MiIp := Parameter(LLine,1);
    if IPUser = MyPublicIP then // Nos estamos conectando con nosotros mismos
       begin
       ConsoleLines.Add(LangLine(9));  //INCOMING CLOSED: OWN CONNECTION
@@ -1459,7 +1477,16 @@ if BotExists(IPUser) then // Es un bot ya conocido
    end;
 if GetSlotFromIP(IPUser) > 0 then // Conexion duplicada
    begin
+   Acontext.Connection.IOHandler.WriteLn(GetPTCEcn+'DUPLICATED');
    ConsoleLines.Add(LangLine(11)+IPUser);              //DUPLICATE REJECTED:
+   AContext.Connection.Disconnect;
+   Acontext.Connection.IOHandler.InputBuffer.Clear;
+   exit;
+   end;
+if Peerversion < ProgramVersion then // version atigua
+   begin
+   Acontext.Connection.IOHandler.WriteLn(GetPTCEcn+'OLDVERSION');
+   ConsoleLines.Add('Lower version. Rejected: '+IPUser);
    AContext.Connection.Disconnect;
    Acontext.Connection.IOHandler.InputBuffer.Clear;
    exit;
@@ -1931,6 +1958,7 @@ If UserOptions.ToTray then Processlines.Add('TOTRAYOFF')
 else Processlines.Add('TOTRAYON');
 End;
 
+// Actualizar barra de estado
 Procedure UpdateStatusBar();
 Begin
 if Form1.Server.Active then StaSerImg.Visible:=true
@@ -1962,7 +1990,6 @@ else
    StaPenImg.Visible:=false;
    StaPenLab.Visible:=false;
    end;
-
 End;
 
 //******************************************************************************
@@ -2032,6 +2059,12 @@ End;
 Procedure Tform1.MMAbout(Sender:TObject);
 Begin
 formabout.Visible:=true;
+End;
+
+// menuprincipal restart
+Procedure Tform1.MMRestart(Sender:TObject);
+Begin
+RestartNoso;
 End;
 
 // menuprincipal salir
@@ -2111,6 +2144,18 @@ Begin
 FormMonitor.Visible:=true;
 FormMonitor.BringToFront;
 CheckMonitor := true;
+End;
+
+// Abrir pagina web
+Procedure TForm1.MMVerWeb(Sender:TObject);
+Begin
+OpenDocument(UserOptions.VersionPage);
+End;
+
+// Abrir pagina web
+Procedure TForm1.MMVerSlots(Sender:TObject);
+Begin
+FormSlots.Visible:=true;
 End;
 
 //******************************************************************************

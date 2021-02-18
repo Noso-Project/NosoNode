@@ -40,7 +40,8 @@ Procedure ImportarWallet(LineText:string);
 Procedure ExportarWallet(LineText:string);
 Procedure ShowBlchHead();
 Procedure SetDefaultAddress(linetext:string);
-Procedure ShowLastBlockInfo();
+Procedure ParseShowBlockInfo(LineText:string);
+Procedure ShowBlockInfo(numberblock:integer);
 Procedure showmd160(linetext:string);
 Procedure CustomizeAddress(linetext:string);
 Procedure Parse_SendFunds(LineText:string);
@@ -55,6 +56,7 @@ Procedure TestParser(LineText:String);
 Procedure DeleteBot(LineText:String);
 Procedure showCriptoThreadinfo();
 Procedure SetMiningCPUS(LineText:string);
+Procedure TestNetwork(LineText:string);
 
 implementation
 
@@ -119,15 +121,15 @@ else if UpperCase(Command) = 'SENDUPDATE' then EnviarUpdate(LineText)
 else if UpperCase(Command) = 'IMPWALLET' then ImportarWallet(LineText)
 else if UpperCase(Command) = 'EXPWALLET' then ExportarWallet(LineText)
 else if UpperCase(Command) = 'RESUMEN' then ShowBlchHead()
-else if UpperCase(Command) = 'SETDEFAULTADDRESS' then SetDefaultAddress(LineText)
-else if UpperCase(Command) = 'LBINFO' then ShowLastBlockInfo()
+else if UpperCase(Command) = 'SETDEFAULT' then SetDefaultAddress(LineText)
+else if UpperCase(Command) = 'LBINFO' then ShowBlockInfo(MyLastBlock)
 else if UpperCase(Command) = 'TIMESTAMP' then ConsoleLines.Add(UTCTime)
 else if UpperCase(Command) = 'MD160' then showmd160(LineText)
 else if UpperCase(Command) = 'UNDONEBLOCK' then UndoneLastBlock  // to be removed
 else if UpperCase(Command) = 'CUSTOMIZE' then CustomizeAddress(LineText)
 else if UpperCase(Command) = 'SENDTO' then Parse_SendFunds(LineText)
 else if UpperCase(Command) = 'HALVING' then ShowHalvings()
-else if UpperCase(Command) = 'REBUILDSUMARY' then RebuildSumario()
+else if UpperCase(Command) = 'REBUILDSUMARY' then RebuildSumario(MyLastBlock)
 else if UpperCase(Command) = 'GROUPCOINS' then Groupcoins(linetext)
 else if UpperCase(Command) = 'GENLANG' then CreateTraslationFile()
 else if UpperCase(Command) = 'IMPLANG' then ImportLanguage(LineText)
@@ -141,6 +143,8 @@ else if UpperCase(Command) = 'TP' then TestParser(LineText)
 else if UpperCase(Command) = 'DELBOT' then DeleteBot(LineText)
 else if UpperCase(Command) = 'CRIPTO' then showCriptoThreadinfo()
 else if UpperCase(Command) = 'CPUMINE' then SetMiningCPUS(LineText)
+else if UpperCase(Command) = 'BLOCK' then ParseShowBlockInfo(LineText)
+else if UpperCase(Command) = 'TESTNET' then TestNetwork(LineText)
 
 else ConsoleLines.Add(LangLine(0)+Command);  // Unknow command
 //ConsoleLines.Add('');
@@ -640,23 +644,40 @@ S_Wallet := true;
 U_DirPanel := true;
 End;
 
-Procedure ShowLastBlockInfo();
+Procedure ParseShowBlockInfo(LineText:string);
+var
+  blnumber : integer;
 Begin
-consolelines.Add('Last block info');
-consolelines.Add('Hash  :       '+HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk'));
-consolelines.Add('Number:       '+IntToStr(LastBlockData.Number));
-consolelines.Add('Time start:   '+IntToStr(LastBlockData.TimeStart));
-consolelines.Add('Time end:     '+IntToStr(LastBlockData.TimeEnd));
-consolelines.Add('Time total:   '+IntToStr(LastBlockData.TimeTotal));
-consolelines.Add('L20 average:  '+IntToStr(LastBlockData.TimeLast20));
-consolelines.Add('Transactions: '+IntToStr(LastBlockData.TrxTotales));
-consolelines.Add('Difficult:    '+IntToStr(LastBlockData.Difficult));
-consolelines.Add('Target:       '+LastBlockData.TargetHash);
-consolelines.Add('Solution:     '+LastBlockData.Solution);
-consolelines.Add('Next Diff:    '+IntToStr(LastBlockData.NxtBlkDiff));
-consolelines.Add('Miner:        '+LastBlockData.AccountMiner);
-consolelines.Add('Fees:         '+IntToStr(LastBlockData.MinerFee));
-consolelines.Add('Reward:       '+IntToStr(LastBlockData.Reward));
+blnumber := StrToIntDef(Parameter(linetext,1),-1);
+if (blnumber < 0) or (blnumber>MylastBlock) then
+   outtext('Invalid block number')
+else ShowBlockInfo(blnumber);
+End;
+
+Procedure ShowBlockInfo(numberblock:integer);
+var
+  Header : BlockHeaderData;
+Begin
+if fileexists(BlockDirectory+IntToStr(numberblock)+'.blk') then
+   begin
+   Header := LoadBlockDataHeader(numberblock);
+   consolelines.Add('Last block info');
+   consolelines.Add('Hash  :       '+HashMD5File(BlockDirectory+IntToStr(numberblock)+'.blk'));
+   consolelines.Add('Number:       '+IntToStr(Header.Number));
+   consolelines.Add('Time start:   '+IntToStr(Header.TimeStart));
+   consolelines.Add('Time end:     '+IntToStr(Header.TimeEnd));
+   consolelines.Add('Time total:   '+IntToStr(Header.TimeTotal));
+   consolelines.Add('L20 average:  '+IntToStr(Header.TimeLast20));
+   consolelines.Add('Transactions: '+IntToStr(Header.TrxTotales));
+   consolelines.Add('Difficult:    '+IntToStr(Header.Difficult));
+   consolelines.Add('Target:       '+Header.TargetHash);
+   consolelines.Add('Solution:     '+Header.Solution);
+   consolelines.Add('Last Hash:    '+Header.LastBlockHash);
+   consolelines.Add('Next Diff:    '+IntToStr(Header.NxtBlkDiff));
+   consolelines.Add('Miner:        '+Header.AccountMiner);
+   consolelines.Add('Fees:         '+IntToStr(Header.MinerFee));
+   consolelines.Add('Reward:       '+IntToStr(Header.Reward));
+   end;
 End;
 
 Procedure showmd160(linetext:string);
@@ -759,6 +780,7 @@ var
   OrderString : string;
   AliasIndex : integer;
 Begin
+setmilitime('SendFunds',1);
 Destination := Parameter(Linetext,1);
 amount       := Parameter(Linetext,2);
 concepto    := Parameter(Linetext,3);
@@ -823,6 +845,7 @@ for contador := 0 to length(ArrayTrfrs)-1 do
    end;
 Setlength(orderstring,length(orderstring)-2);
 OutgoingMsjs.Add(OrderString);
+setmilitime('SendFunds',2);
 End;
 
 // Muestra la escala de halvings
@@ -1028,7 +1051,7 @@ var
   continuar : boolean;
   parametro : string;
 Begin
-consolelines.Add(GetCommand(LineText));
+consolelines.Add(Parameter(linetext,0));
 continuar := true;
 repeat
    begin
@@ -1097,6 +1120,26 @@ KillAllMiningThreads;
 Miner_Active := false;
 if Miner_IsOn then Miner_IsOn := false;
 U_Datapanel := true;
+End;
+
+Procedure TestNetwork(LineText:string);
+var
+  numero : integer;
+  monto : integer;
+  contador : integer;
+Begin
+numero := StrToIntDef(Parameter(linetext,1),0);
+if ((numero <1) or (numero >100)) then
+  Outtext('Range must be 1-100')
+else
+  begin
+  Randomize;
+  for contador := 1 to numero do
+     begin
+     Monto := Random(500)+1;
+     Processlines.Add('SENDTO '+ADMINHash+' '+IntToStr(Monto));
+     end;
+  end;
 End;
 
 END. // END UNIT

@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, forms, SysUtils, MasterPaskalForm, MPTime, IdContext, IdGlobal, mpGUI, mpDisk,
-  mpBlock, mpMiner, fileutil, graphics;
+  mpBlock, mpMiner, fileutil, graphics,  dialogs;
 
 function GetSlotFromIP(Ip:String):int64;
 function BotExists(IPUser:String):Boolean;
@@ -27,6 +27,7 @@ Procedure VerifyConnectionStatus();
 Procedure UpdateConsenso(data:String;Slot:integer);
 Function GetMasConsenso():integer;
 function UpdateNetworkLastBlock():NetWorkData;
+function UpdateNetworkLastBlockHash():NetworkData;
 function UpdateNetworkSumario():NetWorkData;
 function UpdateNetworkPendingTrxs():NetworkData;
 function UpdateNetworkResumenHash():NetworkData;
@@ -270,7 +271,7 @@ CanalCliente[Slot].Port:=StrToIntDef(Port,8080);
    SaveConection('SER',Address,ConContext);
    OutText(LangLine(30)+Address,true);          //Connected TO:
    UpdateNodeData(Address,Port);
-   CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address);
+   CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address+' '+ProgramVersion);
    CanalCliente[Slot].IOHandler.WriteLn(ProtocolLine(3));   // Send PING
    If UserOptions.GetNodes then
      CanalCliente[Slot].IOHandler.WriteLn(ProtocolLine(GetNodes));
@@ -373,7 +374,7 @@ While not CanalCliente[Slot].IOHandler.InputBufferIsEmpty do
       AFileStream.Free;
       UnzipBlockFile(BlockDirectory+'blocks.zip',true);
       MyLastBlock := GetMyLastUpdatedBlock();
-      BuildHeaderFile();
+      BuildHeaderFile(MyLastBlock);
       ResetMinerInfo();
       LastTimeRequestBlock := 0;
       end
@@ -480,6 +481,7 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
      and (MySumarioHash=NetSumarioHash.Value) and(MyResumenhash = NetResumenHash.Value)) then
    begin
    MyConStatus := 3;
+   SumaryRebuilded:= false;
    ConsoleLines.Add(LangLine(36));   //Updated!
    ResetMinerInfo();
    if StrToInt(NetPendingTrxs.Value)> length(PendingTXs) then
@@ -507,6 +509,7 @@ while contador < maximo do
    if Data = ArrayConsenso[contador].value then
       begin
       ArrayConsenso[contador].count := ArrayConsenso[contador].count +1;
+      ArrayConsenso[length(ArrayConsenso)-1].total +=1;
       existia := true;
       end;
    contador := contador+1;
@@ -515,6 +518,7 @@ if not existia then
    begin
    SetLength(ArrayConsenso,length(ArrayConsenso)+1);
    ArrayConsenso[length(ArrayConsenso)-1].value:=data;
+   ArrayConsenso[length(ArrayConsenso)-1].total:=1;
    ArrayConsenso[length(ArrayConsenso)-1].count:=1;
    ArrayConsenso[length(ArrayConsenso)-1].slot:=Slot;
    end;
@@ -532,6 +536,7 @@ for contador := 0 to length(ArrayConsenso)-1 do
    if ArrayConsenso[contador].count > higher then
       begin
       higher := ArrayConsenso[contador].count;
+      ArrayConsenso[contador].Porcentaje:=(ArrayConsenso[contador].Count*100) div ArrayConsenso[contador].total ;
       Posicion := contador;
       end;
    end;
@@ -548,6 +553,22 @@ for contador := 1 to MaxConecciones do
    if conexiones[contador].tipo<> '' then
       begin
       UpdateConsenso(conexiones[contador].Lastblock,contador);
+      end;
+   end;
+if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
+else result := Default(NetworkData);
+End;
+
+function UpdateNetworkLastBlockHash():NetworkData;
+var
+  contador : integer = 1;
+Begin
+SetLength(ArrayConsenso,0);
+for contador := 1 to MaxConecciones do
+   Begin
+   if conexiones[contador].tipo<> '' then
+      begin
+      UpdateConsenso(conexiones[contador].LastblockHash,contador);
       end;
    end;
 if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
@@ -605,6 +626,7 @@ End;
 Procedure UpdateNetworkData();
 Begin
 NetLastBlock := UpdateNetworkLastBlock; // Buscar cual es el ultimo bloque por consenso
+NetLastBlockHash := UpdateNetworkLastBlockHash;
 NetSumarioHash := UpdateNetworkSumario; // Busca el hash del sumario por consenso
 NetPendingTrxs := UpdateNetworkPendingTrxs;
 NetResumenHash := UpdateNetworkResumenHash;
@@ -621,6 +643,7 @@ LastBlockData := LoadBlockDataHeader(MyLastBlock);
 MyResumenHash := HashMD5File(ResumenFilename);
 End;
 
+// Verificar y que hacer con un archivo de Update
 Procedure CheckIncomingUpdateFile(version,hash, clavepublica, firma, namefile: string);
 var
   Proceder : boolean = true;
@@ -659,7 +682,7 @@ End;
 // Solicitar los archivos necesarios para actualizarse con la red
 Procedure ActualizarseConLaRed();
 var
-  NLBV : integer = 0; // network last block valur
+  NLBV : integer = 0; // network last block value
 Begin
 SetCurrentJob('ActualizarseConLaRed',true);
 NLBV := StrToInt(NetLastBlock.Value);
@@ -667,7 +690,7 @@ if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // sol
    begin
    if LastTimeRequestResumen+5 < StrToInt64(UTCTime) then
       begin
-      PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7));
+      PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
       consolelines.Add(LangLine(163)); //'Headers file requested'
       LastTimeRequestResumen := StrToInt64(UTCTime);
       end;
@@ -676,15 +699,23 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  /
    begin
    if LastTimeRequestBlock+5 < StrToInt64(UTCTime) then
       begin
-      PTC_SendLine(NetResumenHash.Slot,ProtocolLine(8));
+      PTC_SendLine(NetResumenHash.Slot,ProtocolLine(8)); // lastblock
       consolelines.Add(LangLine(164)+IntToStr(mylastblock)); //'LastBlock requested from block '
       LastTimeRequestBlock := StrToInt64(UTCTime);
       end;
    end
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
-        (MySumarioHash<>NetSumarioHash.Value)) then
+        (MySumarioHash<>NetSumarioHash.Value) and (not SumaryRebuilded)) then
    begin  // Reconstruir sumario
-   RebuildSumario();
+   RebuildSumario(MyLastBlock);
+   SumaryRebuilded:= true;
+   end
+else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
+        (MySumarioHash<>NetSumarioHash.Value) and (SumaryRebuilded)) then
+   begin  // Que hacer si todo encaja pero el sumario no esta bien
+   ShowMessage ('Something is wrong with your blockchain'+slinebreak+'Noso will restart now'+
+   slinebreak+'If the problem is not fixed, please, read the guide to fix it.');
+   RestartNoso();
    end;
 SetCurrentJob('ActualizarseConLaRed',false);
 End;

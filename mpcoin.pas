@@ -158,6 +158,7 @@ if DireccionEsMia(DireccionEnvia)>=0 then
 if DireccionEsMia(Order.Receiver)>=0 then
    begin
    montoincoming := montoincoming+order.AmmountTrf;
+   ShowGlobo('Incoming transfer',Int2curr(order.AmmountTrf));
    if not ImageInc.Visible then ImageInc.Visible:= true;
    end;
 U_DirPanel := true;
@@ -225,6 +226,7 @@ var
   MontoDisponible, Montotrfr, comisionTrfr : int64;
   OrderInfo : orderdata;
 Begin
+setmilitime('SendFundsFromAddress',1);
 MontoDisponible := ListaDirecciones[DireccionEsMia(origen)].Balance;
 if MontoDisponible>comision then ComisionTrfr := Comision
 else comisiontrfr := montodisponible;
@@ -247,6 +249,7 @@ OrderInfo.Signature  := GetStringSigned(ordertime+origen+destino+IntToStr(montot
                      ListaDirecciones[DireccionEsMia(origen)].PrivateKey);
 OrderInfo.TrfrID     := GetTransferHash(ordertime+origen+destino+IntToStr(monto)+IntToStr(MyLastblock));
 Result := OrderInfo;
+setmilitime('SendFundsFromAddress',2);
 End;
 
 // verifica si en las transaccione pendientes hay alguna de nuestra cartera
