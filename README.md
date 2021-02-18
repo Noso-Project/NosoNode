@@ -3,9 +3,9 @@ Noso Windows Wallet
 
 This sofware is in current development (Febraury 2021) so new versions will be available very often
 
-Unofficial Release Ver 0.1.6
+Unofficial Release Ver 0.1.7
 
--- THIS VERSION IS INCOMPLETE: Some features not added yet.
+-- THIS IS A BETA VERSION. 
 
 Requirements:
 
