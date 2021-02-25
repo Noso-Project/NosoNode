@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, mpCripto, mpTime, mpblock, mpcoin,
-  dialogs, fileutil, forms, idglobal;
+  dialogs, fileutil, forms, idglobal, poolmanage;
 
 Procedure ProcesarLineas();
 function GetOpData(textLine:string):String;
@@ -57,6 +57,12 @@ Procedure DeleteBot(LineText:String);
 Procedure showCriptoThreadinfo();
 Procedure SetMiningCPUS(LineText:string);
 Procedure TestNetwork(LineText:string);
+Procedure Parse_RestartNoso();
+Procedure ShowNetworkDataInfo();
+Procedure CreatePool(LineText:string);
+Procedure ShowPoolInfo();
+Procedure JoinPool(LineText:string);
+Procedure Deletepool();
 
 implementation
 
@@ -100,7 +106,7 @@ else if UpperCase(Command) = 'SLOTS' then ShowSlots()
 else if UpperCase(Command) = 'CONNECT' then ConnectToServers()
 else if UpperCase(Command) = 'DISCONNECT' then CerrarClientes()
 else if UpperCase(Command) = 'OFFSET' then consolelines.Add('Server: '+G_NTPServer+SLINEBREAK+LangLine(17)+IntToStr(G_TimeOffSet))
-else if UpperCase(Command) = 'SSLPATH' then consolelines.Add(UserOptions.SSLPath)
+//else if UpperCase(Command) = 'SSLPATH' then consolelines.Add(UserOptions.SSLPath)
 else if UpperCase(Command) = 'NEWADDRESS' then NuevaDireccion(linetext)
 else if UpperCase(Command) = 'USEROPTIONS' then ShowUserOptions()
 else if UpperCase(Command) = 'BALANCE' then ConsoleLines.Add(Int2Curr(GetWalletBalance)+' '+CoinSimbol)
@@ -145,9 +151,20 @@ else if UpperCase(Command) = 'CRIPTO' then showCriptoThreadinfo()
 else if UpperCase(Command) = 'CPUMINE' then SetMiningCPUS(LineText)
 else if UpperCase(Command) = 'BLOCK' then ParseShowBlockInfo(LineText)
 else if UpperCase(Command) = 'TESTNET' then TestNetwork(LineText)
+else if UpperCase(Command) = 'RUNDIAG' then RunDiagnostico(LineText)
+else if UpperCase(Command) = 'RESTART' then Parse_RestartNoso()
+else if UpperCase(Command) = 'SND' then ShowNetworkDataInfo()
+else if UpperCase(Command) = 'CREATEPOOL' then CreatePool(LineText)
+else if UpperCase(Command) = 'POOLINFO' then ShowPoolInfo()
+else if UpperCase(Command) = 'JOINPOOL' then JoinPool(LineText)
+else if UpperCase(Command) = 'DELPOOL' then DeletePool()
+else if UpperCase(Command) = 'REQUESTPOOLSTATUS' then PoolRequestMyStatus()
+else if UpperCase(Command) = 'REQUESTPOOLPAY' then PoolRequestPayment()
+else if UpperCase(Command) = 'STARTPOOLSERVER' then StartPoolServer(poolinfo.Port)
+
+
 
 else ConsoleLines.Add(LangLine(0)+Command);  // Unknow command
-//ConsoleLines.Add('');
 end;
 
 // Obtiene el comando de una linea
@@ -317,8 +334,9 @@ Begin
 consolelines.Add('Language: '+IdiomasDisponibles[Useroptions.language]);
 consolelines.Add('Server Port: '+IntToStr(UserOptions.Port));
 consolelines.Add('Get Nodes: '+BoolToStr(UserOptions.GetNodes,true));
-consolelines.Add('OpenSSL Path: '+UserOptions.SSLPath);
+//consolelines.Add('OpenSSL Path: '+UserOptions.SSLPath);
 consolelines.Add('Wallet: '+UserOptions.Wallet);
+consolelines.Add('PoolData: '+UserOptions.PoolInfo);
 consolelines.Add('AutoServer: '+BoolToStr(UserOptions.AutoServer,true));
 consolelines.Add('AutoConnect: '+BoolToStr(UserOptions.AutoConnect,true));
 consolelines.Add('AutoUpdate: '+BoolToStr(UserOptions.Auto_Updater,true));
@@ -330,12 +348,10 @@ function GetWalletBalance(): Int64;
 var
   contador : integer = 0;
   totalEnSumario : Int64 = 0;
-  TotalPendiente : Int64 = 0;
 Begin
 for contador := 0 to length(Listadirecciones)-1 do
    begin
    totalEnSumario := totalEnSumario+Listadirecciones[contador].Balance;
-   //TotalPendiente := TotalPendiente+GetAddressPendingPays(ListaDirecciones[contador].Hash)
    end;
 result := totalEnSumario-MontoOutgoing;
 End;
@@ -612,7 +628,7 @@ Registros := filesize(FileResumen);
 while not eof (fileresumen) do
    begin
    read(fileresumen, dato);
-   consolelines.Add(IntToStr(dato.block)+' '+dato.blockhash+' '+dato.SumHash);
+   consolelines.Add(IntToStr(dato.block)+' '+copy(dato.blockhash,1,5)+' '+copy(dato.SumHash,1,5));
    end;
 closefile(FileResumen);
 Consolelines.Add(IntToStr(Registros)+' registers');
@@ -787,6 +803,7 @@ concepto    := Parameter(Linetext,3);
 if ((Destination='') or (amount='')) then
    begin
    consolelines.add(LAngLine(145)); //'Invalid parameters.'
+   setmilitime('SendFunds',2);
    exit;
    end;
 if not IsValidAddress(Destination) then
@@ -795,6 +812,7 @@ if not IsValidAddress(Destination) then
    if AliasIndex<0 then
       begin
       consolelines.add(LangLine(146)); //'Invalid destination.'
+      setmilitime('SendFunds',2);
       exit;
       end
    else Destination := ListaSumario[aliasIndex].Hash;
@@ -804,6 +822,7 @@ if concepto = '' then concepto := 'null';
 if monto<0 then
    begin
    consolelines.add(LangLine(147)); //'Invalid ammount.'
+   setmilitime('SendFunds',2);
    exit;
    end;
 Comision := GetFee(Monto);
@@ -811,6 +830,7 @@ Restante := monto+comision;
 if Restante > GetWalletBalance then
    begin
    consolelines.add(LAngLine(148)+Int2curr(Monto+comision));//'Insufficient funds. Needed: '
+   setmilitime('SendFunds',2);
    exit;
    end;
 // empezar proceso
@@ -1001,7 +1021,6 @@ for contador := idiomas to filesize(archivo2)-1 do
 closefile(archivo2);
 insert(arrayofstrings,LineasViejas,length(LineasViejas));
 insert(LineasViejas,ListaDeIdiomas,length(ListaDeIdiomas));
-
 rewrite(archivo2);
 write(archivo2,intToStr(idiomas));
 for contador := 1 to length(ListaDeIdiomas) do
@@ -1140,6 +1159,138 @@ else
      Processlines.Add('SENDTO '+ADMINHash+' '+IntToStr(Monto));
      end;
   end;
+End;
+
+Procedure Parse_RestartNoso();
+Begin
+RestartNosoAfterQuit := true;
+CerrarPrograma();
+End;
+
+// Muestra la informacion de la red
+// Este procedimiento debe amppliarse para que muestre la informacion solicitada
+Procedure ShowNetworkDataInfo();
+Begin
+consolelines.Add('Network last block');
+consolelines.Add('Value: '+NetLastBlock.Value);
+consolelines.Add('Count: '+IntToStr(NetLastBlock.Count));
+consolelines.Add('Percent: '+IntToStr(NetLastBlock.porcentaje));
+consolelines.Add('Slot: '+IntToStr(NetLastBlock.slot));
+End;
+
+Procedure ShowPoolInfo();
+var
+  dato : PoolInfoData;
+Begin
+if fileexists(PoolInfoFilename) then
+   begin
+   Dato := GetPoolInfoFromDisk();
+   consolelines.Add('My Pool Info: ');
+   Consolelines.Add('Name: '+dato.Name);
+   Consolelines.Add('Address: '+dato.Direccion);
+   Consolelines.Add('Fee: '+IntToStr(dato.Porcentaje)+'/10000');
+   Consolelines.Add('MaxMembers: '+IntToStr(dato.MaxMembers));
+   consolelines.add('Members: '+IntToStr(length(ArrayPoolMembers)));
+   Consolelines.Add('Port: '+IntToStr(dato.Port));
+   Consolelines.Add('PayRatio: '+IntToStr(dato.TipoPago));
+   consolelines.Add('Listening: '+BoolToStr(form1.PoolServer.Active,true));
+   end
+else consolelines.Add('You do not own a pool.');
+End;
+
+// Crea un pool de mineria
+Procedure CreatePool(LineText:string);
+var
+  nombre:string;
+  direccionminado: string;
+  porcentaje: integer;
+  maxmembers : integer;
+  port:integer;
+  TipoPago : integer;
+  Password : string;
+  Parametrosok : boolean = true;
+Begin
+if fileexists(PoolInfoFilename) then
+  begin
+  consolelines.Add('You already owns a minning pool');
+  exit;
+  end;
+nombre := Parameter(linetext,1);
+direccionminado := Parameter(linetext,2);
+porcentaje := StrToIntDef(Parameter(linetext,3),-1);
+maxmembers := StrToIntDef(Parameter(linetext,4),-1);
+port := StrToIntDef(Parameter(linetext,5),0);
+TipoPago := StrToIntDef(Parameter(linetext,6),0);
+Password := Parameter(linetext,7);
+if length(nombre)>15 then Parametrosok := false;
+if not isvalidaddress(direccionminado) then Parametrosok := false;
+if ((porcentaje<0) or (porcentaje>100)) then Parametrosok := false;
+if ((maxmembers<2) or (maxmembers>90)) then Parametrosok := false;
+if ((port<1) or (port>65535)) then Parametrosok := false;
+if ((TipoPago<1) or (TipoPago>1008)) then Parametrosok := false;
+if length(Password)>10 then Parametrosok := false;
+if parametrosok then
+   begin
+   CrearArchivoPoolInfo(nombre,direccionminado,porcentaje,maxmembers,port,tipopago,password);
+   CrearArchivoPoolMembers();
+   SetLength(ArrayPoolMembers,0);
+   StartPoolServer(port);
+   ConsoleLines.Add('Mining pool created');
+   ResetPoolMiningInfo();
+   ConnectPoolClient('Localhost', port,password);
+   Processlines.Add('joinpool localhost '+inttoStr(port)+' '+ListaDirecciones[0].Hash+' '+password);
+   end
+else consolelines.Add('CreatePool: Invalid parameters'+slinebreak+
+'createpool {name} {address} {fee} {maxmembers} {port} {payment} {password}');
+End;
+
+// Try to join a pool
+Procedure JoinPool(LineText:string);
+var
+  Ip,direccion,password : string;
+  Port : integer;
+  parametrosok : boolean = true;
+Begin
+if UserOptions.poolinfo = '' then
+   begin
+   ip := Parameter(linetext,1);
+   port := StrToIntDef(Parameter(linetext,2),0);
+   direccion := Parameter(linetext,3);
+   password := Parameter(linetext,4);
+   //if not IsValidIP(ip) then parametrosok := false;
+   if ((port<1) or (port>65535)) then Parametrosok := false;
+   if DireccionEsMia(direccion)<0 then Parametrosok := false;
+   if parametrosok then
+      begin
+      ConnectPoolClient(ip,port,password);
+      SendPoolMessage(password+' '+direccion+' JOIN '+ip+' '+IntToStr(port));
+      consolelines.Add('Join pool request sent');
+      end
+   else consolelines.Add('Join Pool: Invalid parameters'+slinebreak+'joinpool {ip} {port} {address} {password}');
+   end
+else consolelines.Add('You already are in a pool');
+End;
+
+Procedure DeletePool();
+Begin
+if fileexists(PoolInfoFilename) then
+   begin
+   deletefile(PoolInfoFilename);
+   consolelines.Add('Own pool deleted');
+   deletefile(PoolMembersFilename);
+   if form1.PoolServer.Active then form1.PoolServer.Active := false;
+   end
+else consolelines.add('No own pool data found');
+if useroptions.PoolInfo<>'' then
+   begin
+   useroptions.PoolInfo:='';
+   consolelines.Add('Pool connection data deleted');
+   S_Options := true;
+   end
+else consolelines.Add('You are not a pool member');
+Miner_UsingPool := false;
+if formpool.Visible then formpool.Visible:=false;
+if canalpool.Connected then canalpool.Disconnect;
 End;
 
 END. // END UNIT

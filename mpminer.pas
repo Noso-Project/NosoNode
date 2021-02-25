@@ -5,7 +5,7 @@ unit mpMiner;
 interface
 
 uses
-  Classes,SysUtils, MasterPaskalForm, mpCripto, StrUtils, mpTime, dialogs, crt;
+  Classes,SysUtils, MasterPaskalForm, mpCripto, StrUtils, mpTime, dialogs, crt, poolmanage;
 
 Procedure VerifyMiner();
 Procedure KillAllMiningThreads();
@@ -41,11 +41,15 @@ if ((Miner_BlockFOund) and (not Miner_SolutionVerified)) then
    KillAllMiningThreads;
    if VerifySolutionForBlock(Miner_Difficult, Miner_Target, Miner_Address, Miner_Solution) then
       begin
-      consoleLines.Add(LangLine(40)+IntToStr(Miner_BlockToMine));  //Miner solution found and Verified for block
-      Miner_SolutionVerified := true;
-      OutgoingMsjs.Add(ProtocolLine(6)+UTCTime+' '+IntToStr(Miner_BlockToMine)+' '+
+      if not Miner_UsingPool then
+         begin
+         consoleLines.Add(LangLine(40)+IntToStr(Miner_BlockToMine));  //Miner solution found and Verified for block
+         Miner_SolutionVerified := true;
+         OutgoingMsjs.Add(ProtocolLine(6)+UTCTime+' '+IntToStr(Miner_BlockToMine)+' '+
          Miner_Address+' '+StringReplace(Miner_Solution,' ','_',[rfReplaceAll, rfIgnoreCase]));
-      Miner_Waiting := StrToInt(UTCTime);
+         Miner_Waiting := StrToInt(UTCTime);
+         end
+      else ResetMinerInfo;
       end
    else
       begin
@@ -84,8 +88,10 @@ MINER_FoundedSteps := 0;
 Miner_DifChars := GetCharsFromDifficult(Miner_Difficult, MINER_FoundedSteps);
 Miner_Target := copy(MyLastBlockHash,1,Miner_DifChars);
 MINER_HashCounter := 100000000;
-MINER_HashSeed := '!!!!!!!!!';
-Miner_Address := ListaDirecciones[0].Hash;
+if Miner_UsingPool then MINER_HashSeed := MyPoolData.Prefijo
+else MINER_HashSeed := '!!!!!!!!!';
+if Miner_UsingPool then Miner_Address := MyPoolData.Direccion
+else Miner_Address := ListaDirecciones[0].Hash;
 Miner_BlockFOund := False;
 Miner_Solution := '';
 Miner_SolutionVerified := false;
@@ -110,6 +116,7 @@ while Miner_IsON do
    Solucion := HashSha256String(Mseed+Miner_Address+inttostr(Mnumber));
    if AnsiContainsStr(Solucion,copy(Miner_Target,1,Miner_DifChars)) then
       begin
+      if Miner_UsingPool then SendPoolSolution(Miner_BlockToMine,Mseed,Mnumber);
       MINER_FoundedSteps := MINER_FoundedSteps+1;
       Miner_DifChars := GetCharsFromDifficult(Miner_Difficult, MINER_FoundedSteps);
       Miner_Solution := Miner_Solution+Mseed+IntToStr(Mnumber)+' ';

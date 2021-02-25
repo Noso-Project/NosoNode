@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, mpTime, graphics, strutils, forms, controls, grids,stdctrls,
-  crt,ExtCtrls ;
+  crt,ExtCtrls, buttons ;
 
 type
   TFormInicio = class(Tform)
@@ -22,7 +22,6 @@ type
     end;
 
   TFormAbout = class(Tform)
-
     private
     public
     end;
@@ -34,12 +33,16 @@ type
     end;
 
   TFormSlots = class(Tform)
-
     private
     public
     end;
 
-
+  TFormPool = class(Tform)
+    Procedure BUpdatePoolOnClick(Sender: TObject);
+    Procedure BRequestPoolPayOnClick(Sender: TObject);
+    private
+    public
+    end;
 
 Procedure CreateFormInicio();
 Procedure CreateFormLog();
@@ -48,6 +51,8 @@ Procedure CreateFormMilitime();
 Procedure UpdateMiliTimeForm();
 Procedure CreateFormSlots();
 Procedure UpdateSlotsGrid();
+Procedure CreateFormPool();
+Procedure UpdatePoolForm();
 Procedure InicializarGUI();
 Procedure OutText(Texto:String;inctime:boolean = false;canal : integer =0);
 Procedure MostrarLineasDeConsola();
@@ -63,6 +68,7 @@ Procedure Processhint(sender:TObject);
 Procedure ShowGlobo(Titulo,texto:string);
 Procedure SetMiliTime(Name:string;tipo:integer);
 Procedure SetCurrentJob(CurrJob:String;status:boolean);
+Procedure CloseAllForms();
 
 var
   FormInicio : TFormInicio;
@@ -78,11 +84,17 @@ var
     LabelCurrJob : TLabel;
   FormSlots : TFormSlots;
     GridMSlots : TStringgrid;
+  FormPool : TformPool;
+    LabelPoolData : TLabel;
+    BUpdatePool : TSpeedButton;
+    BCobrarAlPool : TSpeedButton;
+    GridPoolMembers : TStringgrid;
+    LabelPoolMiner : Tlabel;
 
 implementation
 
 Uses
-  mpParser, mpDisk, mpRed, mpProtocol,mpcoin, mpblock;
+  mpParser, mpDisk, mpRed, mpProtocol,mpcoin, mpblock, formexplore;
 
 // Crea el formulario para el inicio
 Procedure CreateFormInicio();
@@ -309,6 +321,93 @@ for contador := 1 to MaxConecciones do
    GridMSlots.Cells[13,contador]:= IntToStr(Conexiones[contador].ConexStatus);
    end;
 setmilitime('UpdateSlotsGrid',2);
+End;
+
+Procedure CreateFormPool();
+Begin
+FormPool := TFormPool.Createnew(form1);
+FormPool.caption := 'Minning Pool';
+FormPool.SetBounds(0, 0, 430, 230);
+FormPool.BorderStyle := bssingle;
+FormPool.Position:=poOwnerFormCenter;
+FormPool.BorderIcons:=FormPool.BorderIcons-[biminimize];
+FormPool.ShowInTaskBar:=sTAlways;
+
+LabelPoolData := TLabel.Create(FormPool);
+LabelPoolData.Parent := FormPool;LabelPoolData.AutoSize:=true;
+LabelPoolData.Font.Name:='consolas'; LabelPoolData.Font.Size:=8;
+LabelPoolData.Top:= 1; LabelPoolData.Left:= 1;
+LabelPoolData.Caption:='';
+
+BUpdatePool := TSpeedButton.Create(FormPool);BUpdatePool.Parent:=FormPool;
+BUpdatePool.Left:=2;BUpdatePool.Top:=40;BUpdatePool.Height:=18;BUpdatePool.Width:=18;
+Form1.imagenes.GetBitmap(35,BUpdatePool.Glyph);
+BUpdatePool.Visible:=true;BUpdatePool.OnClick:=@formpool.BUpdatePoolOnClick;
+BUpdatePool.hint:='Refresh';BUpdatePool.ShowHint:=true;
+
+BCobrarAlPool := TSpeedButton.Create(FormPool);BCobrarAlPool.Parent:=FormPool;
+BCobrarAlPool.Left:=30;BCobrarAlPool.Top:=40;BCobrarAlPool.Height:=18;BCobrarAlPool.Width:=18;
+Form1.imagenes.GetBitmap(8,BCobrarAlPool.Glyph);
+BCobrarAlPool.Visible:=false;BCobrarAlPool.OnClick:=@formpool.BRequestPoolPayOnClick;
+BCobrarAlPool.hint:='Request Payment';BCobrarAlPool.ShowHint:=true;
+
+GridPoolMembers := TStringGrid.Create(FormPool);GridPoolMembers.Parent:=FormPool;
+GridPoolMembers.Font.Name:='consolas'; GridPoolMembers.Font.Size:=8;
+GridPoolMembers.Left:=1;GridPoolMembers.Top:=60;GridPoolMembers.Height:=149;GridPoolMembers.width:=428;
+GridPoolMembers.FixedCols:=0;GridPoolMembers.FixedRows:=1;
+GridPoolMembers.rowcount := 1;GridPoolMembers.ColCount:=4;
+GridPoolMembers.ScrollBars:=ssVertical;
+GridPoolMembers.FocusRectVisible:=false;
+GridPoolMembers.Options:= GridPoolMembers.Options+[goRowSelect]-[goRangeSelect];
+GridPoolMembers.ColWidths[0]:= 200;GridPoolMembers.ColWidths[1]:= 80;
+GridPoolMembers.ColWidths[2]:= 50;GridPoolMembers.ColWidths[3]:= 80;
+
+GridPoolMembers.Cells[0,0]:='Address';GridPoolMembers.Cells[1,0]:='Prefix';
+GridPoolMembers.Cells[2,0]:='Work';GridPoolMembers.Cells[3,0]:='Earned';
+GridPoolMembers.Enabled := true;
+GridPoolMembers.GridLineWidth := 1;
+
+LabelPoolMiner := TLabel.Create(FormPool);
+LabelPoolMiner.Parent := FormPool;LabelPoolMiner.AutoSize:=true;
+LabelPoolMiner.Font.Name:='consolas'; LabelPoolMiner.Font.Size:=8;
+LabelPoolMiner.Top:= 211; LabelPoolMiner.Left:= 1;
+LabelPoolMiner.Caption:='';
+End;
+
+Procedure TFormPool.BUpdatePoolOnClick(Sender: TObject);
+Begin
+ProcessLines.Add('RequestPoolStatus');
+End;
+
+Procedure TFormPool.BRequestPoolPayOnClick(Sender: TObject);
+Begin
+ProcessLines.Add('REQUESTPOOLPAY');
+End;
+
+Procedure UpdatePoolForm();
+var
+  contador : integer;
+Begin
+LabelPoolData.Caption:='ConnectTo: '+MyPoolData.Ip+':'+IntToStr(MyPoolData.port)+' MyAddress: '+MyPoolData.MyAddress+slinebreak+
+                       'MineAddres: '+MyPoolData.Direccion+' Prefix: '+MyPoolData.Prefijo+slinebreak+
+                       'Balance: '+Int2curr(MyPoolData.balance)+' ('+IntToStr(MyPoolData.LastPago)+')';
+GridPoolMembers.RowCount:=length(ArrayPoolMembers)+1;
+if MyPoolData.LastPago>0 then BCobrarAlPool.Visible:=true
+else BCobrarAlPool.Visible:=false;
+
+if length(ArrayPoolMembers) > 0 then
+   begin
+   for contador := 0 to length(ArrayPoolMembers)-1 do
+      begin
+      GridPoolMembers.Cells[0,contador+1]:=ArrayPoolMembers[contador].Direccion;
+      GridPoolMembers.Cells[1,contador+1]:=ArrayPoolMembers[contador].Prefijo+'!!!!!!!!';
+      GridPoolMembers.Cells[2,contador+1]:=IntToStr(ArrayPoolMembers[contador].Soluciones);
+      GridPoolMembers.Cells[3,contador+1]:=Int2curr(ArrayPoolMembers[contador].Deuda);
+      end;
+   end;
+LabelPoolMiner.Caption:='Block: '+IntToStr(PoolMiner.Block)+' Diff: '+IntToStr(poolminer.Dificult)+
+                        ' DiffChars: '+IntToStr(Poolminer.DiffChars)+' Steps: '+IntToStr(PoolMiner.steps)+
+                        ' Earned: '+Int2Curr(PoolInfo.FeeEarned)+' '+booltostr(form1.PoolServer.Active,true);
 End;
 
 // Inicializa el grid donde se muestran los datos
@@ -679,6 +778,7 @@ MilitimeArray[length(MilitimeArray)-1].Name:=name;
 MilitimeArray[length(MilitimeArray)-1].Start:=GetTickCount64;
 End;
 
+// Fija el valor de la variable con el proceso actual
 Procedure SetCurrentJob(CurrJob:String;status:boolean);
 Begin
 if status then
@@ -690,6 +790,15 @@ if CheckMonitor then
    LabelCurrJob.Caption := currentjob;
    LabelCurrJob.Refresh;
    end;
+End;
+
+Procedure CloseAllForms();
+Begin
+formmonitor.Visible:=false;
+formlog.Visible:=false;
+formabout.Visible:=false;
+formslots.Visible:=false;
+CloseExplorer;
 End;
 
 END. // END UNIT

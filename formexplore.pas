@@ -35,6 +35,7 @@ type
   end;
 
   procedure ShowExplorer(const Directory: String; titulo,mascara,lineaaprocesar:string;fijarnombre:boolean);
+  procedure CloseExplorer();
 
   var
     FResult : STring = '';
@@ -61,6 +62,11 @@ begin
   explorer.Show;
   FResult := '';
 end;
+
+Procedure CloseExplorer();
+Begin
+if Assigned(explorer) then explorer.Visible:=false;
+End;
 
 { TExplorerForm }
 

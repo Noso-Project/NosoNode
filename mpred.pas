@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, forms, SysUtils, MasterPaskalForm, MPTime, IdContext, IdGlobal, mpGUI, mpDisk,
-  mpBlock, mpMiner, fileutil, graphics,  dialogs;
+  mpBlock, mpMiner, fileutil, graphics,  dialogs,poolmanage;
 
 function GetSlotFromIP(Ip:String):int64;
 function BotExists(IPUser:String):Boolean;
@@ -255,12 +255,14 @@ ConContext := Default(TIdContext);
 if Address = '127.0.0.1' then
    begin
    consoleLines.Add(LangLine(29));    //127.0.0.1 is an invalid server address
+   SetCurrentJob('ConnectClient',false);
    exit;
    end;
 Slot := GetFreeSlot();
 if Slot = 0 then // No free slots
    begin
    result := 0;
+   SetCurrentJob('ConnectClient',false);
    exit;
    end;
 CanalCliente[Slot].Host:=Address;
@@ -342,6 +344,7 @@ if CanalCliente[Slot].IOHandler.InputBufferIsEmpty then
    end;
 While not CanalCliente[Slot].IOHandler.InputBufferIsEmpty do
    begin
+   try
    LLine := CanalCliente[Slot].IOHandler.ReadLn(IndyTextEncoding_UTF8);
    if GetCommand(LLine) = 'UPDATE' then
       begin
@@ -361,7 +364,7 @@ While not CanalCliente[Slot].IOHandler.InputBufferIsEmpty do
       AFileStream := TFileStream.Create(ResumenFilename, fmCreate);
       CanalCliente[Slot].IOHandler.ReadStream(AFileStream);
       AFileStream.Free;
-      consolelines.Add(LAngLine(74)); //'Headers file received'
+      consolelines.Add(LAngLine(74)+': '+copy(HashMD5File(ResumenFilename),1,5)); //'Headers file received'
       LastTimeRequestResumen := 0;
       UpdateMyData();
       end
@@ -380,6 +383,9 @@ While not CanalCliente[Slot].IOHandler.InputBufferIsEmpty do
       end
    else
       SlotLines[Slot].Add(LLine);
+   Except on E:Exception do
+      tolog ('Error Reading lines from slot: '+IntToStr(slot)+slinebreak+E.Message);
+   end;
    end;
 SetCurrentJob('ReadClientLines',false);
 End;
@@ -406,6 +412,15 @@ for contador := 1 to Maxconecciones do
         end;
      end;
    end;
+if ((Miner_UsingPool) and (not canalpool.Connected)) then
+   begin
+   if ConnectPoolClient(MyPoolData.Ip,MyPoolData.port,MyPoolData.Password) then
+      begin
+      consolelines.add('Reconnected to pool server');
+      tolog('Reconnected to pool server');
+      end;
+   end;
+if canalpool.Connected then ReadPoolClientLines();
 SetCurrentJob('LeerLineasDeClientes',false);
 End;
 
@@ -484,6 +499,7 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
    SumaryRebuilded:= false;
    ConsoleLines.Add(LangLine(36));   //Updated!
    ResetMinerInfo();
+   ResetPoolMiningInfo();
    if StrToInt(NetPendingTrxs.Value)> length(PendingTXs) then
      PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));
    OutgoingMsjs.Add(ProtocolLine(ping));
@@ -503,13 +519,13 @@ var
   Maximo : integer;
   Existia : boolean = false;
 Begin
+ConsensoValues +=1;
 maximo := length(ArrayConsenso);
 while contador < maximo do
    begin
    if Data = ArrayConsenso[contador].value then
       begin
-      ArrayConsenso[contador].count := ArrayConsenso[contador].count +1;
-      ArrayConsenso[length(ArrayConsenso)-1].total +=1;
+      ArrayConsenso[contador].count += 1;
       existia := true;
       end;
    contador := contador+1;
@@ -518,7 +534,6 @@ if not existia then
    begin
    SetLength(ArrayConsenso,length(ArrayConsenso)+1);
    ArrayConsenso[length(ArrayConsenso)-1].value:=data;
-   ArrayConsenso[length(ArrayConsenso)-1].total:=1;
    ArrayConsenso[length(ArrayConsenso)-1].count:=1;
    ArrayConsenso[length(ArrayConsenso)-1].slot:=Slot;
    end;
@@ -529,17 +544,20 @@ Function GetMasConsenso():integer;
 var
   contador, Higher, POsicion : integer;
 Begin
-Higher := -1;
+Higher := 0;
 Posicion := -1;
 for contador := 0 to length(ArrayConsenso)-1 do
    Begin
    if ArrayConsenso[contador].count > higher then
       begin
       higher := ArrayConsenso[contador].count;
-      ArrayConsenso[contador].Porcentaje:=(ArrayConsenso[contador].Count*100) div ArrayConsenso[contador].total ;
       Posicion := contador;
       end;
    end;
+if Posicion >= 0 then
+  begin
+  ArrayConsenso[Posicion].Porcentaje:=(ArrayConsenso[Posicion].Count*100) div ConsensoValues;
+  end;
 result := Posicion;
 End;
 
@@ -548,6 +566,7 @@ var
   contador : integer = 1;
 Begin
 SetLength(ArrayConsenso,0);
+ConsensoValues := 0;
 for contador := 1 to MaxConecciones do
    Begin
    if conexiones[contador].tipo<> '' then
@@ -564,6 +583,7 @@ var
   contador : integer = 1;
 Begin
 SetLength(ArrayConsenso,0);
+ConsensoValues := 0;
 for contador := 1 to MaxConecciones do
    Begin
    if conexiones[contador].tipo<> '' then
@@ -580,6 +600,7 @@ var
   contador : integer = 1;
 Begin
 SetLength(ArrayConsenso,0);
+ConsensoValues := 0;
 for contador := 1 to MaxConecciones do
    Begin
    if conexiones[contador].tipo<> '' then
@@ -596,6 +617,7 @@ var
   contador : integer = 1;
 Begin
 SetLength(ArrayConsenso,0);
+ConsensoValues := 0;
 for contador := 1 to MaxConecciones do
    Begin
    if conexiones[contador].tipo<> '' then
@@ -612,6 +634,7 @@ var
   contador : integer = 1;
 Begin
 SetLength(ArrayConsenso,0);
+ConsensoValues := 0;
 for contador := 1 to MaxConecciones do
    Begin
    if conexiones[contador].tipo<> '' then
@@ -713,9 +736,11 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
         (MySumarioHash<>NetSumarioHash.Value) and (SumaryRebuilded)) then
    begin  // Que hacer si todo encaja pero el sumario no esta bien
-   ShowMessage ('Something is wrong with your blockchain'+slinebreak+'Noso will restart now'+
+   ShowMessage ('Something is wrong with your blockchain'+slinebreak+'Noso will run the doctor and restart'+
    slinebreak+'If the problem is not fixed, please, read the guide to fix it.');
-   RestartNoso();
+   RunDoctorBeforeClose := true;
+   RestartNosoAfterQuit := true;
+   CerrarPrograma();
    end;
 SetCurrentJob('ActualizarseConLaRed',false);
 End;

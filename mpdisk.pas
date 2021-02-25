@@ -6,10 +6,10 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, Dialogs, Forms, mpTime, FileUtil, LCLType,
-  lclintf, controls, mpCripto, mpBlock, Zipper, mpLang, mpcoin;
+  lclintf, controls, mpCripto, mpBlock, Zipper, mpLang, mpcoin, poolmanage;
 
 Procedure VerificarArchivos();
-Procedure VerificarSSL();
+{Procedure VerificarSSL();}
 Procedure CreateLog();
 Procedure ToLog(Texto:string);
 Procedure CrearArchivoOpciones();
@@ -45,6 +45,7 @@ function SetCustomAlias(Address,Addalias:String):Boolean;
 procedure UnzipBlockFile(filename:String;delfile:boolean);
 Procedure CreateResumen();
 Procedure BuildHeaderFile(untilblock:integer);
+Procedure AddBlockToSumary(BlockNumber:integer);
 Procedure RebuildSumario(UntilBlock:integer);
 Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
 Procedure DelBlChHeadLast();
@@ -56,8 +57,13 @@ Procedure SaveMyTrxsToDisk(Cantidad:integer);
 function NewMyTrx(aParam:Pointer):PtrInt;
 Procedure CrearBatFileForRestart();
 Procedure RestartNoso();
-
-
+Procedure RunDiagnostico(linea:string);
+Procedure CrearArchivoPoolInfo(nombre,direccion:string;porcentaje,miembros,port,tipo:integer;pass:string);
+Procedure GuardarArchivoPoolInfo();
+function GetPoolInfoFromDisk():PoolInfoData;
+Procedure LoadPoolMembers();
+Procedure CrearArchivoPoolMembers;
+Procedure GuardarPoolMembers();
 
 implementation
 
@@ -93,6 +99,19 @@ OutText('✓ Headers file ok',false,1);
 if not FileExists(BlockDirectory+'0.blk') then CrearBloqueCero();
 if not FileExists(MyTrxFilename) then CrearMistrx() else CargarMisTrx();
 OutText('✓ My transactions file ok',false,1);
+if fileexists(PoolInfoFilename) then
+   begin
+   GetPoolInfoFromDisk();
+   StartPoolServer(poolinfo.Port);
+   LoadPoolMembers();
+   ResetPoolMiningInfo();
+   end;
+if UserOptions.PoolInfo<> '' then
+   begin
+   LoadMyPoolData;
+   ConnectPoolClient(MyPoolData.Ip,MyPoolData.port,MyPoolData.Password);
+   end;
+
 MyLastBlock := GetMyLastUpdatedBlock;
 BuildHeaderFile(MyLastBlock); // PROBABLY IT IS NOT NECESAARY
 
@@ -101,6 +120,7 @@ OutText('✓ Wallet updated',false,1);
 End;
 
 // Hace los ajustes para SSL
+{
 Procedure VerificarSSL();
 Begin
 if CheckSSL then
@@ -117,6 +137,7 @@ else
    Application.Terminate;
    end;
 End;
+}
 
 // Crea el archivo del log
 Procedure CreateLog();
@@ -160,7 +181,7 @@ Begin
    DefOptions.language:=0;
    DefOptions.Port:=8080;
    DefOptions.GetNodes:=false;
-   DefOptions.SSLPath := '';
+   DefOptions.PoolInfo := '';
    DefOptions.wallet:= 'NOSODATA/wallet.pkw';
    DefOptions.AutoServer:=false;
    DefOptions.AutoConnect:=false;
@@ -586,6 +607,7 @@ if S_NodeData then SaveNodeData();
 if S_Options then GuardarOpciones();
 if S_Wallet then GuardarWallet();
 if S_Sumario then GuardarSumario();
+if S_PoolMembers then GuardarPoolMembers();
 End;
 
 // Verifica si OPENSSL esta instalado en el sistema
@@ -932,9 +954,11 @@ while contador <= untilblock do
    if filesize(FileResumen)>contador then
       Read(FileResumen,dato);
    If ((contador>0) and (BlockHeader.LastBlockHash <> LastHash)) then
-      begin // El hash del bloque anterior no coincide con el puntero de este bloque
-      ShowMessage ('Something is wrong with your blockchain'+slinebreak+'Noso will close now'+
+      begin  // Que hacer si todo encaja pero el sumario no esta bien
+      ShowMessage ('Something is wrong with your blockchain'+slinebreak+'Noso will run the doctor and restart'+
       slinebreak+'If the problem is not fixed, please, read the guide to fix it.');
+      RunDoctorBeforeClose := true;
+      RestartNosoAfterQuit := true;
       CerrarPrograma();
       end;
    CurrHash := HashMD5File(BlockDirectory+IntToStr(contador)+'.blk');
@@ -1002,6 +1026,36 @@ GuardarSumario();
 UpdateMyData();
 U_Dirpanel := true;
 if g_launching then OutText('✓ '+IntToStr(untilblock+1)+' blocks rebuilded',false,1);
+End;
+
+// Añadir las transacciones de un bloque al sumario
+Procedure AddBlockToSumary(BlockNumber:integer);
+var
+  cont : integer;
+  BlockHeader : BlockHeaderData;
+  ArrayOrders : BlockOrdersArray;
+Begin
+BlockHeader := Default(BlockHeaderData);
+BlockHeader := LoadBlockDataHeader(BlockNumber);
+UpdateSumario(BlockHeader.AccountMiner,BlockHeader.Reward+BlockHeader.MinerFee,0,IntToStr(BlockNumber));
+ArrayOrders := Default(BlockOrdersArray);
+ArrayOrders := GetBlockTrxs(BlockNumber);
+for cont := 0 to length(ArrayOrders)-1 do
+   begin
+   if ArrayOrders[cont].OrderType='CUSTOM' then
+      begin
+      UpdateSumario(ArrayOrders[cont].Sender,Restar(Customizationfee),0,IntToStr(BlockNumber));
+      setcustomalias(ArrayOrders[cont].Sender,ArrayOrders[cont].Receiver);
+      end;
+   if ArrayOrders[cont].OrderType='TRFR' then
+      begin
+      UpdateSumario(ArrayOrders[cont].Sender,Restar(ArrayOrders[cont].AmmountFee+ArrayOrders[cont].AmmountTrf),0,IntToStr(BlockNumber));
+      UpdateSumario(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,0,IntToStr(BlockNumber));
+      end;
+   end;
+ListaSumario[0].LastOP:=BlockNumber;
+GuardarSumario();
+UpdateMyData();
 End;
 
 // Reconstruye totalmente el sumario desde el bloque 0
@@ -1263,7 +1317,171 @@ Procedure RestartNoso();
 Begin
 CrearBatFileForRestart();
 RunExternalProgram('nosolauncher.bat');
-CerrarPrograma();
+End;
+
+Procedure RunDiagnostico(linea:string);
+var
+  cont : integer;
+  lastblock : integer;
+  dato : ResumenData;
+  fixfiles: boolean = false;
+  errores : integer = 0;
+  fixed : integer = 0;
+  porcentaje : integer;
+Begin
+CloseAllForms();
+if UpperCase(parameter(linea,1)) = 'FIX' then fixfiles := true;
+lastblock := GetMyLastUpdatedBlock;
+forminicio.Caption:='Noso Doctor';
+GridInicio.RowCount:=0;
+FormInicio.BorderIcons:=FormInicio.BorderIcons-[bisystemmenu];
+forminicio.visible := true;
+form1.Visible:=false;
+outtext('Blocks to check: '+IntToStr(lastblock+1),false,1);
+outtext('Checking block files 0 %',false,1);
+Application.ProcessMessages;
+for cont := 0 to lastblock do
+   begin
+   gridinicio.RowCount := gridinicio.RowCount-1;
+   if not fileexists(BlockDirectory+IntToStr(cont)+'.blk') then
+      begin
+      errores +=1;
+      end;
+   porcentaje := (cont * 100) div lastblock;
+   outtext('Checking block files '+inttostr(porcentaje)+' %',false,1);
+   end;
+outtext('Block hash correct 0 %',false,1);
+assignfile(FileResumen,ResumenFilename);
+reset(FileResumen);
+for cont := 0 to lastblock do
+   begin
+   Seek(FileResumen,cont);
+   Read(FileResumen,dato);
+   gridinicio.RowCount := gridinicio.RowCount-1;
+   if HashMD5File(BlockDirectory+IntToStr(cont)+'.blk')<> dato.blockhash then
+      begin
+      errores +=1;
+      if fixfiles then
+         begin
+         fixed +=1;
+         dato.block:=cont;
+         dato.blockhash:=HashMD5File(BlockDirectory+IntToStr(cont)+'.blk');
+         Seek(FileResumen,cont);
+         write(FileResumen,dato);
+         end;
+      end;
+   porcentaje := (cont * 100) div lastblock;
+   outtext('Block hash correct '+inttostr(porcentaje)+' %',false,1);
+   end;
+outtext('Sumary hash correct 0 %',false,1);
+for cont := 1 to lastblock do
+   begin
+   Seek(FileResumen,cont);
+   Read(FileResumen,dato);
+   gridinicio.RowCount := gridinicio.RowCount-1;
+   if cont = 1 then RebuildSumario(cont)
+   else AddBlockToSumary(cont);
+   if HashMD5File(SumarioFilename) <> dato.SumHash then
+      begin
+      errores +=1;
+      if fixfiles then
+         begin
+         fixed +=1;
+         dato.block:=cont;
+         dato.SumHash:=HashMD5File(SumarioFilename);
+         Seek(FileResumen,cont);
+         write(FileResumen,dato);
+         end
+      end;
+   porcentaje := (cont * 100) div lastblock;
+   outtext('Sumary hash correct '+IntToStr(porcentaje)+' %',false,1);
+   end;
+closefile(FileResumen);
+outtext('Errors: '+IntToStr(errores)+' / Fixed: '+IntToStr(fixed),false,1);
+FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
+UpdateMyData();
+End;
+
+Procedure CrearArchivoPoolInfo(nombre,direccion:string;porcentaje,miembros,port,tipo:integer;pass:string);
+var
+  dato : PoolInfoData;
+Begin
+assignfile(FilePool,PoolInfoFilename);
+rewrite(FilePool);
+dato.Name := nombre;
+dato.Direccion:=direccion;
+dato.Porcentaje:=porcentaje;
+dato.MaxMembers:=miembros;
+dato.Port:=port;
+dato.TipoPago:=tipo;
+Dato.FeeEarned:=0;
+dato.PassWord:=pass;
+write(filepool,dato);
+Closefile(FilePool);
+PoolInfo := Dato;
+ResetPoolMiningInfo;
+End;
+
+Procedure GuardarArchivoPoolInfo();
+Begin
+assignfile(FilePool,PoolInfoFilename);
+rewrite(FilePool);
+write(filepool,PoolInfo);
+Closefile(FilePool);
+End;
+
+function GetPoolInfoFromDisk():PoolInfoData;
+var
+  dato : PoolInfoData;
+Begin
+assignfile(FilePool,PoolInfoFilename);
+reset(FilePool);
+read(filepool,dato);
+result := dato;
+Closefile(FilePool);
+PoolInfo := Dato;
+End;
+
+Procedure CrearArchivoPoolMembers;
+Begin
+assignfile(FilePoolMembers,PoolMembersFilename);
+rewrite(FilePoolMembers);
+Closefile(FilePoolMembers);
+End;
+
+Procedure LoadPoolMembers();
+var
+  contador : integer;
+  dato : PoolMembersData;
+Begin
+assignfile(FilePoolMembers,PoolMembersFilename);
+reset(FilePoolMembers);
+setlength(ArrayPoolMembers,filesize(FilePoolMembers));
+if filesize(FilePoolMembers) > 0 then
+   begin
+   for contador := 0 to filesize(FilePoolMembers)-1 do
+      begin
+      seek(FilePoolMembers,contador);
+      read(FilePoolMembers,dato);
+      ArrayPoolMembers[contador]:= dato;
+      end;
+   end;
+Closefile(FilePoolMembers);
+End;
+
+Procedure GuardarPoolMembers();
+var
+  contador : integer;
+Begin
+assignfile(FilePoolMembers,PoolMembersFilename);
+rewrite(FilePoolMembers);
+for contador := 0 to length(ArrayPoolMembers)-1 do
+   begin
+   seek(FilePoolMembers,contador);
+   write(FilePoolMembers,ArrayPoolMembers[contador]);
+   end;
+Closefile(FilePoolMembers);
+S_PoolMembers := false;
 End;
 
 END. // END UNIT

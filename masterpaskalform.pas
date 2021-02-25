@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, LCLType,
   Grids, ExtCtrls, Buttons, IdTCPServer, IdContext, IdGlobal, IdTCPClient,
-  fileutil,Clipbrd, Menus, crt, formexplore, lclintf;
+  fileutil,Clipbrd, Menus, crt, formexplore, lclintf,poolmanage,strutils;
 
 type
 
@@ -15,7 +15,7 @@ type
      language: integer;
      Port : integer;
      GetNodes : Boolean;
-     SSLPath : String[255];
+     PoolInfo : String[255];
      Wallet : string[255];
      AutoServer : boolean;
      AutoConnect : Boolean;
@@ -114,7 +114,6 @@ type
 
   NetworkData = Packed Record
      Value : String[64];   // el valor almacenado
-     total : integer;      // total de peers analizados
      Porcentaje : integer; // porcentake de peers que tienen el valor
      Count : integer;      // cuantos peers comparten ese valor
      Slot : integer;       // en que slots estan esos peers
@@ -153,6 +152,46 @@ type
 
   BlockOrdersArray = Array of OrderData;
 
+  PoolInfoData = Packed Record
+       Name : string[15];
+       Direccion : String[40];
+       Porcentaje : integer;
+       MaxMembers : integer;
+       Port : integer;
+       TipoPago : integer;
+       PassWord : string[10];
+       FeeEarned : int64;
+       end;
+
+  PoolMembersData = Packed Record
+       Direccion : string[40];
+       Prefijo : String[10];
+       Soluciones : integer;
+       Deuda : Int64;
+       LastPago : integer;
+       end;
+
+  PoolData = Packed Record
+       Name : String[15];
+       Ip : string[15];
+       port : Integer;
+       Direccion : String[40];
+       Prefijo : string[10];
+       MyAddress : String[40];
+       balance : int64;
+       LastPago : integer;
+       Password : String[10];
+       end;
+
+  PoolMinerData = Packed Record
+       Block : integer;
+       Solucion : string[255];
+       steps : Integer;
+       Dificult : Integer;
+       DiffChars : integer;
+       Target : string[64];
+       end;
+
   { TForm1 }
 
   TForm1 = class(TForm)
@@ -163,6 +202,7 @@ type
     InicioTimer : TTimer;
     CloseTimer : TTimer;
     Server: TIdTCPServer;
+    PoolServer : TIdTCPServer;
     SystrayIcon: TTrayIcon;
 
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
@@ -219,6 +259,10 @@ type
     Procedure CBAutoConnectOnChange(Sender:TObject);
     Procedure CBAutoUpdateOnChange(Sender:TObject);
     Procedure CBToTrayOnChange(Sender:TObject);
+    // Pool
+    procedure PoolServerConnect(AContext: TIdContext);
+    procedure PoolServerExecute(AContext: TIdContext);
+
     // MAIN MENU
     Procedure CheckMMCaptions(Sender:TObject);
     Procedure MMServer(Sender:TObject);
@@ -236,6 +280,7 @@ type
     Procedure MMVerLog(Sender:TObject);
     Procedure MMVerWeb(Sender:TObject);
     Procedure MMVerSlots(Sender:TObject);
+    Procedure MMVerPool(Sender:TObject);
     Procedure MMVerMonitor(Sender:TObject);
 
     // CONSOLE POPUP
@@ -278,7 +323,7 @@ CONST
   B36Alphabet : string = '0123456789abcdefghijklmnopqrstuvwxyz';
   ReservedWords : string = 'NULL,DELADDR';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
-  DefaultNodes : String = 'DefNodes 23.95.233.179';
+  DefaultNodes : String = 'DefNodes 23.95.233.179 75.127.0.216';
   ProgramVersion = '0.1.7';
   OficialRelease = false;
   BuildDate = 'Febraury 2021';
@@ -296,6 +341,8 @@ CONST
   MyTrxFilename = 'NOSODATA/mytrx.nos';
   TranslationFilename = 'NOSODATA/English_empty.txt';
   ErrorLogFilename = 'NOSODATA/errorlog.txt';
+  PoolInfoFilename = 'NOSODATA/poolinfo.dat';
+  PoolMembersFilename = 'NOSODATA/poolmembers.dat';
   DefaultServerPort = 8080;
   MaxConecciones  = 15;
   Protocolo = 1;
@@ -321,6 +368,9 @@ var
   FirstShow : boolean = false;
   MinConexToWork : integer = 1;
   CheckMonitor : boolean = false;
+  RunDoctorBeforeClose : boolean = false;
+  RestartNosoAfterQuit : boolean = false;
+  ConsensoValues : integer = 0;
   MilitimeArray : array of MilitimeData;
   MyCurrentBalance : Int64 = 0;
   G_CpuCount : integer = 1;
@@ -363,6 +413,11 @@ var
     S_Sumario : boolean = false;
   FileResumen : file of ResumenData;
     S_Resumen : Boolean = false;
+  FilePool : File of PoolInfoData;
+    PoolInfo : PoolInfoData;
+  FilePoolMembers : File of PoolMembersData;
+    S_PoolMembers : boolean = false;
+
   UserOptions : Options;
   CurrentLanguage : String = '';
   CurrentJob : String = '';
@@ -372,6 +427,9 @@ var
   Conexiones : array [1..MaxConecciones] of conectiondata;
   SlotLines : array [1..MaxConecciones] of TStringList;
   CanalCliente : array [1..MaxConecciones] of TIdTCPClient;
+  CanalPool : TIdTCPClient;
+  PoolLines : TStringList;
+  PoolClientContext : TIdContext;
   ListadoBots :  array of BotData;
   ListaNodos : array of NodeData;
   ListaNTP : array of NTPData;
@@ -381,6 +439,7 @@ var
   PendingTXs : Array of OrderData;
   OutgoingMsjs : TStringlist;
   ArrayConsenso : array of NetworkData;
+  ArrayPoolMembers : array of PoolMembersData;
 
   // Variables asociadas a la red
   CONNECT_LastTime : string = ''; // La ultima vez que se intento una conexion
@@ -405,6 +464,9 @@ var
   STATUS_Connected : boolean = false;
 
   // Variables asociadas al minero
+  MyPoolData : PoolData;
+    PoolMiner : PoolMinerData;
+  Miner_UsingPool : Boolean = false;
   Miner_IsON : Boolean = false;
   Miner_Active : Boolean = false;
   Miner_Waiting : int64 = -1;
@@ -515,6 +577,8 @@ var
     StaBloLab : TLabel;
     StaPenImg : TImage;
     StaPenLab : TLabel;
+    StaPoolSer : Timage;
+    StaPoolCa : TImage;
     StaMinImg : Timage;
     StaMinLab : TLabel;
 
@@ -542,6 +606,7 @@ if proceder then
    CreateFormAbout();
    CreateFormMilitime();
    CreateFormSlots();
+   CreateFormPool();
    form1.Visible:=false;
    forminicio.Visible:=true;
    Form1.InicioTimer:= TTimer.Create(Form1);
@@ -776,6 +841,7 @@ if form1.SystrayIcon.Visible then
    form1.SystrayIcon.Hint:=Coinname+' Ver. '+ProgramVersion+SLINEBREAK+LabelBigBalance.Caption;
 if ((CheckMonitor) and (FormMonitor.Visible)) then UpdateMiliTimeForm();
 if FormSlots.Visible then UpdateSlotsGrid();
+if FormPool.Visible then UpdatePoolForm();
 UpdateStatusBar;
 Form1.Latido.Enabled:=true;
 end;
@@ -784,13 +850,23 @@ end;
 Procedure CerrarPrograma();
 Begin
 info(LangLine(62));  //   Closing wallet
+CloseAllforms();
 CerrarClientes();
 StopServer();
+StopPoolServer();
+GuardarPoolMembers();
+try
+CanalPool.Disconnect;
+finally
+end;
 If Miner_IsOn then Miner_IsON := false;
 delay(10);
 KillAllMiningThreads;
+setlength(CriptoOpsTipo,0);
 //Showmessage(LangLine(63));  //Closed gracefully
+if RunDoctorBeforeClose then RunDiagnostico('rundiag fix');
 if ForcedQuit then Showmessage('Forced Quit: '+CurrentJob);
+if RestartNosoAfterQuit then restartnoso();
 Application.Terminate;
 End;
 
@@ -842,6 +918,8 @@ MenuItem.OnClick:=@form1.CheckMMCaptions;
   Form1.imagenes.GetBitmap(47,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='ConSlots';MenuItem.OnClick:=@Form1.MMVerSlots;
   Form1.imagenes.GetBitmap(29,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Pool';MenuItem.OnClick:=@Form1.MMVerPool;
+  Form1.imagenes.GetBitmap(4,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
 
 ConsolePopUp := TPopupMenu.Create(form1);
 MenuItem := TMenuItem.Create(ConsolePopUp);MenuItem.Caption := 'Clear';//Form1.imagenes.GetBitmap(0,MenuItem.Bitmap);
@@ -1332,6 +1410,14 @@ StatusPanel.BringToFront;
   StaMinLab.Width:= 58; StaMinLab.Height:= 14;StaMinLab.Top:= 4; StaMinLab.Left:= 330;
   StaMinLab.Caption:='9999Kh';StaMinLab.Alignment:=tarightjustify;StaMinLab.Transparent:=false;StaMinLab.Color:=clmenu;
 
+  StaPoolSer:= TImage.Create(StatusPanel);StaPoolSer.Parent := StatusPanel;
+  StaPoolSer.Width:= 16; StaPoolSer.Height:= 16;StaPoolSer.Top:= 2; StaPoolSer.Left:= 290;
+  Form1.imagenes.GetIcon(27,StaPoolSer.picture.icon);StaPoolSer.Visible:=false;
+
+  StaPoolCa:= TImage.Create(StatusPanel);StaPoolCa.Parent := StatusPanel;
+  StaPoolCa.Width:= 16; StaPoolCa.Height:= 16;StaPoolCa.Top:= 2; StaPoolCa.Left:= 310;
+  Form1.imagenes.GetIcon(17,StaPoolCa.picture.icon);StaPoolCa.Visible:=false;
+
   StaMinImg:= TImage.Create(StatusPanel);StaMinImg.Parent := StatusPanel;
   StaMinImg.Width:= 16; StaMinImg.Height:= 16;StaMinImg.Top:= 2; StaMinImg.Left:= 330;
   Form1.imagenes.GetIcon(11,StaMinImg.picture.icon);StaBloImg.Visible:=true;
@@ -1345,6 +1431,8 @@ For contador := 1 to MaxConecciones do
    SlotLines[contador] := TStringlist.Create;
    CanalCliente[contador] := TIdTCPClient.Create(form1);
    end;
+CanalPool := TIdTCPClient.Create(form1);
+PoolLines := TStringlist.Create;
 
 Form1.Latido:= TTimer.Create(Form1);
 Form1.Latido.Enabled:=false;Form1.Latido.Interval:=200;
@@ -1374,9 +1462,132 @@ Form1.Server.OnExecute:=@form1.IdTCPServer1Execute;
 Form1.Server.OnConnect:=@form1.IdTCPServer1Connect;
 Form1.Server.OnDisconnect:=@form1.IdTCPServer1Disconnect;
 Form1.Server.OnException:=@Form1.IdTCPServer1Exception;
+
+Form1.PoolServer := TIdTCPServer.Create(Form1);
+Form1.PoolServer.DefaultPort:=DefaultServerPort;
+Form1.PoolServer.Active:=false;
+Form1.PoolServer.UseNagle:=true;
+Form1.PoolServer.TerminateWaitTime:=50000;
+Form1.PoolServer.OnExecute:=@form1.PoolServerExecute;
+Form1.PoolServer.OnConnect:=@form1.PoolServerConnect;
+//Form1.PoolServer.OnDisconnect:=@form1.IdTCPServer1Disconnect;
+//Form1.PoolServer.OnException:=@Form1.IdTCPServer1Exception;
 End;
 
 // Funciones del servidor.
+
+// El servidor del pool recibe una linea
+procedure TForm1.PoolServerExecute(AContext: TIdContext);
+var
+  Linea, IPUser, Password : String;
+  Comando, UserDireccion : String;
+  JoinIP, JoinPort, JoinPrefijo : String;
+  MemberBalance : Int64;
+  BloqueStep: integer; SeedStep : string; HashStep : Int64; Solucion : String;
+Begin
+IPUser := AContext.Connection.Socket.Binding.PeerIP;
+Linea := AContext.Connection.IOHandler.ReadLn(IndyTextEncoding_UTF8);
+Password := Parameter(Linea,0);
+if password <> Poolinfo.PassWord then exit;
+UserDireccion := Parameter(Linea,1);
+Comando := Parameter(Linea,2);
+if Comando = 'JOIN' then
+   begin
+   consolelines.Add('Pool join requested for address '+UserDireccion);
+   joinip := parameter(linea,3);
+   joinport := parameter(linea,4);
+   JoinPrefijo := PoolAddNewMember(UserDireccion);
+   if JoinPrefijo<>'' then
+      begin
+      Acontext.Connection.IOHandler.WriteLn('JOINOK '+PoolInfo.Direccion+' '+JoinPrefijo+' '+
+      joinip+' '+joinport+' '+UserDireccion+' '+PoolInfo.Name+' '+poolinfo.PassWord);
+      ConsoleLines.Add(UserDireccion+' added to the pool');
+      end;
+   end;
+if Comando = 'STATUS' then
+   begin
+   MemberBalance := GetPoolMemberBalance(UserDireccion);
+   if memberbalance >-1 then
+      begin
+      Acontext.Connection.IOHandler.WriteLn('STATUSOK '+UserDireccion+' '+IntToStr(MemberBalance)+
+      ' '+IntToStr(MyLastBlock-(GetLastPagoPoolMember(UserDireccion)+PoolInfo.TipoPago)));
+      ConsoleLines.Add('Status sent to '+UserDireccion);
+      end
+   else
+      begin
+      Acontext.Connection.IOHandler.WriteLn('STATUSFAILED '+UserDireccion);
+      ConsoleLines.Add('Wrong status required for '+UserDireccion);
+      end;
+   end;
+if Comando = 'STEP' then
+   begin
+   bloqueStep := StrToInt(parameter(linea,3));
+   SeedStep := parameter(linea,4);
+   HashStep := StrToInt64(parameter(linea,5));
+   Solucion := HashSha256String(SeedStep+PoolInfo.Direccion+IntToStr(HashStep));
+   if AnsiContainsStr(Solucion,copy(PoolMiner.Target,1,PoolMiner.DiffChars)) then
+      begin
+      AcreditarPoolStep(UserDireccion);
+      MemberBalance := GetPoolMemberBalance(UserDireccion);
+      Acontext.Connection.IOHandler.WriteLn('STATUSOK '+UserDireccion+' '+IntToStr(MemberBalance)+
+      ' '+IntToStr(MyLastBlock-(GetLastPagoPoolMember(UserDireccion)+PoolInfo.TipoPago)));
+      PoolMiner.Solucion := PoolMiner.Solucion+SeedStep+IntToStr(HashStep)+' ';
+      PoolMiner.steps := PoolMiner.steps+1;
+      PoolMiner.DiffChars:=GetCharsFromDifficult(PoolMiner.Dificult, PoolMiner.steps);
+      if PoolMiner.steps = Miner_Steps then
+         begin
+         SetLength(PoolMiner.Solucion,length(PoolMiner.Solucion)-1);
+         if VerifySolutionForBlock(PoolMiner.Dificult, PoolMiner.Target,PoolInfo.Direccion , PoolMiner.Solucion) then
+            Begin
+            consolelines.Add('Pool solution verified!');
+            OutgoingMsjs.Add(ProtocolLine(6)+UTCTime+' '+IntToStr(PoolMiner.Block)+' '+
+            PoolInfo.Direccion+' '+StringReplace(PoolMiner.Solucion,' ','_',[rfReplaceAll, rfIgnoreCase]));
+            end
+         else consolelines.Add('Pool solution FAILED!');
+         ResetPoolMiningInfo();
+         end;
+      end
+   else consolelines.Add('Wrong step received in pool'+slinebreak+SeedStep+PoolInfo.Direccion+IntToStr(HashStep));
+   end;
+if Comando = 'PAYMENT' then
+   Begin
+   MemberBalance := GetPoolMemberBalance(UserDireccion);
+   if GetLastPagoPoolMember(UserDireccion)+PoolInfo.TipoPago<MyLastBlock then
+      begin
+      if memberbalance > 0 then
+         begin
+         Processlines.Add('sendto '+UserDireccion+' '+IntToStr(GetMaximunToSend(MemberBalance))+' POOLPAYMENT');
+         ClearPoolUserBalance(UserDireccion);
+         Acontext.Connection.IOHandler.WriteLn('PAYMENTOK '+IntToStr(GetMaximunToSend(MemberBalance)));
+         ConsoleLines.Add('Pool payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
+         end;
+      end
+   else
+      begin
+
+      end;
+   end;
+End;
+
+// Al conectarse un miembro del pool
+procedure TForm1.PoolServerConnect(AContext: TIdContext);
+var
+  IPUser,Linea,password : String;
+Begin
+IPUser := AContext.Connection.Socket.Binding.PeerIP;
+Linea := AContext.Connection.IOHandler.ReadLn('',200,-1,IndyTextEncoding_UTF8);
+Password := Parameter(Linea,0);
+if password <> Poolinfo.PassWord then
+   begin
+   Acontext.Connection.IOHandler.WriteLn('PASSFAILED');
+   AContext.Connection.Disconnect;
+   Acontext.Connection.IOHandler.InputBuffer.Clear;
+   exit;
+   end
+else
+   begin
+   end;
+End;
 
 // Recibir una linea
 procedure TForm1.IdTCPServer1Execute(AContext: TIdContext);
@@ -1388,7 +1599,6 @@ var
   UpdateClavePublica :string ='';UpdateFirma : string = '';
   AFileStream : TFileStream;
   BlockZipName: string = '';
-
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
 LLine := AContext.Connection.IOHandler.ReadLn(IndyTextEncoding_UTF8);
@@ -1412,7 +1622,7 @@ else if GetCommand(LLine) = 'RESUMENFILE' then
    AFileStream := TFileStream.Create(ResumenFilename, fmCreate);
    AContext.Connection.IOHandler.ReadStream(AFileStream);
    AFileStream.Free;
-   consolelines.Add(LAngLine(74)); //'Headers file received'
+   consolelines.Add(LAngLine(74)+': '+copy(HashMD5File(ResumenFilename),1,5)); //'Headers file received'
    LastTimeRequestResumen := 0;
    UpdateMyData();
    end
@@ -1628,7 +1838,6 @@ if GridMyTxs.Row>0 then
       end;
    end;
 MemoTrxDetails.SelStart:=0;
-
 End;
 
 // Cierra el panel de detalle de transacciones
@@ -1637,10 +1846,11 @@ Begin
 PanelTrxDetails.visible := false;
 End;
 
+// Fija como direccion default a la seleccionada
 Procedure TForm1.BDefAddrOnClick(Sender: TObject);
 Begin
 if DireccionesPanel.Row > 0 then
-  ProcessLines.Add('SETDEFAULTADDRESS '+IntToStr(DireccionesPanel.Row-1));
+  ProcessLines.Add('SETDEFAULT '+IntToStr(DireccionesPanel.Row-1));
 End;
 
 // Mostrar el panel de personalizacion
@@ -1990,6 +2200,10 @@ else
    StaPenImg.Visible:=false;
    StaPenLab.Visible:=false;
    end;
+if CanalPool.Connected then StaPoolCa.Visible:=true
+else StaPoolCa.Visible:=false;
+if form1.PoolServer.active then StaPoolSer.Visible:=true
+else StaPoolSer.Visible:=false;
 End;
 
 //******************************************************************************
@@ -2018,8 +2232,8 @@ for contador := 0 to LangSelect.Items.Count-1 do
   end;
 if NewLogLines>0 then MainMenu.Items[2].Items[1].Caption:='View Log ('+IntToStr(NewLogLines)+')'
 else MainMenu.Items[2].Items[1].Caption:='View Log';
-
-
+if useroptions.PoolInfo<>'' then MainMenu.Items[2].Items[5].Visible:=true
+else MainMenu.Items[2].Items[5].Visible:=false;
 End;
 
 // menu principal servidor
@@ -2064,7 +2278,7 @@ End;
 // menuprincipal restart
 Procedure Tform1.MMRestart(Sender:TObject);
 Begin
-RestartNoso;
+ProcessLines.Add('restart');
 End;
 
 // menuprincipal salir
@@ -2152,10 +2366,20 @@ Begin
 OpenDocument(UserOptions.VersionPage);
 End;
 
-// Abrir pagina web
+// Abrir form slots
 Procedure TForm1.MMVerSlots(Sender:TObject);
 Begin
 FormSlots.Visible:=true;
+End;
+
+// Abrir form pool
+Procedure TForm1.MMVerPool(Sender:TObject);
+Begin
+UpdatePoolForm();
+if fileexists(PoolInfoFilename) then formpool.Height:= 230
+else formpool.Height:= 60;
+formpool.Caption:='Minning pool: '+MyPoolData.Name;
+FormPool.Visible:=true;
 End;
 
 //******************************************************************************

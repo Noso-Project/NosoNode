@@ -5,7 +5,7 @@ unit mpBlock;
 interface
 
 uses
-  Classes, SysUtils,MasterPaskalForm, mpCripto, mpMiner, fileutil, mpcoin, dialogs;
+  Classes, SysUtils,MasterPaskalForm, mpCripto, mpMiner, fileutil, mpcoin, dialogs,poolmanage;
 
 Procedure CrearBloqueCero();
 Procedure CrearNuevoBloque(Numero,TimeStamp: Int64; TargetHash, Minero, Solucion:String);
@@ -181,6 +181,12 @@ MySumarioHash := HashMD5File(SumarioFilename);
 AddBlchHead(Numero,MyLastBlockHash,MySumarioHash);
 MyResumenHash := HashMD5File(ResumenFilename);
 ResetMinerInfo();
+ResetPoolMiningInfo();
+if minero = PoolInfo.Direccion then
+   begin
+   Consolelines.Add('Your pool solved the block '+inttoStr(numero));
+   DistribuirEnPool(GetBlockReward(Numero)+MinerFee);
+   end;
 if Numero>0 then
    begin
    OutgoingMsjs.Add(ProtocolLine(6)+IntToStr(timeStamp)+' '+IntToStr(Numero)+
@@ -340,6 +346,7 @@ ResetMinerInfo();
 consolelines.Add('****************************');
 consolelines.Add(LAngLine(90)+IntToStr(blocknumber)); //'Block undone: '
 consolelines.Add('****************************');
+Tolog('Block Undone: '+IntToStr(blocknumber));
 End;
 
 // devuelve la suma de los valores de la solucion de un bloque (eliminar?)

@@ -48,7 +48,7 @@
         <PackageName Value="LCL"/>
       </Item6>
     </RequiredPackages>
-    <Units Count="14">
+    <Units Count="15">
       <Unit0>
         <Filename Value="Noso.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -120,6 +120,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpSignerUtils"/>
       </Unit13>
+      <Unit14>
+        <Filename Value="poolmanage.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="PoolManage"/>
+      </Unit14>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

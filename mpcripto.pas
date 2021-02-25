@@ -9,7 +9,7 @@ uses
   mpsignerutils, base64, HlpHashFactory;
 
 function CreateNewAddress(): WalletData;
-Procedure CreateKeysPair();
+{Procedure CreateKeysPair();}
 Function GetPublicKeyFromPem():String;
 Function GetPrivateKeyFromPem():String;
 function GetAddressFromPublicKey(PubKey:String):String;
@@ -21,7 +21,7 @@ Function HashMD5File(FileToHash:String):String;
 function IsValidAddress(Address:String):boolean;
 function DireccionEsMia(direccion:string):integer;
 Procedure RunExternalProgram(ProgramToRun:String);
-function RunOpenSSLCommand(textline:String):boolean;
+{function RunOpenSSLCommand(textline:String):boolean;}
 function GetStringSigned(StringtoSign, PrivateKey:String):String;
 function GetBase64TextFromFile(fileb64:string):string;
 function VerifySignedString(StringToVerify,B64String,PublicKey:String):boolean;
@@ -80,7 +80,9 @@ Result := MyData;
 setmilitime('CreateNewAddress',2);
 End;
 
+
 // Crea las claves publicas y privadas
+{
 Procedure CreateKeysPair();
 var
   MyProcess, MyProcess2 : TProcess;
@@ -110,6 +112,7 @@ MyProcess2.Options := MyProcess2.Options + [poWaitOnExit, poUsePipes, poNoConsol
 MyProcess2.Execute;
 MyProcess.Free;MyProcess2.Free;
 End;
+}
 
 // RETURNS THE PUBLIC KEY WHEN CREATED
 Function GetPublicKeyFromPem():String;
@@ -305,6 +308,7 @@ Process := TProcess.Create(nil);
    end;
 End;
 
+{
 function RunOpenSSLCommand(textline:String):boolean;
 var
   ArrParameters : Array of string;
@@ -354,6 +358,7 @@ if Errores.Count > 0 then
    end;
 MyProcess.Free;Resultado.Free; Errores.Free;
 end;
+}
 
 // Regresa la firma de la cadena especificada usando la clave privada
 function GetStringSigned(StringtoSign, PrivateKey:String):String;
