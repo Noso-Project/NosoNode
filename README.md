@@ -39,4 +39,7 @@ File > Open > Select the .LPI file from this repository.
 
 To compile, just click CTRL+F9; it will create the .EXE file in the same folder
 
+Donations for the project:
+
+Bitcoin: 3H1VzdL3QFQpc62DUhbtCFV5dG4K1yPwVB
 
