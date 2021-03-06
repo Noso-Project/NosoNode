@@ -23,6 +23,7 @@ type
      JustUpdated : boolean;
      VersionPage : String[255];
      ToTray : boolean;
+     UsePool : Boolean ;
      end;
 
   BotData = Packed Record
@@ -72,7 +73,7 @@ type
      end;
 
   SumarioData = Packed Record
-     Hash : String[255]; // El hash publico o direccion
+     Hash : String[40]; // El hash publico o direccion
      Custom : String[40]; // En caso de que la direccion este personalizada
      Balance : int64; // el ultimo saldo conocido de la direccion
      Score : int64; // estado del registro de la direccion.
@@ -88,7 +89,7 @@ type
      TrxTotales     : integer;
      Difficult      : integer;
      TargetHash     : String[32];
-     Solution       : String[255];
+     Solution       : String[200]; // 180 necessary
      LastBlockHash  : String[32];
      NxtBlkDiff     : integer;
      AccountMiner   : String[40];
@@ -104,7 +105,8 @@ type
      TimeStamp : Int64;
      Concept : String[64];
        TrxLine : integer;
-       Sender : String[255];    // La clave publica de quien envia
+       Sender : String[120];    // La clave publica de quien envia
+       Address : String[40];
        Receiver : String[40];
        AmmountFee : Int64;
        AmmountTrf : Int64;
@@ -121,8 +123,8 @@ type
 
   ResumenData = Packed Record
      block : integer;
-     blockhash : string[64];
-     SumHash : String[64];
+     blockhash : string[32];
+     SumHash : String[32];
      end;
 
   DivResult = packed record
@@ -169,6 +171,9 @@ type
        Soluciones : integer;
        Deuda : Int64;
        LastPago : integer;
+       TotalGanado : Int64;
+       LastSolucion : int64;
+       LastEarned : Int64;
        end;
 
   PoolData = Packed Record
@@ -185,7 +190,7 @@ type
 
   PoolMinerData = Packed Record
        Block : integer;
-       Solucion : string[255];
+       Solucion : string[200];
        steps : Integer;
        Dificult : Integer;
        DiffChars : integer;
@@ -259,6 +264,7 @@ type
     Procedure CBAutoConnectOnChange(Sender:TObject);
     Procedure CBAutoUpdateOnChange(Sender:TObject);
     Procedure CBToTrayOnChange(Sender:TObject);
+    Procedure CBToPoolOnChange(Sender:TObject);
     // Pool
     procedure PoolServerConnect(AContext: TIdContext);
     procedure PoolServerExecute(AContext: TIdContext);
@@ -274,6 +280,7 @@ type
     Procedure MMAbout(Sender:TObject);
     Procedure MMRestart(Sender:TObject);
     Procedure MMChangeLang(Sender:TObject);
+    Procedure MMRunUpdate(Sender:TObject);
     Procedure MMImpLang(Sender:TObject);
     Procedure MMNewLang(Sender:TObject);
     Procedure MMVerConsola(Sender:TObject);
@@ -322,12 +329,14 @@ CONST
   B58Alphabet : string = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
   B36Alphabet : string = '0123456789abcdefghijklmnopqrstuvwxyz';
   ReservedWords : string = 'NULL,DELADDR';
+  HideCommands : String = 'CLEAR SENDPOOLSOLUTION';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
   DefaultNodes : String = 'DefNodes 23.95.233.179 75.127.0.216';
-  ProgramVersion = '0.1.7';
-  OficialRelease = false;
-  BuildDate = 'Febraury 2021';
+  ProgramVersion = '0.2.0';
+  OficialRelease = true;
+  BuildDate = 'March 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
+  AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   OptionsFileName = 'NOSODATA/options.psk';
   BotDataFilename = 'NOSODATA/botdata.psk';
   NodeDataFilename = 'NOSODATA/nodes.psk';
@@ -348,10 +357,10 @@ CONST
   Protocolo = 1;
   Miner_Steps = 10;
   // Custom values for coin
-  SecondsPerBlock = 30;            // 10 minutes
-  PremineAmount = 0;                // Ammount premined in genesys block
+  SecondsPerBlock = 600; //600            // 10 minutes
+  PremineAmount = 1030390730000;//1030390730000;                // Ammount premined in genesys block
   InitialReward = 5000000000;      // Initial reward
-  BlockHalvingInterval = 2000;    // Number of blocks between halvings. 2 years   105120
+  BlockHalvingInterval = 210000;//210000;    // Number of blocks between halvings. 2 years   105120
   HalvingSteps = 10;                // total number of halvings
   Comisiontrfr = 10000;             // ammount/Comisiontrfr = 0.01 % of the ammount
   ComisionCustom = 200000;          // 0.05 % of the Initial reward
@@ -363,9 +372,11 @@ CONST
   DeadAddressFee = 0;            // unactive acount fee
   ComisionScrow = 200;              // Coin/BTC market comision = 0.5%
   InitialBlockDiff = 60;            // Dificultad durante los 20 primeros bloques
+  GenesysTimeStamp = 1615132800;//1615132800;
 
 var
   FirstShow : boolean = false;
+  RunningDoctor : boolean = false;
   MinConexToWork : integer = 1;
   CheckMonitor : boolean = false;
   RunDoctorBeforeClose : boolean = false;
@@ -379,6 +390,7 @@ var
   G_TimeOffSet : Int64 = 0;
   G_NTPServer : String = '';
   G_OpenSSLPath : String = '';
+  MsgsReceived : string = '';
   G_Launching : boolean = true;   // Indica si el programa se esta iniciando
   G_CloseRequested : boolean = false;
   G_LastPing  : int64;            // El segundo del ultimo ping
@@ -392,6 +404,7 @@ var
   IdiomasDisponibles : TStringlist;
   DLSL : TStringlist;                // Default Language String List
   ConsoleLines : TStringList;
+  StringAvailableUpdates : String = '';
   DataPanel : TStringGrid;
     U_DataPanel : boolean = true;
   LabelBigBalance : TLabel;
@@ -427,6 +440,7 @@ var
   Conexiones : array [1..MaxConecciones] of conectiondata;
   SlotLines : array [1..MaxConecciones] of TStringList;
   CanalCliente : array [1..MaxConecciones] of TIdTCPClient;
+    PoolClientLastPing : int64;
   CanalPool : TIdTCPClient;
   PoolLines : TStringList;
   PoolClientContext : TIdContext;
@@ -442,6 +456,8 @@ var
   ArrayPoolMembers : array of PoolMembersData;
 
   // Variables asociadas a la red
+  KeepServerOn : Boolean = false;
+     LastTryServerOn : Int64;
   CONNECT_LastTime : string = ''; // La ultima vez que se intento una conexion
   CONNECT_Try : boolean = false;
   MySumarioHash : String = '';
@@ -466,7 +482,9 @@ var
   // Variables asociadas al minero
   MyPoolData : PoolData;
     PoolMiner : PoolMinerData;
-  Miner_UsingPool : Boolean = false;
+  Miner_OwnsAPool : Boolean = false;
+    LastTryStartPoolServer : int64;
+    LastTryConnectPoolcanal : Int64;
   Miner_IsON : Boolean = false;
   Miner_Active : Boolean = false;
   Miner_Waiting : int64 = -1;
@@ -564,6 +582,7 @@ var
       CBAutoConnect: TCheckBox;
       CBAutoUpdate : TCheckBox;
       CBToTray : TCheckBox;
+      CBToPool : TCheckBox;
 
   SBOptions : TSpeedButton;
 
@@ -657,26 +676,27 @@ FillNodeList();
 ConsoleLines.Add(coinname+LangLine(61)+ProgramVersion);  // wallet
 RebuildMyTrx(MyLastBlock);
 UpdateMyTrxGrid();
-if UserOptions.AutoServer then ProcessLines.add('SERVERON');
-if UserOptions.AutoConnect then ProcessLines.add('CONNECT');
 if useroptions.JustUpdated then
    begin
    consolelines.add(LangLine(19)+ProgramVersion);  // Update to version sucessfull:
    useroptions.JustUpdated := false;
-   Deletefile('mpupdater.exe');
    S_Options := true;
    OutText('✓ Just updated to a new version',false,1);
    end;
 if fileexists('nosolauncher.bat') then Deletefile('nosolauncher.bat');
+if fileexists('restart.txt') then RestartConditions();
 if GetEnvironmentVariable('NUMBER_OF_PROCESSORS') = '' then G_CpuCount := 1
 else G_CpuCount := StrToInt(GetEnvironmentVariable('NUMBER_OF_PROCESSORS'));
 for contador := 1 to G_CpuCount do
    CPUsSelect.Items.Add(IntToStr(contador));
 CPUsSelect.ItemIndex:=0;
 OutText('✓ '+inttostr(G_CpuCount)+' CPUs found',false,1);
+StringAvailableUpdates := AvailableUpdates();
 Form1.Latido.Enabled:=true;
 G_Launching := false;
 OutText('Noso is ready',false,1);
+if UserOptions.AutoServer then ProcessLines.add('SERVERON');
+if UserOptions.AutoConnect then ProcessLines.add('CONNECT');
 FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
 FirstShow := true;
 Setlength(CriptoOpsTipo,0);
@@ -688,6 +708,8 @@ Tolog('Noso session started'); NewLogLines := NewLogLines-1;
 info('Noso session started');
 infopanel.BringToFront;
 SetCurrentJob('Main',true);
+forminicio.Visible:=false;
+form1.Visible:=true;
 End;
 
 // Carga las opciones de usuario al panel de opciones
@@ -699,14 +721,18 @@ EditMinpeer.text := IntToStr(MinConexToWork);
 CBGetNodes.Checked := UserOptions.GetNodes;
 CBAutoserver.Checked := UserOptions.AutoServer;
 CBAutoConnect.Checked := UserOptions.AutoConnect;
-CBAutoUpdate.Checked := UserOptions.AutoConnect;
+CBAutoUpdate.Checked := UserOptions.Auto_Updater;
 CBTotray.Checked := UserOptions.ToTray;
+CBToPool.checked := UserOptions.UsePool;
+if UserOptions.PoolInfo='' then CBToPool.Enabled := false
+else CBToPool.Enabled :=true;
 End;
 
 // Cuando se solicita cerrar el programa
 procedure TForm1.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 begin
 G_CloseRequested := true;
+CloseTimer.Enabled:=true;
 canclose := false;
 end;
 
@@ -732,6 +758,11 @@ if Key=VK_RETURN then
    ConsoleLine.Text := '';
    LastCommand := LineText;
    ProcessLines.add(LineText);
+   if Uppercase(Linetext) = 'EXIT' then
+     begin
+     CrearCrashInfo();
+     Application.Terminate;
+     end;
    end;
 if Key=VK_F3 then
    Begin
@@ -836,6 +867,8 @@ setmilitime('VerifyConnectionStatus',2);
 setmilitime('VerifyMiner',1);
 VerifyMiner();
 setmilitime('VerifyMiner',2);
+if ((KeepServerOn) and (not Form1.Server.Active) and (LastTryServerOn+5<StrToInt64(UTCTime))) then
+   processlines.Add('serveron');
 if G_CloseRequested then CerrarPrograma();
 if form1.SystrayIcon.Visible then
    form1.SystrayIcon.Hint:=Coinname+' Ver. '+ProgramVersion+SLINEBREAK+LabelBigBalance.Caption;
@@ -850,22 +883,18 @@ end;
 Procedure CerrarPrograma();
 Begin
 info(LangLine(62));  //   Closing wallet
+if RestartNosoAfterQuit then CrearRestartfile();
 CloseAllforms();
 CerrarClientes();
 StopServer();
 StopPoolServer();
-GuardarPoolMembers();
-try
-CanalPool.Disconnect;
-finally
-end;
+if length(ArrayPoolMembers)>0 then GuardarPoolMembers();
+if canalpool.Connected then CanalPool.Disconnect;
 If Miner_IsOn then Miner_IsON := false;
-delay(10);
 KillAllMiningThreads;
 setlength(CriptoOpsTipo,0);
 //Showmessage(LangLine(63));  //Closed gracefully
 if RunDoctorBeforeClose then RunDiagnostico('rundiag fix');
-if ForcedQuit then Showmessage('Forced Quit: '+CurrentJob);
 if RestartNosoAfterQuit then restartnoso();
 Application.Terminate;
 End;
@@ -897,14 +926,18 @@ MenuItem.OnClick:=@form1.CheckMMCaptions;
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Quit';MenuItem.OnClick:=@Form1.MMQuit;
   Form1.imagenes.GetBitmap(18,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
 
-MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Language';MainMenu.items.Add(MenuItem);
+MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Development';MainMenu.items.Add(MenuItem);
 MenuItem.OnClick:=@form1.CheckMMCaptions;
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Change';
-  Form1.imagenes.GetBitmap(35,MenuItem.bitmap); MainMenu.items[1].Add(MenuItem);
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Language';
+  Form1.imagenes.GetBitmap(51,MenuItem.bitmap); MainMenu.items[1].Add(MenuItem);
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Import';MenuItem.OnClick:=@Form1.MMImpLang;
   Form1.imagenes.GetBitmap(33,MenuItem.bitmap); MainMenu.items[1].Add(MenuItem);
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='New file';MenuItem.OnClick:=@Form1.MMNewLang;
   Form1.imagenes.GetBitmap(34,MenuItem.bitmap); MainMenu.items[1].Add(MenuItem);
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Updates';
+  Form1.imagenes.GetBitmap(50,MenuItem.bitmap); MainMenu.items[1].Add(MenuItem);
+  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Messages';//MenuItem.OnClick:=@Form1.MMNewLang;
+  Form1.imagenes.GetBitmap(52,MenuItem.bitmap); MainMenu.items[1].Add(MenuItem);
 
 MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='View';MenuItem.RightJustify:=true;MainMenu.items.Add(MenuItem);
 MenuItem.OnClick:=@form1.CheckMMCaptions;
@@ -1298,9 +1331,9 @@ OptionsPanel.font.Name:='consolas';OptionsPanel.Font.Size:=14;
   OptionsScroll.Visible:=true;
 
     GridOptions := TStringGrid.Create(Form1);GridOptions.Parent:=OptionsScroll;
-    GridOptions.Left:=2;GridOptions.Top:=2;GridOptions.Height:=202;GridOptions.Width:=192;
+    GridOptions.Left:=2;GridOptions.Top:=2;GridOptions.Height:=222;GridOptions.Width:=192;
     GridOptions.DefaultColWidth:= 80;GridOptions.DefaultRowHeight:=20;
-    GridOptions.ColCount:=2;GridOptions.rowcount:=10;GridOptions.FixedCols:=1;GridOptions.FixedRows:=0;
+    GridOptions.ColCount:=2;GridOptions.rowcount:=11;GridOptions.FixedCols:=1;GridOptions.FixedRows:=0;
     GridOptions.Options:= GridOptions.Options+[goRowSelect]-[goRangeSelect];
     GridOptions.ScrollBars:=ssnone;GridOptions.enabled:= false;
     GridOptions.font.Name:='consolas';GridOptions.Font.Size:=8;
@@ -1368,6 +1401,11 @@ OptionsPanel.font.Name:='consolas';OptionsPanel.Font.Size:=14;
       CBToTray.AutoSize:=false;
       CBToTray.Left:=176;CBToTray.Top:=186;CBToTray.Height:=14;CBToTray.Width:=14;
       CBToTray.Visible:=true;CBToTray.OnChange:=@Form1.CBToTrayOnChange;
+
+      CBToPool :=TcheckBox.Create(form1);CBToPool.Parent:=OptionsScroll;
+      CBToPool.AutoSize:=false;
+      CBToPool.Left:=176;CBToPool.Top:=206;CBToPool.Height:=14;CBToPool.Width:=14;
+      CBToPool.Visible:=true;CBToPool.OnChange:=@Form1.CBToPoolOnChange;
 
 StatusPanel := TPanel.Create(Form1);StatusPanel.Parent:=form1;
 StatusPanel.Font.Name:='consolas';StatusPanel.Font.Size:=8;
@@ -1443,7 +1481,7 @@ Form1.InfoTimer.Enabled:=false;Form1.InfoTimer.Interval:=50;
 Form1.InfoTimer.OnTimer:= @form1.InfoTimerEnd;
 
 Form1.CloseTimer:= TTimer.Create(Form1);
-Form1.CloseTimer.Enabled:=false;Form1.CloseTimer.Interval:=3000;
+Form1.CloseTimer.Enabled:=false;Form1.CloseTimer.Interval:=20;
 Form1.CloseTimer.OnTimer:= @form1.CloseTimerEnd;
 
 form1.SystrayIcon := TTrayIcon.Create(form1);
@@ -1556,7 +1594,7 @@ if Comando = 'PAYMENT' then
       begin
       if memberbalance > 0 then
          begin
-         Processlines.Add('sendto '+UserDireccion+' '+IntToStr(GetMaximunToSend(MemberBalance))+' POOLPAYMENT');
+         Processlines.Add('sendto '+UserDireccion+' '+IntToStr(GetMaximunToSend(MemberBalance))+' POOLPAYMENT_'+PoolInfo.Name);
          ClearPoolUserBalance(UserDireccion);
          Acontext.Connection.IOHandler.WriteLn('PAYMENTOK '+IntToStr(GetMaximunToSend(MemberBalance)));
          ConsoleLines.Add('Pool payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
@@ -1610,7 +1648,7 @@ if GetCommand(LLine) = 'UPDATE' then
    UpdateHash := Parameter(LLine,2);
    UpdateClavePublica := Parameter(LLine,3);
    UpdateFirma := Parameter(LLine,4);
-   UpdateZipName := 'mpupdate'+UpdateVersion+'.zip';
+   UpdateZipName := 'nosoupdate'+UpdateVersion+'.zip';
    if FileExists(UpdateZipName) then DeleteFile(UpdateZipName);
    AFileStream := TFileStream.Create(UpdateZipName, fmCreate);
    AContext.Connection.IOHandler.ReadStream(AFileStream);
@@ -1938,8 +1976,7 @@ end;
 Procedure TForm1.CloseTimerEnd(Sender: TObject);
 Begin
 CloseTimer.Enabled:=false;
-ToLog('Forced quit : '+CurrentJob);
-ForcedQuit := true;
+ToLog('Quit : '+CurrentJob);
 cerrarprograma();
 end;
 
@@ -2168,6 +2205,14 @@ If UserOptions.ToTray then Processlines.Add('TOTRAYOFF')
 else Processlines.Add('TOTRAYON');
 End;
 
+// activa/desactiva minimizar
+Procedure TForm1.CBToPoolOnChange(Sender:TObject);
+Begin
+if G_Launching then exit;
+If UserOptions.UsePool then Processlines.Add('USEPOOLOFF')
+else Processlines.Add('USEPOOLON');
+End;
+
 // Actualizar barra de estado
 Procedure UpdateStatusBar();
 Begin
@@ -2214,6 +2259,7 @@ End;
 Procedure Tform1.CheckMMCaptions(Sender:TObject);
 var
   contador: integer;
+  version : string;
 Begin
 if Form1.Server.Active then MainMenu.Items[0].Items[0].Caption:='Stop Server'
 else MainMenu.Items[0].Items[0].Caption:='Start Server';
@@ -2230,6 +2276,21 @@ for contador := 0 to LangSelect.Items.Count-1 do
   if LangSelect.Items[contador] = 'Polskie' then Form1.imagenes.GetBitmap(38,MenuItem.bitmap);
   MainMenu.items[1].Items[0].Add(MenuItem);
   end;
+MainMenu.Items[1].Items[3].Clear;
+if length(StringAvailableUpdates) > 0 then
+   begin
+   contador := 0;
+   repeat
+      version := parameter(StringAvailableUpdates,contador);
+      if version <> '' then
+         begin
+         MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:=version;MenuItem.OnClick:=@Form1.MMRunUpdate;
+         MainMenu.items[1].Items[3].Add(MenuItem);
+         end;
+      contador +=1;
+   until version = '' ;
+   end
+else MainMenu.items[1].Items[3].Enabled:=false;
 if NewLogLines>0 then MainMenu.Items[2].Items[1].Caption:='View Log ('+IntToStr(NewLogLines)+')'
 else MainMenu.Items[2].Items[1].Caption:='View Log';
 if useroptions.PoolInfo<>'' then MainMenu.Items[2].Items[5].Visible:=true
@@ -2286,7 +2347,6 @@ Procedure Tform1.MMQuit(Sender:TObject);
 Begin
 G_CloseRequested := true;
 CloseTimer.Enabled:=true;
-tolog(currentjob);
 End;
 
 // menu principal cambiar idioma
@@ -2296,6 +2356,15 @@ var
 Begin
 valor := (sender as TMenuItem).MenuIndex;
 ProcessLines.Add('lang '+IntToStr(valor));
+End;
+
+// Ejecuta un update seleccionado en el menuprincipal
+Procedure Tform1.MMRunUpdate(Sender:TObject);
+var
+  valor : integer;
+Begin
+valor := (sender as TMenuItem).MenuIndex;
+ProcessLines.Add('update '+parameter(StringAvailableUpdates,valor));
 End;
 
 // menu principal importar idioma
@@ -2376,8 +2445,16 @@ End;
 Procedure TForm1.MMVerPool(Sender:TObject);
 Begin
 UpdatePoolForm();
-if fileexists(PoolInfoFilename) then formpool.Height:= 230
-else formpool.Height:= 60;
+if fileexists(PoolInfoFilename) then
+  begin
+  formpool.Height:= 230;
+  formpool.Width := 560;
+  end
+else
+   begin
+   formpool.Height:= 60;
+   formpool.Width := 430;
+   end;
 formpool.Caption:='Minning pool: '+MyPoolData.Name;
 FormPool.Visible:=true;
 End;

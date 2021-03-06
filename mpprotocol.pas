@@ -32,6 +32,7 @@ Procedure PTC_Custom(TextLine:String);
 function ValidateTrfr(order:orderdata;Origen:String):Boolean;
 Procedure INC_PTC_Order(TextLine:String);
 Procedure PTC_Order(TextLine:String);
+Procedure PTC_AdminMSG(TextLine:String);
 
 CONST
   Getnodes = 1;
@@ -68,11 +69,12 @@ OrderInfo.TimeStamp  := StrToInt64(Parameter(textline,4));
 OrderInfo.Concept    := Parameter(textline,5);
 OrderInfo.TrxLine    := StrToInt(Parameter(textline,6));
 OrderInfo.Sender     := Parameter(textline,7);
-OrderInfo.Receiver   := Parameter(textline,8);
-OrderInfo.AmmountFee := StrToInt64(Parameter(textline,9));
-OrderInfo.AmmountTrf := StrToInt64(Parameter(textline,10));
-OrderInfo.Signature  := Parameter(textline,11);
-OrderInfo.TrfrID     := Parameter(textline,12);
+OrderInfo.Address    := Parameter(textline,8);
+OrderInfo.Receiver   := Parameter(textline,9);
+OrderInfo.AmmountFee := StrToInt64(Parameter(textline,10));
+OrderInfo.AmmountTrf := StrToInt64(Parameter(textline,11));
+OrderInfo.Signature  := Parameter(textline,12);
+OrderInfo.TrfrID     := Parameter(textline,13);
 Result := OrderInfo;
 End;
 
@@ -87,6 +89,7 @@ result:= Order.OrderType+' '+
          Order.Concept+' '+
          IntToStr(order.TrxLine)+' '+
          order.Sender+' '+
+         Order.Address+' '+
          Order.Receiver+' '+
          IntToStr(Order.AmmountFee)+' '+
          IntToStr(Order.AmmountTrf)+' '+
@@ -186,6 +189,7 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = '$LASTBLOCK' then PTC_SendBlocks(contador,SlotLines[contador][0])
       else if UpperCase(LineComando) = '$CUSTOM' then INC_PTC_Custom(GetOpData(SlotLines[contador][0]))
       else if UpperCase(LineComando) = 'ORDER' then INC_PTC_Order(SlotLines[contador][0])
+      else if UpperCase(LineComando) = 'ADMINMSG' then PTC_AdminMSG(SlotLines[contador][0])
       else
          Begin  // El comando recibido no se reconoce. Verificar protocolos posteriores.
          ConsoleLines.Add(LangLine(23)+SlotLines[contador][0]+') '+intToStr(contador)); //Unknown command () in slot: (
@@ -517,9 +521,10 @@ Begin
 OrderInfo := Default(OrderData);
 OrderInfo := GetOrderFromString(TextLine);
 Address := GetAddressFromPublicKey(OrderInfo.Sender);
+if address <> OrderInfo.Address then proceder := false;
 // La direccion no dispone de fondos
 if GetAddressBalance(Address)-GetAddressPendingPays(Address) < Customizationfee then Proceder:=false;
-if TranxAlreadyPending(OrderInfo.TrfrID ) then Proceder:=false;
+if TranxAlreadyPending(OrderInfo.TrfrID ) then exit;
 if OrderInfo.TimeStamp < LastBlockData.TimeStart then Proceder:=false;
 if TrxExistsInLastBlock(OrderInfo.TrfrID) then Proceder:=false;
 if AddressAlreadyCustomized(Address) then Proceder:=false;
@@ -576,7 +581,9 @@ for cont := 0 to NumTransfers-1 do
    SetLength(TrxArray,length(TrxArray)+1);SetLength(SenderTrx,length(SenderTrx)+1);
    TrxArray[cont] := default (orderdata);
    TrxArray[cont] := GetOrderFromString(Textbak);
+   if TranxAlreadyPending(TrxArray[cont].TrfrID) then exit;
    SenderTrx[cont] := GetAddressFromPublicKey(TrxArray[cont].Sender);
+   if SenderTrx[cont] <> TrxArray[cont].Address then proceder := false;
    if pos(SendersString,SenderTrx[cont]) > 0 then
       begin
       consolelines.Add(LangLine(94)); //'Duplicate sender in order'
@@ -603,6 +610,41 @@ if proceder then
    OutgoingMsjs.Add(Textbak);
    U_DirPanel := true;
    end;
+End;
+
+Procedure PTC_AdminMSG(TextLine:String);
+var
+  msgtime, mensaje, firma, hashmsg : string;
+  msgtoshow : string = '';
+  contador : integer = 1;
+Begin
+msgtime := parameter(TextLine,5);
+mensaje := parameter(TextLine,6);
+firma := parameter(TextLine,7);
+hashmsg := parameter(TextLine,8);
+if AnsiContainsStr(MsgsReceived,hashmsg) then exit;
+mensaje := StringReplace(mensaje,'_',' ',[rfReplaceAll, rfIgnoreCase]);
+if not VerifySignedString(msgtime+mensaje,firma,AdminPubKey) then
+   begin
+   consolelines.Add('Admin msg wrong sign');
+   exit;
+   end;
+if HashMD5String(msgtime+mensaje+firma) <> Hashmsg then
+   begin
+   consolelines.Add('Admin msg wrong hash');
+   exit;
+   end;
+MsgsReceived := MsgsReceived + Hashmsg;
+for contador := 1 to length(mensaje) do
+   begin
+   if mensaje[contador] = '}' then msgtoshow := msgtoshow+slinebreak
+   else msgtoshow := msgtoshow +mensaje[contador];
+   end;
+Tolog('Admin message'+slinebreak+
+      TimestampToDate(msgtime)+slinebreak+
+      msgtoshow);
+formlog.Visible:=true;
+OutgoingMsjs.Add(TextLine);
 End;
 
 END. // END UNIT

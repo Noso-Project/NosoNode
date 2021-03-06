@@ -129,6 +129,11 @@ if G_launching then
   canclose := false;
   exit;
   end;
+if RunningDoctor then
+  begin
+  canclose := false;
+  exit;
+  end;
 forminicio.Visible:=false;
 form1.Visible:=true;
 End;
@@ -353,17 +358,19 @@ BCobrarAlPool.hint:='Request Payment';BCobrarAlPool.ShowHint:=true;
 
 GridPoolMembers := TStringGrid.Create(FormPool);GridPoolMembers.Parent:=FormPool;
 GridPoolMembers.Font.Name:='consolas'; GridPoolMembers.Font.Size:=8;
-GridPoolMembers.Left:=1;GridPoolMembers.Top:=60;GridPoolMembers.Height:=149;GridPoolMembers.width:=428;
+GridPoolMembers.Left:=1;GridPoolMembers.Top:=60;GridPoolMembers.Height:=149;GridPoolMembers.width:=558;
 GridPoolMembers.FixedCols:=0;GridPoolMembers.FixedRows:=1;
-GridPoolMembers.rowcount := 1;GridPoolMembers.ColCount:=4;
+GridPoolMembers.rowcount := 1;GridPoolMembers.ColCount:=6;
 GridPoolMembers.ScrollBars:=ssVertical;
 GridPoolMembers.FocusRectVisible:=false;
 GridPoolMembers.Options:= GridPoolMembers.Options+[goRowSelect]-[goRangeSelect];
 GridPoolMembers.ColWidths[0]:= 200;GridPoolMembers.ColWidths[1]:= 80;
 GridPoolMembers.ColWidths[2]:= 50;GridPoolMembers.ColWidths[3]:= 80;
+GridPoolMembers.ColWidths[4]:= 80;GridPoolMembers.ColWidths[5]:= 46;
 
 GridPoolMembers.Cells[0,0]:='Address';GridPoolMembers.Cells[1,0]:='Prefix';
 GridPoolMembers.Cells[2,0]:='Work';GridPoolMembers.Cells[3,0]:='Earned';
+GridPoolMembers.Cells[4,0]:='AllTime';GridPoolMembers.Cells[5,0]:='Last';
 GridPoolMembers.Enabled := true;
 GridPoolMembers.GridLineWidth := 1;
 
@@ -390,9 +397,9 @@ var
 Begin
 LabelPoolData.Caption:='ConnectTo: '+MyPoolData.Ip+':'+IntToStr(MyPoolData.port)+' MyAddress: '+MyPoolData.MyAddress+slinebreak+
                        'MineAddres: '+MyPoolData.Direccion+' Prefix: '+MyPoolData.Prefijo+slinebreak+
-                       'Balance: '+Int2curr(MyPoolData.balance)+' ('+IntToStr(MyPoolData.LastPago)+')';
+                       'Balance: '+Int2curr(MyPoolData.balance)+' ('+IntToStr(MyPoolData.LastPago)+') Password: '+MyPoolData.Password;
 GridPoolMembers.RowCount:=length(ArrayPoolMembers)+1;
-if MyPoolData.LastPago>0 then BCobrarAlPool.Visible:=true
+if ((MyPoolData.LastPago>0) and (MyPoolData.balance>0)) then BCobrarAlPool.Visible:=true
 else BCobrarAlPool.Visible:=false;
 
 if length(ArrayPoolMembers) > 0 then
@@ -400,9 +407,11 @@ if length(ArrayPoolMembers) > 0 then
    for contador := 0 to length(ArrayPoolMembers)-1 do
       begin
       GridPoolMembers.Cells[0,contador+1]:=ArrayPoolMembers[contador].Direccion;
-      GridPoolMembers.Cells[1,contador+1]:=ArrayPoolMembers[contador].Prefijo+'!!!!!!!!';
+      GridPoolMembers.Cells[1,contador+1]:=ArrayPoolMembers[contador].Prefijo;
       GridPoolMembers.Cells[2,contador+1]:=IntToStr(ArrayPoolMembers[contador].Soluciones);
       GridPoolMembers.Cells[3,contador+1]:=Int2curr(ArrayPoolMembers[contador].Deuda);
+      GridPoolMembers.Cells[4,contador+1]:=Int2curr(ArrayPoolMembers[contador].TotalGanado);
+      GridPoolMembers.Cells[5,contador+1]:=IntToStr(ArrayPoolMembers[contador].LastSolucion);
       end;
    end;
 LabelPoolMiner.Caption:='Block: '+IntToStr(PoolMiner.Block)+' Diff: '+IntToStr(poolminer.Dificult)+
@@ -430,6 +439,7 @@ DataPanel.Cells[2,1]:=LangLine(104);  //'Hashing'
 DataPanel.Cells[2,2]:=LangLine(105);  //'Target'
 DataPanel.Cells[2,3]:=LangLine(106);  //'Reward'
 DataPanel.Cells[2,4]:=LangLine(107);  //'Block Time'
+DataPanel.Cells[2,5]:='PoolBalance';  //'Block Time'
 
 GridMyTxs.Cells[0,0]:=LangLine(108);    //'Block'
 GridMyTxs.Cells[1,0]:=LangLine(109);    //'Time'
@@ -459,6 +469,7 @@ GridOptions.Cells[0,6]:='Autoserver';
 GridOptions.Cells[0,7]:='Autoconnect';
 GridOptions.Cells[0,8]:='AutoUpdate';
 GridOptions.Cells[0,9]:='To Tray';
+GridOptions.Cells[0,10]:='Mine with pool';
 
 //Direccionespanel
 Direccionespanel.RowCount:=length(listadirecciones)+1;
@@ -539,6 +550,9 @@ else
    DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
    DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+TimeSinceStamp(LastblockData.TimeEnd);
    end;
+
+if UserOptions.UsePool then DataPanel.Cells[3,5]:=Int2curr(MyPoolData.balance)
+else DataPanel.Cells[3,5]:='No Pool';
 
 // Esta se muestra siempre aparte ya que la funcion GetTotalConexiones es la que permite
 // verificar si los clientes siguen conectados

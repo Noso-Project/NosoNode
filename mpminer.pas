@@ -41,7 +41,7 @@ if ((Miner_BlockFOund) and (not Miner_SolutionVerified)) then
    KillAllMiningThreads;
    if VerifySolutionForBlock(Miner_Difficult, Miner_Target, Miner_Address, Miner_Solution) then
       begin
-      if not Miner_UsingPool then
+      if not UserOptions.UsePool then
          begin
          consoleLines.Add(LangLine(40)+IntToStr(Miner_BlockToMine));  //Miner solution found and Verified for block
          Miner_SolutionVerified := true;
@@ -56,9 +56,9 @@ if ((Miner_BlockFOund) and (not Miner_SolutionVerified)) then
       consolelines.Add(LangLine(132)); //'Miner solution invalid?'
       ResetMinerInfo;
       end;
+   end;
 If ((Miner_Waiting>-1) and (Miner_Waiting+10<StrToInt(UTCTime))) then
    ResetMinerInfo();
-   end;
 End;
 
 Procedure KillAllMiningThreads();
@@ -88,9 +88,9 @@ MINER_FoundedSteps := 0;
 Miner_DifChars := GetCharsFromDifficult(Miner_Difficult, MINER_FoundedSteps);
 Miner_Target := copy(MyLastBlockHash,1,Miner_DifChars);
 MINER_HashCounter := 100000000;
-if Miner_UsingPool then MINER_HashSeed := MyPoolData.Prefijo
+if UserOptions.UsePool then MINER_HashSeed := MyPoolData.Prefijo
 else MINER_HashSeed := '!!!!!!!!!';
-if Miner_UsingPool then Miner_Address := MyPoolData.Direccion
+if UserOptions.UsePool then Miner_Address := MyPoolData.Direccion
 else Miner_Address := ListaDirecciones[0].Hash;
 Miner_BlockFOund := False;
 Miner_Solution := '';
@@ -116,7 +116,7 @@ while Miner_IsON do
    Solucion := HashSha256String(Mseed+Miner_Address+inttostr(Mnumber));
    if AnsiContainsStr(Solucion,copy(Miner_Target,1,Miner_DifChars)) then
       begin
-      if Miner_UsingPool then SendPoolSolution(Miner_BlockToMine,Mseed,Mnumber);
+      if UserOptions.UsePool then Processlines.Add('SENDPOOLSOLUTION '+IntToStr(Miner_BlockToMine)+' '+Mseed+' '+IntToStr(Mnumber));
       MINER_FoundedSteps := MINER_FoundedSteps+1;
       Miner_DifChars := GetCharsFromDifficult(Miner_Difficult, MINER_FoundedSteps);
       Miner_Solution := Miner_Solution+Mseed+IntToStr(Mnumber)+' ';

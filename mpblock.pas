@@ -5,7 +5,8 @@ unit mpBlock;
 interface
 
 uses
-  Classes, SysUtils,MasterPaskalForm, mpCripto, mpMiner, fileutil, mpcoin, dialogs,poolmanage;
+  Classes, SysUtils,MasterPaskalForm, mpCripto, mpMiner, fileutil, mpcoin, dialogs,poolmanage,
+  mptime;
 
 Procedure CrearBloqueCero();
 Procedure CrearNuevoBloque(Numero,TimeStamp: Int64; TargetHash, Minero, Solucion:String);
@@ -26,7 +27,7 @@ Uses
 // Crea el bloque CERO con los datos por defecto
 Procedure CrearBloqueCero();
 Begin
-CrearNuevoBloque(0,1610660160,'','NUBy1bsprQKeFrVU4K8eKP46QG2ABs','');
+CrearNuevoBloque(0,GenesysTimeStamp,'',adminhash,'');
 if G_Launching then Consolelines.Add(LangLine(88)); //'Block 0 created.'
 if G_Launching then OutText('✓ Block 0 created',false,1);
 
@@ -49,6 +50,12 @@ var
   DelAddr : String = '';
   LastOP : integer = 0;}
 Begin
+if ((numero>0) and (Timestamp < lastblockdata.TimeEnd)) then
+   begin
+   consolelines.Add('New block '+IntToStr(numero)+' : Invalid timestamp');
+   consolelines.Add('Blocks can not be added until '+TimestampToDate(IntToStr(GenesysTimeStamp)));
+   exit;
+   end;
 if Numero = 0 then StartBlockTime := 1531896783
 else StartBlockTime := LastBlockData.TimeEnd+1;
 FileName := BlockDirectory + IntToStr(Numero)+'.blk';
@@ -335,6 +342,8 @@ ArrayOrders := Default(BlockOrdersArray);
 ArrayOrders := GetBlockTrxs(MyLastBlock);
 for cont := 0 to length(ArrayOrders)-1 do
    addpendingtxs(ArrayOrders[cont]);
+if LastBlockData.AccountMiner = PoolInfo.Direccion then // El bloque deshecho fue minado por mi pool
+   PoolUndoneLastPayment();
 // Borrar archivo del ultimo bloque
 deletefile(BlockDirectory +IntToStr(MyLastBlock)+'.blk');
 // Actualizar mi informacion

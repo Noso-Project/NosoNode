@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, mpCripto, mpTime, mpblock, mpcoin,
-  dialogs, fileutil, forms, idglobal, poolmanage;
+  dialogs, fileutil, forms, idglobal, poolmanage, strutils;
 
 Procedure ProcesarLineas();
 function GetOpData(textLine:string):String;
@@ -36,6 +36,8 @@ Procedure ShowWallet();
 Procedure EnviarUpdate(LineText:string);
 Procedure AutoUpdateON();
 Procedure AutoUpdateOFF();
+Procedure UsePoolOn();
+Procedure UsePoolOff();
 Procedure ImportarWallet(LineText:string);
 Procedure ExportarWallet(LineText:string);
 Procedure ShowBlchHead();
@@ -63,6 +65,12 @@ Procedure CreatePool(LineText:string);
 Procedure ShowPoolInfo();
 Procedure JoinPool(LineText:string);
 Procedure Deletepool();
+Procedure GetOwnerHash(LineText:string);
+Procedure CheckOwnerHash(LineText:string);
+function AvailableUpdates():string;
+Procedure RunUpdate(linea:string);
+Procedure ChangePoolPassword(LineText:string);
+Procedure SendAdminMessage(linetext:string);
 
 implementation
 
@@ -94,7 +102,7 @@ var
 begin
 Command :=GetCommand(Linetext);
 if Command = '' then exit;
-if UpperCase(Command) <> 'CLEAR' then ConsoleLines.Add('>> '+Linetext);
+if not AnsiContainsStr(HideCommands,Uppercase(command)) then ConsoleLines.Add('>> '+Linetext);
 if UpperCase(Command) = 'LANG' then Language(linetext)
 else if UpperCase(Command) = 'SERVERON' then StartServer()
 else if UpperCase(Command) = 'SERVEROFF' then StopServer()
@@ -161,8 +169,17 @@ else if UpperCase(Command) = 'DELPOOL' then DeletePool()
 else if UpperCase(Command) = 'REQUESTPOOLSTATUS' then PoolRequestMyStatus()
 else if UpperCase(Command) = 'REQUESTPOOLPAY' then PoolRequestPayment()
 else if UpperCase(Command) = 'STARTPOOLSERVER' then StartPoolServer(poolinfo.Port)
-
-
+else if UpperCase(Command) = 'USEPOOLON' then UsePoolOn()
+else if UpperCase(Command) = 'USEPOOLOFF' then UsePoolOff()
+else if UpperCase(Command) = 'SENDPOOLSOLUTION' then SendPoolSolution(StrToInt(Parameter(LineText,1)),Parameter(LineText,2),StrToInt64(Parameter(LineText,3)))
+else if UpperCase(Command) = 'STATUS' then ConsoleLines.Add(GetCurrentStatus(0))
+else if UpperCase(Command) = 'OWNER' then GetOwnerHash(LineText)
+else if UpperCase(Command) = 'CHECKOWNER' then CheckOwnerHash(LineText)
+else if UpperCase(Command) = 'UPDATE' then RunUpdate(LineText)
+else if UpperCase(Command) = 'POOLPASS' then ChangePoolPassword(LineText)
+else if UpperCase(Command) = 'OSVERSION' then ConsoleLines.Add(OsVersion)
+else if UpperCase(Command) = 'SENDMESSAGE' then SendAdminMessage(linetext)
+else if UpperCase(Command) = 'MYHASH' then ConsoleLines.Add(HashMD5File('noso.exe'))
 
 else ConsoleLines.Add(LangLine(0)+Command);  // Unknow command
 end;
@@ -341,6 +358,7 @@ consolelines.Add('AutoServer: '+BoolToStr(UserOptions.AutoServer,true));
 consolelines.Add('AutoConnect: '+BoolToStr(UserOptions.AutoConnect,true));
 consolelines.Add('AutoUpdate: '+BoolToStr(UserOptions.Auto_Updater,true));
 consolelines.Add('Version Page: '+UserOptions.VersionPage);
+consolelines.Add('Mine to pool: '+BoolToStr(UserOptions.UsePool,true));
 End;
 
 // devuelve el saldo en satoshis de la cartera
@@ -412,6 +430,7 @@ Procedure Mineroff();
 Begin
 Miner_Active := false;
 if Miner_IsOn then Miner_IsOn := false;
+if canalpool.Connected then CanalPool.Disconnect;
 U_Datapanel := true;
 ConsoleLines.Add(LangLine(50)+LAngLine(49));    // miner //inactive
 End;
@@ -487,14 +506,22 @@ var
   Firma : string = '';
   Envios : integer = 0;
   FileForSize : File Of byte;
+  ByPassed : boolean = false;
 Begin
-if DireccionEsMia(AdminHash)<0 then
+ClavePublica := Parameter (linetext,2);
+if GetAddressFromPublicKey(ClavePublica) = Adminhash then
+   begin
+   Bypassed := true;
+   FilenameHash := Parameter (linetext,3);
+   Firma := Parameter (linetext,4);
+   end;
+if ((DireccionEsMia(AdminHash)<0) and(not ByPassed)) then
    begin
    ConsoleLines.Add(LangLine(54)); //Only the Noso developers can do this
    exit;
    end;
 version := Parameter (linetext,1);
-FileName := 'mpupdate'+version+'.zip';
+FileName := 'nosoupdate'+version+'.zip';
 if not fileexists(UpdatesDirectory+filename) then
    begin
    ConsoleLines.Add(LangLine(55)+filename);   //The specified zip file not exists:
@@ -506,9 +533,9 @@ Assign (FileForSize,UpdatesDirectory+filename);
   ConsoleLines.Add ('File size in bytes : '+IntToStr(FileSize(FileForSize) div 1024)+' kb');
   Close (FileForSize);
 {hasta aqui lo temporal}
-FilenameHash := HashMD5File(UpdatesDirectory+filename);
-ClavePublica := ListaDirecciones[DireccionEsMia(AdminHash)].PublicKey;
-Firma := GetStringSigned(version+' '+FilenameHash,ListaDirecciones[DireccionEsMia(AdminHash)].PrivateKey);
+if not bypassed then FilenameHash := HashMD5File(UpdatesDirectory+filename);
+if not bypassed then ClavePublica := ListaDirecciones[DireccionEsMia(AdminHash)].PublicKey;
+if not bypassed then Firma := GetStringSigned(version+' '+FilenameHash,ListaDirecciones[DireccionEsMia(AdminHash)].PrivateKey);
 TextToSend := 'UPDATE '+Version+' '+FilenameHash+' '+ClavePublica+' '+firma;
 AFileStream := TFileStream.Create(UpdatesDirectory+Filename, fmOpenRead + fmShareDenyNone);
 For contador := 1 to maxconecciones do
@@ -542,6 +569,20 @@ Begin
 UserOptions.Auto_Updater := false;
 S_Options := true;
 ConsoleLines.Add(LangLine(58)+LangLine(49));     //autoupdate //inactive
+End;
+
+Procedure UsePoolOn();
+Begin
+UserOptions.UsePool := true;
+S_Options := true;
+ConsoleLines.Add('Mine for pool is now '+LangLine(48));     //autoupdate //active
+End;
+
+Procedure UsePoolOff();
+Begin
+UserOptions.UsePool := false;
+S_Options := true;
+ConsoleLines.Add('Mine for pool is now '+LangLine(49));     //autoupdate //inactive
 End;
 
 Procedure ExportarWallet(LineText:string);
@@ -767,6 +808,7 @@ AddCriptoOp(2,'Customize this '+address+' '+addalias+'$'+ListaDirecciones[Direcc
            'null'+' '+     // concept
            '1'+' '+        // Trxline
            ListaDirecciones[DireccionEsMia(address)].PublicKey+' '+    // sender
+           ListaDirecciones[DireccionEsMia(address)].Hash+' '+    // address
            AddAlias+' '+   // receiver
            IntToStr(Customizationfee)+' '+  // Amountfee
            '0'+' '+                         // amount trfr
@@ -841,6 +883,7 @@ Contador := length(ListaDirecciones)-1;
 OrderHashString := currtime;
 while monto > 0 do
    begin
+   setmilitime('SendFundsVerify',1);
    if ListaDirecciones[contador].Balance-GetAddressPendingPays(ListaDirecciones[contador].Hash) > 0 then
       begin
       trxLinea := TrxLinea+1;
@@ -852,6 +895,7 @@ while monto > 0 do
       OrderHashString := OrderHashString+ArrayTrfrs[length(arraytrfrs)-1].TrfrID;
       end;
    Contador := contador -1;
+   setmilitime('SendFundsVerify',2);
    end;
 for contador := 0 to length(ArrayTrfrs)-1 do
    begin
@@ -1097,11 +1141,19 @@ if IPBot = '' then
    consolelines.Add('Invalid IP');
    exit;
    end;
+if uppercase(IPBot) = 'ALL' then
+   begin
+   SetLength(ListadoBots,0);
+   S_BotData := true;
+   consolelines.Add('All bots deleted');
+   exit;
+   end;
 for contador := 0 to length(ListadoBots)-1 do
    begin
    if ListadoBots[contador].ip = IPBot then
       begin
       Delete(ListadoBots,Contador,1);
+      S_BotData := true;
       consolelines.Add(IPBot+' deleted from bot list');
       exit;
       end;
@@ -1137,6 +1189,7 @@ outtext('Mining CPUs set to: '+IntToStr(numero),false,2);
 ResetMinerInfo;
 KillAllMiningThreads;
 Miner_Active := false;
+if canalpool.Connected then DisconnectPoolClient;
 if Miner_IsOn then Miner_IsOn := false;
 U_Datapanel := true;
 End;
@@ -1288,9 +1341,123 @@ if useroptions.PoolInfo<>'' then
    S_Options := true;
    end
 else consolelines.Add('You are not a pool member');
-Miner_UsingPool := false;
+UserOptions.UsePool := false;
+S_Options := true;
 if formpool.Visible then formpool.Visible:=false;
 if canalpool.Connected then canalpool.Disconnect;
+End;
+
+Procedure GetOwnerHash(LineText:string);
+var
+  direccion, currtime : string;
+Begin
+direccion := parameter(linetext,1);
+if DireccionEsMia(direccion)<0 then
+  begin
+  consolelines.Add('Invalid address');
+  exit;
+  end
+else
+   begin
+   currtime := UTCTime;
+   consolelines.Add(ListaDirecciones[DireccionEsMia(direccion)].PublicKey+':'+currtime+':'+GetStringSigned('I OWN THIS ADDRESS '+direccion+currtime,ListaDirecciones[DireccionEsMia(direccion)].PrivateKey));
+   end;
+End;
+
+Procedure CheckOwnerHash(LineText:string);
+var
+  data, pubkey, direc,firmtime,firma : string;
+Begin
+data := parameter(LineText,1);
+data := StringReplace(data,':',' ',[rfReplaceAll, rfIgnoreCase]);
+pubkey := Parameter(data,0);
+firmtime := Parameter(data,1);
+firma := Parameter(data,2);
+direc := GetAddressFromPublicKey(pubkey);
+if VerifySignedString('I OWN THIS ADDRESS '+direc+firmtime,firma,pubkey) then
+   consolelines.Add(direc+' verified '+TimeSinceStamp(StrToInt64(firmtime))+' ago.')
+else consolelines.Add('Invalid verification');
+End;
+
+// devuelve una cadena con los updates disponibles
+function AvailableUpdates():string;
+var
+  updatefiles : TStringList;
+  contador : integer = 0;
+  resultado :  string = '';
+  version : string;
+Begin
+updatefiles := TStringList.Create;
+FindAllFiles(updatefiles, UpdatesDirectory, 'nosoupdate*.zip', false);
+while contador < updatefiles.Count do
+   begin
+   version :=copy(updatefiles[contador],28,5);
+   if version > ProgramVersion then Resultado := Resultado + version +' ';
+   contador += 1;
+   end;
+updatefiles.Free;
+if length(resultado) >0 then setlength(resultado,length(resultado)-1);
+result := resultado;
+End;
+
+Procedure RunUpdate(linea:string);
+var
+  version : string;
+Begin
+version := parameter(linea,1);
+if fileexists(UpdatesDirectory+'nosoupdate'+version+'.zip') then
+   begin
+   UnzipBlockFile(UpdatesDirectory+'nosoupdate'+version+'.zip',false);
+   copyfile(UpdatesDirectory+'noso'+version+'.exe','noso'+version+'.exe');
+   useroptions.JustUpdated:=true;
+   GuardarOpciones();
+   CrearRestartfile();
+   EjecutarAutoUpdate(version);
+   Application.Terminate;
+   end
+else consolelines.add('Invalid update');
+End;
+
+Procedure ChangePoolPassword(LineText:string);
+var
+  oldpass, newpass : string;
+Begin
+oldpass := Parameter(LineText,1);
+newpass := Parameter(LineText,2);
+if length(newpass) > 10 then setlength(newpass,10);
+if oldpass <> MyPoolData.Password then
+   begin
+   Consolelines.Add('Invalid password');
+   exit;
+   end;
+if Miner_OwnsAPool then // si posse el pool, cambiar ambas
+  begin
+  PoolInfo.PassWord:=newpass;
+  GuardarArchivoPoolInfo;
+  GetPoolInfoFromDisk();
+  end;
+UserOptions.PoolInfo := StringReplace(UserOptions.PoolInfo,MyPoolData.Password,newpass,[rfReplaceAll, rfIgnoreCase]);
+S_Options := true;
+LoadMyPoolData();
+End;
+
+Procedure SendAdminMessage(linetext:string);
+var
+  mensaje,currtime, firma, hashmsg : string;
+Begin
+if (DireccionEsMia(AdminHash)<0) then
+   begin
+   ConsoleLines.Add(LangLine(54)); //Only the Noso developers can do this
+   exit;
+   end;
+Mensaje := parameter(linetext,1);
+currtime := UTCTime;
+firma := GetStringSigned(currtime+mensaje,ListaDirecciones[DireccionEsMia(AdminHash)].PrivateKey);
+hashmsg := HashMD5String(currtime+mensaje+firma);
+mensaje := StringReplace(mensaje,' ','_',[rfReplaceAll, rfIgnoreCase]);
+OutgoingMsjs.Add(GetPTCEcn+'ADMINMSG '+currtime+' '+mensaje+' '+firma+' '+hashmsg);
+mensaje := StringReplace(mensaje,'_',' ',[rfReplaceAll, rfIgnoreCase]);
+ConsoleLines.Add('Message sent: '+mensaje);
 End;
 
 END. // END UNIT

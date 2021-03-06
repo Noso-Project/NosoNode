@@ -24,6 +24,7 @@ function HaveAddressAnyPending(Address:string):boolean;
 function GetMaximunToSend(monto:int64):int64;
 function cadtonum(cadena:string;pordefecto:int64;erroroutput:string):int64;
 Function IsValidIP(IpString:String):boolean;
+function GetCurrentStatus(mode:integer):String;
 
 
 
@@ -56,9 +57,8 @@ Begin
 Result := 0;
 for cont := 0 to length(PendingTXs)-1 do
    begin
-   if address = GetAddressFromPublicKey(PendingTXS[cont].Sender) then
+   if address = PendingTXS[cont].address then
       result := result+PendingTXS[cont].AmmountFee+PendingTXS[cont].AmmountTrf;
-
    end;
 End;
 
@@ -147,7 +147,7 @@ Procedure VerifyIfPendingIsMine(order:orderdata);
 var
   DireccionEnvia: string;
 Begin
-DireccionEnvia := GetAddressFromPublicKey(order.Sender);
+DireccionEnvia := order.address;
 if DireccionEsMia(DireccionEnvia)>=0 then
    begin
    ListaDirecciones[DireccionEsMia(DireccionEnvia)].Pending:=ListaDirecciones[DireccionEsMia(DireccionEnvia)].Pending+
@@ -241,6 +241,7 @@ OrderInfo.TimeStamp  := StrToInt64(OrderTime);
 OrderInfo.Concept    := concepto;
 OrderInfo.TrxLine    := linea;
 OrderInfo.Sender     := ListaDirecciones[DireccionEsMia(origen)].PublicKey;
+OrderInfo.Address    := ListaDirecciones[DireccionEsMia(origen)].Hash;
 OrderInfo.Receiver   := Destino;
 OrderInfo.AmmountFee := ComisionTrfr;
 OrderInfo.AmmountTrf := montotrfr;
@@ -268,7 +269,7 @@ if length(PendingTxs) = 0 then
    end;
 for counter := 0 to length(PendingTXs)-1 do
    begin
-   DireccionEnvia := GetAddressFromPublicKey(PendingTxs[counter].Sender);
+   DireccionEnvia := PendingTxs[counter].Address;
    if DireccionEsMia(DireccionEnvia)>=0 then
       begin
       MontoOutgoing := MontoOutgoing+PendingTxs[counter].AmmountFee+PendingTxs[counter].AmmountTrf;
@@ -344,6 +345,24 @@ if ((valor1 <0) or (valor1>255)) then result := false;
 if ((valor2 <0) or (valor2>255)) then result := false;
 if ((valor3 <0) or (valor3>255)) then result := false;
 if ((valor4 <0) or (valor4>255)) then result := false;
+End;
+
+function GetCurrentStatus(mode:integer):String;
+var
+  Resultado : string = '';
+Begin
+resultado := resultado+'ServerON: '+BoolToStr(Form1.Server.Active,true)+' ';
+resultado := resultado+'CONNECT_Try: '+BoolToStr(CONNECT_Try,true)+' ';
+if mode = 1 then
+   begin
+   resultado := resultado+'MyConStatus: '+IntToStr(myConStatus)+' ';
+   Resultado := resultado+'CurrentJob: '+CurrentJob+' ';
+   Resultado := resultado+'MinerActive: '+BoolToStr(Miner_Active,true)+' ';
+   Resultado := resultado+'CPUs: '+IntToStr(G_CpuCount)+' ';
+   Resultado := resultado+'MinerThreads: '+IntToStr(Length(Miner_Thread)) +' ';
+   Resultado := resultado+'OS: '+OSVersion +' ';
+   end;
+result := resultado;
 End;
 
 END. // END UNIT

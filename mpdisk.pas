@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, Dialogs, Forms, mpTime, FileUtil, LCLType,
-  lclintf, controls, mpCripto, mpBlock, Zipper, mpLang, mpcoin, poolmanage;
+  lclintf, controls, mpCripto, mpBlock, Zipper, mpLang, mpcoin, poolmanage, Win32Proc;
 
 Procedure VerificarArchivos();
 {Procedure VerificarSSL();}
@@ -14,6 +14,7 @@ Procedure CreateLog();
 Procedure ToLog(Texto:string);
 Procedure CrearArchivoOpciones();
 Procedure CargarOpciones();
+Procedure GuardarOpciones();
 Procedure CrearIdiomaFile();
 Procedure CargarIdioma(numero:integer);
 Procedure CrearBotData();
@@ -64,6 +65,12 @@ function GetPoolInfoFromDisk():PoolInfoData;
 Procedure LoadPoolMembers();
 Procedure CrearArchivoPoolMembers;
 Procedure GuardarPoolMembers();
+Procedure EjecutarAutoUpdate(version:string);
+Procedure CrearRestartfile();
+Procedure RestartConditions();
+Procedure CrearCrashInfo();
+function OSVersion: string;
+Function GetWinVer():string;
 
 implementation
 
@@ -102,16 +109,15 @@ OutText('✓ My transactions file ok',false,1);
 if fileexists(PoolInfoFilename) then
    begin
    GetPoolInfoFromDisk();
-   StartPoolServer(poolinfo.Port);
+   Miner_OwnsAPool := true;
    LoadPoolMembers();
    ResetPoolMiningInfo();
    end;
 if UserOptions.PoolInfo<> '' then
    begin
    LoadMyPoolData;
-   ConnectPoolClient(MyPoolData.Ip,MyPoolData.port,MyPoolData.Password);
    end;
-
+OutText('✓ Pool info verified',false,1);
 MyLastBlock := GetMyLastUpdatedBlock;
 BuildHeaderFile(MyLastBlock); // PROBABLY IT IS NOT NECESAARY
 
@@ -189,6 +195,7 @@ Begin
    DefOptions.JustUpdated:=false;
    DefOptions.VersionPage:='https://nosocoin.blogspot.com';
    DefOptions.ToTray:=false;
+   DefOptions.UsePool:=false;
    write(FileOptions,DefOptions);
    closefile(FileOptions);
    UserOptions := DefOptions;
@@ -974,7 +981,8 @@ while contador <= untilblock do
    if contador > ListaSumario[0].LastOP then // el bloque analizado es mayor que el ultimo incluido
       begin                                  // en el sumario asi que se procesan sus trxs
       newblocks := newblocks + 1;
-      UpdateSumario(BlockHeader.AccountMiner,BlockHeader.Reward+BlockHeader.MinerFee,0,IntToStr(contador));
+      AddBlockToSumary(contador);
+      {UpdateSumario(BlockHeader.AccountMiner,BlockHeader.Reward+BlockHeader.MinerFee,0,IntToStr(contador));
       // AQUI LEER LAS TRANSACCIONES Y PROCESARLAS
       ArrayOrders := Default(BlockOrdersArray);
       ArrayOrders := GetBlockTrxs(contador);
@@ -992,7 +1000,7 @@ while contador <= untilblock do
             end;
          end;
       ListaSumario[0].LastOP:=contador;
-      GuardarSumario();
+      GuardarSumario(); }
       end;
    // VErificar si el sumario hash no esta en blanco
    seek(FileResumen,contador);
@@ -1024,6 +1032,7 @@ if newblocks>0 then
    end;
 GuardarSumario();
 UpdateMyData();
+MySumarioHash := HashMD5File(SumarioFilename);
 U_Dirpanel := true;
 if g_launching then OutText('✓ '+IntToStr(untilblock+1)+' blocks rebuilded',false,1);
 End;
@@ -1071,6 +1080,7 @@ UpdateSumario(ADMINHash,PremineAmount,0,'0');
 for contador := 1 to UntilBlock do
    begin
    info(LangLine(130)+inttoStr(contador));  //'Rebuilding sumary block: '
+   //AddBlockToSumary(contador);
    BlockHeader := Default(BlockHeaderData);
    BlockHeader := LoadBlockDataHeader(contador);
    UpdateSumario(BlockHeader.AccountMiner,BlockHeader.Reward+BlockHeader.MinerFee,0,IntToStr(contador));
@@ -1330,6 +1340,7 @@ var
   porcentaje : integer;
 Begin
 CloseAllForms();
+RunningDoctor := true;
 if UpperCase(parameter(linea,1)) = 'FIX' then fixfiles := true;
 lastblock := GetMyLastUpdatedBlock;
 forminicio.Caption:='Noso Doctor';
@@ -1337,9 +1348,15 @@ GridInicio.RowCount:=0;
 FormInicio.BorderIcons:=FormInicio.BorderIcons-[bisystemmenu];
 forminicio.visible := true;
 form1.Visible:=false;
+if lastblock = 0 then
+   begin
+   outtext('You can not run diagnostic now',false,1);
+   RunningDoctor := false;
+   FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
+   exit;
+   end;
 outtext('Blocks to check: '+IntToStr(lastblock+1),false,1);
 outtext('Checking block files 0 %',false,1);
-Application.ProcessMessages;
 for cont := 0 to lastblock do
    begin
    gridinicio.RowCount := gridinicio.RowCount-1;
@@ -1398,6 +1415,7 @@ for cont := 1 to lastblock do
    end;
 closefile(FileResumen);
 outtext('Errors: '+IntToStr(errores)+' / Fixed: '+IntToStr(fixed),false,1);
+RunningDoctor := false;
 FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
 UpdateMyData();
 End;
@@ -1434,12 +1452,16 @@ function GetPoolInfoFromDisk():PoolInfoData;
 var
   dato : PoolInfoData;
 Begin
+try
 assignfile(FilePool,PoolInfoFilename);
 reset(FilePool);
 read(filepool,dato);
 result := dato;
 Closefile(FilePool);
 PoolInfo := Dato;
+Except on E:Exception do
+  tolog('Error loading pool info from disk');
+end;
 End;
 
 Procedure CrearArchivoPoolMembers;
@@ -1454,19 +1476,23 @@ var
   contador : integer;
   dato : PoolMembersData;
 Begin
-assignfile(FilePoolMembers,PoolMembersFilename);
-reset(FilePoolMembers);
-setlength(ArrayPoolMembers,filesize(FilePoolMembers));
-if filesize(FilePoolMembers) > 0 then
-   begin
-   for contador := 0 to filesize(FilePoolMembers)-1 do
+TRY
+   assignfile(FilePoolMembers,PoolMembersFilename);
+   reset(FilePoolMembers);
+   setlength(ArrayPoolMembers,filesize(FilePoolMembers));
+   if filesize(FilePoolMembers) > 0 then
       begin
-      seek(FilePoolMembers,contador);
-      read(FilePoolMembers,dato);
-      ArrayPoolMembers[contador]:= dato;
+      for contador := 0 to filesize(FilePoolMembers)-1 do
+         begin
+         seek(FilePoolMembers,contador);
+         read(FilePoolMembers,dato);
+         ArrayPoolMembers[contador]:= dato;
+         end;
       end;
-   end;
-Closefile(FilePoolMembers);
+   Closefile(FilePoolMembers);
+EXCEPT on E:Exception do
+   ToLog('Error loading pool members from disk.');
+END;
 End;
 
 Procedure GuardarPoolMembers();
@@ -1482,6 +1508,104 @@ for contador := 0 to length(ArrayPoolMembers)-1 do
    end;
 Closefile(FilePoolMembers);
 S_PoolMembers := false;
+End;
+
+Procedure EjecutarAutoUpdate(version:string);
+var
+  archivo : textfile;
+Begin
+try
+  Assignfile(archivo, 'nosolauncher.bat');
+  rewrite(archivo);
+  writeln(archivo,'echo Restarting Noso...');
+  writeln(archivo,'TIMEOUT 5');
+  writeln(archivo,'del noso.exe');
+  writeln(archivo,'ren noso'+version+'.exe noso.exe');
+  writeln(archivo,'start noso.exe');
+  Closefile(archivo);
+Except on E:Exception do
+   tolog ('Error creating restart file');
+end;
+RunExternalProgram('nosolauncher.bat');
+End;
+
+Procedure CrearRestartfile();
+var
+  archivo : textfile;
+Begin
+try
+  Assignfile(archivo, 'restart.txt');
+  rewrite(archivo);
+  writeln(archivo,GetCurrentStatus(0));
+  Closefile(archivo);
+Except on E:Exception do
+   tolog ('Error creating restart file');
+end;
+End;
+
+Procedure RestartConditions();
+var
+  archivo : textfile;
+  linea : string;
+  Server,connect : boolean;
+Begin
+Assignfile(archivo, 'restart.txt');
+reset(archivo);
+ReadLn(archivo,linea);
+Closefile(archivo);
+server := StrToBool(parameter(linea,1));
+connect := StrToBool(parameter(linea,3));
+if server then Processlines.Add('SERVERON');
+if connect then Processlines.Add('CONNECT');
+Deletefile('restart.txt');
+End;
+
+Procedure CrearCrashInfo();
+var
+  archivo : textfile;
+Begin
+try
+  Assignfile(archivo, 'crashinfo.txt');
+  rewrite(archivo);
+  writeln(archivo,GetCurrentStatus(1));
+  Closefile(archivo);
+Except on E:Exception do
+   tolog ('Error creating crashinfo file');
+end;
+End;
+
+function OSVersion: string;
+begin
+  {$IFDEF LCLcarbon}
+  OSVersion := 'Mac OS X 10.';
+  {$ELSE}
+  {$IFDEF Linux}
+  OSVersion := 'Linux Kernel ';
+  {$ELSE}
+  {$IFDEF UNIX}
+  OSVersion := 'Unix ';
+  {$ELSE}
+  {$IFDEF WINDOWS}
+  OSVersion:= GetWinVer;
+  {$ENDIF}
+  {$ENDIF}
+  {$ENDIF}
+  {$ENDIF}
+end;
+
+Function GetWinVer():string;
+Begin
+if WindowsVersion = wv95 then result := 'Windows95'
+  else if WindowsVersion = wvNT4 then result := 'WindowsNTv.4'
+  else if WindowsVersion = wv98 then result := 'Windows98'
+  else if WindowsVersion = wvMe then result := 'WindowsME'
+  else if WindowsVersion = wv2000 then result := 'Windows2000'
+  else if WindowsVersion = wvXP then result := 'WindowsXP'
+  else if WindowsVersion = wvServer2003 then result := 'WindowsServer2003/WindowsXP64'
+  else if WindowsVersion = wvVista then result := 'WindowsVista'
+  else if WindowsVersion = wv7 then result := 'Windows7'
+  else if WindowsVersion = wv10 then result := 'Windows10'
+  else result := 'WindowsUnknown';
 End;
 
 END. // END UNIT

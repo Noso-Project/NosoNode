@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, forms, SysUtils, MasterPaskalForm, MPTime, IdContext, IdGlobal, mpGUI, mpDisk,
-  mpBlock, mpMiner, fileutil, graphics,  dialogs,poolmanage;
+  mpBlock, mpMiner, fileutil, graphics,  dialogs,poolmanage, strutils;
 
 function GetSlotFromIP(Ip:String):int64;
 function BotExists(IPUser:String):Boolean;
@@ -114,12 +114,14 @@ end;
 // Activa el servidor
 procedure StartServer();
 Begin
+KeepServerOn := true;
 if Form1.Server.Active then
    begin
    ConsoleLines.Add(LangLine(160)); //'Server Already active'
    exit;
    end;
    try
+   LastTryServerOn := StrToInt64(UTCTime);
    Form1.Server.Bindings.Clear;
    Form1.Server.DefaultPort:=UserOptions.Port;
    Form1.Server.Active:=true;
@@ -144,6 +146,7 @@ for contador := 1 to MaxConecciones do
 Form1.Server.Active:=false;
 ConsoleLines.Add(LangLine(16));             //Server stopped
 U_DataPanel := true;
+KeepServerOn := false;
 SetCurrentJob('StopServer',false);
 end;
 
@@ -352,7 +355,7 @@ While not CanalCliente[Slot].IOHandler.InputBufferIsEmpty do
       UpdateHash := Parameter(LLine,2);
       UpdateClavePublica := Parameter(LLine,3);
       UpdateFirma := Parameter(LLine,4);
-      UpdateZipName := 'mpupdate'+UpdateVersion+'.zip';
+      UpdateZipName := 'nosoupdate'+UpdateVersion+'.zip';
       if FileExists(UpdateZipName) then DeleteFile(UpdateZipName);
       AFileStream := TFileStream.Create(UpdateZipName, fmCreate);
       CanalCliente[Slot].IOHandler.ReadStream(AFileStream);
@@ -412,15 +415,28 @@ for contador := 1 to Maxconecciones do
         end;
      end;
    end;
-if ((Miner_UsingPool) and (not canalpool.Connected)) then
+if ((UserOptions.UsePool) and (not canalpool.Connected) and (MyConStatus = 3) and(Miner_Active)) then
    begin
-   if ConnectPoolClient(MyPoolData.Ip,MyPoolData.port,MyPoolData.Password) then
+   if LastTryConnectPoolcanal + 5 < StrToInt64(UTCTime) then
       begin
-      consolelines.add('Reconnected to pool server');
-      tolog('Reconnected to pool server');
+      LastTryConnectPoolcanal := StrToInt64(UTCTime);
+      if ConnectPoolClient(MyPoolData.Ip,MyPoolData.port,MyPoolData.Password) then
+         begin
+         consolelines.add('Reconnected to pool server');
+         tolog('Reconnected to pool server');
+         end
+      else
+         begin
+         consolelines.add('Unable to connect to pool server');
+         tolog('Unable to connect to pool server');
+         end;
       end;
    end;
-if canalpool.Connected then ReadPoolClientLines();
+if canalpool.Connected then
+  begin
+  ReadPoolClientLines();
+  if PoolClientLastPing+300<StrToInt64(UTCTime) then PoolRequestMyStatus;
+  end;
 SetCurrentJob('LeerLineasDeClientes',false);
 End;
 
@@ -461,6 +477,8 @@ if NumeroConexiones = 0 then  // Desconeectado
       NetPendingTrxs.Value:='';
       U_Datapanel:= true;
       SetLength(PendingTXs,0);
+      if CanalPool.Connected then DisconnectPoolClient;
+      StopPoolServer;
       Form1.imagenes.GetBitmap(2,ConnectButton.Glyph);
       end;
    // Resetear todos los valores
@@ -500,6 +518,17 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
    ConsoleLines.Add(LangLine(36));   //Updated!
    ResetMinerInfo();
    ResetPoolMiningInfo();
+   if ((Miner_OwnsAPool) and (Miner_Active) and(not Form1.PoolServer.Active)) then // Activar el pool propio si se posee uno
+      begin
+      StartPoolServer(Poolinfo.Port);
+      if Form1.PoolServer.Active then consolelines.Add(PoolInfo.Name+' pool server is listening')
+      else consolelines.Add('Unable to star pool server');
+      end;
+   if ((UserOptions.UsePool)and (Miner_Active) and (not CanalPool.Connected)) then
+      begin
+      ConnectPoolClient(MyPoolData.Ip,MyPoolData.port,MyPoolData.Password);
+      PoolRequestMyStatus();
+      end;
    if StrToInt(NetPendingTrxs.Value)> length(PendingTXs) then
      PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));
    OutgoingMsjs.Add(ProtocolLine(ping));
@@ -507,7 +536,16 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
    end;
 if MyConStatus = 3 then
    begin
-
+   if ((Miner_OwnsAPool) and (not Form1.PoolServer.Active)) then // Activar el pool propio si se posee uno
+      begin
+      if LastTryStartPoolServer+5 < StrToInt64(UTCTIME) then
+         begin
+         StartPoolServer(Poolinfo.Port);
+         LastTryStartPoolServer := StrToInt64(UTCTIME);
+         if Form1.PoolServer.Active then consolelines.Add(PoolInfo.Name+' pool server is listening')
+         else consolelines.Add('Unable to start pool server');
+         end;
+      end;
    end;
 SetCurrentJob('VerifyConnectionStatus',false);
 End;
@@ -674,6 +712,18 @@ Begin
 if GetAddressFromPublicKey(clavepublica) <> Adminhash then Proceder := false;
 if not VerifySignedString(version+' '+hash,firma,clavepublica) then Proceder := false;
 if HashMD5File(namefile) <> hash then Proceder := false;
+if version <= ProgramVersion then
+   begin
+   consoleLines.Add(LangLine(38)); //Update file received is obsolete
+   deletefile(namefile);
+   exit;
+   end;
+if fileexists(UpdatesDirectory+namefile) then
+   begin
+   consoleLines.Add('Update file already exists'); //Update file received is obsolete
+   deletefile(namefile);
+   exit;
+   end;
 if not proceder then
    begin
    consoleLines.Add(LangLine(37));      //Update file received is wrong
@@ -681,23 +731,23 @@ if not proceder then
    end
 else
    begin
-   if version <= ProgramVersion then
-      begin
-      consoleLines.Add(LangLine(38)); //Update file received is obsolete
-      deletefile(namefile);
-      exit;
-      end;
+   UnzipBlockFile(namefile,false);
+   copyfile(namefile,UpdatesDirectory+namefile);
+   deletefile(namefile);
+   EnviarUpdate('sendupdate '+Version+' '+clavepublica+' '+hash+' '+firma);
    if UserOptions.Auto_Updater then
          begin
-         UnzipBlockFile(namefile,false);
-         copyfile(namefile,UpdatesDirectory+namefile);
-         deletefile(namefile);
-         RunExternalProgram('mpUpdater.exe');
+         useroptions.JustUpdated:=true;
+         GuardarOpciones();
+         CrearRestartfile();
+         EjecutarAutoUpdate(version);
          Application.Terminate;
          end
    else
       begin
       // que hacer si la opcion autopupdate no esta activada
+      deletefile('noso'+version+'.exe');
+      if not AnsiContainsStr(StringAvailableUpdates,version) then StringAvailableUpdates := StringAvailableUpdates+' '+version;
       end;
    end;
 End;
