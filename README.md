@@ -1,11 +1,11 @@
 # NosoWallet
 Noso Windows Wallet
 
-This sofware is in current development (Febraury 2021) so new versions will be available very often
+Current verison 0.2.0 is the first official release. Noso mainnet will start minning with this one-
 
-Unofficial Release Ver 0.1.7
+Official Release Ver 0.2.0
 
--- THIS IS A BETA VERSION. 
+THIS IS AM OFFICIAL RELEASE
 
 Requirements:
 
@@ -39,7 +39,11 @@ File > Open > Select the .LPI file from this repository.
 
 To compile, just click CTRL+F9; it will create the .EXE file in the same folder
 
+EXE file hash: 26B1E690B21214E39E130F506C5568BB (you can check it writing 'myhash' in the console line)
+
 Donations for the project:
 
 Bitcoin: 3H1VzdL3QFQpc62DUhbtCFV5dG4K1yPwVB
+
+
 
