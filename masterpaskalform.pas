@@ -197,6 +197,12 @@ type
        Target : string[64];
        end;
 
+  PoolUserConnection = Packed Record
+       Ip : String[15];
+       Address : String[40];
+       Context : TIdContext;
+       end;
+
   { TForm1 }
 
   TForm1 = class(TForm)
@@ -268,6 +274,8 @@ type
     // Pool
     procedure PoolServerConnect(AContext: TIdContext);
     procedure PoolServerExecute(AContext: TIdContext);
+    procedure PoolServerDisconnect(AContext: TIdContext);
+
 
     // MAIN MENU
     Procedure CheckMMCaptions(Sender:TObject);
@@ -329,10 +337,11 @@ CONST
   B58Alphabet : string = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
   B36Alphabet : string = '0123456789abcdefghijklmnopqrstuvwxyz';
   ReservedWords : string = 'NULL,DELADDR';
-  HideCommands : String = 'CLEAR SENDPOOLSOLUTION';
+  HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS POOLHASHRATE';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
-  DefaultNodes : String = 'DefNodes 23.95.233.179 75.127.0.216';
+  DefaultNodes : String = 'DefNodes 23.95.233.179 75.127.0.216 192.210.160.101';
   ProgramVersion = '0.2.0';
+  SubVersion = 'F';
   OficialRelease = true;
   BuildDate = 'March 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -353,7 +362,7 @@ CONST
   PoolInfoFilename = 'NOSODATA/poolinfo.dat';
   PoolMembersFilename = 'NOSODATA/poolmembers.dat';
   DefaultServerPort = 8080;
-  MaxConecciones  = 15;
+  MaxConecciones  = 50;
   Protocolo = 1;
   Miner_Steps = 10;
   // Custom values for coin
@@ -375,6 +384,9 @@ CONST
   GenesysTimeStamp = 1615132800;//1615132800;
 
 var
+  ReadTimeOutTIme : integer = 10;
+  ConnectTimeOutTime : integer = 200;
+  MaxOutgoingConnections : integer = 3;
   FirstShow : boolean = false;
   RunningDoctor : boolean = false;
   MinConexToWork : integer = 1;
@@ -409,6 +421,7 @@ var
     U_DataPanel : boolean = true;
   LabelBigBalance : TLabel;
 
+
     U_DirPanel : boolean = false;
   FileMyTrx  : File of MyTrxData;
     S_MyTrxs  : boolean = false;
@@ -430,6 +443,8 @@ var
     PoolInfo : PoolInfoData;
   FilePoolMembers : File of PoolMembersData;
     S_PoolMembers : boolean = false;
+  PoolServerConex : array of PoolUserConnection;
+  PoolTotalHashRate : int64 = 0;
 
   UserOptions : Options;
   CurrentLanguage : String = '';
@@ -454,6 +469,7 @@ var
   OutgoingMsjs : TStringlist;
   ArrayConsenso : array of NetworkData;
   ArrayPoolMembers : array of PoolMembersData;
+  PoolMembersTotalDeuda : Int64 = 0;
 
   // Variables asociadas a la red
   KeepServerOn : Boolean = false;
@@ -485,6 +501,8 @@ var
   Miner_OwnsAPool : Boolean = false;
     LastTryStartPoolServer : int64;
     LastTryConnectPoolcanal : Int64;
+    LastPoolHashRequest : int64;
+  Miner_PoolHashRate : Int64 = 0;
   Miner_IsON : Boolean = false;
   Miner_Active : Boolean = false;
   Miner_Waiting : int64 = -1;
@@ -493,7 +511,7 @@ var
   Miner_DifChars : integer = 0;
   Miner_Target : String = '';
   MINER_FoundedSteps : integer = 0;
-  MINER_HashCounter : Int64 = 100000000;
+  MINER_HashCounter : Integer = 100000000;
   Miner_HashSeed : String = '!!!!!!!!!';
   Miner_Thread : array of TThreadID;
   Miner_Address : string = '';
@@ -502,6 +520,7 @@ var
   Miner_SolutionVerified : boolean = false;
   Miner_UltimoRecuento : int64 = 100000000;
   Miner_EsteIntervalo : int64 = 0;
+  Miner_KillThreads : boolean = false;
 
   // Threads
   RebulidTrxThread : Int64 = 0;
@@ -666,7 +685,7 @@ ResetMinerInfo();
 OutText('✓ Miner configuration set',false,1);
 // Ajustes a mostrar
 LoadOptionsToPanel();
-form1.Caption:=coinname+LangLine(61)+ProgramVersion;    // Wallet
+form1.Caption:=coinname+LangLine(61)+ProgramVersion+SubVersion;    // Wallet
 Application.Title := coinname+LangLine(61)+ProgramVersion;  // Wallet
 for contador := 0 to IdiomasDisponibles.Count-1 do
    LangSelect.Items.Add(IdiomasDisponibles[contador]);
@@ -704,6 +723,7 @@ Setlength(CriptoOpsOper,0);
 Setlength(CriptoOpsResu,0);
 Setlength(MilitimeArray,0);
 Setlength(Miner_Thread,0);
+SetLength(PoolServerConex,0);
 Tolog('Noso session started'); NewLogLines := NewLogLines-1;
 info('Noso session started');
 infopanel.BringToFront;
@@ -882,6 +902,7 @@ end;
 //procesa el cierre de la aplicacion
 Procedure CerrarPrograma();
 Begin
+Miner_KillThreads := true;
 info(LangLine(62));  //   Closing wallet
 if RestartNosoAfterQuit then CrearRestartfile();
 CloseAllforms();
@@ -1508,7 +1529,7 @@ Form1.PoolServer.UseNagle:=true;
 Form1.PoolServer.TerminateWaitTime:=50000;
 Form1.PoolServer.OnExecute:=@form1.PoolServerExecute;
 Form1.PoolServer.OnConnect:=@form1.PoolServerConnect;
-//Form1.PoolServer.OnDisconnect:=@form1.IdTCPServer1Disconnect;
+Form1.PoolServer.OnDisconnect:=@form1.PoolServerDisconnect;
 //Form1.PoolServer.OnException:=@Form1.IdTCPServer1Exception;
 End;
 
@@ -1522,6 +1543,7 @@ var
   JoinIP, JoinPort, JoinPrefijo : String;
   MemberBalance : Int64;
   BloqueStep: integer; SeedStep : string; HashStep : Int64; Solucion : String;
+  PoolSolutionStep : integer = 0;
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
 Linea := AContext.Connection.IOHandler.ReadLn(IndyTextEncoding_UTF8);
@@ -1557,35 +1579,58 @@ if Comando = 'STATUS' then
       ConsoleLines.Add('Wrong status required for '+UserDireccion);
       end;
    end;
+if Comando = 'HASHRATE' then
+   begin
+   PoolTotalHashRate := PoolTotalHashRate+StrToIntDef(parameter(linea,3),0);
+   GridPoolConex.Cells[2,GetPoolConexFromIp(IpUser)+1] := parameter(linea,3);
+   GridPoolConex.Cells[3,GetPoolConexFromIp(IpUser)+1] := parameter(linea,4);
+   end;
 if Comando = 'STEP' then
    begin
    bloqueStep := StrToInt(parameter(linea,3));
    SeedStep := parameter(linea,4);
    HashStep := StrToInt64(parameter(linea,5));
    Solucion := HashSha256String(SeedStep+PoolInfo.Direccion+IntToStr(HashStep));
-   if AnsiContainsStr(Solucion,copy(PoolMiner.Target,1,PoolMiner.DiffChars)) then
+   if ( (AnsiContainsStr(Solucion,copy(PoolMiner.Target,1,PoolMiner.DiffChars))) and
+       (GetPoolMemberBalance(UserDireccion)>-1) and (bloqueStep=PoolMiner.Block) ) then
       begin
       AcreditarPoolStep(UserDireccion);
       MemberBalance := GetPoolMemberBalance(UserDireccion);
       Acontext.Connection.IOHandler.WriteLn('STATUSOK '+UserDireccion+' '+IntToStr(MemberBalance)+
-      ' '+IntToStr(MyLastBlock-(GetLastPagoPoolMember(UserDireccion)+PoolInfo.TipoPago)));
+         ' '+IntToStr(MyLastBlock-(GetLastPagoPoolMember(UserDireccion)+PoolInfo.TipoPago)));
       PoolMiner.Solucion := PoolMiner.Solucion+SeedStep+IntToStr(HashStep)+' ';
       PoolMiner.steps := PoolMiner.steps+1;
       PoolMiner.DiffChars:=GetCharsFromDifficult(PoolMiner.Dificult, PoolMiner.steps);
+      ProcessLines.Add('SENDPOOLSTEPS '+IntToStr(PoolMiner.steps));
       if PoolMiner.steps = Miner_Steps then
          begin
          SetLength(PoolMiner.Solucion,length(PoolMiner.Solucion)-1);
-         if VerifySolutionForBlock(PoolMiner.Dificult, PoolMiner.Target,PoolInfo.Direccion , PoolMiner.Solucion) then
+         PoolSolutionStep := VerifySolutionForBlock(PoolMiner.Dificult, PoolMiner.Target,PoolInfo.Direccion , PoolMiner.Solucion);
+         if PoolSolutionStep=0 then
             Begin
             consolelines.Add('Pool solution verified!');
             OutgoingMsjs.Add(ProtocolLine(6)+UTCTime+' '+IntToStr(PoolMiner.Block)+' '+
             PoolInfo.Direccion+' '+StringReplace(PoolMiner.Solucion,' ','_',[rfReplaceAll, rfIgnoreCase]));
+            ResetPoolMiningInfo();
             end
-         else consolelines.Add('Pool solution FAILED!');
-         ResetPoolMiningInfo();
+         else
+            begin
+            consolelines.Add('Pool solution FAILED at step '+IntToStr(PoolSolutionStep));
+            PoolMiner.Solucion:=TruncateBlockSolution(PoolMiner.Solucion,PoolSolutionStep);
+            PoolMiner.steps := PoolSolutionStep-1;
+            PoolMiner.DiffChars:=GetCharsFromDifficult(PoolMiner.Dificult, PoolMiner.steps);
+            ProcessLines.Add('SENDPOOLSTEPS '+IntToStr(PoolMiner.steps));
+            if (bloqueStep<>PoolMiner.Block) then ConsoleLines.Add('Wrong BlockNumber');
+            end;
          end;
       end
-   else consolelines.Add('Wrong step received in pool'+slinebreak+SeedStep+PoolInfo.Direccion+IntToStr(HashStep));
+   else
+      begin
+      consolelines.Add('Wrong step received in pool'+slinebreak+SeedStep+PoolInfo.Direccion+IntToStr(HashStep));
+      Acontext.Connection.IOHandler.WriteLn('POOLSTEPS '+IntToStr(PoolMiner.steps));
+      if GetPoolMemberBalance(UserDireccion)< 0 then consolelines.Add('Unregistered pool user: '+UserDireccion)
+      else consolelines.Add('Member: '+UserDireccion);
+      end;
    end;
 if Comando = 'PAYMENT' then
    Begin
@@ -1598,11 +1643,13 @@ if Comando = 'PAYMENT' then
          ClearPoolUserBalance(UserDireccion);
          Acontext.Connection.IOHandler.WriteLn('PAYMENTOK '+IntToStr(GetMaximunToSend(MemberBalance)));
          ConsoleLines.Add('Pool payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
+         tolog('Pool payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
+         PoolMembersTotalDeuda := GetTotalPoolDeuda();
          end;
       end
    else
       begin
-
+      Acontext.Connection.IOHandler.WriteLn('PAYMENTFAIL');
       end;
    end;
 End;
@@ -1611,10 +1658,12 @@ End;
 procedure TForm1.PoolServerConnect(AContext: TIdContext);
 var
   IPUser,Linea,password : String;
+  UserDireccion : string = '';
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
 Linea := AContext.Connection.IOHandler.ReadLn('',200,-1,IndyTextEncoding_UTF8);
 Password := Parameter(Linea,0);
+UserDireccion := Parameter(Linea,1);
 if password <> Poolinfo.PassWord then
    begin
    Acontext.Connection.IOHandler.WriteLn('PASSFAILED');
@@ -1624,7 +1673,18 @@ if password <> Poolinfo.PassWord then
    end
 else
    begin
+   SavePoolServerConnection(IpUser,UserDireccion,Acontext);
+   if userdireccion <> '' then Acontext.Connection.IOHandler.WriteLn('POOLSTEPS '+IntToStr(PoolMiner.steps));
    end;
+End;
+
+procedure TForm1.PoolServerDisConnect(AContext: TIdContext);
+var
+  IPUser : string;
+Begin
+IPUser := AContext.Connection.Socket.Binding.PeerIP;
+Acontext.Connection.IOHandler.InputBuffer.Clear;
+BorrarPoolServerConex(ipuser);
 End;
 
 // Recibir una linea
@@ -2447,7 +2507,7 @@ Begin
 UpdatePoolForm();
 if fileexists(PoolInfoFilename) then
   begin
-  formpool.Height:= 230;
+  formpool.Height:= 400;
   formpool.Width := 560;
   end
 else

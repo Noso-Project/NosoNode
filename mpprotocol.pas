@@ -240,6 +240,7 @@ if conexiones[Slot].tipo='CLI' then
       On E :Exception do
          begin
          ConsoleLines.Add(E.Message);
+         ToLog('Error sending line: '+E.Message);
          CerrarSlot(Slot);
          end;
       end;
@@ -252,6 +253,7 @@ if conexiones[Slot].tipo='SER' then
       On E :Exception do
          begin
          ConsoleLines.Add(E.Message);
+         ToLog('Error sending line: '+E.Message);
          CerrarSlot(Slot);
          end;
       end;
@@ -355,7 +357,11 @@ While OutgoingMsjs.Count > 0 do
    begin
    For Slot := 1 to MaxConecciones do
       begin
+      try
       if conexiones[Slot].tipo <> '' then PTC_SendLine(Slot,OutgoingMsjs[0]);
+      Except on E:Exception do
+         Tolog('Error sending outgoing message');
+      end;
       end;
    if OutgoingMsjs.Count > 0 then OutgoingMsjs.Delete(0);
    end;
@@ -417,8 +423,8 @@ DireccionMinero := Parameter (Texto,7);
 Solucion        := Parameter (Texto,8);
 solucion        := StringReplace(Solucion,'_',' ',[rfReplaceAll, rfIgnoreCase]);
 // Se recibe una solucion del siguiente bloque
-if ((StrToIntDef(NumeroBloque,-1) = LastBlockData.Number+1) and
-     (VerifySolutionForBlock(lastblockdata.NxtBlkDiff,MyLastBlockHash,DireccionMinero,Solucion)))then
+if ( (StrToIntDef(NumeroBloque,-1) = LastBlockData.Number+1) and
+     (VerifySolutionForBlock(lastblockdata.NxtBlkDiff,MyLastBlockHash,DireccionMinero,Solucion)=0))then
    begin
    consoleLines.Add(LangLine(21)+NumeroBloque); //Solution for block received and verified:
    CrearNuevoBloque(StrToInt(NumeroBloque),StrToInt64(TimeStamp),Miner_Target,DireccionMinero,Solucion);
@@ -426,8 +432,8 @@ if ((StrToIntDef(NumeroBloque,-1) = LastBlockData.Number+1) and
 // se recibe una solucion distinta del ultimo bloque pero mas antigua
 else if ( (StrToIntDef(NumeroBloque,-1) = LastBlockData.Number) and
    (StrToInt64(timestamp)<LastBlockData.TimeEnd) and
-   (VerifySolutionForBlock(lastblockdata.Difficult,LastBlockData.TargetHash,DireccionMinero,Solucion)
-   and (StrToInt64(timestamp)+15 > StrToInt64(UTCTime))) ) then
+   (VerifySolutionForBlock(lastblockdata.Difficult,LastBlockData.TargetHash,DireccionMinero,Solucion)=0)
+   and (StrToInt64(timestamp)+15 > StrToInt64(UTCTime)) ) then
       begin
       UndoneLastBlock;
       CrearNuevoBloque(StrToInt(NumeroBloque),StrToInt64(TimeStamp),Miner_Target,DireccionMinero,Solucion);
@@ -435,8 +441,8 @@ else if ( (StrToIntDef(NumeroBloque,-1) = LastBlockData.Number) and
 // solucion distinta del ultimo con el mismo timestamp se elige la mas corta
 else if ( (StrToIntDef(NumeroBloque,-1) = LastBlockData.Number) and
    (StrToInt64(timestamp)=LastBlockData.TimeEnd) and
-   (VerifySolutionForBlock(lastblockdata.Difficult,LastBlockData.TargetHash,DireccionMinero,Solucion) and
-   (StrToInt64(timestamp)+15 > StrToInt64(UTCTime))) and
+   (VerifySolutionForBlock(lastblockdata.Difficult,LastBlockData.TargetHash,DireccionMinero,Solucion)=0) and
+   (StrToInt64(timestamp)+15 > StrToInt64(UTCTime)) and
    (DireccionMinero<>LastBlockData.AccountMiner) and
    (Solucion<LastBlockData.Solution) ) then
       begin
@@ -524,7 +530,7 @@ Address := GetAddressFromPublicKey(OrderInfo.Sender);
 if address <> OrderInfo.Address then proceder := false;
 // La direccion no dispone de fondos
 if GetAddressBalance(Address)-GetAddressPendingPays(Address) < Customizationfee then Proceder:=false;
-if TranxAlreadyPending(OrderInfo.TrfrID ) then exit;
+if TranxAlreadyPending(OrderInfo.TrfrID ) then Proceder:=false;
 if OrderInfo.TimeStamp < LastBlockData.TimeStart then Proceder:=false;
 if TrxExistsInLastBlock(OrderInfo.TrfrID) then Proceder:=false;
 if AddressAlreadyCustomized(Address) then Proceder:=false;
@@ -581,7 +587,7 @@ for cont := 0 to NumTransfers-1 do
    SetLength(TrxArray,length(TrxArray)+1);SetLength(SenderTrx,length(SenderTrx)+1);
    TrxArray[cont] := default (orderdata);
    TrxArray[cont] := GetOrderFromString(Textbak);
-   if TranxAlreadyPending(TrxArray[cont].TrfrID) then exit;
+   if TranxAlreadyPending(TrxArray[cont].TrfrID) then Proceder := false;;
    SenderTrx[cont] := GetAddressFromPublicKey(TrxArray[cont].Sender);
    if SenderTrx[cont] <> TrxArray[cont].Address then proceder := false;
    if pos(SendersString,SenderTrx[cont]) > 0 then

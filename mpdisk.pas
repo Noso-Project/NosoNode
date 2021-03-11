@@ -112,6 +112,7 @@ if fileexists(PoolInfoFilename) then
    Miner_OwnsAPool := true;
    LoadPoolMembers();
    ResetPoolMiningInfo();
+   PoolMembersTotalDeuda := GetTotalPoolDeuda();
    end;
 if UserOptions.PoolInfo<> '' then
    begin

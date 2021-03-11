@@ -9,7 +9,7 @@ uses
 
 procedure StartPoolServer(port:integer);
 Procedure StopPoolServer();
-function ConnectPoolClient(Ip:String;Port:Integer;password:string):boolean;
+function ConnectPoolClient(Ip:String;Port:Integer;password:string;address:string):boolean;
 Procedure DisconnectPoolClient();
 Procedure SendPoolMessage(mensaje:string);
 function PoolAddNewMember(direccion:string):string;
@@ -19,13 +19,21 @@ Procedure PoolRequestMyStatus();
 Procedure PoolRequestPayment();
 function GetPoolMemberBalance(direccion:string):int64;
 Procedure SendPoolSolution(bloque:integer;seed:string;numero:int64);
+Procedure SendPoolHashRate();
 Procedure ResetPoolMiningInfo();
 function GetPoolNumeroDePasos():integer;
 Procedure DistribuirEnPool(cantidad:int64);
+Function GetTotalPoolDeuda():Int64;
 Procedure AcreditarPoolStep(direccion:string);
 function GetLastPagoPoolMember(direccion:string):integer;
 Procedure ClearPoolUserBalance(direccion:string);
 Procedure PoolUndoneLastPayment();
+Procedure PoolResetData();
+Procedure SavePoolServerConnection(Ip,UserAddress:String;contexto:TIdContext);
+Procedure BorrarPoolServerConex(Ipuser:string);
+Procedure SendPoolStepsInfo(steps:integer);
+Procedure SendPoolHashRateRequest();
+function GetPoolConexFromIp(Ip:string):integer;
 
 implementation
 
@@ -56,16 +64,16 @@ Begin
 if Form1.PoolServer.Active then Form1.PoolServer.Active:=false;
 End;
 
-function ConnectPoolClient(Ip:String;Port:Integer;password:string):boolean;
+function ConnectPoolClient(Ip:String;Port:Integer;password:string;address:string):boolean;
 Begin
 result := true;
 if canalpool.Connected then exit;
 CanalPool.Host:=Ip;
 CanalPool.Port:=Port;
-canalpool.ConnectTimeout:=300;
+canalpool.ConnectTimeout:=ConnectTimeOutTime;
 try
    canalpool.Connect;
-   canalpool.IOHandler.WriteLn(password);
+   canalpool.IOHandler.WriteLn(password+' '+address);
 Except on E:Exception do
    begin
    result := false;
@@ -139,16 +147,28 @@ Except On E:Exception do
 end;
 End;
 
+Procedure SendPoolHashRate();
+Begin
+try
+   if CanalPool.Connected then
+      SendPoolMessage(MyPoolData.Password+' '+MyPoolData.MyAddress+' HASHRATE '+IntToStr(Miner_EsteIntervalo*5 div 1000)+' '+ProgramVersion+SubVersion)
+   else consolelines.Add('Can not send hashrate to pool');
+Except On E:Exception do
+   ToLog('Error sending pool hashrate: '+E.Message);
+end;
+End;
+
 Procedure ReadPoolClientLines();
 var
   linea : string;
+  steps : integer;
 Begin
 if not canalpool.Connected then exit;
 SetCurrentJob('ReadPoolClientLines',true);
 try
    if canalpool.IOHandler.InputBufferIsEmpty then
       begin
-      canalpool.IOHandler.CheckForDataOnSource(10);
+      canalpool.IOHandler.CheckForDataOnSource(ReadTimeOutTIme);
       if canalpool.IOHandler.InputBufferIsEmpty then
          begin
          SetCurrentJob('ReadPoolClientLines',false);
@@ -158,7 +178,7 @@ try
    While not canalpool.IOHandler.InputBufferIsEmpty do
       begin
       TRY
-         canalpool.ReadTimeout:=10;
+         canalpool.ReadTimeout:=ReadTimeOutTIme;
          Linea := canalpool.IOHandler.ReadLn(IndyTextEncoding_UTF8);
       EXCEPT on E:Exception do
          begin
@@ -194,6 +214,22 @@ try
          begin
          Consolelines.Add('Wrong pool password');
          end
+      else if parameter(linea,0) = 'POOLSTEPS' then
+         begin
+         steps := StrToIntDef(parameter(linea,1),0);
+         MINER_FoundedSteps := steps;
+         Miner_DifChars := GetCharsFromDifficult(Miner_Difficult, MINER_FoundedSteps);
+         end
+      else if parameter(linea,0) = 'PAYMENTFAIL' then
+         begin
+         Consolelines.Add('You can not request a payment to the pool now');
+         end
+      else if parameter(linea,0) = 'HASHRATE' then
+         begin
+         Miner_PoolHashRate := StrToIntDef(parameter(Linea,1),0);
+         SendPoolHashRate();
+         end
+
       else ConsoleLines.Add('Unknown messsage from pool server: '+Linea);
       end;
 Except On E:Exception do
@@ -293,6 +329,19 @@ if length(arraypoolmembers)>0 then
    end;
 End;
 
+Function GetTotalPoolDeuda():Int64;
+var
+  contador : integer;
+  resultado : int64 = 0;
+Begin
+if length(arraypoolmembers)>0 then
+   begin
+   for contador := 0 to length(arraypoolmembers)-1 do
+      resultado := resultado + arraypoolmembers[contador].Deuda;
+   end;
+result := resultado;
+End;
+
 Procedure DistribuirEnPool(cantidad:int64);
 var
   numerodepasos: integer;
@@ -318,6 +367,7 @@ for contador := 0 to length(arraypoolmembers)-1 do
       arraypoolmembers[contador].Soluciones := 0;
       end;
    end;
+PoolMembersTotalDeuda := GetTotalPoolDeuda();
 S_PoolMembers := true;
 GuardarArchivoPoolInfo();
 End;
@@ -376,6 +426,7 @@ if length(ArrayPoolMembers)>0 then
    end;
 S_PoolMembers := true;
 GuardarArchivoPoolInfo;
+PoolMembersTotalDeuda := GetTotalPoolDeuda();
 End;
 
 Procedure PoolUndoneLastPayment();
@@ -395,7 +446,112 @@ if length(arraypoolmembers)>0 then
    end;
 S_PoolMembers := true;
 consolelines.Add('Discounted last payment to pool members : '+Int2curr(totalmenos));
+PoolMembersTotalDeuda := GetTotalPoolDeuda();
 End;
 
-END.
+Procedure PoolResetData();
+var
+  contador : integer;
+Begin
+if length(arraypoolmembers)>0 then
+   begin
+   for contador := 0 to length(arraypoolmembers)-1 do
+      begin
+      arraypoolmembers[contador].Soluciones :=0;
+      end;
+   end;
+S_PoolMembers := true;
+End;
+
+Procedure SavePoolServerConnection(Ip,UserAddress:String;contexto:TIdContext);
+var
+  newdato : PoolUserConnection;
+Begin
+NewDato.Ip:=Ip;
+NewDato.Address:=UserAddress;
+NewDato.Context:=Contexto;
+Setlength(PoolServerConex,length(PoolServerConex)+1);
+PoolServerConex[length(PoolServerConex)-1] := NewDato;
+End;
+
+Procedure BorrarPoolServerConex(Ipuser:string);
+var
+  contador : integer;
+Begin
+if length(PoolServerConex) > 0 then
+   begin
+   for contador := 0 to length(PoolServerConex)-1 do
+      begin
+      if PoolServerConex[contador].Ip = IpUser then
+         begin
+         delete(PoolServerConex,contador,1);
+         break;
+         end;
+      end;
+   end;
+End;
+
+Procedure SendPoolStepsInfo(steps:integer);
+var
+  contador : integer;
+Begin
+if length(PoolServerConex)>0 then
+   begin
+   for contador := 0 to length(PoolServerConex)-1 do
+      begin
+      try
+      PoolServerConex[contador].context.Connection.IOHandler.WriteLn('POOLSTEPS '+IntToStr(steps));
+      except on E:Exception do
+         begin
+         tolog('Error sending pool steps, slot '+IntToStr(contador));
+         end;
+      end;
+      end;
+   end;
+End;
+
+Procedure SendPoolHashRateRequest();
+var
+  contador : integer;
+  CurrPoolTotalHashRate : string;
+Begin
+CurrPoolTotalHashRate := IntToStr(PoolTotalHashRate);
+LastPoolHashRequest := StrToInt64(UTCTime);
+PoolTotalHashRate := 0;
+if ( (Miner_OwnsAPool) and (length(PoolServerConex)>0) ) then
+   begin
+   for contador := 0 to length(PoolServerConex)-1 do
+      begin
+      try
+      PoolServerConex[contador].context.Connection.IOHandler.WriteLn('HASHRATE '+CurrPoolTotalHashRate);
+      GridPoolConex.Cells[2,contador+1] := '';
+      except on E:Exception do
+         begin
+         tolog('Error sending pool hashrate request, slot '+IntToStr(contador));
+         end;
+      end;
+      end;
+   end;
+if not Miner_OwnsAPool then consolelines.Add('You do not own a pool');
+End;
+
+function GetPoolConexFromIp(Ip:string):integer;
+var
+  contador : integer;
+Begin
+result := -1 ;
+if ( (Miner_OwnsAPool) and (length(PoolServerConex)>0) ) then
+   begin
+   for contador := 0 to length(PoolServerConex)-1 do
+      begin
+      if PoolServerConex[contador].Ip = IP then
+         begin
+         result := contador;
+         break;
+         end;
+      end;
+   end;
+End;
+
+END. // END UNIT
 

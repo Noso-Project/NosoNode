@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, forms, SysUtils, MasterPaskalForm, MPTime, IdContext, IdGlobal, mpGUI, mpDisk,
-  mpBlock, mpMiner, fileutil, graphics,  dialogs,poolmanage, strutils;
+  mpBlock, mpMiner, fileutil, graphics,  dialogs,poolmanage, strutils, mpcoin;
 
 function GetSlotFromIP(Ip:String):int64;
 function BotExists(IPUser:String):Boolean;
@@ -35,6 +35,8 @@ Procedure UpdateNetworkData();
 Procedure UpdateMyData();
 Procedure CheckIncomingUpdateFile(version,hash, clavepublica, firma, namefile: string);
 Procedure ActualizarseConLaRed();
+Procedure AddNewBot(linea:string);
+function GetOutGoingConnections():integer;
 
 implementation
 
@@ -200,32 +202,36 @@ end;
 Procedure ConnectToServers();
 var
   contador : integer = 0;
+  proceder : boolean = true;
 begin
 SetCurrentJob('ConnectToServers',true);
 if Length(listanodos) = 0 then
    begin
    ConsoleLines.Add(LangLine(161));  //'You need add some nodes first'
    CONNECT_Try := false;
-   SetCurrentJob('ConnectToServers',false);
-   exit;
+   proceder := false;
    end;
 if not CONNECT_Try then
    begin
    ConsoleLines.Add(LangLine(162)); //'Trying connection to servers'
+   CONNECT_Try := true;
    end;
-CONNECT_Try := true;
-if getTotalConexiones >= MaxConecciones then Exit;
-while contador < length(ListaNodos) do
+if GetOutGoingConnections >= MaxOutgoingConnections then proceder := false;
+if getTotalConexiones >= MaxConecciones then Proceder := false;
+if proceder then
    begin
-   if ((GetSlotFromIP(ListaNodos[contador].ip)=0) AND (GetFreeSlot()>0)) then
+   while contador < length(ListaNodos) do
       begin
-      ConnectClient(ListaNodos[contador].ip,ListaNodos[contador].port);
-      end
-   else if GetSlotFromIP(ListaNodos[contador].ip)>0 then
-      begin
-      //ConsoleLines.Add('Already connected to '+ListaNodos[contador].ip);
+      if ((GetSlotFromIP(ListaNodos[contador].ip)=0) AND (GetFreeSlot()>0)) then
+         begin
+         if GetOutGoingConnections < MaxOutgoingConnections then ConnectClient(ListaNodos[contador].ip,ListaNodos[contador].port);
+         end
+      else if GetSlotFromIP(ListaNodos[contador].ip)>0 then
+         begin
+         //ConsoleLines.Add('Already connected to '+ListaNodos[contador].ip);
+         end;
+      contador := contador +1;
       end;
-   contador := contador +1;
    end;
 CONNECT_LastTime := UTCTime();
 SetCurrentJob('ConnectToServers',false);
@@ -271,7 +277,7 @@ if Slot = 0 then // No free slots
 CanalCliente[Slot].Host:=Address;
 CanalCliente[Slot].Port:=StrToIntDef(Port,8080);
    try
-   CanalCliente[Slot].ConnectTimeout:= 200;
+   CanalCliente[Slot].ConnectTimeout:= ConnectTimeOutTime;
    CanalCliente[Slot].Connect;
    SaveConection('SER',Address,ConContext);
    OutText(LangLine(30)+Address,true);          //Connected TO:
@@ -338,7 +344,7 @@ begin
 SetCurrentJob('ReadClientLines',true);
 if CanalCliente[Slot].IOHandler.InputBufferIsEmpty then
    begin
-   CanalCliente[Slot].IOHandler.CheckForDataOnSource(10);
+   CanalCliente[Slot].IOHandler.CheckForDataOnSource(ReadTimeOutTIme);
    if CanalCliente[Slot].IOHandler.InputBufferIsEmpty then
       begin
       SetCurrentJob('ReadClientLines',false);
@@ -348,7 +354,15 @@ if CanalCliente[Slot].IOHandler.InputBufferIsEmpty then
 While not CanalCliente[Slot].IOHandler.InputBufferIsEmpty do
    begin
    try
+   CanalCliente[Slot].ReadTimeout:=ReadTimeOutTIme;
    LLine := CanalCliente[Slot].IOHandler.ReadLn(IndyTextEncoding_UTF8);
+   Except on E:Exception do
+      begin
+      tolog ('Error Reading lines from slot: '+IntToStr(slot)+slinebreak+E.Message);
+      SetCurrentJob('ReadClientLines',false);
+      exit;
+      end;
+   end;
    if GetCommand(LLine) = 'UPDATE' then
       begin
       UpdateVersion := Parameter(LLine,1);
@@ -386,9 +400,6 @@ While not CanalCliente[Slot].IOHandler.InputBufferIsEmpty do
       end
    else
       SlotLines[Slot].Add(LLine);
-   Except on E:Exception do
-      tolog ('Error Reading lines from slot: '+IntToStr(slot)+slinebreak+E.Message);
-   end;
    end;
 SetCurrentJob('ReadClientLines',false);
 End;
@@ -420,7 +431,7 @@ if ((UserOptions.UsePool) and (not canalpool.Connected) and (MyConStatus = 3) an
    if LastTryConnectPoolcanal + 5 < StrToInt64(UTCTime) then
       begin
       LastTryConnectPoolcanal := StrToInt64(UTCTime);
-      if ConnectPoolClient(MyPoolData.Ip,MyPoolData.port,MyPoolData.Password) then
+      if ConnectPoolClient(MyPoolData.Ip,MyPoolData.port,MyPoolData.Password,MypoolData.MyAddress) then
          begin
          consolelines.add('Reconnected to pool server');
          tolog('Reconnected to pool server');
@@ -526,11 +537,11 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
       end;
    if ((UserOptions.UsePool)and (Miner_Active) and (not CanalPool.Connected)) then
       begin
-      ConnectPoolClient(MyPoolData.Ip,MyPoolData.port,MyPoolData.Password);
+      ConnectPoolClient(MyPoolData.Ip,MyPoolData.port,MyPoolData.Password,MypoolData.MyAddress);
       PoolRequestMyStatus();
       end;
    if StrToInt(NetPendingTrxs.Value)> length(PendingTXs) then
-     PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));
+      PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));
    OutgoingMsjs.Add(ProtocolLine(ping));
    Form1.imagenes.GetBitmap(0,ConnectButton.Glyph);
    end;
@@ -545,6 +556,10 @@ if MyConStatus = 3 then
          if Form1.PoolServer.Active then consolelines.Add(PoolInfo.Name+' pool server is listening')
          else consolelines.Add('Unable to start pool server');
          end;
+      end;
+   if ((Miner_OwnsAPool) and (Form1.PoolServer.Active) and (LastPoolHashRequest+60<StrToInt64(UTCTime))) then
+      begin
+      ProcessLines.Add('POOLHASHRATE');
       end;
    end;
 SetCurrentJob('VerifyConnectionStatus',false);
@@ -686,12 +701,14 @@ End;
 
 Procedure UpdateNetworkData();
 Begin
+SetCurrentJob('UpdateNetworkData',true);
 NetLastBlock := UpdateNetworkLastBlock; // Buscar cual es el ultimo bloque por consenso
 NetLastBlockHash := UpdateNetworkLastBlockHash;
 NetSumarioHash := UpdateNetworkSumario; // Busca el hash del sumario por consenso
 NetPendingTrxs := UpdateNetworkPendingTrxs;
 NetResumenHash := UpdateNetworkResumenHash;
 U_DataPanel := true;
+SetCurrentJob('UpdateNetworkData',false);
 // Si lastblock y sumario no estan actualizados solicitarlos
 End;
 
@@ -795,6 +812,32 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
 SetCurrentJob('ActualizarseConLaRed',false);
 End;
 
+Procedure AddNewBot(linea:string);
+var
+  iptoadd: string;
+Begin
+IpToAdd := Parameter(Linea,1);
+if not IsValidIP(IpToAdd) then
+   begin
+   consolelines.Add('Invalid IP');
+   exit;
+   end;
+UpdateBotData(iptoadd);
+if GetSlotFromIP(iptoadd)>0 then CerrarSlot(GetSlotFromIP(iptoadd));
+End;
+
+function GetOutGoingConnections():integer;
+var
+  contador : integer;
+  resultado : integer = 0;
+Begin
+for contador := 1 to MaxConecciones do
+   begin
+   if conexiones[contador].tipo='SER' then
+      resultado += 1;
+   end;
+Result := resultado;
+end;
 
 END. // END UNIT
 

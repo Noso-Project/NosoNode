@@ -40,6 +40,8 @@ type
   TFormPool = class(Tform)
     Procedure BUpdatePoolOnClick(Sender: TObject);
     Procedure BRequestPoolPayOnClick(Sender: TObject);
+    Procedure BPayuserOnClick(Sender: TObject);
+    Procedure BPoolHashRateOnClick(Sender: TObject);
     private
     public
     end;
@@ -90,11 +92,15 @@ var
     BCobrarAlPool : TSpeedButton;
     GridPoolMembers : TStringgrid;
     LabelPoolMiner : Tlabel;
+    LabelPoolMiner2 : Tlabel;
+    GridPoolConex : TStringgrid;
+    BPayUser : Tbutton;
+    BPoolHashRate : TButton;
 
 implementation
 
 Uses
-  mpParser, mpDisk, mpRed, mpProtocol,mpcoin, mpblock, formexplore;
+  mpParser, mpDisk, mpRed, mpProtocol,mpcoin, mpblock, formexplore, poolmanage;
 
 // Crea el formulario para el inicio
 Procedure CreateFormInicio();
@@ -379,6 +385,40 @@ LabelPoolMiner.Parent := FormPool;LabelPoolMiner.AutoSize:=true;
 LabelPoolMiner.Font.Name:='consolas'; LabelPoolMiner.Font.Size:=8;
 LabelPoolMiner.Top:= 211; LabelPoolMiner.Left:= 1;
 LabelPoolMiner.Caption:='';
+
+LabelPoolMiner2 := TLabel.Create(FormPool);
+LabelPoolMiner2.Parent := FormPool;LabelPoolMiner2.AutoSize:=true;
+LabelPoolMiner2.Font.Name:='consolas'; LabelPoolMiner2.Font.Size:=8;
+LabelPoolMiner2.Top:= 221; LabelPoolMiner2.Left:= 1;
+LabelPoolMiner2.Caption:='';
+
+GridPoolConex := TStringGrid.Create(FormPool);GridPoolConex.Parent:=FormPool;
+GridPoolConex.Font.Name:='consolas'; GridPoolConex.Font.Size:=8;
+GridPoolConex.Left:=1;GridPoolConex.Top:=232;GridPoolConex.Height:=155;GridPoolConex.width:=442;
+GridPoolConex.FixedCols:=0;GridPoolConex.FixedRows:=1;
+GridPoolConex.rowcount := 1;GridPoolConex.ColCount:=4;
+GridPoolConex.ScrollBars:=ssVertical;
+GridPoolConex.FocusRectVisible:=false;
+GridPoolConex.Options:= GridPoolConex.Options+[goRowSelect]-[goRangeSelect];
+GridPoolConex.ColWidths[0]:= 120;GridPoolConex.ColWidths[1]:= 200;
+GridPoolConex.ColWidths[2]:= 50;GridPoolConex.ColWidths[3]:= 50;
+GridPoolConex.Cells[0,0]:='Ip';GridPoolConex.Cells[1,0]:='Address';
+GridPoolConex.Cells[2,0]:='HRate';GridPoolConex.Cells[3,0]:='Ver';
+GridPoolConex.Enabled := true;
+GridPoolConex.GridLineWidth := 1;
+
+BPayuser := TButton.Create(Form1);BPayuser.Parent:=FormPool;
+BPayuser.Left:=450;BPayuser.Top:=212;
+BPayuser.Height:=18;BPayuser.Width:=100;
+BPayuser.Caption:='Pay';BPayuser.Font.Name:='candaras';BPayuser.Font.Size:=8;
+BPayuser.Visible:=true;BPayuser.OnClick:=@formpool.BPayuserOnClick;
+
+BPoolHashRate := TButton.Create(Form1);BPoolHashRate.Parent:=FormPool;
+BPoolHashRate.Left:=450;BPoolHashRate.Top:=232;
+BPoolHashRate.Height:=18;BPoolHashRate.Width:=75;
+BPoolHashRate.Caption:='HashRate';BPoolHashRate.Font.Name:='candaras';BPoolHashRate.Font.Size:=8;
+BPoolHashRate.Visible:=true;BPoolHashRate.OnClick:=@formpool.BPoolHashRateOnClick;
+
 End;
 
 Procedure TFormPool.BUpdatePoolOnClick(Sender: TObject);
@@ -391,32 +431,89 @@ Begin
 ProcessLines.Add('REQUESTPOOLPAY');
 End;
 
+Procedure TFormPool.BPayuserOnClick(Sender: TObject);
+var
+  userdireccion : string;
+  MemberBalance : Int64;
+Begin
+userdireccion := ArrayPoolMembers[GridPoolMembers.Row-1].Direccion;
+MemberBalance := GetPoolMemberBalance(UserDireccion);
+Processlines.Add('sendto '+UserDireccion+' '+IntToStr(GetMaximunToSend(MemberBalance))+' POOLPAYMENT_'+PoolInfo.Name);
+ClearPoolUserBalance(UserDireccion);
+ConsoleLines.Add('Pool payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
+tolog('Pool payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
+End;
+
+Procedure TFormPool.BPoolHashRateOnClick(Sender: TObject);
+Begin
+Processlines.Add('POOLHASHRATE');
+End;
+
 Procedure UpdatePoolForm();
 var
   contador : integer;
 Begin
 LabelPoolData.Caption:='ConnectTo: '+MyPoolData.Ip+':'+IntToStr(MyPoolData.port)+' MyAddress: '+MyPoolData.MyAddress+slinebreak+
                        'MineAddres: '+MyPoolData.Direccion+' Prefix: '+MyPoolData.Prefijo+slinebreak+
-                       'Balance: '+Int2curr(MyPoolData.balance)+' ('+IntToStr(MyPoolData.LastPago)+') Password: '+MyPoolData.Password;
+                       'Balance: '+Int2curr(MyPoolData.balance)+' ('+IntToStr(MyPoolData.LastPago)+') Password: '+MyPoolData.Password+' HashRate: '+IntToStr(Miner_PoolHashRate);
 GridPoolMembers.RowCount:=length(ArrayPoolMembers)+1;
+GridPoolConex.RowCount:=length(PoolServerConex)+1;
 if ((MyPoolData.LastPago>0) and (MyPoolData.balance>0)) then BCobrarAlPool.Visible:=true
 else BCobrarAlPool.Visible:=false;
 
-if length(ArrayPoolMembers) > 0 then
+if Miner_OwnsAPool then
    begin
-   for contador := 0 to length(ArrayPoolMembers)-1 do
+   if length(ArrayPoolMembers) > 0 then
       begin
-      GridPoolMembers.Cells[0,contador+1]:=ArrayPoolMembers[contador].Direccion;
-      GridPoolMembers.Cells[1,contador+1]:=ArrayPoolMembers[contador].Prefijo;
-      GridPoolMembers.Cells[2,contador+1]:=IntToStr(ArrayPoolMembers[contador].Soluciones);
-      GridPoolMembers.Cells[3,contador+1]:=Int2curr(ArrayPoolMembers[contador].Deuda);
-      GridPoolMembers.Cells[4,contador+1]:=Int2curr(ArrayPoolMembers[contador].TotalGanado);
-      GridPoolMembers.Cells[5,contador+1]:=IntToStr(ArrayPoolMembers[contador].LastSolucion);
+      for contador := 0 to length(ArrayPoolMembers)-1 do
+         begin
+         try
+         GridPoolMembers.Cells[0,contador+1]:=ArrayPoolMembers[contador].Direccion;
+         GridPoolMembers.Cells[1,contador+1]:=ArrayPoolMembers[contador].Prefijo;
+         GridPoolMembers.Cells[2,contador+1]:=IntToStr(ArrayPoolMembers[contador].Soluciones);
+         GridPoolMembers.Cells[3,contador+1]:=Int2curr(ArrayPoolMembers[contador].Deuda);
+         GridPoolMembers.Cells[4,contador+1]:=Int2curr(ArrayPoolMembers[contador].TotalGanado);
+         GridPoolMembers.Cells[5,contador+1]:=IntToStr(ArrayPoolMembers[contador].LastSolucion);
+         Except on E:Exception do
+            begin
+            Tolog('Error showing pool members data');
+            end;
+         end;
+         end;
+      end;
+
+   LabelPoolMiner.Caption:='Block: '+IntToStr(PoolMiner.Block)+' Diff: '+IntToStr(poolminer.Dificult)+
+                           ' DiffChars: '+IntToStr(Poolminer.DiffChars)+' Steps: '+IntToStr(PoolMiner.steps)+
+                           ' Earned: '+Int2Curr(PoolInfo.FeeEarned)+' '+booltostr(form1.PoolServer.Active,true);
+   LabelPoolMiner2.Caption:='Members: '+IntToStr(length(ArrayPoolMembers))+' Total Debt: '+Int2Curr(PoolMembersTotalDeuda)+
+                                      ' Connected: '+IntToStr(length(PoolServerConex))+' Hashrate: '+
+                                      IntToStr(PoolTotalHashRate);
+   if length(PoolServerConex)>0 then
+      begin
+      for contador := 0 to length(PoolServerConex)-1 do
+         begin
+         try
+         GridPoolConex.Cells[0,contador+1]:=PoolServerConex[contador].Ip;
+         GridPoolConex.Cells[1,contador+1]:=PoolServerConex[contador].Address;
+         Except on E:Exception do
+            begin
+            tolog('Error showing pool connections data, slot '+IntToStr(contador));
+            end;
+         end;
+         end;
+      end;
+
+   if MyLastBlock-(GetLastPagoPoolMember(ArrayPoolMembers[GridPoolMembers.Row-1].Direccion)+PoolInfo.TipoPago) > 0 then
+      begin
+      BPayuser.Enabled:=true;
+      BPayuser.Caption:='Pay '+Int2curr(GetPoolMemberBalance(ArrayPoolMembers[GridPoolMembers.Row-1].Direccion));
+      end
+   else
+      begin
+      BPayuser.Enabled:=false;
+      BPayuser.Caption:=IntToStr(MyLastBlock-(GetLastPagoPoolMember(ArrayPoolMembers[GridPoolMembers.Row-1].Direccion)+PoolInfo.TipoPago));
       end;
    end;
-LabelPoolMiner.Caption:='Block: '+IntToStr(PoolMiner.Block)+' Diff: '+IntToStr(poolminer.Dificult)+
-                        ' DiffChars: '+IntToStr(Poolminer.DiffChars)+' Steps: '+IntToStr(PoolMiner.steps)+
-                        ' Earned: '+Int2Curr(PoolInfo.FeeEarned)+' '+booltostr(form1.PoolServer.Active,true);
 End;
 
 // Inicializa el grid donde se muestran los datos

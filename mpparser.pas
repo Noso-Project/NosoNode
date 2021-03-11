@@ -71,6 +71,9 @@ function AvailableUpdates():string;
 Procedure RunUpdate(linea:string);
 Procedure ChangePoolPassword(LineText:string);
 Procedure SendAdminMessage(linetext:string);
+Procedure ShowAddressBalance(LineText:string);
+Procedure SetReadTimeOutTIme(LineText:string);
+Procedure SetConnectTimeOutTIme(LineText:string);
 
 implementation
 
@@ -104,6 +107,7 @@ Command :=GetCommand(Linetext);
 if Command = '' then exit;
 if not AnsiContainsStr(HideCommands,Uppercase(command)) then ConsoleLines.Add('>> '+Linetext);
 if UpperCase(Command) = 'LANG' then Language(linetext)
+else if UpperCase(Command) = 'VER' then ConsoleLines.Add(ProgramVersion+SubVersion)
 else if UpperCase(Command) = 'SERVERON' then StartServer()
 else if UpperCase(Command) = 'SERVEROFF' then StopServer()
 else if UpperCase(Command) = 'ADDNODE' then AddNode(linetext)
@@ -158,7 +162,7 @@ else if UpperCase(Command) = 'DELBOT' then DeleteBot(LineText)
 else if UpperCase(Command) = 'CRIPTO' then showCriptoThreadinfo()
 else if UpperCase(Command) = 'CPUMINE' then SetMiningCPUS(LineText)
 else if UpperCase(Command) = 'BLOCK' then ParseShowBlockInfo(LineText)
-else if UpperCase(Command) = 'TESTNET' then TestNetwork(LineText)
+//else if UpperCase(Command) = 'TESTNET' then TestNetwork(LineText)
 else if UpperCase(Command) = 'RUNDIAG' then RunDiagnostico(LineText)
 else if UpperCase(Command) = 'RESTART' then Parse_RestartNoso()
 else if UpperCase(Command) = 'SND' then ShowNetworkDataInfo()
@@ -180,6 +184,13 @@ else if UpperCase(Command) = 'POOLPASS' then ChangePoolPassword(LineText)
 else if UpperCase(Command) = 'OSVERSION' then ConsoleLines.Add(OsVersion)
 else if UpperCase(Command) = 'SENDMESSAGE' then SendAdminMessage(linetext)
 else if UpperCase(Command) = 'MYHASH' then ConsoleLines.Add(HashMD5File('noso.exe'))
+else if UpperCase(Command) = 'ADDBOT' then AddNewBot(LineText)
+else if UpperCase(Command) = 'RESETPOOL' then PoolResetData()
+else if UpperCase(Command) = 'SENDPOOLSTEPS' then SendPoolStepsInfo(StrToInt(Parameter(LineText,1)))
+else if UpperCase(Command) = 'POOLHASHRATE' then SendPoolHashRateRequest()
+else if UpperCase(Command) = 'SHOWBALANCE' then ShowAddressBalance(LineText)
+else if UpperCase(Command) = 'SETRTOT' then SetReadTimeOutTIme(LineText)
+else if UpperCase(Command) = 'SETCTOT' then SetConnectTimeOutTIme(LineText)
 
 else ConsoleLines.Add(LangLine(0)+Command);  // Unknow command
 end;
@@ -573,9 +584,12 @@ End;
 
 Procedure UsePoolOn();
 Begin
-UserOptions.UsePool := true;
-S_Options := true;
-ConsoleLines.Add('Mine for pool is now '+LangLine(48));     //autoupdate //active
+if UserOptions.PoolInfo<>'' then
+   begin
+   UserOptions.UsePool := true;
+   S_Options := true;
+   ConsoleLines.Add('Mine for pool is now '+LangLine(48));     //autoupdate //active
+   end;
 End;
 
 Procedure UsePoolOff();
@@ -749,43 +763,44 @@ Procedure CustomizeAddress(linetext:string);
 var
   address, AddAlias, TrfrHash, OrderHash, CurrTime : String;
   cont : integer;
+  procesar : boolean = true;
 Begin
 address := Parameter(linetext,1);
 AddAlias := Parameter(linetext,2);
 if DireccionEsMia(address)<0 then
    begin
    consolelines.Add(LAngLine(140));  //'Invalid address'
-   exit;
+   procesar := false;
    end;
 if ListaDirecciones[DireccionEsMia(address)].Custom <> '' then
    begin
    consolelines.Add(LangLine(141)); //'Address already have a custom alias'
-   exit;
+   procesar := false;
    end;
-if length(AddAlias)<5 then
+if ( (length(AddAlias)<5) or (length(AddAlias)>40) ) then
    begin
    OutText(LangLine(142),false,2); //'Alias must have between 5 and 40 chars'
-   exit;
+   procesar := false;
    end;
 if IsValidAddress(addalias) then
    begin
    consolelines.Add(LangLine(143)); //'Alias can not be a valid address'
-   exit;
+   procesar := false;
    end;
 if ListaDirecciones[DireccionEsMia(address)].Balance < Customizationfee then
    begin
    consolelines.Add(LangLine(144)); //'Insufficient balance'
-   exit;
+   procesar := false;
    end;
 if AddressAlreadyCustomized(Address) then
    begin
    consolelines.Add(LangLine(141)); //'Address already have a custom alias'
-   exit;
+   procesar := false;
    end;
 if AddressSumaryIndex(addalias) >= 0 then
    begin
    consolelines.Add('Alias already exists');
-   exit;
+   procesar := false;
    end;
 for cont := 1 to length(addalias) do
    begin
@@ -793,13 +808,15 @@ for cont := 1 to length(addalias) do
       begin
       consolelines.Add('Invalid character in alias: '+addalias[cont]);
       info('Invalid character in alias: '+addalias[cont]);
-      exit;
+      procesar := false;
       end;
    end;
-CurrTime := UTCTime;
-TrfrHash := GetTransferHash(CurrTime+Address+addalias+IntToStr(MyLastblock));
-OrderHash := GetOrderHash('1'+currtime+TrfrHash);
-AddCriptoOp(2,'Customize this '+address+' '+addalias+'$'+ListaDirecciones[DireccionEsMia(address)].PrivateKey,
+if procesar then
+   begin
+   CurrTime := UTCTime;
+   TrfrHash := GetTransferHash(CurrTime+Address+addalias+IntToStr(MyLastblock));
+   OrderHash := GetOrderHash('1'+currtime+TrfrHash);
+   AddCriptoOp(2,'Customize this '+address+' '+addalias+'$'+ListaDirecciones[DireccionEsMia(address)].PrivateKey,
            ProtocolLine(9)+    // CUSTOM
            OrderHash+' '+  // OrderID
            '1'+' '+        // OrderLines
@@ -814,7 +831,8 @@ AddCriptoOp(2,'Customize this '+address+' '+addalias+'$'+ListaDirecciones[Direcc
            '0'+' '+                         // amount trfr
            '[[RESULT]] '+//GetStringSigned('Customize this '+address+' '+addalias,ListaDirecciones[DireccionEsMia(address)].PrivateKey)+' '+
            TrfrHash);      // trfrhash
-StartCriptoThread();
+   StartCriptoThread();
+   end;
 End;
 
 // Incluye una solicitud de envio de fondos a la cola de transacciones cripto
@@ -829,6 +847,7 @@ Procedure SendFunds(LineText:string);
 var
   Destination, amount, concepto : string;
   monto, comision : int64;
+  montoToShow, comisionToShow : int64;
   contador : integer;
   Restante : int64;
   ArrayTrfrs : Array of orderdata;
@@ -837,6 +856,7 @@ var
   OrderHashString : String;
   OrderString : string;
   AliasIndex : integer;
+  Procesar : boolean = true;
 Begin
 setmilitime('SendFunds',1);
 Destination := Parameter(Linetext,1);
@@ -845,8 +865,7 @@ concepto    := Parameter(Linetext,3);
 if ((Destination='') or (amount='')) then
    begin
    consolelines.add(LAngLine(145)); //'Invalid parameters.'
-   setmilitime('SendFunds',2);
-   exit;
+   Procesar := false;
    end;
 if not IsValidAddress(Destination) then
    begin
@@ -854,62 +873,73 @@ if not IsValidAddress(Destination) then
    if AliasIndex<0 then
       begin
       consolelines.add(LangLine(146)); //'Invalid destination.'
-      setmilitime('SendFunds',2);
-      exit;
+      Procesar := false;
       end
    else Destination := ListaSumario[aliasIndex].Hash;
    end;
 monto := StrToInt64Def(amount,-1);
 if concepto = '' then concepto := 'null';
-if monto<0 then
+if monto<=0 then
    begin
    consolelines.add(LangLine(147)); //'Invalid ammount.'
-   setmilitime('SendFunds',2);
-   exit;
+   Procesar := false;
    end;
-Comision := GetFee(Monto);
-Restante := monto+comision;
-if Restante > GetWalletBalance then
+if procesar then
    begin
-   consolelines.add(LAngLine(148)+Int2curr(Monto+comision));//'Insufficient funds. Needed: '
-   setmilitime('SendFunds',2);
-   exit;
+   Comision := GetFee(Monto);
+   montoToShow := Monto;
+   comisionToShow := Comision;
+   Restante := monto+comision;
+   if Restante > GetWalletBalance then
+      begin
+      consolelines.add(LAngLine(148)+Int2curr(Monto+comision));//'Insufficient funds. Needed: '
+      Procesar := false;
+      end;
    end;
 // empezar proceso
-consolelines.Add('Send '+Int2Curr(monto)+' fee '+Int2Curr(comision));
-currtime := UTCTime;
-Setlength(ArrayTrfrs,0);
-Contador := length(ListaDirecciones)-1;
-OrderHashString := currtime;
-while monto > 0 do
+if procesar then
    begin
-   setmilitime('SendFundsVerify',1);
-   if ListaDirecciones[contador].Balance-GetAddressPendingPays(ListaDirecciones[contador].Hash) > 0 then
+   currtime := UTCTime;
+   Setlength(ArrayTrfrs,0);
+   Contador := length(ListaDirecciones)-1;
+   OrderHashString := currtime;
+   while monto > 0 do
       begin
-      trxLinea := TrxLinea+1;
-      Setlength(ArrayTrfrs,length(arraytrfrs)+1);
-      ArrayTrfrs[length(arraytrfrs)-1]:= SendFundsFromAddress(ListaDirecciones[contador].Hash,
-                                         Destination,monto, comision, Concepto, CurrTime,TrxLinea);
-      comision := comision-ArrayTrfrs[length(arraytrfrs)-1].AmmountFee;
-      monto := monto-ArrayTrfrs[length(arraytrfrs)-1].AmmountTrf;
-      OrderHashString := OrderHashString+ArrayTrfrs[length(arraytrfrs)-1].TrfrID;
+      setmilitime('SendFundsVerify',1);
+      if ListaDirecciones[contador].Balance-GetAddressPendingPays(ListaDirecciones[contador].Hash) > 0 then
+         begin
+         trxLinea := TrxLinea+1;
+         Setlength(ArrayTrfrs,length(arraytrfrs)+1);
+         ArrayTrfrs[length(arraytrfrs)-1]:= SendFundsFromAddress(ListaDirecciones[contador].Hash,
+                                            Destination,monto, comision, Concepto, CurrTime,TrxLinea);
+         comision := comision-ArrayTrfrs[length(arraytrfrs)-1].AmmountFee;
+         monto := monto-ArrayTrfrs[length(arraytrfrs)-1].AmmountTrf;
+         OrderHashString := OrderHashString+ArrayTrfrs[length(arraytrfrs)-1].TrfrID;
+         end;
+      Contador := contador -1;
+      setmilitime('SendFundsVerify',2);
       end;
-   Contador := contador -1;
-   setmilitime('SendFundsVerify',2);
-   end;
-for contador := 0 to length(ArrayTrfrs)-1 do
+   for contador := 0 to length(ArrayTrfrs)-1 do
+      begin
+      ArrayTrfrs[contador].OrderID:=GetOrderHash(IntToStr(trxLinea)+OrderHashString);
+      ArrayTrfrs[contador].OrderLines:=trxLinea;
+      end;
+   consolelines.Add('Send '+Int2Curr(montoToShow)+' fee '+Int2Curr(comisionToShow)+slinebreak+
+                    'Order ID: '+GetOrderHash(IntToStr(trxLinea)+OrderHashString));
+
+   OrderString := GetPTCEcn+'ORDER '+IntToStr(trxLinea)+' $';
+   for contador := 0 to length(ArrayTrfrs)-1 do
+      begin
+      OrderString := orderstring+GetStringfromOrder(ArrayTrfrs[contador])+' $';
+      end;
+   Setlength(orderstring,length(orderstring)-2);
+   OutgoingMsjs.Add(OrderString);
+   setmilitime('SendFunds',2);
+   end // End procesar
+else
    begin
-   ArrayTrfrs[contador].OrderID:=GetOrderHash(IntToStr(trxLinea)+OrderHashString);
-   ArrayTrfrs[contador].OrderLines:=trxLinea;
+   consolelines.Add('Syntax: sendto {destination} {ammount} {concept}');
    end;
-OrderString := GetPTCEcn+'ORDER '+IntToStr(trxLinea)+' $';
-for contador := 0 to length(ArrayTrfrs)-1 do
-   begin
-   OrderString := orderstring+GetStringfromOrder(ArrayTrfrs[contador])+' $';
-   end;
-Setlength(orderstring,length(orderstring)-2);
-OutgoingMsjs.Add(OrderString);
-setmilitime('SendFunds',2);
 End;
 
 // Muestra la escala de halvings
@@ -1290,7 +1320,7 @@ if parametrosok then
    StartPoolServer(port);
    ConsoleLines.Add('Mining pool created');
    ResetPoolMiningInfo();
-   ConnectPoolClient('Localhost', port,password);
+   ConnectPoolClient('Localhost', port,password,'');
    Processlines.Add('joinpool localhost '+inttoStr(port)+' '+ListaDirecciones[0].Hash+' '+password);
    end
 else consolelines.Add('CreatePool: Invalid parameters'+slinebreak+
@@ -1315,7 +1345,7 @@ if UserOptions.poolinfo = '' then
    if DireccionEsMia(direccion)<0 then Parametrosok := false;
    if parametrosok then
       begin
-      ConnectPoolClient(ip,port,password);
+      ConnectPoolClient(ip,port,password,direccion);
       SendPoolMessage(password+' '+direccion+' JOIN '+ip+' '+IntToStr(port));
       consolelines.Add('Join pool request sent');
       end
@@ -1458,6 +1488,53 @@ mensaje := StringReplace(mensaje,' ','_',[rfReplaceAll, rfIgnoreCase]);
 OutgoingMsjs.Add(GetPTCEcn+'ADMINMSG '+currtime+' '+mensaje+' '+firma+' '+hashmsg);
 mensaje := StringReplace(mensaje,'_',' ',[rfReplaceAll, rfIgnoreCase]);
 ConsoleLines.Add('Message sent: '+mensaje);
+End;
+
+Procedure ShowAddressBalance(LineText:string);
+var
+  addtoshow : string;
+  sumposition : integer;
+  onsumary, pending : int64;
+Begin
+addtoshow := parameter(LineText,1);
+sumposition := AddressSumaryIndex(addtoshow);
+if sumposition<0 then
+   consolelines.Add('Address do not exists in sumary.')
+else
+   begin
+   onsumary := GetAddressBalance(addtoshow);
+   pending := GetAddressPendingPays(addtoshow);
+   consolelines.Add('Address  : '+addtoshow+slinebreak+
+                    'Sumary   : '+Int2curr(onsumary)+slinebreak+
+                    'Pending  : '+Int2curr(pending)+slinebreak+
+                    'Available: '+int2curr(onsumary-pending));
+   end;
+End;
+
+Procedure SetReadTimeOutTIme(LineText:string);
+var
+  newvalue : integer;
+Begin
+newvalue := StrToIntDef(parameter(LineText,1),-1);
+if newvalue < 0 then consolelines.Add('ReadTimeOutTIme= '+IntToStr(ReadTimeOutTIme))
+else
+  begin
+  ReadTimeOutTIme := newvalue;
+  Consolelines.Add('ReadTimeOutTIme set to '+IntToStr(newvalue));
+  end;
+End;
+
+Procedure SetConnectTimeOutTIme(LineText:string);
+var
+  newvalue : integer;
+Begin
+newvalue := StrToIntDef(parameter(LineText,1),-1);
+if newvalue < 0 then consolelines.Add('ConnectTimeOutTIme= '+IntToStr(ConnectTimeOutTIme))
+else
+  begin
+  ConnectTimeOutTIme := newvalue;
+  Consolelines.Add('ConnectTimeOutTIme set to '+IntToStr(newvalue));
+  end;
 End;
 
 END. // END UNIT

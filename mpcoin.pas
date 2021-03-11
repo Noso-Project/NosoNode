@@ -361,6 +361,7 @@ if mode = 1 then
    Resultado := resultado+'CPUs: '+IntToStr(G_CpuCount)+' ';
    Resultado := resultado+'MinerThreads: '+IntToStr(Length(Miner_Thread)) +' ';
    Resultado := resultado+'OS: '+OSVersion +' ';
+   Resultado := resultado+'WalletVer: '+ProgramVersion+SubVersion;
    end;
 result := resultado;
 End;

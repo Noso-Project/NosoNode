@@ -13,7 +13,8 @@ Procedure ResetMinerInfo();
 function GetCharsFromDifficult(Dificult,step:integer):integer;
 function EjecutarMinero(aParam:Pointer):PtrInt;
 Procedure IncreaseHashSeed();
-function VerifySolutionForBlock(Dificultad:integer; objetivo,Direccion, Solucion:string):boolean;
+function VerifySolutionForBlock(Dificultad:integer; objetivo,Direccion, Solucion:string):integer;
+function TruncateBlockSolution(solucion:string;step:integer):string;
 
 implementation
 
@@ -39,7 +40,7 @@ if MyConStatus = 3 then
 if ((Miner_BlockFOund) and (not Miner_SolutionVerified)) then
    begin
    KillAllMiningThreads;
-   if VerifySolutionForBlock(Miner_Difficult, Miner_Target, Miner_Address, Miner_Solution) then
+   if VerifySolutionForBlock(Miner_Difficult, Miner_Target, Miner_Address, Miner_Solution)=0 then
       begin
       if not UserOptions.UsePool then
          begin
@@ -75,6 +76,9 @@ for counter := 0 to Length(Miner_Thread)-1 do
          end;
       end;
    end;
+Miner_KillThreads := true;
+Delay(200);
+Miner_KillThreads := false;
 SetLength(Miner_Thread,0);
 End;
 
@@ -95,6 +99,7 @@ else Miner_Address := ListaDirecciones[0].Hash;
 Miner_BlockFOund := False;
 Miner_Solution := '';
 Miner_SolutionVerified := false;
+Miner_PoolHashRate := 0;
 End;
 
 // Obtiene el nivel de dificultad de un bloque
@@ -110,7 +115,7 @@ var
   Solucion : string = '';
   MSeed : string; Mnumber : int64;
 Begin
-while Miner_IsON do
+while ( (Miner_IsON) and (not Miner_KillThreads) ) do
    begin
    Mseed := MINER_HashSeed;Mnumber := MINER_HashCounter;
    Solucion := HashSha256String(Mseed+Miner_Address+inttostr(Mnumber));
@@ -127,7 +132,7 @@ while Miner_IsON do
          Miner_IsON := false;
          end;
       end;
-   MINER_HashCounter := MINER_HashCounter+1;
+   InterLockedIncrement(MINER_HashCounter);
    if MINER_HashCounter > 999999999 then
       begin
       IncreaseHashSeed;
@@ -157,14 +162,14 @@ for contador := 9 downto 1 do
 End;
 
 // Verifica una solucion para un bloque
-function VerifySolutionForBlock(Dificultad:integer; objetivo,Direccion, Solucion:string):boolean;
+function VerifySolutionForBlock(Dificultad:integer; objetivo,Direccion, Solucion:string):integer;
 var
   ListaSoluciones : TStringList;
   contador : integer = 1;
   HashSolucion : String = '';
   AllSolutions : String = '';
 Begin
-result:= true;
+result:= 0;
 ListaSoluciones := TStringList.Create;
 ListaSoluciones.Add(GetCommand(Solucion));
 for contador := 1 to Miner_Steps-1 do
@@ -176,18 +181,29 @@ for contador := 0 to ListaSoluciones.Count-1 do
    if AnsiContainsStr(AllSolutions,ListaSoluciones[contador]) then
       begin
       OutText('Duplicated solution for block: '+ListaSoluciones[contador]);
-      result := false;
+      result := contador+1;
+      break;
       end;
    objetivo := copy(objetivo,1,GetCharsFromDifficult(dificultad,contador));
    HashSolucion := HashSha256String(copy(ListaSoluciones[contador],1,9)+Direccion+copy(ListaSoluciones[contador],10,9));
    if not AnsiContainsStr(HashSolucion,objetivo) then
       begin
-      result := false;
+      result := contador+1;
       consolelines.Add(LangLine(133)+IntToStr(contador)+' '+copy(ListaSoluciones[contador],1,9)+  //'Failed block verification step: '
       Direccion+copy(ListaSoluciones[contador],10,9)+' not '+objetivo);
+      break;
       end;
    end;
 ListaSoluciones.Free;
+End;
+
+// Trunca la solucion de un bloque asumiendo que el step dado es el incorrecto
+function TruncateBlockSolution(solucion:string;step:integer):string;
+var
+  caracteres : integer;
+Begin
+caracteres := 19*(step-1);
+result := copy(solucion,1,caracteres);
 End;
 
 END. // END UNIT
