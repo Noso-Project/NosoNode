@@ -354,15 +354,8 @@ if CanalCliente[Slot].IOHandler.InputBufferIsEmpty then
 While not CanalCliente[Slot].IOHandler.InputBufferIsEmpty do
    begin
    try
-   CanalCliente[Slot].ReadTimeout:=ReadTimeOutTIme;
+   //CanalCliente[Slot].ReadTimeout:=ReadTimeOutTIme;
    LLine := CanalCliente[Slot].IOHandler.ReadLn(IndyTextEncoding_UTF8);
-   Except on E:Exception do
-      begin
-      tolog ('Error Reading lines from slot: '+IntToStr(slot)+slinebreak+E.Message);
-      SetCurrentJob('ReadClientLines',false);
-      exit;
-      end;
-   end;
    if GetCommand(LLine) = 'UPDATE' then
       begin
       UpdateVersion := Parameter(LLine,1);
@@ -400,6 +393,13 @@ While not CanalCliente[Slot].IOHandler.InputBufferIsEmpty do
       end
    else
       SlotLines[Slot].Add(LLine);
+   Except on E:Exception do
+      begin
+      tolog ('Error Reading lines from slot: '+IntToStr(slot)+slinebreak+E.Message);
+      SetCurrentJob('ReadClientLines',false);
+      exit;
+      end;
+   end;
    end;
 SetCurrentJob('ReadClientLines',false);
 End;
