@@ -64,16 +64,22 @@ Procedure ShowNetworkDataInfo();
 Procedure CreatePool(LineText:string);
 Procedure ShowPoolInfo();
 Procedure JoinPool(LineText:string);
-Procedure Deletepool();
+Procedure ExitPool(LineText:string);
+Procedure Deletepool(LineText:string);
 Procedure GetOwnerHash(LineText:string);
 Procedure CheckOwnerHash(LineText:string);
 function AvailableUpdates():string;
 Procedure RunUpdate(linea:string);
 Procedure ChangePoolPassword(LineText:string);
+Procedure ChangePoolFee(LineText:string);
+Procedure ChangePoolMembers(LineText:string);
+Procedure ChangePoolPayrate(LineText:string);
+Procedure PoolExpelMember(LineText:string);
 Procedure SendAdminMessage(linetext:string);
 Procedure ShowAddressBalance(LineText:string);
 Procedure SetReadTimeOutTIme(LineText:string);
 Procedure SetConnectTimeOutTIme(LineText:string);
+Procedure ShowNetReqs();
 
 implementation
 
@@ -166,31 +172,46 @@ else if UpperCase(Command) = 'BLOCK' then ParseShowBlockInfo(LineText)
 else if UpperCase(Command) = 'RUNDIAG' then RunDiagnostico(LineText)
 else if UpperCase(Command) = 'RESTART' then Parse_RestartNoso()
 else if UpperCase(Command) = 'SND' then ShowNetworkDataInfo()
+else if UpperCase(Command) = 'OSVERSION' then ConsoleLines.Add(OsVersion)
+else if UpperCase(Command) = 'SENDMESSAGE' then SendAdminMessage(linetext)
+else if UpperCase(Command) = 'MYHASH' then ConsoleLines.Add(HashMD5File('noso.exe'))
+else if UpperCase(Command) = 'ADDBOT' then AddNewBot(LineText)
+else if UpperCase(Command) = 'SHOWBALANCE' then ShowAddressBalance(LineText)
+else if UpperCase(Command) = 'SETRTOT' then SetReadTimeOutTIme(LineText)
+else if UpperCase(Command) = 'SETCTOT' then SetConnectTimeOutTIme(LineText)
+else if UpperCase(Command) = 'STATUS' then ConsoleLines.Add(GetCurrentStatus(1))
+else if UpperCase(Command) = 'OWNER' then GetOwnerHash(LineText)
+else if UpperCase(Command) = 'CHECKOWNER' then CheckOwnerHash(LineText)
+else if UpperCase(Command) = 'UPDATE' then RunUpdate(LineText)
+else if UpperCase(Command) = 'RESTOREBLOCKCHAIN' then RestoreBlockChain()
+
+// POOL RELATED COMMANDS
 else if UpperCase(Command) = 'CREATEPOOL' then CreatePool(LineText)
 else if UpperCase(Command) = 'POOLINFO' then ShowPoolInfo()
 else if UpperCase(Command) = 'JOINPOOL' then JoinPool(LineText)
-else if UpperCase(Command) = 'DELPOOL' then DeletePool()
+else if UpperCase(Command) = 'EXITPOOL' then ExitPool(LineText)
+else if UpperCase(Command) = 'DELPOOL' then DeletePool(LineText)
 else if UpperCase(Command) = 'REQUESTPOOLSTATUS' then PoolRequestMyStatus()
 else if UpperCase(Command) = 'REQUESTPOOLPAY' then PoolRequestPayment()
 else if UpperCase(Command) = 'STARTPOOLSERVER' then StartPoolServer(poolinfo.Port)
 else if UpperCase(Command) = 'USEPOOLON' then UsePoolOn()
 else if UpperCase(Command) = 'USEPOOLOFF' then UsePoolOff()
 else if UpperCase(Command) = 'SENDPOOLSOLUTION' then SendPoolSolution(StrToInt(Parameter(LineText,1)),Parameter(LineText,2),StrToInt64(Parameter(LineText,3)))
-else if UpperCase(Command) = 'STATUS' then ConsoleLines.Add(GetCurrentStatus(0))
-else if UpperCase(Command) = 'OWNER' then GetOwnerHash(LineText)
-else if UpperCase(Command) = 'CHECKOWNER' then CheckOwnerHash(LineText)
-else if UpperCase(Command) = 'UPDATE' then RunUpdate(LineText)
 else if UpperCase(Command) = 'POOLPASS' then ChangePoolPassword(LineText)
-else if UpperCase(Command) = 'OSVERSION' then ConsoleLines.Add(OsVersion)
-else if UpperCase(Command) = 'SENDMESSAGE' then SendAdminMessage(linetext)
-else if UpperCase(Command) = 'MYHASH' then ConsoleLines.Add(HashMD5File('noso.exe'))
-else if UpperCase(Command) = 'ADDBOT' then AddNewBot(LineText)
+else if UpperCase(Command) = 'POOLFEE' then ChangePoolFee(LineText)
+else if UpperCase(Command) = 'POOLMEMBERS' then ChangePoolMembers(LineText)
+else if UpperCase(Command) = 'POOLPAYINTERVAL' then ChangePoolPayrate(LineText)
+else if UpperCase(Command) = 'POOLEXPEL' then PoolExpelMember(LineText)
 else if UpperCase(Command) = 'RESETPOOL' then PoolResetData()
 else if UpperCase(Command) = 'SENDPOOLSTEPS' then SendPoolStepsInfo(StrToInt(Parameter(LineText,1)))
 else if UpperCase(Command) = 'POOLHASHRATE' then SendPoolHashRateRequest()
-else if UpperCase(Command) = 'SHOWBALANCE' then ShowAddressBalance(LineText)
-else if UpperCase(Command) = 'SETRTOT' then SetReadTimeOutTIme(LineText)
-else if UpperCase(Command) = 'SETCTOT' then SetConnectTimeOutTIme(LineText)
+else if UpperCase(Command) = 'SAVEPOOLFILES' then SavePoolFiles()
+else if UpperCase(Command) = 'SAVEADV' then CreateADV(true)
+
+// NETWORK VALUES
+else if UpperCase(Command) = 'NETREQS' then ShowNetReqs()
+else if UpperCase(Command) = 'NETHASH' then consolelines.Add('Network hashrate: '+IntToStr(networkhashrate))
+else if UpperCase(Command) = 'NETPEERS' then consolelines.Add('Network peers: '+IntToStr(networkpeers))
 
 else ConsoleLines.Add(LangLine(0)+Command);  // Unknow command
 end;
@@ -1174,6 +1195,7 @@ if IPBot = '' then
 if uppercase(IPBot) = 'ALL' then
    begin
    SetLength(ListadoBots,0);
+   LastBotClear := UTCTime;
    S_BotData := true;
    consolelines.Add('All bots deleted');
    exit;
@@ -1211,11 +1233,16 @@ if numero < 1 then
   end;
 if numero > G_CpuCount then
   begin
-  outtext('Maximun  number of CPUs: '+IntToStr(G_CpuCount),false,2);
+  outtext('Maximun number of CPUs: '+IntToStr(G_CpuCount),false,2);
   exit;
   end;
 G_MiningCPUs := numero;
 outtext('Mining CPUs set to: '+IntToStr(numero),false,2);
+if G_MiningCPUs > 2 then
+  consolelines.Add('*** WARNING ***'+slinebreak+'Using more than 2 CPUs to mine is NOT RECOMMENDED'+slinebreak+
+                   'Not support if you decide to mine with '+IntToStr(G_MiningCPUs)+' CPUs'+slinebreak+
+                   '***************');
+DefCPUs := G_MiningCPUs;
 ResetMinerInfo;
 KillAllMiningThreads;
 Miner_Active := false;
@@ -1305,13 +1332,14 @@ maxmembers := StrToIntDef(Parameter(linetext,4),-1);
 port := StrToIntDef(Parameter(linetext,5),0);
 TipoPago := StrToIntDef(Parameter(linetext,6),0);
 Password := Parameter(linetext,7);
-if length(nombre)>15 then Parametrosok := false;
+if ( (Length(nombre)<3) or (length(nombre)>15) ) then Parametrosok := false;
 if not isvalidaddress(direccionminado) then Parametrosok := false;
 if ((porcentaje<0) or (porcentaje>100)) then Parametrosok := false;
-if ((maxmembers<2) or (maxmembers>90)) then Parametrosok := false;
+if ((maxmembers<2) or (maxmembers>Pool_Max_Members)) then Parametrosok := false;
 if ((port<1) or (port>65535)) then Parametrosok := false;
+if port = UserOptions.Port then Parametrosok := false;
 if ((TipoPago<1) or (TipoPago>1008)) then Parametrosok := false;
-if length(Password)>10 then Parametrosok := false;
+if ( (length(Password)<1) or (length(Password)>10) ) then Parametrosok := false;
 if parametrosok then
    begin
    CrearArchivoPoolInfo(nombre,direccionminado,porcentaje,maxmembers,port,tipopago,password);
@@ -1324,7 +1352,7 @@ if parametrosok then
    Processlines.Add('joinpool localhost '+inttoStr(port)+' '+ListaDirecciones[0].Hash+' '+password);
    end
 else consolelines.Add('CreatePool: Invalid parameters'+slinebreak+
-'createpool {name} {address} {fee} {maxmembers} {port} {payment} {password}');
+   'createpool {name} {address} {fee} {maxmembers} {port} {payment} {password}');
 End;
 
 // Try to join a pool
@@ -1339,6 +1367,7 @@ if UserOptions.poolinfo = '' then
    ip := Parameter(linetext,1);
    port := StrToIntDef(Parameter(linetext,2),0);
    direccion := Parameter(linetext,3);
+   if UpperCase(direccion) = 'DEFAULT' then direccion := Listadirecciones[0].Hash;
    password := Parameter(linetext,4);
    //if not IsValidIP(ip) then parametrosok := false;
    if ((port<1) or (port>65535)) then Parametrosok := false;
@@ -1354,27 +1383,79 @@ if UserOptions.poolinfo = '' then
 else consolelines.Add('You already are in a pool');
 End;
 
-Procedure DeletePool();
+Procedure ExitPool(LineText:string);
+var
+  confirmation : string;
+  confirmed : boolean = false;
 Begin
-if fileexists(PoolInfoFilename) then
-   begin
-   deletefile(PoolInfoFilename);
-   consolelines.Add('Own pool deleted');
-   deletefile(PoolMembersFilename);
-   if form1.PoolServer.Active then form1.PoolServer.Active := false;
-   end
-else consolelines.add('No own pool data found');
 if useroptions.PoolInfo<>'' then
    begin
-   useroptions.PoolInfo:='';
-   consolelines.Add('Pool connection data deleted');
+   confirmation:= parameter(linetext,1);
+   if UPPERCASE(confirmation) = 'YES' then confirmed := true;
+   if not confirmed then
+      begin
+      Consolelines.Add('If you exit a pool, you could lost the coins already earned.'+slinebreak+
+                       'If you want proceed, type exitpool yes');
+      end
+   else
+      begin
+      if DireccionesMia(MyPoolData.Direccion)>= 0 then
+         begin
+         consolelines.Add('You can not exit your own pool');
+         exit;
+         end;
+      useroptions.PoolInfo:='';
+      UserOptions.UsePool := false;
+      consolelines.Add('Pool connection data deleted');
+      S_Options := true;
+      if formpool.Visible then formpool.Visible:=false;
+      if canalpool.Connected then canalpool.Disconnect;
+      end;
+   end;
+End;
+
+Procedure DeletePool(LineText:string);
+var
+  confirmation : String;
+  confirmed : boolean = false;
+  saving : string;
+  savefiles: boolean = true;
+Begin
+confirmation := parameter (linetext,1);
+if UpperCase(confirmation)= 'YES' then confirmed := true;
+saving := UpperCase(parameter(linetext,2));
+if saving = 'NOSAVE' then savefiles := false;
+if confirmed then
+   begin
+   if savefiles then
+      begin
+      SavePoolFiles();
+      end;
+   if fileexists(PoolInfoFilename) then
+      begin
+      deletefile(PoolInfoFilename);
+      consolelines.Add('Own pool deleted');
+      deletefile(PoolMembersFilename);
+      if form1.PoolServer.Active then form1.PoolServer.Active := false;
+      Miner_OwnsAPool := false;
+      end
+   else consolelines.add('You do no owns a pool data');
+   if useroptions.PoolInfo<>'' then
+      begin
+      useroptions.PoolInfo:='';
+      consolelines.Add('Pool connection data deleted');
+      S_Options := true;
+      end
+   else consolelines.Add('You are not a pool member');
+   UserOptions.UsePool := false;
    S_Options := true;
+   if formpool.Visible then formpool.Visible:=false;
+   if canalpool.Connected then canalpool.Disconnect;
    end
-else consolelines.Add('You are not a pool member');
-UserOptions.UsePool := false;
-S_Options := true;
-if formpool.Visible then formpool.Visible:=false;
-if canalpool.Connected then canalpool.Disconnect;
+else
+   begin
+   consolelines.Add('delpool {yes} [NOSAVE]');
+   end;
 End;
 
 Procedure GetOwnerHash(LineText:string);
@@ -1385,12 +1466,12 @@ direccion := parameter(linetext,1);
 if DireccionEsMia(direccion)<0 then
   begin
   consolelines.Add('Invalid address');
-  exit;
   end
 else
    begin
    currtime := UTCTime;
-   consolelines.Add(ListaDirecciones[DireccionEsMia(direccion)].PublicKey+':'+currtime+':'+GetStringSigned('I OWN THIS ADDRESS '+direccion+currtime,ListaDirecciones[DireccionEsMia(direccion)].PrivateKey));
+   consolelines.Add(direccion+' owner cert'+slinebreak+
+                    ListaDirecciones[DireccionEsMia(direccion)].PublicKey+':'+currtime+':'+GetStringSigned('I OWN THIS ADDRESS '+direccion+currtime,ListaDirecciones[DireccionEsMia(direccion)].PrivateKey));
    end;
 End;
 
@@ -1404,6 +1485,7 @@ pubkey := Parameter(data,0);
 firmtime := Parameter(data,1);
 firma := Parameter(data,2);
 direc := GetAddressFromPublicKey(pubkey);
+if ListaSumario[AddressSumaryIndex(direc)].custom <> '' then direc := ListaSumario[AddressSumaryIndex(direc)].custom;
 if VerifySignedString('I OWN THIS ADDRESS '+direc+firmtime,firma,pubkey) then
    consolelines.Add(direc+' verified '+TimeSinceStamp(StrToInt64(firmtime))+' ago.')
 else consolelines.Add('Invalid verification');
@@ -1452,6 +1534,11 @@ Procedure ChangePoolPassword(LineText:string);
 var
   oldpass, newpass : string;
 Begin
+if not Miner_OwnsAPool then
+   begin
+   Consolelines.Add('Only pool admin can change password');
+   exit;
+   end;
 oldpass := Parameter(LineText,1);
 newpass := Parameter(LineText,2);
 if length(newpass) > 10 then setlength(newpass,10);
@@ -1466,9 +1553,126 @@ if Miner_OwnsAPool then // si posse el pool, cambiar ambas
   GuardarArchivoPoolInfo;
   GetPoolInfoFromDisk();
   end;
-UserOptions.PoolInfo := StringReplace(UserOptions.PoolInfo,MyPoolData.Password,newpass,[rfReplaceAll, rfIgnoreCase]);
-S_Options := true;
-LoadMyPoolData();
+MyPoolData.Password:= newpass;
+SaveMyPoolData;
+End;
+
+Procedure ChangePoolFee(LineText:string);
+var
+  newfee : integer;
+Begin
+newfee := StrToIntDef(Parameter(linetext,1),-1);
+if (not Miner_OwnsAPool) then
+   begin
+   Consolelines.Add('Only pool admin can change fees');
+   exit;
+   end
+else
+   begin
+   if newfee<0 then
+      begin
+      Consolelines.Add('Invalid pool fee');
+      exit;
+      end;
+   poolinfo.Porcentaje:=newfee;
+   GuardarArchivoPoolInfo;
+   GetPoolInfoFromDisk();
+   EdBuFee.Caption:=IntToStr(poolinfo.Porcentaje);
+   end;
+End;
+
+Procedure ChangePoolMembers(LineText:string);
+var
+  newmembers: integer;
+Begin
+newmembers := StrToIntDef(Parameter(linetext,1),-1);
+if (not Miner_OwnsAPool) then
+   begin
+   Consolelines.Add('Only pool admin can change max members');
+   exit;
+   end
+else
+   begin
+   if ( (newmembers<length(arraypoolmembers)) or (newmembers>Pool_Max_Members) ) then
+      begin
+      Consolelines.Add('Invalid number of members');
+      exit;
+      end;
+   poolinfo.MaxMembers:=newmembers;
+   GuardarArchivoPoolInfo;
+   GetPoolInfoFromDisk();
+   EdMaxMem.Caption:=IntToStr(poolinfo.MaxMembers);
+   end;
+End;
+
+Procedure ChangePoolPayrate(LineText:string);
+var
+  newpayrate: integer;
+Begin
+newpayrate := StrToIntDef(Parameter(linetext,1),-1);
+if (not Miner_OwnsAPool) then
+   begin
+   Consolelines.Add('Only pool admin can change pay interval');
+   exit;
+   end
+else
+   begin
+   if ( (newpayrate<1) or (newpayrate>1008) ) then
+      begin
+      Consolelines.Add('Invalid number for pay interval');
+      exit;
+      end;
+   poolinfo.TipoPago:=newpayrate;
+   GuardarArchivoPoolInfo;
+   GetPoolInfoFromDisk();
+   EdPayRate.Caption:=IntToStr(poolinfo.TipoPago);
+   end;
+End;
+
+Procedure PoolExpelMember(LineText:string);
+var
+  member: string;
+  MemberPosition : integer;
+  MemberBalance : Int64;
+Begin
+member := Parameter(linetext,1);
+if DireccionEsMia(member)>=0 then
+   begin
+   consolelines.Add('You can not expel yourself from your pool');
+   exit;
+   end;
+MemberPosition := GetPoolMemberPosition(member);
+if (not Miner_OwnsAPool) then
+   begin
+   Consolelines.Add('Only pool admin can expel members');
+   exit;
+   end
+else
+   begin
+   if (MemberPosition<0) then
+      begin
+      Consolelines.Add('User do not exists in the pool');
+      exit;
+      end;
+   MemberBalance := GetPoolMemberBalance(member);
+   if MemberBalance > 0 then // Enviar pago si posee saldo
+      begin
+      Processlines.Add('sendto '+member+' '+IntToStr(GetMaximunToSend(MemberBalance))+' EXPEL_POOLPAYMENT_'+PoolInfo.Name);
+      ClearPoolUserBalance(member);
+      ConsoleLines.Add('Pool expel payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
+      tolog('Pool expel payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
+      PoolMembersTotalDeuda := GetTotalPoolDeuda();
+      end;
+   arraypoolmembers[MemberPosition].Direccion:='';
+   arraypoolmembers[MemberPosition].prefijo := '';
+   ArrayPoolMembers[MemberPosition].Deuda:=0;
+   ArrayPoolMembers[MemberPosition].Soluciones:=0;
+   ArrayPoolMembers[MemberPosition].LastPago:=0;
+   ArrayPoolMembers[MemberPosition].TotalGanado:=0;
+   ArrayPoolMembers[MemberPosition].LastSolucion:=0;
+   ArrayPoolMembers[MemberPosition].LastEarned:=0;
+   S_PoolMembers := true;
+   end;
 End;
 
 Procedure SendAdminMessage(linetext:string);
@@ -1516,11 +1720,11 @@ var
   newvalue : integer;
 Begin
 newvalue := StrToIntDef(parameter(LineText,1),-1);
-if newvalue < 0 then consolelines.Add('ReadTimeOutTIme= '+IntToStr(ReadTimeOutTIme))
+if newvalue < 0 then consolelines.Add('ReadTimeOutTime= '+IntToStr(ReadTimeOutTIme))
 else
   begin
   ReadTimeOutTIme := newvalue;
-  Consolelines.Add('ReadTimeOutTIme set to '+IntToStr(newvalue));
+  Consolelines.Add('ReadTimeOutTime set to '+IntToStr(newvalue));
   end;
 End;
 
@@ -1529,12 +1733,28 @@ var
   newvalue : integer;
 Begin
 newvalue := StrToIntDef(parameter(LineText,1),-1);
-if newvalue < 0 then consolelines.Add('ConnectTimeOutTIme= '+IntToStr(ConnectTimeOutTIme))
+if newvalue < 0 then consolelines.Add('ConnectTimeOutTime= '+IntToStr(ConnectTimeOutTIme))
 else
   begin
   ConnectTimeOutTIme := newvalue;
-  Consolelines.Add('ConnectTimeOutTIme set to '+IntToStr(newvalue));
+  Consolelines.Add('ConnectTimeOutTime set to '+IntToStr(newvalue));
   end;
+End;
+
+Procedure ShowNetReqs();
+var
+  contador : integer;
+Begin
+if length(ArrayNetworkRequests)>0 then
+   begin
+   consolelines.Add('Tipo TimeStamp Block Hash');
+   for contador := 0 to length(ArrayNetworkRequests)-1 do
+      begin
+      consolelines.Add(IntToStr(ArrayNetworkRequests[contador].tipo)+' '+IntToStr(ArrayNetworkRequests[contador].timestamp)+' '+
+         IntToStr(ArrayNetworkRequests[contador].block)+' '+ArrayNetworkRequests[contador].hashreq);
+      end;
+   end;
+
 End;
 
 END. // END UNIT

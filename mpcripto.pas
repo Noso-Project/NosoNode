@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, process, strutils, MD5, DCPsha256,
-  mpsignerutils, base64, HlpHashFactory;
+  mpsignerutils, base64, HlpHashFactory, mpcoin;
 
 function CreateNewAddress(): WalletData;
 {Procedure CreateKeysPair();}
@@ -286,6 +286,7 @@ for contador := 0 to length(Listadirecciones)-1 do
       break;
       end;
    end;
+if ( (not IsValidAddress(direccion)) and (AddressSumaryIndex(direccion)<0) ) then result := -1;
 End;
 
 // Ejecuta el autoupdater

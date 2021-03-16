@@ -37,6 +37,8 @@ Procedure CheckIncomingUpdateFile(version,hash, clavepublica, firma, namefile: s
 Procedure ActualizarseConLaRed();
 Procedure AddNewBot(linea:string);
 function GetOutGoingConnections():integer;
+function GetIncomingConnections():integer;
+Procedure SendNetworkRequests(timestamp,direccion:string;block:integer);
 
 implementation
 
@@ -838,6 +840,44 @@ for contador := 1 to MaxConecciones do
    end;
 Result := resultado;
 end;
+
+function GetIncomingConnections():integer;
+var
+  contador : integer;
+  resultado : integer = 0;
+Begin
+for contador := 1 to MaxConecciones do
+   begin
+   if conexiones[contador].tipo='CLI' then
+      resultado += 1;
+   end;
+Result := resultado;
+end;
+
+Procedure SendNetworkRequests(timestamp,direccion:string;block:integer);
+var
+  texttosend: string;
+  hashreq : string;
+  hashvalue : string;
+  tipo : integer;
+Begin
+tipo := 1;  // hashrate
+hashreq := HashMD5String( IntToStr(tipo)+timestamp+direccion+IntToStr(block)+IntToStr(Miner_LastHashRate) );
+hashvalue := HashMD5String(IntToStr(Miner_LastHashRate));
+texttosend := GetPTCEcn+'NETREQ 1 '+timestamp+' '+direccion+' '+IntToStr(block)+' '+
+   hashreq+' '+hashvalue+' '+IntToStr(Miner_LastHashRate);  // tipo 1: hashrate
+OutgoingMsjs.Add(texttosend);
+UpdateMyRequests(1,timestamp,block, hashreq, hashvalue);
+consolelines.Add('hashrate starts in '+IntToStr(Miner_LastHashRate));
+tipo := 2; // peers
+hashreq := HashMD5String( IntToStr(tipo)+timestamp+direccion+IntToStr(block)+'1');
+hashvalue := HashMD5String('1');
+texttosend := GetPTCEcn+'NETREQ 2 '+timestamp+' '+direccion+' '+IntToStr(block)+' '+
+   hashreq+' '+hashvalue+' '+'1';  // tipo 2: peers
+OutgoingMsjs.Add(texttosend);
+UpdateMyRequests(2,timestamp,block, hashreq, hashvalue);
+consolelines.Add('peers starts in 1');
+End;
 
 END. // END UNIT
 

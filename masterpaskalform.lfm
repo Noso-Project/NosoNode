@@ -14,9 +14,9 @@ object Form1: TForm1
   Position = poDesktopCenter
   LCLVersion = '2.0.10.0'
   object Image1: TImage
-    Left = 64
+    Left = 184
     Height = 100
-    Top = 16
+    Top = 64
     Width = 100
     Picture.Data = {
       1754506F727461626C654E6574776F726B477261706869636A21000089504E47

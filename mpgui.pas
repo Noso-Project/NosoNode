@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, mpTime, graphics, strutils, forms, controls, grids,stdctrls,
-  crt,ExtCtrls, buttons ;
+  crt,ExtCtrls, buttons, editbtn ;
 
 type
   TFormInicio = class(Tform)
@@ -71,6 +71,7 @@ Procedure ShowGlobo(Titulo,texto:string);
 Procedure SetMiliTime(Name:string;tipo:integer);
 Procedure SetCurrentJob(CurrJob:String;status:boolean);
 Procedure CloseAllForms();
+Procedure UpdateRowHeigth();
 
 var
   FormInicio : TFormInicio;
@@ -96,6 +97,9 @@ var
     GridPoolConex : TStringgrid;
     BPayUser : Tbutton;
     BPoolHashRate : TButton;
+    EdBuFee : TLabeledEdit;
+    EdMaxMem : TLabeledEdit;
+    EdPayRate : TLabeledEdit;
 
 implementation
 
@@ -407,17 +411,44 @@ GridPoolConex.Cells[2,0]:='HRate';GridPoolConex.Cells[3,0]:='Ver';
 GridPoolConex.Enabled := true;
 GridPoolConex.GridLineWidth := 1;
 
-BPayuser := TButton.Create(Form1);BPayuser.Parent:=FormPool;
+BPayuser := TButton.Create(FormPool);BPayuser.Parent:=FormPool;
 BPayuser.Left:=450;BPayuser.Top:=212;
 BPayuser.Height:=18;BPayuser.Width:=100;
 BPayuser.Caption:='Pay';BPayuser.Font.Name:='candaras';BPayuser.Font.Size:=8;
 BPayuser.Visible:=true;BPayuser.OnClick:=@formpool.BPayuserOnClick;
 
-BPoolHashRate := TButton.Create(Form1);BPoolHashRate.Parent:=FormPool;
+BPoolHashRate := TButton.Create(FormPool);BPoolHashRate.Parent:=FormPool;
 BPoolHashRate.Left:=450;BPoolHashRate.Top:=232;
 BPoolHashRate.Height:=18;BPoolHashRate.Width:=75;
 BPoolHashRate.Caption:='HashRate';BPoolHashRate.Font.Name:='candaras';BPoolHashRate.Font.Size:=8;
 BPoolHashRate.Visible:=true;BPoolHashRate.OnClick:=@formpool.BPoolHashRateOnClick;
+
+EdBuFee := TLabeledEdit.Create(FormPool); EdBuFee.Parent:=FormPool;
+EdBuFee.Left:=450;EdBuFee.top:=272;
+EdBuFee.Height:=18;EdBuFee.Width:=75;
+EdBuFee.LabelPosition:=lpabove;EdBuFee.editlabel.Font.Name:='candaras';EdBuFee.editlabel.Font.Size:=UserFontSize;
+EdBuFee.LabelSpacing:=1;EdBuFee.ReadOnly:=true;
+EdBuFee.editlabel.Caption:='Pool Fee';EdBuFee.Text:='';EdBuFee.Alignment:=taRightJustify;
+EdBuFee.Font.Name:='consolas';EdBuFee.Font.Size:=UserFontSize;
+EdBuFee.Visible:=true;
+
+EdMaxMem := TLabeledEdit.Create(FormPool); EdMaxMem.Parent:=FormPool;
+EdMaxMem.Left:=450;EdMaxMem.top:=312;
+EdMaxMem.Height:=18;EdMaxMem.Width:=75;
+EdMaxMem.LabelPosition:=lpabove;EdMaxMem.editlabel.Font.Name:='candaras';EdMaxMem.editlabel.Font.Size:=UserFontSize;
+EdMaxMem.LabelSpacing:=1;EdMaxMem.ReadOnly:=true;
+EdMaxMem.editlabel.Caption:='Max Members';EdMaxMem.Text:='';EdMaxMem.Alignment:=taRightJustify;
+EdMaxMem.Font.Name:='consolas';EdMaxMem.Font.Size:=UserFontSize;
+EdMaxMem.Visible:=true;
+
+EdPayRate := TLabeledEdit.Create(FormPool); EdPayRate.Parent:=FormPool;
+EdPayRate.Left:=450;EdPayRate.top:=352;
+EdPayRate.Height:=18;EdPayRate.Width:=75;
+EdPayRate.LabelPosition:=lpabove;EdPayRate.editlabel.Font.Name:='candaras';EdPayRate.editlabel.Font.Size:=UserFontSize;
+EdPayRate.LabelSpacing:=1;EdPayRate.ReadOnly:=true;
+EdPayRate.editlabel.Caption:='PayRate';EdPayRate.Text:='';EdPayRate.Alignment:=taRightJustify;
+EdPayRate.Font.Name:='consolas';EdPayRate.Font.Size:=UserFontSize;
+EdPayRate.Visible:=true;
 
 End;
 
@@ -677,6 +708,7 @@ if U_Mytrxs then
    UpdateMyTrxGrid();
    U_Mytrxs := false;
    end;
+if LastMyTrxTimeUpdate+60<StrToInt64(UTCTime) then UpdateMyTrxGrid();
 End;
 
 // Devuelve Una linea del idioma
@@ -746,6 +778,8 @@ var
   Linea : integer;
   PreMonto, nuevomonto : int64;
 Begin
+setmilitime('UpdateMyTrxGrid',1);
+SetCurrentJob('UpdateMyTrxGrid',true);
 GridMyTxs.RowCount:=1;
 if Length(ListaMisTrx)>1 then
    begin
@@ -781,6 +815,9 @@ if Length(ListaMisTrx)>1 then
          end;
       end;
    end;
+LastMyTrxTimeUpdate := StrToInt64(UTCTime);
+SetCurrentJob('UpdateMyTrxGrid',false);
+setmilitime('UpdateMyTrxGrid',2);
 End;
 
 // DEvuelve el alias de una direccion si existe o el mismo hash si no.
@@ -910,6 +947,17 @@ formlog.Visible:=false;
 formabout.Visible:=false;
 formslots.Visible:=false;
 CloseExplorer;
+End;
+
+Procedure UpdateRowHeigth();
+var
+  contador : integer;
+Begin
+DataPanel.Font.Size:=UserFontSize;
+for contador := 0 to datapanel.RowCount-1 do
+   begin
+   DataPanel.RowHeights[contador]:=UserRowHeigth;
+   end;
 End;
 
 END. // END UNIT

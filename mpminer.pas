@@ -12,6 +12,7 @@ Procedure KillAllMiningThreads();
 Procedure ResetMinerInfo();
 function GetCharsFromDifficult(Dificult,step:integer):integer;
 function EjecutarMinero(aParam:Pointer):PtrInt;
+function IsValidStep(solucion,step:string):boolean;
 Procedure IncreaseHashSeed();
 function VerifySolutionForBlock(Dificultad:integer; objetivo,Direccion, Solucion:string):integer;
 function TruncateBlockSolution(solucion:string;step:integer):string;
@@ -23,6 +24,8 @@ uses
 
 // Verifica la situacion del minero
 Procedure VerifyMiner();
+var
+  blocktime : string;
 Begin
 if MyConStatus = 3 then
    begin
@@ -44,11 +47,13 @@ if ((Miner_BlockFOund) and (not Miner_SolutionVerified)) then
       begin
       if not UserOptions.UsePool then
          begin
+         blocktime := UTCTime;
          consoleLines.Add(LangLine(40)+IntToStr(Miner_BlockToMine));  //Miner solution found and Verified for block
          Miner_SolutionVerified := true;
-         OutgoingMsjs.Add(ProtocolLine(6)+UTCTime+' '+IntToStr(Miner_BlockToMine)+' '+
+         OutgoingMsjs.Add(ProtocolLine(6)+blocktime+' '+IntToStr(Miner_BlockToMine)+' '+
          Miner_Address+' '+StringReplace(Miner_Solution,' ','_',[rfReplaceAll, rfIgnoreCase]));
          Miner_Waiting := StrToInt(UTCTime);
+         //SendNetworkRequests(blocktime,Miner_Address,Miner_BlockToMine);
          end
       else ResetMinerInfo;
       end
@@ -117,9 +122,11 @@ var
 Begin
 while ( (Miner_IsON) and (not Miner_KillThreads) ) do
    begin
+   Miner_LastHashRate := Miner_EsteIntervalo*5 div 1000;
    Mseed := MINER_HashSeed;Mnumber := MINER_HashCounter;
    Solucion := HashSha256String(Mseed+Miner_Address+inttostr(Mnumber));
-   if AnsiContainsStr(Solucion,copy(Miner_Target,1,Miner_DifChars)) then
+   if ( (AnsiContainsStr(Solucion,copy(Miner_Target,1,Miner_DifChars))) and
+      (IsValidStep(Miner_Solution,Mseed+IntToStr(Mnumber))) ) then
       begin
       if UserOptions.UsePool then Processlines.Add('SENDPOOLSOLUTION '+IntToStr(Miner_BlockToMine)+' '+Mseed+' '+IntToStr(Mnumber));
       MINER_FoundedSteps := MINER_FoundedSteps+1;
@@ -132,7 +139,7 @@ while ( (Miner_IsON) and (not Miner_KillThreads) ) do
          Miner_IsON := false;
          end;
       end;
-   InterLockedIncrement(MINER_HashCounter);
+   MINER_HashCounter:=MINER_HashCounter+1;
    if MINER_HashCounter > 999999999 then
       begin
       IncreaseHashSeed;
@@ -140,7 +147,20 @@ while ( (Miner_IsON) and (not Miner_KillThreads) ) do
       end;
    end;
 Result := 1;
+try
 if length(Miner_Thread)>0 then Setlength(Miner_Thread,length(Miner_Thread)-1);
+Except on E:Exception do
+   begin
+   consolelines.Add ('Error deleting minning threads');
+   end;
+end;
+End;
+
+// Indica si un step ya ha sido añadido a la solucion
+function IsValidStep(solucion,step:string):boolean;
+Begin
+result := true;
+if AnsiContainsStr(solucion,step) then result := false;
 End;
 
 // Incrementa paso a paso el seed del minero
@@ -149,8 +169,8 @@ var
   LastChar : integer;
   contador: integer;
 Begin
-LastChar := Ord(MINER_HashSeed[6])+1;
-MINER_HashSeed[6] := chr(LastChar);
+LastChar := Ord(MINER_HashSeed[9])+1;
+MINER_HashSeed[9] := chr(LastChar);
 for contador := 9 downto 1 do
    begin
    if Ord(MINER_HashSeed[contador])>126 then
@@ -172,15 +192,18 @@ Begin
 result:= 0;
 ListaSoluciones := TStringList.Create;
 ListaSoluciones.Add(GetCommand(Solucion));
+AllSolutions := AllSolutions+GetCommand(Solucion);
 for contador := 1 to Miner_Steps-1 do
+   begin
    ListaSoluciones.Add(Parameter(Solucion,contador));
-AllSolutions := ListaSoluciones.CommaText;
+   AllSolutions := AllSolutions+Parameter(Solucion,contador);
+   end;
 for contador := 0 to ListaSoluciones.Count-1 do
    Begin
-   AllSolutions := StringReplace(AllSolutions,ListaSoluciones[contador],'',[rfReplaceAll, rfIgnoreCase]);
+   AllSolutions := StringReplace(AllSolutions,ListaSoluciones[contador],'',[]);
    if AnsiContainsStr(AllSolutions,ListaSoluciones[contador]) then
       begin
-      OutText('Duplicated solution for block: '+ListaSoluciones[contador]);
+      OutText('Duplicated solution for block step '+IntToStr(contador+1)+': '+ListaSoluciones[contador]);
       result := contador+1;
       break;
       end;

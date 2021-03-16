@@ -33,6 +33,10 @@ function ValidateTrfr(order:orderdata;Origen:String):Boolean;
 Procedure INC_PTC_Order(TextLine:String);
 Procedure PTC_Order(TextLine:String);
 Procedure PTC_AdminMSG(TextLine:String);
+function SavePoolFiles():boolean;
+Procedure PTC_NetReqs(textline:string);
+function RequestAlreadyexists(reqhash:string):string;
+Procedure UpdateMyRequests(tipo:integer;timestamp:string;bloque:integer;hash,hashvalue:string);
 
 CONST
   Getnodes = 1;
@@ -190,6 +194,7 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = '$CUSTOM' then INC_PTC_Custom(GetOpData(SlotLines[contador][0]))
       else if UpperCase(LineComando) = 'ORDER' then INC_PTC_Order(SlotLines[contador][0])
       else if UpperCase(LineComando) = 'ADMINMSG' then PTC_AdminMSG(SlotLines[contador][0])
+      else if UpperCase(LineComando) = 'NETREQ' then PTC_NetReqs(SlotLines[contador][0])
       else
          Begin  // El comando recibido no se reconoce. Verificar protocolos posteriores.
          ConsoleLines.Add(LangLine(23)+SlotLines[contador][0]+') '+intToStr(contador)); //Unknown command () in slot: (
@@ -651,6 +656,171 @@ Tolog('Admin message'+slinebreak+
       msgtoshow);
 formlog.Visible:=true;
 OutgoingMsjs.Add(TextLine);
+End;
+
+// Save the pool files to a zip file
+function SavePoolFiles():boolean;
+var
+  MyZipFile: TZipper;
+Begin
+result := true;
+try
+   MyZipFile := TZipper.Create;
+   MyZipFile.FileName := 'NOSODATA/'+'PoolFiles.zip';
+   MyZipFile.Entries.AddFileEntry(PoolInfoFilename);
+   MyZipFile.Entries.AddFileEntry(PoolMembersFilename);
+   MyZipFile.ZipAllFiles;
+   MyZipFile.Free;
+Except on E:Exception do
+   begin
+   tolog('Error saving pool files');
+   result := false;
+   end;
+end;
+End;
+
+Procedure PTC_NetReqs(textline:string);
+var
+  request : integer;
+  timestamp : string;
+  Direccion : string;
+  Bloque: integer;
+  ReqHash, ValueHash : string;
+  valor,newvalor : string;
+  texttosend : string;
+  NewValueHash : string;
+Begin
+request :=  StrToIntDef(parameter(TextLine,5),0);
+timestamp :=  parameter(TextLine,6);
+Direccion :=  parameter(TextLine,7);
+Bloque :=  StrToIntDef(parameter(TextLine,8),0);
+ReqHash :=  parameter(TextLine,9);
+ValueHash :=  parameter(TextLine,10);
+valor  :=  parameter(TextLine,11);
+if request = 1 then // hashrate
+   begin
+   if ( (StrToInt64def(timestamp,0) = LastBlockData.TimeEnd) and
+      (Direccion = LastBlockData.AccountMiner) and (bloque=LastBlockData.Number) and
+      (RequestAlreadyexists(ReqHash)='') ) then
+      begin
+      //consolelines.Add('NETREQ GOT'+slinebreak+IntToStr(request)+' '+timestamp+' '+direccion+' '+IntTostr(bloque)+' '+
+      //   ReqHash+' '+ValueHash+' '+valor);
+      newvalor := InttoStr(StrToIntDef(valor,0)+Miner_LastHashRate);
+      consolelines.Add('hashrate set to: '+newvalor);
+      NewValueHash := HashMD5String(newvalor);
+      TextToSend := GetPTCEcn+'NETREQ 1 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+
+         ReqHash+' '+NewValueHash+' '+newvalor;
+      OutgoingMsjs.Add(texttosend);
+      UpdateMyRequests(request,timestamp,bloque, ReqHash,ValueHash );
+      end
+   else if ( (RequestAlreadyexists(ReqHash)<>'') and  (RequestAlreadyexists(ReqHash)<>ValueHash) ) then
+      begin
+      NewValueHash := HashMD5String(valor);
+      TextToSend := GetPTCEcn+'NETREQ 1 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+
+         ReqHash+' '+NewValueHash+' '+valor;
+      OutgoingMsjs.Add(texttosend);
+      consolelines.Add('Now hashrate: '+valor);
+      UpdateMyRequests(request,timestamp,bloque, ReqHash,NewValueHash );
+      end
+   else
+      begin
+      networkhashrate := StrToInt64def(valor,-1);
+      consolelines.Add('Final hashrate: '+valor);
+      if nethashsend=false then
+         begin
+         TextToSend := GetPTCEcn+'NETREQ 1 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+
+            ReqHash+' '+ValueHash+' '+valor;
+         OutgoingMsjs.Add(texttosend);
+         nethashsend:= true;
+         end;
+      end;
+   end
+else if request = 2 then // peers
+   begin
+   if ( (StrToInt64def(timestamp,0) = LastBlockData.TimeEnd) and
+      (Direccion = LastBlockData.AccountMiner) and (bloque=LastBlockData.Number) and
+      (RequestAlreadyexists(ReqHash)='') ) then
+      begin
+      newvalor := InttoStr(StrToIntDef(valor,0)+1);
+      consolelines.Add('peers set to: '+newvalor);
+      NewValueHash := HashMD5String(newvalor);
+      TextToSend := GetPTCEcn+'NETREQ 2 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+
+         ReqHash+' '+NewValueHash+' '+newvalor;
+      OutgoingMsjs.Add(texttosend);
+      UpdateMyRequests(request,timestamp,bloque, ReqHash,ValueHash );
+      end
+   else if ( (RequestAlreadyexists(ReqHash)<>'') and  (RequestAlreadyexists(ReqHash)<>ValueHash) ) then
+      begin
+      NewValueHash := HashMD5String(valor);
+      TextToSend := GetPTCEcn+'NETREQ 2 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+
+         ReqHash+' '+NewValueHash+' '+valor;
+      OutgoingMsjs.Add(texttosend);
+      consolelines.Add('Now peers: '+valor);
+      UpdateMyRequests(request,timestamp,bloque, ReqHash,NewValueHash );
+      end
+   else
+      begin
+      networkpeers := StrToInt64def(valor,-1);
+      consolelines.Add('Final peers: '+valor);
+      if netpeerssend=false then
+         begin
+         TextToSend := GetPTCEcn+'NETREQ 2 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+
+            ReqHash+' '+ValueHash+' '+valor;
+         OutgoingMsjs.Add(texttosend);
+         netpeerssend:= true;
+         end;
+      end;
+   end;
+End;
+
+function RequestAlreadyexists(reqhash:string):string;
+var
+  contador : integer;
+Begin
+result := '';
+if length(ArrayNetworkRequests) > 0 then
+   begin
+   for contador := 0 to length(ArrayNetworkRequests)-1 do
+      begin
+      if ArrayNetworkRequests[contador].hashreq = reqhash then
+         begin
+         result := ArrayNetworkRequests[contador].hashvalue;
+         break;
+         end;
+      end;
+   end;
+End;
+
+Procedure UpdateMyRequests(tipo:integer;timestamp:string;bloque:integer;hash,hashvalue:string);
+var
+  contador : integer;
+  ExistiaTipo : boolean = false;
+Begin
+if length(ArrayNetworkRequests)>0 then
+   begin
+   for contador := 0 to length(ArrayNetworkRequests)-1 do
+      begin
+      if ArrayNetworkRequests[contador].tipo = tipo then
+         begin
+         ArrayNetworkRequests[contador].timestamp:=StrToInt64(timestamp);
+         ArrayNetworkRequests[contador].block:=bloque;
+         ArrayNetworkRequests[contador].hashreq:=hash;
+         ArrayNetworkRequests[contador].hashvalue:=hashvalue;
+         if tipo = 1 then nethashsend := false;
+         if tipo = 2 then netpeerssend := false;
+         ExistiaTipo := true;
+         end;
+      end;
+   end;
+if not ExistiaTipo then
+   begin
+   SetLength(ArrayNetworkRequests,length(ArrayNetworkRequests)+1);
+   ArrayNetworkRequests[length(ArrayNetworkRequests)-1].tipo := tipo;
+   ArrayNetworkRequests[length(ArrayNetworkRequests)-1].timestamp:=StrToInt64(timestamp);
+   ArrayNetworkRequests[length(ArrayNetworkRequests)-1].block:=bloque;
+   ArrayNetworkRequests[length(ArrayNetworkRequests)-1].hashreq:=hash;
+   ArrayNetworkRequests[length(ArrayNetworkRequests)-1].hashvalue:=hashvalue;
+   end;
 End;
 
 END. // END UNIT

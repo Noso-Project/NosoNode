@@ -358,10 +358,13 @@ if mode = 1 then
    resultado := resultado+'MyConStatus: '+IntToStr(myConStatus)+' ';
    Resultado := resultado+'CurrentJob: '+CurrentJob+' ';
    Resultado := resultado+'MinerActive: '+BoolToStr(Miner_Active,true)+' ';
+   Resultado := resultado+'MinerIsOn: '+BoolToStr(Miner_IsON,true)+' ';
    Resultado := resultado+'CPUs: '+IntToStr(G_CpuCount)+' ';
    Resultado := resultado+'MinerThreads: '+IntToStr(Length(Miner_Thread)) +' ';
    Resultado := resultado+'OS: '+OSVersion +' ';
-   Resultado := resultado+'WalletVer: '+ProgramVersion+SubVersion;
+   Resultado := resultado+'WalletVer: '+ProgramVersion+SubVersion+' ';
+   Resultado := resultado+'Minerhashcount: '+IntToStr(MINER_HashCounter)+' ';
+   Resultado := resultado+'Minerhashseed: '+MINER_HashSeed;
    end;
 result := resultado;
 End;

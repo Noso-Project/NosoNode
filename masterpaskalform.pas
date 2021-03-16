@@ -203,6 +203,14 @@ type
        Context : TIdContext;
        end;
 
+  NetworkRequestData = Packed Record
+       tipo : integer;
+       timestamp : int64;
+       block : integer;
+       hashreq : string[32];
+       hashvalue: string[32];
+       end;
+
   { TForm1 }
 
   TForm1 = class(TForm)
@@ -339,9 +347,9 @@ CONST
   ReservedWords : string = 'NULL,DELADDR';
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS POOLHASHRATE';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
-  DefaultNodes : String = 'DefNodes 23.95.233.179 75.127.0.216 192.210.160.101';
+  DefaultNodes : String = 'DefNodes 192.210.160.101 23.95.233.179 75.127.0.216';
   ProgramVersion = '0.2.0';
-  SubVersion = 'F';
+  SubVersion = 'H';
   OficialRelease = true;
   BuildDate = 'March 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -361,10 +369,12 @@ CONST
   ErrorLogFilename = 'NOSODATA/errorlog.txt';
   PoolInfoFilename = 'NOSODATA/poolinfo.dat';
   PoolMembersFilename = 'NOSODATA/poolmembers.dat';
+  AdvOptionsFilename = 'NOSODATA/advopt.txt';
   DefaultServerPort = 8080;
   MaxConecciones  = 50;
   Protocolo = 1;
   Miner_Steps = 10;
+  Pool_Max_Members = 90;
   // Custom values for coin
   SecondsPerBlock = 600; //600            // 10 minutes
   PremineAmount = 1030390730000;//1030390730000;                // Ammount premined in genesys block
@@ -384,8 +394,12 @@ CONST
   GenesysTimeStamp = 1615132800;//1615132800;
 
 var
-  ReadTimeOutTIme : integer = 10;
-  ConnectTimeOutTime : integer = 200;
+  UserFontSize : integer = 8;
+  UserRowHeigth : integer = 22;
+  ReadTimeOutTIme : integer = 100;
+  ConnectTimeOutTime : integer = 500;
+  DefCPUs : integer = 1;
+
   MaxOutgoingConnections : integer = 3;
   FirstShow : boolean = false;
   RunningDoctor : boolean = false;
@@ -421,6 +435,12 @@ var
     U_DataPanel : boolean = true;
   LabelBigBalance : TLabel;
 
+  // Network requests
+  ArrayNetworkRequests : array of NetworkRequestData;
+     networkhashrate: int64 = 0;
+       nethashsend : boolean = false;
+     networkpeers : integer;
+       netpeerssend : boolean = false;
 
     U_DirPanel : boolean = false;
   FileMyTrx  : File of MyTrxData;
@@ -429,6 +449,7 @@ var
     S_Options : Boolean = false;
   FileBotData : File of BotData;
     S_BotData : Boolean = false;
+  LastBotClear: string = '';
   FileNodeData : File of NodeData;
     S_NodeData : Boolean = false;
   FileNTPData : File of NTPData;
@@ -443,6 +464,8 @@ var
     PoolInfo : PoolInfoData;
   FilePoolMembers : File of PoolMembersData;
     S_PoolMembers : boolean = false;
+  FileAdvOptions : textfile;
+    S_AdvOpt : boolean = false;
   PoolServerConex : array of PoolUserConnection;
   PoolTotalHashRate : int64 = 0;
 
@@ -521,6 +544,7 @@ var
   Miner_UltimoRecuento : int64 = 100000000;
   Miner_EsteIntervalo : int64 = 0;
   Miner_KillThreads : boolean = false;
+  Miner_LastHashRate : int64 = 0;
 
   // Threads
   RebulidTrxThread : Int64 = 0;
@@ -572,6 +596,7 @@ var
   GridMyTxs : TStringGrid;
     BitInfoTrx: TSpeedButton;
     U_Mytrxs: boolean = false;
+    LastMyTrxTimeUpdate : int64;
   PanelTrxDetails : TPanel;
     MemoTrxDetails : TMemo;
     BCloseTrxDetails : TBitBtn;
@@ -708,7 +733,9 @@ if GetEnvironmentVariable('NUMBER_OF_PROCESSORS') = '' then G_CpuCount := 1
 else G_CpuCount := StrToInt(GetEnvironmentVariable('NUMBER_OF_PROCESSORS'));
 for contador := 1 to G_CpuCount do
    CPUsSelect.Items.Add(IntToStr(contador));
-CPUsSelect.ItemIndex:=0;
+if DefCPUs >= CPUsSelect.Items.Count then CPUsSelect.ItemIndex:= CPUsSelect.Items.Count-1
+else CPUsSelect.ItemIndex:=DefCPUs-1;
+G_MiningCPUs := DefCPUs;
 OutText('✓ '+inttostr(G_CpuCount)+' CPUs found',false,1);
 StringAvailableUpdates := AvailableUpdates();
 Form1.Latido.Enabled:=true;
@@ -724,6 +751,7 @@ Setlength(CriptoOpsResu,0);
 Setlength(MilitimeArray,0);
 Setlength(Miner_Thread,0);
 SetLength(PoolServerConex,0);
+SetLength(ArrayNetworkRequests,0);
 Tolog('Noso session started'); NewLogLines := NewLogLines-1;
 info('Noso session started');
 infopanel.BringToFront;
@@ -793,6 +821,30 @@ if Key=VK_ESCAPE then
    Begin
    ConsoleLine.Text := '';
    ConsoleLine.SelStart := Length(ConsoleLine.Text);
+   end;
+if ((Shift = [ssCtrl]) and (Key = VK_I)) then
+   begin
+   UserRowHeigth := UserRowHeigth+1;
+   consolelines.Add('UserRowHeigth:'+inttostr(UserRowHeigth));
+   UpdateRowHeigth();
+   end;
+if ((Shift = [ssCtrl]) and (Key = VK_K)) then
+   begin
+   UserRowHeigth := UserRowHeigth-1;
+   consolelines.Add('UserRowHeigth:'+inttostr(UserRowHeigth));
+   UpdateRowHeigth();
+   end;
+if ((Shift = [ssCtrl]) and (Key = VK_O)) then
+   begin
+   UserFontSize := UserFontSize+1;
+   consolelines.Add('UserFontSize:'+inttostr(UserFontSize));
+   UpdateRowHeigth();
+   end;
+if ((Shift = [ssCtrl]) and (Key = VK_L)) then
+   begin
+   UserFontSize := UserFontSize-1;
+   consolelines.Add('UserFontSize:'+inttostr(UserFontSize));
+   UpdateRowHeigth();
    end;
 end;
 
@@ -896,12 +948,15 @@ if ((CheckMonitor) and (FormMonitor.Visible)) then UpdateMiliTimeForm();
 if FormSlots.Visible then UpdateSlotsGrid();
 if FormPool.Visible then UpdatePoolForm();
 UpdateStatusBar;
+if ( (StrToInt64(UTCTime) mod 3600=0) and (LastBotClear<>UTCTime) ) then processlines.Add('delbot all');
 Form1.Latido.Enabled:=true;
 end;
 
 //procesa el cierre de la aplicacion
 Procedure CerrarPrograma();
 Begin
+CreateADV(false); // save advopt
+Miner_IsOn := false;
 Miner_KillThreads := true;
 info(LangLine(62));  //   Closing wallet
 if RestartNosoAfterQuit then CrearRestartfile();
@@ -918,6 +973,7 @@ setlength(CriptoOpsTipo,0);
 if RunDoctorBeforeClose then RunDiagnostico('rundiag fix');
 if RestartNosoAfterQuit then restartnoso();
 Application.Terminate;
+Halt;
 End;
 
 // Crear todos los elementos necesarios para inicializar el programa
@@ -1021,6 +1077,8 @@ ConsoleLine.PopupMenu:=ConsoLinePopUp ;
 
 DataPanel := TStringGrid.Create(Form1);DataPanel.Parent:=Form1;
 DataPanel.Left:=2;DataPanel.Top:=310;DataPanel.Height:=180;DataPanel.Width:=396;
+DataPanel.DefaultRowHeight:=UserRowHeigth;
+DataPanel.Font.Size:=UserFontSize;
 DataPanel.ColCount:=4;DataPanel.rowcount:=8;DataPanel.FixedCols:=0;DataPanel.FixedRows:=0;
 DataPanel.enabled:= false;
 DataPanel.ScrollBars:=ssnone;
@@ -1544,6 +1602,7 @@ var
   MemberBalance : Int64;
   BloqueStep: integer; SeedStep : string; HashStep : Int64; Solucion : String;
   PoolSolutionStep : integer = 0;
+  BlockTime : string;
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
 Linea := AContext.Connection.IOHandler.ReadLn(IndyTextEncoding_UTF8);
@@ -1557,11 +1616,18 @@ if Comando = 'JOIN' then
    joinip := parameter(linea,3);
    joinport := parameter(linea,4);
    JoinPrefijo := PoolAddNewMember(UserDireccion);
+   MemberBalance := GetPoolMemberBalance(UserDireccion);
    if JoinPrefijo<>'' then
       begin
       Acontext.Connection.IOHandler.WriteLn('JOINOK '+PoolInfo.Direccion+' '+JoinPrefijo+' '+
       joinip+' '+joinport+' '+UserDireccion+' '+PoolInfo.Name+' '+poolinfo.PassWord);
       ConsoleLines.Add(UserDireccion+' added to the pool');
+      end
+   else
+      begin
+      Acontext.Connection.IOHandler.WriteLn('JOINFAILED');
+      AContext.Connection.Disconnect;
+      Acontext.Connection.IOHandler.InputBuffer.Clear;
       end;
    end;
 if Comando = 'STATUS' then
@@ -1585,6 +1651,15 @@ if Comando = 'HASHRATE' then
    GridPoolConex.Cells[2,GetPoolConexFromIp(IpUser)+1] := parameter(linea,3);
    GridPoolConex.Cells[3,GetPoolConexFromIp(IpUser)+1] := parameter(linea,4);
    end;
+if comando = 'MINERREQUEST' then
+   begin
+   Acontext.Connection.IOHandler.WriteLn('MINERINFO '+
+      IntToStr(PoolMiner.Block)+' '+
+      PoolMiner.Target+' '+
+      IntToStr(PoolMiner.DiffChars)+' '+
+      inttostr(PoolMiner.steps)
+      );
+   end;
 if Comando = 'STEP' then
    begin
    bloqueStep := StrToInt(parameter(linea,3));
@@ -1592,7 +1667,8 @@ if Comando = 'STEP' then
    HashStep := StrToInt64(parameter(linea,5));
    Solucion := HashSha256String(SeedStep+PoolInfo.Direccion+IntToStr(HashStep));
    if ( (AnsiContainsStr(Solucion,copy(PoolMiner.Target,1,PoolMiner.DiffChars))) and
-       (GetPoolMemberBalance(UserDireccion)>-1) and (bloqueStep=PoolMiner.Block) ) then
+       (GetPoolMemberBalance(UserDireccion)>-1) and (bloqueStep=PoolMiner.Block) and
+       (IsValidStep(PoolMiner.Solucion,SeedStep+IntToStr(HashStep))) ) then
       begin
       AcreditarPoolStep(UserDireccion);
       MemberBalance := GetPoolMemberBalance(UserDireccion);
@@ -1608,10 +1684,12 @@ if Comando = 'STEP' then
          PoolSolutionStep := VerifySolutionForBlock(PoolMiner.Dificult, PoolMiner.Target,PoolInfo.Direccion , PoolMiner.Solucion);
          if PoolSolutionStep=0 then
             Begin
+            BlockTime := UTCTime;
             consolelines.Add('Pool solution verified!');
-            OutgoingMsjs.Add(ProtocolLine(6)+UTCTime+' '+IntToStr(PoolMiner.Block)+' '+
-            PoolInfo.Direccion+' '+StringReplace(PoolMiner.Solucion,' ','_',[rfReplaceAll, rfIgnoreCase]));
+            OutgoingMsjs.Add(ProtocolLine(6)+BlockTime+' '+IntToStr(PoolMiner.Block)+' '+
+               PoolInfo.Direccion+' '+StringReplace(PoolMiner.Solucion,' ','_',[rfReplaceAll, rfIgnoreCase]));
             ResetPoolMiningInfo();
+            //SendNetworkRequests(blocktime,PoolInfo.Direccion,PoolMiner.Block);
             end
          else
             begin
@@ -1630,6 +1708,7 @@ if Comando = 'STEP' then
       Acontext.Connection.IOHandler.WriteLn('POOLSTEPS '+IntToStr(PoolMiner.steps));
       if GetPoolMemberBalance(UserDireccion)< 0 then consolelines.Add('Unregistered pool user: '+UserDireccion)
       else consolelines.Add('Member: '+UserDireccion);
+      consolelines.Add( BoolToStr(IsValidStep(PoolMiner.Solucion,SeedStep+IntToStr(HashStep)),true) );
       end;
    end;
 if Comando = 'PAYMENT' then
@@ -1643,7 +1722,8 @@ if Comando = 'PAYMENT' then
          ClearPoolUserBalance(UserDireccion);
          Acontext.Connection.IOHandler.WriteLn('PAYMENTOK '+IntToStr(GetMaximunToSend(MemberBalance)));
          ConsoleLines.Add('Pool payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
-         tolog('Pool payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
+         tolog('Pool payment sent: '+int2curr(GetMaximunToSend(MemberBalance))+
+            slinebreak+'To:'+UserDireccion+slinebreak+'On block:'+IntToStr(MyLastBlock));
          PoolMembersTotalDeuda := GetTotalPoolDeuda();
          end;
       end
@@ -1674,7 +1754,13 @@ if password <> Poolinfo.PassWord then
 else
    begin
    SavePoolServerConnection(IpUser,UserDireccion,Acontext);
-   if userdireccion <> '' then Acontext.Connection.IOHandler.WriteLn('POOLSTEPS '+IntToStr(PoolMiner.steps));
+   if ( (userdireccion <> '') and (GetPoolMemberBalance(userdireccion)>=0) ) then Acontext.Connection.IOHandler.WriteLn('POOLSTEPS '+IntToStr(PoolMiner.steps));
+   if ( (userdireccion <> '') and (GetPoolMemberBalance(userdireccion)<0) ) then
+      begin
+      //Acontext.Connection.IOHandler.WriteLn('UNREGISTERED');
+      //AContext.Connection.Disconnect;
+      //Acontext.Connection.IOHandler.InputBuffer.Clear;
+      end;
    end;
 End;
 
@@ -1843,16 +1929,10 @@ End;
 // Click en conectar
 Procedure TForm1.ConnectCircleOnClick(Sender: TObject);
 Begin
-if Form1.Server.Active then
-   begin
-   ProcessLines.Add('serveroff');
-   ProcessLines.Add('disconnect');
-   end
-else if (not Form1.Server.Active) and (CONNECT_Try) then
+if (CONNECT_Try) then
    ProcessLines.Add('disconnect')
 else
    begin
-   ProcessLines.Add('serveron');
    ProcessLines.Add('connect');
    end;
 End;
@@ -2516,6 +2596,9 @@ else
    formpool.Width := 430;
    end;
 formpool.Caption:='Minning pool: '+MyPoolData.Name;
+EdBuFee.Caption:=IntToStr(poolinfo.Porcentaje);
+EdMaxMem.Caption:=IntToStr(poolinfo.MaxMembers);
+EdPayRate.Caption:=IntToStr(poolinfo.TipoPago);
 FormPool.Visible:=true;
 End;
 

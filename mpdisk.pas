@@ -6,11 +6,13 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, Dialogs, Forms, mpTime, FileUtil, LCLType,
-  lclintf, controls, mpCripto, mpBlock, Zipper, mpLang, mpcoin, poolmanage, Win32Proc;
+  lclintf, controls, mpCripto, mpBlock, Zipper, mpLang, mpcoin, poolmanage, Win32Proc, mpminer;
 
 Procedure VerificarArchivos();
 {Procedure VerificarSSL();}
 Procedure CreateLog();
+Procedure CreateADV(saving:boolean);
+Procedure LoadADV();
 Procedure ToLog(Texto:string);
 Procedure CrearArchivoOpciones();
 Procedure CargarOpciones();
@@ -71,6 +73,7 @@ Procedure RestartConditions();
 Procedure CrearCrashInfo();
 function OSVersion: string;
 Function GetWinVer():string;
+Procedure RestoreBlockChain();
 
 implementation
 
@@ -85,6 +88,10 @@ if not directoryexists(BlockDirectory) then CreateDir(BlockDirectory);
 OutText('✓ Block folder ok',false,1);
 if not directoryexists(UpdatesDirectory) then CreateDir(UpdatesDirectory);
 OutText('✓ Updates folder ok',false,1);
+
+if not FileExists (AdvOptionsFilename) then CreateADV(false) else LoadADV();
+UpdateRowHeigth();
+OutText('✓ Advanced options loaded',false,1);
 
 if not FileExists (ErrorLogFilename) then Createlog;
 OutText('✓ Log file ok',false,1);
@@ -120,7 +127,7 @@ if UserOptions.PoolInfo<> '' then
    end;
 OutText('✓ Pool info verified',false,1);
 MyLastBlock := GetMyLastUpdatedBlock;
-BuildHeaderFile(MyLastBlock); // PROBABLY IT IS NOT NECESAARY
+BuildHeaderFile(MyLastBlock); // PROBABLY IT IS NOT NECESARY
 
 UpdateWalletFromSumario();
 OutText('✓ Wallet updated',false,1);
@@ -160,6 +167,45 @@ Begin
    end;
 End;
 
+Procedure CreateADV(saving:boolean);
+Begin
+   try
+   Assignfile(FileAdvOptions, AdvOptionsFilename);
+   rewrite(FileAdvOptions);
+   writeln(FileAdvOptions,'ctot '+inttoStr(ConnectTimeOutTime));
+   writeln(FileAdvOptions,'rtot '+inttoStr(ReadTimeOutTIme));
+   writeln(FileAdvOptions,'UserFontSize '+inttoStr(UserFontSize));
+   writeln(FileAdvOptions,'UserRowHeigth '+inttoStr(UserRowHeigth));
+   writeln(FileAdvOptions,'CPUs '+inttoStr(DefCPUs));
+   Closefile(FileAdvOptions);
+   if saving then consolelines.Add('Advanced Options file saved');
+   Except on E:Exception do
+      tolog ('Error creating AdvOpt file');
+   end;
+End;
+
+Procedure LoadADV();
+var
+  linea:string;
+Begin
+   try
+   Assignfile(FileAdvOptions, AdvOptionsFilename);
+   reset(FileAdvOptions);
+   while not eof(FileAdvOptions) do
+      begin
+      readln(FileAdvOptions,linea);
+      if parameter(linea,0) ='ctot' then ConnectTimeOutTime:=StrToIntDef(Parameter(linea,1),ConnectTimeOutTime);
+      if parameter(linea,0) ='rtot' then ReadTimeOutTIme:=StrToIntDef(Parameter(linea,1),ReadTimeOutTIme);
+      if parameter(linea,0) ='UserFontSize' then UserFontSize:=StrToIntDef(Parameter(linea,1),UserFontSize);
+      if parameter(linea,0) ='UserRowHeigth' then UserRowHeigth:=StrToIntDef(Parameter(linea,1),UserRowHeigth);
+      if parameter(linea,0) ='CPUs' then DefCPUs:=StrToIntDef(Parameter(linea,1),DefCPUs);
+      end;
+   Closefile(FileAdvOptions);
+   Except on E:Exception do
+      tolog ('Error creating AdvOpt file');
+   end;
+End;
+
 // Guarda una linea al log
 Procedure ToLog(Texto:string);
 var
@@ -194,7 +240,7 @@ Begin
    DefOptions.AutoConnect:=false;
    DefOptions.Auto_Updater:=false;
    DefOptions.JustUpdated:=false;
-   DefOptions.VersionPage:='https://nosocoin.blogspot.com';
+   DefOptions.VersionPage:='https://nosocoin.blogspot.com/2021/03/noso-wallet-help.html';
    DefOptions.ToTray:=false;
    DefOptions.UsePool:=false;
    write(FileOptions,DefOptions);
@@ -1340,7 +1386,15 @@ var
   fixed : integer = 0;
   porcentaje : integer;
 Begin
-CloseAllForms();
+Miner_KillThreads := true;
+CloseAllforms();
+CerrarClientes();
+StopServer();
+StopPoolServer();
+if canalpool.Connected then CanalPool.Disconnect;
+If Miner_IsOn then Miner_IsON := false;
+KillAllMiningThreads;
+setlength(CriptoOpsTipo,0);
 RunningDoctor := true;
 if UpperCase(parameter(linea,1)) = 'FIX' then fixfiles := true;
 lastblock := GetMyLastUpdatedBlock;
@@ -1607,6 +1661,25 @@ if WindowsVersion = wv95 then result := 'Windows95'
   else if WindowsVersion = wv7 then result := 'Windows7'
   else if WindowsVersion = wv10 then result := 'Windows10'
   else result := 'WindowsUnknown';
+End;
+
+Procedure RestoreBlockChain();
+Begin
+Miner_KillThreads := true;
+CloseAllforms();
+CerrarClientes();
+StopServer();
+StopPoolServer();
+if canalpool.Connected then CanalPool.Disconnect;
+If Miner_IsOn then Miner_IsON := false;
+KillAllMiningThreads;
+setlength(CriptoOpsTipo,0);
+deletefile(SumarioFilename);
+deletefile(SumarioFilename+'.bak');
+deletefile(ResumenFilename);
+if DeleteDirectory(BlockDirectory,True) then
+   RemoveDir(BlockDirectory);
+RestartNoso();
 End;
 
 END. // END UNIT
