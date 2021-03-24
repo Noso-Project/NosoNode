@@ -37,8 +37,6 @@ File > Open > Select the .LPI file from this repository.
 
 To compile, just click CTRL+F9; it will create the .EXE file in the same folder
 
-EXE file hash: 26B1E690B21214E39E130F506C5568BB (you can check it writing 'myhash' in the console line)
-
 Donations for the project:
 
 BTC: 3H1VzdL3QFQpc62DUhbtCFV5dG4K1yPwVB
