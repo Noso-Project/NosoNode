@@ -1,9 +1,7 @@
 # NosoWallet
 Noso Windows Wallet
 
-Current verison 0.2.0 is the first official release. Noso mainnet will start minning with this one-
-
-Official Release Ver 0.2.0F
+Official Release Ver 0.2.0J
 
 THIS IS AM OFFICIAL RELEASE
 
