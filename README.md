@@ -42,9 +42,9 @@ EXE file hash: 26B1E690B21214E39E130F506C5568BB (you can check it writing 'myhas
 Donations for the project:
 
 BTC: 3H1VzdL3QFQpc62DUhbtCFV5dG4K1yPwVB
+
 LTC: LUUWwzfeQtJ4dc8A5xJVz3Zacray55f1WH
+
 Paypal: scalvhh@hotmail.com
+
 NosoCoin:  devteam_donations
-
-
-
