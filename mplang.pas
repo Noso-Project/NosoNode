@@ -139,7 +139,7 @@ DLSL.Add('Status');                         //115
 DLSL.Add('Destination');
 DLSL.Add('Concept');
 DLSL.Add('Address');
-DLSL.Add('Not minning');
+DLSL.Add('Not mining');
 DLSL.Add('FATAL ERROR');                         //120
 DLSL.Add('OpenSSL not found. Program will close inmediately');
 DLSL.Add('Updated with ');

@@ -80,6 +80,7 @@ Procedure ShowAddressBalance(LineText:string);
 Procedure SetReadTimeOutTIme(LineText:string);
 Procedure SetConnectTimeOutTIme(LineText:string);
 Procedure ShowNetReqs();
+Procedure RequestHeaders();
 
 implementation
 
@@ -184,6 +185,9 @@ else if UpperCase(Command) = 'OWNER' then GetOwnerHash(LineText)
 else if UpperCase(Command) = 'CHECKOWNER' then CheckOwnerHash(LineText)
 else if UpperCase(Command) = 'UPDATE' then RunUpdate(LineText)
 else if UpperCase(Command) = 'RESTOREBLOCKCHAIN' then RestoreBlockChain()
+else if UpperCase(Command) = 'REQHEAD' then RequestHeaders()
+else if UpperCase(Command) = 'SAVEADV' then CreateADV(true)
+else if UpperCase(Command) = 'PMM' then setlength(PoolServerConex,90)
 
 // POOL RELATED COMMANDS
 else if UpperCase(Command) = 'CREATEPOOL' then CreatePool(LineText)
@@ -206,7 +210,6 @@ else if UpperCase(Command) = 'RESETPOOL' then PoolResetData()
 else if UpperCase(Command) = 'SENDPOOLSTEPS' then SendPoolStepsInfo(StrToInt(Parameter(LineText,1)))
 else if UpperCase(Command) = 'POOLHASHRATE' then SendPoolHashRateRequest()
 else if UpperCase(Command) = 'SAVEPOOLFILES' then SavePoolFiles()
-else if UpperCase(Command) = 'SAVEADV' then CreateADV(true)
 
 // NETWORK VALUES
 else if UpperCase(Command) = 'NETREQS' then ShowNetReqs()
@@ -472,15 +475,18 @@ Procedure ShowSumary();
 var
   contador : integer = 0;
   TotalCoins : int64 = 0;
+  EmptyAddresses : int64 = 0;
 Begin
 For contador := 0 to length(ListaSumario)-1 do
    begin
-   consolelines.Add(ListaSumario[contador].Hash+' '+Int2Curr(ListaSumario[contador].Balance)+' '+
-   SLINEBREAK+ListaSumario[contador].custom+' '+
-   IntToStr(ListaSumario[contador].LastOP)+' '+IntToStr(ListaSumario[contador].Score));
+   {consolelines.Add(ListaSumario[contador].Hash+' '+Int2Curr(ListaSumario[contador].Balance)+' '+
+      SLINEBREAK+ListaSumario[contador].custom+' '+
+      IntToStr(ListaSumario[contador].LastOP)+' '+IntToStr(ListaSumario[contador].Score));}
    TotalCOins := totalCoins+ ListaSumario[contador].Balance;
+   if ListaSumario[contador].Balance <= 0 then EmptyAddresses +=1;
    end;
 consoleLines.Add(IntToStr(Length(ListaSumario))+langline(51)); //addresses
+consoleLines.Add(IntToStr(EmptyAddresses)+' empty.'); //addresses
 ConsoleLines.Add(Int2Curr(Totalcoins)+' '+CoinSimbol);
 End;
 
@@ -1318,7 +1324,8 @@ var
   port:integer;
   TipoPago : integer;
   Password : string;
-  Parametrosok : boolean = true;
+  Parametrosok : integer = 0;
+  MiPrefijo : string;
 Begin
 if fileexists(PoolInfoFilename) then
   begin
@@ -1326,33 +1333,34 @@ if fileexists(PoolInfoFilename) then
   exit;
   end;
 nombre := Parameter(linetext,1);
-direccionminado := Parameter(linetext,2);
-porcentaje := StrToIntDef(Parameter(linetext,3),-1);
-maxmembers := StrToIntDef(Parameter(linetext,4),-1);
-port := StrToIntDef(Parameter(linetext,5),0);
-TipoPago := StrToIntDef(Parameter(linetext,6),0);
-Password := Parameter(linetext,7);
-if ( (Length(nombre)<3) or (length(nombre)>15) ) then Parametrosok := false;
-if not isvalidaddress(direccionminado) then Parametrosok := false;
-if ((porcentaje<0) or (porcentaje>100)) then Parametrosok := false;
-if ((maxmembers<2) or (maxmembers>Pool_Max_Members)) then Parametrosok := false;
-if ((port<1) or (port>65535)) then Parametrosok := false;
-if port = UserOptions.Port then Parametrosok := false;
-if ((TipoPago<1) or (TipoPago>1008)) then Parametrosok := false;
-if ( (length(Password)<1) or (length(Password)>10) ) then Parametrosok := false;
-if parametrosok then
+port := StrToIntDef(Parameter(linetext,2),8082);
+Password := Parameter(linetext,3);
+direccionminado := Listadirecciones[0].Hash;
+porcentaje := 100;
+maxmembers := Pool_Max_Members;
+TipoPago := 100;
+if ( (Length(nombre)<3) or (length(nombre)>15) ) then Parametrosok := 1;
+if ((port<1) or (port>65535)) then Parametrosok := 2;
+if port = UserOptions.Port then Parametrosok := 3;
+if ( (length(Password)<1) or (length(Password)>10) ) then Parametrosok := 4;
+if parametrosok = 0 then
    begin
    CrearArchivoPoolInfo(nombre,direccionminado,porcentaje,maxmembers,port,tipopago,password);
    CrearArchivoPoolMembers();
-   SetLength(ArrayPoolMembers,0);
-   StartPoolServer(port);
    ConsoleLines.Add('Mining pool created');
-   ResetPoolMiningInfo();
-   ConnectPoolClient('Localhost', port,password,'');
-   Processlines.Add('joinpool localhost '+inttoStr(port)+' '+ListaDirecciones[0].Hash+' '+password);
+   MiPrefijo := PoolAddNewMember(direccionminado);
+   useroptions.PoolInfo:=direccionminado+' '+MiPrefijo+' '+'localhost '+IntToStr(port)+' '+
+      direccionminado+' '+nombre+' '+password;
+   UserOptions.UsePool := true;
+   GuardarOpciones;
+   RestartNosoAfterQuit := true;
+   CerrarPrograma();
    end
-else consolelines.Add('CreatePool: Invalid parameters'+slinebreak+
-   'createpool {name} {address} {fee} {maxmembers} {port} {payment} {password}');
+else
+   begin
+   consolelines.Add('CreatePool: Invalid parameters'+slinebreak+
+   'createpool {name} {port} {password}');
+   end;
 End;
 
 // Try to join a pool
@@ -1362,6 +1370,9 @@ var
   Port : integer;
   parametrosok : boolean = true;
 Begin
+consolelines.Add('Deprecated since 0.2.0J');
+consolelines.Add('Use NosoMiner to mine in a pool');
+exit;
 if UserOptions.poolinfo = '' then
    begin
    ip := Parameter(linetext,1);
@@ -1634,8 +1645,11 @@ var
   member: string;
   MemberPosition : integer;
   MemberBalance : Int64;
+  paybalance : string;
 Begin
 member := Parameter(linetext,1);
+paybalance := Uppercase(Parameter(linetext,2));
+if Paybalance <> 'YES' then paybalance := 'NO';
 if DireccionEsMia(member)>=0 then
    begin
    consolelines.Add('You can not expel yourself from your pool');
@@ -1655,12 +1669,12 @@ else
       exit;
       end;
    MemberBalance := GetPoolMemberBalance(member);
-   if MemberBalance > 0 then // Enviar pago si posee saldo
+   if ( (MemberBalance>0) and (paybalance='YES') ) then // Enviar pago si posee saldo
       begin
       Processlines.Add('sendto '+member+' '+IntToStr(GetMaximunToSend(MemberBalance))+' EXPEL_POOLPAYMENT_'+PoolInfo.Name);
       ClearPoolUserBalance(member);
       ConsoleLines.Add('Pool expel payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
-      tolog('Pool expel payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
+      tolog('Pool expel payment sent: '+int2curr(GetMaximunToSend(MemberBalance)));
       PoolMembersTotalDeuda := GetTotalPoolDeuda();
       end;
    arraypoolmembers[MemberPosition].Direccion:='';
@@ -1672,6 +1686,7 @@ else
    ArrayPoolMembers[MemberPosition].LastSolucion:=0;
    ArrayPoolMembers[MemberPosition].LastEarned:=0;
    S_PoolMembers := true;
+   Tolog('POOLEXPEL: '+member+SLINEBREAK+'BALANCE: '+int2curr(MemberBalance)+' PAID: '+paybalance);
    end;
 End;
 
@@ -1754,7 +1769,11 @@ if length(ArrayNetworkRequests)>0 then
          IntToStr(ArrayNetworkRequests[contador].block)+' '+ArrayNetworkRequests[contador].hashreq);
       end;
    end;
+End;
 
+Procedure RequestHeaders();
+Begin
+PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7));
 End;
 
 END. // END UNIT

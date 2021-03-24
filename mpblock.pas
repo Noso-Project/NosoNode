@@ -87,8 +87,10 @@ for contador := 0 to length(pendingTXs)-1 do
       end;
    if PendingTXs[contador].OrderType='TRFR' then
       begin
-      minerfee := minerfee+PendingTXs[contador].AmmountFee;
       OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].Sender);
+      // nueva adicion para que no incluya las transacciones invalidas
+      if GetAddressBalance(OperationAddress) < (PendingTXs[contador].AmmountFee+PendingTXs[contador].AmmountTrf) then continue;
+      minerfee := minerfee+PendingTXs[contador].AmmountFee;
       // restar transferencia y comision de la direccion que envia
       UpdateSumario(OperationAddress,Restar(PendingTXs[contador].AmmountFee+PendingTXs[contador].AmmountTrf),0,IntToStr(Numero));
       // sumar transferencia al receptor

@@ -421,7 +421,7 @@ for contador := 1 to Maxconecciones do
       end;
    if Conexiones[contador].tipo <> '' then
      begin
-     if StrToInt64(UTCTime) > StrToInt64(conexiones[contador].lastping)+15 then
+     if StrToInt64(UTCTime) > StrToInt64Def(conexiones[contador].lastping,0)+15 then
         begin
         ConsoleLines.Add(LangLine(32)+conexiones[contador].ip);   //Conection closed: Time Out Auth ->
         CerrarSlot(contador);
@@ -459,7 +459,7 @@ var
   NumeroConexiones : integer = 0;
 Begin
 SetCurrentJob('VerifyConnectionStatus',true);
-if ((CONNECT_Try) and (StrToInt64(UTCTime)>StrToInt64(CONNECT_LastTime)+5)) then ConnectToServers;
+if ( (CONNECT_Try) and (StrToInt64(UTCTime)>StrToInt64Def(CONNECT_LastTime,StrToInt64(UTCTime))+5) ) then ConnectToServers;
 NumeroConexiones := GetTotalConexiones;
 if NumeroConexiones = 0 then  // Desconeectado
    begin
@@ -549,6 +549,19 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
    end;
 if MyConStatus = 3 then
    begin
+   if ( (IntToStr(MyLastBlock) <> NetLastBlock.Value) or (MySumarioHash<>NetSumarioHash.Value) or
+      (MyResumenhash <> NetResumenHash.Value) ) then // desincronizado
+      Begin
+      SynchWarnings +=1;
+      if SynchWarnings = 15 then
+         begin
+         MyConStatus := 2;
+         UndoneLastBlock;
+         setlength(PendingTxs,0);
+         consolelines.Add('***WARNING SYNCHRONIZATION***');
+         end;
+      end
+   else SynchWarnings := 0;
    if ((Miner_OwnsAPool) and (not Form1.PoolServer.Active)) then // Activar el pool propio si se posee uno
       begin
       if LastTryStartPoolServer+5 < StrToInt64(UTCTIME) then

@@ -201,6 +201,9 @@ type
        Ip : String[15];
        Address : String[40];
        Context : TIdContext;
+       slot : integer;
+       Hashpower : int64;
+       Version: string[10];
        end;
 
   NetworkRequestData = Packed Record
@@ -283,6 +286,7 @@ type
     procedure PoolServerConnect(AContext: TIdContext);
     procedure PoolServerExecute(AContext: TIdContext);
     procedure PoolServerDisconnect(AContext: TIdContext);
+    procedure PoolServerException(AContext: TIdContext;AException: Exception);
 
 
     // MAIN MENU
@@ -329,6 +333,7 @@ type
     // NODES POPUP
     Procedure CheckNodesPopUp(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
     Procedure NodesPopUpcopy(Sender:TObject);
+    Procedure NodesPopupConnect(Sender:TObject);
 
   private
 
@@ -347,9 +352,9 @@ CONST
   ReservedWords : string = 'NULL,DELADDR';
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS POOLHASHRATE';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
-  DefaultNodes : String = 'DefNodes 192.210.160.101 23.95.233.179 75.127.0.216';
+  DefaultNodes : String = 'DefNodes 192.210.160.101 23.95.233.179 75.127.0.216 173.199.122.23 104.168.99.254';
   ProgramVersion = '0.2.0';
-  SubVersion = 'H';
+  SubVersion = 'J';
   OficialRelease = true;
   BuildDate = 'March 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -399,6 +404,8 @@ var
   ReadTimeOutTIme : integer = 100;
   ConnectTimeOutTime : integer = 500;
   DefCPUs : integer = 1;
+
+  SynchWarnings : integer = 0;
 
   MaxOutgoingConnections : integer = 3;
   FirstShow : boolean = false;
@@ -563,6 +570,7 @@ var
   EditIPPopUp : TPopupMenu;
   NodesPopup: TPopupMenu;
 
+
   ConnectButton : TSpeedButton;
   MinerButton : TSpeedButton;
   ImageInc :TImage;
@@ -645,6 +653,8 @@ var
     StaMinImg : Timage;
     StaMinLab : TLabel;
 
+  //OTHER
+  U_PoolConexGrid : boolean = false;
 implementation
 
 Uses
@@ -731,6 +741,7 @@ if fileexists('nosolauncher.bat') then Deletefile('nosolauncher.bat');
 if fileexists('restart.txt') then RestartConditions();
 if GetEnvironmentVariable('NUMBER_OF_PROCESSORS') = '' then G_CpuCount := 1
 else G_CpuCount := StrToInt(GetEnvironmentVariable('NUMBER_OF_PROCESSORS'));
+G_CpuCount := 1;
 for contador := 1 to G_CpuCount do
    CPUsSelect.Items.Add(IntToStr(contador));
 if DefCPUs >= CPUsSelect.Items.Count then CPUsSelect.ItemIndex:= CPUsSelect.Items.Count-1
@@ -750,7 +761,6 @@ Setlength(CriptoOpsOper,0);
 Setlength(CriptoOpsResu,0);
 Setlength(MilitimeArray,0);
 Setlength(Miner_Thread,0);
-SetLength(PoolServerConex,0);
 SetLength(ArrayNetworkRequests,0);
 Tolog('Noso session started'); NewLogLines := NewLogLines-1;
 info('Noso session started');
@@ -948,7 +958,7 @@ if ((CheckMonitor) and (FormMonitor.Visible)) then UpdateMiliTimeForm();
 if FormSlots.Visible then UpdateSlotsGrid();
 if FormPool.Visible then UpdatePoolForm();
 UpdateStatusBar;
-if ( (StrToInt64(UTCTime) mod 3600=0) and (LastBotClear<>UTCTime) ) then processlines.Add('delbot all');
+if ( (StrToInt64(UTCTime) mod 3600=0) and (LastBotClear<>UTCTime) and (Form1.Server.Active) ) then processlines.Add('delbot all');
 Form1.Latido.Enabled:=true;
 end;
 
@@ -1058,6 +1068,8 @@ MenuItem := TMenuItem.Create(EditIPPopUp);MenuItem.Caption := 'Paste';Form1.imag
 NodesPopup := TPopupMenu.Create(form1);
 MenuItem := TMenuItem.Create(NodesPopup);MenuItem.Caption := 'Copy';Form1.imagenes.GetBitmap(7,MenuItem.Bitmap);
   MenuItem.OnClick := @form1.NodesPopupCopy;NodesPopup.Items.Add(MenuItem);
+MenuItem := TMenuItem.Create(NodesPopup);MenuItem.Caption := 'ConnectTo';Form1.imagenes.GetBitmap(29,MenuItem.Bitmap);
+  MenuItem.OnClick := @form1.NodesPopupConnect;NodesPopup.Items.Add(MenuItem);
 
 Memoconsola := TMemo.Create(Form1);
 Memoconsola.Parent:=form1;
@@ -1588,7 +1600,7 @@ Form1.PoolServer.TerminateWaitTime:=50000;
 Form1.PoolServer.OnExecute:=@form1.PoolServerExecute;
 Form1.PoolServer.OnConnect:=@form1.PoolServerConnect;
 Form1.PoolServer.OnDisconnect:=@form1.PoolServerDisconnect;
-//Form1.PoolServer.OnException:=@Form1.IdTCPServer1Exception;
+Form1.PoolServer.OnException:=@Form1.PoolServerException;
 End;
 
 // Funciones del servidor.
@@ -1603,6 +1615,7 @@ var
   BloqueStep: integer; SeedStep : string; HashStep : Int64; Solucion : String;
   PoolSolutionStep : integer = 0;
   BlockTime : string;
+  allinfotext : string = '';
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
 Linea := AContext.Connection.IOHandler.ReadLn(IndyTextEncoding_UTF8);
@@ -1610,17 +1623,26 @@ Password := Parameter(Linea,0);
 if password <> Poolinfo.PassWord then exit;
 UserDireccion := Parameter(Linea,1);
 Comando := Parameter(Linea,2);
+MemberBalance := GetPoolMemberBalance(UserDireccion);
+// *** NEW MINER FORMAT ***
+allinfotext :=IntToStr(PoolMiner.Block)+' '+         // block target
+      PoolMiner.Target+' '+                  // string target
+      IntToStr(PoolMiner.DiffChars)+' '+     // target chars
+      inttostr(PoolMiner.steps)+' '+         // founded steps
+      inttostr(PoolMiner.Dificult)+' '+       // block difficult
+      IntToStr(MemberBalance)+' '+           // member balance
+      IntToStr(MyLastBlock-(GetLastPagoPoolMember(UserDireccion)+PoolInfo.TipoPago));  // block payment
+
 if Comando = 'JOIN' then
    begin
    consolelines.Add('Pool join requested for address '+UserDireccion);
    joinip := parameter(linea,3);
    joinport := parameter(linea,4);
    JoinPrefijo := PoolAddNewMember(UserDireccion);
-   MemberBalance := GetPoolMemberBalance(UserDireccion);
    if JoinPrefijo<>'' then
       begin
       Acontext.Connection.IOHandler.WriteLn('JOINOK '+PoolInfo.Direccion+' '+JoinPrefijo+' '+
-      joinip+' '+joinport+' '+UserDireccion+' '+PoolInfo.Name+' '+poolinfo.PassWord);
+         IntToStr(PoolTotalHashRate)+' '+allinfotext);
       ConsoleLines.Add(UserDireccion+' added to the pool');
       end
    else
@@ -1630,13 +1652,18 @@ if Comando = 'JOIN' then
       Acontext.Connection.IOHandler.InputBuffer.Clear;
       end;
    end;
+if comando = 'PING' then
+   begin
+   Acontext.Connection.IOHandler.WriteLn('PING '+allinfotext);
+   end;
 if Comando = 'STATUS' then
    begin
    MemberBalance := GetPoolMemberBalance(UserDireccion);
    if memberbalance >-1 then
       begin
       Acontext.Connection.IOHandler.WriteLn('STATUSOK '+UserDireccion+' '+IntToStr(MemberBalance)+
-      ' '+IntToStr(MyLastBlock-(GetLastPagoPoolMember(UserDireccion)+PoolInfo.TipoPago)));
+         ' '+IntToStr(MyLastBlock-(GetLastPagoPoolMember(UserDireccion)+PoolInfo.TipoPago))+' '
+         );
       ConsoleLines.Add('Status sent to '+UserDireccion);
       end
    else
@@ -1647,9 +1674,9 @@ if Comando = 'STATUS' then
    end;
 if Comando = 'HASHRATE' then
    begin
-   PoolTotalHashRate := PoolTotalHashRate+StrToIntDef(parameter(linea,3),0);
-   GridPoolConex.Cells[2,GetPoolConexFromIp(IpUser)+1] := parameter(linea,3);
-   GridPoolConex.Cells[3,GetPoolConexFromIp(IpUser)+1] := parameter(linea,4);
+   PoolTotalHashRate := PoolTotalHashRate+abs(StrToIntDef(parameter(linea,3),0));
+   PoolServerConex[GetPoolSlotFromContext(AContext)].Hashpower := StrToInt64Def(parameter(linea,3),0);
+   PoolServerConex[GetPoolSlotFromContext(AContext)].version := parameter(linea,4);
    end;
 if comando = 'MINERREQUEST' then
    begin
@@ -1662,7 +1689,7 @@ if comando = 'MINERREQUEST' then
    end;
 if Comando = 'STEP' then
    begin
-   bloqueStep := StrToInt(parameter(linea,3));
+   bloqueStep := StrToIntDef(parameter(linea,3),0);
    SeedStep := parameter(linea,4);
    HashStep := StrToInt64(parameter(linea,5));
    Solucion := HashSha256String(SeedStep+PoolInfo.Direccion+IntToStr(HashStep));
@@ -1737,13 +1764,14 @@ End;
 // Al conectarse un miembro del pool
 procedure TForm1.PoolServerConnect(AContext: TIdContext);
 var
-  IPUser,Linea,password : String;
+  IPUser,Linea,password, comando : String;
   UserDireccion : string = '';
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
 Linea := AContext.Connection.IOHandler.ReadLn('',200,-1,IndyTextEncoding_UTF8);
 Password := Parameter(Linea,0);
 UserDireccion := Parameter(Linea,1);
+comando :=Parameter(Linea,2);
 if password <> Poolinfo.PassWord then
    begin
    Acontext.Connection.IOHandler.WriteLn('PASSFAILED');
@@ -1753,13 +1781,33 @@ if password <> Poolinfo.PassWord then
    end
 else
    begin
-   SavePoolServerConnection(IpUser,UserDireccion,Acontext);
-   if ( (userdireccion <> '') and (GetPoolMemberBalance(userdireccion)>=0) ) then Acontext.Connection.IOHandler.WriteLn('POOLSTEPS '+IntToStr(PoolMiner.steps));
-   if ( (userdireccion <> '') and (GetPoolMemberBalance(userdireccion)<0) ) then
+   if comando = 'INFO' then
       begin
-      //Acontext.Connection.IOHandler.WriteLn('UNREGISTERED');
-      //AContext.Connection.Disconnect;
-      //Acontext.Connection.IOHandler.InputBuffer.Clear;
+      Acontext.Connection.IOHandler.WriteLn('INFO '+IntToStr(GetPoolTotalActiveConex)+' '+IntToStr(PoolTotalHashRate));
+      AContext.Connection.Disconnect;
+      Acontext.Connection.IOHandler.InputBuffer.Clear;
+      exit;
+      end;
+   if ( (UserDireccion<>'') and (not isvalidaddress(UserDireccion)) and (AddressSumaryIndex(UserDireccion)>=0) ) then
+      begin
+      Acontext.Connection.IOHandler.WriteLn('INVALIDADDRESS');
+      if not isvalidaddress(UserDireccion) then consolelines.Add('invalida:'+UserDireccion);
+      if not AddressAlreadyCustomized(UserDireccion) then consolelines.Add('no alias');
+      Acontext.Connection.IOHandler.InputBuffer.Clear;
+      AContext.Connection.Disconnect;
+      exit;
+      end;
+   if IsPoolMemberConnected(UserDireccion)<0 then
+      begin
+      SavePoolServerConnection(IpUser,UserDireccion,Acontext);
+      if ( (userdireccion <> '') and (GetPoolMemberBalance(userdireccion)>=0) and (comando<>'JOIN') ) then
+        Acontext.Connection.IOHandler.WriteLn('POOLSTEPS '+IntToStr(PoolMiner.steps));
+      end
+   else
+      begin
+      Acontext.Connection.IOHandler.WriteLn('ALREADYCONNECTED');
+      AContext.Connection.Disconnect;
+      Acontext.Connection.IOHandler.InputBuffer.Clear;
       end;
    end;
 End;
@@ -1769,8 +1817,21 @@ var
   IPUser : string;
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
+BorrarPoolServerConex(AContext);
 Acontext.Connection.IOHandler.InputBuffer.Clear;
-BorrarPoolServerConex(ipuser);
+End;
+
+procedure TForm1.PoolServerException(AContext: TIdContext;AException: Exception);
+var
+  IPUser : string;
+Begin
+IPUser := AContext.Connection.Socket.Binding.PeerIP;
+BorrarPoolServerConex(AContext);
+try
+   Acontext.Connection.IOHandler.InputBuffer.Clear;
+   AContext.Connection.Disconnect;
+finally
+end;
 End;
 
 // Recibir una linea
@@ -2713,7 +2774,9 @@ End;
 Procedure TForm1.CheckNodesPopUp(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
 Begin
 if GridNodes.Row>0 then NodesPopUp.Items[0].enabled:= true
-else NodesPopUp.Items[0].enabled:= false
+else NodesPopUp.Items[0].enabled:= false;
+if GridNodes.Row>0 then NodesPopUp.Items[1].enabled:= true
+else NodesPopUp.Items[1].enabled:= false
 End;
 
 Procedure TForm1.NodesPopUpCopy(Sender:TObject);
@@ -2721,6 +2784,12 @@ Begin
 Clipboard.AsText := GridNodes.Cells[0,GridNodes.Row];
 info('Node copied to clipboard');
 End;
+
+Procedure TForm1.NodesPopupConnect(Sender:TObject);
+Begin
+Processlines.Add('ConnectTo '+gridnodes.Cells[0,Gridnodes.row]+' '+gridnodes.Cells[0,Gridnodes.row]);
+End;
+
 
 
 END. // END PROGRAM

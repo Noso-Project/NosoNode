@@ -32,12 +32,15 @@ function GetLastPagoPoolMember(direccion:string):integer;
 Procedure ClearPoolUserBalance(direccion:string);
 Procedure PoolUndoneLastPayment();
 Procedure PoolResetData();
-Procedure SavePoolServerConnection(Ip,UserAddress:String;contexto:TIdContext);
-Procedure BorrarPoolServerConex(Ipuser:string);
+function GetPoolConexFreeSlot():integer;
+function SavePoolServerConnection(Ip,UserAddress:String;contexto:TIdContext):boolean;
+function GetPoolTotalActiveConex ():integer;
+Procedure BorrarPoolServerConex(AContext: TIdContext);
 Procedure SendPoolStepsInfo(steps:integer);
 Procedure SendPoolHashRateRequest();
-function GetPoolConexFromIp(Ip:string):integer;
 function GetPoolMemberPosition(member:String):integer;
+function IsPoolMemberConnected(address:string):integer;
+function GetPoolSlotFromContext(context:TIdContext):integer;
 
 implementation
 
@@ -405,6 +408,7 @@ PoolMiner.steps:=0;
 PoolMiner.Dificult:=LastBlockData.NxtBlkDiff;
 PoolMiner.DiffChars:=GetCharsFromDifficult(PoolMiner.Dificult, PoolMiner.steps);
 PoolMiner.Target:=MyLastBlockHash;
+ProcessLines.Add('SENDPOOLSTEPS 0');
 end;
 
 function GetPoolNumeroDePasos():integer;
@@ -557,29 +561,65 @@ if length(arraypoolmembers)>0 then
 S_PoolMembers := true;
 End;
 
-Procedure SavePoolServerConnection(Ip,UserAddress:String;contexto:TIdContext);
+function GetPoolConexFreeSlot():integer;
+var
+  cont: integer;
+begin
+result := -1;
+for cont := 0 to length(PoolServerConex)-1 do
+   if PoolServerConex[cont].Address = '' then
+      begin
+      result := cont;
+      break;
+      end;
+end;
+
+function SavePoolServerConnection(Ip,UserAddress:String;contexto:TIdContext): boolean;
 var
   newdato : PoolUserConnection;
+  slot: integer;
 Begin
-NewDato.Ip:=Ip;
-NewDato.Address:=UserAddress;
-NewDato.Context:=Contexto;
-Setlength(PoolServerConex,length(PoolServerConex)+1);
-PoolServerConex[length(PoolServerConex)-1] := NewDato;
+result := false;
+slot := GetPoolConexFreeSlot;
+if slot >= 0 then
+   begin
+   NewDato.Ip:=Ip;
+   NewDato.Address:=UserAddress;
+   NewDato.Context:=Contexto;
+   NewDato.slot:=slot;
+   PoolServerConex[slot] := NewDato;
+   result := true;
+   U_PoolConexGrid := true;
+   end;
 End;
 
-Procedure BorrarPoolServerConex(Ipuser:string);
+function GetPoolTotalActiveConex ():integer;
 var
-  contador : integer;
+  cont:integer;
+  resultado : integer = 0;
+Begin
+result := 0;
+if length(PoolServerConex) > 0 then
+   begin
+   for cont := 0 to length(PoolServerConex)-1 do
+      if PoolServerConex[cont].Address<>'' then resultado := resultado + 1;
+   end;
+result := resultado;
+End;
+
+Procedure BorrarPoolServerConex(AContext: TIdContext);
+var
+  contador : integer = 0;
 Begin
 if length(PoolServerConex) > 0 then
    begin
    for contador := 0 to length(PoolServerConex)-1 do
       begin
-      if PoolServerConex[contador].Ip = IpUser then
+      if Poolserverconex[contador].Context=AContext then
          begin
-         delete(PoolServerConex,contador,1);
-         break;
+         Poolserverconex[contador].Address:='';
+         U_PoolConexGrid := true;
+         break
          end;
       end;
    end;
@@ -594,8 +634,11 @@ if length(PoolServerConex)>0 then
    for contador := 0 to length(PoolServerConex)-1 do
       begin
       try
-      PoolServerConex[contador].context.Connection.IOHandler.WriteLn('POOLSTEPS '+IntToStr(steps)+' '+
-         inttostr(PoolMiner.Block)+' '+PoolMiner.Target+' '+IntToStr(PoolMiner.DiffChars));
+      if PoolServerConex[contador].Address<>'' then
+         begin
+         PoolServerConex[contador].context.Connection.IOHandler.WriteLn('POOLSTEPS '+IntToStr(steps)+' '+
+            inttostr(PoolMiner.Block)+' '+PoolMiner.Target+' '+IntToStr(PoolMiner.DiffChars));
+         end;
       except on E:Exception do
          begin
          tolog('Error sending pool steps, slot '+IntToStr(contador));
@@ -620,9 +663,12 @@ if ( (Miner_OwnsAPool) and (length(PoolServerConex)>0) ) then
       begin
       try
       memberaddress := PoolServerConex[contador].Address;
-      PoolServerConex[contador].context.Connection.IOHandler.WriteLn( 'HASHRATE '+CurrPoolTotalHashRate+' '+
-         IntToStr(GetPoolMemberBalance(memberaddress))+' '+IntToStr(MyLastBlock-(GetLastPagoPoolMember(memberaddress)+PoolInfo.TipoPago)) );
-      GridPoolConex.Cells[2,contador+1] := '';
+      if memberaddress <> '' then
+         begin
+         PoolServerConex[contador].context.Connection.IOHandler.WriteLn( 'HASHRATE '+CurrPoolTotalHashRate+' '+
+            IntToStr(GetPoolMemberBalance(memberaddress))+' '+IntToStr(MyLastBlock-(GetLastPagoPoolMember(memberaddress)+PoolInfo.TipoPago)) );
+         PoolServerConex[contador].Hashpower:=0;
+         end;
       except on E:Exception do
          begin
          tolog('Error sending pool hashrate request, slot '+IntToStr(contador));
@@ -631,24 +677,6 @@ if ( (Miner_OwnsAPool) and (length(PoolServerConex)>0) ) then
       end;
    end;
 if not Miner_OwnsAPool then consolelines.Add('You do not own a pool');
-End;
-
-function GetPoolConexFromIp(Ip:string):integer;
-var
-  contador : integer;
-Begin
-result := -1 ;
-if ( (Miner_OwnsAPool) and (length(PoolServerConex)>0) ) then
-   begin
-   for contador := 0 to length(PoolServerConex)-1 do
-      begin
-      if PoolServerConex[contador].Ip = IP then
-         begin
-         result := contador;
-         break;
-         end;
-      end;
-   end;
 End;
 
 function GetPoolMemberPosition(member:String):integer;
@@ -666,6 +694,33 @@ if length(ArrayPoolMembers)>0 then
          break;
          end;
       end;
+   end;
+End;
+
+function IsPoolMemberConnected(address:string):integer;
+var
+  counter : integer;
+Begin
+result := -1;
+if length(PoolServerConex)>0 then
+   begin
+   for counter := 0 to length(PoolServerConex)-1 do
+      if PoolServerConex[counter].Address=address then
+         result := counter;
+   end;
+End;
+
+// Especifica la posicion de una conexion en el array
+function GetPoolSlotFromContext(context:TIdContext):integer;
+var
+  counter : integer;
+Begin
+result := -1;
+if length(PoolServerConex)>0 then
+   begin
+   for counter := 0 to length(PoolServerConex)-1 do
+      if PoolServerConex[counter].Context=context then
+         result := counter;
    end;
 End;
 

@@ -82,6 +82,9 @@ Uses
 
 // Verifica todos los archivos necesarios para funcionar
 Procedure VerificarArchivos();
+var
+  contador : integer;
+  EmptyPoolConect : PoolUserConnection;
 Begin
 LoadDefLangList();
 if not directoryexists(BlockDirectory) then CreateDir(BlockDirectory);
@@ -116,6 +119,13 @@ OutText('✓ My transactions file ok',false,1);
 if fileexists(PoolInfoFilename) then
    begin
    GetPoolInfoFromDisk();
+   SetLength(PoolServerConex,PoolInfo.MaxMembers);
+   for contador := 0 to length(PoolServerConex)-1 do
+      begin
+      EmptyPoolConect := Default(PoolUserConnection);
+      PoolServerConex[contador]:=EmptyPoolConect;
+      end;
+   consolelines.Add('PoolMaxMembers:'+inttostr(length(PoolServerConex)));
    Miner_OwnsAPool := true;
    LoadPoolMembers();
    ResetPoolMiningInfo();
@@ -1679,7 +1689,7 @@ deletefile(SumarioFilename+'.bak');
 deletefile(ResumenFilename);
 if DeleteDirectory(BlockDirectory,True) then
    RemoveDir(BlockDirectory);
-RestartNoso();
+processlines.Add('restart');
 End;
 
 END. // END UNIT

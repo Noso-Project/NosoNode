@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, mpTime, graphics, strutils, forms, controls, grids,stdctrls,
-  crt,ExtCtrls, buttons, editbtn ;
+  crt,ExtCtrls, buttons, editbtn , menus, Clipbrd, IdContext;
 
 type
   TFormInicio = class(Tform)
@@ -40,8 +40,17 @@ type
   TFormPool = class(Tform)
     Procedure BUpdatePoolOnClick(Sender: TObject);
     Procedure BRequestPoolPayOnClick(Sender: TObject);
-    Procedure BPayuserOnClick(Sender: TObject);
     Procedure BPoolHashRateOnClick(Sender: TObject);
+    // poolmembers popup
+    Procedure checkPoolMembersPopup(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
+    Procedure CopyPoolMemberAddres(Sender:TObject);
+    Procedure PoolExpelPaying(Sender:TObject);
+    Procedure PoolExpelNotPay(Sender:TObject);
+    Procedure BPayuserOnClick(Sender: TObject);
+    Procedure SeePoolConex(Sender: TObject);
+
+    Procedure KickPoolConnection(Sender: TObject);
+
     private
     public
     end;
@@ -95,11 +104,13 @@ var
     LabelPoolMiner : Tlabel;
     LabelPoolMiner2 : Tlabel;
     GridPoolConex : TStringgrid;
-    BPayUser : Tbutton;
     BPoolHashRate : TButton;
     EdBuFee : TLabeledEdit;
     EdMaxMem : TLabeledEdit;
     EdPayRate : TLabeledEdit;
+
+    MenuItem : TMenuItem;
+    PoolMembersPopUp : TPopupMenu;
 
 implementation
 
@@ -366,6 +377,23 @@ Form1.imagenes.GetBitmap(8,BCobrarAlPool.Glyph);
 BCobrarAlPool.Visible:=false;BCobrarAlPool.OnClick:=@formpool.BRequestPoolPayOnClick;
 BCobrarAlPool.hint:='Request Payment';BCobrarAlPool.ShowHint:=true;
 
+PoolMembersPopUp := TPopupMenu.Create(Formpool);
+
+MenuItem := TMenuItem.Create(PoolMembersPopUp);MenuItem.Caption := 'Expel';//Form1.imagenes.GetBitmap(7,MenuItem.Bitmap);
+  PoolMembersPopUp.Items.Add(MenuItem);
+MenuItem := TMenuItem.Create(PoolMembersPopUp);MenuItem.Caption := 'Pay';//Form1.imagenes.GetBitmap(7,MenuItem.Bitmap);
+  PoolMembersPopUp.Items[0].Add(MenuItem);
+MenuItem := TMenuItem.Create(PoolMembersPopUp);MenuItem.Caption := 'Yes';//Form1.imagenes.GetBitmap(7,MenuItem.Bitmap);
+  MenuItem.OnClick := @formpool.PoolExpelPaying;PoolMembersPopUp.Items[0].Items[0].Add(MenuItem);
+MenuItem := TMenuItem.Create(PoolMembersPopUp);MenuItem.Caption := 'No';//Form1.imagenes.GetBitmap(7,MenuItem.Bitmap);
+  MenuItem.OnClick := @formpool.PoolExpelNotPay;PoolMembersPopUp.Items[0].Items[0].Add(MenuItem);
+MenuItem := TMenuItem.Create(PoolMembersPopUp);MenuItem.Caption := 'Copy Addres';//Form1.imagenes.GetBitmap(7,MenuItem.Bitmap);
+  MenuItem.OnClick := @formpool.CopyPoolMemberAddres;PoolMembersPopUp.Items.Add(MenuItem);
+MenuItem := TMenuItem.Create(PoolMembersPopUp);MenuItem.Caption := 'Pay';//Form1.imagenes.GetBitmap(7,MenuItem.Bitmap);
+  MenuItem.OnClick := @formpool.BPayuserOnClick;PoolMembersPopUp.Items.Add(MenuItem);
+MenuItem := TMenuItem.Create(PoolMembersPopUp);MenuItem.Caption := 'Connection';//Form1.imagenes.GetBitmap(7,MenuItem.Bitmap);
+  MenuItem.OnClick := @formpool.SeePoolConex;PoolMembersPopUp.Items.Add(MenuItem);
+
 GridPoolMembers := TStringGrid.Create(FormPool);GridPoolMembers.Parent:=FormPool;
 GridPoolMembers.Font.Name:='consolas'; GridPoolMembers.Font.Size:=8;
 GridPoolMembers.Left:=1;GridPoolMembers.Top:=60;GridPoolMembers.Height:=149;GridPoolMembers.width:=558;
@@ -383,6 +411,9 @@ GridPoolMembers.Cells[2,0]:='Work';GridPoolMembers.Cells[3,0]:='Earned';
 GridPoolMembers.Cells[4,0]:='AllTime';GridPoolMembers.Cells[5,0]:='Last';
 GridPoolMembers.Enabled := true;
 GridPoolMembers.GridLineWidth := 1;
+GridPoolMembers.PopupMenu:=PoolMembersPopUp;
+GridPoolMembers.OnContextPopup:=@formpool.checkPoolMembersPopup;
+
 
 LabelPoolMiner := TLabel.Create(FormPool);
 LabelPoolMiner.Parent := FormPool;LabelPoolMiner.AutoSize:=true;
@@ -410,12 +441,7 @@ GridPoolConex.Cells[0,0]:='Ip';GridPoolConex.Cells[1,0]:='Address';
 GridPoolConex.Cells[2,0]:='HRate';GridPoolConex.Cells[3,0]:='Ver';
 GridPoolConex.Enabled := true;
 GridPoolConex.GridLineWidth := 1;
-
-BPayuser := TButton.Create(FormPool);BPayuser.Parent:=FormPool;
-BPayuser.Left:=450;BPayuser.Top:=212;
-BPayuser.Height:=18;BPayuser.Width:=100;
-BPayuser.Caption:='Pay';BPayuser.Font.Name:='candaras';BPayuser.Font.Size:=8;
-BPayuser.Visible:=true;BPayuser.OnClick:=@formpool.BPayuserOnClick;
+GridPoolConex.OnDblClick:=@formpool.KickPoolConnection;
 
 BPoolHashRate := TButton.Create(FormPool);BPoolHashRate.Parent:=FormPool;
 BPoolHashRate.Left:=450;BPoolHashRate.Top:=232;
@@ -462,19 +488,6 @@ Begin
 ProcessLines.Add('REQUESTPOOLPAY');
 End;
 
-Procedure TFormPool.BPayuserOnClick(Sender: TObject);
-var
-  userdireccion : string;
-  MemberBalance : Int64;
-Begin
-userdireccion := ArrayPoolMembers[GridPoolMembers.Row-1].Direccion;
-MemberBalance := GetPoolMemberBalance(UserDireccion);
-Processlines.Add('sendto '+UserDireccion+' '+IntToStr(GetMaximunToSend(MemberBalance))+' POOLPAYMENT_'+PoolInfo.Name);
-ClearPoolUserBalance(UserDireccion);
-ConsoleLines.Add('Pool payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
-tolog('Pool payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
-End;
-
 Procedure TFormPool.BPoolHashRateOnClick(Sender: TObject);
 Begin
 Processlines.Add('POOLHASHRATE');
@@ -483,12 +496,14 @@ End;
 Procedure UpdatePoolForm();
 var
   contador : integer;
+  ActiveConex : integer;
+  AddedConex : integer =0;
 Begin
 LabelPoolData.Caption:='ConnectTo: '+MyPoolData.Ip+':'+IntToStr(MyPoolData.port)+' MyAddress: '+MyPoolData.MyAddress+slinebreak+
                        'MineAddres: '+MyPoolData.Direccion+' Prefix: '+MyPoolData.Prefijo+slinebreak+
                        'Balance: '+Int2curr(MyPoolData.balance)+' ('+IntToStr(MyPoolData.LastPago)+') Password: '+MyPoolData.Password+' HashRate: '+IntToStr(Miner_PoolHashRate);
 GridPoolMembers.RowCount:=length(ArrayPoolMembers)+1;
-GridPoolConex.RowCount:=length(PoolServerConex)+1;
+GridPoolConex.RowCount:=GetPoolTotalActiveConex+1;
 if ((MyPoolData.LastPago>0) and (MyPoolData.balance>0)) then BCobrarAlPool.Visible:=true
 else BCobrarAlPool.Visible:=false;
 
@@ -513,37 +528,39 @@ if Miner_OwnsAPool then
          end;
       end;
 
+   ActiveConex := GetPoolTotalActiveConex;
    LabelPoolMiner.Caption:='Block: '+IntToStr(PoolMiner.Block)+' Diff: '+IntToStr(poolminer.Dificult)+
                            ' DiffChars: '+IntToStr(Poolminer.DiffChars)+' Steps: '+IntToStr(PoolMiner.steps)+
                            ' Earned: '+Int2Curr(PoolInfo.FeeEarned)+' '+booltostr(form1.PoolServer.Active,true);
    LabelPoolMiner2.Caption:='Members: '+IntToStr(length(ArrayPoolMembers))+' Total Debt: '+Int2Curr(PoolMembersTotalDeuda)+
-                                      ' Connected: '+IntToStr(length(PoolServerConex))+' Hashrate: '+
+                                      ' Connected: '+IntToStr(GetPoolTotalActiveConex)+' Hashrate: '+
                                       IntToStr(PoolTotalHashRate);
-   if length(PoolServerConex)>0 then
+   if (ActiveConex>0)  then
       begin
-      for contador := 0 to length(PoolServerConex)-1 do
+      if U_PoolConexGrid then
          begin
-         try
-         GridPoolConex.Cells[0,contador+1]:=PoolServerConex[contador].Ip;
-         GridPoolConex.Cells[1,contador+1]:=PoolServerConex[contador].Address;
-         Except on E:Exception do
-            begin
-            tolog('Error showing pool connections data, slot '+IntToStr(contador));
+         GridPoolConex.RowCount:=ActiveConex+1;
+         for contador := 0 to length(PoolServerConex)-1 do
+         begin
+            try
+            if PoolServerConex[contador].Address <> '' then
+               begin
+               GridPoolConex.Cells[0,AddedConex+1]:=PoolServerConex[contador].Ip;
+               GridPoolConex.Cells[1,AddedConex+1]:=PoolServerConex[contador].Address;
+               GridPoolConex.Cells[2,AddedConex+1]:=IntToStr(PoolServerConex[contador].Hashpower);
+               GridPoolConex.Cells[3,AddedConex+1]:=PoolServerConex[contador].version;
+               AddedConex+=1;
+               end;
+            Except on E:Exception do
+               begin
+               tolog('Error showing pool connections data, slot '+IntToStr(contador));
+               end;
             end;
+            end;
+         U_PoolConexGrid := true;
          end;
-         end;
-      end;
-
-   if MyLastBlock-(GetLastPagoPoolMember(ArrayPoolMembers[GridPoolMembers.Row-1].Direccion)+PoolInfo.TipoPago) > 0 then
-      begin
-      BPayuser.Enabled:=true;
-      BPayuser.Caption:='Pay '+Int2curr(GetPoolMemberBalance(ArrayPoolMembers[GridPoolMembers.Row-1].Direccion));
       end
-   else
-      begin
-      BPayuser.Enabled:=false;
-      BPayuser.Caption:=IntToStr(MyLastBlock-(GetLastPagoPoolMember(ArrayPoolMembers[GridPoolMembers.Row-1].Direccion)+PoolInfo.TipoPago));
-      end;
+   else GridPoolConex.RowCount:=1;
    end;
 End;
 
@@ -741,16 +758,16 @@ else
    begin
    if (strToIntDef(number,-1) > -1) and (strToIntDef(number,-1)<=IdiomasDisponibles.Count-1) then
       begin
-      CargarIdioma(strToint(number));
-      Outtext(LangLine(3)+IdiomasDisponibles[StrToInt(number)],false,2); //Language changed to:
+      CargarIdioma(strTointDef(number,0));
+      Outtext(LangLine(3)+IdiomasDisponibles[StrToIntDef(number,0)],false,2); //Language changed to:
       U_DataPanel := true;
-      LangSelect.ItemIndex := StrToInt(number);
+      LangSelect.ItemIndex := StrToIntDef(number,0);
       end
    else consolelines.Add(LangLine(4));   //Invalid language number.
    end;
 end;
 
-// Muestra el numero de paskoshis como currency
+// Muestra el numero de notoshis como currency
 function Int2Curr(Value: int64): string;
 begin
 Result := IntTostr(Abs(Value));
@@ -958,6 +975,94 @@ for contador := 0 to datapanel.RowCount-1 do
    begin
    DataPanel.RowHeights[contador]:=UserRowHeigth;
    end;
+End;
+
+// POOLMEMBERS POPUP
+
+Procedure TFormPool.checkPoolMembersPopup(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
+Begin
+if MyLastBlock-(GetLastPagoPoolMember(ArrayPoolMembers[GridPoolMembers.Row-1].Direccion)+PoolInfo.TipoPago) > 0 then
+      begin
+      PoolMembersPopUp.Items[2].Enabled:=true;
+      PoolMembersPopUp.Items[2].Caption:='Pay '+Int2curr(GetPoolMemberBalance(ArrayPoolMembers[GridPoolMembers.Row-1].Direccion));
+      end
+   else
+      begin
+      PoolMembersPopUp.Items[2].Enabled:=false;
+      PoolMembersPopUp.Items[2].Caption:=IntToStr(MyLastBlock-(GetLastPagoPoolMember(ArrayPoolMembers[GridPoolMembers.Row-1].Direccion)+PoolInfo.TipoPago));
+      end;
+if IsPoolMemberConnected(GridPoolMembers.Cells[0,GridPoolMembers.Row])>=0 then
+   begin
+   PoolMembersPopUp.Items[3].Enabled:=true;
+   PoolMembersPopUp.Items[3].Caption:='Connection';
+   end
+else
+   begin
+   PoolMembersPopUp.Items[3].Enabled:=false;
+   PoolMembersPopUp.Items[3].Caption:='Not connected';
+   end;
+End;
+
+// Copy pool member address to clipbloard
+Procedure TFormPool.CopyPoolMemberAddres(Sender:TObject);
+Begin
+if GridPoolMembers.Row >0 then
+  Clipboard.AsText:= GridPoolMembers.Cells[0,GridPoolMembers.Row];
+End;
+
+// Expel member paying
+Procedure TFormPool.PoolExpelPaying(Sender:TObject);
+Begin
+processlines.Add('POOLEXPEL '+GridPoolMembers.Cells[0,GridPoolMembers.Row]+' YES');
+End;
+
+// Expel member without pay
+Procedure TFormPool.PoolExpelNotPay(Sender:TObject);
+Begin
+processlines.Add('POOLEXPEL '+GridPoolMembers.Cells[0,GridPoolMembers.Row]);
+End;
+
+// pay user
+Procedure TFormPool.BPayuserOnClick(Sender: TObject);
+var
+  userdireccion : string;
+  MemberBalance : Int64;
+Begin
+userdireccion := ArrayPoolMembers[GridPoolMembers.Row-1].Direccion;
+MemberBalance := GetPoolMemberBalance(UserDireccion);
+Processlines.Add('sendto '+UserDireccion+' '+IntToStr(GetMaximunToSend(MemberBalance))+' POOLPAYMENT_'+PoolInfo.Name);
+ClearPoolUserBalance(UserDireccion);
+ConsoleLines.Add('Pool payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
+tolog('Pool payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
+End;
+
+// Go to active connection
+Procedure TFormPool.SeePoolConex(Sender: TObject);
+Begin
+if IsPoolMemberConnected(GridPoolMembers.Cells[0,GridPoolMembers.Row])>=0 then
+   try
+   GridPoolConex.Row := IsPoolMemberConnected(GridPoolMembers.Cells[0,GridPoolMembers.Row])+1;
+   finally
+   end;
+End;
+
+
+Procedure TFormPool.KickPoolConnection(Sender: TObject);
+var
+  slot : integer;
+  thiscontext : TiDContext;
+Begin
+slot := IsPoolMemberConnected(GridPoolConex.Cells[1,GridPoolConex.Row]);
+if slot >=0 then
+  begin
+  thiscontext := PoolServerConex[slot].Context;
+    try
+     PoolServerConex[slot].Context.Connection.IOHandler.InputBuffer.Clear;
+     PoolServerConex[slot].Context.Connection.Disconnect;
+    finally
+    end;
+  BorrarPoolServerConex(thiscontext);
+  end;
 End;
 
 END. // END UNIT
