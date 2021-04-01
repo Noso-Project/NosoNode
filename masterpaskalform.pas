@@ -204,6 +204,7 @@ type
        slot : integer;
        Hashpower : int64;
        Version: string[10];
+       LastPing : int64;
        end;
 
   NetworkRequestData = Packed Record
@@ -354,7 +355,7 @@ CONST
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
   DefaultNodes : String = 'DefNodes 192.210.160.101 23.95.233.179 75.127.0.216 173.199.122.23 104.168.99.254';
   ProgramVersion = '0.2.0';
-  SubVersion = 'J';
+  SubVersion = 'K';
   OficialRelease = true;
   BuildDate = 'March 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -437,6 +438,8 @@ var
   IdiomasDisponibles : TStringlist;
   DLSL : TStringlist;                // Default Language String List
   ConsoleLines : TStringList;
+  LogLines : TStringList;
+   S_Log : boolean = false;
   StringAvailableUpdates : String = '';
   DataPanel : TStringGrid;
     U_DataPanel : boolean = true;
@@ -486,8 +489,6 @@ var
   SlotLines : array [1..MaxConecciones] of TStringList;
   CanalCliente : array [1..MaxConecciones] of TIdTCPClient;
     PoolClientLastPing : int64;
-  CanalPool : TIdTCPClient;
-  PoolLines : TStringList;
   PoolClientContext : TIdContext;
   ListadoBots :  array of BotData;
   ListaNodos : array of NodeData;
@@ -649,7 +650,6 @@ var
     StaPenImg : TImage;
     StaPenLab : TLabel;
     StaPoolSer : Timage;
-    StaPoolCa : TImage;
     StaMinImg : Timage;
     StaMinLab : TLabel;
 
@@ -707,6 +707,7 @@ StringListLang := TStringlist.Create;
 ConsoleLines := TStringlist.Create;
 DLSL := TStringlist.Create;
 IdiomasDisponibles := TStringlist.Create;
+LogLines := TStringlist.Create;
 if not FileExists (LanguageFileName) then CrearIdiomaFile() else CargarIdioma(UserOptions.language);
 // finalizar la inicializacion
 InicializarFormulario();
@@ -975,7 +976,6 @@ CerrarClientes();
 StopServer();
 StopPoolServer();
 if length(ArrayPoolMembers)>0 then GuardarPoolMembers();
-if canalpool.Connected then CanalPool.Disconnect;
 If Miner_IsOn then Miner_IsON := false;
 KillAllMiningThreads;
 setlength(CriptoOpsTipo,0);
@@ -1543,10 +1543,6 @@ StatusPanel.BringToFront;
   StaPoolSer.Width:= 16; StaPoolSer.Height:= 16;StaPoolSer.Top:= 2; StaPoolSer.Left:= 290;
   Form1.imagenes.GetIcon(27,StaPoolSer.picture.icon);StaPoolSer.Visible:=false;
 
-  StaPoolCa:= TImage.Create(StatusPanel);StaPoolCa.Parent := StatusPanel;
-  StaPoolCa.Width:= 16; StaPoolCa.Height:= 16;StaPoolCa.Top:= 2; StaPoolCa.Left:= 310;
-  Form1.imagenes.GetIcon(17,StaPoolCa.picture.icon);StaPoolCa.Visible:=false;
-
   StaMinImg:= TImage.Create(StatusPanel);StaMinImg.Parent := StatusPanel;
   StaMinImg.Width:= 16; StaMinImg.Height:= 16;StaMinImg.Top:= 2; StaMinImg.Left:= 330;
   Form1.imagenes.GetIcon(11,StaMinImg.picture.icon);StaBloImg.Visible:=true;
@@ -1560,8 +1556,6 @@ For contador := 1 to MaxConecciones do
    SlotLines[contador] := TStringlist.Create;
    CanalCliente[contador] := TIdTCPClient.Create(form1);
    end;
-CanalPool := TIdTCPClient.Create(form1);
-PoolLines := TStringlist.Create;
 
 Form1.Latido:= TTimer.Create(Form1);
 Form1.Latido.Enabled:=false;Form1.Latido.Interval:=200;
@@ -1603,108 +1597,48 @@ Form1.PoolServer.OnDisconnect:=@form1.PoolServerDisconnect;
 Form1.PoolServer.OnException:=@Form1.PoolServerException;
 End;
 
-// Funciones del servidor.
+// Funciones del servidor Pool
 
 // El servidor del pool recibe una linea
 procedure TForm1.PoolServerExecute(AContext: TIdContext);
 var
-  Linea, IPUser, Password : String;
-  Comando, UserDireccion : String;
-  JoinIP, JoinPort, JoinPrefijo : String;
+  Linea, IPUser : String;
+  Password, UserDireccion, Comando : String;
   MemberBalance : Int64;
-  BloqueStep: integer; SeedStep : string; HashStep : Int64; Solucion : String;
+  BloqueStep: integer; SeedStep, HashStep,Solucion : String;
   PoolSolutionStep : integer = 0;
   BlockTime : string;
-  allinfotext : string = '';
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
-Linea := AContext.Connection.IOHandler.ReadLn(IndyTextEncoding_UTF8);
+Linea := AContext.Connection.IOHandler.ReadLn('',ReadTimeOutTIme,-1,IndyTextEncoding_UTF8);
 Password := Parameter(Linea,0);
 if password <> Poolinfo.PassWord then exit;
 UserDireccion := Parameter(Linea,1);
 Comando := Parameter(Linea,2);
 MemberBalance := GetPoolMemberBalance(UserDireccion);
 // *** NEW MINER FORMAT ***
-allinfotext :=IntToStr(PoolMiner.Block)+' '+         // block target
-      PoolMiner.Target+' '+                  // string target
-      IntToStr(PoolMiner.DiffChars)+' '+     // target chars
-      inttostr(PoolMiner.steps)+' '+         // founded steps
-      inttostr(PoolMiner.Dificult)+' '+       // block difficult
-      IntToStr(MemberBalance)+' '+           // member balance
-      IntToStr(MyLastBlock-(GetLastPagoPoolMember(UserDireccion)+PoolInfo.TipoPago));  // block payment
-
-if Comando = 'JOIN' then
-   begin
-   consolelines.Add('Pool join requested for address '+UserDireccion);
-   joinip := parameter(linea,3);
-   joinport := parameter(linea,4);
-   JoinPrefijo := PoolAddNewMember(UserDireccion);
-   if JoinPrefijo<>'' then
-      begin
-      Acontext.Connection.IOHandler.WriteLn('JOINOK '+PoolInfo.Direccion+' '+JoinPrefijo+' '+
-         IntToStr(PoolTotalHashRate)+' '+allinfotext);
-      ConsoleLines.Add(UserDireccion+' added to the pool');
-      end
-   else
-      begin
-      Acontext.Connection.IOHandler.WriteLn('JOINFAILED');
-      AContext.Connection.Disconnect;
-      Acontext.Connection.IOHandler.InputBuffer.Clear;
-      end;
-   end;
 if comando = 'PING' then
    begin
-   Acontext.Connection.IOHandler.WriteLn('PING '+allinfotext);
-   end;
-if Comando = 'STATUS' then
-   begin
-   MemberBalance := GetPoolMemberBalance(UserDireccion);
-   if memberbalance >-1 then
-      begin
-      Acontext.Connection.IOHandler.WriteLn('STATUSOK '+UserDireccion+' '+IntToStr(MemberBalance)+
-         ' '+IntToStr(MyLastBlock-(GetLastPagoPoolMember(UserDireccion)+PoolInfo.TipoPago))+' '
-         );
-      ConsoleLines.Add('Status sent to '+UserDireccion);
-      end
-   else
-      begin
-      Acontext.Connection.IOHandler.WriteLn('STATUSFAILED '+UserDireccion);
-      ConsoleLines.Add('Wrong status required for '+UserDireccion);
-      end;
-   end;
-if Comando = 'HASHRATE' then
-   begin
-   PoolTotalHashRate := PoolTotalHashRate+abs(StrToIntDef(parameter(linea,3),0));
-   PoolServerConex[GetPoolSlotFromContext(AContext)].Hashpower := StrToInt64Def(parameter(linea,3),0);
-   PoolServerConex[GetPoolSlotFromContext(AContext)].version := parameter(linea,4);
-   end;
-if comando = 'MINERREQUEST' then
-   begin
-   Acontext.Connection.IOHandler.WriteLn('MINERINFO '+
-      IntToStr(PoolMiner.Block)+' '+
-      PoolMiner.Target+' '+
-      IntToStr(PoolMiner.DiffChars)+' '+
-      inttostr(PoolMiner.steps)
-      );
+   Acontext.Connection.IOHandler.WriteLn('PONG '+PoolDataString(UserDireccion));
+   PoolServerConex[IsPoolMemberConnected(UserDireccion)].Hashpower:=StrToIntDef(Parameter(linea,3),0);
+   PoolServerConex[IsPoolMemberConnected(UserDireccion)].LastPing:=StrToInt64Def(UTCTime,0);
    end;
 if Comando = 'STEP' then
    begin
+   PoolServerConex[IsPoolMemberConnected(UserDireccion)].LastPing:=StrToInt64Def(UTCTime,0);
    bloqueStep := StrToIntDef(parameter(linea,3),0);
    SeedStep := parameter(linea,4);
-   HashStep := StrToInt64(parameter(linea,5));
-   Solucion := HashSha256String(SeedStep+PoolInfo.Direccion+IntToStr(HashStep));
+   HashStep := parameter(linea,5);
+   Solucion := HashSha256String(SeedStep+PoolInfo.Direccion+HashStep);
    if ( (AnsiContainsStr(Solucion,copy(PoolMiner.Target,1,PoolMiner.DiffChars))) and
        (GetPoolMemberBalance(UserDireccion)>-1) and (bloqueStep=PoolMiner.Block) and
-       (IsValidStep(PoolMiner.Solucion,SeedStep+IntToStr(HashStep))) ) then
+       (IsValidStep(PoolMiner.Solucion,SeedStep+HashStep)) ) then
       begin
       AcreditarPoolStep(UserDireccion);
-      MemberBalance := GetPoolMemberBalance(UserDireccion);
-      Acontext.Connection.IOHandler.WriteLn('STATUSOK '+UserDireccion+' '+IntToStr(MemberBalance)+
-         ' '+IntToStr(MyLastBlock-(GetLastPagoPoolMember(UserDireccion)+PoolInfo.TipoPago)));
-      PoolMiner.Solucion := PoolMiner.Solucion+SeedStep+IntToStr(HashStep)+' ';
+      Acontext.Connection.IOHandler.WriteLn('STEPOK');
+      PoolMiner.Solucion := PoolMiner.Solucion+SeedStep+HashStep+' ';
       PoolMiner.steps := PoolMiner.steps+1;
       PoolMiner.DiffChars:=GetCharsFromDifficult(PoolMiner.Dificult, PoolMiner.steps);
-      ProcessLines.Add('SENDPOOLSTEPS '+IntToStr(PoolMiner.steps));
       if PoolMiner.steps = Miner_Steps then
          begin
          SetLength(PoolMiner.Solucion,length(PoolMiner.Solucion)-1);
@@ -1725,22 +1659,21 @@ if Comando = 'STEP' then
             PoolMiner.steps := PoolSolutionStep-1;
             PoolMiner.DiffChars:=GetCharsFromDifficult(PoolMiner.Dificult, PoolMiner.steps);
             ProcessLines.Add('SENDPOOLSTEPS '+IntToStr(PoolMiner.steps));
-            if (bloqueStep<>PoolMiner.Block) then ConsoleLines.Add('Wrong BlockNumber');
             end;
+         end
+      else
+         begin
+         ProcessLines.Add('SENDPOOLSTEPS '+IntToStr(PoolMiner.steps));
          end;
       end
    else
       begin
-      consolelines.Add('Wrong step received in pool'+slinebreak+SeedStep+PoolInfo.Direccion+IntToStr(HashStep));
-      Acontext.Connection.IOHandler.WriteLn('POOLSTEPS '+IntToStr(PoolMiner.steps));
-      if GetPoolMemberBalance(UserDireccion)< 0 then consolelines.Add('Unregistered pool user: '+UserDireccion)
-      else consolelines.Add('Member: '+UserDireccion);
-      consolelines.Add( BoolToStr(IsValidStep(PoolMiner.Solucion,SeedStep+IntToStr(HashStep)),true) );
+      consolelines.Add('Wrong step received in pool'+slinebreak+SeedStep+PoolInfo.Direccion+HashStep);
+      consolelines.Add('Member: '+UserDireccion);
       end;
    end;
 if Comando = 'PAYMENT' then
    Begin
-   MemberBalance := GetPoolMemberBalance(UserDireccion);
    if GetLastPagoPoolMember(UserDireccion)+PoolInfo.TipoPago<MyLastBlock then
       begin
       if memberbalance > 0 then
@@ -1752,6 +1685,10 @@ if Comando = 'PAYMENT' then
          tolog('Pool payment sent: '+int2curr(GetMaximunToSend(MemberBalance))+
             slinebreak+'To:'+UserDireccion+slinebreak+'On block:'+IntToStr(MyLastBlock));
          PoolMembersTotalDeuda := GetTotalPoolDeuda();
+         end
+      else
+         begin
+         Acontext.Connection.IOHandler.WriteLn('PAYMENTEMPTY');
          end;
       end
    else
@@ -1764,51 +1701,57 @@ End;
 // Al conectarse un miembro del pool
 procedure TForm1.PoolServerConnect(AContext: TIdContext);
 var
-  IPUser,Linea,password, comando : String;
+  IPUser,Linea,password, comando, minerversion, JoinPrefijo : String;
   UserDireccion : string = '';
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
-Linea := AContext.Connection.IOHandler.ReadLn('',200,-1,IndyTextEncoding_UTF8);
+Linea := AContext.Connection.IOHandler.ReadLn('',ReadTimeOutTIme,-1,IndyTextEncoding_UTF8);
 Password := Parameter(Linea,0);
 UserDireccion := Parameter(Linea,1);
 comando :=Parameter(Linea,2);
-if password <> Poolinfo.PassWord then
+minerversion :=Parameter(Linea,3);
+if password <> Poolinfo.PassWord then  // WRONG PASSWORD.
    begin
    Acontext.Connection.IOHandler.WriteLn('PASSFAILED');
    AContext.Connection.Disconnect;
    Acontext.Connection.IOHandler.InputBuffer.Clear;
    exit;
-   end
-else
-   begin
-   if comando = 'INFO' then
-      begin
-      Acontext.Connection.IOHandler.WriteLn('INFO '+IntToStr(GetPoolTotalActiveConex)+' '+IntToStr(PoolTotalHashRate));
-      AContext.Connection.Disconnect;
-      Acontext.Connection.IOHandler.InputBuffer.Clear;
-      exit;
-      end;
-   if ( (UserDireccion<>'') and (not isvalidaddress(UserDireccion)) and (AddressSumaryIndex(UserDireccion)>=0) ) then
-      begin
+   end;
+if ( (not isvalidaddress(UserDireccion)) and (AddressSumaryIndex(UserDireccion)<0) ) then
+      begin                           // INVALID ADDRESS
       Acontext.Connection.IOHandler.WriteLn('INVALIDADDRESS');
-      if not isvalidaddress(UserDireccion) then consolelines.Add('invalida:'+UserDireccion);
-      if not AddressAlreadyCustomized(UserDireccion) then consolelines.Add('no alias');
       Acontext.Connection.IOHandler.InputBuffer.Clear;
       AContext.Connection.Disconnect;
       exit;
       end;
-   if IsPoolMemberConnected(UserDireccion)<0 then
+if IsPoolMemberConnected(UserDireccion)>=0 then   // ALREADY CONNECTED
+   begin
+   Acontext.Connection.IOHandler.WriteLn('ALREADYCONNECTED');
+   AContext.Connection.Disconnect;
+   Acontext.Connection.IOHandler.InputBuffer.Clear;
+   end;
+if Comando = 'JOIN' then
+   begin
+   consolelines.Add('Pool join requested for address '+UserDireccion);
+   JoinPrefijo := PoolAddNewMember(UserDireccion);
+   if JoinPrefijo<>'' then
       begin
-      SavePoolServerConnection(IpUser,UserDireccion,Acontext);
-      if ( (userdireccion <> '') and (GetPoolMemberBalance(userdireccion)>=0) and (comando<>'JOIN') ) then
-        Acontext.Connection.IOHandler.WriteLn('POOLSTEPS '+IntToStr(PoolMiner.steps));
+      Acontext.Connection.IOHandler.WriteLn('JOINOK '+PoolInfo.Direccion+' '+JoinPrefijo+' '+PoolDataString(UserDireccion));
+      SavePoolServerConnection(IpUser,UserDireccion,minerversion,Acontext);
+      ConsoleLines.Add(UserDireccion+' added to the pool');
       end
    else
       begin
-      Acontext.Connection.IOHandler.WriteLn('ALREADYCONNECTED');
+      Acontext.Connection.IOHandler.WriteLn('JOINFAILED');
       AContext.Connection.Disconnect;
       Acontext.Connection.IOHandler.InputBuffer.Clear;
       end;
+   end
+else
+   begin
+   Acontext.Connection.IOHandler.WriteLn('INVALIDCOMMAND');
+   AContext.Connection.Disconnect;
+   Acontext.Connection.IOHandler.InputBuffer.Clear;
    end;
 End;
 
@@ -1830,7 +1773,10 @@ BorrarPoolServerConex(AContext);
 try
    Acontext.Connection.IOHandler.InputBuffer.Clear;
    AContext.Connection.Disconnect;
-finally
+Except on E:Exception do
+   begin
+   consolelines.Add('Error closing pool connection');
+   end;
 end;
 End;
 
@@ -2446,8 +2392,6 @@ else
    StaPenImg.Visible:=false;
    StaPenLab.Visible:=false;
    end;
-if CanalPool.Connected then StaPoolCa.Visible:=true
-else StaPoolCa.Visible:=false;
 if form1.PoolServer.active then StaPoolSer.Visible:=true
 else StaPoolSer.Visible:=false;
 End;

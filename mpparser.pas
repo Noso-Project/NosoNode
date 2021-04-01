@@ -58,13 +58,11 @@ Procedure TestParser(LineText:String);
 Procedure DeleteBot(LineText:String);
 Procedure showCriptoThreadinfo();
 Procedure SetMiningCPUS(LineText:string);
-Procedure TestNetwork(LineText:string);
 Procedure Parse_RestartNoso();
 Procedure ShowNetworkDataInfo();
 Procedure CreatePool(LineText:string);
 Procedure ShowPoolInfo();
 Procedure JoinPool(LineText:string);
-Procedure ExitPool(LineText:string);
 Procedure Deletepool(LineText:string);
 Procedure GetOwnerHash(LineText:string);
 Procedure CheckOwnerHash(LineText:string);
@@ -192,21 +190,15 @@ else if UpperCase(Command) = 'PMM' then setlength(PoolServerConex,90)
 // POOL RELATED COMMANDS
 else if UpperCase(Command) = 'CREATEPOOL' then CreatePool(LineText)
 else if UpperCase(Command) = 'POOLINFO' then ShowPoolInfo()
-else if UpperCase(Command) = 'JOINPOOL' then JoinPool(LineText)
-else if UpperCase(Command) = 'EXITPOOL' then ExitPool(LineText)
 else if UpperCase(Command) = 'DELPOOL' then DeletePool(LineText)
-else if UpperCase(Command) = 'REQUESTPOOLSTATUS' then PoolRequestMyStatus()
-else if UpperCase(Command) = 'REQUESTPOOLPAY' then PoolRequestPayment()
 else if UpperCase(Command) = 'STARTPOOLSERVER' then StartPoolServer(poolinfo.Port)
 else if UpperCase(Command) = 'USEPOOLON' then UsePoolOn()
 else if UpperCase(Command) = 'USEPOOLOFF' then UsePoolOff()
-else if UpperCase(Command) = 'SENDPOOLSOLUTION' then SendPoolSolution(StrToInt(Parameter(LineText,1)),Parameter(LineText,2),StrToInt64(Parameter(LineText,3)))
 else if UpperCase(Command) = 'POOLPASS' then ChangePoolPassword(LineText)
 else if UpperCase(Command) = 'POOLFEE' then ChangePoolFee(LineText)
 else if UpperCase(Command) = 'POOLMEMBERS' then ChangePoolMembers(LineText)
 else if UpperCase(Command) = 'POOLPAYINTERVAL' then ChangePoolPayrate(LineText)
 else if UpperCase(Command) = 'POOLEXPEL' then PoolExpelMember(LineText)
-else if UpperCase(Command) = 'RESETPOOL' then PoolResetData()
 else if UpperCase(Command) = 'SENDPOOLSTEPS' then SendPoolStepsInfo(StrToInt(Parameter(LineText,1)))
 else if UpperCase(Command) = 'POOLHASHRATE' then SendPoolHashRateRequest()
 else if UpperCase(Command) = 'SAVEPOOLFILES' then SavePoolFiles()
@@ -465,7 +457,6 @@ Procedure Mineroff();
 Begin
 Miner_Active := false;
 if Miner_IsOn then Miner_IsOn := false;
-if canalpool.Connected then CanalPool.Disconnect;
 U_Datapanel := true;
 ConsoleLines.Add(LangLine(50)+LAngLine(49));    // miner //inactive
 End;
@@ -479,9 +470,11 @@ var
 Begin
 For contador := 0 to length(ListaSumario)-1 do
    begin
-   {consolelines.Add(ListaSumario[contador].Hash+' '+Int2Curr(ListaSumario[contador].Balance)+' '+
+   {
+   consolelines.Add(ListaSumario[contador].Hash+' '+Int2Curr(ListaSumario[contador].Balance)+' '+
       SLINEBREAK+ListaSumario[contador].custom+' '+
-      IntToStr(ListaSumario[contador].LastOP)+' '+IntToStr(ListaSumario[contador].Score));}
+      IntToStr(ListaSumario[contador].LastOP)+' '+IntToStr(ListaSumario[contador].Score));
+   }
    TotalCOins := totalCoins+ ListaSumario[contador].Balance;
    if ListaSumario[contador].Balance <= 0 then EmptyAddresses +=1;
    end;
@@ -1252,29 +1245,8 @@ DefCPUs := G_MiningCPUs;
 ResetMinerInfo;
 KillAllMiningThreads;
 Miner_Active := false;
-if canalpool.Connected then DisconnectPoolClient;
 if Miner_IsOn then Miner_IsOn := false;
 U_Datapanel := true;
-End;
-
-Procedure TestNetwork(LineText:string);
-var
-  numero : integer;
-  monto : integer;
-  contador : integer;
-Begin
-numero := StrToIntDef(Parameter(linetext,1),0);
-if ((numero <1) or (numero >100)) then
-  Outtext('Range must be 1-100')
-else
-  begin
-  Randomize;
-  for contador := 1 to numero do
-     begin
-     Monto := Random(500)+1;
-     Processlines.Add('SENDTO '+ADMINHash+' '+IntToStr(Monto));
-     end;
-  end;
 End;
 
 Procedure Parse_RestartNoso();
@@ -1385,44 +1357,13 @@ if UserOptions.poolinfo = '' then
    if DireccionEsMia(direccion)<0 then Parametrosok := false;
    if parametrosok then
       begin
-      ConnectPoolClient(ip,port,password,direccion);
-      SendPoolMessage(password+' '+direccion+' JOIN '+ip+' '+IntToStr(port));
+      //ConnectPoolClient(ip,port,password,direccion);
+      //SendPoolMessage(password+' '+direccion+' JOIN '+ip+' '+IntToStr(port));
       consolelines.Add('Join pool request sent');
       end
    else consolelines.Add('Join Pool: Invalid parameters'+slinebreak+'joinpool {ip} {port} {address} {password}');
    end
 else consolelines.Add('You already are in a pool');
-End;
-
-Procedure ExitPool(LineText:string);
-var
-  confirmation : string;
-  confirmed : boolean = false;
-Begin
-if useroptions.PoolInfo<>'' then
-   begin
-   confirmation:= parameter(linetext,1);
-   if UPPERCASE(confirmation) = 'YES' then confirmed := true;
-   if not confirmed then
-      begin
-      Consolelines.Add('If you exit a pool, you could lost the coins already earned.'+slinebreak+
-                       'If you want proceed, type exitpool yes');
-      end
-   else
-      begin
-      if DireccionesMia(MyPoolData.Direccion)>= 0 then
-         begin
-         consolelines.Add('You can not exit your own pool');
-         exit;
-         end;
-      useroptions.PoolInfo:='';
-      UserOptions.UsePool := false;
-      consolelines.Add('Pool connection data deleted');
-      S_Options := true;
-      if formpool.Visible then formpool.Visible:=false;
-      if canalpool.Connected then canalpool.Disconnect;
-      end;
-   end;
 End;
 
 Procedure DeletePool(LineText:string);
@@ -1448,6 +1389,7 @@ if confirmed then
       consolelines.Add('Own pool deleted');
       deletefile(PoolMembersFilename);
       if form1.PoolServer.Active then form1.PoolServer.Active := false;
+      setlength(arraypoolmembers,0);
       Miner_OwnsAPool := false;
       end
    else consolelines.add('You do no owns a pool data');
@@ -1461,7 +1403,6 @@ if confirmed then
    UserOptions.UsePool := false;
    S_Options := true;
    if formpool.Visible then formpool.Visible:=false;
-   if canalpool.Connected then canalpool.Disconnect;
    end
 else
    begin

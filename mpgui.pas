@@ -40,7 +40,6 @@ type
   TFormPool = class(Tform)
     Procedure BUpdatePoolOnClick(Sender: TObject);
     Procedure BRequestPoolPayOnClick(Sender: TObject);
-    Procedure BPoolHashRateOnClick(Sender: TObject);
     // poolmembers popup
     Procedure checkPoolMembersPopup(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
     Procedure CopyPoolMemberAddres(Sender:TObject);
@@ -104,7 +103,6 @@ var
     LabelPoolMiner : Tlabel;
     LabelPoolMiner2 : Tlabel;
     GridPoolConex : TStringgrid;
-    BPoolHashRate : TButton;
     EdBuFee : TLabeledEdit;
     EdMaxMem : TLabeledEdit;
     EdPayRate : TLabeledEdit;
@@ -429,28 +427,22 @@ LabelPoolMiner2.Caption:='';
 
 GridPoolConex := TStringGrid.Create(FormPool);GridPoolConex.Parent:=FormPool;
 GridPoolConex.Font.Name:='consolas'; GridPoolConex.Font.Size:=8;
-GridPoolConex.Left:=1;GridPoolConex.Top:=232;GridPoolConex.Height:=155;GridPoolConex.width:=442;
+GridPoolConex.Left:=1;GridPoolConex.Top:=232;GridPoolConex.Height:=155;GridPoolConex.width:=472;
 GridPoolConex.FixedCols:=0;GridPoolConex.FixedRows:=1;
-GridPoolConex.rowcount := 1;GridPoolConex.ColCount:=4;
+GridPoolConex.rowcount := 1;GridPoolConex.ColCount:=5;
 GridPoolConex.ScrollBars:=ssVertical;
 GridPoolConex.FocusRectVisible:=false;
 GridPoolConex.Options:= GridPoolConex.Options+[goRowSelect]-[goRangeSelect];
 GridPoolConex.ColWidths[0]:= 120;GridPoolConex.ColWidths[1]:= 200;
-GridPoolConex.ColWidths[2]:= 50;GridPoolConex.ColWidths[3]:= 50;
+GridPoolConex.ColWidths[2]:= 50;GridPoolConex.ColWidths[3]:= 50;GridPoolConex.ColWidths[4]:= 30;
 GridPoolConex.Cells[0,0]:='Ip';GridPoolConex.Cells[1,0]:='Address';
-GridPoolConex.Cells[2,0]:='HRate';GridPoolConex.Cells[3,0]:='Ver';
+GridPoolConex.Cells[2,0]:='HRate';GridPoolConex.Cells[3,0]:='Ver';GridPoolConex.Cells[4,0]:='Ping';
 GridPoolConex.Enabled := true;
 GridPoolConex.GridLineWidth := 1;
 GridPoolConex.OnDblClick:=@formpool.KickPoolConnection;
 
-BPoolHashRate := TButton.Create(FormPool);BPoolHashRate.Parent:=FormPool;
-BPoolHashRate.Left:=450;BPoolHashRate.Top:=232;
-BPoolHashRate.Height:=18;BPoolHashRate.Width:=75;
-BPoolHashRate.Caption:='HashRate';BPoolHashRate.Font.Name:='candaras';BPoolHashRate.Font.Size:=8;
-BPoolHashRate.Visible:=true;BPoolHashRate.OnClick:=@formpool.BPoolHashRateOnClick;
-
 EdBuFee := TLabeledEdit.Create(FormPool); EdBuFee.Parent:=FormPool;
-EdBuFee.Left:=450;EdBuFee.top:=272;
+EdBuFee.Left:=480;EdBuFee.top:=272;
 EdBuFee.Height:=18;EdBuFee.Width:=75;
 EdBuFee.LabelPosition:=lpabove;EdBuFee.editlabel.Font.Name:='candaras';EdBuFee.editlabel.Font.Size:=UserFontSize;
 EdBuFee.LabelSpacing:=1;EdBuFee.ReadOnly:=true;
@@ -459,7 +451,7 @@ EdBuFee.Font.Name:='consolas';EdBuFee.Font.Size:=UserFontSize;
 EdBuFee.Visible:=true;
 
 EdMaxMem := TLabeledEdit.Create(FormPool); EdMaxMem.Parent:=FormPool;
-EdMaxMem.Left:=450;EdMaxMem.top:=312;
+EdMaxMem.Left:=480;EdMaxMem.top:=312;
 EdMaxMem.Height:=18;EdMaxMem.Width:=75;
 EdMaxMem.LabelPosition:=lpabove;EdMaxMem.editlabel.Font.Name:='candaras';EdMaxMem.editlabel.Font.Size:=UserFontSize;
 EdMaxMem.LabelSpacing:=1;EdMaxMem.ReadOnly:=true;
@@ -468,7 +460,7 @@ EdMaxMem.Font.Name:='consolas';EdMaxMem.Font.Size:=UserFontSize;
 EdMaxMem.Visible:=true;
 
 EdPayRate := TLabeledEdit.Create(FormPool); EdPayRate.Parent:=FormPool;
-EdPayRate.Left:=450;EdPayRate.top:=352;
+EdPayRate.Left:=480;EdPayRate.top:=352;
 EdPayRate.Height:=18;EdPayRate.Width:=75;
 EdPayRate.LabelPosition:=lpabove;EdPayRate.editlabel.Font.Name:='candaras';EdPayRate.editlabel.Font.Size:=UserFontSize;
 EdPayRate.LabelSpacing:=1;EdPayRate.ReadOnly:=true;
@@ -486,11 +478,6 @@ End;
 Procedure TFormPool.BRequestPoolPayOnClick(Sender: TObject);
 Begin
 ProcessLines.Add('REQUESTPOOLPAY');
-End;
-
-Procedure TFormPool.BPoolHashRateOnClick(Sender: TObject);
-Begin
-Processlines.Add('POOLHASHRATE');
 End;
 
 Procedure UpdatePoolForm();
@@ -549,6 +536,7 @@ if Miner_OwnsAPool then
                GridPoolConex.Cells[1,AddedConex+1]:=PoolServerConex[contador].Address;
                GridPoolConex.Cells[2,AddedConex+1]:=IntToStr(PoolServerConex[contador].Hashpower);
                GridPoolConex.Cells[3,AddedConex+1]:=PoolServerConex[contador].version;
+               GridPoolConex.Cells[4,AddedConex+1]:=IntToStr(StrToInt64(UTCTime)-PoolServerConex[contador].LastPing);
                AddedConex+=1;
                end;
             Except on E:Exception do
@@ -1052,6 +1040,7 @@ var
   slot : integer;
   thiscontext : TiDContext;
 Begin
+{
 slot := IsPoolMemberConnected(GridPoolConex.Cells[1,GridPoolConex.Row]);
 if slot >=0 then
   begin
@@ -1063,6 +1052,7 @@ if slot >=0 then
     end;
   BorrarPoolServerConex(thiscontext);
   end;
+}
 End;
 
 END. // END UNIT

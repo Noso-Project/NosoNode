@@ -14,6 +14,7 @@ Procedure CreateLog();
 Procedure CreateADV(saving:boolean);
 Procedure LoadADV();
 Procedure ToLog(Texto:string);
+Procedure SaveLog();
 Procedure CrearArchivoOpciones();
 Procedure CargarOpciones();
 Procedure GuardarOpciones();
@@ -84,7 +85,6 @@ Uses
 Procedure VerificarArchivos();
 var
   contador : integer;
-  EmptyPoolConect : PoolUserConnection;
 Begin
 LoadDefLangList();
 if not directoryexists(BlockDirectory) then CreateDir(BlockDirectory);
@@ -121,10 +121,7 @@ if fileexists(PoolInfoFilename) then
    GetPoolInfoFromDisk();
    SetLength(PoolServerConex,PoolInfo.MaxMembers);
    for contador := 0 to length(PoolServerConex)-1 do
-      begin
-      EmptyPoolConect := Default(PoolUserConnection);
-      PoolServerConex[contador]:=EmptyPoolConect;
-      end;
+      PoolServerConex[contador] := Default(PoolUserConnection);
    consolelines.Add('PoolMaxMembers:'+inttostr(length(PoolServerConex)));
    Miner_OwnsAPool := true;
    LoadPoolMembers();
@@ -218,19 +215,31 @@ End;
 
 // Guarda una linea al log
 Procedure ToLog(Texto:string);
+Begin
+LogLines.Add(texto);
+S_Log := true;
+End;
+
+Procedure SaveLog();
 var
   archivo : textfile;
 Begin
-   try
+try
    Assignfile(archivo, ErrorLogFilename);
    Append(archivo);
-   Writeln(archivo, timetostr(now)+' '+texto);
+   while LogLines.Count>0 do
+      begin
+      Writeln(archivo, timetostr(now)+' '+LogLines[0]);
+      LogMemo.Lines.Add(timetostr(now)+' '+LogLines[0]);
+      if not formlog.Visible then NewLogLines := NewLogLines+1;
+      LogLines.Delete(0);
+      end;
    Closefile(archivo);
-   LogMemo.Lines.Add(timetostr(now)+' '+texto);
-   if not formlog.Visible then NewLogLines := NewLogLines+1;
-   Except on E:Exception do
-      tolog ('Error saving to the log file');
-   end;
+   S_Log := false;
+Except on E:Exception do
+   tolog ('Error saving to the log file');
+end;
+
 End;
 
 // Crea el archivo de opciones
@@ -672,6 +681,7 @@ if S_Options then GuardarOpciones();
 if S_Wallet then GuardarWallet();
 if S_Sumario then GuardarSumario();
 if S_PoolMembers then GuardarPoolMembers();
+if S_Log then SaveLog;
 End;
 
 // Verifica si OPENSSL esta instalado en el sistema
@@ -1021,9 +1031,9 @@ while contador <= untilblock do
       begin  // Que hacer si todo encaja pero el sumario no esta bien
       ShowMessage ('Something is wrong with your blockchain'+slinebreak+'Noso will run the doctor and restart'+
       slinebreak+'If the problem is not fixed, please, read the guide to fix it.');
-      RunDoctorBeforeClose := true;
-      RestartNosoAfterQuit := true;
-      CerrarPrograma();
+      //RunDoctorBeforeClose := true;
+      //RestartNosoAfterQuit := true;
+      //CerrarPrograma();
       end;
    CurrHash := HashMD5File(BlockDirectory+IntToStr(contador)+'.blk');
    if  CurrHash <> Dato.blockhash then
@@ -1401,7 +1411,6 @@ CloseAllforms();
 CerrarClientes();
 StopServer();
 StopPoolServer();
-if canalpool.Connected then CanalPool.Disconnect;
 If Miner_IsOn then Miner_IsON := false;
 KillAllMiningThreads;
 setlength(CriptoOpsTipo,0);
@@ -1507,10 +1516,14 @@ End;
 
 Procedure GuardarArchivoPoolInfo();
 Begin
+try
 assignfile(FilePool,PoolInfoFilename);
 rewrite(FilePool);
 write(filepool,PoolInfo);
 Closefile(FilePool);
+Except on E:Exception do
+   tolog('Error savinf PoolInfo file:'+E.Message);
+end;
 End;
 
 function GetPoolInfoFromDisk():PoolInfoData;
@@ -1680,13 +1693,13 @@ CloseAllforms();
 CerrarClientes();
 StopServer();
 StopPoolServer();
-if canalpool.Connected then CanalPool.Disconnect;
 If Miner_IsOn then Miner_IsON := false;
 KillAllMiningThreads;
 setlength(CriptoOpsTipo,0);
 deletefile(SumarioFilename);
 deletefile(SumarioFilename+'.bak');
 deletefile(ResumenFilename);
+deletefile(MyTrxFilename);
 if DeleteDirectory(BlockDirectory,True) then
    RemoveDir(BlockDirectory);
 processlines.Add('restart');

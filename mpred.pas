@@ -428,28 +428,6 @@ for contador := 1 to Maxconecciones do
         end;
      end;
    end;
-if ((UserOptions.UsePool) and (not canalpool.Connected) and (MyConStatus = 3) and(Miner_Active)) then
-   begin
-   if LastTryConnectPoolcanal + 5 < StrToInt64(UTCTime) then
-      begin
-      LastTryConnectPoolcanal := StrToInt64(UTCTime);
-      if ConnectPoolClient(MyPoolData.Ip,MyPoolData.port,MyPoolData.Password,MypoolData.MyAddress) then
-         begin
-         consolelines.add('Reconnected to pool server');
-         tolog('Reconnected to pool server');
-         end
-      else
-         begin
-         consolelines.add('Unable to connect to pool server');
-         tolog('Unable to connect to pool server');
-         end;
-      end;
-   end;
-if canalpool.Connected then
-  begin
-  ReadPoolClientLines();
-  if PoolClientLastPing+300<StrToInt64(UTCTime) then PoolRequestMyStatus;
-  end;
 SetCurrentJob('LeerLineasDeClientes',false);
 End;
 
@@ -490,7 +468,6 @@ if NumeroConexiones = 0 then  // Desconeectado
       NetPendingTrxs.Value:='';
       U_Datapanel:= true;
       SetLength(PendingTXs,0);
-      if CanalPool.Connected then DisconnectPoolClient;
       StopPoolServer;
       Form1.imagenes.GetBitmap(2,ConnectButton.Glyph);
       end;
@@ -527,6 +504,7 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
      and (MySumarioHash=NetSumarioHash.Value) and(MyResumenhash = NetResumenHash.Value)) then
    begin
    MyConStatus := 3;
+   U_Mytrxs := true;
    SumaryRebuilded:= false;
    ConsoleLines.Add(LangLine(36));   //Updated!
    ResetMinerInfo();
@@ -536,11 +514,6 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
       StartPoolServer(Poolinfo.Port);
       if Form1.PoolServer.Active then consolelines.Add(PoolInfo.Name+' pool server is listening')
       else consolelines.Add('Unable to star pool server');
-      end;
-   if ((UserOptions.UsePool)and (Miner_Active) and (not CanalPool.Connected)) then
-      begin
-      ConnectPoolClient(MyPoolData.Ip,MyPoolData.port,MyPoolData.Password,MypoolData.MyAddress);
-      PoolRequestMyStatus();
       end;
    if StrToInt(NetPendingTrxs.Value)> length(PendingTXs) then
       PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));
@@ -553,7 +526,7 @@ if MyConStatus = 3 then
       (MyResumenhash <> NetResumenHash.Value) ) then // desincronizado
       Begin
       SynchWarnings +=1;
-      if SynchWarnings = 15 then
+      if SynchWarnings = 50 then
          begin
          MyConStatus := 2;
          UndoneLastBlock;
@@ -572,7 +545,7 @@ if MyConStatus = 3 then
          else consolelines.Add('Unable to start pool server');
          end;
       end;
-   if ((Miner_OwnsAPool) and (Form1.PoolServer.Active) and (LastPoolHashRequest+60<StrToInt64(UTCTime))) then
+   if ((Miner_OwnsAPool) and (Form1.PoolServer.Active) and (LastPoolHashRequest+5<StrToInt64(UTCTime))) then
       begin
       ProcessLines.Add('POOLHASHRATE');
       end;
@@ -820,9 +793,9 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
    begin  // Que hacer si todo encaja pero el sumario no esta bien
    ShowMessage ('Something is wrong with your blockchain'+slinebreak+'Noso will run the doctor and restart'+
    slinebreak+'If the problem is not fixed, please, read the guide to fix it.');
-   RunDoctorBeforeClose := true;
-   RestartNosoAfterQuit := true;
-   CerrarPrograma();
+   //RunDoctorBeforeClose := true;
+   //RestartNosoAfterQuit := true;
+   //CerrarPrograma();
    end;
 SetCurrentJob('ActualizarseConLaRed',false);
 End;
