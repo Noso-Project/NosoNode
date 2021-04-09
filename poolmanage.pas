@@ -17,6 +17,7 @@ Procedure LoadMyPoolData();
 Procedure SaveMyPoolData();
 function GetPoolMemberBalance(direccion:string):int64;
 Procedure ResetPoolMiningInfo();
+Procedure AdjustWrongSteps();
 function GetPoolNumeroDePasos():integer;
 Procedure DistribuirEnPool(cantidad:int64);
 Function GetTotalPoolDeuda():Int64;
@@ -33,6 +34,7 @@ Procedure SendPoolHashRateRequest();
 function GetPoolMemberPosition(member:String):integer;
 function IsPoolMemberConnected(address:string):integer;
 function GetPoolSlotFromContext(context:TIdContext):integer;
+Procedure ExpelPoolInactives();
 
 implementation
 
@@ -111,7 +113,7 @@ Begin
 firstchar := poolslot div 93;
 secondchar := poolslot mod 93;
 resultado := chr(33+firstchar)+chr(33+secondchar)+'!!!!!!!';
-result := StringReplace(resultado,'(','ñ',[rfReplaceAll, rfIgnoreCase])
+result := StringReplace(resultado,'(','~',[rfReplaceAll, rfIgnoreCase])
 End;
 
 //** Returns the prefix for a new connection or empty if pool is full
@@ -203,6 +205,20 @@ if length(ArrayPoolMembers)>0 then
    end;
 End;
 
+Procedure AdjustWrongSteps();
+var
+  counter : integer;
+Begin
+for counter := 0 to length(PoolServerConex)-1 do
+   begin
+   if PoolServerConex[counter].Address <> '' then
+      begin
+      PoolServerConex[counter].WrongSteps-=1;
+      if PoolServerConex[counter].WrongSteps<0 then PoolServerConex[counter].WrongSteps := 0;
+      end;
+   end;
+End;
+
 Procedure ResetPoolMiningInfo();
 Begin
 PoolMiner.Block:=LastBlockData.Number+1;
@@ -211,6 +227,7 @@ PoolMiner.steps:=0;
 PoolMiner.Dificult:=LastBlockData.NxtBlkDiff;
 PoolMiner.DiffChars:=GetCharsFromDifficult(PoolMiner.Dificult, PoolMiner.steps);
 PoolMiner.Target:=MyLastBlockHash;
+AdjustWrongSteps();
 ProcessLines.Add('SENDPOOLSTEPS 0');
 end;
 
@@ -243,15 +260,30 @@ Procedure DistribuirEnPool(cantidad:int64);
 var
   numerodepasos: integer;
   PoolComision : int64;
-  ARepartir, PagoPorStep: int64;
+  ARepartir, PagoPorStep, PagoPorPOS, MinersConPos: int64;
   contador : integer;
+  RepartirShares : int64;
+
+  function GetValidMinersForShare():integer;
+  var
+    count : integer;
+  Begin
+  result := 0;
+  for count := 0 to length(arraypoolmembers)-1 do
+     if ( (IsPoolMemberConnected(arraypoolmembers[count].Direccion)>=0) and
+        (arraypoolmembers[count].LastSolucion+Poolinfo.TipoPago>=PoolMiner.Block) ) then result +=1;
+  End;
+
 Begin
 ARepartir := Cantidad;
 NumeroDePasos := GetPoolNumeroDePasos();
 PoolComision := (cantidad* PoolInfo.Porcentaje) div 10000;
 PoolInfo.FeeEarned:=PoolInfo.FeeEarned+PoolComision;
 ARepartir := ARepartir-PoolComision;
-PagoPorStep := ARepartir div NumeroDePasos;
+RepartirShares := (ARepartir * PoolShare) div 100;
+ARepartir := ARepartir - RepartirShares;
+PagoPorStep := RepartirShares div NumeroDePasos;
+// DISTRIBUTE SHARES
 for contador := 0 to length(arraypoolmembers)-1 do
    begin
    if arraypoolmembers[contador].Soluciones > 0 then
@@ -268,9 +300,26 @@ for contador := 0 to length(arraypoolmembers)-1 do
       arraypoolmembers[contador].LastEarned:=0;
       end;
    end;
+// DISTRIBUTE PART
+MinersConPos := GetValidMinersForShare;
+if ((ARepartir>0) and (MinersConPos>0)) then
+   begin
+   PagoPorPOS := ARepartir div MinersConPos;
+   for contador := 0 to length(arraypoolmembers)-1 do
+      begin
+      if ( (IsPoolMemberConnected(arraypoolmembers[contador].Direccion)>=0) and
+        (arraypoolmembers[contador].LastSolucion+Poolinfo.TipoPago>=PoolMiner.Block) ) then
+         begin
+         arraypoolmembers[contador].Deuda:=arraypoolmembers[contador].Deuda+PagoPorPOS;
+         arraypoolmembers[contador].TotalGanado:=arraypoolmembers[contador].TotalGanado+PagoPorPOS;
+         arraypoolmembers[contador].LastEarned:=arraypoolmembers[contador].LastEarned+PagoPorPOS;
+         end;
+      end;
+   consolelines.Add('POOL POP: '+IntToStr(MinersConPos)+' members, each= '+Int2Curr(PagoPorPOS));
+   end;
 PoolMembersTotalDeuda := GetTotalPoolDeuda();
 S_PoolMembers := true;
-GuardarArchivoPoolInfo();
+S_PoolInfo := true;
 End;
 
 Procedure AcreditarPoolStep(direccion:string);
@@ -326,7 +375,7 @@ if length(ArrayPoolMembers)>0 then
       end;
    end;
 S_PoolMembers := true;
-GuardarArchivoPoolInfo;
+S_PoolInfo := true;
 PoolMembersTotalDeuda := GetTotalPoolDeuda();
 End;
 
@@ -519,6 +568,23 @@ if length(PoolServerConex)>0 then
    for counter := 0 to length(PoolServerConex)-1 do
       if PoolServerConex[counter].Context=context then
          result := counter;
+   end;
+End;
+
+Procedure ExpelPoolInactives();
+var
+  counter : integer;
+Begin
+if length(arraypoolmembers)>0 then
+   begin
+   for counter := 0 to length(arraypoolmembers)-1 do
+      begin
+      if arraypoolmembers[counter].LastSolucion+PoolExpelBlocks<PoolMiner.Block then
+         begin
+         if IsPoolMemberConnected(arraypoolmembers[counter].Direccion)<0 then
+            processlines.Add('POOLEXPEL '+arraypoolmembers[counter].Direccion+' YES');
+         end;
+      end;
    end;
 End;
 
