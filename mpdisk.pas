@@ -1608,7 +1608,6 @@ end;
 End;
 
 // Gets OS version
-{$IFDEF WINDOWS}
 function OSVersion: string;
 begin
   {$IFDEF LCLcarbon}
@@ -1629,6 +1628,7 @@ begin
 end;
 
 // Returns the windows version
+{$IFDEF WINDOWS}
 Function GetWinVer():string;
 Begin
 if WindowsVersion = wv95 then result := 'Windows95'

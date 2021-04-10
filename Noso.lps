@@ -8,8 +8,9 @@
       <Unit0>
         <Filename Value="Noso.lpr"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="3"/>
-        <CursorPos X="20" Y="12"/>
+        <CursorPos X="3" Y="6"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
       </Unit0>
@@ -20,8 +21,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MasterPaskalForm"/>
-        <IsVisibleTab Value="True"/>
-        <CursorPos X="45" Y="5"/>
+        <CursorPos X="37" Y="26"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -40,8 +40,8 @@
         <Filename Value="mpdisk.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="61"/>
-        <CursorPos X="33" Y="77"/>
+        <TopLine Value="1608"/>
+        <CursorPos X="20" Y="1631"/>
         <FoldState Value=" T3kA0B5 pj9jc0B3 piejK0A4]9YjG0U[94XjZ0J[a4Ck60M[I4ajU]913k"/>
         <UsageCount Value="203"/>
         <Loaded Value="True"/>
@@ -157,7 +157,7 @@
         <EditorIndex Value="5"/>
         <TopLine Value="10"/>
         <CursorPos X="39" Y="26"/>
-        <UsageCount Value="111"/>
+        <UsageCount Value="116"/>
         <Loaded Value="True"/>
       </Unit15>
       <Unit16>
@@ -165,7 +165,7 @@
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos Y="17"/>
-        <UsageCount Value="44"/>
+        <UsageCount Value="49"/>
       </Unit16>
       <Unit17>
         <Filename Value="Info.txt"/>
