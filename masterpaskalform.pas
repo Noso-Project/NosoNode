@@ -205,6 +205,7 @@ type
        Hashpower : int64;
        Version: string[10];
        LastPing : int64;
+       WrongSteps : integer;
        end;
 
   NetworkRequestData = Packed Record
@@ -226,6 +227,7 @@ type
     CloseTimer : TTimer;
     Server: TIdTCPServer;
     PoolServer : TIdTCPServer;
+    RPCServer : TIdTCPServer;
     SystrayIcon: TTrayIcon;
 
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
@@ -288,7 +290,9 @@ type
     procedure PoolServerExecute(AContext: TIdContext);
     procedure PoolServerDisconnect(AContext: TIdContext);
     procedure PoolServerException(AContext: TIdContext;AException: Exception);
-
+    // RPC
+    procedure RPCServerConnect(AContext: TIdContext);
+    procedure RPCServerExecute(AContext: TIdContext);
 
     // MAIN MENU
     Procedure CheckMMCaptions(Sender:TObject);
@@ -355,27 +359,11 @@ CONST
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
   DefaultNodes : String = 'DefNodes 192.210.160.101 23.95.233.179 75.127.0.216 173.199.122.23 104.168.99.254';
   ProgramVersion = '0.2.0';
-  SubVersion = 'K';
+  SubVersion = 'M';
   OficialRelease = true;
-  BuildDate = 'March 2021';
+  BuildDate = 'April 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
-  OptionsFileName = 'NOSODATA/options.psk';
-  BotDataFilename = 'NOSODATA/botdata.psk';
-  NodeDataFilename = 'NOSODATA/nodes.psk';
-  NTPDataFilename = 'NOSODATA/ntpservers.psk';
-  WalletFilename = 'NOSODATA/wallet.pkw';
-  SumarioFilename = 'NOSODATA/sumary.psk';
-  LanguageFileName = 'NOSODATA/noso.lng';
-  BlockDirectory = 'NOSODATA/BLOCKS/';
-  UpdatesDirectory = 'NOSODATA/UPDATES/';
-  ResumenFilename = 'NOSODATA/blchhead.nos';
-  MyTrxFilename = 'NOSODATA/mytrx.nos';
-  TranslationFilename = 'NOSODATA/English_empty.txt';
-  ErrorLogFilename = 'NOSODATA/errorlog.txt';
-  PoolInfoFilename = 'NOSODATA/poolinfo.dat';
-  PoolMembersFilename = 'NOSODATA/poolmembers.dat';
-  AdvOptionsFilename = 'NOSODATA/advopt.txt';
   DefaultServerPort = 8080;
   MaxConecciones  = 50;
   Protocolo = 1;
@@ -389,7 +377,7 @@ CONST
   HalvingSteps = 10;                // total number of halvings
   Comisiontrfr = 10000;             // ammount/Comisiontrfr = 0.01 % of the ammount
   ComisionCustom = 200000;          // 0.05 % of the Initial reward
-  CoinSimbol = 'NOS';               // Coin 3 chats
+  CoinSimbol = 'NOS';               // Coin 3 chars
   CoinName = 'Noso';                // Coin name
   CoinChar = 'N';                   // Char for addresses
   MinimunFee = 10;                  // Minimun fee for transfer
@@ -405,6 +393,11 @@ var
   ReadTimeOutTIme : integer = 100;
   ConnectTimeOutTime : integer = 500;
   DefCPUs : integer = 1;
+  PoolExpelBlocks :integer = 0;
+  PoolShare : integer = 100;
+  RPCPort : integer = 8078;
+  RPCPass : string = 'default';
+  ShowedOrders : integer = 100;
 
   SynchWarnings : integer = 0;
 
@@ -472,6 +465,7 @@ var
     S_Resumen : Boolean = false;
   FilePool : File of PoolInfoData;
     PoolInfo : PoolInfoData;
+    S_PoolInfo : boolean = false;
   FilePoolMembers : File of PoolMembersData;
     S_PoolMembers : boolean = false;
   FileAdvOptions : textfile;
@@ -533,6 +527,7 @@ var
     LastTryStartPoolServer : int64;
     LastTryConnectPoolcanal : Int64;
     LastPoolHashRequest : int64;
+    PoolSolutionFails : integer;
   Miner_PoolHashRate : Int64 = 0;
   Miner_IsON : Boolean = false;
   Miner_Active : Boolean = false;
@@ -555,12 +550,31 @@ var
   Miner_LastHashRate : int64 = 0;
 
   // Threads
-  RebulidTrxThread : Int64 = 0;
+  RebulidTrxThread : TThreadID;
   CriptoOPsThread : Int64 = 0;
     CriptoOpsTipo : Array of integer;
     CriptoOpsOper : Array of string;
     CriptoOpsResu : Array of string;
     CriptoThreadRunning : boolean = false;
+
+  // Cross OS variables
+  OSFsep : string = '';
+  OptionsFileName : string = '';
+  BotDataFilename : string = '';
+  NodeDataFilename : string = '';
+  NTPDataFilename : string = '';
+  WalletFilename : string = '';
+  SumarioFilename : string = '';
+  LanguageFileName : string = '';
+  BlockDirectory : string = '';
+  UpdatesDirectory : string = '';
+  ResumenFilename: string = '';
+  MyTrxFilename : string = '';
+  TranslationFilename : string = '';
+  ErrorLogFilename : string = '';
+  PoolInfoFilename : string = '';
+  PoolMembersFilename : string = '';
+  AdvOptionsFilename : string = '';
 
   // COmponentes visuales
   MainMenu : TMainMenu;
@@ -644,6 +658,7 @@ var
 
   StatusPanel : TPanel;
     StaSerImg : TImage;
+    StaRPCLab : Tlabel;
     StaConLab : TLabel;
     StaBloImg : TImage;
     StaBloLab : TLabel;
@@ -655,6 +670,7 @@ var
 
   //OTHER
   U_PoolConexGrid : boolean = false;
+
 implementation
 
 Uses
@@ -683,7 +699,8 @@ if proceder then
    form1.Visible:=false;
    forminicio.Visible:=true;
    Form1.InicioTimer:= TTimer.Create(Form1);
-   Form1.InicioTimer.Enabled:=true;Form1.InicioTimer.Interval:=1;
+   Form1.InicioTimer.Enabled:=true;
+   Form1.InicioTimer.Interval:=1;
    Form1.InicioTimer.OnTimer:= @form1.InicoTimerEjecutar;
    end;
 end;
@@ -699,6 +716,7 @@ Procedure TForm1.EjecutarInicio();
 var
   contador : integer;
 Begin
+InitCrossValues();
 // A partir de aqui se inicializa todo
 if not directoryexists('NOSODATA') then CreateDir('NOSODATA');
 OutText('✓ Data directory ok',false,1);
@@ -979,7 +997,6 @@ if length(ArrayPoolMembers)>0 then GuardarPoolMembers();
 If Miner_IsOn then Miner_IsON := false;
 KillAllMiningThreads;
 setlength(CriptoOpsTipo,0);
-//Showmessage(LangLine(63));  //Closed gracefully
 if RunDoctorBeforeClose then RunDiagnostico('rundiag fix');
 if RestartNosoAfterQuit then restartnoso();
 Application.Terminate;
@@ -1507,6 +1524,11 @@ StatusPanel.Width:=396;StatusPanel.Height:=20;StatusPanel.Alignment:=tacenter;
 StatusPanel.Caption:='';StatusPanel.Visible:=true;
 StatusPanel.BringToFront;
 
+  StaRPCLab := TLabel.Create(StatusPanel);StaRPCLab.Parent := StatusPanel;StaRPCLab.AutoSize:=false;
+  StaRPCLab.Font.Name:='consolas';StaRPCLab.Font.Size:=8;
+  StaRPCLab.Width:= 16; StaRPCLab.Height:= 16;StaRPCLab.Top:= 2; StaRPCLab.Left:= 2;
+  StaRPCLab.Caption:='';StaRPCLab.Alignment:=taCenter;StaRPCLab.Transparent:=false;StaRPCLab.Color:=clMoneyGreen;
+
   StaSerImg:= TImage.Create(StatusPanel);StaSerImg.Parent := StatusPanel;
   StaSerImg.Width:= 16; StaSerImg.Height:= 16;StaSerImg.Top:= 2; StaSerImg.Left:= 2;
   Form1.imagenes.GetIcon(27,StaSerImg.picture.icon);StaSerImg.Visible:=false;
@@ -1595,6 +1617,71 @@ Form1.PoolServer.OnExecute:=@form1.PoolServerExecute;
 Form1.PoolServer.OnConnect:=@form1.PoolServerConnect;
 Form1.PoolServer.OnDisconnect:=@form1.PoolServerDisconnect;
 Form1.PoolServer.OnException:=@Form1.PoolServerException;
+
+Form1.RPCServer := TIdTCPServer.Create(Form1);
+Form1.RPCServer.DefaultPort:=RPCPort;
+Form1.RPCServer.Active:=false;
+Form1.RPCServer.UseNagle:=true;
+Form1.RPCServer.TerminateWaitTime:=50000;
+Form1.RPCServer.OnExecute:=@form1.RPCServerExecute;
+Form1.RPCServer.OnConnect:=@form1.RPCServerConnect;
+//Form1.RCPServer.OnDisconnect:=@form1.PoolServerDisconnect;
+//Form1.RCPServer.OnException:=@Form1.PoolServerException;
+End;
+
+// Funciones del Servidor RPC
+
+procedure TForm1.RPCServerExecute(AContext: TIdContext);
+Begin
+
+End;
+
+procedure TForm1.RPCServerConnect(AContext: TIdContext);
+var
+  IpUser, Linea, password,comando : string;
+  direccion, orderid : string;
+  resultorder : orderdata; orderconfirmations : string;
+  TextToSend : String = '';
+Begin
+IPUser := AContext.Connection.Socket.Binding.PeerIP;
+Linea := AContext.Connection.IOHandler.ReadLn('',ReadTimeOutTIme,-1,IndyTextEncoding_UTF8);
+password := parameter(linea,0);
+comando := parameter(linea,1);
+consolelines.Add('RPC Line: '+Linea);
+if password <> RPCPass then
+   TextToSend := 'PASSFAILED'
+else
+   begin
+   if UpperCase(comando) = 'TEST' then
+      TextToSend := 'TESTOK';
+   if UpperCase(comando) = 'ADBAL' then
+      begin
+      direccion := parameter(linea,2);
+      TextToSend := Int2Curr(GetAddressBalance(direccion))+' '+
+         Int2Curr(GetAddressPendingPays(direccion))+' '+
+         Int2Curr(GetAddressBalance(direccion)-GetAddressPendingPays(direccion)) ;
+      end;
+   if UpperCase(comando) = 'ORDERID' then
+      begin
+      orderid := parameter(linea,2);
+      if orderid <> '' then resultorder := GetOrderDetails(orderid)
+      else resultorder := Default(orderdata);
+      if resultorder.AmmountTrf<=0 then Acontext.Connection.IOHandler.WriteLn('INVALID')
+      else
+         begin
+         if resultorder.Block = 0 then orderconfirmations := 'Pending'
+         else orderconfirmations := IntToStr(MyLastBlock-resultorder.Block);
+         TextToSend :=orderconfirmations+' '+TimestampToDate(IntToStr(resultorder.TimeStamp))+' '+
+            resultorder.Concept+' '+resultorder.Receiver+' '+Int2curr(resultorder.AmmountTrf);
+         end;
+      end;
+   end;
+TRY
+   Acontext.Connection.IOHandler.WriteLn(TextToSend);
+   AContext.Connection.Disconnect;
+   Acontext.Connection.IOHandler.InputBuffer.Clear;
+EXCEPT on E:Exception do ToLog('Error on RPC request:'+E.Message);
+END;
 End;
 
 // Funciones del servidor Pool
@@ -1632,7 +1719,7 @@ if Comando = 'STEP' then
    Solucion := HashSha256String(SeedStep+PoolInfo.Direccion+HashStep);
    if ( (AnsiContainsStr(Solucion,copy(PoolMiner.Target,1,PoolMiner.DiffChars))) and
        (GetPoolMemberBalance(UserDireccion)>-1) and (bloqueStep=PoolMiner.Block) and
-       (IsValidStep(PoolMiner.Solucion,SeedStep+HashStep)) ) then
+       (IsValidStep(PoolMiner.Solucion,SeedStep+HashStep)) and (PoolMiner.steps<10) ) then
       begin
       AcreditarPoolStep(UserDireccion);
       Acontext.Connection.IOHandler.WriteLn('STEPOK');
@@ -1655,8 +1742,16 @@ if Comando = 'STEP' then
          else
             begin
             consolelines.Add('Pool solution FAILED at step '+IntToStr(PoolSolutionStep));
-            PoolMiner.Solucion:=TruncateBlockSolution(PoolMiner.Solucion,PoolSolutionStep);
-            PoolMiner.steps := PoolSolutionStep-1;
+            PoolSolutionFails := PoolSolutionFails+1;
+            if PoolSolutionFails >= 3 then
+               begin
+               PoolSolutionFails := 0;PoolMiner.Solucion := '';PoolMiner.steps:=0;
+               end
+            else
+               begin
+               PoolMiner.Solucion:=TruncateBlockSolution(PoolMiner.Solucion,PoolSolutionStep);
+               PoolMiner.steps := PoolSolutionStep-1;
+               end;
             PoolMiner.DiffChars:=GetCharsFromDifficult(PoolMiner.Dificult, PoolMiner.steps);
             ProcessLines.Add('SENDPOOLSTEPS '+IntToStr(PoolMiner.steps));
             end;
@@ -1668,8 +1763,11 @@ if Comando = 'STEP' then
       end
    else
       begin
+      PoolServerConex[IsPoolMemberConnected(UserDireccion)].WrongSteps+=1;
+      consolelines.Add('*********************************');
       consolelines.Add('Wrong step received in pool'+slinebreak+SeedStep+PoolInfo.Direccion+HashStep);
-      consolelines.Add('Member: '+UserDireccion);
+      consolelines.Add('Member('+IntToStr(PoolServerConex[IsPoolMemberConnected(UserDireccion)].WrongSteps)+'): '+UserDireccion);
+      consolelines.Add('*********************************');
       end;
    end;
 if Comando = 'PAYMENT' then
@@ -1738,7 +1836,7 @@ if Comando = 'JOIN' then
       begin
       Acontext.Connection.IOHandler.WriteLn('JOINOK '+PoolInfo.Direccion+' '+JoinPrefijo+' '+PoolDataString(UserDireccion));
       SavePoolServerConnection(IpUser,UserDireccion,minerversion,Acontext);
-      ConsoleLines.Add(UserDireccion+' added to the pool');
+      ConsoleLines.Add(UserDireccion+' added to the pool: '+JoinPrefijo);
       end
    else
       begin
@@ -2394,6 +2492,9 @@ else
    end;
 if form1.PoolServer.active then StaPoolSer.Visible:=true
 else StaPoolSer.Visible:=false;
+if form1.RPCServer.active then StaRPCLab.Visible:=true
+else StaRPCLab.Visible:=false;
+
 End;
 
 //******************************************************************************
@@ -2600,10 +2701,12 @@ else
    formpool.Height:= 60;
    formpool.Width := 430;
    end;
-formpool.Caption:='Minning pool: '+MyPoolData.Name;
-EdBuFee.Caption:=IntToStr(poolinfo.Porcentaje);
-EdMaxMem.Caption:=IntToStr(poolinfo.MaxMembers);
-EdPayRate.Caption:=IntToStr(poolinfo.TipoPago);
+formpool.Caption:='Mining pool: '+MyPoolData.Name;
+EdBuFee.Caption:='Fee: '+IntToStr(poolinfo.Porcentaje);
+EdMaxMem.Caption:='Members: '+IntToStr(poolinfo.MaxMembers);
+EdPayRate.Caption:='Pay: '+IntToStr(poolinfo.TipoPago);
+EdPooExp.Caption:='Expel: '+IntToStr(PoolExpelBlocks);
+EdShares.Caption:='Shares: '+IntToStr(PoolShare)+'%';
 FormPool.Visible:=true;
 End;
 

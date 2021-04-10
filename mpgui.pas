@@ -17,6 +17,7 @@ type
 
   TFormLog = class(Tform)
     procedure closeFormLog(Sender: TObject; var CanClose: boolean);
+    Procedure ClearLog(Sender: TObject);
     private
     public
     end;
@@ -38,8 +39,6 @@ type
     end;
 
   TFormPool = class(Tform)
-    Procedure BUpdatePoolOnClick(Sender: TObject);
-    Procedure BRequestPoolPayOnClick(Sender: TObject);
     // poolmembers popup
     Procedure checkPoolMembersPopup(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
     Procedure CopyPoolMemberAddres(Sender:TObject);
@@ -97,15 +96,15 @@ var
     GridMSlots : TStringgrid;
   FormPool : TformPool;
     LabelPoolData : TLabel;
-    BUpdatePool : TSpeedButton;
-    BCobrarAlPool : TSpeedButton;
     GridPoolMembers : TStringgrid;
     LabelPoolMiner : Tlabel;
     LabelPoolMiner2 : Tlabel;
     GridPoolConex : TStringgrid;
-    EdBuFee : TLabeledEdit;
-    EdMaxMem : TLabeledEdit;
-    EdPayRate : TLabeledEdit;
+    EdBuFee : TLabel;
+    EdMaxMem : TLabel;
+    EdPayRate : TLabel;
+    EdPooExp : TLabel;
+    EdShares: TLabel;
 
     MenuItem : TMenuItem;
     PoolMembersPopUp : TPopupMenu;
@@ -175,6 +174,12 @@ LogMemo.Left:=1;LogMemo.Top:=1;LogMemo.Height:=198;LogMemo.Width:=448;
 LogMemo.Color:=clblack;LogMemo.Font.Color:=clwhite;LogMemo.ReadOnly:=true;
 LogMemo.Font.Size:=10;LogMemo.Font.Name:='consolas';
 LogMemo.Visible:=true;LogMemo.ScrollBars:=ssvertical;
+LogMemo.OnDblClick:=@FormLog.ClearLog;
+End;
+
+Procedure TFormLog.ClearLog(Sender: TObject);
+Begin
+LogMemo.Clear;
 End;
 
 // Al cerrar el formulario de log viewer
@@ -350,7 +355,7 @@ End;
 Procedure CreateFormPool();
 Begin
 FormPool := TFormPool.Createnew(form1);
-FormPool.caption := 'Minning Pool';
+FormPool.caption := 'Mining Pool';
 FormPool.SetBounds(0, 0, 430, 230);
 FormPool.BorderStyle := bssingle;
 FormPool.Position:=poOwnerFormCenter;
@@ -362,18 +367,6 @@ LabelPoolData.Parent := FormPool;LabelPoolData.AutoSize:=true;
 LabelPoolData.Font.Name:='consolas'; LabelPoolData.Font.Size:=8;
 LabelPoolData.Top:= 1; LabelPoolData.Left:= 1;
 LabelPoolData.Caption:='';
-
-BUpdatePool := TSpeedButton.Create(FormPool);BUpdatePool.Parent:=FormPool;
-BUpdatePool.Left:=2;BUpdatePool.Top:=40;BUpdatePool.Height:=18;BUpdatePool.Width:=18;
-Form1.imagenes.GetBitmap(35,BUpdatePool.Glyph);
-BUpdatePool.Visible:=true;BUpdatePool.OnClick:=@formpool.BUpdatePoolOnClick;
-BUpdatePool.hint:='Refresh';BUpdatePool.ShowHint:=true;
-
-BCobrarAlPool := TSpeedButton.Create(FormPool);BCobrarAlPool.Parent:=FormPool;
-BCobrarAlPool.Left:=30;BCobrarAlPool.Top:=40;BCobrarAlPool.Height:=18;BCobrarAlPool.Width:=18;
-Form1.imagenes.GetBitmap(8,BCobrarAlPool.Glyph);
-BCobrarAlPool.Visible:=false;BCobrarAlPool.OnClick:=@formpool.BRequestPoolPayOnClick;
-BCobrarAlPool.hint:='Request Payment';BCobrarAlPool.ShowHint:=true;
 
 PoolMembersPopUp := TPopupMenu.Create(Formpool);
 
@@ -429,55 +422,55 @@ GridPoolConex := TStringGrid.Create(FormPool);GridPoolConex.Parent:=FormPool;
 GridPoolConex.Font.Name:='consolas'; GridPoolConex.Font.Size:=8;
 GridPoolConex.Left:=1;GridPoolConex.Top:=232;GridPoolConex.Height:=155;GridPoolConex.width:=472;
 GridPoolConex.FixedCols:=0;GridPoolConex.FixedRows:=1;
-GridPoolConex.rowcount := 1;GridPoolConex.ColCount:=5;
+GridPoolConex.rowcount := 1;GridPoolConex.ColCount:=6;
 GridPoolConex.ScrollBars:=ssVertical;
 GridPoolConex.FocusRectVisible:=false;
 GridPoolConex.Options:= GridPoolConex.Options+[goRowSelect]-[goRangeSelect];
-GridPoolConex.ColWidths[0]:= 120;GridPoolConex.ColWidths[1]:= 200;
+GridPoolConex.ColWidths[0]:= 90;GridPoolConex.ColWidths[1]:= 200;
 GridPoolConex.ColWidths[2]:= 50;GridPoolConex.ColWidths[3]:= 50;GridPoolConex.ColWidths[4]:= 30;
+GridPoolConex.ColWidths[5]:= 30;
 GridPoolConex.Cells[0,0]:='Ip';GridPoolConex.Cells[1,0]:='Address';
 GridPoolConex.Cells[2,0]:='HRate';GridPoolConex.Cells[3,0]:='Ver';GridPoolConex.Cells[4,0]:='Ping';
+GridPoolConex.Cells[5,0]:='Bad';
 GridPoolConex.Enabled := true;
 GridPoolConex.GridLineWidth := 1;
 GridPoolConex.OnDblClick:=@formpool.KickPoolConnection;
 
-EdBuFee := TLabeledEdit.Create(FormPool); EdBuFee.Parent:=FormPool;
-EdBuFee.Left:=480;EdBuFee.top:=272;
+EdBuFee := TLabel.Create(FormPool); EdBuFee.Parent:=FormPool;
+EdBuFee.Left:=480;EdBuFee.top:=232;
 EdBuFee.Height:=18;EdBuFee.Width:=75;
-EdBuFee.LabelPosition:=lpabove;EdBuFee.editlabel.Font.Name:='candaras';EdBuFee.editlabel.Font.Size:=UserFontSize;
-EdBuFee.LabelSpacing:=1;EdBuFee.ReadOnly:=true;
-EdBuFee.editlabel.Caption:='Pool Fee';EdBuFee.Text:='';EdBuFee.Alignment:=taRightJustify;
 EdBuFee.Font.Name:='consolas';EdBuFee.Font.Size:=UserFontSize;
+EdBuFee.Caption:='Pool Fee: ';EdBuFee.Alignment:=taLeftJustify;
 EdBuFee.Visible:=true;
 
-EdMaxMem := TLabeledEdit.Create(FormPool); EdMaxMem.Parent:=FormPool;
-EdMaxMem.Left:=480;EdMaxMem.top:=312;
+EdMaxMem := TLabel.Create(FormPool); EdMaxMem.Parent:=FormPool;
+EdMaxMem.Left:=480;EdMaxMem.top:=247;
 EdMaxMem.Height:=18;EdMaxMem.Width:=75;
-EdMaxMem.LabelPosition:=lpabove;EdMaxMem.editlabel.Font.Name:='candaras';EdMaxMem.editlabel.Font.Size:=UserFontSize;
-EdMaxMem.LabelSpacing:=1;EdMaxMem.ReadOnly:=true;
-EdMaxMem.editlabel.Caption:='Max Members';EdMaxMem.Text:='';EdMaxMem.Alignment:=taRightJustify;
+EdMaxMem.Caption:='Members: ';EdMaxMem.Alignment:=taLeftJustify;
 EdMaxMem.Font.Name:='consolas';EdMaxMem.Font.Size:=UserFontSize;
 EdMaxMem.Visible:=true;
 
-EdPayRate := TLabeledEdit.Create(FormPool); EdPayRate.Parent:=FormPool;
-EdPayRate.Left:=480;EdPayRate.top:=352;
+EdPayRate := TLabel.Create(FormPool); EdPayRate.Parent:=FormPool;
+EdPayRate.Left:=480;EdPayRate.top:=262;
 EdPayRate.Height:=18;EdPayRate.Width:=75;
-EdPayRate.LabelPosition:=lpabove;EdPayRate.editlabel.Font.Name:='candaras';EdPayRate.editlabel.Font.Size:=UserFontSize;
-EdPayRate.LabelSpacing:=1;EdPayRate.ReadOnly:=true;
-EdPayRate.editlabel.Caption:='PayRate';EdPayRate.Text:='';EdPayRate.Alignment:=taRightJustify;
+EdPayRate.Caption:='Interval: ';EdPayRate.Alignment:=taLeftJustify;
 EdPayRate.Font.Name:='consolas';EdPayRate.Font.Size:=UserFontSize;
 EdPayRate.Visible:=true;
 
-End;
+EdPooExp := TLabel.Create(FormPool); EdPooExp.Parent:=FormPool;
+EdPooExp.Left:=480;EdPooExp.top:=277;
+EdPooExp.Height:=18;EdPooExp.Width:=75;
+EdPooExp.Caption:='Expel: ';EdPooExp.Alignment:=taLeftJustify;
+EdPooExp.Font.Name:='consolas';EdPooExp.Font.Size:=UserFontSize;
+EdPooExp.Visible:=true;
 
-Procedure TFormPool.BUpdatePoolOnClick(Sender: TObject);
-Begin
-ProcessLines.Add('RequestPoolStatus');
-End;
+EdShares := TLabel.Create(FormPool); EdShares.Parent:=FormPool;
+EdShares.Left:=480;EdShares.top:=292;
+EdShares.Height:=18;EdShares.Width:=75;
+EdShares.Caption:='Shares: ';EdShares.Alignment:=taLeftJustify;
+EdShares.Font.Name:='consolas';EdShares.Font.Size:=UserFontSize;
+EdShares.Visible:=true;
 
-Procedure TFormPool.BRequestPoolPayOnClick(Sender: TObject);
-Begin
-ProcessLines.Add('REQUESTPOOLPAY');
 End;
 
 Procedure UpdatePoolForm();
@@ -491,8 +484,6 @@ LabelPoolData.Caption:='ConnectTo: '+MyPoolData.Ip+':'+IntToStr(MyPoolData.port)
                        'Balance: '+Int2curr(MyPoolData.balance)+' ('+IntToStr(MyPoolData.LastPago)+') Password: '+MyPoolData.Password+' HashRate: '+IntToStr(Miner_PoolHashRate);
 GridPoolMembers.RowCount:=length(ArrayPoolMembers)+1;
 GridPoolConex.RowCount:=GetPoolTotalActiveConex+1;
-if ((MyPoolData.LastPago>0) and (MyPoolData.balance>0)) then BCobrarAlPool.Visible:=true
-else BCobrarAlPool.Visible:=false;
 
 if Miner_OwnsAPool then
    begin
@@ -537,6 +528,7 @@ if Miner_OwnsAPool then
                GridPoolConex.Cells[2,AddedConex+1]:=IntToStr(PoolServerConex[contador].Hashpower);
                GridPoolConex.Cells[3,AddedConex+1]:=PoolServerConex[contador].version;
                GridPoolConex.Cells[4,AddedConex+1]:=IntToStr(StrToInt64(UTCTime)-PoolServerConex[contador].LastPing);
+               GridPoolConex.Cells[5,AddedConex+1]:=IntToStr(PoolServerConex[contador].WrongSteps);
                AddedConex+=1;
                end;
             Except on E:Exception do
@@ -713,7 +705,8 @@ if U_Mytrxs then
    UpdateMyTrxGrid();
    U_Mytrxs := false;
    end;
-if LastMyTrxTimeUpdate+60<StrToInt64(UTCTime) then UpdateMyTrxGrid();
+// Actualizar el tiempo de las transacciones ralentiza mucho el GUI
+//if LastMyTrxTimeUpdate+60<StrToInt64(UTCTime) then UpdateMyTrxGrid();
 End;
 
 // Devuelve Una linea del idioma
@@ -782,13 +775,16 @@ var
   OrdIndex : integer;
   Linea : integer;
   PreMonto, nuevomonto : int64;
+  LastToshow : integer;
 Begin
 setmilitime('UpdateMyTrxGrid',1);
 SetCurrentJob('UpdateMyTrxGrid',true);
 GridMyTxs.RowCount:=1;
 if Length(ListaMisTrx)>1 then
    begin
-   for contador := length(ListaMisTrx)-1 downto 1 do
+   LastToshow := length(ListaMisTrx)-1- ShowedOrders;
+   if  LastToshow<1 then LastToshow := 1;
+   for contador := length(ListaMisTrx)-1 downto LastToshow do
       begin
       OrdIndex := OrderShowed(ListaMisTrx[contador].OrderID);
       if ((ListaMisTrx[contador].tipo='MINE') or (OrdIndex=0)) then // la orden no esta
@@ -982,11 +978,13 @@ if MyLastBlock-(GetLastPagoPoolMember(ArrayPoolMembers[GridPoolMembers.Row-1].Di
 if IsPoolMemberConnected(GridPoolMembers.Cells[0,GridPoolMembers.Row])>=0 then
    begin
    PoolMembersPopUp.Items[3].Enabled:=true;
+   PoolMembersPopUp.Items[0].Enabled:=false;
    PoolMembersPopUp.Items[3].Caption:='Connection';
    end
 else
    begin
    PoolMembersPopUp.Items[3].Enabled:=false;
+   PoolMembersPopUp.Items[0].Enabled:=true;
    PoolMembersPopUp.Items[3].Caption:='Not connected';
    end;
 End;

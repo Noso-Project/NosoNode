@@ -191,6 +191,7 @@ AddBlchHead(Numero,MyLastBlockHash,MySumarioHash);
 MyResumenHash := HashMD5File(ResumenFilename);
 ResetMinerInfo();
 ResetPoolMiningInfo();
+if ((Miner_OwnsAPool) and (PoolExpelBlocks>0)) then ExpelPoolInactives();
 if minero = PoolInfo.Direccion then
    begin
    Consolelines.Add('Your pool solved the block '+inttoStr(numero));

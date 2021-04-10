@@ -39,6 +39,7 @@ Procedure AddNewBot(linea:string);
 function GetOutGoingConnections():integer;
 function GetIncomingConnections():integer;
 Procedure SendNetworkRequests(timestamp,direccion:string;block:integer);
+function GetOrderDetails(orderid:string):orderdata;
 
 implementation
 
@@ -791,11 +792,7 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
         (MySumarioHash<>NetSumarioHash.Value) and (SumaryRebuilded)) then
    begin  // Que hacer si todo encaja pero el sumario no esta bien
-   ShowMessage ('Something is wrong with your blockchain'+slinebreak+'Noso will run the doctor and restart'+
-   slinebreak+'If the problem is not fixed, please, read the guide to fix it.');
-   //RunDoctorBeforeClose := true;
-   //RestartNosoAfterQuit := true;
-   //CerrarPrograma();
+   RestoreBlockChain();
    end;
 SetCurrentJob('ActualizarseConLaRed',false);
 End;
@@ -863,6 +860,57 @@ texttosend := GetPTCEcn+'NETREQ 2 '+timestamp+' '+direccion+' '+IntToStr(block)+
 OutgoingMsjs.Add(texttosend);
 UpdateMyRequests(2,timestamp,block, hashreq, hashvalue);
 consolelines.Add('peers starts in 1');
+End;
+
+function GetOrderDetails(orderid:string):orderdata;
+var
+  counter,counter2 : integer;
+  orderfound : boolean = false;
+  resultorder : orderdata;
+  ArrTrxs : BlockOrdersArray;
+Begin
+setmilitime('GetOrderDetails',1);
+resultorder := default(orderdata);
+result := resultorder;
+if length(PendingTxs)>0 then
+   for counter := 0 to length(PendingTxs)-1 do
+      begin
+      if PendingTxs[counter].OrderID = orderid then
+         begin
+         resultorder.Block := PendingTxs[counter].Block;
+         resultorder.Concept:=PendingTxs[counter].Concept;
+         resultorder.TimeStamp:=PendingTxs[counter].TimeStamp;
+         resultorder.receiver:=PendingTxs[counter].receiver;
+         resultorder.AmmountTrf:=resultorder.AmmountTrf+PendingTxs[counter].AmmountTrf;
+         orderfound := true;
+         end;
+      end;
+if orderfound then result := resultorder
+else
+   begin
+   for counter := mylastblock downto 1 do
+      begin
+      ArrTrxs := GetBlockTrxs(counter);
+      if length(ArrTrxs)>0 then
+         begin
+         for counter2 := 0 to length(ArrTrxs)-1 do
+            begin
+            if ArrTrxs[counter2].OrderID = orderid then
+               begin
+               resultorder.Block := ArrTrxs[counter2].Block;
+               resultorder.Concept:=ArrTrxs[counter2].Concept;
+               resultorder.TimeStamp:=ArrTrxs[counter2].TimeStamp;
+               resultorder.receiver:=ArrTrxs[counter2].receiver;
+               resultorder.AmmountTrf:=resultorder.AmmountTrf+ArrTrxs[counter2].AmmountTrf;
+               orderfound := true;
+               end;
+            end;
+         end;
+      if orderfound then break;
+      end;
+   end;
+result := resultorder;
+setmilitime('GetOrderDetails',2);
 End;
 
 END. // END UNIT

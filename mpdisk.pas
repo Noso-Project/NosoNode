@@ -6,10 +6,11 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, Dialogs, Forms, mpTime, FileUtil, LCLType,
-  lclintf, controls, mpCripto, mpBlock, Zipper, mpLang, mpcoin, poolmanage, Win32Proc, mpminer;
+  lclintf, controls, mpCripto, mpBlock, Zipper, mpLang, mpcoin, poolmanage,
+  {$IFDEF WINDOWS}Win32Proc, {$ENDIF}
+  mpminer;
 
 Procedure VerificarArchivos();
-{Procedure VerificarSSL();}
 Procedure CreateLog();
 Procedure CreateADV(saving:boolean);
 Procedure LoadADV();
@@ -34,8 +35,6 @@ Procedure DepurarNodos();
 Procedure CrearNTPData();
 Procedure CargarNTPData();
 Procedure SaveUpdatedFiles();
-function CheckSSL():boolean;
-function GetOpenSSLPath():String;
 Procedure CrearWallet();
 Procedure CargarWallet(wallet:String);
 Procedure GuardarWallet();
@@ -73,15 +72,16 @@ Procedure CrearRestartfile();
 Procedure RestartConditions();
 Procedure CrearCrashInfo();
 function OSVersion: string;
-Function GetWinVer():string;
+{$IFDEF WINDOWS} Function GetWinVer():string; {$ENDIF}
 Procedure RestoreBlockChain();
+Procedure InitCrossValues();
 
 implementation
 
 Uses
   mpParser, mpGUI, mpRed;
 
-// Verifica todos los archivos necesarios para funcionar
+// Complete file verification
 Procedure VerificarArchivos();
 var
   contador : integer;
@@ -91,18 +91,14 @@ if not directoryexists(BlockDirectory) then CreateDir(BlockDirectory);
 OutText('✓ Block folder ok',false,1);
 if not directoryexists(UpdatesDirectory) then CreateDir(UpdatesDirectory);
 OutText('✓ Updates folder ok',false,1);
-
 if not FileExists (AdvOptionsFilename) then CreateADV(false) else LoadADV();
 UpdateRowHeigth();
 OutText('✓ Advanced options loaded',false,1);
-
 if not FileExists (ErrorLogFilename) then Createlog;
 OutText('✓ Log file ok',false,1);
-{if not FileExists (UserOptions.SSLPath) then VerificarSSL() else G_OpenSSLPath:=UserOptions.SSLPath;
-OutText('✓ OpenSSL installed',false,1);}
+
 if not FileExists (UserOptions.wallet) then CrearWallet() else CargarWallet(UserOptions.wallet);
 OutText('✓ Wallet file ok',false,1);
-
 if not Fileexists(BotDataFilename) then CrearBotData() else CargarBotData();
 OutText('✓ Bots file ok',false,1);
 if not Fileexists(NodeDataFilename) then CrearNodeData() else CargarNodeData();
@@ -140,27 +136,7 @@ UpdateWalletFromSumario();
 OutText('✓ Wallet updated',false,1);
 End;
 
-// Hace los ajustes para SSL
-{
-Procedure VerificarSSL();
-Begin
-if CheckSSL then
-   begin
-   UserOptions.SSLPath:=G_OpenSSLPath;
-   S_Options := true;
-   end
-else
-   begin
-   if MessageDlg(LangLine(120),LangLine(121)+ //'FATAL ERROR'+'OpenSSL not found. MasterPaskal will close inmediately'
-   SLINEBREAK+LangLine(126), mtConfirmation,  //'Do you want visit the OpenSSL oficial webpage?'
-   [mbYes, mbNo],0) = mrYes then
-      OpenDocument('https://www.openssl.org/source/old/1.1.0/');
-   Application.Terminate;
-   end;
-End;
-}
-
-// Crea el archivo del log
+// Creates log file
 Procedure CreateLog();
 var
   archivo : textfile;
@@ -174,6 +150,7 @@ Begin
    end;
 End;
 
+// Creates/Saves Advopt file
 Procedure CreateADV(saving:boolean);
 Begin
    try
@@ -184,6 +161,11 @@ Begin
    writeln(FileAdvOptions,'UserFontSize '+inttoStr(UserFontSize));
    writeln(FileAdvOptions,'UserRowHeigth '+inttoStr(UserRowHeigth));
    writeln(FileAdvOptions,'CPUs '+inttoStr(DefCPUs));
+   writeln(FileAdvOptions,'PoolExpel '+inttoStr(PoolExpelBlocks));
+   writeln(FileAdvOptions,'PoolShare '+inttoStr(PoolShare));
+   writeln(FileAdvOptions,'RPCPort '+inttoStr(RPCPort));
+   writeln(FileAdvOptions,'RPCPass '+RPCPass);
+   writeln(FileAdvOptions,'ShowedOrders '+IntToStr(ShowedOrders));
    Closefile(FileAdvOptions);
    if saving then consolelines.Add('Advanced Options file saved');
    Except on E:Exception do
@@ -191,6 +173,7 @@ Begin
    end;
 End;
 
+// Loads Advopt values
 Procedure LoadADV();
 var
   linea:string;
@@ -206,6 +189,11 @@ Begin
       if parameter(linea,0) ='UserFontSize' then UserFontSize:=StrToIntDef(Parameter(linea,1),UserFontSize);
       if parameter(linea,0) ='UserRowHeigth' then UserRowHeigth:=StrToIntDef(Parameter(linea,1),UserRowHeigth);
       if parameter(linea,0) ='CPUs' then DefCPUs:=StrToIntDef(Parameter(linea,1),DefCPUs);
+      if parameter(linea,0) ='PoolExpel' then PoolExpelBlocks:=StrToIntDef(Parameter(linea,1),PoolExpelBlocks);
+      if parameter(linea,0) ='PoolShare' then PoolShare:=StrToIntDef(Parameter(linea,1),PoolShare);
+      if parameter(linea,0) ='RPCPort' then RPCPort:=StrToIntDef(Parameter(linea,1),RPCPort);
+      if parameter(linea,0) ='RPCPass' then RPCPass:=Parameter(linea,1);
+      if parameter(linea,0) ='ShowedOrders' then ShowedOrders:=StrToIntDef(Parameter(linea,1),ShowedOrders);
       end;
    Closefile(FileAdvOptions);
    Except on E:Exception do
@@ -213,13 +201,14 @@ Begin
    end;
 End;
 
-// Guarda una linea al log
+// Add log line
 Procedure ToLog(Texto:string);
 Begin
 LogLines.Add(texto);
 S_Log := true;
 End;
 
+// Save log files to disk
 Procedure SaveLog();
 var
   archivo : textfile;
@@ -242,7 +231,7 @@ end;
 
 End;
 
-// Crea el archivo de opciones
+// Creates options file
 Procedure CrearArchivoOpciones();
 var
   DefOptions : Options;
@@ -254,12 +243,12 @@ Begin
    DefOptions.Port:=8080;
    DefOptions.GetNodes:=false;
    DefOptions.PoolInfo := '';
-   DefOptions.wallet:= 'NOSODATA/wallet.pkw';
+   DefOptions.wallet:= 'NOSODATA'+DirectorySeparator+'wallet.pkw';
    DefOptions.AutoServer:=false;
    DefOptions.AutoConnect:=false;
    DefOptions.Auto_Updater:=false;
    DefOptions.JustUpdated:=false;
-   DefOptions.VersionPage:='https://nosocoin.blogspot.com/2021/03/noso-wallet-help.html';
+   DefOptions.VersionPage:='https://nosocoin.com';
    DefOptions.ToTray:=false;
    DefOptions.UsePool:=false;
    write(FileOptions,DefOptions);
@@ -271,7 +260,7 @@ Begin
    end;
 End;
 
-// Carga las opciones desde el disco
+// Load options from disk
 Procedure CargarOpciones();
 Begin
    try
@@ -285,7 +274,7 @@ Begin
    end;
 End;
 
-// Guarda las opciones al disco
+// Save Options to disk
 Procedure GuardarOpciones();
 Begin
    try
@@ -300,7 +289,7 @@ Begin
    end;
 End;
 
-// Crear el archivo de idioma por defecto
+// Creates the default language file
 Procedure CrearIdiomaFile();
 Begin
    try
@@ -313,7 +302,7 @@ Begin
    end;
 End;
 
-// Cargar el idioma especificado
+// Loads an specified language
 Procedure CargarIdioma(numero:integer);
 var
   archivo : file of string[255];
@@ -377,7 +366,7 @@ Begin
    end;
 End;
 
-// Crea el archivo con la informacion de los bots
+// Creates bots file
 Procedure CrearBotData();
 Begin
    try
@@ -390,7 +379,7 @@ Begin
    end;
 End;
 
-// Cargar el archivo con los datos de los bots al array 'ListadoBots' en memoria
+// Load bots from file
 Procedure CargarBotData();
 Var
   Leido : BotData;
@@ -416,7 +405,7 @@ Begin
    end;
 End;
 
-//Depura los bots para evitar las listas negras eternas
+// Bot info debug
 Procedure DepurarBots();
 var
   contador : integer = 0;
@@ -458,7 +447,7 @@ ListadoBots[Length(listadoBots)-1].LastRefused:=UTCTime;
 S_BotData := true;
 End;
 
-// Guarda los BOTS al disco
+// Save bots to disk
 Procedure SaveBotData();
 Var
   contador : integer = 0;
@@ -479,7 +468,7 @@ Begin
    end;
 End;
 
-// Crea el archivo con la informacion de los nodos
+// Creates node file
 Procedure CrearNodeData();
 var
   nodoinicial : nodedata;
@@ -512,7 +501,7 @@ Begin
    end;
 End;
 
-// Carga los nodos desde el disco
+// Load nodes from disk
 Procedure CargarNodeData();
 Var
   Leido : NodeData;
@@ -538,7 +527,7 @@ Begin
    end;
 End;
 
-// Actualiza o añade la informacion de un nodo
+// Creates/updates a node
 Procedure UpdateNodeData(IPUser:String;Port:string;LastTime:string='');
 var
   contador : integer = 0;
@@ -562,7 +551,7 @@ FillNodeList();
 S_NodeData := true;
 End;
 
-// Rellena los nodos en el listado de opciones
+// Fills options node list
 Procedure FillNodeList();
 var
   cont : integer;
@@ -579,7 +568,7 @@ if Length(ListaNodos)>0 then
    end;
 End;
 
-// Guarda la informacion de los nodos al disco
+// Saves nodes to disk
 Procedure SaveNodeData();
 Var
   contador : integer = 0;
@@ -600,7 +589,7 @@ Begin
    end;
 End;
 
-// Depura los nodos para eliminar los que son muy antiguos
+// Debugs old nodes
 Procedure DepurarNodos();
 var
   contador : integer = 0;
@@ -622,7 +611,7 @@ While contador < length(ListaNodos)-1 do
 S_NodeData := true;
 End;
 
-// Crea el archivo con los servidores NTP
+// Creates NTP servers file
 Procedure CrearNTPData();
 Var
   contador : integer = 0;
@@ -652,7 +641,7 @@ Begin
    end;
 End;
 
-// Carga los servidores NTP en la array ListaNTP
+// Load NTP servers
 Procedure CargarNTPData();
 Var
   contador : integer = 0;
@@ -672,7 +661,7 @@ Begin
    end;
 End;
 
-// Verifica las filas que deben guardarse desde el ultimo latido
+// Saves updates files to disk
 Procedure SaveUpdatedFiles();
 Begin
 if S_BotData then SaveBotData();
@@ -682,48 +671,11 @@ if S_Wallet then GuardarWallet();
 if S_Sumario then GuardarSumario();
 if S_PoolMembers then GuardarPoolMembers();
 if S_Log then SaveLog;
+if S_PoolInfo then GuardarArchivoPoolInfo;
+if S_AdvOpt then CreateADV(false);
 End;
 
-// Verifica si OPENSSL esta instalado en el sistema
-function CheckSSL():boolean;
-var
-  ResultPath : String = '';
-Begin
-if GetEnvironmentVariable('OPENSSL_CONF') = '' then
-   Begin
-   ResultPath:=GetOpenSSLPath(); // Buscarlo manualmente
-   if ResultPath = '' then result := false
-   else result := true;
-   end
-else
-   begin
-   ResultPath := GetEnvironmentVariable('OPENSSL_CONF');
-   ResultPath :=StringReplace(ResultPath,'cfg','exe',[rfReplaceAll, rfIgnoreCase]);
-   result := true;
-   end;
-G_OpenSSLPath := ResultPath;
-End;
-
-// Busca manualmente el archivo OPENSSL.EXE
-function GetOpenSSLPath():String;
-var
-  PascalFiles: TStringList;
-Begin
-Result := '';
-PascalFiles := TStringList.Create;
-   try
-   FindAllFiles(PascalFiles, 'c:', 'openssl.exe', true);
-   if PascalFiles.Count > 0 then
-      begin
-      Result := PascalFiles[0];
-      exit
-      end;
-   finally
-   PascalFiles.Free;
-   end;
-End;
-
-// Crea una nueva cartera
+// Creates a new wallet
 Procedure CrearWallet();
 Begin
    try
@@ -745,7 +697,7 @@ Begin
    end;
 End;
 
-// Carga el Wallet elegido
+// Load a wallet from disk
 Procedure CargarWallet(wallet:String);
 var
   contador : integer = 0;
@@ -772,7 +724,7 @@ Begin
    end;
 End;
 
-// Guarda la ListaDirecciones al archivo useroptions.wallet
+// Save wallet data to disk
 Procedure GuardarWallet();
 var
   contador : integer = 0;
@@ -797,7 +749,7 @@ Begin
    end;
 End;
 
-// Actualiza los datos de las direcciones en la wallet
+// Updates wallet addresses balance from sumary
 Procedure UpdateWalletFromSumario();
 var
   Contador, counter : integer;
@@ -829,7 +781,7 @@ S_Wallet := true;
 U_Dirpanel := true;
 End;
 
-// Crea el archivo de sumario
+// Creates sumary file
 Procedure CreateSumario();
 Begin
    try
@@ -837,19 +789,19 @@ Begin
    assignfile(FileSumario,SumarioFilename);
    Rewrite(FileSumario);
    CloseFile(FileSumario);
-   // para los casos en que se recontruye el sumario
+   // for cases when rebuilding sumary
    if FileExists(BlockDirectory+'0.blk') then UpdateSumario(ADMINHash,PremineAmount,0,'0');
    Except on E:Exception do
       tolog ('Error creating sumary file');
    end;
 End;
 
-// Carga la informacion del archivo sumario al array ListaSumario
+// Loads sumary from disk
 Procedure CargarSumario();
 var
   contador : integer = 0;
 Begin
-   try
+   TRY
    SetLength(ListaSumario,0);
    assignfile(FileSumario,SumarioFilename);
    Reset(FileSumario);
@@ -860,12 +812,12 @@ Begin
       read(FileSumario,Listasumario[contador]);
       end;
    CloseFile(FileSumario);
-   Except on E:Exception do
+   EXCEPT on E:Exception do
       tolog ('Error loading sumary from file');
-   end;
+   END;
 End;
 
-// Guarda el archivo sumario al disco
+// Save sumary to disk
 Procedure GuardarSumario();
 var
   contador : integer = 0;
@@ -888,7 +840,7 @@ Begin
    end;
 End;
 
-// RETURNS THE LAST DOWNLOADED BLOCK
+// Returns the last downloaded block
 function GetMyLastUpdatedBlock():int64;
 Var
   BlockFiles : TStringList;
@@ -913,7 +865,7 @@ Begin
    end;
 end;
 
-// Actualiza el sumario
+// Updates sumary
 Procedure UpdateSumario(Direccion:string;monto:Int64;score:integer;LastOpBlock:string);
 var
   contador : integer = 0;
@@ -950,7 +902,7 @@ S_Sumario := true;
 if DireccionEsMia(Direccion)>= 0 then UpdateWalletFromSumario();
 End;
 
-// Ajusta el alias de una direccion si este está vacio
+// Set alias for an address it it is empty
 function SetCustomAlias(Address,Addalias:String):boolean;
 var
   cont : integer;
@@ -968,7 +920,7 @@ for cont := 0 to length(ListaSumario)-1 do
 if not result then tolog('Error assigning custom alias to address:'+Address);
 End;
 
-// Descomprime un archivo ZIP y lo borra despues si es asi requerido
+// Unzip a zip file and (optional) delete it
 procedure UnzipBlockFile(filename:String;delFile:boolean);
 var
   UnZipper: TUnZipper;
@@ -989,7 +941,7 @@ begin
    end;
 end;
 
-// Crea el archivo resumen
+// Creates header file
 Procedure CreateResumen();
 Begin
    try
@@ -1001,7 +953,7 @@ Begin
    end;
 End;
 
-// Contruir archivo de resumen
+// Rebuild headers file
 Procedure BuildHeaderFile(untilblock:integer);
 var
   Dato, NewDato: ResumenData;
@@ -1029,11 +981,7 @@ while contador <= untilblock do
       Read(FileResumen,dato);
    If ((contador>0) and (BlockHeader.LastBlockHash <> LastHash)) then
       begin  // Que hacer si todo encaja pero el sumario no esta bien
-      ShowMessage ('Something is wrong with your blockchain'+slinebreak+'Noso will run the doctor and restart'+
-      slinebreak+'If the problem is not fixed, please, read the guide to fix it.');
-      //RunDoctorBeforeClose := true;
-      //RestartNosoAfterQuit := true;
-      //CerrarPrograma();
+      RestoreBlockChain();
       end;
    CurrHash := HashMD5File(BlockDirectory+IntToStr(contador)+'.blk');
    if  CurrHash <> Dato.blockhash then
@@ -1104,7 +1052,7 @@ U_Dirpanel := true;
 if g_launching then OutText('✓ '+IntToStr(untilblock+1)+' blocks rebuilded',false,1);
 End;
 
-// Añadir las transacciones de un bloque al sumario
+// Add 1 block transactions to sumary
 Procedure AddBlockToSumary(BlockNumber:integer);
 var
   cont : integer;
@@ -1134,7 +1082,7 @@ GuardarSumario();
 UpdateMyData();
 End;
 
-// Reconstruye totalmente el sumario desde el bloque 0
+// Rebuilds totally sumary
 Procedure RebuildSumario(UntilBlock:integer);
 var
   contador, cont : integer;
@@ -1147,7 +1095,6 @@ UpdateSumario(ADMINHash,PremineAmount,0,'0');
 for contador := 1 to UntilBlock do
    begin
    info(LangLine(130)+inttoStr(contador));  //'Rebuilding sumary block: '
-   //AddBlockToSumary(contador);
    BlockHeader := Default(BlockHeaderData);
    BlockHeader := LoadBlockDataHeader(contador);
    UpdateSumario(BlockHeader.AccountMiner,BlockHeader.Reward+BlockHeader.MinerFee,0,IntToStr(contador));
@@ -1165,12 +1112,6 @@ for contador := 1 to UntilBlock do
          UpdateSumario(ArrayOrders[cont].Sender,Restar(ArrayOrders[cont].AmmountFee+ArrayOrders[cont].AmmountTrf),0,IntToStr(contador));
          UpdateSumario(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,0,IntToStr(contador));
          end;
-      {if ArrayOrders[cont].OrderType='FEE' then
-         begin
-         UpdateSumario(ArrayOrders[cont].Sender,Restar(ArrayOrders[cont].AmmountFee),0,IntToStr(contador));
-         if ArrayOrders[cont].TrfrID='YES' then // Hay que eliminar la direccion del sumario
-            Delete(ListaSumario,AddressSumaryIndex(ArrayOrders[cont].Sender),1);
-         end;}
       end;
    end;
 ListaSumario[0].LastOP:=contador;
@@ -1179,7 +1120,7 @@ UpdateMyData();
 consolelines.Add(LangLine(131));  //'Sumary rebuilded.'
 end;
 
-// Añade la informacion de un bloque al final del archivo de cabeceras
+// adds a header at the end of headers file
 Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
 var
   Dato: ResumenData;
@@ -1199,7 +1140,7 @@ Begin
    end;
 End;
 
-// Borra el ultimo registro del archivo de cabeceras para deshacer el ultimo bloque
+// Deletes last header from headers file
 Procedure DelBlChHeadLast();
 Begin
    try
@@ -1213,7 +1154,7 @@ Begin
    end;
 End;
 
-// Crea el archivo de mis transacciones
+// Creates user transactions file
 Procedure CrearMistrx();
 var
   DefaultOrder : MyTrxData;
@@ -1232,7 +1173,7 @@ Begin
    end;
 End;
 
-// CArga mis transacciones desde el disco
+// Loads user transactions from disk
 Procedure CargarMisTrx();
 var
   dato : MyTrxData;
@@ -1254,7 +1195,7 @@ Begin
    end;
 End;
 
-// Guarda el valor del ultimo bloque chekeado para mis transacciones
+// Save value of last checked block for user transactions
 Procedure SaveMyTrxsLastUpdatedblock(Number:integer);
 var
   FirstTrx : MyTrxData;
@@ -1272,7 +1213,7 @@ Begin
    end;
 End;
 
-// Reconstruye el archivo de mis transacciones hasta cierto bloque
+// Rebuilds user transactions  file up to specified block
 Procedure RebuildMyTrx(blocknumber:integer);
 var
   contador,contador2 : integer;
@@ -1282,11 +1223,11 @@ var
   ArrTrxs : BlockOrdersArray;
 Begin
 Existentes := Length(ListaMisTrx);
-if ListaMisTrx[0].Block = blocknumber then exit;  // el numero de bloque ya ha sido construido
+if ListaMisTrx[0].Block = blocknumber then exit;  // block number already rebuilded
 for contador := ListaMisTrx[0].Block+1 to blocknumber do
    begin
    Header := LoadBlockDataHeader(contador);
-   if DireccionEsMia(Header.AccountMiner)>=0 then // soy el minero
+   if DireccionEsMia(Header.AccountMiner)>=0 then // user is miner
       begin
       NewTrx := Default(MyTrxData);
       NewTrx.block:=contador;
@@ -1304,7 +1245,7 @@ for contador := ListaMisTrx[0].Block+1 to blocknumber do
       begin
       for contador2 := 0 to length(ArrTrxs)-1 do
          begin
-         if DireccionEsMia(ArrTrxs[contador2].sender)>=0 then // fui el que envio, trx negativa
+         if DireccionEsMia(ArrTrxs[contador2].sender)>=0 then // user is sender
             begin
             NewTrx := Default(MyTrxData);
             NewTrx.block:=contador;
@@ -1315,11 +1256,9 @@ for contador := ListaMisTrx[0].Block+1 to blocknumber do
             NewTrx.trfrID  := ArrTrxs[contador2].TrfrID;
             NewTrx.OrderID := ArrTrxs[contador2].OrderID;
             NewTrx.Concepto:= ArrTrxs[contador2].Concept;
-            // Si es una FEE, guardar la direccion del que envia
-            if newtrx.tipo='FEE' then NewTrx.receiver:=ArrTrxs[contador2].Sender;
             insert(NewTrx,ListaMisTrx,length(ListaMisTrx));
             end;
-         if DireccionEsMia(ArrTrxs[contador2].receiver)>=0 then //fui el que recibio, trx positiva
+         if DireccionEsMia(ArrTrxs[contador2].receiver)>=0 then //user is receiver
             begin
             NewTrx := Default(MyTrxData);
             NewTrx.block:=contador;
@@ -1344,7 +1283,7 @@ if length(ListaMisTrx) > Existentes then  // se han añadido transacciones
 SaveMyTrxsLastUpdatedblock(blocknumber);
 End;
 
-// Guarda las ultimas entradas del array al disco
+// Save last user transactions to disk
 Procedure SaveMyTrxsToDisk(Cantidad:integer);
 var
   contador : integer;
@@ -1363,7 +1302,7 @@ Begin
    end;
 End;
 
-// Ejecutar en segundo plano la reconstruccion de mis transacciones
+// Non blocking rebuilding user transactions
 Function NewMyTrx(aParam:Pointer):PtrInt;
 Begin
 CrearMistrx();
@@ -1372,7 +1311,7 @@ RebuildMyTrx(MyLastBlock);
 NewMyTrx := -1;
 End;
 
-// Crea un archivo BAT para reiniciar
+// Creates a bat file for restart
 Procedure CrearBatFileForRestart();
 var
   archivo : textfile;
@@ -1389,13 +1328,14 @@ try
   end;
 end;
 
-// Reiniciar el programa
+// Prepares for restart
 Procedure RestartNoso();
 Begin
 CrearBatFileForRestart();
 RunExternalProgram('nosolauncher.bat');
 End;
 
+// Runs doctor tool
 Procedure RunDiagnostico(linea:string);
 var
   cont : integer;
@@ -1494,6 +1434,7 @@ FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
 UpdateMyData();
 End;
 
+// Creates the pool info file
 Procedure CrearArchivoPoolInfo(nombre,direccion:string;porcentaje,miembros,port,tipo:integer;pass:string);
 var
   dato : PoolInfoData;
@@ -1514,6 +1455,7 @@ PoolInfo := Dato;
 ResetPoolMiningInfo;
 End;
 
+// Saves the pool info file
 Procedure GuardarArchivoPoolInfo();
 Begin
 try
@@ -1524,8 +1466,10 @@ Closefile(FilePool);
 Except on E:Exception do
    tolog('Error savinf PoolInfo file:'+E.Message);
 end;
+S_PoolInfo := false;
 End;
 
+// Reads pool info from file
 function GetPoolInfoFromDisk():PoolInfoData;
 var
   dato : PoolInfoData;
@@ -1542,6 +1486,7 @@ Except on E:Exception do
 end;
 End;
 
+// Creates pool members file
 Procedure CrearArchivoPoolMembers;
 Begin
 assignfile(FilePoolMembers,PoolMembersFilename);
@@ -1549,6 +1494,7 @@ rewrite(FilePoolMembers);
 Closefile(FilePoolMembers);
 End;
 
+// Load poolmembers file from disk
 Procedure LoadPoolMembers();
 var
   contador : integer;
@@ -1573,21 +1519,27 @@ EXCEPT on E:Exception do
 END;
 End;
 
+// Save pool members file to disk
 Procedure GuardarPoolMembers();
 var
   contador : integer;
 Begin
 assignfile(FilePoolMembers,PoolMembersFilename);
 rewrite(FilePoolMembers);
+TRY
 for contador := 0 to length(ArrayPoolMembers)-1 do
    begin
    seek(FilePoolMembers,contador);
    write(FilePoolMembers,ArrayPoolMembers[contador]);
    end;
+EXCEPT on E:Exception do
+   ToLog('Error saving pool members to disk.');
+END;
 Closefile(FilePoolMembers);
 S_PoolMembers := false;
 End;
 
+// Creates and executes autolauncher.bat
 Procedure EjecutarAutoUpdate(version:string);
 var
   archivo : textfile;
@@ -1607,6 +1559,7 @@ end;
 RunExternalProgram('nosolauncher.bat');
 End;
 
+// Creates autorestart file
 Procedure CrearRestartfile();
 var
   archivo : textfile;
@@ -1621,6 +1574,7 @@ Except on E:Exception do
 end;
 End;
 
+// apply restart conditions
 Procedure RestartConditions();
 var
   archivo : textfile;
@@ -1638,6 +1592,7 @@ if connect then Processlines.Add('CONNECT');
 Deletefile('restart.txt');
 End;
 
+// Creates crashinfofile
 Procedure CrearCrashInfo();
 var
   archivo : textfile;
@@ -1652,6 +1607,8 @@ Except on E:Exception do
 end;
 End;
 
+// Gets OS version
+{$IFDEF WINDOWS}
 function OSVersion: string;
 begin
   {$IFDEF LCLcarbon}
@@ -1671,6 +1628,7 @@ begin
   {$ENDIF}
 end;
 
+// Returns the windows version
 Function GetWinVer():string;
 Begin
 if WindowsVersion = wv95 then result := 'Windows95'
@@ -1685,7 +1643,9 @@ if WindowsVersion = wv95 then result := 'Windows95'
   else if WindowsVersion = wv10 then result := 'Windows10'
   else result := 'WindowsUnknown';
 End;
+{$ENDIF}
 
+// Executes the required steps to restore the blockchain
 Procedure RestoreBlockChain();
 Begin
 Miner_KillThreads := true;
@@ -1703,6 +1663,26 @@ deletefile(MyTrxFilename);
 if DeleteDirectory(BlockDirectory,True) then
    RemoveDir(BlockDirectory);
 processlines.Add('restart');
+End;
+
+Procedure InitCrossValues();
+Begin
+OptionsFileName     := 'NOSODATA'+DirectorySeparator+'options.psk';
+BotDataFilename     := 'NOSODATA'+DirectorySeparator+'botdata.psk';
+NodeDataFilename    := 'NOSODATA'+DirectorySeparator+'nodes.psk';
+NTPDataFilename     := 'NOSODATA'+DirectorySeparator+'ntpservers.psk';
+WalletFilename      := 'NOSODATA'+DirectorySeparator+'wallet.pkw';
+SumarioFilename     := 'NOSODATA'+DirectorySeparator+'sumary.psk';
+LanguageFileName    := 'NOSODATA'+DirectorySeparator+'noso.lng';
+BlockDirectory      := 'NOSODATA'+DirectorySeparator+'BLOCKS'+DirectorySeparator;
+UpdatesDirectory    := 'NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator;
+ResumenFilename     := 'NOSODATA'+DirectorySeparator+'blchhead.nos';
+MyTrxFilename       := 'NOSODATA'+DirectorySeparator+'mytrx.nos';
+TranslationFilename := 'NOSODATA'+DirectorySeparator+'English_empty.txt';
+ErrorLogFilename    := 'NOSODATA'+DirectorySeparator+'errorlog.txt';
+PoolInfoFilename    := 'NOSODATA'+DirectorySeparator+'poolinfo.dat';
+PoolMembersFilename := 'NOSODATA'+DirectorySeparator+'poolmembers.dat';
+AdvOptionsFilename  := 'NOSODATA'+DirectorySeparator+'advopt.txt';
 End;
 
 END. // END UNIT

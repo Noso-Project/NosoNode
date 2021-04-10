@@ -666,7 +666,7 @@ Begin
 result := true;
 try
    MyZipFile := TZipper.Create;
-   MyZipFile.FileName := 'NOSODATA/'+'PoolFiles.zip';
+   MyZipFile.FileName := 'NOSODATA'+DirectorySeparator+'PoolFiles.zip';
    MyZipFile.Entries.AddFileEntry(PoolInfoFilename);
    MyZipFile.Entries.AddFileEntry(PoolMembersFilename);
    MyZipFile.ZipAllFiles;

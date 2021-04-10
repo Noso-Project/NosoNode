@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, mpCripto, mpTime, mpblock, mpcoin,
-  dialogs, fileutil, forms, idglobal, poolmanage, strutils;
+  dialogs, fileutil, forms, idglobal, poolmanage, strutils, mpRPC;
 
 Procedure ProcesarLineas();
 function GetOpData(textLine:string):String;
@@ -68,17 +68,21 @@ Procedure GetOwnerHash(LineText:string);
 Procedure CheckOwnerHash(LineText:string);
 function AvailableUpdates():string;
 Procedure RunUpdate(linea:string);
+Procedure ShowAdvOpt();
 Procedure ChangePoolPassword(LineText:string);
 Procedure ChangePoolFee(LineText:string);
 Procedure ChangePoolMembers(LineText:string);
 Procedure ChangePoolPayrate(LineText:string);
 Procedure PoolExpelMember(LineText:string);
+Procedure SetPoolExpelBlocks(LineText:string);
+Procedure SetPoolShare(LineText:string);
 Procedure SendAdminMessage(linetext:string);
 Procedure ShowAddressBalance(LineText:string);
 Procedure SetReadTimeOutTIme(LineText:string);
 Procedure SetConnectTimeOutTIme(LineText:string);
 Procedure ShowNetReqs();
 Procedure RequestHeaders();
+Procedure ShowOrderDetails(LineText:string);
 
 implementation
 
@@ -186,12 +190,15 @@ else if UpperCase(Command) = 'RESTOREBLOCKCHAIN' then RestoreBlockChain()
 else if UpperCase(Command) = 'REQHEAD' then RequestHeaders()
 else if UpperCase(Command) = 'SAVEADV' then CreateADV(true)
 else if UpperCase(Command) = 'PMM' then setlength(PoolServerConex,90)
+else if UpperCase(Command) = 'SHOWADVOPT' then ShowAdvOpt()
+else if UpperCase(Command) = 'ORDER' then ShowOrderDetails(LineText)
 
 // POOL RELATED COMMANDS
 else if UpperCase(Command) = 'CREATEPOOL' then CreatePool(LineText)
 else if UpperCase(Command) = 'POOLINFO' then ShowPoolInfo()
 else if UpperCase(Command) = 'DELPOOL' then DeletePool(LineText)
 else if UpperCase(Command) = 'STARTPOOLSERVER' then StartPoolServer(poolinfo.Port)
+else if UpperCase(Command) = 'STOPPOOLSERVER' then StopPoolServer()
 else if UpperCase(Command) = 'USEPOOLON' then UsePoolOn()
 else if UpperCase(Command) = 'USEPOOLOFF' then UsePoolOff()
 else if UpperCase(Command) = 'POOLPASS' then ChangePoolPassword(LineText)
@@ -199,9 +206,17 @@ else if UpperCase(Command) = 'POOLFEE' then ChangePoolFee(LineText)
 else if UpperCase(Command) = 'POOLMEMBERS' then ChangePoolMembers(LineText)
 else if UpperCase(Command) = 'POOLPAYINTERVAL' then ChangePoolPayrate(LineText)
 else if UpperCase(Command) = 'POOLEXPEL' then PoolExpelMember(LineText)
+else if UpperCase(Command) = 'POOLEXPELBLOCK' then SetPoolExpelBlocks(LineText)
+else if UpperCase(Command) = 'POOLSHARE' then SetPoolShare(LineText)
 else if UpperCase(Command) = 'SENDPOOLSTEPS' then SendPoolStepsInfo(StrToInt(Parameter(LineText,1)))
 else if UpperCase(Command) = 'POOLHASHRATE' then SendPoolHashRateRequest()
 else if UpperCase(Command) = 'SAVEPOOLFILES' then SavePoolFiles()
+
+// RPC
+else if UpperCase(Command) = 'SETRPCPORT' then SetRPCPort(LineText)
+else if UpperCase(Command) = 'RPCON' then SetRPCOn()
+else if UpperCase(Command) = 'RPCOFF' then SetRPCOff()
+
 
 // NETWORK VALUES
 else if UpperCase(Command) = 'NETREQS' then ShowNetReqs()
@@ -1482,6 +1497,11 @@ if fileexists(UpdatesDirectory+'nosoupdate'+version+'.zip') then
 else consolelines.add('Invalid update');
 End;
 
+Procedure ShowAdvOpt();
+Begin
+consolelines.Add('To be implemented');
+End;
+
 Procedure ChangePoolPassword(LineText:string);
 var
   oldpass, newpass : string;
@@ -1502,8 +1522,7 @@ if oldpass <> MyPoolData.Password then
 if Miner_OwnsAPool then // si posse el pool, cambiar ambas
   begin
   PoolInfo.PassWord:=newpass;
-  GuardarArchivoPoolInfo;
-  GetPoolInfoFromDisk();
+  S_PoolInfo:=true;
   end;
 MyPoolData.Password:= newpass;
 SaveMyPoolData;
@@ -1527,9 +1546,8 @@ else
       exit;
       end;
    poolinfo.Porcentaje:=newfee;
-   GuardarArchivoPoolInfo;
-   GetPoolInfoFromDisk();
-   EdBuFee.Caption:=IntToStr(poolinfo.Porcentaje);
+   S_PoolInfo:=true;
+   EdBuFee.Caption:='Fee: '+IntToStr(poolinfo.Porcentaje);
    end;
 End;
 
@@ -1551,9 +1569,8 @@ else
       exit;
       end;
    poolinfo.MaxMembers:=newmembers;
-   GuardarArchivoPoolInfo;
-   GetPoolInfoFromDisk();
-   EdMaxMem.Caption:=IntToStr(poolinfo.MaxMembers);
+   S_PoolInfo:=true;
+   EdMaxMem.Caption:='Members: '+IntToStr(poolinfo.MaxMembers);
    end;
 End;
 
@@ -1575,9 +1592,8 @@ else
       exit;
       end;
    poolinfo.TipoPago:=newpayrate;
-   GuardarArchivoPoolInfo;
-   GetPoolInfoFromDisk();
-   EdPayRate.Caption:=IntToStr(poolinfo.TipoPago);
+   S_PoolInfo:=true;
+   EdPayRate.Caption:='Pay: '+IntToStr(poolinfo.TipoPago);
    end;
 End;
 
@@ -1591,11 +1607,13 @@ Begin
 member := Parameter(linetext,1);
 paybalance := Uppercase(Parameter(linetext,2));
 if Paybalance <> 'YES' then paybalance := 'NO';
+{
 if DireccionEsMia(member)>=0 then
    begin
    consolelines.Add('You can not expel yourself from your pool');
    exit;
    end;
+}
 MemberPosition := GetPoolMemberPosition(member);
 if (not Miner_OwnsAPool) then
    begin
@@ -1629,6 +1647,38 @@ else
    S_PoolMembers := true;
    Tolog('POOLEXPEL: '+member+SLINEBREAK+'BALANCE: '+int2curr(MemberBalance)+' PAID: '+paybalance);
    end;
+End;
+
+Procedure SetPoolExpelBlocks(LineText:string);
+var
+  value: integer;
+Begin
+value := StrToIntDef(Parameter(linetext,1),-1);
+if value >= 0 then
+  begin
+  if value = PoolExpelBlocks then consolelines.Add('Value already is '+IntToStr(value))
+  else
+     begin
+     PoolExpelBlocks := value;
+     consolelines.Add('PoolExpelBlocks set to '+IntToStr(PoolExpelBlocks));
+     EdPooExp.Caption:='Expel: '+IntToStr(PoolExpelBlocks);
+     end;
+  end
+else consolelines.Add('Invalid value');
+End;
+
+Procedure SetPoolShare(LineText:string);
+var
+  value: integer;
+Begin
+value := StrToIntDef(Parameter(linetext,1),-1);
+if ((value >= 0) and (value<=100)) then
+  begin
+  PoolShare := value;
+  consolelines.Add('PoolShare set to '+IntToStr(PoolShare));
+  EdShares.Caption:='Shares: '+IntToStr(PoolShare)+'%';
+  end
+else consolelines.Add('Invalid value');
 End;
 
 Procedure SendAdminMessage(linetext:string);
@@ -1716,6 +1766,30 @@ Procedure RequestHeaders();
 Begin
 PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7));
 End;
+
+Procedure ShowOrderDetails(LineText:string);
+var
+  orderid : string;
+  orderdetails : string;
+  ThisOrderdata : orderdata;
+Begin
+orderid := parameter(LineText,1);
+ThisOrderdata := GetOrderDetails(orderid);
+if thisorderdata.AmmountTrf<=0 then
+  consolelines.Add('Order not found')
+else
+  begin
+  if ThisOrderdata.Block = 0 then consolelines.Add('Block: Pending')
+  else consolelines.Add('Block: '+IntToStr(ThisOrderdata.Block));
+  consolelines.Add('Time: '+TimestampToDate(IntToStr(ThisOrderdata.TimeStamp)));
+  consolelines.Add('Concept: '+ThisOrderdata.Concept);
+  consolelines.Add('Receiver: '+ThisOrderdata.receiver);
+  consolelines.Add('Ammount: '+Int2curr(ThisOrderdata.AmmountTrf));
+  end;
+
+End;
+
+
 
 END. // END UNIT
 

@@ -167,7 +167,7 @@ procedure TExplorerForm.FGridFilesDblClick(Sender: TObject);
 begin
   if (FGridFiles.Row > 0) and (Copy(FGridFiles.Cells[0,FGridFiles.Row],1,3) = '   ' ) then
     begin
-    FActiveDir := FActiveDir+'\'+ Copy(FGridFiles.Cells[0,FGridFiles.Row],4,Length(FGridFiles.Cells[0,FGridFiles.Row]));
+    FActiveDir := FActiveDir+DirectorySeparator+ Copy(FGridFiles.Cells[0,FGridFiles.Row],4,Length(FGridFiles.Cells[0,FGridFiles.Row]));
     LoadDirectory(FActiveDir);
     end;
   if (FGridFiles.Row > 0) and (Copy(FGridFiles.Cells[0,FGridFiles.Row],1,3) <> '   ' ) then
@@ -190,7 +190,7 @@ begin
      explorer.visible := false;
      exit;
      end;
-  FResult := FActiveDir+'\'+FEditFilename.Text;
+  FResult := FActiveDir+DirectorySeparator+FEditFilename.Text;
   FResult := StringReplace(FResult,' ','*',[rfReplaceAll, rfIgnoreCase]);
   ProcessLines.Add(StringReplace(LineaEjecutar,'(-resultado-)',FResult,[rfReplaceAll, rfIgnoreCase]));
   explorer.visible := false;
@@ -228,7 +228,7 @@ var
   cont: Integer;
 begin
   for cont := Length(conpath) downto 1 do
-   if conpath[cont] = '\' then
+   if conpath[cont] = DirectorySeparator then
      begin
        Result := Copy(conpath, cont+1, Length(conpath));
        Break;
@@ -270,7 +270,7 @@ var
 begin
 for contador := length(FActiveDir) downto 1 do
    begin
-   if FActiveDir[contador] = '\' then
+   if FActiveDir[contador] = DirectorySeparator then
       begin
         FActiveDir := copy(FActiveDir,1,contador-1);
         LoadDirectory(FActiveDir);
