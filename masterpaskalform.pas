@@ -1859,7 +1859,10 @@ var
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
 BorrarPoolServerConex(AContext);
-Acontext.Connection.IOHandler.InputBuffer.Clear;
+   try
+   Acontext.Connection.IOHandler.InputBuffer.Clear;
+   Except on E:Exception do ToLog('PoolServer: ERREXC 001');
+   end;
 End;
 
 procedure TForm1.PoolServerException(AContext: TIdContext;AException: Exception);
@@ -1951,8 +1954,11 @@ Peerversion := Parameter(LLine,2);
 if Copy(LLine,1,4) <> 'PSK ' then  // La linea no contiene un comando valido
    begin
    Consolelines.Add(LangLine(8)+IPUser);     //INVALID CLIENT :
-   AContext.Connection.Disconnect;
-   Acontext.Connection.IOHandler.InputBuffer.Clear;
+     try
+     AContext.Connection.Disconnect;
+     Acontext.Connection.IOHandler.InputBuffer.Clear;
+     Except on E:Exception do ToLog('Server: ERREXC 001');
+     end;
    UpdateBotData(IPUser);
    exit;
    end
@@ -1961,41 +1967,56 @@ else
    if IPUser = MyPublicIP then // Nos estamos conectando con nosotros mismos
       begin
       ConsoleLines.Add(LangLine(9));  //INCOMING CLOSED: OWN CONNECTION
-      AContext.Connection.Disconnect;
-      Acontext.Connection.IOHandler.InputBuffer.Clear;
+        try
+        AContext.Connection.Disconnect;
+        Acontext.Connection.IOHandler.InputBuffer.Clear;
+        Except on E:Exception do ToLog('Server: ERREXC 002');
+        end;
       exit;
       end;
    end;
 if BotExists(IPUser) then // Es un bot ya conocido
    begin
    ConsoleLines.Add(LAngLine(10)+IPUser);             //BLACKLISTED FROM:
-   AContext.Connection.Disconnect;
-   Acontext.Connection.IOHandler.InputBuffer.Clear;
+     try
+     AContext.Connection.Disconnect;
+     Acontext.Connection.IOHandler.InputBuffer.Clear;
+     Except on E:Exception do ToLog('Server: ERREXC 003');
+     end;
    UpdateBotData(IPUser);
    exit;
    end;
 if GetSlotFromIP(IPUser) > 0 then // Conexion duplicada
    begin
-   Acontext.Connection.IOHandler.WriteLn(GetPTCEcn+'DUPLICATED');
-   ConsoleLines.Add(LangLine(11)+IPUser);              //DUPLICATE REJECTED:
-   AContext.Connection.Disconnect;
-   Acontext.Connection.IOHandler.InputBuffer.Clear;
+   ConsoleLines.Add(LangLine(11)+IPUser);
+     try
+     Acontext.Connection.IOHandler.WriteLn(GetPTCEcn+'DUPLICATED');
+     AContext.Connection.Disconnect;
+     Acontext.Connection.IOHandler.InputBuffer.Clear;
+     Except on E:Exception do ToLog('Server: ERREXC 004');
+     end;
    exit;
    end;
 if Peerversion < ProgramVersion then // version atigua
    begin
    Acontext.Connection.IOHandler.WriteLn(GetPTCEcn+'OLDVERSION');
-   ConsoleLines.Add('Lower version. Rejected: '+IPUser);
-   AContext.Connection.Disconnect;
-   Acontext.Connection.IOHandler.InputBuffer.Clear;
+     try
+     ConsoleLines.Add('Lower version. Rejected: '+IPUser);
+     AContext.Connection.Disconnect;
+     Acontext.Connection.IOHandler.InputBuffer.Clear;
+     Except on E:Exception do ToLog('Server: ERREXC 005');
+     end;
    exit;
    end;
 if SaveConection('CLI',IPUser,Acontext) = 0 then   // Servidor lleno
    begin
-   AContext.Connection.IOHandler.WriteLn(GetNodesString);
-   AContext.Connection.Disconnect;
    ConsoleLines.Add(LangLine(12)+IPUser);           //Server full. Unable to keep conection:
-   Acontext.Connection.IOHandler.InputBuffer.Clear;
+     try
+     AContext.Connection.IOHandler.WriteLn(GetNodesString);
+     AContext.Connection.Disconnect;
+     Acontext.Connection.IOHandler.InputBuffer.Clear;
+     Except on E:Exception do ToLog('Server: ERREXC 006');
+     end;
    end
 else
    begin    // Se acepta la nueva conexion
@@ -2013,7 +2034,10 @@ var
   IPUser : string;
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
-Acontext.Connection.IOHandler.InputBuffer.Clear;
+  try
+  Acontext.Connection.IOHandler.InputBuffer.Clear;
+  Except on E:Exception do ToLog('Server: ERREXC 007');
+  end;
 BorrarSlot('CLI',ipuser);
 End;
 
