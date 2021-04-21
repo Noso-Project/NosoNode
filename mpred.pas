@@ -372,7 +372,6 @@ if CanalCliente[Slot].IOHandler.InputBufferIsEmpty then
    end;
 if Continuar then
    begin
-   CanalCliente[Slot].IOHandler.in
    While not CanalCliente[Slot].IOHandler.InputBufferIsEmpty do
       begin
       try
