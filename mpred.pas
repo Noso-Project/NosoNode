@@ -204,8 +204,11 @@ end;
 // Intenta conectar a los nodos
 Procedure ConnectToServers();
 var
-  contador : integer = 0;
+  //contador : integer = 0;
   proceder : boolean = true;
+  Intentado : boolean = false;
+  Intentos : integer = 0;
+  rannumber : integer;
 begin
 SetCurrentJob('ConnectToServers',true);
 if Length(listanodos) = 0 then
@@ -223,11 +226,22 @@ if GetOutGoingConnections >= MaxOutgoingConnections then proceder := false;
 if getTotalConexiones >= MaxConecciones then Proceder := false;
 if proceder then
    begin
+   Repeat
+   rannumber := random(length(ListaNodos));
+   if ((GetSlotFromIP(ListaNodos[rannumber].ip)=0) AND (GetFreeSlot()>0)) then
+      begin
+      ConnectClient(ListaNodos[rannumber].ip,ListaNodos[rannumber].port);
+      intentado := true;
+      end;
+   intentos+=1;
+   until ((Intentado) or (intentos = 5));
+   {
    while contador < length(ListaNodos) do
       begin
       if ((GetSlotFromIP(ListaNodos[contador].ip)=0) AND (GetFreeSlot()>0)) then
          begin
-         if GetOutGoingConnections < MaxOutgoingConnections then ConnectClient(ListaNodos[contador].ip,ListaNodos[contador].port);
+         if GetOutGoingConnections < MaxOutgoingConnections then
+            ConnectClient(ListaNodos[contador].ip,ListaNodos[contador].port);
          end
       else if GetSlotFromIP(ListaNodos[contador].ip)>0 then
          begin
@@ -235,6 +249,7 @@ if proceder then
          end;
       contador := contador +1;
       end;
+   }
    end;
 CONNECT_LastTime := UTCTime();
 SetCurrentJob('ConnectToServers',false);
@@ -343,6 +358,7 @@ var
   UpdateClavePublica :string ='';UpdateFirma : string = '';
   AFileStream : TFileStream;
   BlockZipName : string = '';
+  Continuar : boolean = true;
 begin
 SetCurrentJob('ReadClientLines',true);
 if CanalCliente[Slot].IOHandler.InputBufferIsEmpty then
@@ -351,58 +367,69 @@ if CanalCliente[Slot].IOHandler.InputBufferIsEmpty then
    if CanalCliente[Slot].IOHandler.InputBufferIsEmpty then
       begin
       SetCurrentJob('ReadClientLines',false);
-      Exit;
+      Continuar := false;
       end;
    end;
-While not CanalCliente[Slot].IOHandler.InputBufferIsEmpty do
+if Continuar then
    begin
-   try
-   //CanalCliente[Slot].ReadTimeout:=ReadTimeOutTIme;
-   LLine := CanalCliente[Slot].IOHandler.ReadLn(IndyTextEncoding_UTF8);
-   if GetCommand(LLine) = 'UPDATE' then
+   CanalCliente[Slot].IOHandler.in
+   While not CanalCliente[Slot].IOHandler.InputBufferIsEmpty do
       begin
-      UpdateVersion := Parameter(LLine,1);
-      UpdateHash := Parameter(LLine,2);
-      UpdateClavePublica := Parameter(LLine,3);
-      UpdateFirma := Parameter(LLine,4);
-      UpdateZipName := 'nosoupdate'+UpdateVersion+'.zip';
-      if FileExists(UpdateZipName) then DeleteFile(UpdateZipName);
-      AFileStream := TFileStream.Create(UpdateZipName, fmCreate);
-      CanalCliente[Slot].IOHandler.ReadStream(AFileStream);
-      AFileStream.Free;
-      CheckIncomingUpdateFile(UpdateVersion,UpdateHash,UpdateClavePublica,UpdateFirma,UpdateZipName);
-      end
-   else if GetCommand(LLine) = 'RESUMENFILE' then
-      begin
-      AFileStream := TFileStream.Create(ResumenFilename, fmCreate);
-      CanalCliente[Slot].IOHandler.ReadStream(AFileStream);
-      AFileStream.Free;
-      consolelines.Add(LAngLine(74)+': '+copy(HashMD5File(ResumenFilename),1,5)); //'Headers file received'
-      LastTimeRequestResumen := 0;
-      UpdateMyData();
-      end
-   else if LLine = 'BLOCKZIP' then
-      begin
-      BlockZipName := BlockDirectory+'blocks.zip';
-      if FileExists(BlockZipName) then DeleteFile(BlockZipName);
-      AFileStream := TFileStream.Create(BlockZipName, fmCreate);
-      CanalCliente[Slot].IOHandler.ReadStream(AFileStream);
-      AFileStream.Free;
-      UnzipBlockFile(BlockDirectory+'blocks.zip',true);
-      MyLastBlock := GetMyLastUpdatedBlock();
-      BuildHeaderFile(MyLastBlock);
-      ResetMinerInfo();
-      LastTimeRequestBlock := 0;
-      end
-   else
-      SlotLines[Slot].Add(LLine);
-   Except on E:Exception do
-      begin
-      tolog ('Error Reading lines from slot: '+IntToStr(slot)+slinebreak+E.Message);
-      SetCurrentJob('ReadClientLines',false);
-      exit;
+      try
+      //CanalCliente[Slot].ReadTimeout:=ReadTimeOutTIme;
+      LLine := CanalCliente[Slot].IOHandler.ReadLn(IndyTextEncoding_UTF8);
+      {
+      if CanalCliente[Slot].IOHandler.ReadLnTimedout then
+         begin
+         exit;
+         end;
+         }
+      if GetCommand(LLine) = 'UPDATE' then
+         begin
+         UpdateVersion := Parameter(LLine,1);
+         UpdateHash := Parameter(LLine,2);
+         UpdateClavePublica := Parameter(LLine,3);
+         UpdateFirma := Parameter(LLine,4);
+         UpdateZipName := 'nosoupdate'+UpdateVersion+'.zip';
+         if FileExists(UpdateZipName) then DeleteFile(UpdateZipName);
+         AFileStream := TFileStream.Create(UpdateZipName, fmCreate);
+         CanalCliente[Slot].IOHandler.ReadStream(AFileStream);
+         AFileStream.Free;
+         CheckIncomingUpdateFile(UpdateVersion,UpdateHash,UpdateClavePublica,UpdateFirma,UpdateZipName);
+         end
+      else if GetCommand(LLine) = 'RESUMENFILE' then
+         begin
+         AFileStream := TFileStream.Create(ResumenFilename, fmCreate);
+         CanalCliente[Slot].IOHandler.ReadStream(AFileStream);
+         AFileStream.Free;
+         consolelines.Add(LAngLine(74)+': '+copy(HashMD5File(ResumenFilename),1,5)); //'Headers file received'
+         LastTimeRequestResumen := 0;
+         UpdateMyData();
+         end
+      else if LLine = 'BLOCKZIP' then
+         begin
+         BlockZipName := BlockDirectory+'blocks.zip';
+         if FileExists(BlockZipName) then DeleteFile(BlockZipName);
+         AFileStream := TFileStream.Create(BlockZipName, fmCreate);
+         CanalCliente[Slot].IOHandler.ReadStream(AFileStream);
+         AFileStream.Free;
+         UnzipBlockFile(BlockDirectory+'blocks.zip',true);
+         MyLastBlock := GetMyLastUpdatedBlock();
+         BuildHeaderFile(MyLastBlock);
+         ResetMinerInfo();
+         LastTimeRequestBlock := 0;
+         end
+      else
+         SlotLines[Slot].Add(LLine);
+      Except on E:Exception do
+         begin
+         tolog ('Error Reading lines from slot: '+IntToStr(slot)+slinebreak+E.Message);
+         SetCurrentJob('ReadClientLines',false);
+         exit;
+         end;
       end;
-   end;
+      end;
+
    end;
 SetCurrentJob('ReadClientLines',false);
 End;
@@ -791,8 +818,9 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
    end
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
         (MySumarioHash<>NetSumarioHash.Value) and (SumaryRebuilded)) then
-   begin  // Que hacer si todo encaja pero el sumario no esta bien
-   RestoreBlockChain();
+   begin  // Blockchain status issue
+
+   //RestoreBlockChain();
    end;
 SetCurrentJob('ActualizarseConLaRed',false);
 End;

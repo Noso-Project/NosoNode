@@ -197,6 +197,10 @@ if minero = PoolInfo.Direccion then
    Consolelines.Add('Your pool solved the block '+inttoStr(numero));
    DistribuirEnPool(GetBlockReward(Numero)+MinerFee);
    end;
+if minero = RPC_MinerInfo then
+   begin
+   RPC_MinerReward := GetBlockReward(Numero)+MinerFee;
+   end;
 if Numero>0 then
    begin
    OutgoingMsjs.Add(ProtocolLine(6)+IntToStr(timeStamp)+' '+IntToStr(Numero)+

@@ -274,6 +274,8 @@ var
   ThisParam : String = '';
   ThisNode : NodeData;
 Begin
+consolelines.Add('Get nodes: deprecated');
+exit;
 NodosList := TStringList.Create;
 while MoreParam do
    begin

@@ -110,10 +110,11 @@ var
   firstchar, secondchar : integer;
   resultado : string;
 Begin
-firstchar := poolslot div 93;
-secondchar := poolslot mod 93;
+firstchar := poolslot div 91;
+secondchar := poolslot mod 91;
 resultado := chr(33+firstchar)+chr(33+secondchar)+'!!!!!!!';
-result := StringReplace(resultado,'(','~',[rfReplaceAll, rfIgnoreCase])
+resultado := StringReplace(resultado,'(','~',[rfReplaceAll, rfIgnoreCase]);
+result := StringReplace(resultado,'_','}',[rfReplaceAll, rfIgnoreCase])
 End;
 
 //** Returns the prefix for a new connection or empty if pool is full
@@ -139,7 +140,7 @@ if ( (length(ArrayPoolMembers)>0) and (PoolSlot >= 0) ) then
    ArrayPoolMembers[PoolSlot].Soluciones:=0;
    ArrayPoolMembers[PoolSlot].LastPago:=MyLastBlock;
    ArrayPoolMembers[PoolSlot].TotalGanado:=0;
-   ArrayPoolMembers[PoolSlot].LastSolucion:=PoolMiner.Block;
+   ArrayPoolMembers[PoolSlot].LastSolucion:=0;
    ArrayPoolMembers[PoolSlot].LastEarned:=0;
    S_PoolMembers := true;
    result := ArrayPoolMembers[PoolSlot].Prefijo;
@@ -154,7 +155,7 @@ if length(ArrayPoolMembers) < PoolInfo.MaxMembers then
    ArrayPoolMembers[length(ArrayPoolMembers)-1].Soluciones:=0;
    ArrayPoolMembers[length(ArrayPoolMembers)-1].LastPago:=MyLastBlock;
    ArrayPoolMembers[length(ArrayPoolMembers)-1].TotalGanado:=0;
-   ArrayPoolMembers[length(ArrayPoolMembers)-1].LastSolucion:=PoolMiner.Block;
+   ArrayPoolMembers[length(ArrayPoolMembers)-1].LastSolucion:=0;
    ArrayPoolMembers[length(ArrayPoolMembers)-1].LastEarned:=0;
    S_PoolMembers := true;
    result := ArrayPoolMembers[length(ArrayPoolMembers)-1].Prefijo;

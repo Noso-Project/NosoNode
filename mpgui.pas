@@ -398,8 +398,8 @@ GridPoolMembers.ColWidths[2]:= 50;GridPoolMembers.ColWidths[3]:= 80;
 GridPoolMembers.ColWidths[4]:= 80;GridPoolMembers.ColWidths[5]:= 46;
 
 GridPoolMembers.Cells[0,0]:='Address';GridPoolMembers.Cells[1,0]:='Prefix';
-GridPoolMembers.Cells[2,0]:='Work';GridPoolMembers.Cells[3,0]:='Earned';
-GridPoolMembers.Cells[4,0]:='AllTime';GridPoolMembers.Cells[5,0]:='Last';
+GridPoolMembers.Cells[2,0]:='Steps';GridPoolMembers.Cells[3,0]:='Earned';
+GridPoolMembers.Cells[4,0]:='Session';GridPoolMembers.Cells[5,0]:='Last';
 GridPoolMembers.Enabled := true;
 GridPoolMembers.GridLineWidth := 1;
 GridPoolMembers.PopupMenu:=PoolMembersPopUp;

@@ -47,7 +47,7 @@ Procedure ShowBlockInfo(numberblock:integer);
 Procedure showmd160(linetext:string);
 Procedure CustomizeAddress(linetext:string);
 Procedure Parse_SendFunds(LineText:string);
-Procedure SendFunds(LineText:string);
+function SendFunds(LineText:string):string;
 Procedure ShowHalvings();
 Procedure GroupCoins(linetext:string);
 Procedure CreateTraslationFile();
@@ -77,12 +77,13 @@ Procedure PoolExpelMember(LineText:string);
 Procedure SetPoolExpelBlocks(LineText:string);
 Procedure SetPoolShare(LineText:string);
 Procedure SendAdminMessage(linetext:string);
-Procedure ShowAddressBalance(LineText:string);
 Procedure SetReadTimeOutTIme(LineText:string);
 Procedure SetConnectTimeOutTIme(LineText:string);
 Procedure ShowNetReqs();
 Procedure RequestHeaders();
 Procedure ShowOrderDetails(LineText:string);
+Procedure ExportAddress(LineText:string);
+Procedure ShowAddressInfo(LineText:string);
 
 implementation
 
@@ -179,7 +180,6 @@ else if UpperCase(Command) = 'OSVERSION' then ConsoleLines.Add(OsVersion)
 else if UpperCase(Command) = 'SENDMESSAGE' then SendAdminMessage(linetext)
 else if UpperCase(Command) = 'MYHASH' then ConsoleLines.Add(HashMD5File('noso.exe'))
 else if UpperCase(Command) = 'ADDBOT' then AddNewBot(LineText)
-else if UpperCase(Command) = 'SHOWBALANCE' then ShowAddressBalance(LineText)
 else if UpperCase(Command) = 'SETRTOT' then SetReadTimeOutTIme(LineText)
 else if UpperCase(Command) = 'SETCTOT' then SetConnectTimeOutTIme(LineText)
 else if UpperCase(Command) = 'STATUS' then ConsoleLines.Add(GetCurrentStatus(1))
@@ -192,6 +192,8 @@ else if UpperCase(Command) = 'SAVEADV' then CreateADV(true)
 else if UpperCase(Command) = 'PMM' then setlength(PoolServerConex,90)
 else if UpperCase(Command) = 'SHOWADVOPT' then ShowAdvOpt()
 else if UpperCase(Command) = 'ORDER' then ShowOrderDetails(LineText)
+else if UpperCase(Command) = 'EXPORTADDRESS' then ExportAddress(LineText)
+else if UpperCase(Command) = 'ADDRESS' then ShowAddressInfo(LineText)
 
 // POOL RELATED COMMANDS
 else if UpperCase(Command) = 'CREATEPOOL' then CreatePool(LineText)
@@ -878,7 +880,7 @@ StartCriptoThread();
 End;
 
 // Ejecuta una orden de transferencia
-Procedure SendFunds(LineText:string);
+function SendFunds(LineText:string):string;
 var
   Destination, amount, concepto : string;
   monto, comision : int64;
@@ -892,7 +894,9 @@ var
   OrderString : string;
   AliasIndex : integer;
   Procesar : boolean = true;
+  ResultOrderID : String = '';
 Begin
+result := '';
 setmilitime('SendFunds',1);
 Destination := Parameter(Linetext,1);
 amount       := Parameter(Linetext,2);
@@ -959,9 +963,11 @@ if procesar then
       ArrayTrfrs[contador].OrderID:=GetOrderHash(IntToStr(trxLinea)+OrderHashString);
       ArrayTrfrs[contador].OrderLines:=trxLinea;
       end;
-   consolelines.Add('Send '+Int2Curr(montoToShow)+' fee '+Int2Curr(comisionToShow)+slinebreak+
-                    'Order ID: '+GetOrderHash(IntToStr(trxLinea)+OrderHashString));
-
+   ResultOrderID := GetOrderHash(IntToStr(trxLinea)+OrderHashString);
+   consolelines.Add('Send to: '+Destination+slinebreak+
+                    'Send '+Int2Curr(montoToShow)+' fee '+Int2Curr(comisionToShow)+slinebreak+
+                    'Order ID: '+ResultOrderID);
+   result := ResultOrderID;
    OrderString := GetPTCEcn+'ORDER '+IntToStr(trxLinea)+' $';
    for contador := 0 to length(ArrayTrfrs)-1 do
       begin
@@ -1700,27 +1706,6 @@ mensaje := StringReplace(mensaje,'_',' ',[rfReplaceAll, rfIgnoreCase]);
 ConsoleLines.Add('Message sent: '+mensaje);
 End;
 
-Procedure ShowAddressBalance(LineText:string);
-var
-  addtoshow : string;
-  sumposition : integer;
-  onsumary, pending : int64;
-Begin
-addtoshow := parameter(LineText,1);
-sumposition := AddressSumaryIndex(addtoshow);
-if sumposition<0 then
-   consolelines.Add('Address do not exists in sumary.')
-else
-   begin
-   onsumary := GetAddressBalance(addtoshow);
-   pending := GetAddressPendingPays(addtoshow);
-   consolelines.Add('Address  : '+addtoshow+slinebreak+
-                    'Sumary   : '+Int2curr(onsumary)+slinebreak+
-                    'Pending  : '+Int2curr(pending)+slinebreak+
-                    'Available: '+int2curr(onsumary-pending));
-   end;
-End;
-
 Procedure SetReadTimeOutTIme(LineText:string);
 var
   newvalue : integer;
@@ -1786,10 +1771,51 @@ else
   consolelines.Add('Receiver: '+ThisOrderdata.receiver);
   consolelines.Add('Ammount: '+Int2curr(ThisOrderdata.AmmountTrf));
   end;
-
 End;
 
+// Exports a single address credentials of the wallet
+Procedure ExportAddress(LineText:string);
+var
+  addresshash : string;
+  newfile : file of WalletData;
+  Data : WalletData;
+Begin
+addresshash := parameter(LineText,1);
+if DireccionEsMia(addresshash) >= 0 then
+  begin
+  Assignfile(newfile,'tempwallet.pkw');
+  rewrite(newfile);
+  Data := ListaDirecciones[DireccionEsMia(addresshash)];
+  write(newfile,data);
+  closefile(newfile);
+  consolelines.Add('Address exported to tempwallet.pkw');
+  end
+else consolelines.Add('Address not found in wallet');
+End;
 
+// Shows all the info of a specified address
+Procedure ShowAddressInfo(LineText:string);
+var
+  addtoshow : string;
+  sumposition : integer;
+  onsumary, pending : int64;
+Begin
+addtoshow := parameter(LineText,1);
+sumposition := AddressSumaryIndex(addtoshow);
+if sumposition<0 then
+   consolelines.Add('Address do not exists in sumary.')
+else
+   begin
+   onsumary := GetAddressBalance(addtoshow);
+   pending := GetAddressPendingPays(addtoshow);
+   consolelines.Add('Address  : '+ListaSumario[sumposition].Hash+slinebreak+
+                    'Alias    : '+ListaSumario[sumposition].Custom+slinebreak+
+                    'Sumary   : '+Int2curr(onsumary)+slinebreak+
+                    'Incoming : '+Int2Curr(GetAddressIncomingpays(ListaSumario[sumposition].Hash))+slinebreak+
+                    'Outgoing : '+Int2curr(pending)+slinebreak+
+                    'Available: '+int2curr(onsumary-pending));
+   end;
+End;
 
 END. // END UNIT
 

@@ -11,6 +11,17 @@ uses
   mpminer;
 
 Procedure VerificarArchivos();
+
+// *** New files system
+// Nodes file
+Procedure CheckNodesFile();
+Procedure CrearNodeFile();
+Procedure CargarNodeFile();
+Procedure SaveNodeFile();
+Procedure FillNodeList();
+Procedure UpdateNodeData(IPUser:String;Port:string;LastTime:String='');
+
+
 Procedure CreateLog();
 Procedure CreateADV(saving:boolean);
 Procedure LoadADV();
@@ -26,12 +37,10 @@ Procedure DepurarBots();
 Procedure CargarBotData();
 Procedure UpdateBotData(IPUser:String);
 Procedure SaveBotData();
-Procedure CrearNodeData();
-Procedure CargarNodeData();
-Procedure UpdateNodeData(IPUser:String;Port:string;LastTime:String='');
-Procedure FillNodeList();
-Procedure SaveNodeData();
-Procedure DepurarNodos();
+
+
+
+
 Procedure CrearNTPData();
 Procedure CargarNTPData();
 Procedure SaveUpdatedFiles();
@@ -101,8 +110,10 @@ if not FileExists (UserOptions.wallet) then CrearWallet() else CargarWallet(User
 OutText('✓ Wallet file ok',false,1);
 if not Fileexists(BotDataFilename) then CrearBotData() else CargarBotData();
 OutText('✓ Bots file ok',false,1);
-if not Fileexists(NodeDataFilename) then CrearNodeData() else CargarNodeData();
+
+CheckNodesFile();
 OutText('✓ Nodes file ok',false,1);
+
 if not Fileexists(NTPDataFilename) then CrearNTPData() else CargarNTPData();
 OutText('✓ NTP servers file ok',false,1);
 if not Fileexists(SumarioFilename) then CreateSumario() else CargarSumario();
@@ -135,6 +146,160 @@ BuildHeaderFile(MyLastBlock); // PROBABLY IT IS NOT NECESARY
 UpdateWalletFromSumario();
 OutText('✓ Wallet updated',false,1);
 End;
+
+// ***********************
+// *** NEW FILE SYSTEM *** (0.2.0N and higher)
+// ***********************
+
+// *** NODE FILE ***
+
+// Check procedure at launch
+Procedure CheckNodesFile();
+var
+  leido : NodeData;
+Begin
+if not Fileexists(NodeDataFilename) then
+   begin
+   CrearNodeFile();
+   end
+else
+   begin
+   assignfile (FileNodeData,NodeDataFilename);
+   Reset(FileNodeData);
+   read (FileNodeData, Leido);
+   closefile(FileNodeData);
+   if leido.ip <> 'NFF1' then CrearNodeFile();
+   end;
+CargarNodeFile();
+End;
+
+// Creates node file
+Procedure CrearNodeFile();
+var
+  nodoinicial : nodedata;
+  continuar : boolean = true;
+  contador : integer = 1;
+  NodoStr : String;
+Begin
+   try
+   assignfile(FileNodeData,NodeDataFilename);
+   rewrite(FileNodeData);
+   NodoInicial.ip:='NFF1';
+   write(FileNodeData,nodoinicial);
+   Repeat
+     begin
+     NodoStr := Parameter(DefaultNodes,contador);
+     if NodoStr = '' then continuar := false
+     else
+        begin
+        NodoInicial.ip:=NodoStr;
+        NodoInicial.port:='8080';
+        NodoInicial.LastConexion:=UTCTime;
+        write(FileNodeData,nodoinicial);
+        contador := contador+1;
+        end;
+     end;
+   until not continuar ;
+   closefile(FileNodeData);
+   SetLength(ListaNodos,0);
+   Except on E:Exception do
+         tolog ('Error creating node file');
+   end;
+End;
+
+// Load nodes from disk
+Procedure CargarNodeFile();
+Var
+  Leido : NodeData;
+  contador: integer = 0;
+Begin
+   try
+   assignfile (FileNodeData,NodeDataFilename);
+   contador := 1;
+   reset (FileNodeData);
+   SetLength(ListaNodos,0);
+   SetLength(ListaNodos, filesize(FileNodeData)-1);
+   while contador < (filesize(FileNodeData)) do
+      begin
+      seek (FileNodeData, contador);
+      read (FileNodeData, Leido);
+      ListaNodos[contador-1] := Leido;
+      contador := contador + 1;
+      end;
+   closefile(FileNodeData);
+   Except on E:Exception do
+         tolog ('Error loading node data');
+   end;
+End;
+
+// Saves nodes to disk
+Procedure SaveNodeFile();
+Var
+  contador : integer = 0;
+Begin
+   try
+   assignfile (FileNodeData,NodeDataFilename);
+   contador := 0;
+   reset (FileNodeData);
+   for contador := 0 to length(ListaNodos)-1 do
+      begin
+      seek (FileNodeData, contador+1);
+      write (FileNodeData, ListaNodos[contador]);
+      end;
+   closefile(FileNodeData);
+   S_NodeData := false;
+   Except on E:Exception do
+      tolog ('Error saving nodes to disk');
+   end;
+End;
+
+// Fills options node list
+Procedure FillNodeList();
+var
+  cont : integer;
+Begin
+GridNodes.RowCount:=1;
+if Length(ListaNodos)>0 then
+   begin
+   for cont := 0 to Length(ListaNodos)-1 do
+      begin
+      GridNodes.RowCount:=GridNodes.RowCount+1;
+      GridNodes.Cells[0,GridNodes.RowCount-1] := Listanodos[cont].ip;
+      GridNodes.Cells[1,GridNodes.RowCount-1] := Listanodos[cont].port;
+      end;
+   end;
+End;
+
+// Creates/updates a node
+Procedure UpdateNodeData(IPUser:String;Port:string;LastTime:string='');
+var
+  contador : integer = 0;
+  Existe : boolean = false;
+Begin
+S_NodeData := true;
+if LastTime = '' then LastTime := UTCTime;
+for contador := 0 to length(ListaNodos)-1 do
+   begin
+   if (ListaNodos[Contador].ip = IPUser)and (ListaNodos[Contador].port = port) then
+      begin
+      ListaNodos[Contador].LastConexion:=LastTime;
+      S_NodeData := true;
+      Existe := true;
+      end;
+   end;
+if not Existe then
+   begin
+   SetLength(ListaNodos,Length(ListaNodos)+1);
+   ListaNodos[Length(ListaNodos)-1].ip:=IPUser;
+   ListaNodos[Length(ListaNodos)-1].port:=port;
+   ListaNodos[Length(ListaNodos)-1].LastConexion:=LastTime;
+   FillNodeList();
+   S_NodeData := true;
+   end;
+End;
+
+// *** BOTS FILE ***
+
 
 // Creates log file
 Procedure CreateLog();
@@ -245,7 +410,7 @@ Begin
    DefOptions.PoolInfo := '';
    DefOptions.wallet:= 'NOSODATA'+DirectorySeparator+'wallet.pkw';
    DefOptions.AutoServer:=false;
-   DefOptions.AutoConnect:=false;
+   DefOptions.AutoConnect:=true;
    DefOptions.Auto_Updater:=false;
    DefOptions.JustUpdated:=false;
    DefOptions.VersionPage:='https://nosocoin.com';
@@ -468,148 +633,11 @@ Begin
    end;
 End;
 
-// Creates node file
-Procedure CrearNodeData();
-var
-  nodoinicial : nodedata;
-  continuar : boolean = true;
-  contador : integer = 1;
-  NodoStr : String;
-Begin
-   try
-   assignfile(FileNodeData,NodeDataFilename);
-   rewrite(FileNodeData);
-   Repeat
-     begin
-     NodoStr := Parameter(DefaultNodes,contador);
-     if NodoStr = '' then continuar := false
-     else
-        begin
-        NodoInicial.ip:=NodoStr;
-        NodoInicial.port:='8080';
-        NodoInicial.LastConexion:=UTCTime;
-        write(FileNodeData,nodoinicial);
-        contador := contador+1;
-        end;
-     end;
-   until not continuar ;
-   closefile(FileNodeData);
-   SetLength(ListaNodos,0);
-   CargarNodeData();
-   Except on E:Exception do
-         tolog ('Error creating node file');
-   end;
-End;
 
-// Load nodes from disk
-Procedure CargarNodeData();
-Var
-  Leido : NodeData;
-  contador: integer = 0;
-Begin
-   try
-   assignfile (FileNodeData,NodeDataFilename);
-   contador := 0;
-   reset (FileNodeData);
-   SetLength(ListaNodos,0);
-   SetLength(ListaNodos, filesize(FileNodeData));
-   while contador < (filesize(FileNodeData)) do
-      begin
-      seek (FileNodeData, contador);
-      read (FileNodeData, Leido);
-      ListaNodos[contador] := Leido;
-      contador := contador + 1;
-      end;
-   closefile(FileNodeData);
-   //DepurarNodos();
-   Except on E:Exception do
-         tolog ('Error loading node data');
-   end;
-End;
 
-// Creates/updates a node
-Procedure UpdateNodeData(IPUser:String;Port:string;LastTime:string='');
-var
-  contador : integer = 0;
-Begin
-S_NodeData := true;
-if LastTime = '' then LastTime := UTCTime;
-for contador := 0 to length(ListaNodos)-1 do
-   begin
-   if (ListaNodos[Contador].ip = IPUser)and (ListaNodos[Contador].port = port) then
-      begin
-      ListaNodos[Contador].LastConexion:=LastTime;
-      S_NodeData := true;
-      Exit;
-      end;
-   end;
-SetLength(ListaNodos,Length(ListaNodos)+1);
-ListaNodos[Length(ListaNodos)-1].ip:=IPUser;
-ListaNodos[Length(ListaNodos)-1].port:=port;
-ListaNodos[Length(ListaNodos)-1].LastConexion:=LastTime;
-FillNodeList();
-S_NodeData := true;
-End;
 
-// Fills options node list
-Procedure FillNodeList();
-var
-  cont : integer;
-Begin
-GridNodes.RowCount:=1;
-if Length(ListaNodos)>0 then
-   begin
-   for cont := 0 to Length(ListaNodos)-1 do
-      begin
-      GridNodes.RowCount:=GridNodes.RowCount+1;
-      GridNodes.Cells[0,GridNodes.RowCount-1] := Listanodos[cont].ip;
-      GridNodes.Cells[1,GridNodes.RowCount-1] := Listanodos[cont].port;
-      end;
-   end;
-End;
 
-// Saves nodes to disk
-Procedure SaveNodeData();
-Var
-  contador : integer = 0;
-Begin
-   try
-   assignfile (FileNodeData,NodeDataFilename);
-   contador := 0;
-   rewrite (FileNodeData);
-   for contador := 0 to length(ListaNodos)-1 do
-      begin
-      seek (FileNodeData, contador);
-      write (FileNodeData, ListaNodos[contador]);
-      end;
-   closefile(FileNodeData);
-   S_NodeData := false;
-   Except on E:Exception do
-      tolog ('Error saving nodes to disk');
-   end;
-End;
 
-// Debugs old nodes
-Procedure DepurarNodos();
-var
-  contador : integer = 0;
-  LimiteTiempo : Int64 = 0;
-  NodeDeleted : boolean;
-Begin
-LimiteTiempo := CadToNum(UTCTime,0,'STI failed UTCTime depurarnodos')-2592000; // Los menores que esto deben ser eliminados(2592000 un mes)
-While contador < length(ListaNodos)-1 do
-   begin
-   NodeDeleted := false;
-   if CadToNum(ListaNodos[contador].LastConexion,999999999999,'STI failed lastconexion depurarnodos: '+ListaNodos[contador].LastConexion) < LimiteTiempo then
-      Begin
-      Delete(ListaNodos,Contador,1);
-      contador := contador-1;
-      NodeDeleted := true;
-      end;
-   if not NodeDeleted then contador := contador+1;
-   end;
-S_NodeData := true;
-End;
 
 // Creates NTP servers file
 Procedure CrearNTPData();
@@ -665,7 +693,7 @@ End;
 Procedure SaveUpdatedFiles();
 Begin
 if S_BotData then SaveBotData();
-if S_NodeData then SaveNodeData();
+if S_NodeData then SaveNodeFile();
 if S_Options then GuardarOpciones();
 if S_Wallet then GuardarWallet();
 if S_Sumario then GuardarSumario();

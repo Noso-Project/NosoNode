@@ -9,6 +9,7 @@ uses
 
 function GetAddressBalance(address:string):int64;
 function GetAddressPendingPays(Address:string):int64;
+function GetAddressIncomingpays(Address:string):int64;
 function TranxAlreadyPending(TrxHash:string):boolean;
 function TrxExistsInLastBlock(trfrhash:String):boolean;
 function AddPendingTxs(order:OrderData):boolean;
@@ -59,6 +60,19 @@ for cont := 0 to length(PendingTXs)-1 do
    begin
    if address = PendingTXS[cont].address then
       result := result+PendingTXS[cont].AmmountFee+PendingTXS[cont].AmmountTrf;
+   end;
+End;
+
+// Returns the pending incomings for the specified address**ONLY HASH ACCEPTED
+function GetAddressIncomingpays(Address:string):int64;
+var
+  cont : integer;
+Begin
+Result := 0;
+for cont := 0 to length(PendingTXs)-1 do
+   begin
+   if address = PendingTXS[cont].receiver then
+      result := result+PendingTXS[cont].AmmountTrf;
    end;
 End;
 
