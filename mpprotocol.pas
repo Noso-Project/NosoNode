@@ -535,7 +535,7 @@ AFileStream := TFileStream.Create(MyZipFile.FileName , fmOpenRead + fmShareDenyN
    AFileStream.Free;
    end;
 MyZipFile.Free;
-//deletefile(BlockDirectory+'Blocks_'+IntToStr(FirstBlock)+'_'+IntToStr(LastBlock)+'.zip');
+deletefile(BlockDirectory+'Blocks_'+IntToStr(FirstBlock)+'_'+IntToStr(LastBlock)+'.zip');
 ConsoleLines.Add(LangLine(93)+IntToStr(FirstBlock)+'->'+IntToStr(LastBlock)); //'Sent blocks interval: '
 End;
 
