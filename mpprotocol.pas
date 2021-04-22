@@ -486,7 +486,9 @@ var
   MyZipFile: TZipper;
   contador : integer;
   AFileStream : TFileStream;
+  filename, archivename: String;
 Begin
+{
 FirstBlock := StrToIntDef(Parameter(textline,5),-1)+1;
 LastBlock := FirstBlock + 99; if LastBlock>MyLastBlock then LastBlock := MyLastBlock;
 ConsoleLines.Add(LangLine(92)+IntToStr(FirstBlock)+'->'+IntToStr(LastBlock)); //'Requested blocks interval: '
@@ -497,6 +499,26 @@ for contador := FirstBlock to LastBlock do
    MyZipFile.Entries.AddFileEntry(BlockDirectory+IntToStr(contador)+'.blk');
    end;
 MyZipFile.ZipAllFiles;
+}
+
+FirstBlock := StrToIntDef(Parameter(textline,5),-1)+1;
+LastBlock := FirstBlock + 99; if LastBlock>MyLastBlock then LastBlock := MyLastBlock;
+ConsoleLines.Add(LangLine(92)+IntToStr(FirstBlock)+'->'+IntToStr(LastBlock)); //'Requested blocks interval: '
+MyZipFile := TZipper.Create;
+MyZipFile.FileName := BlockDirectory+'Blocks_'+IntToStr(FirstBlock)+'_'+IntToStr(LastBlock)+'.zip';
+for contador := FirstBlock to LastBlock do
+   begin
+   filename := BlockDirectory+IntToStr(contador)+'.blk';
+   {$IFDEF WINDOWS}
+   archivename:= StringReplace(filename,'\','/',[rfReplaceAll]);
+   {$ENDIF}
+   {$IFDEF LINUX}
+   archivename:= filename;
+   {$ENDIF}
+   MyZipFile.Entries.AddFileEntry(filename, archivename);
+   end;
+MyZipFile.ZipAllFiles;
+
 AFileStream := TFileStream.Create(MyZipFile.FileName , fmOpenRead + fmShareDenyNone);
    try
    if conexiones[Slot].tipo='CLI' then
@@ -513,7 +535,7 @@ AFileStream := TFileStream.Create(MyZipFile.FileName , fmOpenRead + fmShareDenyN
    AFileStream.Free;
    end;
 MyZipFile.Free;
-deletefile(BlockDirectory+'Blocks_'+IntToStr(FirstBlock)+'_'+IntToStr(LastBlock)+'.zip');
+//deletefile(BlockDirectory+'Blocks_'+IntToStr(FirstBlock)+'_'+IntToStr(LastBlock)+'.zip');
 ConsoleLines.Add(LangLine(93)+IntToStr(FirstBlock)+'->'+IntToStr(LastBlock)); //'Sent blocks interval: '
 End;
 

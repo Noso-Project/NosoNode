@@ -368,7 +368,7 @@ CONST
                           '45.141.36.117 '+
                           '185.239.236.85';
   ProgramVersion = '0.2.0';
-  SubVersion = 'N';
+  SubVersion = 'P';
   OficialRelease = true;
   BuildDate = 'April 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -1908,23 +1908,25 @@ comando :=Parameter(Linea,2);
 minerversion :=Parameter(Linea,3);
 if password <> Poolinfo.PassWord then  // WRONG PASSWORD.
    begin
-   Acontext.Connection.IOHandler.WriteLn('PASSFAILED');
-   AContext.Connection.Disconnect;
-   Acontext.Connection.IOHandler.InputBuffer.Clear;
+   try
+      Acontext.Connection.IOHandler.WriteLn('PASSFAILED');
+      Acontext.Connection.IOHandler.InputBuffer.Clear;
+      AContext.Connection.Disconnect;
+   except end;
    exit;
    end;
 if ( (not isvalidaddress(UserDireccion)) and (AddressSumaryIndex(UserDireccion)<0) ) then
-      begin                           // INVALID ADDRESS
-      Acontext.Connection.IOHandler.WriteLn('INVALIDADDRESS');
-      Acontext.Connection.IOHandler.InputBuffer.Clear;
-      AContext.Connection.Disconnect;
-      exit;
-      end;
+   begin                           // INVALID ADDRESS
+   Acontext.Connection.IOHandler.WriteLn('INVALIDADDRESS');
+   Acontext.Connection.IOHandler.InputBuffer.Clear;
+   AContext.Connection.Disconnect;
+   exit;
+   end;
 if IsPoolMemberConnected(UserDireccion)>=0 then   // ALREADY CONNECTED
    begin
    Acontext.Connection.IOHandler.WriteLn('ALREADYCONNECTED');
-   AContext.Connection.Disconnect;
    Acontext.Connection.IOHandler.InputBuffer.Clear;
+   AContext.Connection.Disconnect;
    exit;
    end;
 if Comando = 'JOIN' then
