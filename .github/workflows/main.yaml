@@ -1,0 +1,45 @@
+name: Build NosoWallet
+
+on:
+  pull_request:
+  push:
+    paths-ignore:
+    - "README.md"
+    branches:
+      - "*"
+
+jobs:
+  build:
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      matrix:
+#        operating-system: [ubuntu-18.04,ubuntu-latest,windows-latest]
+        operating-system: [ubuntu-latest]
+        lazarus-versions: [stable]
+    steps:
+    - uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cache/instantfpc
+          ~/.lazarus
+          /usr/share/lazarus/2.0.12
+          /usr/bin/lazbuild
+        key: ${{ runner.os }}-laz-2.0.12-v1
+        restore-keys: |
+          ${{ runner.os }}-laz-
+    - name: Install Lazarus
+      uses: gcarreno/setup-lazarus@v2.2.9
+      with:
+        lazarus-version: ${{ matrix.lazarus-versions }}
+    - uses: actions/checkout@v2
+    - name: Unzip packages
+      run: unzip -q Packages/\*.zip -d Packages
+    - name: Install packages
+      run: |
+        lazbuild Packages/Indy10/indylaz.lpk
+        lazbuild Packages/HashLib/src/Packages/FPC/HashLib4PascalPackage.lpk
+        lazbuild Packages/SimpleBaseLib/src/Packages/FPC/SimpleBaseLib4PascalPackage.lpk
+        lazbuild Packages/dcpcrypt-2.0.4.1/dcpcrypt.lpk
+        lazbuild Packages/CryptoLib4Pascal-master/CryptoLib/src/Packages/FPC/CryptoLib4PascalPackage.lpk
+    - name: Build the Main Application
+      run: lazbuild "Noso.lpi"
