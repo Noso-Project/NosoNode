@@ -16,16 +16,16 @@ jobs:
     strategy:
       matrix:
         operating-system: [ubuntu-latest, windows-latest]
-        lazarus-versions: [stable]
+        lazarus-versions: [2.0.12]
     steps:
     - uses: actions/cache@v2
       with:
         path: |
           ~/.cache/instantfpc
           ~/.lazarus
-          /usr/share/lazarus/2.0.12
+          /usr/share/lazarus/${{ matrix.lazarus-versions }}
           /usr/bin/lazbuild
-        key: ${{ runner.os }}-laz-2.0.12-v1
+        key: ${{ runner.os }}-laz-${{ matrix.lazarus-versions }}-v1
         restore-keys: |
           ${{ runner.os }}-laz-
     - name: Install Lazarus
