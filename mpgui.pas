@@ -999,13 +999,13 @@ End;
 // Expel member paying
 Procedure TFormPool.PoolExpelPaying(Sender:TObject);
 Begin
-processlines.Add('POOLEXPEL '+GridPoolMembers.Cells[0,GridPoolMembers.Row]+' YES');
+ProcessLinesAdd('POOLEXPEL '+GridPoolMembers.Cells[0,GridPoolMembers.Row]+' YES');
 End;
 
 // Expel member without pay
 Procedure TFormPool.PoolExpelNotPay(Sender:TObject);
 Begin
-processlines.Add('POOLEXPEL '+GridPoolMembers.Cells[0,GridPoolMembers.Row]);
+ProcessLinesAdd('POOLEXPEL '+GridPoolMembers.Cells[0,GridPoolMembers.Row]);
 End;
 
 // pay user
@@ -1016,7 +1016,7 @@ var
 Begin
 userdireccion := ArrayPoolMembers[GridPoolMembers.Row-1].Direccion;
 MemberBalance := GetPoolMemberBalance(UserDireccion);
-Processlines.Add('sendto '+UserDireccion+' '+IntToStr(GetMaximunToSend(MemberBalance))+' POOLPAYMENT_'+PoolInfo.Name);
+ProcessLinesAdd('sendto '+UserDireccion+' '+IntToStr(GetMaximunToSend(MemberBalance))+' POOLPAYMENT_'+PoolInfo.Name);
 ClearPoolUserBalance(UserDireccion);
 ConsoleLines.Add('Pool payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
 tolog('Pool payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));

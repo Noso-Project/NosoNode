@@ -159,26 +159,26 @@ end;
 procedure CerrarSlot(Slot:integer);
 begin
 SetCurrentJob('CerrarSlot',true);
-try
-if conexiones[Slot].tipo='CLI' then
-   begin
-   SlotLines[slot].Clear;
-   Conexiones[Slot].context.Connection.IOHandler.InputBuffer.Clear;
-   Conexiones[Slot].context.Connection.Disconnect;
-   Conexiones[Slot] := Default(conectiondata);
+   try
+   if conexiones[Slot].tipo='CLI' then
+      begin
+      SlotLines[slot].Clear;
+      Conexiones[Slot].context.Connection.IOHandler.InputBuffer.Clear;
+      Conexiones[Slot].context.Connection.Disconnect;
+      Conexiones[Slot] := Default(conectiondata);
+      end;
+   if conexiones[Slot].tipo='SER' then
+      begin
+      SlotLines[slot].Clear;
+      CanalCliente[Slot].IOHandler.InputBuffer.Clear;
+      CanalCliente[Slot].Disconnect;
+      Conexiones[Slot] := Default(conectiondata);
+      end;
+   Except on E:Exception do
+     begin
+     ToLog('Error: Closing slot '+IntToStr(Slot)+SLINEBREAK+E.Message);
+     end;
    end;
-if conexiones[Slot].tipo='SER' then
-   begin
-   SlotLines[slot].Clear;
-   CanalCliente[Slot].IOHandler.InputBuffer.Clear;
-   CanalCliente[Slot].Disconnect;
-   Conexiones[Slot] := Default(conectiondata);
-   end;
-Except on E:Exception do
-  begin
-  ToLog('Error: Closing slot '+IntToStr(Slot)+SLINEBREAK+E.Message);
-  end;
-end;
 SetCurrentJob('CerrarSlot',false);
 end;
 
@@ -574,7 +574,7 @@ if MyConStatus = 3 then
       end;
    if ((Miner_OwnsAPool) and (Form1.PoolServer.Active) and (LastPoolHashRequest+5<StrToInt64(UTCTime))) then
       begin
-      ProcessLines.Add('POOLHASHRATE');
+      ProcessLinesAdd('POOLHASHRATE');
       end;
    end;
 SetCurrentJob('VerifyConnectionStatus',false);

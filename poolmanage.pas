@@ -229,7 +229,7 @@ PoolMiner.Dificult:=LastBlockData.NxtBlkDiff;
 PoolMiner.DiffChars:=GetCharsFromDifficult(PoolMiner.Dificult, PoolMiner.steps);
 PoolMiner.Target:=MyLastBlockHash;
 AdjustWrongSteps();
-ProcessLines.Add('SENDPOOLSTEPS 0');
+ProcessLinesAdd('SENDPOOLSTEPS 0');
 end;
 
 function GetPoolNumeroDePasos():integer;
@@ -272,7 +272,7 @@ var
   result := 0;
   for count := 0 to length(arraypoolmembers)-1 do
      if ( (IsPoolMemberConnected(arraypoolmembers[count].Direccion)>=0) and
-        (arraypoolmembers[count].LastSolucion+Poolinfo.TipoPago>=PoolMiner.Block) ) then result +=1;
+        (arraypoolmembers[count].LastSolucion+10000>=PoolMiner.Block) ) then result +=1;
   End;
 
 Begin
@@ -309,7 +309,7 @@ if ((ARepartir>0) and (MinersConPos>0)) then
    for contador := 0 to length(arraypoolmembers)-1 do
       begin
       if ( (IsPoolMemberConnected(arraypoolmembers[contador].Direccion)>=0) and
-        (arraypoolmembers[contador].LastSolucion+Poolinfo.TipoPago>=PoolMiner.Block) ) then
+        (arraypoolmembers[contador].LastSolucion+10000>=PoolMiner.Block) ) then
          begin
          arraypoolmembers[contador].Deuda:=arraypoolmembers[contador].Deuda+PagoPorPOS;
          arraypoolmembers[contador].TotalGanado:=arraypoolmembers[contador].TotalGanado+PagoPorPOS;
@@ -553,8 +553,11 @@ result := -1;
 if length(PoolServerConex)>0 then
    begin
    for counter := 0 to length(PoolServerConex)-1 do
-      if PoolServerConex[counter].Address=address then
+      if ((Address<>'') and (PoolServerConex[counter].Address=address)) then
+         begin
          result := counter;
+         break;
+         end;
    end;
 End;
 
@@ -583,7 +586,7 @@ if length(arraypoolmembers)>0 then
       if arraypoolmembers[counter].LastSolucion+PoolExpelBlocks<PoolMiner.Block then
          begin
          if IsPoolMemberConnected(arraypoolmembers[counter].Direccion)<0 then
-            processlines.Add('POOLEXPEL '+arraypoolmembers[counter].Direccion+' YES');
+            ProcessLinesAdd('POOLEXPEL '+arraypoolmembers[counter].Direccion+' YES');
          end;
       end;
    end;

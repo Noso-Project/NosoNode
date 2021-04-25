@@ -479,7 +479,7 @@ AFileStream.Free;
 consolelines.Add(LangLine(91));//'Headers file sent'
 End;
 
-// Enviar blockes
+// Send Zipped blocks to peer
 Procedure PTC_SendBlocks(Slot:integer;TextLine:String);
 var
   FirstBlock, LastBlock : integer;
@@ -487,20 +487,8 @@ var
   contador : integer;
   AFileStream : TFileStream;
   filename, archivename: String;
+  FileSentOk : Boolean = false;
 Begin
-{
-FirstBlock := StrToIntDef(Parameter(textline,5),-1)+1;
-LastBlock := FirstBlock + 99; if LastBlock>MyLastBlock then LastBlock := MyLastBlock;
-ConsoleLines.Add(LangLine(92)+IntToStr(FirstBlock)+'->'+IntToStr(LastBlock)); //'Requested blocks interval: '
-MyZipFile := TZipper.Create;
-MyZipFile.FileName := BlockDirectory+'Blocks_'+IntToStr(FirstBlock)+'_'+IntToStr(LastBlock)+'.zip';
-for contador := FirstBlock to LastBlock do
-   begin
-   MyZipFile.Entries.AddFileEntry(BlockDirectory+IntToStr(contador)+'.blk');
-   end;
-MyZipFile.ZipAllFiles;
-}
-
 FirstBlock := StrToIntDef(Parameter(textline,5),-1)+1;
 LastBlock := FirstBlock + 99; if LastBlock>MyLastBlock then LastBlock := MyLastBlock;
 ConsoleLines.Add(LangLine(92)+IntToStr(FirstBlock)+'->'+IntToStr(LastBlock)); //'Requested blocks interval: '
@@ -518,25 +506,39 @@ for contador := FirstBlock to LastBlock do
    MyZipFile.Entries.AddFileEntry(filename, archivename);
    end;
 MyZipFile.ZipAllFiles;
-
 AFileStream := TFileStream.Create(MyZipFile.FileName , fmOpenRead + fmShareDenyNone);
    try
    if conexiones[Slot].tipo='CLI' then
       begin
-      Conexiones[Slot].context.Connection.IOHandler.WriteLn('BLOCKZIP');
-      Conexiones[Slot].context.connection.IOHandler.Write(AFileStream,0,true);
+         try
+         Conexiones[Slot].context.Connection.IOHandler.WriteLn('BLOCKZIP');
+         Conexiones[Slot].context.connection.IOHandler.Write(AFileStream,0,true);
+         FileSentOk := true;
+         Except on E:Exception do
+            begin
+            Form1.TryCloseServerConnection(Conexiones[Slot].context);
+            ToExcLog('SERVER: Error sending ZIP blocks file ('+E.Message+')');
+            end;
+         end;
       end;
    if conexiones[Slot].tipo='SER' then
       begin
-      CanalCliente[Slot].IOHandler.WriteLn('BLOCKZIP');
-      CanalCliente[Slot].IOHandler.Write(AFileStream,0,true);
+         try
+         CanalCliente[Slot].IOHandler.WriteLn('BLOCKZIP');
+         CanalCliente[Slot].IOHandler.Write(AFileStream,0,true);
+         FileSentOk := true;
+         Except on E:Exception do
+            begin
+            ToExcLog('CLIENT: Error sending ZIP blocks file ('+E.Message+')');
+            CerrarSlot(slot);
+            end;
+         end;
       end;
    finally
    AFileStream.Free;
    end;
 MyZipFile.Free;
 deletefile(BlockDirectory+'Blocks_'+IntToStr(FirstBlock)+'_'+IntToStr(LastBlock)+'.zip');
-ConsoleLines.Add(LangLine(93)+IntToStr(FirstBlock)+'->'+IntToStr(LastBlock)); //'Sent blocks interval: '
 End;
 
 Procedure INC_PTC_Custom(TextLine:String);

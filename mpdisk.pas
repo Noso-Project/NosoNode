@@ -20,6 +20,10 @@ Procedure CargarNodeFile();
 Procedure SaveNodeFile();
 Procedure FillNodeList();
 Procedure UpdateNodeData(IPUser:String;Port:string;LastTime:String='');
+// Except log file
+Procedure CreateExceptlog();
+Procedure ToExcLog(Texto:string);
+Procedure SaveExceptLog();
 
 
 Procedure CreateLog();
@@ -100,6 +104,11 @@ if not directoryexists(BlockDirectory) then CreateDir(BlockDirectory);
 OutText('✓ Block folder ok',false,1);
 if not directoryexists(UpdatesDirectory) then CreateDir(UpdatesDirectory);
 OutText('✓ Updates folder ok',false,1);
+
+if not directoryexists(LogsDirectory) then CreateDir(LogsDirectory);
+if not FileExists (ExceptLogFilename) then CreateExceptlog;
+OutText('✓ Except Log file ok',false,1);
+
 if not FileExists (AdvOptionsFilename) then CreateADV(false) else LoadADV();
 UpdateRowHeigth();
 OutText('✓ Advanced options loaded',false,1);
@@ -166,9 +175,13 @@ else
    begin
    assignfile (FileNodeData,NodeDataFilename);
    Reset(FileNodeData);
+   seek(FileNodeData,0);
    read (FileNodeData, Leido);
    closefile(FileNodeData);
-   if leido.ip <> 'NFF1' then CrearNodeFile();
+   if leido.ip <> 'NFF1' then
+      begin
+      CrearNodeFile();
+      end;
    end;
 CargarNodeFile();
 End;
@@ -184,6 +197,7 @@ Begin
    try
    assignfile(FileNodeData,NodeDataFilename);
    rewrite(FileNodeData);
+   NodoInicial := Default(nodedata);
    NodoInicial.ip:='NFF1';
    write(FileNodeData,nodoinicial);
    Repeat
@@ -192,6 +206,7 @@ Begin
      if NodoStr = '' then continuar := false
      else
         begin
+        NodoInicial := Default(nodedata);
         NodoInicial.ip:=NodoStr;
         NodoInicial.port:='8080';
         NodoInicial.LastConexion:=UTCTime;
@@ -241,11 +256,16 @@ Begin
    assignfile (FileNodeData,NodeDataFilename);
    contador := 0;
    reset (FileNodeData);
-   for contador := 0 to length(ListaNodos)-1 do
+   seek (FileNodeData, contador+1);
+   if length(ListaNodos)>0 then
       begin
-      seek (FileNodeData, contador+1);
-      write (FileNodeData, ListaNodos[contador]);
+      for contador := 0 to length(ListaNodos)-1 do
+         begin
+         seek (FileNodeData, contador+1);
+         write (FileNodeData, ListaNodos[contador]);
+         end;
       end;
+   truncate(FileNodeData);
    closefile(FileNodeData);
    S_NodeData := false;
    Except on E:Exception do
@@ -298,8 +318,52 @@ if not Existe then
    end;
 End;
 
+// *** EXCEPTLOG FILE ***
+
+Procedure CreateExceptlog();
+var
+  archivo : textfile;
+Begin
+   try
+   Assignfile(archivo, ExceptLogFilename);
+   rewrite(archivo);
+   Closefile(archivo);
+   Except on E:Exception do
+      tolog ('Error creating the log file');
+   end;
+End;
+
+// Add Except log line
+Procedure ToExcLog(Texto:string);
+Begin
+ExceptLines.Add(FormatDateTime('dd MMMM YYYY HH:MM:SS.zzz', Now)+' -> '+texto);
+S_Exc := true;
+End;
+
+// Save Except log file to disk
+Procedure SaveExceptLog();
+var
+  archivo : textfile;
+Begin
+try
+   Assignfile(archivo, ExceptLogFilename);
+   Append(archivo);
+   while ExceptLines.Count>0 do
+      begin
+      Writeln(archivo, ExceptLines[0]);
+      ExceptLines.Delete(0);
+      end;
+   Closefile(archivo);
+   S_Exc := false;
+Except on E:Exception do
+   tolog ('Error saving to the Except log file');
+end;
+End;
+
 // *** BOTS FILE ***
 
+
+// *****************************************************************************
 
 // Creates log file
 Procedure CreateLog();
@@ -307,7 +371,7 @@ var
   archivo : textfile;
 Begin
    try
-   Assignfile(archivo, ErrorLogFilename);
+   Assignfile(archivo, ExceptLogFilename);
    rewrite(archivo);
    Closefile(archivo);
    Except on E:Exception do
@@ -699,6 +763,7 @@ if S_Wallet then GuardarWallet();
 if S_Sumario then GuardarSumario();
 if S_PoolMembers then GuardarPoolMembers();
 if S_Log then SaveLog;
+if S_Exc then SaveExceptLog;
 if S_PoolInfo then GuardarArchivoPoolInfo;
 if S_AdvOpt then CreateADV(false);
 End;
@@ -1615,8 +1680,8 @@ ReadLn(archivo,linea);
 Closefile(archivo);
 server := StrToBool(parameter(linea,1));
 connect := StrToBool(parameter(linea,3));
-if server then Processlines.Add('SERVERON');
-if connect then Processlines.Add('CONNECT');
+if server then ProcessLinesAdd('SERVERON');
+if connect then ProcessLinesAdd('CONNECT');
 Deletefile('restart.txt');
 End;
 
@@ -1629,6 +1694,11 @@ try
   Assignfile(archivo, 'crashinfo.txt');
   rewrite(archivo);
   writeln(archivo,GetCurrentStatus(1));
+  while ExceptLines.Count>0 do
+      begin
+      Writeln(archivo, ExceptLines[0]);
+      ExceptLines.Delete(0);
+      end;
   Closefile(archivo);
 Except on E:Exception do
    tolog ('Error creating crashinfo file');
@@ -1690,7 +1760,7 @@ deletefile(ResumenFilename);
 deletefile(MyTrxFilename);
 if DeleteDirectory(BlockDirectory,True) then
    RemoveDir(BlockDirectory);
-processlines.Add('restart');
+ProcessLinesAdd('restart');
 End;
 
 Procedure InitCrossValues();
@@ -1704,6 +1774,8 @@ SumarioFilename     := 'NOSODATA'+DirectorySeparator+'sumary.psk';
 LanguageFileName    := 'NOSODATA'+DirectorySeparator+'noso.lng';
 BlockDirectory      := 'NOSODATA'+DirectorySeparator+'BLOCKS'+DirectorySeparator;
 UpdatesDirectory    := 'NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator;
+LogsDirectory       := 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator;
+ExceptLogFilename   := 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'exceptlog.txt';
 ResumenFilename     := 'NOSODATA'+DirectorySeparator+'blchhead.nos';
 MyTrxFilename       := 'NOSODATA'+DirectorySeparator+'mytrx.nos';
 TranslationFilename := 'NOSODATA'+DirectorySeparator+'English_empty.txt';

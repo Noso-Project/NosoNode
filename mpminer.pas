@@ -128,7 +128,7 @@ while ( (Miner_IsON) and (not Miner_KillThreads) ) do
    if ( (AnsiContainsStr(Solucion,copy(Miner_Target,1,Miner_DifChars))) and
       (IsValidStep(Miner_Solution,Mseed+IntToStr(Mnumber))) ) then
       begin
-      if UserOptions.UsePool then Processlines.Add('SENDPOOLSOLUTION '+IntToStr(Miner_BlockToMine)+' '+Mseed+' '+IntToStr(Mnumber));
+      if UserOptions.UsePool then ProcessLinesAdd('SENDPOOLSOLUTION '+IntToStr(Miner_BlockToMine)+' '+Mseed+' '+IntToStr(Mnumber));
       MINER_FoundedSteps := MINER_FoundedSteps+1;
       Miner_DifChars := GetCharsFromDifficult(Miner_Difficult, MINER_FoundedSteps);
       Miner_Solution := Miner_Solution+Mseed+IntToStr(Mnumber)+' ';

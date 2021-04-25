@@ -8,6 +8,8 @@ uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, mpCripto, mpTime, mpblock, mpcoin,
   dialogs, fileutil, forms, idglobal, poolmanage, strutils, mpRPC;
 
+procedure ProcessLinesAdd(const ALine: String);
+
 Procedure ProcesarLineas();
 function GetOpData(textLine:string):String;
 Procedure ParseCommandLine(LineText:string);
@@ -84,11 +86,28 @@ Procedure RequestHeaders();
 Procedure ShowOrderDetails(LineText:string);
 Procedure ExportAddress(LineText:string);
 Procedure ShowAddressInfo(LineText:string);
+Procedure ShowAddressHistory(LineText:string);
+Procedure ShowTotalFees();
 
 implementation
 
 uses
   mpProtocol, mpMiner;
+
+// **************************
+// *** CRITICIAL SECTIONS ***
+// **************************
+
+// Adds a line to ProcessLines thread safe
+procedure ProcessLinesAdd(const ALine: String);
+begin
+  EnterCriticalSection(CSProcessLines);
+  try
+    ProcessLinesAdd(ALine);
+  finally
+    LeaveCriticalSection(CSProcessLines);
+  end;
+end;
 
 // Procesa las lineas de la linea de comandos
 Procedure ProcesarLineas();
@@ -96,7 +115,20 @@ Begin
 While ProcessLines.Count > 0 do
    begin
    ParseCommandLine(ProcessLines[0]);
-   if ProcessLines.Count>0 then ProcessLines.Delete(0);
+   if ProcessLines.Count>0 then
+     begin
+     EnterCriticalSection(CSProcessLines);
+     try
+        ProcessLines.Delete(0);
+     Except on E:Exception do
+        begin
+        ShowMessage ('Your wallet just exploded and we will close it for your security'+slinebreak+
+                    'Error deleting line 0 from ProcessLines');
+        halt(0);
+        end;
+     end;
+     LeaveCriticalSection(CSProcessLines);
+     end;
    end;
 End;
 
@@ -194,6 +226,8 @@ else if UpperCase(Command) = 'SHOWADVOPT' then ShowAdvOpt()
 else if UpperCase(Command) = 'ORDER' then ShowOrderDetails(LineText)
 else if UpperCase(Command) = 'EXPORTADDRESS' then ExportAddress(LineText)
 else if UpperCase(Command) = 'ADDRESS' then ShowAddressInfo(LineText)
+else if UpperCase(Command) = 'HISTORY' then ShowAddressHistory(LineText)
+else if UpperCase(Command) = 'TOTALFEES' then ShowTotalFees()
 
 // POOL RELATED COMMANDS
 else if UpperCase(Command) = 'CREATEPOOL' then CreatePool(LineText)
@@ -1024,7 +1058,7 @@ if uppercase(Proceder) = 'DO' then
    if Total = 0 then
      ConsoleLines.Add(LangLine(154)) //'You do not have coins to group.'
    else
-     ProcessLines.Add('SENDTO '+Listadirecciones[0].Hash+' '+IntToStr(GetMaximunToSend(Total)));
+     ProcessLinesAdd('SENDTO '+Listadirecciones[0].Hash+' '+IntToStr(GetMaximunToSend(Total)));
    end;
 End;
 
@@ -1636,7 +1670,7 @@ else
    MemberBalance := GetPoolMemberBalance(member);
    if ( (MemberBalance>0) and (paybalance='YES') ) then // Enviar pago si posee saldo
       begin
-      Processlines.Add('sendto '+member+' '+IntToStr(GetMaximunToSend(MemberBalance))+' EXPEL_POOLPAYMENT_'+PoolInfo.Name);
+      ProcessLinesAdd('sendto '+member+' '+IntToStr(GetMaximunToSend(MemberBalance))+' EXPEL_POOLPAYMENT_'+PoolInfo.Name);
       ClearPoolUserBalance(member);
       ConsoleLines.Add('Pool expel payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
       tolog('Pool expel payment sent: '+int2curr(GetMaximunToSend(MemberBalance)));
@@ -1815,6 +1849,74 @@ else
                     'Outgoing : '+Int2curr(pending)+slinebreak+
                     'Available: '+int2curr(onsumary-pending));
    end;
+End;
+
+// Shows transaction history of the specified address
+Procedure ShowAddressHistory(LineText:string);
+var
+  addtoshow : string;
+  counter,contador2 : integer;
+  Header : BlockHeaderData;
+  ArrTrxs : BlockOrdersArray;
+  incomingtrx : integer = 0; minedblocks : integer = 0;inccoins : int64 = 0;
+  outgoingtrx : integer = 0; outcoins : int64 = 0;
+  inbalance : int64;
+Begin
+addtoshow := parameter(LineText,1);
+for counter := 1 to MyLastBlock do
+   begin
+   Header := LoadBlockDataHeader(counter);
+   if Header.AccountMiner= addtoshow then // address is miner
+     begin
+     minedblocks +=1;
+     inccoins := inccoins + header.Reward+header.MinerFee;
+     end;
+   ArrTrxs := GetBlockTrxs(counter);
+   if length(ArrTrxs)>0 then
+      begin
+      for contador2 := 0 to length(ArrTrxs)-1 do
+         begin
+         if ArrTrxs[contador2].Receiver = addtoshow then // incoming order
+            begin
+            incomingtrx += 1;
+            inccoins := inccoins+ArrTrxs[contador2].AmmountTrf;
+            end;
+         if ArrTrxs[contador2].sender = addtoshow then // outgoing order
+            begin
+            outgoingtrx +=1;
+            outcoins := outcoins + ArrTrxs[contador2].AmmountTrf + ArrTrxs[contador2].AmmountFee;
+            end;
+         end;
+      end;
+   end;
+inbalance := GetAddressBalance(addtoshow);
+consolelines.Add('Last block : '+inttostr(MyLastBlock));
+consolelines.Add('Address    : '+addtoshow);
+consolelines.Add('INCOMINGS');
+consolelines.Add('  Mined        : '+IntToStr(minedblocks));
+consolelines.Add('  Transactions : '+IntToStr(incomingtrx));
+consolelines.Add('  Coins        : '+Int2Curr(inccoins));
+consolelines.Add('OUTGOINGS');
+consolelines.Add('  Transactions : '+IntToStr(outgoingtrx));
+consolelines.Add('  Coins        : '+Int2Curr(outcoins));
+consolelines.Add('TOTAL  : '+Int2Curr(inccoins-outcoins));
+consolelines.Add('SUMARY : '+Int2Curr(inbalance));
+End;
+
+// Shows the total fees paid in the whole blockchain
+Procedure ShowTotalFees();
+var
+  counter : integer;
+  Header : BlockHeaderData;
+  totalcoins : int64 = 0;
+Begin
+for counter := 1 to MyLastBlock do
+   begin
+   Header := LoadBlockDataHeader(counter);
+   totalcoins := totalcoins+ header.MinerFee;
+   end;
+consolelines.Add('Blockchain total fees: '+Int2curr(totalcoins));
+consolelines.Add('Block average        : '+Int2curr(totalcoins div MyLastBlock));
 End;
 
 END. // END UNIT

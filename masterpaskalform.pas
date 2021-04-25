@@ -235,6 +235,8 @@ type
     SystrayIcon: TTrayIcon;
 
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure FormWindowStateChange(Sender: TObject);
     Procedure LoadOptionsToPanel();
     procedure FormShow(Sender: TObject);
@@ -247,6 +249,7 @@ type
     Procedure LatidoEjecutar(Sender: TObject);
     Procedure InfoTimerEnd(Sender: TObject);
     Procedure CloseTimerEnd(Sender: TObject);
+    Procedure TryCloseServerConnection(AContext: TIdContext; closemsg:string='');
     procedure IdTCPServer1Execute(AContext: TIdContext);
     procedure IdTCPServer1Connect(AContext: TIdContext);
     procedure IdTCPServer1Disconnect(AContext: TIdContext);
@@ -368,7 +371,7 @@ CONST
                           '45.141.36.117 '+
                           '185.239.236.85';
   ProgramVersion = '0.2.0';
-  SubVersion = 'P';
+  SubVersion = 'Pa';
   OficialRelease = true;
   BuildDate = 'April 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -446,7 +449,9 @@ var
   DLSL : TStringlist;                // Default Language String List
   ConsoleLines : TStringList;
   LogLines : TStringList;
-   S_Log : boolean = false;
+    S_Log : boolean = false;
+  ExceptLines : TStringList;
+    S_Exc : boolean = false;
   StringAvailableUpdates : String = '';
   DataPanel : TStringGrid;
     U_DataPanel : boolean = true;
@@ -567,11 +572,14 @@ var
 
   // Threads
   RebulidTrxThread : TThreadID;
-  CriptoOPsThread : Int64 = 0;
+  CriptoOPsThread : TThreadID;
     CriptoOpsTipo : Array of integer;
     CriptoOpsOper : Array of string;
     CriptoOpsResu : Array of string;
     CriptoThreadRunning : boolean = false;
+
+  // Critical Sections
+  CSProcessLines: TRTLCriticalSection;
 
   // Cross OS variables
   OSFsep : string = '';
@@ -584,6 +592,8 @@ var
   LanguageFileName : string = '';
   BlockDirectory : string = '';
   UpdatesDirectory : string = '';
+  LogsDirectory : string = '';
+  ExceptLogFilename : string = '';
   ResumenFilename: string = '';
   MyTrxFilename : string = '';
   TranslationFilename : string = '';
@@ -709,7 +719,23 @@ LeerLineasDeClientes;
 ReadingClients := false;
 End;
 
-// Al iniciar el programa
+//***********************
+// *** FORM RELATIVES ***
+//***********************
+
+// Form create
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+InitCriticalSection(CSProcessLines);
+end;
+
+// Form destroy
+procedure TForm1.FormDestroy(Sender: TObject);
+begin
+DoneCriticalSection(CSProcessLines);
+end;
+
+// Form show
 procedure TForm1.FormShow(Sender: TObject);
 var
     Proceder:boolean = true;
@@ -756,6 +782,7 @@ ConsoleLines := TStringlist.Create;
 DLSL := TStringlist.Create;
 IdiomasDisponibles := TStringlist.Create;
 LogLines := TStringlist.Create;
+ExceptLines := TStringlist.Create;
 if not FileExists (LanguageFileName) then CrearIdiomaFile() else CargarIdioma(UserOptions.language);
 // finalizar la inicializacion
 InicializarFormulario();
@@ -801,8 +828,8 @@ StringAvailableUpdates := AvailableUpdates();
 Form1.Latido.Enabled:=true;
 G_Launching := false;
 OutText('Noso is ready',false,1);
-if UserOptions.AutoServer then ProcessLines.add('SERVERON');
-if UserOptions.AutoConnect then ProcessLines.add('CONNECT');
+if UserOptions.AutoServer then ProcessLinesAdd('SERVERON');
+if UserOptions.AutoConnect then ProcessLinesAdd('CONNECT');
 FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
 FirstShow := true;
 Setlength(CriptoOpsTipo,0);
@@ -864,7 +891,7 @@ if Key=VK_RETURN then
    begin
    ConsoleLine.Text := '';
    LastCommand := LineText;
-   ProcessLines.add(LineText);
+   ProcessLinesAdd(LineText);
    if Uppercase(Linetext) = 'EXIT' then
      begin
      CrearCrashInfo();
@@ -1007,7 +1034,7 @@ setmilitime('VerifyMiner',1);
 VerifyMiner();
 setmilitime('VerifyMiner',2);
 if ((KeepServerOn) and (not Form1.Server.Active) and (LastTryServerOn+5<StrToInt64(UTCTime))) then
-   processlines.Add('serveron');
+   ProcessLinesAdd('serveron');
 if G_CloseRequested then CerrarPrograma();
 if form1.SystrayIcon.Visible then
    form1.SystrayIcon.Hint:=Coinname+' Ver. '+ProgramVersion+SLINEBREAK+LabelBigBalance.Caption;
@@ -1016,7 +1043,7 @@ if FormSlots.Visible then UpdateSlotsGrid();
 if FormPool.Visible then UpdatePoolForm();
 ConnectedRotor +=1; if ConnectedRotor>3 then ConnectedRotor := 0;
 UpdateStatusBar;
-if ( (StrToInt64(UTCTime) mod 3600=0) and (LastBotClear<>UTCTime) and (Form1.Server.Active) ) then processlines.Add('delbot all');
+if ( (StrToInt64(UTCTime) mod 3600=0) and (LastBotClear<>UTCTime) and (Form1.Server.Active) ) then ProcessLinesAdd('delbot all');
 Form1.Latido.Enabled:=true;
 end;
 
@@ -1049,6 +1076,7 @@ var
 Begin
 // Elementos visuales
 MainMenu := TMainMenu.create(form1);
+form1.Menu:=MainMenu;
 
 MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Network';MainMenu.items.Add(MenuItem);
 MenuItem.OnClick:=@form1.CheckMMCaptions;
@@ -1840,12 +1868,12 @@ if Comando = 'STEP' then
                PoolMiner.steps := PoolSolutionStep-1;
                end;
             PoolMiner.DiffChars:=GetCharsFromDifficult(PoolMiner.Dificult, PoolMiner.steps);
-            ProcessLines.Add('SENDPOOLSTEPS '+IntToStr(PoolMiner.steps));
+            ProcessLinesAdd('SENDPOOLSTEPS '+IntToStr(PoolMiner.steps));
             end;
          end
       else
          begin
-         ProcessLines.Add('SENDPOOLSTEPS '+IntToStr(PoolMiner.steps));
+         ProcessLinesAdd('SENDPOOLSTEPS '+IntToStr(PoolMiner.steps));
          end;
       end
    else
@@ -1864,7 +1892,7 @@ if Comando = 'PAYMENT' then
       if memberbalance > 0 then
          begin
          SendFundsResult := SendFunds('sendto '+UserDireccion+' '+IntToStr(GetMaximunToSend(MemberBalance))+' POOLPAYMENT_'+PoolInfo.Name);
-         //Processlines.Add('sendto '+UserDireccion+' '+IntToStr(GetMaximunToSend(MemberBalance))+' POOLPAYMENT_'+PoolInfo.Name);
+         //ProcessLinesAdd('sendto '+UserDireccion+' '+IntToStr(GetMaximunToSend(MemberBalance))+' POOLPAYMENT_'+PoolInfo.Name);
          if SendFundsResult <> '' then // payments is done
             begin
             ClearPoolUserBalance(UserDireccion);
@@ -1898,7 +1926,6 @@ procedure TForm1.PoolServerConnect(AContext: TIdContext);
 var
   IPUser,Linea,password, comando, minerversion, JoinPrefijo : String;
   UserDireccion : string = '';
-  continuar : boolean = true;
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
 Linea := AContext.Connection.IOHandler.ReadLn('',ReadTimeOutTIme,-1,IndyTextEncoding_UTF8);
@@ -1982,6 +2009,23 @@ Except on E:Exception do
 end;
 End;
 
+// *****************************
+// *** NODE SERVER FUNCTIONS ***
+// *****************************
+
+// Trys to close a server connection safely
+Procedure TForm1.TryCloseServerConnection(AContext: TIdContext; closemsg:string='');
+Begin
+try
+   if closemsg <>'' then
+      Acontext.Connection.IOHandler.WriteLn(closemsg);
+   Acontext.Connection.IOHandler.InputBuffer.Clear;
+   AContext.Connection.Disconnect;
+Except on E:Exception do
+   ToExcLog('SERVER: Error trying close a server client connection ('+E.Message+')');
+end;
+End;
+
 // Recibir una linea
 procedure TForm1.IdTCPServer1Execute(AContext: TIdContext);
 var
@@ -1992,11 +2036,17 @@ var
   UpdateClavePublica :string ='';UpdateFirma : string = '';
   AFileStream : TFileStream;
   BlockZipName: string = '';
+  GetFileOk : boolean = false;
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
 LLine := AContext.Connection.IOHandler.ReadLn(IndyTextEncoding_UTF8);
 slot := GetSlotFromIP(IPUser);
-if slot = 0 then exit;
+if slot = 0 then
+  begin
+  ToExcLog('SERVER: Received a line from a client without and assigned slot');
+  TryCloseServerConnection(AContext);
+  exit;
+  end;
 if GetCommand(LLine) = 'UPDATE' then
    begin
    UpdateVersion := Parameter(LLine,1);
@@ -2006,37 +2056,78 @@ if GetCommand(LLine) = 'UPDATE' then
    UpdateZipName := 'nosoupdate'+UpdateVersion+'.zip';
    if FileExists(UpdateZipName) then DeleteFile(UpdateZipName);
    AFileStream := TFileStream.Create(UpdateZipName, fmCreate);
-   AContext.Connection.IOHandler.ReadStream(AFileStream);
+   try
+      try
+      AContext.Connection.IOHandler.ReadStream(AFileStream);
+      GetFileOk := true;
+      except on E:Exception do
+         begin
+         ToExcLog('SERVER: Server error receiving update file ('+E.Message+')');
+         TryCloseServerConnection(AContext);
+         end;
+      end;
+   finally
    AFileStream.Free;
-   CheckIncomingUpdateFile(UpdateVersion,UpdateHash,UpdateClavePublica,UpdateFirma,UpdateZipName);
+   end;
+   if GetFileOk then
+      CheckIncomingUpdateFile(UpdateVersion,UpdateHash,UpdateClavePublica,UpdateFirma,UpdateZipName);
    end
 else if GetCommand(LLine) = 'RESUMENFILE' then
    begin
    AFileStream := TFileStream.Create(ResumenFilename, fmCreate);
-   AContext.Connection.IOHandler.ReadStream(AFileStream);
+   try
+      try
+      AContext.Connection.IOHandler.ReadStream(AFileStream);
+      GetFileOk := true;
+      except on E:Exception do
+         begin
+         ToExcLog('SERVER: Server error receiving headers file ('+E.Message+')');
+         TryCloseServerConnection(AContext);
+         end;
+      end;
+   finally
    AFileStream.Free;
-   consolelines.Add(LAngLine(74)+': '+copy(HashMD5File(ResumenFilename),1,5)); //'Headers file received'
-   LastTimeRequestResumen := 0;
-   UpdateMyData();
+   end;
+   if GetFileOk then
+      begin
+      consolelines.Add(LAngLine(74)+': '+copy(HashMD5File(ResumenFilename),1,5)); //'Headers file received'
+      LastTimeRequestResumen := 0;
+      UpdateMyData();
+      end;
    end
 else if LLine = 'BLOCKZIP' then
    begin
    BlockZipName := BlockDirectory+'blocks.zip';
    if FileExists(BlockZipName) then DeleteFile(BlockZipName);
    AFileStream := TFileStream.Create(BlockZipName, fmCreate);
-   AContext.Connection.IOHandler.ReadStream(AFileStream);
+   try
+      try
+      AContext.Connection.IOHandler.ReadStream(AFileStream);
+      GetFileOk := true;
+      except on E:Exception do
+         begin
+         ToExcLog('SERVER: Server error receiving block file ('+E.Message+')');
+         TryCloseServerConnection(AContext);
+         end;
+      end;
+   finally
    AFileStream.Free;
-   UnzipBlockFile(BlockDirectory+'blocks.zip',true);
-   MyLastBlock := GetMyLastUpdatedBlock();
-   BuildHeaderFile(MyLastBlock);
-   ResetMinerInfo();
-   LastTimeRequestBlock := 0;
+   end;
+   if GetFileOk then
+      begin
+      UnzipBlockFile(BlockDirectory+'blocks.zip',true);
+      MyLastBlock := GetMyLastUpdatedBlock();
+      BuildHeaderFile(MyLastBlock);
+      ResetMinerInfo();
+      LastTimeRequestBlock := 0;
+      end;
    end
 else
    try
    SlotLines[slot].Add(LLine);
    Except
-   On E :Exception do Consolelines.Add(LangLine(7)+LLine); // Error receiving line:
+   On E :Exception do
+      ToExcLog('SERVER: Server error adding received line ('+E.Message+')');
    end;
 End;
 
@@ -2049,17 +2140,27 @@ var
   Peerversion : string = '';
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
-LLine := AContext.Connection.IOHandler.ReadLn('',200,-1,IndyTextEncoding_UTF8);
+try
+   LLine := AContext.Connection.IOHandler.ReadLn('',200,-1,IndyTextEncoding_UTF8);
+   if AContext.Connection.IOHandler.ReadLnTimedout then
+      begin
+      TryCloseServerConnection(AContext);
+      ToExcLog('SERVER: Timeout reading line from new connection');
+      exit;
+      end;
+Except on E:Exception do
+   begin
+   TryCloseServerConnection(AContext);
+   ToExcLog('SERVER: Can not read line from new connection ('+E.Message+')');
+   exit;
+   end;
+end;
 MiIp := Parameter(LLine,1);
 Peerversion := Parameter(LLine,2);
 if Copy(LLine,1,4) <> 'PSK ' then  // La linea no contiene un comando valido
    begin
    Consolelines.Add(LangLine(8)+IPUser);     //INVALID CLIENT :
-     try
-     AContext.Connection.Disconnect;
-     Acontext.Connection.IOHandler.InputBuffer.Clear;
-     Except on E:Exception do ToLog('Server: ERREXC 001');
-     end;
+   TryCloseServerConnection(AContext);
    UpdateBotData(IPUser);
    exit;
    end
@@ -2068,62 +2169,35 @@ else
    if IPUser = MyPublicIP then // Nos estamos conectando con nosotros mismos
       begin
       ConsoleLines.Add(LangLine(9));  //INCOMING CLOSED: OWN CONNECTION
-        try
-        AContext.Connection.Disconnect;
-        Acontext.Connection.IOHandler.InputBuffer.Clear;
-        Except on E:Exception do ToLog('Server: ERREXC 002');
-        end;
+      TryCloseServerConnection(AContext);
       exit;
       end;
    end;
 if BotExists(IPUser) then // Es un bot ya conocido
    begin
    ConsoleLines.Add(LAngLine(10)+IPUser);             //BLACKLISTED FROM:
-     try
-     AContext.Connection.Disconnect;
-     Acontext.Connection.IOHandler.InputBuffer.Clear;
-     Except on E:Exception do ToLog('Server: ERREXC 003');
-     end;
+   TryCloseServerConnection(AContext);
    UpdateBotData(IPUser);
    exit;
    end;
 if GetSlotFromIP(IPUser) > 0 then // Conexion duplicada
    begin
    ConsoleLines.Add(LangLine(11)+IPUser);
-     try
-     Acontext.Connection.IOHandler.WriteLn(GetPTCEcn+'DUPLICATED');
-     AContext.Connection.Disconnect;
-     Acontext.Connection.IOHandler.InputBuffer.Clear;
-     Except on E:Exception do ToLog('Server: ERREXC 004');
-     end;
+   TryCloseServerConnection(AContext,GetPTCEcn+'DUPLICATED');
    exit;
    end;
-if Peerversion < ProgramVersion then // version atigua
+if Peerversion < ProgramVersion then // version antigua
    begin
-   Acontext.Connection.IOHandler.WriteLn(GetPTCEcn+'OLDVERSION');
-     try
-     ConsoleLines.Add('Lower version. Rejected: '+IPUser);
-     AContext.Connection.Disconnect;
-     Acontext.Connection.IOHandler.InputBuffer.Clear;
-     Except on E:Exception do ToLog('Server: ERREXC 005');
-     end;
+   TryCloseServerConnection(AContext,GetPTCEcn+'OLDVERSION');
    exit;
    end;
-if SaveConection('CLI',IPUser,Acontext) = 0 then   // Servidor lleno
+if SaveConection('CLI',IPUser,Acontext) = 0 then   // Server full
    begin
-   ConsoleLines.Add(LangLine(12)+IPUser);           //Server full. Unable to keep conection:
-     try
-     AContext.Connection.IOHandler.WriteLn(GetNodesString);
-     AContext.Connection.Disconnect;
-     Acontext.Connection.IOHandler.InputBuffer.Clear;
-     Except on E:Exception do ToLog('Server: ERREXC 006');
-     end;
+   TryCloseServerConnection(AContext);
    end
 else
    begin    // Se acepta la nueva conexion
    OutText(LangLine(13)+IPUser,true);             //New Connection from:
-   If UserOptions.GetNodes then
-      Acontext.Connection.IOHandler.WriteLn(ProtocolLine(getnodes));
    MyPublicIP := MiIp;
    U_DataPanel := true;
    end;
@@ -2137,7 +2211,7 @@ Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
   try
   Acontext.Connection.IOHandler.InputBuffer.Clear;
-  Except on E:Exception do ToLog('Server: ERREXC 007');
+  Except on E:Exception do ToExcLog('SERVER: Error clearing disconnected buffer');
   end;
 BorrarSlot('CLI',ipuser);
 End;
@@ -2145,7 +2219,8 @@ End;
 // Excepcion en el servidor
 procedure TForm1.IdTCPServer1Exception(AContext: TIdContext;AException: Exception);
 Begin
-ConsoleLines.Add(LangLine(6)+AException.Message);    //Server Excepcion:
+ToExcLog(LangLine(6)+AException.Message);    //Server Excepcion:
+TryCloseServerConnection(AContext);
 End;
 
 // DOUBLE CLICK TRAY ICON TO RESTORE
@@ -2160,10 +2235,10 @@ End;
 Procedure TForm1.ConnectCircleOnClick(Sender: TObject);
 Begin
 if (CONNECT_Try) then
-   ProcessLines.Add('disconnect')
+   ProcessLinesAdd('disconnect')
 else
    begin
-   ProcessLines.Add('connect');
+   ProcessLinesAdd('connect');
    end;
 End;
 
@@ -2172,11 +2247,11 @@ Procedure Tform1.MinerCircleOnClick(Sender: TObject);
 Begin
 if Miner_Active then
    begin
-   ProcessLines.Add('mineroff');
+   ProcessLinesAdd('mineroff');
    end
 else
    begin
-   ProcessLines.Add('mineron');
+   ProcessLinesAdd('mineron');
    end;
 End;
 
@@ -2184,13 +2259,13 @@ End;
 Procedure Tform1.LangSelectOnChange(Sender: TObject);
 Begin
 if LangSelect.Items[LangSelect.ItemIndex] <> CurrentLanguage then
-   ProcessLines.Add('lang '+IntToStr(LangSelect.ItemIndex ));
+   ProcessLinesAdd('lang '+IntToStr(LangSelect.ItemIndex ));
 End;
 
 // Cambiar el idiomar por combobox
 Procedure Tform1.CPUsSelectOnChange(Sender: TObject);
 Begin
-if strtoint(CPUsSelect.Text) <> G_MiningCPUs then ProcessLines.Add('CPUMINE '+CPUsSelect.Text);
+if strtoint(CPUsSelect.Text) <> G_MiningCPUs then ProcessLinesAdd('CPUMINE '+CPUsSelect.Text);
 End;
 
 // Mostrar los detalles de una transaccion
@@ -2258,7 +2333,7 @@ End;
 Procedure TForm1.BDefAddrOnClick(Sender: TObject);
 Begin
 if DireccionesPanel.Row > 0 then
-  ProcessLines.Add('SETDEFAULT '+IntToStr(DireccionesPanel.Row-1));
+  ProcessLinesAdd('SETDEFAULT '+IntToStr(DireccionesPanel.Row-1));
 End;
 
 // Mostrar el panel de personalizacion
@@ -2283,7 +2358,7 @@ Procedure Tform1.EditCustomKeyUp(Sender: TObject; var Key: Word; Shift: TShiftSt
 Begin
 if Key=VK_RETURN then
    begin
-   ProcessLines.Add('Customize '+DireccionesPanel.Cells[0,DireccionesPanel.Row]+' '+EditCustom.Text);
+   ProcessLinesAdd('Customize '+DireccionesPanel.Cells[0,DireccionesPanel.Row]+' '+EditCustom.Text);
    PanelCustom.Visible := false;
    EditCustom.Text := '';
    end;
@@ -2292,7 +2367,7 @@ End;
 // Aceptar la personalizacion
 Procedure TForm1.BOkCustomClick(Sender: TObject);
 Begin
-ProcessLines.Add('Customize '+DireccionesPanel.Cells[0,DireccionesPanel.Row]+' '+EditCustom.Text);
+ProcessLinesAdd('Customize '+DireccionesPanel.Cells[0,DireccionesPanel.Row]+' '+EditCustom.Text);
 PanelCustom.Visible := false;
 EditCustom.Text := '';
 End;
@@ -2306,7 +2381,7 @@ End;
 // El boton para crear una nueva direccion
 Procedure TForm1.BNewAddrOnClick(Sender: TObject);
 Begin
-ProcessLines.Add('newaddress');
+ProcessLinesAdd('newaddress');
 End;
 
 // Copia el hash de la direccion al portapapeles
@@ -2484,7 +2559,7 @@ End;
 // confirmar el envio con los valores
 Procedure Tform1.SCBitConfOnClick(Sender:TObject);
 Begin
-ProcessLines.Add('SENDTO '+EditSCDest.Text+' '+StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase]));
+ProcessLinesAdd('SENDTO '+EditSCDest.Text+' '+StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase]));
 ResetearValoresEnvio(Sender);
 End;
 
@@ -2511,7 +2586,7 @@ Procedure Tform1.EditIPKeyup(Sender: TObject; var Key: Word; Shift: TShiftState)
 Begin
 if Key=VK_RETURN then
    begin
-   ProcessLines.Add('ADDNODE '+EditIP.Text+' '+EditPort.Text);
+   ProcessLinesAdd('ADDNODE '+EditIP.Text+' '+EditPort.Text);
    EditIP.Text := '';EditPort.Text := '';
    end;
 End;
@@ -2519,68 +2594,68 @@ End;
 // Boton para borrar un nodo
 Procedure Tform1.SBDelNodeOnClick(Sender:TObject);
 Begin
-Processlines.Add('DELNODE '+IntToStr(Gridnodes.row-1));
+ProcessLinesAdd('DELNODE '+IntToStr(Gridnodes.row-1));
 End;
 
 // boton para añadir un nuevo nodo
 Procedure Tform1.SBNewNodeOnClick(Sender:TObject);
 Begin
-Processlines.Add('ADDNODE '+EditIP.Text+' '+EditPort.Text);
+ProcessLinesAdd('ADDNODE '+EditIP.Text+' '+EditPort.Text);
 EditIP.Text := '';EditPort.Text := '';
 End;
 
 Procedure Tform1.EditMyportEditingDone(Sender:TObject);
 Begin
 if StrToIntDef(EditMyport.Text,0) <> UserOptions.port then
-  processlines.Add('SETPORT '+EditMyport.Text);
+  ProcessLinesAdd('SETPORT '+EditMyport.Text);
 End;
 
 // ACTIVA/DESACTIVA GETNODES
 Procedure TForm1.CBGetNodesOnChange(Sender:TObject);
 Begin
 if G_Launching then exit;
-If UserOptions.GetNodes then Processlines.Add('GETNODESOFF')
-else Processlines.Add('GETNODESON');
+If UserOptions.GetNodes then ProcessLinesAdd('GETNODESOFF')
+else ProcessLinesAdd('GETNODESON');
 End;
 
 // activa/desactiva autoserver
 Procedure TForm1.CBAutoserverOnChange(Sender:TObject);
 Begin
 if G_Launching then exit;
-If UserOptions.AutoServer then Processlines.Add('AUTOSERVEROFF')
-else Processlines.Add('AUTOSERVERON');
+If UserOptions.AutoServer then ProcessLinesAdd('AUTOSERVEROFF')
+else ProcessLinesAdd('AUTOSERVERON');
 End;
 
 // activa/desactiva autoconnect
 Procedure TForm1.CBAutoConnectOnChange(Sender:TObject);
 Begin
 if G_Launching then exit;
-If UserOptions.AutoConnect then Processlines.Add('AUTOCONNECTOFF')
-else Processlines.Add('AUTOCONNECTON');
+If UserOptions.AutoConnect then ProcessLinesAdd('AUTOCONNECTOFF')
+else ProcessLinesAdd('AUTOCONNECTON');
 End;
 
 // activa/desactiva autoupdate
 Procedure TForm1.CBAutoUpdateOnChange(Sender:TObject);
 Begin
 if G_Launching then exit;
-If UserOptions.Auto_Updater then Processlines.Add('AUTOUPDATEOFF')
-else Processlines.Add('AUTOUPDATEON');
+If UserOptions.Auto_Updater then ProcessLinesAdd('AUTOUPDATEOFF')
+else ProcessLinesAdd('AUTOUPDATEON');
 End;
 
 // activa/desactiva minimizar
 Procedure TForm1.CBToTrayOnChange(Sender:TObject);
 Begin
 if G_Launching then exit;
-If UserOptions.ToTray then Processlines.Add('TOTRAYOFF')
-else Processlines.Add('TOTRAYON');
+If UserOptions.ToTray then ProcessLinesAdd('TOTRAYOFF')
+else ProcessLinesAdd('TOTRAYON');
 End;
 
 // activa/desactiva minimizar
 Procedure TForm1.CBToPoolOnChange(Sender:TObject);
 Begin
 if G_Launching then exit;
-If UserOptions.UsePool then Processlines.Add('USEPOOLOFF')
-else Processlines.Add('USEPOOLON');
+If UserOptions.UsePool then ProcessLinesAdd('USEPOOLOFF')
+else ProcessLinesAdd('USEPOOLON');
 End;
 
 // Actualizar barra de estado
@@ -2672,22 +2747,22 @@ End;
 // menu principal servidor
 Procedure Tform1.MMServer(Sender:TObject);
 Begin
-if Form1.Server.Active then ProcessLines.Add('serveroff')
-else ProcessLines.Add('serveron');
+if Form1.Server.Active then ProcessLinesAdd('serveroff')
+else ProcessLinesAdd('serveron');
 End;
 
 // menu principal conexion
 Procedure Tform1.MMConnect(Sender:TObject);
 Begin
-if CONNECT_Try then ProcessLines.Add('disconnect')
-else ProcessLines.Add('connect');
+if CONNECT_Try then ProcessLinesAdd('disconnect')
+else ProcessLinesAdd('connect');
 End;
 
 // menu principal minero
 Procedure Tform1.MMMiner(Sender:TObject);
 Begin
-if Miner_Active then ProcessLines.Add('mineroff')
-else ProcessLines.Add('mineron');
+if Miner_Active then ProcessLinesAdd('mineroff')
+else ProcessLinesAdd('mineron');
 End;
 
 // menu principal importar cartera
@@ -2711,7 +2786,7 @@ End;
 // menuprincipal restart
 Procedure Tform1.MMRestart(Sender:TObject);
 Begin
-ProcessLines.Add('restart');
+ProcessLinesAdd('restart');
 End;
 
 // menuprincipal salir
@@ -2727,7 +2802,7 @@ var
   valor : integer;
 Begin
 valor := (sender as TMenuItem).MenuIndex;
-ProcessLines.Add('lang '+IntToStr(valor));
+ProcessLinesAdd('lang '+IntToStr(valor));
 End;
 
 // Ejecuta un update seleccionado en el menuprincipal
@@ -2736,7 +2811,7 @@ var
   valor : integer;
 Begin
 valor := (sender as TMenuItem).MenuIndex;
-ProcessLines.Add('update '+parameter(StringAvailableUpdates,valor));
+ProcessLinesAdd('update '+parameter(StringAvailableUpdates,valor));
 End;
 
 // menu principal importar idioma
@@ -2851,7 +2926,7 @@ End;
 
 Procedure TForm1.ConsolePopUpClear(Sender:TObject);
 Begin
-Processlines.Add('clear');
+ProcessLinesAdd('clear');
 End;
 
 Procedure TForm1.ConsolePopUpCopy(Sender:TObject);
@@ -2960,7 +3035,7 @@ End;
 
 Procedure TForm1.NodesPopupConnect(Sender:TObject);
 Begin
-Processlines.Add('ConnectTo '+gridnodes.Cells[0,Gridnodes.row]+' '+gridnodes.Cells[1,Gridnodes.row]);
+ProcessLinesAdd('ConnectTo '+gridnodes.Cells[0,Gridnodes.row]+' '+gridnodes.Cells[1,Gridnodes.row]);
 End;
 
 
