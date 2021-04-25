@@ -7,6 +7,8 @@ on:
     - "README.md"
     branches:
       - "*"
+    tags:
+      - "*"
 
 jobs:
   build:
@@ -48,3 +50,38 @@ jobs:
         path: |
           Noso
           Noso.exe
+
+          
+  package-release:
+    if: contains(github.ref, '/tags/')
+    name: Package and Upload
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/download-artifact@v2
+        name: Download Artifacts
+      - name: List everything
+        run: |
+          ls -al
+          ls -al windows-latest
+          ls -al ubuntu-latest
+      - name: Package Windows
+        run: |
+          cp windows-latest/Noso.exe .
+          tag=${{ github.event.ref }}
+          tag=${tag#"refs/tags/"}
+          zip noso-${tag}-windows.zip Noso.exe
+      - name: Package Linux
+        run: |
+          cp ubuntu-latest/Noso .
+          tag=${{ github.event.ref }}
+          tag=${tag#"refs/tags/"}
+          tar -zcvf noso-${tag}-linux.tgz Noso
+      - name: Upload Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            noso-*.zip
+            noso-*.tgz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
