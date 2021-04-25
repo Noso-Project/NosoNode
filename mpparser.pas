@@ -103,7 +103,7 @@ procedure ProcessLinesAdd(const ALine: String);
 begin
   EnterCriticalSection(CSProcessLines);
   try
-    ProcessLinesAdd(ALine);
+    ProcessLines.Add(ALine);
   finally
     LeaveCriticalSection(CSProcessLines);
   end;

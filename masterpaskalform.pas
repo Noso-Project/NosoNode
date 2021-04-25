@@ -726,7 +726,14 @@ End;
 // Form create
 procedure TForm1.FormCreate(Sender: TObject);
 begin
+Randomize;
 InitCriticalSection(CSProcessLines);
+CreateFormInicio();
+CreateFormLog();
+CreateFormAbout();
+CreateFormMilitime();
+CreateFormSlots();
+CreateFormPool();
 end;
 
 // Form destroy
@@ -743,15 +750,8 @@ begin
 // Se ejecuta solo la primera vez
 if FirstShow then Proceder:=false;
 //inicializar lo basico para cargar el idioma
-Randomize;
 if proceder then
    begin
-   CreateFormInicio();
-   CreateFormLog();
-   CreateFormAbout();
-   CreateFormMilitime();
-   CreateFormSlots();
-   CreateFormPool();
    form1.Visible:=false;
    forminicio.Visible:=true;
    Form1.InicioTimer:= TTimer.Create(Form1);
