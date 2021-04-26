@@ -518,6 +518,7 @@ var
   contador : integer = 0;
   TotalCoins : int64 = 0;
   EmptyAddresses : int64 = 0;
+  NegAdds : integer = 0;
 Begin
 For contador := 0 to length(ListaSumario)-1 do
    begin
@@ -526,11 +527,13 @@ For contador := 0 to length(ListaSumario)-1 do
       SLINEBREAK+ListaSumario[contador].custom+' '+
       IntToStr(ListaSumario[contador].LastOP)+' '+IntToStr(ListaSumario[contador].Score));
    }
+   if ListaSumario[contador].Balance < 0 then NegAdds+=1;
    TotalCOins := totalCoins+ ListaSumario[contador].Balance;
-   if ListaSumario[contador].Balance <= 0 then EmptyAddresses +=1;
+   if ListaSumario[contador].Balance = 0 then EmptyAddresses +=1;
    end;
 consoleLines.Add(IntToStr(Length(ListaSumario))+langline(51)); //addresses
 consoleLines.Add(IntToStr(EmptyAddresses)+' empty.'); //addresses
+if NegAdds>0 then consoleLines.Add('Possible issues: '+IntToStr(NegAdds));
 ConsoleLines.Add(Int2Curr(Totalcoins)+' '+CoinSimbol);
 End;
 
