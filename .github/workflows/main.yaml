@@ -1,0 +1,87 @@
+name: Build NosoWallet
+
+on:
+  pull_request:
+  push:
+    paths-ignore:
+    - "README.md"
+    branches:
+      - "*"
+    tags:
+      - "*"
+
+jobs:
+  build:
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      matrix:
+        operating-system: [ubuntu-latest, windows-latest]
+        lazarus-versions: [2.0.12]
+    steps:
+    - uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cache/instantfpc
+          ~/.lazarus
+          /usr/share/lazarus/${{ matrix.lazarus-versions }}
+          /usr/bin/lazbuild
+        key: ${{ runner.os }}-laz-${{ matrix.lazarus-versions }}-v1
+        restore-keys: |
+          ${{ runner.os }}-laz-
+    - name: Install Lazarus
+      uses: gcarreno/setup-lazarus@v2.2.9
+      with:
+        lazarus-version: ${{ matrix.lazarus-versions }}
+    - uses: actions/checkout@v2
+    - name: Unzip packages
+      run: unzip -q Packages/\*.zip -d Packages
+    - name: Install packages
+      run: |
+        lazbuild -qqq Packages/Indy10/indylaz.lpk
+        lazbuild -qqq Packages/HashLib/src/Packages/FPC/HashLib4PascalPackage.lpk
+        lazbuild -qqq Packages/SimpleBaseLib/src/Packages/FPC/SimpleBaseLib4PascalPackage.lpk
+        lazbuild -qqq Packages/dcpcrypt-2.0.4.1/dcpcrypt.lpk
+        lazbuild -qqq Packages/CryptoLib4Pascal-master/CryptoLib/src/Packages/FPC/CryptoLib4PascalPackage.lpk
+    - name: Build the Main Application
+      run: lazbuild "Noso.lpi"
+    - uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.operating-system }}
+        path: |
+          Noso
+          Noso.exe
+
+          
+  package-release:
+    if: contains(github.ref, '/tags/')
+    name: Package and Upload
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/download-artifact@v2
+        name: Download Artifacts
+      - name: List everything
+        run: |
+          ls -al
+          ls -al windows-latest
+          ls -al ubuntu-latest
+      - name: Package Windows
+        run: |
+          cp windows-latest/Noso.exe .
+          tag=${{ github.event.ref }}
+          tag=${tag#"refs/tags/"}
+          zip noso-${tag}-windows.zip Noso.exe
+      - name: Package Linux
+        run: |
+          cp ubuntu-latest/Noso .
+          tag=${{ github.event.ref }}
+          tag=${tag#"refs/tags/"}
+          tar -zcvf noso-${tag}-linux.tgz Noso
+      - name: Upload Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            noso-*.zip
+            noso-*.tgz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
