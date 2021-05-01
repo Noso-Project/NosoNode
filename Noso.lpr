@@ -9,7 +9,7 @@ uses
   Interfaces, // this includes the LCL widgetset
   Forms, indylaz, MasterPaskalForm, mpGUI, mpdisk, mpParser, mpRed, mpTime,
   mpCripto, mpProtocol, mpBlock, mpMiner, mpLang, mpCoin, mpsignerutils,
-  PoolMAnage, mpRPC
+  PoolMAnage, mpRPC, mpoptions
   { you can add units after this };
 
 {$R *.res}
@@ -18,7 +18,9 @@ begin
   RequireDerivedFormResource:=True;
   Application.Scaled:=True;
   Application.Initialize;
+
   Application.CreateForm(TForm1, Form1);
+  Application.CreateForm(TForm2, FormOptions);
   Application.Run;
 end.
 

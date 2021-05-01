@@ -5,7 +5,7 @@ unit PoolManage;
 interface
 
 uses
-  Classes, SysUtils, IdContext, IdGlobal;
+  Classes, SysUtils, IdContext, IdGlobal, fileutil;
 
 procedure StartPoolServer(port:integer);
 Procedure StopPoolServer();
@@ -46,16 +46,16 @@ procedure StartPoolServer(port:integer);
 Begin
 if Form1.PoolServer.Active then
    begin
-   ConsoleLines.Add('Pool server already active'); //'Server Already active'
+   ConsoleLinesAdd('Pool server already active'); //'Server Already active'
    exit;
    end;
 try
    Form1.PoolServer.Bindings.Clear;
    Form1.PoolServer.DefaultPort:=port;
    Form1.PoolServer.Active:=true;
-   ConsoleLines.Add('Pool server enabled at port: '+IntToStr(port));   //Server ENABLED. Listening on port
+   ConsoleLinesAdd('Pool server enabled at port: '+IntToStr(port));   //Server ENABLED. Listening on port
 except on E : Exception do
-   ConsoleLines.Add('Unable to start pool server: '+E.Message);       //Unable to start Server
+   ConsoleLinesAdd('Unable to start pool server: '+E.Message);       //Unable to start Server
 end;
 end;
 
@@ -316,7 +316,7 @@ if ((ARepartir>0) and (MinersConPos>0)) then
          arraypoolmembers[contador].LastEarned:=arraypoolmembers[contador].LastEarned+PagoPorPOS;
          end;
       end;
-   consolelines.Add('POOL POP: '+IntToStr(MinersConPos)+' members, each= '+Int2Curr(PagoPorPOS));
+   ConsoleLinesAdd('POOL POP: '+IntToStr(MinersConPos)+' members, each= '+Int2Curr(PagoPorPOS));
    end;
 PoolMembersTotalDeuda := GetTotalPoolDeuda();
 S_PoolMembers := true;
@@ -396,7 +396,7 @@ if length(arraypoolmembers)>0 then
       end;
    end;
 S_PoolMembers := true;
-consolelines.Add('Discounted last payment to pool members : '+Int2curr(totalmenos));
+ConsoleLinesAdd('Discounted last payment to pool members : '+Int2curr(totalmenos));
 PoolMembersTotalDeuda := GetTotalPoolDeuda();
 End;
 
@@ -465,7 +465,7 @@ if length(PoolServerConex) > 0 then
            AContext.Connection.Disconnect;
            Except on E:Exception do
            begin
-           consolelines.Add('Error closing pool connection');
+           ConsoleLinesAdd('Error closing pool connection');
            end;
          end;
          U_PoolConexGrid := true;
@@ -578,6 +578,7 @@ End;
 Procedure ExpelPoolInactives();
 var
   counter : integer;
+  expelled : integer = 0;
 Begin
 if length(arraypoolmembers)>0 then
    begin
@@ -585,11 +586,16 @@ if length(arraypoolmembers)>0 then
       begin
       if arraypoolmembers[counter].LastSolucion+PoolExpelBlocks<PoolMiner.Block then
          begin
-         if IsPoolMemberConnected(arraypoolmembers[counter].Direccion)<0 then
+         if ( (IsPoolMemberConnected(arraypoolmembers[counter].Direccion)<0) and
+             (arraypoolmembers[counter].Direccion<>'')) then
+            begin
             ProcessLinesAdd('POOLEXPEL '+arraypoolmembers[counter].Direccion+' YES');
+            expelled +=1;
+            end;
          end;
       end;
    end;
+ConsoleLinesAdd('Pool expels: '+IntToStr(expelled));
 End;
 
 END. // END UNIT

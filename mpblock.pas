@@ -28,7 +28,7 @@ Uses
 Procedure CrearBloqueCero();
 Begin
 CrearNuevoBloque(0,GenesysTimeStamp,'',adminhash,'');
-if G_Launching then Consolelines.Add(LangLine(88)); //'Block 0 created.'
+if G_Launching then ConsoleLinesAdd(LangLine(88)); //'Block 0 created.'
 if G_Launching then OutText('✓ Block 0 created',false,1);
 
 End;
@@ -49,11 +49,12 @@ var
   FeeOrder : OrderData;
   DelAddr : String = '';
   LastOP : integer = 0;}
+  MNAddressess : array of string[32];
 Begin
 if ((numero>0) and (Timestamp < lastblockdata.TimeEnd)) then
    begin
-   consolelines.Add('New block '+IntToStr(numero)+' : Invalid timestamp');
-   consolelines.Add('Blocks can not be added until '+TimestampToDate(IntToStr(GenesysTimeStamp)));
+   ConsoleLinesAdd('New block '+IntToStr(numero)+' : Invalid timestamp');
+   ConsoleLinesAdd('Blocks can not be added until '+TimestampToDate(IntToStr(GenesysTimeStamp)));
    exit;
    end;
 if Numero = 0 then StartBlockTime := 1531896783
@@ -142,7 +143,7 @@ if ((numero>0) and (Numero mod ComisionBlockCheck = 0)) then
          if DelAddr = 'YES' then
             begin
             Delete(ListaSumario,AddressSumaryIndex(FeeOrder.Sender),1);
-            consolelines.Add('Deleted '+FeeOrder.Sender);
+            ConsoleLinesAdd('Deleted '+FeeOrder.Sender);
             end
          end;
       end;
@@ -191,10 +192,11 @@ AddBlchHead(Numero,MyLastBlockHash,MySumarioHash);
 MyResumenHash := HashMD5File(ResumenFilename);
 ResetMinerInfo();
 ResetPoolMiningInfo();
+copyfile (PoolMembersFilename,PoolMembersFilename+'.bak');
 if ((Miner_OwnsAPool) and (PoolExpelBlocks>0)) then ExpelPoolInactives();
 if minero = PoolInfo.Direccion then
    begin
-   Consolelines.Add('Your pool solved the block '+inttoStr(numero));
+   ConsoleLinesAdd('Your pool solved the block '+inttoStr(numero));
    DistribuirEnPool(GetBlockReward(Numero)+MinerFee);
    end;
 if minero = RPC_MinerInfo then
@@ -277,7 +279,7 @@ MemStr := TMemoryStream.Create;
    MemStr.SaveToFile(NombreArchivo);
    MemStr.Free;
    Except
-   On E :Exception do Consolelines.Add(LangLine(20));           //Error saving block to disk
+   On E :Exception do ConsoleLinesAdd(LangLine(20));           //Error saving block to disk
    end;
 End;
 
@@ -359,9 +361,9 @@ MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
 LastBlockData := LoadBlockDataHeader(MyLastBlock);
 MyResumenHash := HashMD5File(ResumenFilename);
 ResetMinerInfo();
-consolelines.Add('****************************');
-consolelines.Add(LAngLine(90)+IntToStr(blocknumber)); //'Block undone: '
-consolelines.Add('****************************');
+ConsoleLinesAdd('****************************');
+ConsoleLinesAdd(LAngLine(90)+IntToStr(blocknumber)); //'Block undone: '
+ConsoleLinesAdd('****************************');
 Tolog('Block Undone: '+IntToStr(blocknumber));
 End;
 

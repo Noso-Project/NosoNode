@@ -158,6 +158,7 @@ var
   PeerTime: String = '';
   Linecomando : string = '';
 Begin
+SetCurrentJob('ParseProtocolLines',true);
 for contador := 1 to MaxConecciones do
    begin
    While SlotLines[contador].Count > 0 do
@@ -169,18 +170,18 @@ for contador := 1 to MaxConecciones do
       if ((not IsValidProtocol(SlotLines[contador][0])) and (not Conexiones[contador].Autentic)) then
          // La linea no es valida y proviene de una conexion no autentificada
          begin
-         ConsoleLines.Add(LangLine(22)+conexiones[contador].ip+'->'+SlotLines[contador][0]); //CONNECTION REJECTED: INVALID PROTOCOL ->
+         ConsoleLinesAdd(LangLine(22)+conexiones[contador].ip+'->'+SlotLines[contador][0]); //CONNECTION REJECTED: INVALID PROTOCOL ->
          UpdateBotData(conexiones[contador].ip);
          CerrarSlot(contador);
          end
       else if UpperCase(LineComando) = 'DUPLICATED' then
          begin
-         ConsoleLines.Add('You are already connected to '+conexiones[contador].ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
+         ConsoleLinesAdd('You are already connected to '+conexiones[contador].ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
          CerrarSlot(contador);
          end
       else if UpperCase(LineComando) = 'OLDVERSION' then
          begin
-         ConsoleLines.Add('You need update your wallet to connect to '+conexiones[contador].ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
+         ConsoleLinesAdd('You need update your wallet to connect to '+conexiones[contador].ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
          CerrarSlot(contador);
          end
       else if UpperCase(LineComando) = '$GETNODES' then PTC_Getnodes(contador)
@@ -197,11 +198,12 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = 'NETREQ' then PTC_NetReqs(SlotLines[contador][0])
       else
          Begin  // El comando recibido no se reconoce. Verificar protocolos posteriores.
-         ConsoleLines.Add(LangLine(23)+SlotLines[contador][0]+') '+intToStr(contador)); //Unknown command () in slot: (
+         ConsoleLinesAdd(LangLine(23)+SlotLines[contador][0]+') '+intToStr(contador)); //Unknown command () in slot: (
          end;
       if SlotLines[contador].count > 0 then SlotLines[contador].Delete(0);
       end;
    end;
+SetCurrentJob('ParseProtocolLines',false);
 End;
 
 // Verifica si una linea recibida en una conexion es una linea valida de protocolo
@@ -214,7 +216,7 @@ End;
 // Procesa una solicitud de nodos
 Procedure PTC_Getnodes(Slot:integer);
 Begin
-PTC_SendLine(slot,ProtocolLine(Nodes));
+//PTC_SendLine(slot,ProtocolLine(Nodes));
 End;
 
 // Devuelve una cadena con la info de los 50 primeros nodos validos.
@@ -244,7 +246,7 @@ if conexiones[Slot].tipo='CLI' then
       except
       On E :Exception do
          begin
-         ConsoleLines.Add(E.Message);
+         ConsoleLinesAdd(E.Message);
          ToLog('Error sending line: '+E.Message);
          CerrarSlot(Slot);
          end;
@@ -257,7 +259,7 @@ if conexiones[Slot].tipo='SER' then
       except
       On E :Exception do
          begin
-         ConsoleLines.Add(E.Message);
+         ConsoleLinesAdd(E.Message);
          ToLog('Error sending line: '+E.Message);
          CerrarSlot(Slot);
          end;
@@ -274,7 +276,7 @@ var
   ThisParam : String = '';
   ThisNode : NodeData;
 Begin
-consolelines.Add('Get nodes: deprecated');
+ConsoleLinesAdd('Get nodes: deprecated');
 exit;
 NodosList := TStringList.Create;
 while MoreParam do
@@ -370,7 +372,12 @@ While OutgoingMsjs.Count > 0 do
          Tolog('Error sending outgoing message');
       end;
       end;
-   if OutgoingMsjs.Count > 0 then OutgoingMsjs.Delete(0);
+   if OutgoingMsjs.Count > 0 then
+      begin
+      EnterCriticalSection(CSOutgoingMsjs);
+      OutgoingMsjs.Delete(0);
+      LeaveCriticalSection(CSOutgoingMsjs);
+      end;
    end;
 End;
 
@@ -433,7 +440,7 @@ solucion        := StringReplace(Solucion,'_',' ',[rfReplaceAll, rfIgnoreCase]);
 if ( (StrToIntDef(NumeroBloque,-1) = LastBlockData.Number+1) and
      (VerifySolutionForBlock(lastblockdata.NxtBlkDiff,MyLastBlockHash,DireccionMinero,Solucion)=0))then
    begin
-   consoleLines.Add(LangLine(21)+NumeroBloque); //Solution for block received and verified:
+   ConsoleLinesAdd(LangLine(21)+NumeroBloque); //Solution for block received and verified:
    CrearNuevoBloque(StrToInt(NumeroBloque),StrToInt64(TimeStamp),Miner_Target,DireccionMinero,Solucion);
    end
 // se recibe una solucion distinta del ultimo bloque pero mas antigua
@@ -459,24 +466,40 @@ else if ( (StrToIntDef(NumeroBloque,-1) = LastBlockData.Number) and
 end; // proceder 1
 End;
 
-// Envia el archivo resumen
+// Send headers file to peer
 Procedure PTC_SendResumen(Slot:int64);
 var
   AFileStream : TFileStream;
 Begin
+SetCurrentJob('PTC_SendResumen',true);
 AFileStream := TFileStream.Create(ResumenFilename, fmOpenRead + fmShareDenyNone);
 if conexiones[slot].tipo='CLI' then
    begin
-   Conexiones[slot].context.Connection.IOHandler.WriteLn('RESUMENFILE');
-   Conexiones[slot].context.connection.IOHandler.Write(AFileStream,0,true);
+      try
+      Conexiones[slot].context.Connection.IOHandler.WriteLn('RESUMENFILE');
+      Conexiones[slot].context.connection.IOHandler.Write(AFileStream,0,true);
+      Except on E:Exception do
+         begin
+         Form1.TryCloseServerConnection(Conexiones[Slot].context);
+         ToExcLog('SERVER: Error sending headers file ('+E.Message+')');
+         end;
+      end;
    end;
 if conexiones[slot].tipo='SER' then
    begin
-   CanalCliente[slot].IOHandler.WriteLn('RESUMENFILE');
-   CanalCliente[slot].IOHandler.Write(AFileStream,0,true);
+      try
+      CanalCliente[slot].IOHandler.WriteLn('RESUMENFILE');
+      CanalCliente[slot].IOHandler.Write(AFileStream,0,true);
+      Except on E:Exception do
+         begin
+         ToExcLog('CLIENT: Error sending Headers file ('+E.Message+')');
+         CerrarSlot(slot);
+         end;
+      end;
    end;
 AFileStream.Free;
-consolelines.Add(LangLine(91));//'Headers file sent'
+SetCurrentJob('PTC_SendResumen',false);
+//ConsoleLinesAdd(LangLine(91));//'Headers file sent'
 End;
 
 // Send Zipped blocks to peer
@@ -489,9 +512,10 @@ var
   filename, archivename: String;
   FileSentOk : Boolean = false;
 Begin
+SetCurrentJob('PTC_SendBlocks',true);
 FirstBlock := StrToIntDef(Parameter(textline,5),-1)+1;
 LastBlock := FirstBlock + 99; if LastBlock>MyLastBlock then LastBlock := MyLastBlock;
-ConsoleLines.Add(LangLine(92)+IntToStr(FirstBlock)+'->'+IntToStr(LastBlock)); //'Requested blocks interval: '
+ConsoleLinesAdd(LangLine(92)+'('+Conexiones[Slot].ip+')'+IntToStr(FirstBlock)+'->'+IntToStr(LastBlock)); //'Requested blocks interval: '
 MyZipFile := TZipper.Create;
 MyZipFile.FileName := BlockDirectory+'Blocks_'+IntToStr(FirstBlock)+'_'+IntToStr(LastBlock)+'.zip';
 for contador := FirstBlock to LastBlock do
@@ -539,6 +563,7 @@ AFileStream := TFileStream.Create(MyZipFile.FileName , fmOpenRead + fmShareDenyN
    end;
 MyZipFile.Free;
 deletefile(BlockDirectory+'Blocks_'+IntToStr(FirstBlock)+'_'+IntToStr(LastBlock)+'.zip');
+SetCurrentJob('PTC_SendBlocks',false);
 End;
 
 Procedure INC_PTC_Custom(TextLine:String);
@@ -623,7 +648,7 @@ for cont := 0 to NumTransfers-1 do
    if SenderTrx[cont] <> TrxArray[cont].Address then proceder := false;
    if pos(SendersString,SenderTrx[cont]) > 0 then
       begin
-      consolelines.Add(LangLine(94)); //'Duplicate sender in order'
+      ConsoleLinesAdd(LangLine(94)); //'Duplicate sender in order'
       Proceder:=false; // hay una direccion de envio repetida
       end;
    SendersString := SendersString + SenderTrx[cont];
@@ -663,12 +688,12 @@ if AnsiContainsStr(MsgsReceived,hashmsg) then exit;
 mensaje := StringReplace(mensaje,'_',' ',[rfReplaceAll, rfIgnoreCase]);
 if not VerifySignedString(msgtime+mensaje,firma,AdminPubKey) then
    begin
-   consolelines.Add('Admin msg wrong sign');
+   ConsoleLinesAdd('Admin msg wrong sign');
    exit;
    end;
 if HashMD5String(msgtime+mensaje+firma) <> Hashmsg then
    begin
-   consolelines.Add('Admin msg wrong hash');
+   ConsoleLinesAdd('Admin msg wrong hash');
    exit;
    end;
 MsgsReceived := MsgsReceived + Hashmsg;
@@ -729,10 +754,10 @@ if request = 1 then // hashrate
       (Direccion = LastBlockData.AccountMiner) and (bloque=LastBlockData.Number) and
       (RequestAlreadyexists(ReqHash)='') ) then
       begin
-      //consolelines.Add('NETREQ GOT'+slinebreak+IntToStr(request)+' '+timestamp+' '+direccion+' '+IntTostr(bloque)+' '+
+      //ConsoleLinesAdd('NETREQ GOT'+slinebreak+IntToStr(request)+' '+timestamp+' '+direccion+' '+IntTostr(bloque)+' '+
       //   ReqHash+' '+ValueHash+' '+valor);
       newvalor := InttoStr(StrToIntDef(valor,0)+Miner_LastHashRate);
-      consolelines.Add('hashrate set to: '+newvalor);
+      ConsoleLinesAdd('hashrate set to: '+newvalor);
       NewValueHash := HashMD5String(newvalor);
       TextToSend := GetPTCEcn+'NETREQ 1 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+
          ReqHash+' '+NewValueHash+' '+newvalor;
@@ -745,13 +770,13 @@ if request = 1 then // hashrate
       TextToSend := GetPTCEcn+'NETREQ 1 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+
          ReqHash+' '+NewValueHash+' '+valor;
       OutgoingMsjs.Add(texttosend);
-      consolelines.Add('Now hashrate: '+valor);
+      ConsoleLinesAdd('Now hashrate: '+valor);
       UpdateMyRequests(request,timestamp,bloque, ReqHash,NewValueHash );
       end
    else
       begin
       networkhashrate := StrToInt64def(valor,-1);
-      consolelines.Add('Final hashrate: '+valor);
+      ConsoleLinesAdd('Final hashrate: '+valor);
       if nethashsend=false then
          begin
          TextToSend := GetPTCEcn+'NETREQ 1 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+
@@ -768,7 +793,7 @@ else if request = 2 then // peers
       (RequestAlreadyexists(ReqHash)='') ) then
       begin
       newvalor := InttoStr(StrToIntDef(valor,0)+1);
-      consolelines.Add('peers set to: '+newvalor);
+      ConsoleLinesAdd('peers set to: '+newvalor);
       NewValueHash := HashMD5String(newvalor);
       TextToSend := GetPTCEcn+'NETREQ 2 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+
          ReqHash+' '+NewValueHash+' '+newvalor;
@@ -781,13 +806,13 @@ else if request = 2 then // peers
       TextToSend := GetPTCEcn+'NETREQ 2 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+
          ReqHash+' '+NewValueHash+' '+valor;
       OutgoingMsjs.Add(texttosend);
-      consolelines.Add('Now peers: '+valor);
+      ConsoleLinesAdd('Now peers: '+valor);
       UpdateMyRequests(request,timestamp,bloque, ReqHash,NewValueHash );
       end
    else
       begin
       networkpeers := StrToInt64def(valor,-1);
-      consolelines.Add('Final peers: '+valor);
+      ConsoleLinesAdd('Final peers: '+valor);
       if netpeerssend=false then
          begin
          TextToSend := GetPTCEcn+'NETREQ 2 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+

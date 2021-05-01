@@ -25,12 +25,12 @@ Begin
 value := StrToIntDef(parameter(LineText,1),0);
 if ((value <=0) or (value >65536)) then
    begin
-   consolelines.Add('Invalid value');
+   ConsoleLinesAdd('Invalid value');
    end
 else
    begin
    RPCPort := value;
-   consolelines.Add('RPC port set to: '+IntToStr(value));
+   ConsoleLinesAdd('RPC port set to: '+IntToStr(value));
    end;
 S_AdvOpt := true;
 End;
@@ -43,9 +43,9 @@ if not Form1.RPCServer.Active then
    Form1.RPCServer.Bindings.Clear;
    Form1.RPCServer.DefaultPort:=RPCPort;
    Form1.RPCServer.Active:=true;
-   ConsoleLines.Add('RPC server ENABLED');
+   ConsoleLinesAdd('RPC server ENABLED');
    end
-else ConsoleLines.Add('RPC server already ENABLED');
+else ConsoleLinesAdd('RPC server already ENABLED');
 End;
 
 // Turns off RPC server
@@ -54,9 +54,9 @@ Begin
 if Form1.RPCServer.Active then
    begin
    Form1.RPCServer.Active:=false;
-   ConsoleLines.Add('RPC server DISABLED');
+   ConsoleLinesAdd('RPC server DISABLED');
    end
-else ConsoleLines.Add('RPC server already DISABLED');
+else ConsoleLinesAdd('RPC server already DISABLED');
 End;
 
 

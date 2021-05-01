@@ -31,7 +31,7 @@ if MyConStatus = 3 then
    begin
    if ((Miner_Active) and (not Miner_IsOn) and (not Miner_BlockFound)) then
       begin
-      ConsoleLines.Add(LangLine(39)+IntToStr(Miner_BlockToMine));  //Mining block number:
+      ConsoleLinesAdd(LangLine(39)+IntToStr(Miner_BlockToMine));  //Mining block number:
       Miner_IsOn := true;
       while Length(Miner_Thread) < G_MiningCPUs do
         begin
@@ -48,7 +48,7 @@ if ((Miner_BlockFOund) and (not Miner_SolutionVerified)) then
       if not UserOptions.UsePool then
          begin
          blocktime := UTCTime;
-         consoleLines.Add(LangLine(40)+IntToStr(Miner_BlockToMine));  //Miner solution found and Verified for block
+         ConsoleLinesAdd(LangLine(40)+IntToStr(Miner_BlockToMine));  //Miner solution found and Verified for block
          Miner_SolutionVerified := true;
          OutgoingMsjs.Add(ProtocolLine(6)+blocktime+' '+IntToStr(Miner_BlockToMine)+' '+
          Miner_Address+' '+StringReplace(Miner_Solution,' ','_',[rfReplaceAll, rfIgnoreCase]));
@@ -59,7 +59,7 @@ if ((Miner_BlockFOund) and (not Miner_SolutionVerified)) then
       end
    else
       begin
-      consolelines.Add(LangLine(132)); //'Miner solution invalid?'
+      ConsoleLinesAdd(LangLine(132)); //'Miner solution invalid?'
       ResetMinerInfo;
       end;
    end;
@@ -151,7 +151,7 @@ try
 if length(Miner_Thread)>0 then Setlength(Miner_Thread,length(Miner_Thread)-1);
 Except on E:Exception do
    begin
-   consolelines.Add ('Error deleting minning threads');
+   ConsoleLinesAdd ('Error deleting minning threads');
    end;
 end;
 End;
@@ -212,7 +212,7 @@ for contador := 0 to ListaSoluciones.Count-1 do
    if not AnsiContainsStr(HashSolucion,objetivo) then
       begin
       result := contador+1;
-      consolelines.Add(LangLine(133)+IntToStr(contador)+' '+copy(ListaSoluciones[contador],1,9)+  //'Failed block verification step: '
+      ConsoleLinesAdd(LangLine(133)+IntToStr(contador)+' '+copy(ListaSoluciones[contador],1,9)+  //'Failed block verification step: '
       Direccion+copy(ListaSoluciones[contador],10,9)+' not '+objetivo);
       break;
       end;

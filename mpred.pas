@@ -122,7 +122,7 @@ Begin
 KeepServerOn := true;
 if Form1.Server.Active then
    begin
-   ConsoleLines.Add(LangLine(160)); //'Server Already active'
+   ConsoleLinesAdd(LangLine(160)); //'Server Already active'
    exit;
    end;
    try
@@ -130,11 +130,11 @@ if Form1.Server.Active then
    Form1.Server.Bindings.Clear;
    Form1.Server.DefaultPort:=UserOptions.Port;
    Form1.Server.Active:=true;
-   ConsoleLines.Add(LangLine(14)+IntToStr(UserOptions.Port));   //Server ENABLED. Listening on port
+   ConsoleLinesAdd(LangLine(14)+IntToStr(UserOptions.Port));   //Server ENABLED. Listening on port
    U_DataPanel := true;
    except
    on E : Exception do
-     ConsoleLines.Add(LangLine(15));       //Unable to start Server
+     ConsoleLinesAdd(LangLine(15));       //Unable to start Server
    end;
 end;
 
@@ -149,7 +149,7 @@ for contador := 1 to MaxConecciones do
    if conexiones[contador].tipo='CLI' then CerrarSlot(contador);
    end;
 Form1.Server.Active:=false;
-ConsoleLines.Add(LangLine(16));             //Server stopped
+ConsoleLinesAdd(LangLine(16));             //Server stopped
 U_DataPanel := true;
 KeepServerOn := false;
 SetCurrentJob('StopServer',false);
@@ -213,13 +213,13 @@ begin
 SetCurrentJob('ConnectToServers',true);
 if Length(listanodos) = 0 then
    begin
-   ConsoleLines.Add(LangLine(161));  //'You need add some nodes first'
+   ConsoleLinesAdd(LangLine(161));  //'You need add some nodes first'
    CONNECT_Try := false;
    proceder := false;
    end;
 if not CONNECT_Try then
    begin
-   ConsoleLines.Add(LangLine(162)); //'Trying connection to servers'
+   ConsoleLinesAdd(LangLine(162)); //'Trying connection to servers'
    CONNECT_Try := true;
    end;
 if GetOutGoingConnections >= MaxOutgoingConnections then proceder := false;
@@ -235,21 +235,6 @@ if proceder then
       end;
    intentos+=1;
    until ((Intentado) or (intentos = 5));
-   {
-   while contador < length(ListaNodos) do
-      begin
-      if ((GetSlotFromIP(ListaNodos[contador].ip)=0) AND (GetFreeSlot()>0)) then
-         begin
-         if GetOutGoingConnections < MaxOutgoingConnections then
-            ConnectClient(ListaNodos[contador].ip,ListaNodos[contador].port);
-         end
-      else if GetSlotFromIP(ListaNodos[contador].ip)>0 then
-         begin
-         //ConsoleLines.Add('Already connected to '+ListaNodos[contador].ip);
-         end;
-      contador := contador +1;
-      end;
-   }
    end;
 CONNECT_LastTime := UTCTime();
 SetCurrentJob('ConnectToServers',false);
@@ -281,7 +266,7 @@ SetCurrentJob('ConnectClient',true);
 ConContext := Default(TIdContext);
 if Address = '127.0.0.1' then
    begin
-   consoleLines.Add(LangLine(29));    //127.0.0.1 is an invalid server address
+   ConsoleLinesAdd(LangLine(29));    //127.0.0.1 is an invalid server address
    SetCurrentJob('ConnectClient',false);
    exit;
    end;
@@ -291,6 +276,16 @@ if Slot = 0 then // No free slots
    result := 0;
    SetCurrentJob('ConnectClient',false);
    exit;
+   end;
+if CanalCliente[Slot].Connected then
+   begin
+      //{
+      try
+      CanalCliente[Slot].IOHandler.InputBuffer.Clear;
+      CanalCliente[Slot].Disconnect;
+      Except on E:exception do begin end;
+      end;
+      //}
    end;
 CanalCliente[Slot].Host:=Address;
 CanalCliente[Slot].Port:=StrToIntDef(Port,8080);
@@ -310,7 +305,7 @@ CanalCliente[Slot].Port:=StrToIntDef(Port,8080);
    on E:Exception do
       begin
       if E.Message<>'localhost: Connect timed out.' then
-        ConsoleLines.Add(Address+': '+E.Message);
+        ConsoleLinesAdd('EXCP - '+Address+': '+E.Message);
       result := 0;
       SetCurrentJob('ConnectClient',false);
       exit;
@@ -328,7 +323,7 @@ for contador := 1 to MaxConecciones do
    begin
    if ((conexiones[contador].tipo='SER') and (not CanalCliente[contador].connected)) then
       begin
-      ConsoleLines.Add(LangLine(31)+conexiones[contador].ip);  //Conection lost to
+      ConsoleLinesAdd(LangLine(31)+conexiones[contador].ip);  //Conection lost to
       cerrarslot(contador);
       end;
    if conexiones[contador].tipo <> '' then resultado := resultado + 1;
@@ -398,9 +393,11 @@ if Continuar then
          end
       else if GetCommand(LLine) = 'RESUMENFILE' then
          begin
+         EnterCriticalSection(CSHeadAccess);
          AFileStream := TFileStream.Create(ResumenFilename, fmCreate);
          CanalCliente[Slot].IOHandler.ReadStream(AFileStream);
          AFileStream.Free;
+         LeaveCriticalSection(CSHeadAccess);
          consolelines.Add(LAngLine(74)+': '+copy(HashMD5File(ResumenFilename),1,5)); //'Headers file received'
          LastTimeRequestResumen := 0;
          UpdateMyData();
@@ -450,7 +447,7 @@ for contador := 1 to Maxconecciones do
      begin
      if StrToInt64(UTCTime) > StrToInt64Def(conexiones[contador].lastping,0)+15 then
         begin
-        ConsoleLines.Add(LangLine(32)+conexiones[contador].ip);   //Conection closed: Time Out Auth ->
+        ConsoleLinesAdd(LangLine(32)+conexiones[contador].ip);   //Conection closed: Time Out Auth ->
         CerrarSlot(contador);
         end;
      end;
@@ -486,7 +483,7 @@ if NumeroConexiones = 0 then  // Desconeectado
    if STATUS_Connected then
       begin
       STATUS_Connected := false;
-      consolelines.Add(LangLine(33));       //Disconnected
+      ConsoleLinesAdd(LangLine(33));       //Disconnected
       G_TotalPings := 0;
       Miner_IsOn := false;
       NetSumarioHash.Value:='';
@@ -504,7 +501,7 @@ if ((NumeroConexiones>0) and (NumeroConexiones<MinConexToWork) and (MyConStatus 
    begin
    MyConStatus:=1;
    G_LastPing := StrToInt64(UTCTime);
-   ConsoleLines.Add(LangLine(34)); //Connecting...
+   ConsoleLinesAdd(LangLine(34)); //Connecting...
    Form1.imagenes.GetBitmap(2,ConnectButton.Glyph);
    end;
 if MyConStatus > 0 then
@@ -520,7 +517,7 @@ if ((NumeroConexiones>=MinConexToWork) and (MyConStatus<2) and (not STATUS_Conne
    begin
    STATUS_Connected := true;
    MyConStatus := 2;
-   ConsoleLines.Add(LangLine(35));     //Connected
+   ConsoleLinesAdd(LangLine(35));     //Connected
    end;
 if STATUS_Connected then
    begin
@@ -533,14 +530,14 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
    MyConStatus := 3;
    U_Mytrxs := true;
    SumaryRebuilded:= false;
-   ConsoleLines.Add(LangLine(36));   //Updated!
+   ConsoleLinesAdd(LangLine(36));   //Updated!
    ResetMinerInfo();
    ResetPoolMiningInfo();
    if ((Miner_OwnsAPool) and (Miner_Active) and(not Form1.PoolServer.Active)) then // Activar el pool propio si se posee uno
       begin
       StartPoolServer(Poolinfo.Port);
-      if Form1.PoolServer.Active then consolelines.Add(PoolInfo.Name+' pool server is listening')
-      else consolelines.Add('Unable to star pool server');
+      if Form1.PoolServer.Active then ConsoleLinesAdd(PoolInfo.Name+' pool server is listening')
+      else ConsoleLinesAdd('Unable to star pool server');
       end;
    if StrToInt(NetPendingTrxs.Value)> length(PendingTXs) then
       PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));
@@ -558,7 +555,7 @@ if MyConStatus = 3 then
          MyConStatus := 2;
          UndoneLastBlock;
          setlength(PendingTxs,0);
-         consolelines.Add('***WARNING SYNCHRONIZATION***');
+         ConsoleLinesAdd('***WARNING SYNCHRONIZATION***');
          end;
       end
    else SynchWarnings := 0;
@@ -568,8 +565,8 @@ if MyConStatus = 3 then
          begin
          StartPoolServer(Poolinfo.Port);
          LastTryStartPoolServer := StrToInt64(UTCTIME);
-         if Form1.PoolServer.Active then consolelines.Add(PoolInfo.Name+' pool server is listening')
-         else consolelines.Add('Unable to start pool server');
+         if Form1.PoolServer.Active then ConsoleLinesAdd(PoolInfo.Name+' pool server is listening')
+         else ConsoleLinesAdd('Unable to start pool server');
          end;
       end;
    if ((Miner_OwnsAPool) and (Form1.PoolServer.Active) and (LastPoolHashRequest+5<StrToInt64(UTCTime))) then
@@ -746,19 +743,19 @@ if not VerifySignedString(version+' '+hash,firma,clavepublica) then Proceder := 
 if HashMD5File(namefile) <> hash then Proceder := false;
 if version <= ProgramVersion then
    begin
-   consoleLines.Add(LangLine(38)); //Update file received is obsolete
+   ConsoleLinesAdd(LangLine(38)); //Update file received is obsolete
    deletefile(namefile);
    exit;
    end;
 if fileexists(UpdatesDirectory+namefile) then
    begin
-   consoleLines.Add('Update file already exists'); //Update file received is obsolete
+   ConsoleLinesAdd('Update file already exists'); //Update file received is obsolete
    deletefile(namefile);
    exit;
    end;
 if not proceder then
    begin
-   consoleLines.Add(LangLine(37));      //Update file received is wrong
+   ConsoleLinesAdd(LangLine(37));      //Update file received is wrong
    deletefile(namefile);
    end
 else
@@ -796,7 +793,7 @@ if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // sol
    if LastTimeRequestResumen+5 < StrToInt64(UTCTime) then
       begin
       PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
-      consolelines.Add(LangLine(163)); //'Headers file requested'
+      ConsoleLinesAdd(LangLine(163)); //'Headers file requested'
       LastTimeRequestResumen := StrToInt64(UTCTime);
       end;
    end
@@ -805,7 +802,7 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  /
    if LastTimeRequestBlock+5 < StrToInt64(UTCTime) then
       begin
       PTC_SendLine(NetResumenHash.Slot,ProtocolLine(8)); // lastblock
-      consolelines.Add(LangLine(164)+IntToStr(mylastblock)); //'LastBlock requested from block '
+      ConsoleLinesAdd(LangLine(164)+IntToStr(mylastblock)); //'LastBlock requested from block '
       LastTimeRequestBlock := StrToInt64(UTCTime);
       end;
    end
@@ -831,7 +828,7 @@ Begin
 IpToAdd := Parameter(Linea,1);
 if not IsValidIP(IpToAdd) then
    begin
-   consolelines.Add('Invalid IP');
+   ConsoleLinesAdd('Invalid IP');
    exit;
    end;
 UpdateBotData(iptoadd);
@@ -878,7 +875,7 @@ texttosend := GetPTCEcn+'NETREQ 1 '+timestamp+' '+direccion+' '+IntToStr(block)+
    hashreq+' '+hashvalue+' '+IntToStr(Miner_LastHashRate);  // tipo 1: hashrate
 OutgoingMsjs.Add(texttosend);
 UpdateMyRequests(1,timestamp,block, hashreq, hashvalue);
-consolelines.Add('hashrate starts in '+IntToStr(Miner_LastHashRate));
+ConsoleLinesAdd('hashrate starts in '+IntToStr(Miner_LastHashRate));
 tipo := 2; // peers
 hashreq := HashMD5String( IntToStr(tipo)+timestamp+direccion+IntToStr(block)+'1');
 hashvalue := HashMD5String('1');
@@ -886,7 +883,7 @@ texttosend := GetPTCEcn+'NETREQ 2 '+timestamp+' '+direccion+' '+IntToStr(block)+
    hashreq+' '+hashvalue+' '+'1';  // tipo 2: peers
 OutgoingMsjs.Add(texttosend);
 UpdateMyRequests(2,timestamp,block, hashreq, hashvalue);
-consolelines.Add('peers starts in 1');
+ConsoleLinesAdd('peers starts in 1');
 End;
 
 function GetOrderDetails(orderid:string):orderdata;

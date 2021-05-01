@@ -133,7 +133,7 @@ AssignFile(KeyFile,'public.pem');
    Closefile(Keyfile);
    except
    on E: EInOutError do
-      Consolelines.add(LangLine(26));     //Public key file not found
+      ConsoleLinesAdd(LangLine(26));     //Public key file not found
    end;
 if Resultado <>'' then Result := Resultado
 else result := 'Err';
@@ -158,7 +158,7 @@ AssignFile(KeyFile,'private.pem');
    Closefile(Keyfile);
    except
    on E: EInOutError do
-      Consolelines.add(LangLine(26));     //Public key file not found
+      ConsoleLinesAdd(LangLine(26));     //Public key file not found
    end;
 if Resultado <>'' then Result := Resultado
 else result := 'Err';
@@ -345,15 +345,15 @@ Errores.LoadFromStream(MyProcess.stderr);
 if ((Resultado.Count>0) and (Resultado[0] = 'Verified OK')) then result := true;
 while Resultado.Count > 0 do
    begin
-   //ConsoleLines.Add(Resultado[0]);
+   //ConsoleLinesAdd(Resultado[0]);
    Resultado.Delete(0);
    end;
 if Errores.Count > 0 then
    begin
-   ConsoleLines.Add('ERRORS');
+   ConsoleLinesAdd('ERRORS');
    while Errores.Count > 0 do
       begin
-      ConsoleLines.Add(Errores[0]);
+      ConsoleLinesAdd(Errores[0]);
       Errores.Delete(0);
       end;
    end;
@@ -416,7 +416,7 @@ AssignFile(KeyFile,fileb64);
    Closefile(Keyfile);
    except
    on E: EInOutError do
-      ConsoleLines.Add(LAngLine(25));         //Base64 file not found
+      ConsoleLinesAdd(LAngLine(25));         //Base64 file not found
    end;
 Result := Resultado;
 end;
@@ -458,12 +458,12 @@ RunOpenSSLCommand('openssl base64 -d -in temp_test.b64 -out temp_test.bin');
 if RunOpenSSLCommand('openssl dgst -sha1 -verify temp_pub.pem -signature temp_test.bin temp_string.txt') then
    begin
    result := true;
-   //ConsoleLines.Add(LangLine(27));     //Signed Verification Ok
+   //ConsoleLinesAdd(LangLine(27));     //Signed Verification Ok
    end
 else
    begin
    result := false;                     //Signed Verification FAILED
-   //ConsoleLines.Add(LangLine(28));
+   //ConsoleLinesAdd(LangLine(28));
    end;
 Deletefile('temp_string.txt');
 Deletefile('temp_pub.pem');

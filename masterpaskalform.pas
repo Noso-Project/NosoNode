@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, LCLType,
   Grids, ExtCtrls, Buttons, IdTCPServer, IdContext, IdGlobal, IdTCPClient,
-  fileutil,Clipbrd, Menus, crt, formexplore, lclintf,poolmanage,strutils;
+  fileutil,Clipbrd, Menus, crt, formexplore, lclintf,poolmanage,strutils, mpoptions;
 
 type
 
@@ -63,6 +63,7 @@ type
      offset : integer;                  // Segundos de diferencia a su tiempo
      ResumenHash : String[64];           //
      ConexStatus : integer;
+     IsBusy : Boolean;
      end;
 
   WalletData = Packed Record
@@ -220,6 +221,13 @@ type
        hashvalue: string[32];
        end;
 
+  PoolPaymentData = Packed Record
+       block : integer;
+       address : string[32];
+       amount : int64;
+       Order : string[64];
+       end;
+
   { TForm1 }
 
   TForm1 = class(TForm)
@@ -293,6 +301,7 @@ type
     Procedure CBToTrayOnChange(Sender:TObject);
     Procedure CBToPoolOnChange(Sender:TObject);
     // Pool
+    //Procedure TryClosePoolConnection(AContext: TIdContext; closemsg:string='');
     procedure PoolServerConnect(AContext: TIdContext);
     procedure PoolServerExecute(AContext: TIdContext);
     procedure PoolServerDisconnect(AContext: TIdContext);
@@ -371,7 +380,7 @@ CONST
                           '45.141.36.117 '+
                           '185.239.236.85';
   ProgramVersion = '0.2.0';
-  SubVersion = 'Pb';
+  SubVersion = 'Pg';
   OficialRelease = true;
   BuildDate = 'April 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -380,7 +389,7 @@ CONST
   MaxConecciones  = 50;
   Protocolo = 1;
   Miner_Steps = 10;
-  Pool_Max_Members = 90;
+  Pool_Max_Members = 1000;
   // Custom values for coin
   SecondsPerBlock = 600; //600            // 10 minutes
   PremineAmount = 1030390730000;//1030390730000;                // Ammount premined in genesys block
@@ -452,6 +461,9 @@ var
     S_Log : boolean = false;
   ExceptLines : TStringList;
     S_Exc : boolean = false;
+  PoolPaysLines : TStringList;
+    S_PoolPays : boolean = false;
+  ArrPoolPays : array of PoolPaymentData;
   StringAvailableUpdates : String = '';
   DataPanel : TStringGrid;
     U_DataPanel : boolean = true;
@@ -487,6 +499,8 @@ var
     S_PoolInfo : boolean = false;
   FilePoolMembers : File of PoolMembersData;
     S_PoolMembers : boolean = false;
+  FilePoolPays : textfile;
+    S_PoolPayments : boolean = false;
   FileAdvOptions : textfile;
     S_AdvOpt : boolean = false;
   PoolServerConex : array of PoolUserConnection;
@@ -580,6 +594,11 @@ var
 
   // Critical Sections
   CSProcessLines: TRTLCriticalSection;
+  CSConsoleLines: TRTLCriticalSection;
+  CSOutgoingMsjs: TRTLCriticalSection;
+  CSPoolStep    : TRTLCriticalSection;
+  CSPoolPay     : TRTLCriticalSection;
+  CSHeadAccess  : TRTLCriticalSection;
 
   // Cross OS variables
   OSFsep : string = '';
@@ -601,6 +620,7 @@ var
   PoolInfoFilename : string = '';
   PoolMembersFilename : string = '';
   AdvOptionsFilename : string = '';
+  PoolPaymentsFilename : string = '';
 
   // COmponentes visuales
   MainMenu : TMainMenu;
@@ -610,7 +630,6 @@ var
   TrxDetailsPopUp : TPopupMenu;
   EditIPPopUp : TPopupMenu;
   NodesPopup: TPopupMenu;
-
 
   ConnectButton : TSpeedButton;
   MinerButton : TSpeedButton;
@@ -728,6 +747,11 @@ procedure TForm1.FormCreate(Sender: TObject);
 begin
 Randomize;
 InitCriticalSection(CSProcessLines);
+InitCriticalSection(CSConsoleLines);
+InitCriticalSection(CSOutgoingMsjs);
+InitCriticalSection(CSPoolStep);
+InitCriticalSection(CSPoolPay);
+InitCriticalSection(CSHeadAccess);
 CreateFormInicio();
 CreateFormLog();
 CreateFormAbout();
@@ -740,6 +764,11 @@ end;
 procedure TForm1.FormDestroy(Sender: TObject);
 begin
 DoneCriticalSection(CSProcessLines);
+DoneCriticalSection(CSConsoleLines);
+DoneCriticalSection(CSOutgoingMsjs);
+DoneCriticalSection(CSPoolStep);
+DoneCriticalSection(CSPoolPay);
+DoneCriticalSection(CSHeadAccess);
 end;
 
 // Form show
@@ -783,6 +812,7 @@ DLSL := TStringlist.Create;
 IdiomasDisponibles := TStringlist.Create;
 LogLines := TStringlist.Create;
 ExceptLines := TStringlist.Create;
+PoolPaysLines := TStringlist.Create;
 if not FileExists (LanguageFileName) then CrearIdiomaFile() else CargarIdioma(UserOptions.language);
 // finalizar la inicializacion
 InicializarFormulario();
@@ -803,12 +833,12 @@ for contador := 0 to IdiomasDisponibles.Count-1 do
 OutText('✓ '+IntToStr(IdiomasDisponibles.count)+' languages available',false,1);
 LangSelect.ItemIndex:=0;
 FillNodeList();
-ConsoleLines.Add(coinname+LangLine(61)+ProgramVersion);  // wallet
+ConsoleLinesAdd(coinname+LangLine(61)+ProgramVersion);  // wallet
 RebuildMyTrx(MyLastBlock);
 UpdateMyTrxGrid();
 if useroptions.JustUpdated then
    begin
-   consolelines.add(LangLine(19)+ProgramVersion);  // Update to version sucessfull:
+   ConsoleLinesAdd(LangLine(19)+ProgramVersion);  // Update to version sucessfull:
    useroptions.JustUpdated := false;
    S_Options := true;
    OutText('✓ Just updated to a new version',false,1);
@@ -838,6 +868,7 @@ Setlength(CriptoOpsResu,0);
 Setlength(MilitimeArray,0);
 Setlength(Miner_Thread,0);
 SetLength(ArrayNetworkRequests,0);
+SetLength(ArrPoolPays,0);
 Tolog('Noso session started'); NewLogLines := NewLogLines-1;
 info('Noso session started');
 infopanel.BringToFront;
@@ -911,25 +942,25 @@ if Key=VK_ESCAPE then
 if ((Shift = [ssCtrl]) and (Key = VK_I)) then
    begin
    UserRowHeigth := UserRowHeigth+1;
-   consolelines.Add('UserRowHeigth:'+inttostr(UserRowHeigth));
+   ConsoleLinesAdd('UserRowHeigth:'+inttostr(UserRowHeigth));
    UpdateRowHeigth();
    end;
 if ((Shift = [ssCtrl]) and (Key = VK_K)) then
    begin
    UserRowHeigth := UserRowHeigth-1;
-   consolelines.Add('UserRowHeigth:'+inttostr(UserRowHeigth));
+   ConsoleLinesAdd('UserRowHeigth:'+inttostr(UserRowHeigth));
    UpdateRowHeigth();
    end;
 if ((Shift = [ssCtrl]) and (Key = VK_O)) then
    begin
    UserFontSize := UserFontSize+1;
-   consolelines.Add('UserFontSize:'+inttostr(UserFontSize));
+   ConsoleLinesAdd('UserFontSize:'+inttostr(UserFontSize));
    UpdateRowHeigth();
    end;
 if ((Shift = [ssCtrl]) and (Key = VK_L)) then
    begin
    UserFontSize := UserFontSize-1;
-   consolelines.Add('UserFontSize:'+inttostr(UserFontSize));
+   ConsoleLinesAdd('UserFontSize:'+inttostr(UserFontSize));
    UpdateRowHeigth();
    end;
 end;
@@ -1069,7 +1100,7 @@ Application.Terminate;
 Halt;
 End;
 
-// Crear todos los elementos necesarios para inicializar el programa
+// Run time creation of form components
 Procedure InicializarFormulario();
 var
   contador : integer = 0;
@@ -1210,12 +1241,12 @@ SBOptions.hint:='Show/Hide options';SBOptions.ShowHint:=true;
 
 ImageInc := TImage.Create(form1);ImageInc.Parent:=form1;
 ImageInc.Top:=2;ImageInc.Left:=86;ImageInc.Height:=17;ImageInc.Width:=17;
-Form1.imagenes.GetIcon(9,ImageInc.Picture.Icon);ImageInc.Visible:=false;
+Form1.imagenes.GetBitMap(9,ImageInc.Picture.Bitmap);ImageInc.Visible:=false;
 ImageInc.ShowHint:=true;ImageInc.OnMouseEnter:=@Form1.CheckForHint;
 
 ImageOut := TImage.Create(form1);ImageOut.Parent:=form1;
 ImageOut.Top:=12;ImageOut.Left:=93;ImageOut.Height:=17;ImageOut.Width:=17;
-Form1.imagenes.GetIcon(10,Imageout.Picture.Icon);ImageOut.Visible:=false;
+Form1.imagenes.GetBitmap(10,Imageout.Picture.Bitmap);ImageOut.Visible:=false;
 ImageOut.ShowHint:=true;ImageOut.OnMouseEnter:=@Form1.CheckForHint;
 
 DireccionesPanel := TStringGrid.Create(Form1);DireccionesPanel.Parent:=Form1;
@@ -1371,6 +1402,7 @@ GridMyTxs := TStringGrid.Create(Form1);GridMyTxs.Parent:=Form1;
 GridMyTxs.Left:=2;GridMyTxs.Top:=170;GridMyTxs.Height:=135;GridMyTxs.Width:=396;
 GridMyTxs.ColCount:=11;GridMyTxs.rowcount:=1;GridMyTxs.FixedCols:=0;GridMyTxs.FixedRows:=1;
 GridMyTxs.ScrollBars:=ssVertical;
+GridMyTxs.SelectedColor:=clLtGray;
 GridMyTxs.Options:= GridMyTxs.Options+[goRowSelect]-[goRangeSelect];
 GridMyTxs.Font.Name:='consolas'; GridMyTxs.Font.Size:=10;
 GridMyTxs.ColWidths[0]:= 60;GridMyTxs.ColWidths[1]:= 60;GridMyTxs.ColWidths[2]:= 100;
@@ -1604,7 +1636,7 @@ StatusPanel.BringToFront;
 
   StaSerImg:= TImage.Create(StatusPanel);StaSerImg.Parent := StatusPanel;
   StaSerImg.Width:= 16; StaSerImg.Height:= 16;StaSerImg.Top:= 2; StaSerImg.Left:= 22;
-  Form1.imagenes.GetIcon(27,StaSerImg.picture.icon);StaSerImg.Visible:=false;
+  Form1.imagenes.GetBitMap(27,StaSerImg.picture.BitMap);StaSerImg.Visible:=false;
 
   StaConLab := TLabel.Create(StatusPanel);StaConLab.Parent := StatusPanel;StaConLab.AutoSize:=false;
   StaConLab.Font.Name:='consolas';StaConLab.Font.Size:=8;
@@ -1613,7 +1645,7 @@ StatusPanel.BringToFront;
 
   StaBloImg:= TImage.Create(StatusPanel);StaBloImg.Parent := StatusPanel;
   StaBloImg.Width:= 16; StaBloImg.Height:= 16;StaBloImg.Top:= 2; StaBloImg.Left:= 66;
-  Form1.imagenes.GetIcon(45,StaBloImg.picture.icon);StaBloImg.Visible:=true;
+  Form1.imagenes.GetBitmap(45,StaBloImg.picture.Bitmap);StaBloImg.Visible:=true;
 
   StaBloLab := TLabel.Create(StatusPanel);StaBloLab.Parent := StatusPanel;StaBloLab.AutoSize:=false;
   StaBloLab.Font.Name:='consolas';StaBloLab.Font.Size:=8;
@@ -1622,7 +1654,7 @@ StatusPanel.BringToFront;
 
   StaPenImg:= TImage.Create(StatusPanel);StaPenImg.Parent := StatusPanel;
   StaPenImg.Width:= 16; StaPenImg.Height:= 16;StaPenImg.Top:= 2; StaPenImg.Left:= 140;
-  Form1.imagenes.GetIcon(46,StaPenImg.picture.icon);StaPenImg.Visible:=true;
+  Form1.imagenes.GetBitmap(46,StaPenImg.picture.Bitmap);StaPenImg.Visible:=true;
 
   StaPenLab := TLabel.Create(StatusPanel);StaPenLab.Parent := StatusPanel;StaPenLab.AutoSize:=false;
   StaPenLab.Font.Name:='consolas';StaPenLab.Font.Size:=8;
@@ -1636,11 +1668,11 @@ StatusPanel.BringToFront;
 
   StaPoolSer:= TImage.Create(StatusPanel);StaPoolSer.Parent := StatusPanel;
   StaPoolSer.Width:= 16; StaPoolSer.Height:= 16;StaPoolSer.Top:= 2; StaPoolSer.Left:= 290;
-  Form1.imagenes.GetIcon(27,StaPoolSer.picture.icon);StaPoolSer.Visible:=false;
+  Form1.imagenes.GetBitmap(27,StaPoolSer.picture.Bitmap);StaPoolSer.Visible:=false;
 
   StaMinImg:= TImage.Create(StatusPanel);StaMinImg.Parent := StatusPanel;
   StaMinImg.Width:= 16; StaMinImg.Height:= 16;StaMinImg.Top:= 2; StaMinImg.Left:= 330;
-  Form1.imagenes.GetIcon(11,StaMinImg.picture.icon);StaBloImg.Visible:=true;
+  Form1.imagenes.GetBitmap(11,StaMinImg.picture.Bitmap);StaBloImg.Visible:=true;
 
 //Elementos no visuales
 ProcessLines := TStringlist.Create;
@@ -1723,7 +1755,7 @@ IPUser := AContext.Connection.Socket.Binding.PeerIP;
 Linea := AContext.Connection.IOHandler.ReadLn('',ReadTimeOutTIme,-1,IndyTextEncoding_UTF8);
 password := parameter(linea,0);
 comando := parameter(linea,1);
-consolelines.Add('RPC Line: '+Linea);
+ConsoleLinesAdd('RPC Line: '+Linea);
 if password <> RPCPass then
    begin
    TextToSend := 'PASSFAILED';
@@ -1778,7 +1810,7 @@ else
       BlockVerification := VerifySolutionForBlock(LastBlockData.NxtBlkDiff, MyLastBlockHash,BlockSolMiner ,BlockSolution);
       if BlockVerification = 0 then
          begin
-         consolelines.Add('Pool solution verified');
+         ConsoleLinesAdd('Pool solution verified');
          OutgoingMsjs.Add(ProtocolLine(6)+BlockSolTime+' '+BlockSolNumber+' '+
                BlockSolMiner+' '+StringReplace(BlockSolution,' ','_',[rfReplaceAll, rfIgnoreCase]));
          ResetPoolMiningInfo();
@@ -1797,6 +1829,10 @@ TRY
 EXCEPT on E:Exception do ToLog('Error on RPC request:'+E.Message);
 END;
 End;
+
+// *******************
+// *** POOL SERVER ***
+// *******************
 
 // Funciones del servidor Pool
 
@@ -1827,6 +1863,7 @@ if comando = 'PING' then
    end;
 if Comando = 'STEP' then
    begin
+   EnterCriticalSection(CSPoolStep);
    PoolServerConex[IsPoolMemberConnected(UserDireccion)].LastPing:=StrToInt64Def(UTCTime,0);
    bloqueStep := StrToIntDef(parameter(linea,3),0);
    SeedStep := parameter(linea,4);
@@ -1848,7 +1885,7 @@ if Comando = 'STEP' then
          if PoolSolutionStep=0 then
             Begin
             BlockTime := UTCTime;
-            consolelines.Add('Pool solution verified!');
+            consolelinesAdd('Pool solution verified!');
             OutgoingMsjs.Add(ProtocolLine(6)+BlockTime+' '+IntToStr(PoolMiner.Block)+' '+
                PoolInfo.Direccion+' '+StringReplace(PoolMiner.Solucion,' ','_',[rfReplaceAll, rfIgnoreCase]));
             ResetPoolMiningInfo();
@@ -1856,7 +1893,7 @@ if Comando = 'STEP' then
             end
          else
             begin
-            consolelines.Add('Pool solution FAILED at step '+IntToStr(PoolSolutionStep));
+            consolelinesAdd('Pool solution FAILED at step '+IntToStr(PoolSolutionStep));
             PoolSolutionFails := PoolSolutionFails+1;
             if PoolSolutionFails >= 3 then
                begin
@@ -1879,11 +1916,12 @@ if Comando = 'STEP' then
    else
       begin
       PoolServerConex[IsPoolMemberConnected(UserDireccion)].WrongSteps+=1;
-      consolelines.Add('*********************************');
-      consolelines.Add('Wrong step received in pool'+slinebreak+SeedStep+PoolInfo.Direccion+HashStep);
-      consolelines.Add('Member('+IntToStr(PoolServerConex[IsPoolMemberConnected(UserDireccion)].WrongSteps)+'): '+UserDireccion);
-      consolelines.Add('*********************************');
+      //consolelinesAdd('*********************************');
+      //consolelinesAdd('Wrong step received in pool'+slinebreak+SeedStep+PoolInfo.Direccion+HashStep);
+      //consolelinesAdd('Member('+IntToStr(PoolServerConex[IsPoolMemberConnected(UserDireccion)].WrongSteps)+'): '+UserDireccion);
+      //consolelinesAdd('*********************************');
       end;
+   LeaveCriticalSection(CSPoolStep);
    end;
 if Comando = 'PAYMENT' then
    Begin
@@ -1899,9 +1937,11 @@ if Comando = 'PAYMENT' then
             Acontext.Connection.IOHandler.WriteLn('PAYMENTOK '+UTCTime+' POOLIP '+
                UserDireccion+' 2 '+IntToStr(MyLastBlock)+' '+int2curr(GetMaximunToSend(MemberBalance))+' '+
                SendFundsResult);
-            tolog('Pool payment sent: '+int2curr(GetMaximunToSend(MemberBalance))+
-               slinebreak+'To:'+UserDireccion+slinebreak+'On block:'+IntToStr(MyLastBlock)+slinebreak+
+            AddPoolPay(IntToStr(MyLastBlock+1)+' '+UserDireccion+' '+IntToStr(GetMaximunToSend(MemberBalance))+' '+
                SendFundsResult);
+            //tolog('Pool payment sent: '+int2curr(GetMaximunToSend(MemberBalance))+
+            //   slinebreak+'To:'+UserDireccion+slinebreak+'On block:'+IntToStr(MyLastBlock)+slinebreak+
+            //   SendFundsResult);
             PoolMembersTotalDeuda := GetTotalPoolDeuda();
             end
          else                // PAYMENT SEND FUNDS FAIL
@@ -1958,13 +1998,13 @@ if IsPoolMemberConnected(UserDireccion)>=0 then   // ALREADY CONNECTED
    end;
 if Comando = 'JOIN' then
    begin
-   consolelines.Add('Pool join requested for address '+UserDireccion);
+   //consolelines.Add('Pool join requested for address '+UserDireccion);
    JoinPrefijo := PoolAddNewMember(UserDireccion);
    if JoinPrefijo<>'' then
       begin
       Acontext.Connection.IOHandler.WriteLn('JOINOK '+PoolInfo.Direccion+' '+JoinPrefijo+' '+PoolDataString(UserDireccion));
       SavePoolServerConnection(IpUser,UserDireccion,minerversion,Acontext);
-      ConsoleLines.Add(UserDireccion+' added to the pool: '+JoinPrefijo);
+      //ConsoleLines.Add(UserDireccion+' added to the pool: '+JoinPrefijo);
       end
    else
       begin
@@ -1972,6 +2012,10 @@ if Comando = 'JOIN' then
       AContext.Connection.Disconnect;
       Acontext.Connection.IOHandler.InputBuffer.Clear;
       end;
+   end
+else if Comando = 'STATUS' then
+   begin
+   //Acontext.Connection.IOHandler.WriteLn(PoolStatusString);
    end
 else
    begin
@@ -2009,6 +2053,7 @@ Except on E:Exception do
 end;
 End;
 
+
 // *****************************
 // *** NODE SERVER FUNCTIONS ***
 // *****************************
@@ -2039,7 +2084,21 @@ var
   GetFileOk : boolean = false;
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
-LLine := AContext.Connection.IOHandler.ReadLn(IndyTextEncoding_UTF8);
+try
+   LLine := AContext.Connection.IOHandler.ReadLn(IndyTextEncoding_UTF8);
+   if AContext.Connection.IOHandler.ReadLnTimedout then
+      begin
+      TryCloseServerConnection(AContext);
+      ToExcLog('SERVER: Timeout reading line from connection');
+      exit;
+      end;
+Except on E:Exception do
+   begin
+   TryCloseServerConnection(AContext);
+   ToExcLog('SERVER: Can not read line from connection ('+E.Message+')');
+   exit;
+   end;
+end;
 slot := GetSlotFromIP(IPUser);
 if slot = 0 then
   begin
@@ -2074,6 +2133,7 @@ if GetCommand(LLine) = 'UPDATE' then
    end
 else if GetCommand(LLine) = 'RESUMENFILE' then
    begin
+   EnterCriticalSection(CSHeadAccess);
    AFileStream := TFileStream.Create(ResumenFilename, fmCreate);
    try
       try
@@ -2087,10 +2147,11 @@ else if GetCommand(LLine) = 'RESUMENFILE' then
       end;
    finally
    AFileStream.Free;
+   LeaveCriticalSection(CSHeadAccess);
    end;
    if GetFileOk then
       begin
-      consolelines.Add(LAngLine(74)+': '+copy(HashMD5File(ResumenFilename),1,5)); //'Headers file received'
+      ConsoleLinesAdd(LAngLine(74)+': '+copy(HashMD5File(ResumenFilename),1,5)); //'Headers file received'
       LastTimeRequestResumen := 0;
       UpdateMyData();
       end;
@@ -2159,7 +2220,7 @@ MiIp := Parameter(LLine,1);
 Peerversion := Parameter(LLine,2);
 if Copy(LLine,1,4) <> 'PSK ' then  // La linea no contiene un comando valido
    begin
-   Consolelines.Add(LangLine(8)+IPUser);     //INVALID CLIENT :
+   ConsoleLinesAdd(LangLine(8)+IPUser);     //INVALID CLIENT :
    TryCloseServerConnection(AContext);
    UpdateBotData(IPUser);
    exit;
@@ -2168,21 +2229,21 @@ else
    begin
    if IPUser = MyPublicIP then // Nos estamos conectando con nosotros mismos
       begin
-      ConsoleLines.Add(LangLine(9));  //INCOMING CLOSED: OWN CONNECTION
+      ConsoleLinesAdd(LangLine(9));  //INCOMING CLOSED: OWN CONNECTION
       TryCloseServerConnection(AContext);
       exit;
       end;
    end;
 if BotExists(IPUser) then // Es un bot ya conocido
    begin
-   ConsoleLines.Add(LAngLine(10)+IPUser);             //BLACKLISTED FROM:
+   ConsoleLinesAdd(LAngLine(10)+IPUser);             //BLACKLISTED FROM:
    TryCloseServerConnection(AContext);
-   UpdateBotData(IPUser);
+   Consolelinesadd('ADDBOT '+(IPUser));
    exit;
    end;
 if GetSlotFromIP(IPUser) > 0 then // Conexion duplicada
    begin
-   ConsoleLines.Add(LangLine(11)+IPUser);
+   ConsoleLinesAdd(LangLine(11)+IPUser);
    TryCloseServerConnection(AContext,GetPTCEcn+'DUPLICATED');
    exit;
    end;
@@ -2450,8 +2511,8 @@ Procedure Tform1.EditSCDestChange(Sender:TObject);
 Begin
 EditSCDest.Text :=StringReplace(EditSCDest.Text,' ','',[rfReplaceAll, rfIgnoreCase]);
 if ((IsValidAddress(EditSCDest.Text)) or (AddressSumaryIndex(EditSCDest.Text)>=0)) then
-  Form1.imagenes.GetIcon(17,ImgSCDest.Picture.Icon)
-else Form1.imagenes.GetIcon(14,ImgSCDest.Picture.Icon);
+  Form1.imagenes.GetBitmap(17,ImgSCDest.Picture.Bitmap)
+else Form1.imagenes.GetBitmap(14,ImgSCDest.Picture.Bitmap);
 if EditSCDest.Text = '' then ImgSCDest.Picture.Clear;
 End;
 
@@ -2515,9 +2576,9 @@ Begin
 if ((StrToInt64Def(StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase]),-1)>0) and
    (StrToInt64Def(StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase]),-1)<=GetMaximunToSend(GetWalletBalance)))then
   begin
-  Form1.imagenes.GetIcon(17,ImgSCMont.Picture.Icon);
+  Form1.imagenes.GetBitmap(17,ImgSCMont.Picture.Bitmap);
   end
-else Form1.imagenes.GetIcon(14,ImgSCMont.Picture.Icon);
+else Form1.imagenes.GetBitmap(14,ImgSCMont.Picture.Bitmap);
 if EditSCMont.Text = '0.00000000' then ImgSCMont.Picture.Clear;
 End;
 
@@ -2579,6 +2640,7 @@ Procedure Tform1.SBOptionsOnClick(Sender:TObject);
 Begin
 If OptionsPanel.Visible then optionspanel.Visible:=false
 else optionspanel.Visible:=true;
+//if not FormOptions.Visible then FormOptions.Visible:= true;
 LoadOptionsToPanel();
 End;
 

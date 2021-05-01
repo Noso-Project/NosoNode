@@ -9,6 +9,8 @@ uses
   dialogs, fileutil, forms, idglobal, poolmanage, strutils, mpRPC;
 
 procedure ProcessLinesAdd(const ALine: String);
+procedure ConsoleLinesAdd(const ALine: String);
+procedure OutgoingMsjsAdd(const ALine: String);
 
 Procedure ProcesarLineas();
 function GetOpData(textLine:string):String;
@@ -109,6 +111,28 @@ begin
   end;
 end;
 
+// Adds a line to ConsoleLines thread safe
+procedure ConsoleLinesAdd(const ALine: String);
+begin
+  EnterCriticalSection(CSConsoleLines);
+  try
+    ConsoleLines.Add(ALine);
+  finally
+    LeaveCriticalSection(CSConsoleLines);
+  end;
+end;
+
+// Adds a line to OutgoingMsjs thread safe
+procedure OutgoingMsjsAdd(const ALine: String);
+begin
+  EnterCriticalSection(CSOutgoingMsjs);
+  try
+    OutgoingMsjs.Add(ALine);
+  finally
+    LeaveCriticalSection(CSOutgoingMsjs);
+  end;
+end;
+
 // Procesa las lineas de la linea de comandos
 Procedure ProcesarLineas();
 Begin
@@ -147,9 +171,9 @@ var
 begin
 Command :=GetCommand(Linetext);
 if Command = '' then exit;
-if not AnsiContainsStr(HideCommands,Uppercase(command)) then ConsoleLines.Add('>> '+Linetext);
+if not AnsiContainsStr(HideCommands,Uppercase(command)) then ConsoleLinesAdd('>> '+Linetext);
 if UpperCase(Command) = 'LANG' then Language(linetext)
-else if UpperCase(Command) = 'VER' then ConsoleLines.Add(ProgramVersion+SubVersion)
+else if UpperCase(Command) = 'VER' then ConsoleLinesAdd(ProgramVersion+SubVersion)
 else if UpperCase(Command) = 'SERVERON' then StartServer()
 else if UpperCase(Command) = 'SERVEROFF' then StopServer()
 else if UpperCase(Command) = 'ADDNODE' then AddNode(linetext)
@@ -159,11 +183,11 @@ else if UpperCase(Command) = 'BOTS' then ShowBots()
 else if UpperCase(Command) = 'SLOTS' then ShowSlots()
 else if UpperCase(Command) = 'CONNECT' then ConnectToServers()
 else if UpperCase(Command) = 'DISCONNECT' then CerrarClientes()
-else if UpperCase(Command) = 'OFFSET' then consolelines.Add('Server: '+G_NTPServer+SLINEBREAK+LangLine(17)+IntToStr(G_TimeOffSet))
-//else if UpperCase(Command) = 'SSLPATH' then consolelines.Add(UserOptions.SSLPath)
+else if UpperCase(Command) = 'OFFSET' then ConsoleLinesAdd('Server: '+G_NTPServer+SLINEBREAK+LangLine(17)+IntToStr(G_TimeOffSet))
+//else if UpperCase(Command) = 'SSLPATH' then ConsoleLinesAdd(UserOptions.SSLPath)
 else if UpperCase(Command) = 'NEWADDRESS' then NuevaDireccion(linetext)
 else if UpperCase(Command) = 'USEROPTIONS' then ShowUserOptions()
-else if UpperCase(Command) = 'BALANCE' then ConsoleLines.Add(Int2Curr(GetWalletBalance)+' '+CoinSimbol)
+else if UpperCase(Command) = 'BALANCE' then ConsoleLinesAdd(Int2Curr(GetWalletBalance)+' '+CoinSimbol)
 else if UpperCase(Command) = 'GETNODESON' then SetGetNodesON()
 else if UpperCase(Command) = 'GETNODESOFF' then SetGetNodesOFF()
 else if UpperCase(Command) = 'CONNECTTO' then ConnectTo(Linetext)
@@ -183,7 +207,7 @@ else if UpperCase(Command) = 'EXPWALLET' then ExportarWallet(LineText)
 else if UpperCase(Command) = 'RESUMEN' then ShowBlchHead()
 else if UpperCase(Command) = 'SETDEFAULT' then SetDefaultAddress(LineText)
 else if UpperCase(Command) = 'LBINFO' then ShowBlockInfo(MyLastBlock)
-else if UpperCase(Command) = 'TIMESTAMP' then ConsoleLines.Add(UTCTime)
+else if UpperCase(Command) = 'TIMESTAMP' then ConsoleLinesAdd(UTCTime)
 else if UpperCase(Command) = 'MD160' then showmd160(LineText)
 else if UpperCase(Command) = 'UNDONEBLOCK' then UndoneLastBlock  // to be removed
 else if UpperCase(Command) = 'CUSTOMIZE' then CustomizeAddress(LineText)
@@ -208,13 +232,13 @@ else if UpperCase(Command) = 'BLOCK' then ParseShowBlockInfo(LineText)
 else if UpperCase(Command) = 'RUNDIAG' then RunDiagnostico(LineText)
 else if UpperCase(Command) = 'RESTART' then Parse_RestartNoso()
 else if UpperCase(Command) = 'SND' then ShowNetworkDataInfo()
-else if UpperCase(Command) = 'OSVERSION' then ConsoleLines.Add(OsVersion)
+else if UpperCase(Command) = 'OSVERSION' then ConsoleLinesAdd(OsVersion)
 else if UpperCase(Command) = 'SENDMESSAGE' then SendAdminMessage(linetext)
-else if UpperCase(Command) = 'MYHASH' then ConsoleLines.Add(HashMD5File('noso.exe'))
+else if UpperCase(Command) = 'MYHASH' then ConsoleLinesAdd(HashMD5File('noso.exe'))
 else if UpperCase(Command) = 'ADDBOT' then AddNewBot(LineText)
 else if UpperCase(Command) = 'SETRTOT' then SetReadTimeOutTIme(LineText)
 else if UpperCase(Command) = 'SETCTOT' then SetConnectTimeOutTIme(LineText)
-else if UpperCase(Command) = 'STATUS' then ConsoleLines.Add(GetCurrentStatus(1))
+else if UpperCase(Command) = 'STATUS' then ConsoleLinesAdd(GetCurrentStatus(1))
 else if UpperCase(Command) = 'OWNER' then GetOwnerHash(LineText)
 else if UpperCase(Command) = 'CHECKOWNER' then CheckOwnerHash(LineText)
 else if UpperCase(Command) = 'UPDATE' then RunUpdate(LineText)
@@ -256,10 +280,10 @@ else if UpperCase(Command) = 'RPCOFF' then SetRPCOff()
 
 // NETWORK VALUES
 else if UpperCase(Command) = 'NETREQS' then ShowNetReqs()
-else if UpperCase(Command) = 'NETHASH' then consolelines.Add('Network hashrate: '+IntToStr(networkhashrate))
-else if UpperCase(Command) = 'NETPEERS' then consolelines.Add('Network peers: '+IntToStr(networkpeers))
+else if UpperCase(Command) = 'NETHASH' then ConsoleLinesAdd('Network hashrate: '+IntToStr(networkhashrate))
+else if UpperCase(Command) = 'NETPEERS' then ConsoleLinesAdd('Network peers: '+IntToStr(networkpeers))
 
-else ConsoleLines.Add(LangLine(0)+Command);  // Unknow command
+else ConsoleLinesAdd(LangLine(0)+Command);  // Unknow command
 end;
 
 // Obtiene el comando de una linea
@@ -351,12 +375,12 @@ if ((port = '') or (StrToIntDef(port,-1)<0)) then port := '8080';
 if NodeExists(Ip,Port)<0 then
    begin
    UpdateNodeData(Ip,port);
-   ConsoleLines.Add(LangLine(41));      //Node added.
+   ConsoleLinesAdd(LangLine(41));      //Node added.
    end
 else
    begin
    UpdateNodeData(Ip,port); // actualizar la ultima conexion valida
-   ConsoleLines.Add(LangLine(42)); //Node already exists.
+   ConsoleLinesAdd(LangLine(42)); //Node already exists.
    end
 End;
 
@@ -366,7 +390,7 @@ var
   contador : integer = 0;
 Begin
 for contador := 0 to length(ListaNodos) - 1 do
-   consoleLines.Add(IntToStr(contador)+'- '+Listanodos[contador].ip+':'+Listanodos[contador].port+
+   ConsoleLinesAdd(IntToStr(contador)+'- '+Listanodos[contador].ip+':'+Listanodos[contador].port+
    ' '+TimeSinceStamp(CadToNum(Listanodos[contador].LastConexion,0,'STI fails on shownodes')));
 End;
 
@@ -379,7 +403,7 @@ Begin
 numero := StrToIntDef(Parameter(Texto,1),-1);
 if ((numero<0) or (numero>length(ListaNodos)-1)) then
    begin
-   consolelines.add(LangLine(43)); //Invalid node index.
+   ConsoleLinesAdd(LangLine(43)); //Invalid node index.
    exit;
    end
 else
@@ -392,7 +416,7 @@ else
       end;
    setlength(listanodos,length(listanodos)-1);
    S_NodeData := True;
-   ConsoleLines.Add(LangLine(44)+IntToStr(numero));  //Node deleted :
+   ConsoleLinesAdd(LangLine(44)+IntToStr(numero));  //Node deleted :
    FillNodeList();
    end;
 End;
@@ -403,8 +427,8 @@ var
   contador : integer = 0;
 Begin
 for contador := 0 to length(ListadoBots) - 1 do
-   consoleLines.Add(IntToStr(contador)+'- '+ListadoBots[contador].ip);
-ConsoleLines.Add(IntToStr(length(ListadoBots))+LangLine(45));  // bots registered
+   ConsoleLinesAdd(IntToStr(contador)+'- '+ListadoBots[contador].ip);
+ConsoleLinesAdd(IntToStr(length(ListadoBots))+LangLine(45));  // bots registered
 End;
 
 // muestra la informacion de los slots
@@ -412,10 +436,10 @@ Procedure ShowSlots();
 var
   contador : integer = 0;
 Begin
-ConsoleLines.Add(LangLine(46)); //Number Type ConnectedTo ChannelUsed LinesOnWait SumHash LBHash Offset ConStatus
+ConsoleLinesAdd(LangLine(46)); //Number Type ConnectedTo ChannelUsed LinesOnWait SumHash LBHash Offset ConStatus
 for contador := 1 to MaxConecciones do
    begin
-   ConsoleLines.Add(IntToStr(contador)+' '+conexiones[contador].tipo+
+   ConsoleLinesAdd(IntToStr(contador)+' '+conexiones[contador].tipo+
    ' '+conexiones[contador].ip+
    ' '+BoolToStr(CanalCliente[contador].connected,true)+' '+IntToStr(SlotLines[contador].count)+
    ' '+conexiones[contador].SumarioHash+' '+conexiones[contador].LastblockHash+' '+
@@ -426,17 +450,17 @@ end;
 // Muestras las opciones del usuario
 Procedure ShowUserOptions();
 Begin
-consolelines.Add('Language: '+IdiomasDisponibles[Useroptions.language]);
-consolelines.Add('Server Port: '+IntToStr(UserOptions.Port));
-consolelines.Add('Get Nodes: '+BoolToStr(UserOptions.GetNodes,true));
-//consolelines.Add('OpenSSL Path: '+UserOptions.SSLPath);
-consolelines.Add('Wallet: '+UserOptions.Wallet);
-consolelines.Add('PoolData: '+UserOptions.PoolInfo);
-consolelines.Add('AutoServer: '+BoolToStr(UserOptions.AutoServer,true));
-consolelines.Add('AutoConnect: '+BoolToStr(UserOptions.AutoConnect,true));
-consolelines.Add('AutoUpdate: '+BoolToStr(UserOptions.Auto_Updater,true));
-consolelines.Add('Version Page: '+UserOptions.VersionPage);
-consolelines.Add('Mine to pool: '+BoolToStr(UserOptions.UsePool,true));
+ConsoleLinesAdd('Language: '+IdiomasDisponibles[Useroptions.language]);
+ConsoleLinesAdd('Server Port: '+IntToStr(UserOptions.Port));
+ConsoleLinesAdd('Get Nodes: '+BoolToStr(UserOptions.GetNodes,true));
+//ConsoleLinesAdd('OpenSSL Path: '+UserOptions.SSLPath);
+ConsoleLinesAdd('Wallet: '+UserOptions.Wallet);
+ConsoleLinesAdd('PoolData: '+UserOptions.PoolInfo);
+ConsoleLinesAdd('AutoServer: '+BoolToStr(UserOptions.AutoServer,true));
+ConsoleLinesAdd('AutoConnect: '+BoolToStr(UserOptions.AutoConnect,true));
+ConsoleLinesAdd('AutoUpdate: '+BoolToStr(UserOptions.Auto_Updater,true));
+ConsoleLinesAdd('Version Page: '+UserOptions.VersionPage);
+ConsoleLinesAdd('Mine to pool: '+BoolToStr(UserOptions.UsePool,true));
 End;
 
 // devuelve el saldo en satoshis de la cartera
@@ -458,7 +482,7 @@ Begin
 UserOptions.GetNodes:=true;
 S_Options := true;
 U_DataPanel := true;
-ConsoleLines.Add(LangLine(47)+LangLine(48)); //GetNodes option is now  // ACTIVE
+ConsoleLinesAdd(LangLine(47)+LangLine(48)); //GetNodes option is now  // ACTIVE
 End;
 
 // desactiva la opcion de usuario para solicitar nodos la conectarse
@@ -467,7 +491,7 @@ Begin
 UserOptions.GetNodes:=false;
 S_Options := true;
 U_DataPanel := true;
-ConsoleLines.Add(LangLine(47)+LangLine(49)); //GetNodes option is now  // INACTIVE
+ConsoleLinesAdd(LangLine(47)+LangLine(49)); //GetNodes option is now  // INACTIVE
 End;
 
 // Conecta a un server especificado
@@ -486,21 +510,21 @@ Procedure MinerOn();
 Begin
 Miner_Active := true;
 U_Datapanel := true;
-ConsoleLines.Add(LangLine(50)+LAngLine(48));   // miner //active
+ConsoleLinesAdd(LangLine(50)+LAngLine(48));   // miner //active
 End;
 
 Procedure ToTrayON();
 Begin
 UserOptions.ToTray :=true;
 S_Options := true;
-ConsoleLines.Add('Minimize to tray is now '+LangLine(48)); //GetNodes option is now  // INACTIVE
+ConsoleLinesAdd('Minimize to tray is now '+LangLine(48)); //GetNodes option is now  // INACTIVE
 End;
 
 Procedure ToTrayOFF();
 Begin
 UserOptions.ToTray :=false;
 S_Options := true;
-ConsoleLines.Add('Minimize to tray is now '+LangLine(49)); //GetNodes option is now  // INACTIVE
+ConsoleLinesAdd('Minimize to tray is now '+LangLine(49)); //GetNodes option is now  // INACTIVE
 End;
 
 // desactiva el minero
@@ -509,7 +533,7 @@ Begin
 Miner_Active := false;
 if Miner_IsOn then Miner_IsOn := false;
 U_Datapanel := true;
-ConsoleLines.Add(LangLine(50)+LAngLine(49));    // miner //inactive
+ConsoleLinesAdd(LangLine(50)+LAngLine(49));    // miner //inactive
 End;
 
 // muestra el sumario completo
@@ -523,7 +547,7 @@ Begin
 For contador := 0 to length(ListaSumario)-1 do
    begin
    {
-   consolelines.Add(ListaSumario[contador].Hash+' '+Int2Curr(ListaSumario[contador].Balance)+' '+
+   ConsoleLinesAdd(ListaSumario[contador].Hash+' '+Int2Curr(ListaSumario[contador].Balance)+' '+
       SLINEBREAK+ListaSumario[contador].custom+' '+
       IntToStr(ListaSumario[contador].LastOP)+' '+IntToStr(ListaSumario[contador].Score));
    }
@@ -531,38 +555,38 @@ For contador := 0 to length(ListaSumario)-1 do
    TotalCOins := totalCoins+ ListaSumario[contador].Balance;
    if ListaSumario[contador].Balance = 0 then EmptyAddresses +=1;
    end;
-consoleLines.Add(IntToStr(Length(ListaSumario))+langline(51)); //addresses
-consoleLines.Add(IntToStr(EmptyAddresses)+' empty.'); //addresses
-if NegAdds>0 then consoleLines.Add('Possible issues: '+IntToStr(NegAdds));
-ConsoleLines.Add(Int2Curr(Totalcoins)+' '+CoinSimbol);
+ConsoleLinesAdd(IntToStr(Length(ListaSumario))+langline(51)); //addresses
+ConsoleLinesAdd(IntToStr(EmptyAddresses)+' empty.'); //addresses
+if NegAdds>0 then ConsoleLinesAdd('Possible issues: '+IntToStr(NegAdds));
+ConsoleLinesAdd(Int2Curr(Totalcoins)+' '+CoinSimbol);
 End;
 
 Procedure AutoServerON();
 Begin
 UserOptions.Autoserver := true;
 S_Options := true;
-ConsoleLines.Add(LangLine(52)+LAngLine(48));   //autoserver //active
+ConsoleLinesAdd(LangLine(52)+LAngLine(48));   //autoserver //active
 End;
 
 Procedure AutoServerOFF();
 Begin
 UserOptions.Autoserver := false;
 S_Options := true;
-ConsoleLines.Add(LangLine(52)+LAngLine(49));   //autoserver //inactive
+ConsoleLinesAdd(LangLine(52)+LAngLine(49));   //autoserver //inactive
 End;
 
 Procedure AutoConnectON();
 Begin
 UserOptions.AutoConnect := true;
 S_Options := true;
-ConsoleLines.Add(LangLine(53)+LAngLine(48));     //autoconnect // active
+ConsoleLinesAdd(LangLine(53)+LAngLine(48));     //autoconnect // active
 End;
 
 Procedure AutoConnectOFF();
 Begin
 UserOptions.AutoConnect := false;
 S_Options := true;
-ConsoleLines.Add(LangLine(53)+LAngLine(49));    //autoconnect // inactive
+ConsoleLinesAdd(LangLine(53)+LAngLine(49));    //autoconnect // inactive
 End;
 
 // muestra las direcciones de la cartera
@@ -572,10 +596,10 @@ var
 Begin
 for contador := 0 to length(ListaDirecciones)-1 do
    begin
-   consolelines.Add(Listadirecciones[contador].Hash);
+   ConsoleLinesAdd(Listadirecciones[contador].Hash);
    end;
-consoleLines.Add(IntToStr(Length(ListaDirecciones))+LangLine(51));
-ConsoleLines.Add(Int2Curr(GetWalletBalance)+' '+CoinSimbol);
+ConsoleLinesAdd(IntToStr(Length(ListaDirecciones))+LangLine(51));
+ConsoleLinesAdd(Int2Curr(GetWalletBalance)+' '+CoinSimbol);
 End;
 
 // enviar archivo de autoupdate
@@ -602,20 +626,20 @@ if GetAddressFromPublicKey(ClavePublica) = Adminhash then
    end;
 if ((DireccionEsMia(AdminHash)<0) and(not ByPassed)) then
    begin
-   ConsoleLines.Add(LangLine(54)); //Only the Noso developers can do this
+   ConsoleLinesAdd(LangLine(54)); //Only the Noso developers can do this
    exit;
    end;
 version := Parameter (linetext,1);
 FileName := 'nosoupdate'+version+'.zip';
 if not fileexists(UpdatesDirectory+filename) then
    begin
-   ConsoleLines.Add(LangLine(55)+filename);   //The specified zip file not exists:
+   ConsoleLinesAdd(LangLine(55)+filename);   //The specified zip file not exists:
    exit;
    end;
 {temporal para probar como obtener el tamaño del archivo}
 Assign (FileForSize,UpdatesDirectory+filename);
   Reset (FileForSize);
-  ConsoleLines.Add ('File size in bytes : '+IntToStr(FileSize(FileForSize) div 1024)+' kb');
+  ConsoleLinesAdd ('File size in bytes : '+IntToStr(FileSize(FileForSize) div 1024)+' kb');
   Close (FileForSize);
 {hasta aqui lo temporal}
 if not bypassed then FilenameHash := HashMD5File(UpdatesDirectory+filename);
@@ -639,21 +663,21 @@ For contador := 1 to maxconecciones do
       end;
    end;
 AFileStream.Free;
-if envios = 0 then ConsoleLines.Add(LangLine(56)) else ConsoleLines.Add(LangLine(57)+intToStr(envios));   //Can not send the update file // Update file sent to peers:
+if envios = 0 then ConsoleLinesAdd(LangLine(56)) else ConsoleLinesAdd(LangLine(57)+intToStr(envios));   //Can not send the update file // Update file sent to peers:
 End;
 
 Procedure AutoUpdateON();
 Begin
 UserOptions.Auto_Updater := true;
 S_Options := true;
-ConsoleLines.Add(LangLine(58)+LangLine(48));     //autoupdate //active
+ConsoleLinesAdd(LangLine(58)+LangLine(48));     //autoupdate //active
 End;
 
 Procedure AutoUpdateOFF();
 Begin
 UserOptions.Auto_Updater := false;
 S_Options := true;
-ConsoleLines.Add(LangLine(58)+LangLine(49));     //autoupdate //inactive
+ConsoleLinesAdd(LangLine(58)+LangLine(49));     //autoupdate //inactive
 End;
 
 Procedure UsePoolOn();
@@ -662,7 +686,7 @@ if UserOptions.PoolInfo<>'' then
    begin
    UserOptions.UsePool := true;
    S_Options := true;
-   ConsoleLines.Add('Mine for pool is now '+LangLine(48));     //autoupdate //active
+   ConsoleLinesAdd('Mine for pool is now '+LangLine(48));     //autoupdate //active
    end;
 End;
 
@@ -670,7 +694,7 @@ Procedure UsePoolOff();
 Begin
 UserOptions.UsePool := false;
 S_Options := true;
-ConsoleLines.Add('Mine for pool is now '+LangLine(49));     //autoupdate //inactive
+ConsoleLinesAdd('Mine for pool is now '+LangLine(49));     //autoupdate //inactive
 End;
 
 Procedure ExportarWallet(LineText:string);
@@ -681,16 +705,16 @@ destino := Parameter(linetext,1);
 destino := StringReplace(destino,'*',' ',[rfReplaceAll, rfIgnoreCase]);
 if fileexists(destino+'.pkw') then
    begin
-   consolelines.Add('Error: Can not overwrite existing wallets');
+   ConsoleLinesAdd('Error: Can not overwrite existing wallets');
    exit;
    end;
 if copyfile(useroptions.Wallet,destino+'.pkw',[]) then
    begin
-   consolelines.Add('Wallet saved as '+destino+'.pkw');
+   ConsoleLinesAdd('Wallet saved as '+destino+'.pkw');
    end
 else
    begin
-   consolelines.Add('Failed');
+   ConsoleLinesAdd('Failed');
    end;
 End;
 
@@ -706,7 +730,7 @@ Cartera := Parameter(linetext,1);
 Cartera := StringReplace(Cartera,'*',' ',[rfReplaceAll, rfIgnoreCase]);
 if not FileExists(cartera) then
    begin
-   consolelines.Add(langLine(60));//Specified wallet file do not exists.
+   ConsoleLinesAdd(langLine(60));//Specified wallet file do not exists.
    exit;
    end;
 assignfile(CarteraFile,Cartera);
@@ -717,7 +741,7 @@ Read(CarteraFile,DatoLeido);
 if not IsValidAddress(DatoLeido.Hash) then
    begin
    closefile(CarteraFile);
-   consolelines.Add('The file is not a valid wallet');
+   ConsoleLinesAdd('The file is not a valid wallet');
    exit;
    end;
 for contador := 0 to filesize(CarteraFile)-1 do
@@ -733,7 +757,7 @@ for contador := 0 to filesize(CarteraFile)-1 do
    end;
 closefile(CarteraFile);
 except on E:Exception  do
-consolelines.Add(LangLine(134)); //'The file is not a valid wallet'
+ConsoleLinesAdd(LangLine(134)); //'The file is not a valid wallet'
 end;
 if nuevos > 0 then
    begin
@@ -742,7 +766,7 @@ if nuevos > 0 then
    Deletefile(MyTrxFilename);
    RebulidTrxThread := Beginthread(tthreadfunc(@NewMyTrx));
    end
-else ConsoleLines.Add(LangLine(136));  //'No new addreses found.'
+else ConsoleLinesAdd(LangLine(136));  //'No new addreses found.'
 End;
 
 Procedure ShowBlchHead();
@@ -750,17 +774,17 @@ var
   Dato: ResumenData;
   Registros : integer = 0;
 Begin
-consolelines.Add('Block hash - Sumary hash');
+ConsoleLinesAdd('Block hash - Sumary hash');
 assignfile(FileResumen,ResumenFilename);
 reset(FileResumen);
 Registros := filesize(FileResumen);
 while not eof (fileresumen) do
    begin
    read(fileresumen, dato);
-   consolelines.Add(IntToStr(dato.block)+' '+copy(dato.blockhash,1,5)+' '+copy(dato.SumHash,1,5));
+   ConsoleLinesAdd(IntToStr(dato.block)+' '+copy(dato.blockhash,1,5)+' '+copy(dato.SumHash,1,5));
    end;
 closefile(FileResumen);
-Consolelines.Add(IntToStr(Registros)+' registers');
+ConsoleLinesAdd(IntToStr(Registros)+' registers');
 End;
 
 // Cambiar la primera direccion de la wallet
@@ -806,22 +830,22 @@ Begin
 if fileexists(BlockDirectory+IntToStr(numberblock)+'.blk') then
    begin
    Header := LoadBlockDataHeader(numberblock);
-   consolelines.Add('Last block info');
-   consolelines.Add('Hash  :       '+HashMD5File(BlockDirectory+IntToStr(numberblock)+'.blk'));
-   consolelines.Add('Number:       '+IntToStr(Header.Number));
-   consolelines.Add('Time start:   '+IntToStr(Header.TimeStart));
-   consolelines.Add('Time end:     '+IntToStr(Header.TimeEnd));
-   consolelines.Add('Time total:   '+IntToStr(Header.TimeTotal));
-   consolelines.Add('L20 average:  '+IntToStr(Header.TimeLast20));
-   consolelines.Add('Transactions: '+IntToStr(Header.TrxTotales));
-   consolelines.Add('Difficult:    '+IntToStr(Header.Difficult));
-   consolelines.Add('Target:       '+Header.TargetHash);
-   consolelines.Add('Solution:     '+Header.Solution);
-   consolelines.Add('Last Hash:    '+Header.LastBlockHash);
-   consolelines.Add('Next Diff:    '+IntToStr(Header.NxtBlkDiff));
-   consolelines.Add('Miner:        '+Header.AccountMiner);
-   consolelines.Add('Fees:         '+IntToStr(Header.MinerFee));
-   consolelines.Add('Reward:       '+IntToStr(Header.Reward));
+   ConsoleLinesAdd('Last block info');
+   ConsoleLinesAdd('Hash  :       '+HashMD5File(BlockDirectory+IntToStr(numberblock)+'.blk'));
+   ConsoleLinesAdd('Number:       '+IntToStr(Header.Number));
+   ConsoleLinesAdd('Time start:   '+IntToStr(Header.TimeStart));
+   ConsoleLinesAdd('Time end:     '+IntToStr(Header.TimeEnd));
+   ConsoleLinesAdd('Time total:   '+IntToStr(Header.TimeTotal));
+   ConsoleLinesAdd('L20 average:  '+IntToStr(Header.TimeLast20));
+   ConsoleLinesAdd('Transactions: '+IntToStr(Header.TrxTotales));
+   ConsoleLinesAdd('Difficult:    '+IntToStr(Header.Difficult));
+   ConsoleLinesAdd('Target:       '+Header.TargetHash);
+   ConsoleLinesAdd('Solution:     '+Header.Solution);
+   ConsoleLinesAdd('Last Hash:    '+Header.LastBlockHash);
+   ConsoleLinesAdd('Next Diff:    '+IntToStr(Header.NxtBlkDiff));
+   ConsoleLinesAdd('Miner:        '+Header.AccountMiner);
+   ConsoleLinesAdd('Fees:         '+IntToStr(Header.MinerFee));
+   ConsoleLinesAdd('Reward:       '+IntToStr(Header.Reward));
    end;
 End;
 
@@ -830,7 +854,7 @@ var
   tohash : string;
 Begin
 tohash := Parameter(linetext,1);
-consolelines.Add(HashMD160String(tohash));
+ConsoleLinesAdd(HashMD160String(tohash));
 End;
 
 Procedure CustomizeAddress(linetext:string);
@@ -843,12 +867,12 @@ address := Parameter(linetext,1);
 AddAlias := Parameter(linetext,2);
 if DireccionEsMia(address)<0 then
    begin
-   consolelines.Add(LAngLine(140));  //'Invalid address'
+   ConsoleLinesAdd(LAngLine(140));  //'Invalid address'
    procesar := false;
    end;
 if ListaDirecciones[DireccionEsMia(address)].Custom <> '' then
    begin
-   consolelines.Add(LangLine(141)); //'Address already have a custom alias'
+   ConsoleLinesAdd(LangLine(141)); //'Address already have a custom alias'
    procesar := false;
    end;
 if ( (length(AddAlias)<5) or (length(AddAlias)>40) ) then
@@ -858,29 +882,29 @@ if ( (length(AddAlias)<5) or (length(AddAlias)>40) ) then
    end;
 if IsValidAddress(addalias) then
    begin
-   consolelines.Add(LangLine(143)); //'Alias can not be a valid address'
+   ConsoleLinesAdd(LangLine(143)); //'Alias can not be a valid address'
    procesar := false;
    end;
 if ListaDirecciones[DireccionEsMia(address)].Balance < Customizationfee then
    begin
-   consolelines.Add(LangLine(144)); //'Insufficient balance'
+   ConsoleLinesAdd(LangLine(144)); //'Insufficient balance'
    procesar := false;
    end;
 if AddressAlreadyCustomized(Address) then
    begin
-   consolelines.Add(LangLine(141)); //'Address already have a custom alias'
+   ConsoleLinesAdd(LangLine(141)); //'Address already have a custom alias'
    procesar := false;
    end;
 if AddressSumaryIndex(addalias) >= 0 then
    begin
-   consolelines.Add('Alias already exists');
+   ConsoleLinesAdd('Alias already exists');
    procesar := false;
    end;
 for cont := 1 to length(addalias) do
    begin
    if pos(addalias[cont],CustomValid)=0 then
       begin
-      consolelines.Add('Invalid character in alias: '+addalias[cont]);
+      ConsoleLinesAdd('Invalid character in alias: '+addalias[cont]);
       info('Invalid character in alias: '+addalias[cont]);
       procesar := false;
       end;
@@ -940,7 +964,7 @@ amount       := Parameter(Linetext,2);
 concepto    := Parameter(Linetext,3);
 if ((Destination='') or (amount='')) then
    begin
-   consolelines.add(LAngLine(145)); //'Invalid parameters.'
+   ConsoleLinesAdd(LAngLine(145)); //'Invalid parameters.'
    Procesar := false;
    end;
 if not IsValidAddress(Destination) then
@@ -948,7 +972,7 @@ if not IsValidAddress(Destination) then
    AliasIndex:=AddressSumaryIndex(Destination);
    if AliasIndex<0 then
       begin
-      consolelines.add(LangLine(146)); //'Invalid destination.'
+      ConsoleLinesAdd(LangLine(146)); //'Invalid destination.'
       Procesar := false;
       end
    else Destination := ListaSumario[aliasIndex].Hash;
@@ -957,7 +981,7 @@ monto := StrToInt64Def(amount,-1);
 if concepto = '' then concepto := 'null';
 if monto<=0 then
    begin
-   consolelines.add(LangLine(147)); //'Invalid ammount.'
+   ConsoleLinesAdd(LangLine(147)); //'Invalid ammount.'
    Procesar := false;
    end;
 if procesar then
@@ -968,7 +992,7 @@ if procesar then
    Restante := monto+comision;
    if Restante > GetWalletBalance then
       begin
-      consolelines.add(LAngLine(148)+Int2curr(Monto+comision));//'Insufficient funds. Needed: '
+      ConsoleLinesAdd(LAngLine(148)+Int2curr(Monto+comision));//'Insufficient funds. Needed: '
       Procesar := false;
       end;
    end;
@@ -1001,7 +1025,7 @@ if procesar then
       ArrayTrfrs[contador].OrderLines:=trxLinea;
       end;
    ResultOrderID := GetOrderHash(IntToStr(trxLinea)+OrderHashString);
-   consolelines.Add('Send to: '+Destination+slinebreak+
+   ConsoleLinesAdd('Send to: '+Destination+slinebreak+
                     'Send '+Int2Curr(montoToShow)+' fee '+Int2Curr(comisionToShow)+slinebreak+
                     'Order ID: '+ResultOrderID);
    result := ResultOrderID;
@@ -1016,7 +1040,7 @@ if procesar then
    end // End procesar
 else
    begin
-   consolelines.Add('Syntax: sendto {destination} {ammount} {concept}');
+   ConsoleLinesAdd('Syntax: sendto {destination} {ammount} {concept}');
    end;
 End;
 
@@ -1037,11 +1061,11 @@ for contador := 0 to HalvingSteps do
    reward := InitialReward div StrToInt(BMExponente('2',IntToStr(contador)));
    MarketCap := marketcap+(reward*BlockHalvingInterval);
    Texto := LangLine(149)+IntToStr(block1)+LangLine(150)+IntToStr(block2)+': '+Int2curr(reward); //'From block '+' until '
-   consolelines.Add(Texto);
+   ConsoleLinesAdd(Texto);
    end;
-consolelines.Add(LangLine(151)+int2curr(0)); //'And then '
+ConsoleLinesAdd(LangLine(151)+int2curr(0)); //'And then '
 MarketCap := MarketCap+PremineAmount-InitialReward; // descuenta una recompensa inicial x bloque 0
-ConsoleLines.Add(LangLine(152)+int2curr(MarketCap)); //'Final supply: '
+ConsoleLinesAdd(LangLine(152)+int2curr(MarketCap)); //'Final supply: '
 End;
 
 // Muestra y procesa el monto a agrupar en la direccion principal
@@ -1055,11 +1079,11 @@ Proceder := Parameter(linetext,1);
 if length(listaDirecciones)>0 then
   for cont := 1 to length(listaDirecciones)-1 do
     Total += GetAddressBalance(ListaDirecciones[cont].Hash);
-ConsoleLines.Add(LangLine(153)+Int2curr(Total)+' '+Coinsimbol); //'Coins to group: '
+ConsoleLinesAdd(LangLine(153)+Int2curr(Total)+' '+Coinsimbol); //'Coins to group: '
 if uppercase(Proceder) = 'DO' then
    begin
    if Total = 0 then
-     ConsoleLines.Add(LangLine(154)) //'You do not have coins to group.'
+     ConsoleLinesAdd(LangLine(154)) //'You do not have coins to group.'
    else
      ProcessLinesAdd('SENDTO '+Listadirecciones[0].Hash+' '+IntToStr(GetMaximunToSend(Total)));
    end;
@@ -1085,9 +1109,9 @@ for contador := 1 to DLSL.Count-1 do
    else Write(Newfile,'')
    end;
 closefile(NewFile);
-consolelines.Add(LangLine(158)); //'Translation file generated.'
+ConsoleLinesAdd(LangLine(158)); //'Translation file generated.'
    except on E:Exception do
-   consolelines.Add(LangLine(159));  //'Something went wrong'
+   ConsoleLinesAdd(LangLine(159));  //'Something went wrong'
    end;
 End;
 
@@ -1110,7 +1134,7 @@ Nombrearchivo := parameter(linetext,1);
 Nombrearchivo := StringReplace(Nombrearchivo,'*',' ',[rfReplaceAll, rfIgnoreCase]);
 if ((nombrearchivo='') or (not fileexists(Nombrearchivo))) then
    begin
-   consolelines.Add('Invalid file name');
+   ConsoleLinesAdd('Invalid file name');
    exit;
    end;
 assignfile(archivo,Nombrearchivo);
@@ -1121,7 +1145,7 @@ readln(archivo,NombreIdioma);
 if NombreIDioma = '' then
   begin
   closefile(archivo);
-  consolelines.Add('Empty file');
+  ConsoleLinesAdd('Empty file');
   exit;
   end;
 setlength(arrayofstrings,0);
@@ -1139,7 +1163,7 @@ while not eof(archivo) do
 closefile(archivo);
 if length(arrayofstrings) <> DLSL.Count-2 then
    begin
-   consolelines.Add('The file is not valid. Lines/Expected: '+
+   ConsoleLinesAdd('The file is not valid. Lines/Expected: '+
                     IntToStr(length(arrayofstrings))+'/'+IntToStr(DLSL.Count-2));
    exit;
    end;
@@ -1156,7 +1180,7 @@ for contador := 1 to idiomas-1 do
    if linea = NombreIdioma then
       begin
       closefile(archivo2);
-      consolelines.Add(Nombreidioma+' already loaded');
+      ConsoleLinesAdd(Nombreidioma+' already loaded');
       exit;
       end;
    insert(linea,ListaDeIdiomas,length(ListaDeIdiomas));
@@ -1187,7 +1211,7 @@ for contador := 0 to IdiomasDisponibles.Count-1 do
    LangSelect.Items.Add(IdiomasDisponibles[contador]);
 LangSelect.ItemIndex := idiomas-1;
 InicializarGUI();
-ConsoleLines.Add('Loaded: '+NombreIdioma);
+ConsoleLinesAdd('Loaded: '+NombreIdioma);
 End;
 
 // cambia el puerto de escucha
@@ -1198,7 +1222,7 @@ Begin
 NewPort := parameter(linetext,1);
 if ((StrToIntDef(NewPort,0) < 1) or (StrToIntDef(NewPort,0)>65535)) then
    begin
-   Consolelines.Add('Invalid Port');
+   ConsoleLinesAdd('Invalid Port');
    exit;
    end;
 UserOptions.Port :=StrToIntDef(NewPort,0);
@@ -1212,7 +1236,7 @@ var
   TextToSha : string = '';
 Begin
 TextToSha :=  parameter(linetext,1);
-consolelines.Add(HashSha256String(TextToSha));
+ConsoleLinesAdd(HashSha256String(TextToSha));
 End;
 
 // prueba la lectura de parametros de la linea de comandos
@@ -1222,7 +1246,7 @@ var
   continuar : boolean;
   parametro : string;
 Begin
-consolelines.Add(Parameter(linetext,0));
+ConsoleLinesAdd(Parameter(linetext,0));
 continuar := true;
 repeat
    begin
@@ -1230,7 +1254,7 @@ repeat
    if parametro = '' then continuar := false
    else
      begin
-     consolelines.Add(inttostr(contador)+' '+parametro);
+     ConsoleLinesAdd(inttostr(contador)+' '+parametro);
      contador := contador+1;
      end;
    end;
@@ -1246,7 +1270,7 @@ Begin
 IPBot := Parameter(linetext,1);
 if IPBot = '' then
    begin
-   consolelines.Add('Invalid IP');
+   ConsoleLinesAdd('Invalid IP');
    exit;
    end;
 if uppercase(IPBot) = 'ALL' then
@@ -1254,7 +1278,7 @@ if uppercase(IPBot) = 'ALL' then
    SetLength(ListadoBots,0);
    LastBotClear := UTCTime;
    S_BotData := true;
-   consolelines.Add('All bots deleted');
+   ConsoleLinesAdd('All bots deleted');
    exit;
    end;
 for contador := 0 to length(ListadoBots)-1 do
@@ -1263,16 +1287,16 @@ for contador := 0 to length(ListadoBots)-1 do
       begin
       Delete(ListadoBots,Contador,1);
       S_BotData := true;
-      consolelines.Add(IPBot+' deleted from bot list');
+      ConsoleLinesAdd(IPBot+' deleted from bot list');
       exit;
       end;
    end;
-consolelines.Add('IP do not exists in Bot list');
+ConsoleLinesAdd('IP do not exists in Bot list');
 End;
 
 Procedure showCriptoThreadinfo();
 Begin
-consolelines.Add(Booltostr(CriptoThreadRunning,true)+' '+
+ConsoleLinesAdd(Booltostr(CriptoThreadRunning,true)+' '+
                  inttostr(length(CriptoOpstipo))+' '+
                  inttostr(length(CriptoOpsoper))+' '+
                  inttostr(length(CriptoOpsResu)));
@@ -1296,7 +1320,7 @@ if numero > G_CpuCount then
 G_MiningCPUs := numero;
 outtext('Mining CPUs set to: '+IntToStr(numero),false,2);
 if G_MiningCPUs > 2 then
-  consolelines.Add('*** WARNING ***'+slinebreak+'Using more than 2 CPUs to mine is NOT RECOMMENDED'+slinebreak+
+  ConsoleLinesAdd('*** WARNING ***'+slinebreak+'Using more than 2 CPUs to mine is NOT RECOMMENDED'+slinebreak+
                    'Not support if you decide to mine with '+IntToStr(G_MiningCPUs)+' CPUs'+slinebreak+
                    '***************');
 DefCPUs := G_MiningCPUs;
@@ -1317,11 +1341,11 @@ End;
 // Este procedimiento debe amppliarse para que muestre la informacion solicitada
 Procedure ShowNetworkDataInfo();
 Begin
-consolelines.Add('Network last block');
-consolelines.Add('Value: '+NetLastBlock.Value);
-consolelines.Add('Count: '+IntToStr(NetLastBlock.Count));
-consolelines.Add('Percent: '+IntToStr(NetLastBlock.porcentaje));
-consolelines.Add('Slot: '+IntToStr(NetLastBlock.slot));
+ConsoleLinesAdd('Network last block');
+ConsoleLinesAdd('Value: '+NetLastBlock.Value);
+ConsoleLinesAdd('Count: '+IntToStr(NetLastBlock.Count));
+ConsoleLinesAdd('Percent: '+IntToStr(NetLastBlock.porcentaje));
+ConsoleLinesAdd('Slot: '+IntToStr(NetLastBlock.slot));
 End;
 
 Procedure ShowPoolInfo();
@@ -1331,17 +1355,17 @@ Begin
 if fileexists(PoolInfoFilename) then
    begin
    Dato := GetPoolInfoFromDisk();
-   consolelines.Add('My Pool Info: ');
-   Consolelines.Add('Name: '+dato.Name);
-   Consolelines.Add('Address: '+dato.Direccion);
-   Consolelines.Add('Fee: '+IntToStr(dato.Porcentaje)+'/10000');
-   Consolelines.Add('MaxMembers: '+IntToStr(dato.MaxMembers));
-   consolelines.add('Members: '+IntToStr(length(ArrayPoolMembers)));
-   Consolelines.Add('Port: '+IntToStr(dato.Port));
-   Consolelines.Add('PayRatio: '+IntToStr(dato.TipoPago));
-   consolelines.Add('Listening: '+BoolToStr(form1.PoolServer.Active,true));
+   ConsoleLinesAdd('My Pool Info: ');
+   ConsoleLinesAdd('Name: '+dato.Name);
+   ConsoleLinesAdd('Address: '+dato.Direccion);
+   ConsoleLinesAdd('Fee: '+IntToStr(dato.Porcentaje)+'/10000');
+   ConsoleLinesAdd('MaxMembers: '+IntToStr(dato.MaxMembers));
+   ConsoleLinesAdd('Members: '+IntToStr(length(ArrayPoolMembers)));
+   ConsoleLinesAdd('Port: '+IntToStr(dato.Port));
+   ConsoleLinesAdd('PayRatio: '+IntToStr(dato.TipoPago));
+   ConsoleLinesAdd('Listening: '+BoolToStr(form1.PoolServer.Active,true));
    end
-else consolelines.Add('You do not own a pool.');
+else ConsoleLinesAdd('You do not own a pool.');
 End;
 
 // Crea un pool de mineria
@@ -1359,7 +1383,7 @@ var
 Begin
 if fileexists(PoolInfoFilename) then
   begin
-  consolelines.Add('You already owns a minning pool');
+  ConsoleLinesAdd('You already owns a minning pool');
   exit;
   end;
 nombre := Parameter(linetext,1);
@@ -1377,7 +1401,7 @@ if parametrosok = 0 then
    begin
    CrearArchivoPoolInfo(nombre,direccionminado,porcentaje,maxmembers,port,tipopago,password);
    CrearArchivoPoolMembers();
-   ConsoleLines.Add('Mining pool created');
+   ConsoleLinesAdd('Mining pool created');
    MiPrefijo := PoolAddNewMember(direccionminado);
    useroptions.PoolInfo:=direccionminado+' '+MiPrefijo+' '+'localhost '+IntToStr(port)+' '+
       direccionminado+' '+nombre+' '+password;
@@ -1388,7 +1412,7 @@ if parametrosok = 0 then
    end
 else
    begin
-   consolelines.Add('CreatePool: Invalid parameters'+slinebreak+
+   ConsoleLinesAdd('CreatePool: Invalid parameters'+slinebreak+
    'createpool {name} {port} {password}');
    end;
 End;
@@ -1400,8 +1424,8 @@ var
   Port : integer;
   parametrosok : boolean = true;
 Begin
-consolelines.Add('Deprecated since 0.2.0J');
-consolelines.Add('Use NosoMiner to mine in a pool');
+ConsoleLinesAdd('Deprecated since 0.2.0J');
+ConsoleLinesAdd('Use NosoMiner to mine in a pool');
 exit;
 if UserOptions.poolinfo = '' then
    begin
@@ -1417,11 +1441,11 @@ if UserOptions.poolinfo = '' then
       begin
       //ConnectPoolClient(ip,port,password,direccion);
       //SendPoolMessage(password+' '+direccion+' JOIN '+ip+' '+IntToStr(port));
-      consolelines.Add('Join pool request sent');
+      ConsoleLinesAdd('Join pool request sent');
       end
-   else consolelines.Add('Join Pool: Invalid parameters'+slinebreak+'joinpool {ip} {port} {address} {password}');
+   else ConsoleLinesAdd('Join Pool: Invalid parameters'+slinebreak+'joinpool {ip} {port} {address} {password}');
    end
-else consolelines.Add('You already are in a pool');
+else ConsoleLinesAdd('You already are in a pool');
 End;
 
 Procedure DeletePool(LineText:string);
@@ -1444,27 +1468,27 @@ if confirmed then
    if fileexists(PoolInfoFilename) then
       begin
       deletefile(PoolInfoFilename);
-      consolelines.Add('Own pool deleted');
+      ConsoleLinesAdd('Own pool deleted');
       deletefile(PoolMembersFilename);
       if form1.PoolServer.Active then form1.PoolServer.Active := false;
       setlength(arraypoolmembers,0);
       Miner_OwnsAPool := false;
       end
-   else consolelines.add('You do no owns a pool data');
+   else ConsoleLinesAdd('You do no owns a pool data');
    if useroptions.PoolInfo<>'' then
       begin
       useroptions.PoolInfo:='';
-      consolelines.Add('Pool connection data deleted');
+      ConsoleLinesAdd('Pool connection data deleted');
       S_Options := true;
       end
-   else consolelines.Add('You are not a pool member');
+   else ConsoleLinesAdd('You are not a pool member');
    UserOptions.UsePool := false;
    S_Options := true;
    if formpool.Visible then formpool.Visible:=false;
    end
 else
    begin
-   consolelines.Add('delpool {yes} [NOSAVE]');
+   ConsoleLinesAdd('delpool {yes} [NOSAVE]');
    end;
 End;
 
@@ -1475,12 +1499,12 @@ Begin
 direccion := parameter(linetext,1);
 if DireccionEsMia(direccion)<0 then
   begin
-  consolelines.Add('Invalid address');
+  ConsoleLinesAdd('Invalid address');
   end
 else
    begin
    currtime := UTCTime;
-   consolelines.Add(direccion+' owner cert'+slinebreak+
+   ConsoleLinesAdd(direccion+' owner cert'+slinebreak+
                     ListaDirecciones[DireccionEsMia(direccion)].PublicKey+':'+currtime+':'+GetStringSigned('I OWN THIS ADDRESS '+direccion+currtime,ListaDirecciones[DireccionEsMia(direccion)].PrivateKey));
    end;
 End;
@@ -1497,8 +1521,8 @@ firma := Parameter(data,2);
 direc := GetAddressFromPublicKey(pubkey);
 if ListaSumario[AddressSumaryIndex(direc)].custom <> '' then direc := ListaSumario[AddressSumaryIndex(direc)].custom;
 if VerifySignedString('I OWN THIS ADDRESS '+direc+firmtime,firma,pubkey) then
-   consolelines.Add(direc+' verified '+TimeSinceStamp(StrToInt64(firmtime))+' ago.')
-else consolelines.Add('Invalid verification');
+   ConsoleLinesAdd(direc+' verified '+TimeSinceStamp(StrToInt64(firmtime))+' ago.')
+else ConsoleLinesAdd('Invalid verification');
 End;
 
 // devuelve una cadena con los updates disponibles
@@ -1537,12 +1561,12 @@ if fileexists(UpdatesDirectory+'nosoupdate'+version+'.zip') then
    EjecutarAutoUpdate(version);
    Application.Terminate;
    end
-else consolelines.add('Invalid update');
+else ConsoleLinesAdd('Invalid update');
 End;
 
 Procedure ShowAdvOpt();
 Begin
-consolelines.Add('To be implemented');
+ConsoleLinesAdd('To be implemented');
 End;
 
 Procedure ChangePoolPassword(LineText:string);
@@ -1551,7 +1575,7 @@ var
 Begin
 if not Miner_OwnsAPool then
    begin
-   Consolelines.Add('Only pool admin can change password');
+   ConsoleLinesAdd('Only pool admin can change password');
    exit;
    end;
 oldpass := Parameter(LineText,1);
@@ -1559,7 +1583,7 @@ newpass := Parameter(LineText,2);
 if length(newpass) > 10 then setlength(newpass,10);
 if oldpass <> MyPoolData.Password then
    begin
-   Consolelines.Add('Invalid password');
+   ConsoleLinesAdd('Invalid password');
    exit;
    end;
 if Miner_OwnsAPool then // si posse el pool, cambiar ambas
@@ -1578,14 +1602,14 @@ Begin
 newfee := StrToIntDef(Parameter(linetext,1),-1);
 if (not Miner_OwnsAPool) then
    begin
-   Consolelines.Add('Only pool admin can change fees');
+   ConsoleLinesAdd('Only pool admin can change fees');
    exit;
    end
 else
    begin
    if newfee<0 then
       begin
-      Consolelines.Add('Invalid pool fee');
+      ConsoleLinesAdd('Invalid pool fee');
       exit;
       end;
    poolinfo.Porcentaje:=newfee;
@@ -1601,14 +1625,14 @@ Begin
 newmembers := StrToIntDef(Parameter(linetext,1),-1);
 if (not Miner_OwnsAPool) then
    begin
-   Consolelines.Add('Only pool admin can change max members');
+   ConsoleLinesAdd('Only pool admin can change max members');
    exit;
    end
 else
    begin
    if ( (newmembers<length(arraypoolmembers)) or (newmembers>Pool_Max_Members) ) then
       begin
-      Consolelines.Add('Invalid number of members');
+      ConsoleLinesAdd('Invalid number of members');
       exit;
       end;
    poolinfo.MaxMembers:=newmembers;
@@ -1624,14 +1648,14 @@ Begin
 newpayrate := StrToIntDef(Parameter(linetext,1),-1);
 if (not Miner_OwnsAPool) then
    begin
-   Consolelines.Add('Only pool admin can change pay interval');
+   ConsoleLinesAdd('Only pool admin can change pay interval');
    exit;
    end
 else
    begin
    if ( (newpayrate<1) or (newpayrate>1008) ) then
       begin
-      Consolelines.Add('Invalid number for pay interval');
+      ConsoleLinesAdd('Invalid number for pay interval');
       exit;
       end;
    poolinfo.TipoPago:=newpayrate;
@@ -1653,21 +1677,21 @@ if Paybalance <> 'YES' then paybalance := 'NO';
 {
 if DireccionEsMia(member)>=0 then
    begin
-   consolelines.Add('You can not expel yourself from your pool');
+   ConsoleLinesAdd('You can not expel yourself from your pool');
    exit;
    end;
 }
 MemberPosition := GetPoolMemberPosition(member);
 if (not Miner_OwnsAPool) then
    begin
-   Consolelines.Add('Only pool admin can expel members');
+   ConsoleLinesAdd('Only pool admin can expel members');
    exit;
    end
 else
    begin
    if (MemberPosition<0) then
       begin
-      Consolelines.Add('User do not exists in the pool');
+      ConsoleLinesAdd('User do not exists in the pool');
       exit;
       end;
    MemberBalance := GetPoolMemberBalance(member);
@@ -1675,7 +1699,7 @@ else
       begin
       ProcessLinesAdd('sendto '+member+' '+IntToStr(GetMaximunToSend(MemberBalance))+' EXPEL_POOLPAYMENT_'+PoolInfo.Name);
       ClearPoolUserBalance(member);
-      ConsoleLines.Add('Pool expel payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
+      ConsoleLinesAdd('Pool expel payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
       tolog('Pool expel payment sent: '+int2curr(GetMaximunToSend(MemberBalance)));
       PoolMembersTotalDeuda := GetTotalPoolDeuda();
       end;
@@ -1699,15 +1723,15 @@ Begin
 value := StrToIntDef(Parameter(linetext,1),-1);
 if value >= 0 then
   begin
-  if value = PoolExpelBlocks then consolelines.Add('Value already is '+IntToStr(value))
+  if value = PoolExpelBlocks then ConsoleLinesAdd('Value already is '+IntToStr(value))
   else
      begin
      PoolExpelBlocks := value;
-     consolelines.Add('PoolExpelBlocks set to '+IntToStr(PoolExpelBlocks));
+     ConsoleLinesAdd('PoolExpelBlocks set to '+IntToStr(PoolExpelBlocks));
      EdPooExp.Caption:='Expel: '+IntToStr(PoolExpelBlocks);
      end;
   end
-else consolelines.Add('Invalid value');
+else ConsoleLinesAdd('Invalid value');
 End;
 
 Procedure SetPoolShare(LineText:string);
@@ -1718,10 +1742,10 @@ value := StrToIntDef(Parameter(linetext,1),-1);
 if ((value >= 0) and (value<=100)) then
   begin
   PoolShare := value;
-  consolelines.Add('PoolShare set to '+IntToStr(PoolShare));
+  ConsoleLinesAdd('PoolShare set to '+IntToStr(PoolShare));
   EdShares.Caption:='Shares: '+IntToStr(PoolShare)+'%';
   end
-else consolelines.Add('Invalid value');
+else ConsoleLinesAdd('Invalid value');
 End;
 
 Procedure SendAdminMessage(linetext:string);
@@ -1730,7 +1754,7 @@ var
 Begin
 if (DireccionEsMia(AdminHash)<0) then
    begin
-   ConsoleLines.Add(LangLine(54)); //Only the Noso developers can do this
+   ConsoleLinesAdd(LangLine(54)); //Only the Noso developers can do this
    exit;
    end;
 Mensaje := parameter(linetext,1);
@@ -1740,7 +1764,7 @@ hashmsg := HashMD5String(currtime+mensaje+firma);
 mensaje := StringReplace(mensaje,' ','_',[rfReplaceAll, rfIgnoreCase]);
 OutgoingMsjs.Add(GetPTCEcn+'ADMINMSG '+currtime+' '+mensaje+' '+firma+' '+hashmsg);
 mensaje := StringReplace(mensaje,'_',' ',[rfReplaceAll, rfIgnoreCase]);
-ConsoleLines.Add('Message sent: '+mensaje);
+ConsoleLinesAdd('Message sent: '+mensaje);
 End;
 
 Procedure SetReadTimeOutTIme(LineText:string);
@@ -1748,11 +1772,11 @@ var
   newvalue : integer;
 Begin
 newvalue := StrToIntDef(parameter(LineText,1),-1);
-if newvalue < 0 then consolelines.Add('ReadTimeOutTime= '+IntToStr(ReadTimeOutTIme))
+if newvalue < 0 then ConsoleLinesAdd('ReadTimeOutTime= '+IntToStr(ReadTimeOutTIme))
 else
   begin
   ReadTimeOutTIme := newvalue;
-  Consolelines.Add('ReadTimeOutTime set to '+IntToStr(newvalue));
+  ConsoleLinesAdd('ReadTimeOutTime set to '+IntToStr(newvalue));
   end;
 End;
 
@@ -1761,11 +1785,11 @@ var
   newvalue : integer;
 Begin
 newvalue := StrToIntDef(parameter(LineText,1),-1);
-if newvalue < 0 then consolelines.Add('ConnectTimeOutTime= '+IntToStr(ConnectTimeOutTIme))
+if newvalue < 0 then ConsoleLinesAdd('ConnectTimeOutTime= '+IntToStr(ConnectTimeOutTIme))
 else
   begin
   ConnectTimeOutTIme := newvalue;
-  Consolelines.Add('ConnectTimeOutTime set to '+IntToStr(newvalue));
+  ConsoleLinesAdd('ConnectTimeOutTime set to '+IntToStr(newvalue));
   end;
 End;
 
@@ -1775,10 +1799,10 @@ var
 Begin
 if length(ArrayNetworkRequests)>0 then
    begin
-   consolelines.Add('Tipo TimeStamp Block Hash');
+   ConsoleLinesAdd('Tipo TimeStamp Block Hash');
    for contador := 0 to length(ArrayNetworkRequests)-1 do
       begin
-      consolelines.Add(IntToStr(ArrayNetworkRequests[contador].tipo)+' '+IntToStr(ArrayNetworkRequests[contador].timestamp)+' '+
+      ConsoleLinesAdd(IntToStr(ArrayNetworkRequests[contador].tipo)+' '+IntToStr(ArrayNetworkRequests[contador].timestamp)+' '+
          IntToStr(ArrayNetworkRequests[contador].block)+' '+ArrayNetworkRequests[contador].hashreq);
       end;
    end;
@@ -1798,15 +1822,15 @@ Begin
 orderid := parameter(LineText,1);
 ThisOrderdata := GetOrderDetails(orderid);
 if thisorderdata.AmmountTrf<=0 then
-  consolelines.Add('Order not found')
+  ConsoleLinesAdd('Order not found')
 else
   begin
-  if ThisOrderdata.Block = 0 then consolelines.Add('Block: Pending')
-  else consolelines.Add('Block: '+IntToStr(ThisOrderdata.Block));
-  consolelines.Add('Time: '+TimestampToDate(IntToStr(ThisOrderdata.TimeStamp)));
-  consolelines.Add('Concept: '+ThisOrderdata.Concept);
-  consolelines.Add('Receiver: '+ThisOrderdata.receiver);
-  consolelines.Add('Ammount: '+Int2curr(ThisOrderdata.AmmountTrf));
+  if ThisOrderdata.Block = 0 then ConsoleLinesAdd('Block: Pending')
+  else ConsoleLinesAdd('Block: '+IntToStr(ThisOrderdata.Block));
+  ConsoleLinesAdd('Time: '+TimestampToDate(IntToStr(ThisOrderdata.TimeStamp)));
+  ConsoleLinesAdd('Concept: '+ThisOrderdata.Concept);
+  ConsoleLinesAdd('Receiver: '+ThisOrderdata.receiver);
+  ConsoleLinesAdd('Ammount: '+Int2curr(ThisOrderdata.AmmountTrf));
   end;
 End;
 
@@ -1825,9 +1849,9 @@ if DireccionEsMia(addresshash) >= 0 then
   Data := ListaDirecciones[DireccionEsMia(addresshash)];
   write(newfile,data);
   closefile(newfile);
-  consolelines.Add('Address exported to tempwallet.pkw');
+  ConsoleLinesAdd('Address exported to tempwallet.pkw');
   end
-else consolelines.Add('Address not found in wallet');
+else ConsoleLinesAdd('Address not found in wallet');
 End;
 
 // Shows all the info of a specified address
@@ -1840,12 +1864,12 @@ Begin
 addtoshow := parameter(LineText,1);
 sumposition := AddressSumaryIndex(addtoshow);
 if sumposition<0 then
-   consolelines.Add('Address do not exists in sumary.')
+   ConsoleLinesAdd('Address do not exists in sumary.')
 else
    begin
    onsumary := GetAddressBalance(addtoshow);
    pending := GetAddressPendingPays(addtoshow);
-   consolelines.Add('Address  : '+ListaSumario[sumposition].Hash+slinebreak+
+   ConsoleLinesAdd('Address  : '+ListaSumario[sumposition].Hash+slinebreak+
                     'Alias    : '+ListaSumario[sumposition].Custom+slinebreak+
                     'Sumary   : '+Int2curr(onsumary)+slinebreak+
                     'Incoming : '+Int2Curr(GetAddressIncomingpays(ListaSumario[sumposition].Hash))+slinebreak+
@@ -1893,17 +1917,17 @@ for counter := 1 to MyLastBlock do
       end;
    end;
 inbalance := GetAddressBalance(addtoshow);
-consolelines.Add('Last block : '+inttostr(MyLastBlock));
-consolelines.Add('Address    : '+addtoshow);
-consolelines.Add('INCOMINGS');
-consolelines.Add('  Mined        : '+IntToStr(minedblocks));
-consolelines.Add('  Transactions : '+IntToStr(incomingtrx));
-consolelines.Add('  Coins        : '+Int2Curr(inccoins));
-consolelines.Add('OUTGOINGS');
-consolelines.Add('  Transactions : '+IntToStr(outgoingtrx));
-consolelines.Add('  Coins        : '+Int2Curr(outcoins));
-consolelines.Add('TOTAL  : '+Int2Curr(inccoins-outcoins));
-consolelines.Add('SUMARY : '+Int2Curr(inbalance));
+ConsoleLinesAdd('Last block : '+inttostr(MyLastBlock));
+ConsoleLinesAdd('Address    : '+addtoshow);
+ConsoleLinesAdd('INCOMINGS');
+ConsoleLinesAdd('  Mined        : '+IntToStr(minedblocks));
+ConsoleLinesAdd('  Transactions : '+IntToStr(incomingtrx));
+ConsoleLinesAdd('  Coins        : '+Int2Curr(inccoins));
+ConsoleLinesAdd('OUTGOINGS');
+ConsoleLinesAdd('  Transactions : '+IntToStr(outgoingtrx));
+ConsoleLinesAdd('  Coins        : '+Int2Curr(outcoins));
+ConsoleLinesAdd('TOTAL  : '+Int2Curr(inccoins-outcoins));
+ConsoleLinesAdd('SUMARY : '+Int2Curr(inbalance));
 End;
 
 // Shows the total fees paid in the whole blockchain
@@ -1918,8 +1942,8 @@ for counter := 1 to MyLastBlock do
    Header := LoadBlockDataHeader(counter);
    totalcoins := totalcoins+ header.MinerFee;
    end;
-consolelines.Add('Blockchain total fees: '+Int2curr(totalcoins));
-consolelines.Add('Block average        : '+Int2curr(totalcoins div MyLastBlock));
+ConsoleLinesAdd('Blockchain total fees: '+Int2curr(totalcoins));
+ConsoleLinesAdd('Block average        : '+Int2curr(totalcoins div MyLastBlock));
 End;
 
 END. // END UNIT

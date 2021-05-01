@@ -615,7 +615,7 @@ End;
 Procedure OutText(Texto:String;inctime:boolean = false;canal : integer =0);
 Begin
 if inctime then texto := timetostr(now)+' '+texto;
-if canal = 0 then Consolelines.Add(texto);
+if canal = 0 then ConsoleLinesAdd(texto);
 if canal = 1 then  // Salida al grid de inicio
    begin
    gridinicio.RowCount:=gridinicio.RowCount+1;
@@ -626,7 +626,7 @@ if canal = 1 then  // Salida al grid de inicio
    end;
 if canal = 2 then // A consola y label info
    begin
-   Consolelines.Add(texto);
+   ConsoleLinesAdd(texto);
    info(texto);
    end;
 End;
@@ -637,7 +637,9 @@ Begin
 While ConsoleLines.Count > 0 do
    begin
    Memoconsola.Lines.Add(ConsoleLines[0]);
+   EnterCriticalSection(CSOutgoingMsjs);
    ConsoleLines.Delete(0);
+   LeaveCriticalSection(CSOutgoingMsjs);
    end;
 End;
 
@@ -729,11 +731,11 @@ Begin
 number := Parameter(linea,1);
 if number = '' then // mostrar la info
    begin
-   Consolelines.add(LangLine(1)+CurrentLanguage);     //Current Language:
-   Consolelines.add(LangLine(2)+IntToStr(LanguageLines));   // Lines:
+   ConsoleLinesAdd(LangLine(1)+CurrentLanguage);     //Current Language:
+   ConsoleLinesAdd(LangLine(2)+IntToStr(LanguageLines));   // Lines:
    for contador := 0 to IdiomasDisponibles.Count- 1 do
       Disponibles := Disponibles+'['+IntToStr(contador)+'] '+IdiomasDisponibles[contador];
-   Consolelines.Add(LangLine(5)+Disponibles);  //Available Languages:
+   ConsoleLinesAdd(LangLine(5)+Disponibles);  //Available Languages:
    end
 else
    begin
@@ -744,7 +746,7 @@ else
       U_DataPanel := true;
       LangSelect.ItemIndex := StrToIntDef(number,0);
       end
-   else consolelines.Add(LangLine(4));   //Invalid language number.
+   else ConsoleLinesAdd(LangLine(4));   //Invalid language number.
    end;
 end;
 
@@ -1018,7 +1020,7 @@ userdireccion := ArrayPoolMembers[GridPoolMembers.Row-1].Direccion;
 MemberBalance := GetPoolMemberBalance(UserDireccion);
 ProcessLinesAdd('sendto '+UserDireccion+' '+IntToStr(GetMaximunToSend(MemberBalance))+' POOLPAYMENT_'+PoolInfo.Name);
 ClearPoolUserBalance(UserDireccion);
-ConsoleLines.Add('Pool payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
+ConsoleLinesAdd('Pool payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
 tolog('Pool payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
 End;
 

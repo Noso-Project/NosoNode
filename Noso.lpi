@@ -131,8 +131,11 @@
         <UnitName Value="mpRPC"/>
       </Unit15>
       <Unit16>
-        <Filename Value="mpcross.pas"/>
+        <Filename Value="mpoptions.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form2"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
       </Unit16>
     </Units>
   </ProjectOptions>

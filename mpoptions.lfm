@@ -1,0 +1,10 @@
+object Form2: TForm2
+  Left = 939
+  Height = 341
+  Top = 133
+  Width = 431
+  Caption = 'Options'
+  Position = poMainFormCenter
+  ShowInTaskBar = stAlways
+  LCLVersion = '2.0.10.0'
+end

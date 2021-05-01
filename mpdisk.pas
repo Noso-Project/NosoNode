@@ -24,6 +24,10 @@ Procedure UpdateNodeData(IPUser:String;Port:string;LastTime:String='');
 Procedure CreateExceptlog();
 Procedure ToExcLog(Texto:string);
 Procedure SaveExceptLog();
+// Pool payments file
+Procedure CreatePoolPayfile();
+Procedure AddPoolPay(Texto:string);
+Procedure SavePoolPays();
 
 
 Procedure CreateLog();
@@ -135,10 +139,11 @@ OutText('✓ My transactions file ok',false,1);
 if fileexists(PoolInfoFilename) then
    begin
    GetPoolInfoFromDisk();
+   if not FileExists(PoolPaymentsFilename) then CreatePoolPayfile();
    SetLength(PoolServerConex,PoolInfo.MaxMembers);
    for contador := 0 to length(PoolServerConex)-1 do
       PoolServerConex[contador] := Default(PoolUserConnection);
-   consolelines.Add('PoolMaxMembers:'+inttostr(length(PoolServerConex)));
+   ConsoleLinesAdd('PoolMaxMembers:'+inttostr(length(PoolServerConex)));
    Miner_OwnsAPool := true;
    LoadPoolMembers();
    ResetPoolMiningInfo();
@@ -320,6 +325,7 @@ End;
 
 // *** EXCEPTLOG FILE ***
 
+// Creates except log file
 Procedure CreateExceptlog();
 var
   archivo : textfile;
@@ -360,6 +366,56 @@ Except on E:Exception do
 end;
 End;
 
+// *** Pool payments file ***
+
+// Creates pool pays file
+Procedure CreatePoolPayfile();
+var
+  archivo : textfile;
+Begin
+   try
+   Assignfile(archivo, PoolPaymentsFilename);
+   rewrite(archivo);
+   Closefile(archivo);
+   Except on E:Exception do
+   tolog ('Error creating pool payments file');
+   end;
+End;
+
+// Add Except log line
+Procedure AddPoolPay(Texto:string);
+Begin
+EnterCriticalSection(CSPoolPay);
+SetLength(ArrPoolPays,length(ArrPoolPays)+1);
+ArrPoolPays[length(ArrPoolPays)-1].block:= StrToIntDef(parameter(texto,0),-1);
+ArrPoolPays[length(ArrPoolPays)-1].address:=parameter(texto,1);
+ArrPoolPays[length(ArrPoolPays)-1].amount:= StrToInt64Def(parameter(texto,2),0);
+ArrPoolPays[length(ArrPoolPays)-1].Order:= parameter(texto,3);
+PoolPaysLines.Add(texto);
+LeaveCriticalSection(CSPoolPay);
+S_PoolPays := true;
+End;
+
+// Save pool pays file to disk
+Procedure SavePoolPays();
+var
+  archivo : textfile;
+Begin
+try
+   Assignfile(archivo, PoolPaymentsFilename);
+   Append(archivo);
+   while PoolPaysLines.Count>0 do
+      begin
+      Writeln(archivo, PoolPaysLines[0]);
+      PoolPaysLines.Delete(0);
+      end;
+   Closefile(archivo);
+   S_PoolPays := false;
+Except on E:Exception do
+   tolog ('Error saving Pool pays file');
+end;
+End;
+
 // *** BOTS FILE ***
 
 
@@ -396,7 +452,7 @@ Begin
    writeln(FileAdvOptions,'RPCPass '+RPCPass);
    writeln(FileAdvOptions,'ShowedOrders '+IntToStr(ShowedOrders));
    Closefile(FileAdvOptions);
-   if saving then consolelines.Add('Advanced Options file saved');
+   if saving then ConsoleLinesAdd('Advanced Options file saved');
    Except on E:Exception do
       tolog ('Error creating AdvOpt file');
    end;
@@ -524,7 +580,7 @@ Begin
    try
    CrearArchivoLang();
    CargarIdioma(0);
-   ConsoleLines.Add(LangLine(18));
+   ConsoleLinesAdd(LangLine(18));
    OutText('✓ Language file created',false,1);
    Except on E:Exception do
       tolog ('Error creating default language file');
@@ -587,7 +643,7 @@ Begin
       end
    else // si el archivo no existe
       begin
-      ConsoleLines.Add('noso.lng not found');
+      ConsoleLinesAdd('noso.lng not found');
       tolog('noso.lng not found');
       end
    Except on E:Exception do
@@ -764,6 +820,7 @@ if S_Sumario then GuardarSumario();
 if S_PoolMembers then GuardarPoolMembers();
 if S_Log then SaveLog;
 if S_Exc then SaveExceptLog;
+if S_PoolPays then SavePoolPays;
 if S_PoolInfo then GuardarArchivoPoolInfo;
 if S_AdvOpt then CreateADV(false);
 End;
@@ -1060,7 +1117,7 @@ var
 Begin
 assignfile(FileResumen,ResumenFilename);
 reset(FileResumen);
-consolelines.Add(LangLine(127)+IntToStr(untilblock)); //'Rebuilding until block '
+ConsoleLinesAdd(LangLine(127)+IntToStr(untilblock)); //'Rebuilding until block '
 contador := MyLastBlock;
 while contador <= untilblock do
    begin
@@ -1134,7 +1191,7 @@ while filesize(FileResumen)> Untilblock+1 do  // cabeceras presenta un numero an
 closefile(FileResumen);
 if newblocks>0 then
    begin
-   ConsoleLines.Add(IntToStr(newblocks)+LangLine(129)); //' added to headers'
+   ConsoleLinesAdd(IntToStr(newblocks)+LangLine(129)); //' added to headers'
    U_Mytrxs := true;
    U_DirPanel := true;
    end;
@@ -1210,7 +1267,7 @@ for contador := 1 to UntilBlock do
 ListaSumario[0].LastOP:=contador;
 GuardarSumario();
 UpdateMyData();
-consolelines.Add(LangLine(131));  //'Sumary rebuilded.'
+ConsoleLinesAdd(LangLine(131));  //'Sumary rebuilded.'
 end;
 
 // adds a header at the end of headers file
@@ -1218,6 +1275,7 @@ Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
 var
   Dato: ResumenData;
 Begin
+EnterCriticalSection(CSHeadAccess);
    try
    assignfile(FileResumen,ResumenFilename);
    reset(FileResumen);
@@ -1231,11 +1289,13 @@ Begin
    Except on E:Exception do
       tolog ('Error adding new register to headers');
    end;
+LeaveCriticalSection(CSHeadAccess);
 End;
 
 // Deletes last header from headers file
 Procedure DelBlChHeadLast();
 Begin
+EnterCriticalSection(CSHeadAccess);
    try
    assignfile(FileResumen,ResumenFilename);
    reset(FileResumen);
@@ -1245,6 +1305,7 @@ Begin
    Except on E:Exception do
       tolog ('Error deleting last record from headers');
    end;
+LeaveCriticalSection(CSHeadAccess);
 End;
 
 // Creates user transactions file
@@ -1617,8 +1678,8 @@ Procedure GuardarPoolMembers();
 var
   contador : integer;
 Begin
-assignfile(FilePoolMembers,PoolMembersFilename);
-rewrite(FilePoolMembers);
+//assignfile(FilePoolMembers,PoolMembersFilename);
+reset(FilePoolMembers);
 TRY
 for contador := 0 to length(ArrayPoolMembers)-1 do
    begin
@@ -1628,6 +1689,7 @@ for contador := 0 to length(ArrayPoolMembers)-1 do
 EXCEPT on E:Exception do
    ToLog('Error saving pool members to disk.');
 END;
+truncate(FilePoolMembers);
 Closefile(FilePoolMembers);
 S_PoolMembers := false;
 End;
@@ -1783,6 +1845,7 @@ ErrorLogFilename    := 'NOSODATA'+DirectorySeparator+'errorlog.txt';
 PoolInfoFilename    := 'NOSODATA'+DirectorySeparator+'poolinfo.dat';
 PoolMembersFilename := 'NOSODATA'+DirectorySeparator+'poolmembers.dat';
 AdvOptionsFilename  := 'NOSODATA'+DirectorySeparator+'advopt.txt';
+PoolPaymentsFilename:= 'NOSODATA'+DirectorySeparator+'poolpays.txt';
 End;
 
 END. // END UNIT
