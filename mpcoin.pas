@@ -26,6 +26,7 @@ function GetMaximunToSend(monto:int64):int64;
 function cadtonum(cadena:string;pordefecto:int64;erroroutput:string):int64;
 Function IsValidIP(IpString:String):boolean;
 function GetCurrentStatus(mode:integer):String;
+function GetSupply():int64;
 
 
 
@@ -381,6 +382,11 @@ if mode = 1 then
    Resultado := resultado+'Minerhashseed: '+MINER_HashSeed;
    end;
 result := resultado;
+End;
+
+function GetSupply():int64;
+Begin
+result := (Mylastblock*5000000000)+1030390730000;
 End;
 
 END. // END UNIT

@@ -26,6 +26,7 @@ Procedure SendMesjsSalientes();
 procedure PTC_SendPending(Slot:int64);
 Procedure PTC_Newblock(Texto:String);
 Procedure PTC_SendResumen(Slot:int64);
+function CreateZipBlockfile(firstblock:integer):string;
 Procedure PTC_SendBlocks(Slot:integer;TextLine:String);
 Procedure INC_PTC_Custom(TextLine:String);
 Procedure PTC_Custom(TextLine:String);
@@ -472,7 +473,9 @@ var
   AFileStream : TFileStream;
 Begin
 SetCurrentJob('PTC_SendResumen',true);
+EnterCriticalSection(CSHeadAccess);
 AFileStream := TFileStream.Create(ResumenFilename, fmOpenRead + fmShareDenyNone);
+LeaveCriticalSection(CSHeadAccess);
 if conexiones[slot].tipo='CLI' then
    begin
       try
@@ -502,22 +505,21 @@ SetCurrentJob('PTC_SendResumen',false);
 //ConsoleLinesAdd(LangLine(91));//'Headers file sent'
 End;
 
-// Send Zipped blocks to peer
-Procedure PTC_SendBlocks(Slot:integer;TextLine:String);
+//
+function CreateZipBlockfile(firstblock:integer):string;
 var
-  FirstBlock, LastBlock : integer;
   MyZipFile: TZipper;
+  ZipFileName:String;
+  LastBlock : integer;
   contador : integer;
-  AFileStream : TFileStream;
   filename, archivename: String;
-  FileSentOk : Boolean = false;
 Begin
-SetCurrentJob('PTC_SendBlocks',true);
-FirstBlock := StrToIntDef(Parameter(textline,5),-1)+1;
+result := '';
 LastBlock := FirstBlock + 99; if LastBlock>MyLastBlock then LastBlock := MyLastBlock;
-ConsoleLinesAdd(LangLine(92)+'('+Conexiones[Slot].ip+')'+IntToStr(FirstBlock)+'->'+IntToStr(LastBlock)); //'Requested blocks interval: '
 MyZipFile := TZipper.Create;
-MyZipFile.FileName := BlockDirectory+'Blocks_'+IntToStr(FirstBlock)+'_'+IntToStr(LastBlock)+'.zip';
+ZipFileName := BlockDirectory+'Blocks_'+IntToStr(FirstBlock)+'_'+IntToStr(LastBlock)+'.zip';
+MyZipFile.FileName := ZipFileName;
+EnterCriticalSection(CSBlocksAccess);
 for contador := FirstBlock to LastBlock do
    begin
    filename := BlockDirectory+IntToStr(contador)+'.blk';
@@ -530,7 +532,47 @@ for contador := FirstBlock to LastBlock do
    MyZipFile.Entries.AddFileEntry(filename, archivename);
    end;
 MyZipFile.ZipAllFiles;
-AFileStream := TFileStream.Create(MyZipFile.FileName , fmOpenRead + fmShareDenyNone);
+MyZipFile.Free;
+LeaveCriticalSection(CSBlocksAccess);
+result := ZipFileName;
+End;
+
+// Send Zipped blocks to peer
+Procedure PTC_SendBlocks(Slot:integer;TextLine:String);
+var
+  FirstBlock, LastBlock : integer;
+  MyZipFile: TZipper;
+  contador : integer;
+  AFileStream : TFileStream;
+  filename, archivename: String;
+  FileSentOk : Boolean = false;
+  ZipFileName:String;
+Begin
+SetCurrentJob('PTC_SendBlocks',true);
+
+FirstBlock := StrToIntDef(Parameter(textline,5),-1)+1;
+{
+LastBlock := FirstBlock + 99; if LastBlock>MyLastBlock then LastBlock := MyLastBlock;
+ConsoleLinesAdd(LangLine(92)+'('+Conexiones[Slot].ip+')'+IntToStr(FirstBlock)+'->'+IntToStr(LastBlock)); //'Requested blocks interval: '
+MyZipFile := TZipper.Create;
+MyZipFile.FileName := BlockDirectory+'Blocks_'+IntToStr(FirstBlock)+'_'+IntToStr(LastBlock)+'.zip';
+EnterCriticalSection(CSBlocksAccess);
+for contador := FirstBlock to LastBlock do
+   begin
+   filename := BlockDirectory+IntToStr(contador)+'.blk';
+   {$IFDEF WINDOWS}
+   archivename:= StringReplace(filename,'\','/',[rfReplaceAll]);
+   {$ENDIF}
+   {$IFDEF LINUX}
+   archivename:= filename;
+   {$ENDIF}
+   MyZipFile.Entries.AddFileEntry(filename, archivename);
+   end;
+MyZipFile.ZipAllFiles;
+LeaveCriticalSection(CSBlocksAccess);
+}
+ZipFileName := CreateZipBlockfile(FirstBlock);
+AFileStream := TFileStream.Create(ZipFileName, fmOpenRead + fmShareDenyNone);
    try
    if conexiones[Slot].tipo='CLI' then
       begin
@@ -561,8 +603,8 @@ AFileStream := TFileStream.Create(MyZipFile.FileName , fmOpenRead + fmShareDenyN
    finally
    AFileStream.Free;
    end;
-MyZipFile.Free;
-deletefile(BlockDirectory+'Blocks_'+IntToStr(FirstBlock)+'_'+IntToStr(LastBlock)+'.zip');
+//MyZipFile.Free;
+deletefile(ZipFileName);
 SetCurrentJob('PTC_SendBlocks',false);
 End;
 

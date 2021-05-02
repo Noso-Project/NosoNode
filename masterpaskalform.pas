@@ -392,7 +392,7 @@ CONST
                           '45.141.36.117 '+
                           '185.239.236.85';
   ProgramVersion = '0.2.0';
-  SubVersion = 'Pg';
+  SubVersion = 'Pj|';
   OficialRelease = true;
   BuildDate = 'April 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -611,6 +611,7 @@ var
   CSPoolStep    : TRTLCriticalSection;
   CSPoolPay     : TRTLCriticalSection;
   CSHeadAccess  : TRTLCriticalSection;
+  CSBlocksAccess: TRTLCriticalSection;
 
   // Cross OS variables
   OSFsep : string = '';
@@ -850,6 +851,7 @@ InitCriticalSection(CSOutgoingMsjs);
 InitCriticalSection(CSPoolStep);
 InitCriticalSection(CSPoolPay);
 InitCriticalSection(CSHeadAccess);
+InitCriticalSection(CSBlocksAccess);
 CreateFormInicio();
 CreateFormLog();
 CreateFormAbout();
@@ -867,6 +869,7 @@ DoneCriticalSection(CSOutgoingMsjs);
 DoneCriticalSection(CSPoolStep);
 DoneCriticalSection(CSPoolPay);
 DoneCriticalSection(CSHeadAccess);
+DoneCriticalSection(CSBlocksAccess);
 end;
 
 // Form show
@@ -2280,6 +2283,42 @@ else if LLine = 'BLOCKZIP' then
       ResetMinerInfo();
       LastTimeRequestBlock := 0;
       end;
+   end
+else if parameter(LLine,4) = '$GETRESUMEN' then
+   begin
+   EnterCriticalSection(CSHeadAccess);
+   AFileStream := TFileStream.Create(ResumenFilename, fmOpenRead + fmShareDenyNone);
+   LeaveCriticalSection(CSHeadAccess);
+      try
+      Acontext.Connection.IOHandler.WriteLn('RESUMENFILE');
+      Acontext.connection.IOHandler.Write(AFileStream,0,true);
+      Except on E:Exception do
+         begin
+         Form1.TryCloseServerConnection(Conexiones[Slot].context);
+         ToExcLog('SERVER: Error sending headers file ('+E.Message+')');
+         end;
+      end;
+   AFileStream.Free;
+   ConsoleLinesAdd(LangLine(91)+': '+IPUser);//'Headers file sent'
+   end
+else if parameter(LLine,4) = '$LASTBLOCK' then
+   begin
+   BlockZipName := CreateZipBlockfile(StrToIntDef(parameter(LLine,5),0));
+   try
+   AFileStream := TFileStream.Create(BlockZipName, fmOpenRead + fmShareDenyNone);
+      try
+      Acontext.Connection.IOHandler.WriteLn('BLOCKZIP');
+      Acontext.connection.IOHandler.Write(AFileStream,0,true);
+      Except on E:Exception do
+         begin
+         Form1.TryCloseServerConnection(Conexiones[Slot].context);
+         ToExcLog('SERVER: Error sending ZIP blocks file ('+E.Message+')');
+         end;
+      end;
+   finally
+   AFileStream.Free;
+   end;
+   deletefile(BlockZipName);
    end
 else
    try

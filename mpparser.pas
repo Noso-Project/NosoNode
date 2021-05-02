@@ -252,6 +252,8 @@ else if UpperCase(Command) = 'EXPORTADDRESS' then ExportAddress(LineText)
 else if UpperCase(Command) = 'ADDRESS' then ShowAddressInfo(LineText)
 else if UpperCase(Command) = 'HISTORY' then ShowAddressHistory(LineText)
 else if UpperCase(Command) = 'TOTALFEES' then ShowTotalFees()
+else if UpperCase(Command) = 'R256' then consolelines.Add('R256 : '+Recursive256(parameter(LineText,1)))
+else if UpperCase(Command) = 'SUPPLY' then consolelines.Add('Current supply: '+Int2Curr(GetSupply))
 
 // POOL RELATED COMMANDS
 else if UpperCase(Command) = 'CREATEPOOL' then CreatePool(LineText)

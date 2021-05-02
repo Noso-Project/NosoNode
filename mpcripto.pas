@@ -31,6 +31,7 @@ Procedure AddCriptoOp(tipo:integer;proceso, resultado:string);
 Procedure StartCriptoThread();
 Procedure DeleteCriptoOp();
 Function ProcessCriptoOP(aParam:Pointer):PtrInt;
+function Recursive256(incomingtext:string):string;
 // Big Maths
 function ClearLeadingCeros(numero:string):string;
 function BMAdicion(numero1,numero2:string):string;
@@ -569,6 +570,41 @@ until length(CriptoOpsTipo) = 0;
 if NewAddrss > 0 then OutText(IntToStr(NewAddrss)+' new addresses',false,2);
 CriptoThreadRunning := false;
 ProcessCriptoOP := 0;
+End;
+
+function Recursive256(incomingtext:string):string;
+var
+  Resultado : string;
+  contador : integer;
+
+  function ReOrderHash(entrada : string):string;
+  var
+    counter : integer;
+    resultado2 : string = '';
+    chara,charb, charf : integer;
+  Begin
+  for counter := 1 to length(entrada) do
+     begin
+     chara := Hex2Dec(entrada[counter]);
+     if counter < Length(entrada) then charb := Hex2Dec(entrada[counter+1])
+     else charb := Hex2Dec(entrada[1]);
+     charf := chara+charb; if charf>15 then charf := charf-16;
+     resultado2 := resultado2+inttohex(charf,1);
+     end;
+  result := resultado2
+  End;
+
+Begin
+setmilitime('Recursive256',1);
+Resultado := HashSha256String(incomingtext);
+consolelines.Add('SHA256 of '+incomingtext+' : '+Resultado);
+for contador := 1 to 5 do
+   Begin
+   resultado := resultado+ReOrderHash(Resultado);
+   end;
+consolelines.Add('Last string before sha256 again : '+Resultado);
+result := HashSha256String(resultado);
+setmilitime('Recursive256',2);
 End;
 
 // *****************************************************************************
