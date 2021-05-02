@@ -11,6 +11,17 @@ uses
 
 type
 
+   { TThreadClientRead }
+
+   TThreadClientRead = class(TThread)
+   private
+     FSlot: Integer;
+   protected
+     procedure Execute; override;
+   public
+     constructor Create(const CreatePaused: Boolean; const ConexSlot:Integer);
+   end;
+
   TThreadLeerClientes = class(TThread)
     procedure Execute; override;
   end;
@@ -64,6 +75,7 @@ type
      ResumenHash : String[64];           //
      ConexStatus : integer;
      IsBusy : Boolean;
+     Thread : TThreadClientRead;
      end;
 
   WalletData = Packed Record
@@ -723,6 +735,92 @@ Uses
   mpgui, mpdisk, mpParser, mpRed, mpTime, mpProtocol, mpMiner, mpcripto, mpcoin;
 
 {$R *.lfm}
+
+{ TThreadClientRead }
+
+procedure TThreadClientRead.Execute;
+var
+  LLine: String;
+  UpdateZipName : String = ''; UpdateVersion : String = ''; UpdateHash:string ='';
+  UpdateClavePublica :string ='';UpdateFirma : string = '';
+  AFileStream : TFileStream;
+  BlockZipName : string = '';
+  Continuar : boolean = true;
+begin
+Conexiones[FSlot].IsBusy:=true;
+if CanalCliente[FSlot].IOHandler.InputBufferIsEmpty then
+   begin
+   CanalCliente[FSlot].IOHandler.CheckForDataOnSource(ReadTimeOutTIme);
+   if CanalCliente[FSlot].IOHandler.InputBufferIsEmpty then
+      Continuar := false;
+   end;
+if Continuar then
+   begin
+   While not CanalCliente[FSlot].IOHandler.InputBufferIsEmpty do
+      begin
+         try
+         CanalCliente[FSlot].ReadTimeout:=ReadTimeOutTIme;
+         LLine := CanalCliente[FSlot].IOHandler.ReadLn(IndyTextEncoding_UTF8);
+         if CanalCliente[FSlot].IOHandler.ReadLnTimedout then
+            begin
+            ToExcLog('TimeOut reading from slot: '+conexiones[Fslot].ip);
+            exit;
+            end;
+         Except on E:Exception do
+            begin
+            tolog ('Error Reading lines from slot: '+IntToStr(Fslot)+slinebreak+E.Message);
+            exit;
+            end;
+         end;
+      if GetCommand(LLine) = 'UPDATE' then
+         begin
+         UpdateVersion := Parameter(LLine,1);
+         UpdateHash := Parameter(LLine,2);
+         UpdateClavePublica := Parameter(LLine,3);
+         UpdateFirma := Parameter(LLine,4);
+         UpdateZipName := 'nosoupdate'+UpdateVersion+'.zip';
+         if FileExists(UpdateZipName) then DeleteFile(UpdateZipName);
+         AFileStream := TFileStream.Create(UpdateZipName, fmCreate);
+         CanalCliente[FSlot].IOHandler.ReadStream(AFileStream);
+         AFileStream.Free;
+         CheckIncomingUpdateFile(UpdateVersion,UpdateHash,UpdateClavePublica,UpdateFirma,UpdateZipName);
+         end
+      else if GetCommand(LLine) = 'RESUMENFILE' then
+         begin
+         EnterCriticalSection(CSHeadAccess);
+         AFileStream := TFileStream.Create(ResumenFilename, fmCreate);
+         CanalCliente[FSlot].IOHandler.ReadStream(AFileStream);
+         AFileStream.Free;
+         LeaveCriticalSection(CSHeadAccess);
+         consolelines.Add(LAngLine(74)+': '+copy(HashMD5File(ResumenFilename),1,5)); //'Headers file received'
+         LastTimeRequestResumen := 0;
+         UpdateMyData();
+         end
+      else if LLine = 'BLOCKZIP' then
+         begin
+         BlockZipName := BlockDirectory+'blocks.zip';
+         if FileExists(BlockZipName) then DeleteFile(BlockZipName);
+         AFileStream := TFileStream.Create(BlockZipName, fmCreate);
+         CanalCliente[FSlot].IOHandler.ReadStream(AFileStream);
+         AFileStream.Free;
+         UnzipBlockFile(BlockDirectory+'blocks.zip',true);
+         MyLastBlock := GetMyLastUpdatedBlock();
+         BuildHeaderFile(MyLastBlock);
+         ResetMinerInfo();
+         LastTimeRequestBlock := 0;
+         end
+      else
+         SlotLines[FSlot].Add(LLine);
+      end;
+   end;
+Conexiones[FSlot].IsBusy:=false;
+End;
+
+constructor TThreadClientRead.Create(const CreatePaused: Boolean; const ConexSlot:Integer);
+begin
+  inherited Create(CreatePaused);
+  FSlot:= ConexSlot;
+end;
 
 { TForm1 }
 

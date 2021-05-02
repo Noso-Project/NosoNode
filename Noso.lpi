@@ -150,9 +150,6 @@
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
-      <Debugging>
-        <GenerateDebugInfo Value="False"/>
-      </Debugging>
       <Options>
         <Win32>
           <GraphicApplication Value="True"/>
@@ -161,7 +158,7 @@
     </Linking>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="6">
+    <Exceptions Count="11">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -180,6 +177,21 @@
       <Item6>
         <Name Value="EIdNotConnected"/>
       </Item6>
+      <Item7>
+        <Name Value="EInOutError"/>
+      </Item7>
+      <Item8>
+        <Name Value="RunError(2)"/>
+      </Item8>
+      <Item9>
+        <Name Value="EIdNotASocket"/>
+      </Item9>
+      <Item10>
+        <Name Value="EIdConnectTimeout"/>
+      </Item10>
+      <Item11>
+        <Name Value="EIdSocketError"/>
+      </Item11>
     </Exceptions>
   </Debugging>
 </CONFIG>

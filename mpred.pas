@@ -172,11 +172,21 @@ SetCurrentJob('CerrarSlot',true);
       SlotLines[slot].Clear;
       CanalCliente[Slot].IOHandler.InputBuffer.Clear;
       CanalCliente[Slot].Disconnect;
+      if Conexiones[Slot].IsBusy then
+         begin
+         try
+            conexiones[slot].thread.Terminate;
+         Except on E:Exception do
+            begin
+            ToExcLog('Error killing client thread: '+Conexiones[slot].ip);
+            end;
+         end;
+         end;
       Conexiones[Slot] := Default(conectiondata);
       end;
    Except on E:Exception do
      begin
-     ToLog('Error: Closing slot '+IntToStr(Slot)+SLINEBREAK+E.Message);
+     ToExcLog('Error: Closing slot '+IntToStr(Slot)+SLINEBREAK+E.Message);
      end;
    end;
 SetCurrentJob('CerrarSlot',false);
@@ -297,8 +307,10 @@ CanalCliente[Slot].Port:=StrToIntDef(Port,8080);
    UpdateNodeData(Address,Port);
    CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address+' '+ProgramVersion);
    CanalCliente[Slot].IOHandler.WriteLn(ProtocolLine(3));   // Send PING
-   If UserOptions.GetNodes then
-     CanalCliente[Slot].IOHandler.WriteLn(ProtocolLine(GetNodes));
+   //Conexiones[slot].Thread := TThreadClientRead.Create(true, slot);
+   //Conexiones[slot].Thread.FreeOnTerminate:=true;
+   //Conexiones[slot].IsBusy:=true;
+   //Conexiones[slot].Thread.Start;
    result := Slot;
    SetCurrentJob('ConnectClient',false);
    Except
@@ -355,13 +367,13 @@ var
   BlockZipName : string = '';
   Continuar : boolean = true;
 begin
-SetCurrentJob('ReadClientLines',true);
+//SetCurrentJob('ReadClientLines',true);
 if CanalCliente[Slot].IOHandler.InputBufferIsEmpty then
    begin
    CanalCliente[Slot].IOHandler.CheckForDataOnSource(ReadTimeOutTIme);
    if CanalCliente[Slot].IOHandler.InputBufferIsEmpty then
       begin
-      SetCurrentJob('ReadClientLines',false);
+      //SetCurrentJob('ReadClientLines',false);
       Continuar := false;
       end;
    end;
@@ -420,14 +432,14 @@ if Continuar then
       Except on E:Exception do
          begin
          tolog ('Error Reading lines from slot: '+IntToStr(slot)+slinebreak+E.Message);
-         SetCurrentJob('ReadClientLines',false);
+         //SetCurrentJob('ReadClientLines',false);
          exit;
          end;
       end;
       end;
 
    end;
-SetCurrentJob('ReadClientLines',false);
+//SetCurrentJob('ReadClientLines',false);
 End;
 
 // Verifica todas las conexiones tipo SER y lee las lineas entrantes que puedan tener
@@ -439,9 +451,13 @@ Begin
 SetCurrentJob('LeerLineasDeClientes',true);
 for contador := 1 to Maxconecciones do
    begin
-   if Conexiones[contador].tipo = 'SER' then
+   if ((Conexiones[contador].tipo='SER') and(not Conexiones[contador].IsBusy)) then
       begin
       ReadClientLines(contador);
+      //Conexiones[contador].Thread := TThreadClientRead.Create(true, contador);
+      //Conexiones[contador].Thread.FreeOnTerminate:=true;
+      //Conexiones[contador].IsBusy:=true;
+      //Conexiones[contador].Thread.Start;
       end;
    if Conexiones[contador].tipo <> '' then
      begin
@@ -537,7 +553,7 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
       begin
       StartPoolServer(Poolinfo.Port);
       if Form1.PoolServer.Active then ConsoleLinesAdd(PoolInfo.Name+' pool server is listening')
-      else ConsoleLinesAdd('Unable to star pool server');
+      else ConsoleLinesAdd('Unable to start pool server');
       end;
    if StrToInt(NetPendingTrxs.Value)> length(PendingTXs) then
       PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));

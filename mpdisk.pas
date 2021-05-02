@@ -427,7 +427,7 @@ var
   archivo : textfile;
 Begin
    try
-   Assignfile(archivo, ExceptLogFilename);
+   Assignfile(archivo, ErrorLogFilename);
    rewrite(archivo);
    Closefile(archivo);
    Except on E:Exception do
