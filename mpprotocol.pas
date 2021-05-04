@@ -68,11 +68,11 @@ var
 Begin
 OrderInfo := Default(OrderData);
 OrderInfo.OrderID    := Parameter(textline,1);
-OrderInfo.OrderLines := StrToInt(Parameter(textline,2));
+OrderInfo.OrderLines := Parameter(textline,2).ToInt64;
 OrderInfo.OrderType  := Parameter(textline,3);
 OrderInfo.TimeStamp  := StrToInt64(Parameter(textline,4));
 OrderInfo.Concept    := Parameter(textline,5);
-OrderInfo.TrxLine    := StrToInt(Parameter(textline,6));
+OrderInfo.TrxLine    := Parameter(textline,6).ToInt64;
 OrderInfo.Sender     := Parameter(textline,7);
 OrderInfo.Address    := Parameter(textline,8);
 OrderInfo.Receiver   := Parameter(textline,9);
@@ -336,7 +336,7 @@ conexiones[slot].Protocol:=StrToIntDef(PProtocol,0);
 conexiones[slot].offset:=StrToInt64(PTime)-StrToInt64(UTCTime);
 conexiones[slot].lastping:=UTCTime;
 conexiones[slot].ResumenHash:=PResumenHash;
-conexiones[slot].ConexStatus:=StrToInt(PConStatus);
+conexiones[slot].ConexStatus:=StrToIntDef(PConStatus,0);
 conexiones[slot].ListeningPort:=StrToIntDef(PListenPort,-1);
 if responder then PTC_SendLine(slot,ProtocolLine(4));
 if responder then G_TotalPings := G_TotalPings+1;
@@ -423,38 +423,46 @@ var
   NumeroBloque    : string = '';
   DireccionMinero : string = '';
   Solucion        : string = '';
+  BlockNumber : integer;
   Proceder : boolean = true;
 Begin
-if MyConStatus < 3 then
-   begin
-   OutgoingMsjs.Add(Texto);
-   Proceder := false;
-   end;
-if proceder then
-begin // proceder 1
 TimeStamp       := Parameter (Texto,5);
 NumeroBloque    := Parameter (Texto,6);
 DireccionMinero := Parameter (Texto,7);
 Solucion        := Parameter (Texto,8);
 solucion        := StringReplace(Solucion,'_',' ',[rfReplaceAll, rfIgnoreCase]);
+if MyConStatus < 3 then
+   begin
+   OutgoingMsjs.Add(Texto);
+   Proceder := false;
+   end;
+if not TryStrToInt(NumeroBloque,BlockNumber) then
+   begin
+   ToExcLog('ERROR CONVERTING RECEIVED BLOCK NUMBER');
+   Proceder := false;
+   end;
+if proceder then
+begin // proceder 1
+
+
 // Se recibe una solucion del siguiente bloque
-if ( (StrToIntDef(NumeroBloque,-1) = LastBlockData.Number+1) and
+if ( (BlockNumber = LastBlockData.Number+1) and
      (VerifySolutionForBlock(lastblockdata.NxtBlkDiff,MyLastBlockHash,DireccionMinero,Solucion)=0))then
    begin
    ConsoleLinesAdd(LangLine(21)+NumeroBloque); //Solution for block received and verified:
-   CrearNuevoBloque(StrToInt(NumeroBloque),StrToInt64(TimeStamp),Miner_Target,DireccionMinero,Solucion);
+   CrearNuevoBloque(BlockNumber,StrToInt64(TimeStamp),Miner_Target,DireccionMinero,Solucion);
    end
 // se recibe una solucion distinta del ultimo bloque pero mas antigua
-else if ( (StrToIntDef(NumeroBloque,-1) = LastBlockData.Number) and
+else if ( (BlockNumber = LastBlockData.Number) and
    (StrToInt64(timestamp)<LastBlockData.TimeEnd) and
    (VerifySolutionForBlock(lastblockdata.Difficult,LastBlockData.TargetHash,DireccionMinero,Solucion)=0)
    and (StrToInt64(timestamp)+15 > StrToInt64(UTCTime)) ) then
       begin
       UndoneLastBlock;
-      CrearNuevoBloque(StrToInt(NumeroBloque),StrToInt64(TimeStamp),Miner_Target,DireccionMinero,Solucion);
+      CrearNuevoBloque(BlockNumber,StrToInt64(TimeStamp),Miner_Target,DireccionMinero,Solucion);
       end
 // solucion distinta del ultimo con el mismo timestamp se elige la mas corta
-else if ( (StrToIntDef(NumeroBloque,-1) = LastBlockData.Number) and
+else if ( (BlockNumber = LastBlockData.Number) and
    (StrToInt64(timestamp)=LastBlockData.TimeEnd) and
    (VerifySolutionForBlock(lastblockdata.Difficult,LastBlockData.TargetHash,DireccionMinero,Solucion)=0) and
    (StrToInt64(timestamp)+15 > StrToInt64(UTCTime)) and
@@ -462,7 +470,7 @@ else if ( (StrToIntDef(NumeroBloque,-1) = LastBlockData.Number) and
    (Solucion<LastBlockData.Solution) ) then
       begin
       UndoneLastBlock;
-      CrearNuevoBloque(StrToInt(NumeroBloque),StrToInt64(TimeStamp),Miner_Target,DireccionMinero,Solucion);
+      CrearNuevoBloque(BlockNumber,StrToInt64(TimeStamp),Miner_Target,DireccionMinero,Solucion);
       end;
 end; // proceder 1
 End;
@@ -505,7 +513,7 @@ SetCurrentJob('PTC_SendResumen',false);
 //ConsoleLinesAdd(LangLine(91));//'Headers file sent'
 End;
 
-//
+// Creates the zip block file
 function CreateZipBlockfile(firstblock:integer):string;
 var
   MyZipFile: TZipper;
@@ -520,21 +528,24 @@ MyZipFile := TZipper.Create;
 ZipFileName := BlockDirectory+'Blocks_'+IntToStr(FirstBlock)+'_'+IntToStr(LastBlock)+'.zip';
 MyZipFile.FileName := ZipFileName;
 EnterCriticalSection(CSBlocksAccess);
-for contador := FirstBlock to LastBlock do
-   begin
-   filename := BlockDirectory+IntToStr(contador)+'.blk';
-   {$IFDEF WINDOWS}
-   archivename:= StringReplace(filename,'\','/',[rfReplaceAll]);
-   {$ENDIF}
-   {$IFDEF LINUX}
-   archivename:= filename;
-   {$ENDIF}
-   MyZipFile.Entries.AddFileEntry(filename, archivename);
+   try
+   for contador := FirstBlock to LastBlock do
+      begin
+      filename := BlockDirectory+IntToStr(contador)+'.blk';
+      {$IFDEF WINDOWS}
+      archivename:= StringReplace(filename,'\','/',[rfReplaceAll]);
+      {$ENDIF}
+      {$IFDEF LINUX}
+      archivename:= filename;
+      {$ENDIF}
+      MyZipFile.Entries.AddFileEntry(filename, archivename);
+      end;
+   MyZipFile.ZipAllFiles;
+   result := ZipFileName;
+   finally
+   MyZipFile.Free;
+   LeaveCriticalSection(CSBlocksAccess);
    end;
-MyZipFile.ZipAllFiles;
-MyZipFile.Free;
-LeaveCriticalSection(CSBlocksAccess);
-result := ZipFileName;
 End;
 
 // Send Zipped blocks to peer
@@ -677,7 +688,7 @@ var
   TodoValido : boolean = true;
   Proceder : boolean = true;
 Begin
-NumTransfers := StrToInt(Parameter(TextLine,5));
+NumTransfers := Parameter(TextLine,5).ToInt64;
 Textbak := GetOpData(TextLine);
 SetLength(TrxArray,0);SetLength(SenderTrx,0);
 for cont := 0 to NumTransfers-1 do

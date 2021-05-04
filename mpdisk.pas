@@ -92,6 +92,7 @@ function OSVersion: string;
 {$IFDEF WINDOWS} Function GetWinVer():string; {$ENDIF}
 Procedure RestoreBlockChain();
 Procedure InitCrossValues();
+function TryDeleteFile(filename:string):boolean;
 
 implementation
 
@@ -1846,6 +1847,20 @@ PoolInfoFilename    := 'NOSODATA'+DirectorySeparator+'poolinfo.dat';
 PoolMembersFilename := 'NOSODATA'+DirectorySeparator+'poolmembers.dat';
 AdvOptionsFilename  := 'NOSODATA'+DirectorySeparator+'advopt.txt';
 PoolPaymentsFilename:= 'NOSODATA'+DirectorySeparator+'poolpays.txt';
+End;
+
+// Try to delete a file safely
+function TryDeleteFile(filename:string):boolean;
+Begin
+result := true;
+   try
+   deletefile(filename);
+   Except on E:Exception do
+      begin
+      result := false;
+      ToExcLog('Error deleting file ('+filename+') :'+E.Message);
+      end;
+   end;
 End;
 
 END. // END UNIT

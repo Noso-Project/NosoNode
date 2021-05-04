@@ -35,6 +35,7 @@ function GetPoolMemberPosition(member:String):integer;
 function IsPoolMemberConnected(address:string):integer;
 function GetPoolSlotFromContext(context:TIdContext):integer;
 Procedure ExpelPoolInactives();
+function PoolStatusString():String;
 
 implementation
 
@@ -167,7 +168,7 @@ Begin
 MyPoolData.Direccion:=Parameter(UserOptions.PoolInfo,0);
 MyPoolData.Prefijo:=Parameter(UserOptions.PoolInfo,1);
 MyPoolData.Ip:=Parameter(UserOptions.PoolInfo,2);
-MyPoolData.port:=StrToInt(Parameter(UserOptions.PoolInfo,3));
+MyPoolData.port:=StrToIntDef(Parameter(UserOptions.PoolInfo,3),8082);
 MyPoolData.MyAddress:=Parameter(UserOptions.PoolInfo,4);
 MyPoolData.Name:=Parameter(UserOptions.PoolInfo,5);
 MyPoolData.Password:=Parameter(UserOptions.PoolInfo,6);
@@ -596,6 +597,25 @@ if length(arraypoolmembers)>0 then
       end;
    end;
 ConsoleLinesAdd('Pool expels: '+IntToStr(expelled));
+End;
+
+function PoolStatusString():String;
+var
+  resString : string = '';
+  counter : integer;
+  miners : integer = 0;
+Begin
+for counter := 0 to length(arraypoolmembers)-1 do
+   begin
+   if arraypoolmembers[counter].Direccion<>'' then
+      begin
+      resString := resString+arraypoolmembers[counter].Direccion+':'+IntToStr(arraypoolmembers[counter].Deuda)+':'+
+         IntToStr(MyLastBlock-(arraypoolmembers[counter].LastPago+PoolInfo.TipoPago))+' ';
+      miners +=1;
+      end;
+   end;
+result:= 'STATUS '+IntToStr(PoolTotalHashRate)+' '+IntToStr(poolinfo.Porcentaje)+' '+
+   IntToStr(PoolShare)+' '+IntToStr(miners)+' '+resString;
 End;
 
 END. // END UNIT

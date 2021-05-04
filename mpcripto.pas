@@ -597,12 +597,10 @@ var
 Begin
 setmilitime('Recursive256',1);
 Resultado := HashSha256String(incomingtext);
-consolelines.Add('SHA256 of '+incomingtext+' : '+Resultado);
 for contador := 1 to 5 do
    Begin
    resultado := resultado+ReOrderHash(Resultado);
    end;
-consolelines.Add('Last string before sha256 again : '+Resultado);
 result := HashSha256String(resultado);
 setmilitime('Recursive256',2);
 End;
@@ -660,7 +658,7 @@ else
    end;
 for count := longitude downto 1 do
    Begin
-   thiscol := StrToInt(numero1[count]) + StrToInt(numero2[count])+carry;
+   thiscol := StrToIntDef(numero1[count],0) + StrToIntDef(numero2[count],0)+carry;
    carry := 0;
    if thiscol > 9 then
       begin
@@ -703,7 +701,7 @@ for count := length(numero2) downto 1 do
    begin
    for count2 := length(numero1) downto 1 do
       begin
-      thiscol := (StrToInt(numero2[count]) * StrToInt(numero1[count2])+carry);
+      thiscol := (StrToIntDef(numero2[count],0) * StrToIntDef(numero1[count2],0)+carry);
       carry := thiscol div 10;
       ThisCol := ThisCol - (carry*10);
       sumandos[cantidaddeceros] := IntToStr(thiscol)+ sumandos[cantidaddeceros];
@@ -732,10 +730,10 @@ Divisor := StrToInt64(numero2);
 for counter := 1 to long do
    begin
    ThisStep := ThisStep + Numero1[counter];
-   if StrToInt(ThisStep) >= Divisor then
+   if ThisStep.ToInt64 >= Divisor then
       begin
-      cociente := cociente+IntToStr(StrToInt(ThisStep) div Divisor);
-      ThisStep := (IntToStr(StrToInt(ThisStep) mod Divisor));
+      cociente := cociente+IntToStr(ThisStep.ToInt64 div Divisor);
+      ThisStep := (IntToStr(ThisStep.ToInt64 mod Divisor));
       end
    else cociente := cociente+'0';
    end;
@@ -760,7 +758,7 @@ if numero2 = '0' then
    exit;
    end;
 resultado := numero1;
-for count := 2 to StrToInt(numero2) do
+for count := 2 to numero2.ToInt64 do
    resultado := BMMultiplicar(resultado,numero1);
 result := resultado;
 End;
@@ -798,7 +796,7 @@ End;
 function BMHexTo58(numerohex:string;alphabetnumber:integer):string;
 var
   decimalvalue : string;
-  restante : integer;
+  restante : int64;
   ResultadoDiv : DivResult;
   Resultado : string = '';
   AlpahbetUsed : String;
@@ -811,17 +809,17 @@ while length(decimalvalue) >= 2 do
    begin
    ResultadoDiv := BMDividir(decimalvalue,IntToStr(alphabetnumber));
    DecimalValue := Resultadodiv.cociente;
-   restante := StrToInt(ResultadoDiv.residuo);
+   restante := StrToInt64Def(ResultadoDiv.residuo,0);
    resultado := AlpahbetUsed[restante+1]+resultado;
    end;
-if StrToInt(decimalValue) >= alphabetnumber then
+if decimalValue.ToInt64 >= alphabetnumber then
    begin
    ResultadoDiv := BMDividir(decimalvalue,IntToStr(alphabetnumber));
    DecimalValue := Resultadodiv.cociente;
-   restante := StrToInt(ResultadoDiv.residuo);
+   restante := StrToInt64Def(ResultadoDiv.residuo,0);
    resultado := AlpahbetUsed[restante+1]+resultado;
    end;
-if StrToInt(decimalvalue) > 0 then resultado := AlpahbetUsed[StrToInt(decimalvalue)+1]+resultado;
+if decimalvalue.ToInt64 > 0 then resultado := AlpahbetUsed[decimalvalue.ToInt64+1]+resultado;
 result := resultado;
 setmilitime('BMHexTo58',2);
 End;
@@ -843,7 +841,7 @@ End;
 function BMDecTo58(numero:string):string;
 var
   decimalvalue : string;
-  restante : integer;
+  restante : int64;
   ResultadoDiv : DivResult;
   Resultado : string = '';
 Begin
@@ -852,17 +850,17 @@ while length(decimalvalue) >= 2 do
    begin
    ResultadoDiv := BMDividir(decimalvalue,'58');
    DecimalValue := Resultadodiv.cociente;
-   restante := StrToInt(ResultadoDiv.residuo);
+   restante := StrToInt64Def(ResultadoDiv.residuo,0);
    resultado := B58Alphabet[restante+1]+resultado;
    end;
-if StrToInt(decimalValue) >= 58 then
+if decimalValue.ToInt64 >= 58 then
    begin
    ResultadoDiv := BMDividir(decimalvalue,'58');
    DecimalValue := Resultadodiv.cociente;
-   restante := StrToInt(ResultadoDiv.residuo);
+   restante := StrToInt64Def(ResultadoDiv.residuo,0);
    resultado := B58Alphabet[restante+1]+resultado;
    end;
-if StrToInt(decimalvalue) > 0 then resultado := B58Alphabet[StrToInt(decimalvalue)+1]+resultado;
+if decimalvalue.ToInt64 > 0 then resultado := B58Alphabet[decimalvalue.ToInt64+1]+resultado;
 result := resultado;
 End;
 

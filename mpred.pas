@@ -555,7 +555,7 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
       if Form1.PoolServer.Active then ConsoleLinesAdd(PoolInfo.Name+' pool server is listening')
       else ConsoleLinesAdd('Unable to start pool server');
       end;
-   if StrToInt(NetPendingTrxs.Value)> length(PendingTXs) then
+   if StrToIntDef(NetPendingTrxs.Value,0)> length(PendingTXs) then
       PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));
    OutgoingMsjs.Add(ProtocolLine(ping));
    Form1.imagenes.GetBitmap(0,ConnectButton.Glyph);
@@ -803,7 +803,7 @@ var
   NLBV : integer = 0; // network last block value
 Begin
 SetCurrentJob('ActualizarseConLaRed',true);
-NLBV := StrToInt(NetLastBlock.Value);
+NLBV := StrToIntDef(NetLastBlock.Value,0);
 if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // solicitar cabeceras de bloque
    begin
    if LastTimeRequestResumen+5 < StrToInt64(UTCTime) then

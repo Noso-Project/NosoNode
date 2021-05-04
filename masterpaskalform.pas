@@ -392,7 +392,7 @@ CONST
                           '45.141.36.117 '+
                           '185.239.236.85';
   ProgramVersion = '0.2.0';
-  SubVersion = 'Pj|';
+  SubVersion = 'Pm';
   OficialRelease = true;
   BuildDate = 'April 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -412,11 +412,13 @@ CONST
   ComisionCustom = 200000;          // 0.05 % of the Initial reward
   CoinSimbol = 'NOS';               // Coin 3 chars
   CoinName = 'Noso';                // Coin name
-  CoinChar = 'N';                   // Char for addresses
+  CoinChar = 'P';                   // Char for addresses
   MinimunFee = 10;                  // Minimun fee for transfer
   ComisionBlockCheck = 0;       // +- 90 days
   DeadAddressFee = 0;            // unactive acount fee
   ComisionScrow = 200;              // Coin/BTC market comision = 0.5%
+  PoSPercentage = 1000;             // PoS part: reward * PoS / 10000
+  PosStackCoins = 20;               // PoS stack ammoount: supply*20 / PoSStack
   InitialBlockDiff = 60;            // Dificultad durante los 20 primeros bloques
   GenesysTimeStamp = 1615132800;//1615132800;
 
@@ -934,7 +936,7 @@ for contador := 0 to IdiomasDisponibles.Count-1 do
 OutText('✓ '+IntToStr(IdiomasDisponibles.count)+' languages available',false,1);
 LangSelect.ItemIndex:=0;
 FillNodeList();
-ConsoleLinesAdd(coinname+LangLine(61)+ProgramVersion);  // wallet
+ConsoleLinesAdd(coinname+LangLine(61)+ProgramVersion+SubVersion);  // wallet
 RebuildMyTrx(MyLastBlock);
 UpdateMyTrxGrid();
 if useroptions.JustUpdated then
@@ -947,7 +949,7 @@ if useroptions.JustUpdated then
 if fileexists('nosolauncher.bat') then Deletefile('nosolauncher.bat');
 if fileexists('restart.txt') then RestartConditions();
 if GetEnvironmentVariable('NUMBER_OF_PROCESSORS') = '' then G_CpuCount := 1
-else G_CpuCount := StrToInt(GetEnvironmentVariable('NUMBER_OF_PROCESSORS'));
+else G_CpuCount := StrToIntDef(GetEnvironmentVariable('NUMBER_OF_PROCESSORS'),1);
 G_CpuCount := 1;
 for contador := 1 to G_CpuCount do
    CPUsSelect.Items.Add(IntToStr(contador));
@@ -2116,7 +2118,9 @@ if Comando = 'JOIN' then
    end
 else if Comando = 'STATUS' then
    begin
-   //Acontext.Connection.IOHandler.WriteLn(PoolStatusString);
+   Acontext.Connection.IOHandler.WriteLn(PoolStatusString);
+   AContext.Connection.Disconnect;
+   Acontext.Connection.IOHandler.InputBuffer.Clear;
    end
 else
    begin
@@ -2196,14 +2200,14 @@ try
 Except on E:Exception do
    begin
    TryCloseServerConnection(AContext);
-   ToExcLog('SERVER: Can not read line from connection ('+E.Message+')');
+   ToExcLog('SERVER: Can not read line from connection '+IPUser+'('+E.Message+')');
    exit;
    end;
 end;
 slot := GetSlotFromIP(IPUser);
 if slot = 0 then
   begin
-  ToExcLog('SERVER: Received a line from a client without and assigned slot');
+  ToExcLog('SERVER: Received a line from a client without and assigned slot: '+IPUser);
   TryCloseServerConnection(AContext);
   exit;
   end;
@@ -2287,38 +2291,52 @@ else if LLine = 'BLOCKZIP' then
 else if parameter(LLine,4) = '$GETRESUMEN' then
    begin
    EnterCriticalSection(CSHeadAccess);
-   AFileStream := TFileStream.Create(ResumenFilename, fmOpenRead + fmShareDenyNone);
+      try
+      AFileStream := TFileStream.Create(ResumenFilename, fmOpenRead + fmShareDenyNone);
+      GetFileOk := true;
+      Except on E:Exception do
+         begin
+         GetFileOk := false; // i need free the stream here?
+         AFileStream.Free;
+         end;
+      end;
    LeaveCriticalSection(CSHeadAccess);
+   if GetFileOk then
+      begin
       try
       Acontext.Connection.IOHandler.WriteLn('RESUMENFILE');
       Acontext.connection.IOHandler.Write(AFileStream,0,true);
+      ConsoleLinesAdd(LangLine(91)+': '+IPUser);//'Headers file sent'
       Except on E:Exception do
          begin
          Form1.TryCloseServerConnection(Conexiones[Slot].context);
          ToExcLog('SERVER: Error sending headers file ('+E.Message+')');
          end;
       end;
-   AFileStream.Free;
-   ConsoleLinesAdd(LangLine(91)+': '+IPUser);//'Headers file sent'
+      AFileStream.Free;
+      end;
    end
 else if parameter(LLine,4) = '$LASTBLOCK' then
    begin
    BlockZipName := CreateZipBlockfile(StrToIntDef(parameter(LLine,5),0));
-   try
-   AFileStream := TFileStream.Create(BlockZipName, fmOpenRead + fmShareDenyNone);
+   if BlockZipName <> '' then
+      begin
       try
-      Acontext.Connection.IOHandler.WriteLn('BLOCKZIP');
-      Acontext.connection.IOHandler.Write(AFileStream,0,true);
-      Except on E:Exception do
-         begin
-         Form1.TryCloseServerConnection(Conexiones[Slot].context);
-         ToExcLog('SERVER: Error sending ZIP blocks file ('+E.Message+')');
+      AFileStream := TFileStream.Create(BlockZipName, fmOpenRead + fmShareDenyNone);
+         try
+         Acontext.Connection.IOHandler.WriteLn('BLOCKZIP');
+         Acontext.connection.IOHandler.Write(AFileStream,0,true);
+         Except on E:Exception do
+            begin
+            Form1.TryCloseServerConnection(Conexiones[Slot].context);
+            ToExcLog('SERVER: Error sending ZIP blocks file ('+E.Message+')');
+            end;
          end;
+      finally
+      AFileStream.Free;
       end;
-   finally
-   AFileStream.Free;
-   end;
-   deletefile(BlockZipName);
+      Trydeletefile(BlockZipName);
+      end
    end
 else
    try
@@ -2463,7 +2481,7 @@ End;
 // Cambiar el idiomar por combobox
 Procedure Tform1.CPUsSelectOnChange(Sender: TObject);
 Begin
-if strtoint(CPUsSelect.Text) <> G_MiningCPUs then ProcessLinesAdd('CPUMINE '+CPUsSelect.Text);
+if strtointdef(CPUsSelect.Text,1) <> G_MiningCPUs then ProcessLinesAdd('CPUMINE '+CPUsSelect.Text);
 End;
 
 // Mostrar los detalles de una transaccion

@@ -30,7 +30,6 @@ Begin
 CrearNuevoBloque(0,GenesysTimeStamp,'',adminhash,'');
 if G_Launching then ConsoleLinesAdd(LangLine(88)); //'Block 0 created.'
 if G_Launching then OutText('✓ Block 0 created',false,1);
-
 End;
 
 // Crea un bloque nuevo con la informacion suministrada
@@ -44,12 +43,15 @@ var
   Filename : String;
   Contador : integer = 0;
   OperationAddress : string = '';
+  PoScount : integer = 0;
+  PosRequired, PosReward : int64;
+
   // Variables para la inclusion de Feecomision
   {FeeCom : int64 = 0;
   FeeOrder : OrderData;
   DelAddr : String = '';
   LastOP : integer = 0;}
-  MNAddressess : array of string[32];
+  PoSAddressess : array of string[32];
 Begin
 if ((numero>0) and (Timestamp < lastblockdata.TimeEnd)) then
    begin
@@ -101,6 +103,26 @@ for contador := 0 to length(pendingTXs)-1 do
       insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
       end;
    end;
+
+// PoS payment
+//SetLength(PoSAddressess,0);
+//PosRequired := (GetSupply*PosStackCoins) div 10000;
+//for contador := 1 to length(ListaSumario)-1 do
+//   begin
+//   if listasumario[contador].Balance > PosRequired then
+//      begin
+//      PoScount +=1;
+//      Insert(listasumario[contador].Hash,PoSAddressess,length(PoSAddressess));
+//      end;
+//   end;
+//PosReward := ((GetBlockReward(Numero)+MinerFee)*PoSPercentage) div 10000;
+//Consolelines.Add('PoS stack    : '+Int2curr(PosRequired));
+//ConsoleLines.Add('PoS addresses: '+IntToStr(PoScount));
+//ConsoleLines.Add('PoS reward   : '+Int2curr(PosReward div PoScount));
+//tolog('PoS addresses at block: '+inttostr(Numero));
+//for contador := 0 to length(PoSAddressess)-1 do
+//   tolog(PoSAddressess[contador]);
+
 //** Fin del procesado de las operaciones Pending
 {
 // Procesar si hay que descontar comisiones por inactividad
@@ -258,7 +280,7 @@ if BlNumber = 0 then result := PremineAmount
 else if ((BlNumber > 0) and (blnumber < BlockHalvingInterval*(HalvingSteps+1))) then
    begin
    numHalvings := BlNumber div BlockHalvingInterval;
-   result := InitialReward div StrToInt(BMExponente('2',IntToStr(numHalvings)));
+   result := InitialReward div BMExponente('2',IntToStr(numHalvings)).ToInt64;
    end
 else result := 0;
 End;
