@@ -280,7 +280,7 @@ if BlNumber = 0 then result := PremineAmount
 else if ((BlNumber > 0) and (blnumber < BlockHalvingInterval*(HalvingSteps+1))) then
    begin
    numHalvings := BlNumber div BlockHalvingInterval;
-   result := InitialReward div BMExponente('2',IntToStr(numHalvings)).ToInt64;
+   result := InitialReward div StrToInt64(BMExponente('2',IntToStr(numHalvings)));
    end
 else result := 0;
 End;

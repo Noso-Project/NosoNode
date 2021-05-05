@@ -52,7 +52,7 @@ if ((Miner_BlockFOund) and (not Miner_SolutionVerified)) then
          Miner_SolutionVerified := true;
          OutgoingMsjs.Add(ProtocolLine(6)+blocktime+' '+IntToStr(Miner_BlockToMine)+' '+
          Miner_Address+' '+StringReplace(Miner_Solution,' ','_',[rfReplaceAll, rfIgnoreCase]));
-         Miner_Waiting := UTCTime.ToInt64;
+         Miner_Waiting := StrToInt64(UTCTime);
          //SendNetworkRequests(blocktime,Miner_Address,Miner_BlockToMine);
          end
       else ResetMinerInfo;
@@ -63,7 +63,7 @@ if ((Miner_BlockFOund) and (not Miner_SolutionVerified)) then
       ResetMinerInfo;
       end;
    end;
-If ((Miner_Waiting>-1) and (Miner_Waiting+10<UTCTime.ToInt64)) then
+If ((Miner_Waiting>-1) and (Miner_Waiting+10<StrToInt64(UTCTime))) then
    ResetMinerInfo();
 End;
 

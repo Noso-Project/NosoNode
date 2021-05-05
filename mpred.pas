@@ -172,6 +172,7 @@ SetCurrentJob('CerrarSlot',true);
       SlotLines[slot].Clear;
       CanalCliente[Slot].IOHandler.InputBuffer.Clear;
       CanalCliente[Slot].Disconnect;
+      {
       if Conexiones[Slot].IsBusy then
          begin
          try
@@ -182,6 +183,7 @@ SetCurrentJob('CerrarSlot',true);
             end;
          end;
          end;
+      }
       Conexiones[Slot] := Default(conectiondata);
       end;
    Except on E:Exception do
@@ -307,10 +309,10 @@ CanalCliente[Slot].Port:=StrToIntDef(Port,8080);
    UpdateNodeData(Address,Port);
    CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address+' '+ProgramVersion);
    CanalCliente[Slot].IOHandler.WriteLn(ProtocolLine(3));   // Send PING
-   //Conexiones[slot].Thread := TThreadClientRead.Create(true, slot);
-   //Conexiones[slot].Thread.FreeOnTerminate:=true;
+   Conexiones[slot].Thread := TThreadClientRead.Create(true, slot);
+   Conexiones[slot].Thread.FreeOnTerminate:=true;
    //Conexiones[slot].IsBusy:=true;
-   //Conexiones[slot].Thread.Start;
+   Conexiones[slot].Thread.Start;
    result := Slot;
    SetCurrentJob('ConnectClient',false);
    Except
@@ -407,7 +409,9 @@ if Continuar then
          begin
          EnterCriticalSection(CSHeadAccess);
          AFileStream := TFileStream.Create(ResumenFilename, fmCreate);
+         DownloadHeaders := true;
          CanalCliente[Slot].IOHandler.ReadStream(AFileStream);
+         DownloadHeaders := false;
          AFileStream.Free;
          LeaveCriticalSection(CSHeadAccess);
          consolelines.Add(LAngLine(74)+': '+copy(HashMD5File(ResumenFilename),1,5)); //'Headers file received'
@@ -453,7 +457,7 @@ for contador := 1 to Maxconecciones do
    begin
    if ((Conexiones[contador].tipo='SER') and(not Conexiones[contador].IsBusy)) then
       begin
-      ReadClientLines(contador);
+      //ReadClientLines(contador);
       //Conexiones[contador].Thread := TThreadClientRead.Create(true, contador);
       //Conexiones[contador].Thread.FreeOnTerminate:=true;
       //Conexiones[contador].IsBusy:=true;
@@ -556,12 +560,17 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
       else ConsoleLinesAdd('Unable to start pool server');
       end;
    if StrToIntDef(NetPendingTrxs.Value,0)> length(PendingTXs) then
-      PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));
+      begin
+      PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));  // Get pending
+      consolelinesadd('Pending requested');
+      end;
    OutgoingMsjs.Add(ProtocolLine(ping));
    Form1.imagenes.GetBitmap(0,ConnectButton.Glyph);
    end;
 if MyConStatus = 3 then
    begin
+   if StrToIntDef(NetPendingTrxs.Value,0)> length(PendingTXs) then
+      PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));  // Get pending
    if ( (IntToStr(MyLastBlock) <> NetLastBlock.Value) or (MySumarioHash<>NetSumarioHash.Value) or
       (MyResumenhash <> NetResumenHash.Value) ) then // desincronizado
       Begin
@@ -806,7 +815,7 @@ SetCurrentJob('ActualizarseConLaRed',true);
 NLBV := StrToIntDef(NetLastBlock.Value,0);
 if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // solicitar cabeceras de bloque
    begin
-   if LastTimeRequestResumen+5 < StrToInt64(UTCTime) then
+   if ((LastTimeRequestResumen+5 < StrToInt64(UTCTime)) and (not DownloadHeaders)) then
       begin
       PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
       ConsoleLinesAdd(LangLine(163)); //'Headers file requested'

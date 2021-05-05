@@ -68,11 +68,11 @@ var
 Begin
 OrderInfo := Default(OrderData);
 OrderInfo.OrderID    := Parameter(textline,1);
-OrderInfo.OrderLines := Parameter(textline,2).ToInt64;
+OrderInfo.OrderLines := StrToInt(Parameter(textline,2));
 OrderInfo.OrderType  := Parameter(textline,3);
 OrderInfo.TimeStamp  := StrToInt64(Parameter(textline,4));
 OrderInfo.Concept    := Parameter(textline,5);
-OrderInfo.TrxLine    := Parameter(textline,6).ToInt64;
+OrderInfo.TrxLine    := StrToInt(Parameter(textline,6));
 OrderInfo.Sender     := Parameter(textline,7);
 OrderInfo.Address    := Parameter(textline,8);
 OrderInfo.Receiver   := Parameter(textline,9);
@@ -688,7 +688,7 @@ var
   TodoValido : boolean = true;
   Proceder : boolean = true;
 Begin
-NumTransfers := Parameter(TextLine,5).ToInt64;
+NumTransfers := StrToInt(Parameter(TextLine,5));
 Textbak := GetOpData(TextLine);
 SetLength(TrxArray,0);SetLength(SenderTrx,0);
 for cont := 0 to NumTransfers-1 do
@@ -696,9 +696,13 @@ for cont := 0 to NumTransfers-1 do
    SetLength(TrxArray,length(TrxArray)+1);SetLength(SenderTrx,length(SenderTrx)+1);
    TrxArray[cont] := default (orderdata);
    TrxArray[cont] := GetOrderFromString(Textbak);
-   if TranxAlreadyPending(TrxArray[cont].TrfrID) then Proceder := false;;
+   if TranxAlreadyPending(TrxArray[cont].TrfrID) then Proceder := false;
    SenderTrx[cont] := GetAddressFromPublicKey(TrxArray[cont].Sender);
-   if SenderTrx[cont] <> TrxArray[cont].Address then proceder := false;
+   if SenderTrx[cont] <> TrxArray[cont].Address then
+      begin
+      proceder := false;
+      //ConsoleLinesAdd(format('error: %s <> %s',[SenderTrx[cont],TrxArray[cont].Address ]))
+      end;
    if pos(SendersString,SenderTrx[cont]) > 0 then
       begin
       ConsoleLinesAdd(LangLine(94)); //'Duplicate sender in order'

@@ -270,7 +270,7 @@ else if UpperCase(Command) = 'POOLPAYINTERVAL' then ChangePoolPayrate(LineText)
 else if UpperCase(Command) = 'POOLEXPEL' then PoolExpelMember(LineText)
 else if UpperCase(Command) = 'POOLEXPELBLOCK' then SetPoolExpelBlocks(LineText)
 else if UpperCase(Command) = 'POOLSHARE' then SetPoolShare(LineText)
-else if UpperCase(Command) = 'SENDPOOLSTEPS' then SendPoolStepsInfo(Parameter(LineText,1).ToInt64)
+else if UpperCase(Command) = 'SENDPOOLSTEPS' then SendPoolStepsInfo(StrToInt(Parameter(LineText,1)))
 else if UpperCase(Command) = 'POOLHASHRATE' then SendPoolHashRateRequest()
 else if UpperCase(Command) = 'SAVEPOOLFILES' then SavePoolFiles()
 
@@ -1060,7 +1060,7 @@ for contador := 0 to HalvingSteps do
    block1 := BlockHalvingInterval*(contador);
    if block1 = 0 then block1 := 1;
    block2 := (BlockHalvingInterval*(contador+1))-1;
-   reward := InitialReward div BMExponente('2',IntToStr(contador)).ToInt64;
+   reward := InitialReward div StrToInt64(BMExponente('2',IntToStr(contador)));
    MarketCap := marketcap+(reward*BlockHalvingInterval);
    Texto := LangLine(149)+IntToStr(block1)+LangLine(150)+IntToStr(block2)+': '+Int2curr(reward); //'From block '+' until '
    ConsoleLinesAdd(Texto);

@@ -392,7 +392,7 @@ CONST
                           '45.141.36.117 '+
                           '185.239.236.85';
   ProgramVersion = '0.2.0';
-  SubVersion = 'Pm';
+  SubVersion = 'Q';
   OficialRelease = true;
   BuildDate = 'April 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -412,7 +412,7 @@ CONST
   ComisionCustom = 200000;          // 0.05 % of the Initial reward
   CoinSimbol = 'NOS';               // Coin 3 chars
   CoinName = 'Noso';                // Coin name
-  CoinChar = 'P';                   // Char for addresses
+  CoinChar = 'N';                   // Char for addresses
   MinimunFee = 10;                  // Minimun fee for transfer
   ComisionBlockCheck = 0;       // +- 90 days
   DeadAddressFee = 0;            // unactive acount fee
@@ -546,6 +546,7 @@ var
   // Variables asociadas a la red
   KeepServerOn : Boolean = false;
      LastTryServerOn : Int64;
+  DownloadHeaders : boolean = false;
   CONNECT_LastTime : string = ''; // La ultima vez que se intento una conexion
   CONNECT_Try : boolean = false;
   MySumarioHash : String = '';
@@ -744,13 +745,14 @@ Uses
 procedure TThreadClientRead.Execute;
 var
   LLine: String;
-  UpdateZipName : String = ''; UpdateVersion : String = ''; UpdateHash:string ='';
-  UpdateClavePublica :string ='';UpdateFirma : string = '';
   AFileStream : TFileStream;
   BlockZipName : string = '';
   Continuar : boolean = true;
+  TruncateLine : string = '';
 begin
-Conexiones[FSlot].IsBusy:=true;
+repeat
+delay(200);
+continuar := true;
 if CanalCliente[FSlot].IOHandler.InputBufferIsEmpty then
    begin
    CanalCliente[FSlot].IOHandler.CheckForDataOnSource(ReadTimeOutTIme);
@@ -767,6 +769,7 @@ if Continuar then
          if CanalCliente[FSlot].IOHandler.ReadLnTimedout then
             begin
             ToExcLog('TimeOut reading from slot: '+conexiones[Fslot].ip);
+            TruncateLine := TruncateLine+LLine;
             exit;
             end;
          Except on E:Exception do
@@ -775,48 +778,52 @@ if Continuar then
             exit;
             end;
          end;
-      if GetCommand(LLine) = 'UPDATE' then
+      if continuar then
          begin
-         UpdateVersion := Parameter(LLine,1);
-         UpdateHash := Parameter(LLine,2);
-         UpdateClavePublica := Parameter(LLine,3);
-         UpdateFirma := Parameter(LLine,4);
-         UpdateZipName := 'nosoupdate'+UpdateVersion+'.zip';
-         if FileExists(UpdateZipName) then DeleteFile(UpdateZipName);
-         AFileStream := TFileStream.Create(UpdateZipName, fmCreate);
-         CanalCliente[FSlot].IOHandler.ReadStream(AFileStream);
-         AFileStream.Free;
-         CheckIncomingUpdateFile(UpdateVersion,UpdateHash,UpdateClavePublica,UpdateFirma,UpdateZipName);
-         end
-      else if GetCommand(LLine) = 'RESUMENFILE' then
-         begin
-         EnterCriticalSection(CSHeadAccess);
-         AFileStream := TFileStream.Create(ResumenFilename, fmCreate);
-         CanalCliente[FSlot].IOHandler.ReadStream(AFileStream);
-         AFileStream.Free;
-         LeaveCriticalSection(CSHeadAccess);
-         consolelines.Add(LAngLine(74)+': '+copy(HashMD5File(ResumenFilename),1,5)); //'Headers file received'
-         LastTimeRequestResumen := 0;
-         UpdateMyData();
-         end
-      else if LLine = 'BLOCKZIP' then
-         begin
-         BlockZipName := BlockDirectory+'blocks.zip';
-         if FileExists(BlockZipName) then DeleteFile(BlockZipName);
-         AFileStream := TFileStream.Create(BlockZipName, fmCreate);
-         CanalCliente[FSlot].IOHandler.ReadStream(AFileStream);
-         AFileStream.Free;
-         UnzipBlockFile(BlockDirectory+'blocks.zip',true);
-         MyLastBlock := GetMyLastUpdatedBlock();
-         BuildHeaderFile(MyLastBlock);
-         ResetMinerInfo();
-         LastTimeRequestBlock := 0;
-         end
-      else
-         SlotLines[FSlot].Add(LLine);
+         if GetCommand(LLine) = 'RESUMENFILE' then
+            begin
+            ConsoleLinesadd('Receiving headers');
+            EnterCriticalSection(CSHeadAccess);
+            DownloadHeaders := true;
+            CanalCliente[FSlot].ReadTimeout:=0;
+            AFileStream := TFileStream.Create(ResumenFilename, fmCreate);
+               try
+               CanalCliente[FSlot].IOHandler.ReadStream(AFileStream);
+               finally
+               AFileStream.Free;
+               DownloadHeaders := false;
+               LeaveCriticalSection(CSHeadAccess);
+               end;
+            consolelines.Add(LAngLine(74)+': '+copy(HashMD5File(ResumenFilename),1,5)); //'Headers file received'
+            LastTimeRequestResumen := 0;
+            UpdateMyData();
+            end
+         else if LLine = 'BLOCKZIP' then
+            begin
+            ConsoleLinesadd('Receiving blocks');
+            BlockZipName := BlockDirectory+'blocks.zip';
+            if FileExists(BlockZipName) then DeleteFile(BlockZipName);
+            CanalCliente[FSlot].ReadTimeout:=0;
+            AFileStream := TFileStream.Create(BlockZipName, fmCreate);
+               try
+               CanalCliente[FSlot].IOHandler.ReadStream(AFileStream);
+               finally
+               AFileStream.Free;
+               end;
+            UnzipBlockFile(BlockDirectory+'blocks.zip',true);
+            MyLastBlock := GetMyLastUpdatedBlock();
+            BuildHeaderFile(MyLastBlock);
+            ResetMinerInfo();
+            LastTimeRequestBlock := 0;
+            end
+         else
+            begin
+            SlotLines[FSlot].Add(LLine);
+            end;
+         end;
       end;
    end;
-Conexiones[FSlot].IsBusy:=false;
+until ((terminated) or (not CanalCliente[FSlot].Connected));
 End;
 
 constructor TThreadClientRead.Create(const CreatePaused: Boolean; const ConexSlot:Integer);
@@ -2240,6 +2247,7 @@ else if GetCommand(LLine) = 'RESUMENFILE' then
    begin
    EnterCriticalSection(CSHeadAccess);
    AFileStream := TFileStream.Create(ResumenFilename, fmCreate);
+   DownloadHeaders := true;
    try
       try
       AContext.Connection.IOHandler.ReadStream(AFileStream);
@@ -2251,6 +2259,7 @@ else if GetCommand(LLine) = 'RESUMENFILE' then
          end;
       end;
    finally
+   DownloadHeaders := false;
    AFileStream.Free;
    LeaveCriticalSection(CSHeadAccess);
    end;
