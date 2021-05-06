@@ -531,7 +531,13 @@ if MyConStatus > 0 then
       G_LastPing := StrToInt64(UTCTime);
       OutgoingMsjs.Add(ProtocolLine(ping));
       end;
-   SendMesjsSalientes();
+   if not SendingMsgs then // send the outgoing messages
+      begin
+      SendOutMsgsThread := TThreadSendOutMsjs.Create(true);
+      SendOutMsgsThread.FreeOnTerminate:=true;
+      SendOutMsgsThread.Start;
+      //SendMesjsSalientes();
+      end;
    end;
 if ((NumeroConexiones>=MinConexToWork) and (MyConStatus<2) and (not STATUS_Connected)) then
    begin
@@ -559,18 +565,31 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
       if Form1.PoolServer.Active then ConsoleLinesAdd(PoolInfo.Name+' pool server is listening')
       else ConsoleLinesAdd('Unable to start pool server');
       end;
-   if StrToIntDef(NetPendingTrxs.Value,0)> length(PendingTXs) then
+   if StrToIntDef(NetPendingTrxs.Value,0)<length(PendingTXs) then
+      begin
+      setlength(PendingTxs,0);
+      end;
+   if ((StrToIntDef(NetPendingTrxs.Value,0)>length(PendingTXs)) and (LastTimePendingRequested+5<UTCTime.ToInt64)) then
       begin
       PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));  // Get pending
-      consolelinesadd('Pending requested');
+      LastTimePendingRequested := UTCTime.ToInt64;
+      ConsoleLinesAdd('Pending requested');
       end;
    OutgoingMsjs.Add(ProtocolLine(ping));
    Form1.imagenes.GetBitmap(0,ConnectButton.Glyph);
    end;
 if MyConStatus = 3 then
    begin
-   if StrToIntDef(NetPendingTrxs.Value,0)> length(PendingTXs) then
+   if StrToIntDef(NetPendingTrxs.Value,0)<length(PendingTXs) then
+      begin
+      setlength(PendingTxs,0);
+      end;
+   if ((StrToIntDef(NetPendingTrxs.Value,0)>length(PendingTXs)) and (LastTimePendingRequested+5<UTCTime.ToInt64)) then
+      begin
       PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));  // Get pending
+      LastTimePendingRequested := UTCTime.ToInt64;
+      ConsoleLinesAdd('Pending requested');
+      end;
    if ( (IntToStr(MyLastBlock) <> NetLastBlock.Value) or (MySumarioHash<>NetSumarioHash.Value) or
       (MyResumenhash <> NetResumenHash.Value) ) then // desincronizado
       Begin
@@ -769,19 +788,19 @@ if HashMD5File(namefile) <> hash then Proceder := false;
 if version <= ProgramVersion then
    begin
    ConsoleLinesAdd(LangLine(38)); //Update file received is obsolete
-   deletefile(namefile);
+   trydeletefile(namefile);
    exit;
    end;
 if fileexists(UpdatesDirectory+namefile) then
    begin
    ConsoleLinesAdd('Update file already exists'); //Update file received is obsolete
-   deletefile(namefile);
+   trydeletefile(namefile);
    exit;
    end;
 if not proceder then
    begin
    ConsoleLinesAdd(LangLine(37));      //Update file received is wrong
-   deletefile(namefile);
+   trydeletefile(namefile);
    end
 else
    begin
@@ -824,7 +843,7 @@ if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // sol
    end
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  // solicitar hasta 100 bloques
    begin
-   if LastTimeRequestBlock+5 < StrToInt64(UTCTime) then
+   if ((LastTimeRequestBlock+5<StrToInt64(UTCTime))and (not DownLoadBlocks)) then
       begin
       PTC_SendLine(NetResumenHash.Slot,ProtocolLine(8)); // lastblock
       ConsoleLinesAdd(LangLine(164)+IntToStr(mylastblock)); //'LastBlock requested from block '

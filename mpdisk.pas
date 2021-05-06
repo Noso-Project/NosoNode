@@ -17,6 +17,7 @@ Procedure VerificarArchivos();
 Procedure CheckNodesFile();
 Procedure CrearNodeFile();
 Procedure CargarNodeFile();
+Procedure VerifyCodedNodes();
 Procedure SaveNodeFile();
 Procedure FillNodeList();
 Procedure UpdateNodeData(IPUser:String;Port:string;LastTime:String='');
@@ -184,7 +185,7 @@ else
    seek(FileNodeData,0);
    read (FileNodeData, Leido);
    closefile(FileNodeData);
-   if leido.ip <> 'NFF1' then
+   if leido.ip <> 'NFF1' then // this is to update old node files
       begin
       CrearNodeFile();
       end;
@@ -251,6 +252,24 @@ Begin
    Except on E:Exception do
          tolog ('Error loading node data');
    end;
+VerifyCodedNodes();
+End;
+
+// Verify if all coded nodes are in the nodes files
+Procedure VerifyCodedNodes();
+var
+  continuar : boolean = true;
+  contador : integer = 1;
+  NodoStr : String;
+Begin
+Repeat
+   begin
+   NodoStr := Parameter(DefaultNodes,contador);
+   if NodoStr = '' then continuar := false
+   else UpdateNodeData(NodoStr,'8080',UTCTime);
+   contador := contador+1;
+  end;
+until not continuar;
 End;
 
 // Saves nodes to disk
@@ -1068,7 +1087,7 @@ for cont := 0 to length(ListaSumario)-1 do
       break;
       end;
    end;
-if not result then tolog('Error assigning custom alias to address:'+Address);
+if not result then tolog('Error assigning custom alias to address:'+Address+':'+addalias);
 End;
 
 // Unzip a zip file and (optional) delete it
@@ -1086,7 +1105,7 @@ begin
       finally
       UnZipper.Free;
       end;
-   if delfile then deletefile(filename);
+   if delfile then Trydeletefile(filename);
    Except on E:Exception do
       tolog ('Error unzipping block file');
    end;

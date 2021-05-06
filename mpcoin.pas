@@ -195,7 +195,7 @@ for cont := 0 to length(ListaSumario) -1 do
    end;
 for cont := 0 to length(PendingTXs)-1 do
    begin
-   if ((PendingTxs[cont].Sender=address) and (PendingTxs[cont].OrderType = 'CUSTOM')) then
+   if ((PendingTxs[cont].Address=address) and (PendingTxs[cont].OrderType = 'CUSTOM')) then
       begin
       result := true;
       exit;

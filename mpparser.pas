@@ -254,6 +254,7 @@ else if UpperCase(Command) = 'HISTORY' then ShowAddressHistory(LineText)
 else if UpperCase(Command) = 'TOTALFEES' then ShowTotalFees()
 else if UpperCase(Command) = 'R256' then consolelines.Add('R256 : '+Recursive256(parameter(LineText,1)))
 else if UpperCase(Command) = 'SUPPLY' then consolelines.Add('Current supply: '+Int2Curr(GetSupply))
+else if UpperCase(Command) = 'POSSTACK' then consolelines.Add('PoS required Stack: '+Int2Curr((GetSupply*PosStackCoins) div 10000))
 
 // POOL RELATED COMMANDS
 else if UpperCase(Command) = 'CREATEPOOL' then CreatePool(LineText)

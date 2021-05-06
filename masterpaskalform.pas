@@ -26,6 +26,10 @@ type
     procedure Execute; override;
   end;
 
+  TThreadSendOutMsjs = class(TThread)
+    procedure Execute; override;
+  end;
+
   Options = Packed Record
      language: integer;
      Port : integer;
@@ -390,9 +394,10 @@ CONST
                           '75.127.0.216 '+
                           '191.96.103.153 '+
                           '45.141.36.117 '+
-                          '185.239.236.85';
+                          '185.239.236.85 '+
+                          '199.247.12.166';
   ProgramVersion = '0.2.0';
-  SubVersion = 'Q';
+  SubVersion = 'Qc';
   OficialRelease = true;
   BuildDate = 'April 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -419,6 +424,7 @@ CONST
   ComisionScrow = 200;              // Coin/BTC market comision = 0.5%
   PoSPercentage = 1000;             // PoS part: reward * PoS / 10000
   PosStackCoins = 20;               // PoS stack ammoount: supply*20 / PoSStack
+  PoSBlockStart : integer = 10000;  // first block with PoSPayment
   InitialBlockDiff = 60;            // Dificultad durante los 20 primeros bloques
   GenesysTimeStamp = 1615132800;//1615132800;
 
@@ -440,6 +446,8 @@ var
   // Threads variables
   ReadingClients : boolean = false;
   HiloLeerClientes : TThreadLeerClientes;
+  SendOutMsgsThread : TThreadSendOutMsjs;
+    SendingMsgs : boolean = false;
 
   MaxOutgoingConnections : integer = 3;
   FirstShow : boolean = false;
@@ -547,6 +555,7 @@ var
   KeepServerOn : Boolean = false;
      LastTryServerOn : Int64;
   DownloadHeaders : boolean = false;
+  DownLoadBlocks  : boolean = false;
   CONNECT_LastTime : string = ''; // La ultima vez que se intento una conexion
   CONNECT_Try : boolean = false;
   MySumarioHash : String = '';
@@ -564,6 +573,7 @@ var
   NetPendingTrxs : NetworkData;
   NetResumenHash : NetworkData;
     LastTimeRequestResumen : int64 = 0;
+    LastTimePendingRequested : int64 = 0;
   // Variables asociadas a mi conexion
   MyConStatus :  integer = 0;
   STATUS_Connected : boolean = false;
@@ -637,6 +647,10 @@ var
   PoolMembersFilename : string = '';
   AdvOptionsFilename : string = '';
   PoolPaymentsFilename : string = '';
+
+  // PROTOCOL CHANGES (WARNING: SENSITIVE VARIABLES)
+
+
 
   // COmponentes visuales
   MainMenu : TMainMenu;
@@ -785,9 +799,9 @@ if Continuar then
             ConsoleLinesadd('Receiving headers');
             EnterCriticalSection(CSHeadAccess);
             DownloadHeaders := true;
-            CanalCliente[FSlot].ReadTimeout:=0;
             AFileStream := TFileStream.Create(ResumenFilename, fmCreate);
                try
+               CanalCliente[FSlot].ReadTimeout:=0;
                CanalCliente[FSlot].IOHandler.ReadStream(AFileStream);
                finally
                AFileStream.Free;
@@ -803,12 +817,14 @@ if Continuar then
             ConsoleLinesadd('Receiving blocks');
             BlockZipName := BlockDirectory+'blocks.zip';
             if FileExists(BlockZipName) then DeleteFile(BlockZipName);
-            CanalCliente[FSlot].ReadTimeout:=0;
             AFileStream := TFileStream.Create(BlockZipName, fmCreate);
+            DownLoadBlocks := true;
                try
+               CanalCliente[FSlot].ReadTimeout:=0;
                CanalCliente[FSlot].IOHandler.ReadStream(AFileStream);
                finally
                AFileStream.Free;
+               DownLoadBlocks := false;
                end;
             UnzipBlockFile(BlockDirectory+'blocks.zip',true);
             MyLastBlock := GetMyLastUpdatedBlock();
@@ -845,6 +861,15 @@ ReadingClients := true;
 LeerLineasDeClientes;
 ReadingClients := false;
 End;
+
+// Send the outgoing messages
+procedure TThreadSendOutMsjs.Execute;
+Begin
+SendingMsgs := true;
+SendMesjsSalientes;
+SendingMsgs := false;
+End;
+
 
 //***********************
 // *** FORM RELATIVES ***
@@ -2275,6 +2300,7 @@ else if LLine = 'BLOCKZIP' then
    BlockZipName := BlockDirectory+'blocks.zip';
    if FileExists(BlockZipName) then DeleteFile(BlockZipName);
    AFileStream := TFileStream.Create(BlockZipName, fmCreate);
+   DownLoadBlocks := true;
    try
       try
       AContext.Connection.IOHandler.ReadStream(AFileStream);
@@ -2287,6 +2313,7 @@ else if LLine = 'BLOCKZIP' then
       end;
    finally
    AFileStream.Free;
+   DownLoadBlocks := false;
    end;
    if GetFileOk then
       begin
