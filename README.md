@@ -1,9 +1,9 @@
 # NosoWallet
 Noso Windows Wallet
 
-Official Release Ver 0.2.0K
+Official Release Ver 0.2.0Qc
 
-April 1, 2021
+May 6, 2021
 
 THIS IS AM OFFICIAL RELEASE
 
