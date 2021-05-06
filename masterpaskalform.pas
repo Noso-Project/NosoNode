@@ -397,7 +397,7 @@ CONST
                           '185.239.236.85 '+
                           '199.247.12.166';
   ProgramVersion = '0.2.0';
-  SubVersion = 'Qc';
+  SubVersion = 'Qd';
   OficialRelease = true;
   BuildDate = 'April 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -892,6 +892,7 @@ CreateFormAbout();
 CreateFormMilitime();
 CreateFormSlots();
 CreateFormPool();
+//SetLength(ListaMisTrx,0); destroy?
 end;
 
 // Form destroy
@@ -1004,6 +1005,7 @@ Setlength(MilitimeArray,0);
 Setlength(Miner_Thread,0);
 SetLength(ArrayNetworkRequests,0);
 SetLength(ArrPoolPays,0);
+
 Tolog('Noso session started'); NewLogLines := NewLogLines-1;
 info('Noso session started');
 infopanel.BringToFront;

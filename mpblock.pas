@@ -105,9 +105,10 @@ for contador := 0 to length(pendingTXs)-1 do
    end;
 
 //PoS payment
+{
 SetLength(PoSAddressess,0);
 PosRequired := (GetSupply*PosStackCoins) div 10000;
-for contador := 1 to length(ListaSumario)-1 do
+for contador := 0 to length(ListaSumario)-1 do
    begin
    if listasumario[contador].Balance > PosRequired then
       begin
@@ -119,6 +120,7 @@ PosReward := ((GetBlockReward(Numero)+MinerFee)*PoSPercentage) div 10000;
 Consolelines.Add('PoS stack    : '+Int2curr(PosRequired));
 ConsoleLines.Add('PoS addresses: '+IntToStr(PoScount));
 ConsoleLines.Add('PoS reward   : '+Int2curr(PosReward div PoScount));
+}
 //tolog('PoS addresses at block: '+inttostr(Numero));
 //for contador := 0 to length(PoSAddressess)-1 do
 //   tolog(PoSAddressess[contador]);
