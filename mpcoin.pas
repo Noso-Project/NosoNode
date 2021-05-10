@@ -26,7 +26,7 @@ function GetMaximunToSend(monto:int64):int64;
 function cadtonum(cadena:string;pordefecto:int64;erroroutput:string):int64;
 Function IsValidIP(IpString:String):boolean;
 function GetCurrentStatus(mode:integer):String;
-function GetSupply():int64;
+function GetSupply(untilblock:integer):int64;
 
 
 
@@ -151,7 +151,9 @@ while cont < length(PendingTxs) do
   cont := cont+1;
   end;
 if not insertar then resultado := length(pendingTXs);
+EnterCriticalSection(CSPending);
 Insert(order,PendingTxs,resultado);
+LeaveCriticalSection(CSPending);
 result := true;
 VerifyIfPendingIsMine(order);
 setmilitime('AddPendingTxs',2);
@@ -384,9 +386,9 @@ if mode = 1 then
 result := resultado;
 End;
 
-function GetSupply():int64;
+function GetSupply(untilblock:integer):int64;
 Begin
-result := (Mylastblock*5000000000)+1030390730000;
+result := (untilblock*5000000000)+1030390730000;
 End;
 
 END. // END UNIT

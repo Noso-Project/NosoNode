@@ -414,7 +414,7 @@ if Continuar then
          DownloadHeaders := false;
          AFileStream.Free;
          LeaveCriticalSection(CSHeadAccess);
-         consolelines.Add(LAngLine(74)+': '+copy(HashMD5File(ResumenFilename),1,5)); //'Headers file received'
+         consolelinesAdd(LAngLine(74)+': '+copy(HashMD5File(ResumenFilename),1,5)); //'Headers file received'
          LastTimeRequestResumen := 0;
          UpdateMyData();
          end
@@ -529,10 +529,11 @@ if MyConStatus > 0 then
    if G_LastPing + 5 < StrToInt64(UTCTime) then
       begin
       G_LastPing := StrToInt64(UTCTime);
-      OutgoingMsjs.Add(ProtocolLine(ping));
+      OutgoingMsjsAdd(ProtocolLine(ping));
       end;
    if not SendingMsgs then // send the outgoing messages
       begin
+      sleep(2);
       SendOutMsgsThread := TThreadSendOutMsjs.Create(true);
       SendOutMsgsThread.FreeOnTerminate:=true;
       SendOutMsgsThread.Start;
@@ -575,14 +576,14 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
       LastTimePendingRequested := UTCTime.ToInt64;
       ConsoleLinesAdd('Pending requested');
       end;
-   OutgoingMsjs.Add(ProtocolLine(ping));
+   OutgoingMsjsAdd(ProtocolLine(ping));
    Form1.imagenes.GetBitmap(0,ConnectButton.Glyph);
    end;
 if MyConStatus = 3 then
    begin
    if StrToIntDef(NetPendingTrxs.Value,0)<length(PendingTXs) then
       begin
-      setlength(PendingTxs,0);
+      //setlength(PendingTxs,0);
       end;
    if ((StrToIntDef(NetPendingTrxs.Value,0)>length(PendingTXs)) and (LastTimePendingRequested+5<UTCTime.ToInt64)) then
       begin
@@ -917,7 +918,7 @@ hashreq := HashMD5String( IntToStr(tipo)+timestamp+direccion+IntToStr(block)+Int
 hashvalue := HashMD5String(IntToStr(Miner_LastHashRate));
 texttosend := GetPTCEcn+'NETREQ 1 '+timestamp+' '+direccion+' '+IntToStr(block)+' '+
    hashreq+' '+hashvalue+' '+IntToStr(Miner_LastHashRate);  // tipo 1: hashrate
-OutgoingMsjs.Add(texttosend);
+OutgoingMsjsAdd(texttosend);
 UpdateMyRequests(1,timestamp,block, hashreq, hashvalue);
 ConsoleLinesAdd('hashrate starts in '+IntToStr(Miner_LastHashRate));
 tipo := 2; // peers
@@ -925,7 +926,7 @@ hashreq := HashMD5String( IntToStr(tipo)+timestamp+direccion+IntToStr(block)+'1'
 hashvalue := HashMD5String('1');
 texttosend := GetPTCEcn+'NETREQ 2 '+timestamp+' '+direccion+' '+IntToStr(block)+' '+
    hashreq+' '+hashvalue+' '+'1';  // tipo 2: peers
-OutgoingMsjs.Add(texttosend);
+OutgoingMsjsAdd(texttosend);
 UpdateMyRequests(2,timestamp,block, hashreq, hashvalue);
 ConsoleLinesAdd('peers starts in 1');
 End;

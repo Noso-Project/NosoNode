@@ -244,6 +244,12 @@ type
        Order : string[64];
        end;
 
+  TArrayPos = Packed Record
+       address : string[32];
+       end;
+
+  BlockArraysPos = array of TArrayPos;
+
   { TForm1 }
 
   TForm1 = class(TForm)
@@ -396,8 +402,8 @@ CONST
                           '45.141.36.117 '+
                           '185.239.236.85 '+
                           '199.247.12.166';
-  ProgramVersion = '0.2.0';
-  SubVersion = 'Qd';
+  ProgramVersion = '0.2.1';
+  SubVersion = 'Af';
   OficialRelease = true;
   BuildDate = 'April 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -408,10 +414,10 @@ CONST
   Miner_Steps = 10;
   Pool_Max_Members = 1000;
   // Custom values for coin
-  SecondsPerBlock = 600; //600            // 10 minutes
-  PremineAmount = 1030390730000;//1030390730000;                // Ammount premined in genesys block
-  InitialReward = 5000000000;      // Initial reward
-  BlockHalvingInterval = 210000;//210000;    // Number of blocks between halvings. 2 years   105120
+  SecondsPerBlock = 600;            // 10 minutes
+  PremineAmount = 1030390730000;    // 1030390730000;
+  InitialReward = 5000000000;       // Initial reward
+  BlockHalvingInterval = 210000;    // 210000;
   HalvingSteps = 10;                // total number of halvings
   Comisiontrfr = 10000;             // ammount/Comisiontrfr = 0.01 % of the ammount
   ComisionCustom = 200000;          // 0.05 % of the Initial reward
@@ -419,14 +425,14 @@ CONST
   CoinName = 'Noso';                // Coin name
   CoinChar = 'N';                   // Char for addresses
   MinimunFee = 10;                  // Minimun fee for transfer
-  ComisionBlockCheck = 0;       // +- 90 days
-  DeadAddressFee = 0;            // unactive acount fee
+  ComisionBlockCheck = 0;           // +- 90 days
+  DeadAddressFee = 0;               // unactive acount fee
   ComisionScrow = 200;              // Coin/BTC market comision = 0.5%
   PoSPercentage = 1000;             // PoS part: reward * PoS / 10000
   PosStackCoins = 20;               // PoS stack ammoount: supply*20 / PoSStack
-  PoSBlockStart : integer = 10000;  // first block with PoSPayment
+  PoSBlockStart : integer = 8425;   // first block with PoSPayment
   InitialBlockDiff = 60;            // Dificultad durante los 20 primeros bloques
-  GenesysTimeStamp = 1615132800;//1615132800;
+  GenesysTimeStamp = 1615132800;    // 1615132800;
 
 var
   UserFontSize : integer = 8;
@@ -625,6 +631,9 @@ var
   CSPoolPay     : TRTLCriticalSection;
   CSHeadAccess  : TRTLCriticalSection;
   CSBlocksAccess: TRTLCriticalSection;
+  CSSumary      : TRTLCriticalSection;
+  CSPending     : TRTLCriticalSection;
+  CSCriptoThread: TRTLCriticalSection;
 
   // Cross OS variables
   OSFsep : string = '';
@@ -796,19 +805,26 @@ if Continuar then
          begin
          if GetCommand(LLine) = 'RESUMENFILE' then
             begin
-            ConsoleLinesadd('Receiving headers');
             EnterCriticalSection(CSHeadAccess);
+            ConsoleLinesadd('Receiving headers');
             DownloadHeaders := true;
-            AFileStream := TFileStream.Create(ResumenFilename, fmCreate);
                try
+               AFileStream := TFileStream.Create(ResumenFilename, fmCreate);
                CanalCliente[FSlot].ReadTimeout:=0;
-               CanalCliente[FSlot].IOHandler.ReadStream(AFileStream);
+                  try
+                  CanalCliente[FSlot].IOHandler.ReadStream(AFileStream);
+                  Except on E:Exception do
+                     begin
+                     toExcLog(format('Error Receiving headers from %s (%s)',[conexiones[fSlot].ip,E.Message]));
+                     consolelinesadd(format('Error Receiving headers from %s (%s)',[conexiones[fSlot].ip,E.Message]));
+                     end;
+                  end;
                finally
                AFileStream.Free;
                DownloadHeaders := false;
                LeaveCriticalSection(CSHeadAccess);
                end;
-            consolelines.Add(LAngLine(74)+': '+copy(HashMD5File(ResumenFilename),1,5)); //'Headers file received'
+            consolelinesAdd(LAngLine(74)+': '+copy(HashMD5File(ResumenFilename),1,5)); //'Headers file received'
             LastTimeRequestResumen := 0;
             UpdateMyData();
             end
@@ -864,9 +880,27 @@ End;
 
 // Send the outgoing messages
 procedure TThreadSendOutMsjs.Execute;
+Var
+  Slot :integer = 1;
 Begin
 SendingMsgs := true;
-SendMesjsSalientes;
+While OutgoingMsjs.Count > 0 do
+   begin
+   For Slot := 1 to MaxConecciones do
+      begin
+      try
+      if conexiones[Slot].tipo <> '' then PTC_SendLine(Slot,OutgoingMsjs[0]);
+      Except on E:Exception do
+         Tolog('Error sending outgoing message');
+      end;
+      end;
+   if OutgoingMsjs.Count > 0 then
+      begin
+      EnterCriticalSection(CSOutgoingMsjs);
+      OutgoingMsjs.Delete(0);
+      LeaveCriticalSection(CSOutgoingMsjs);
+      end;
+   end;
 SendingMsgs := false;
 End;
 
@@ -886,6 +920,9 @@ InitCriticalSection(CSPoolStep);
 InitCriticalSection(CSPoolPay);
 InitCriticalSection(CSHeadAccess);
 InitCriticalSection(CSBlocksAccess);
+InitCriticalSection(CSSumary);
+InitCriticalSection(CSPending);
+InitCriticalSection(CSCriptoThread);
 CreateFormInicio();
 CreateFormLog();
 CreateFormAbout();
@@ -905,6 +942,9 @@ DoneCriticalSection(CSPoolStep);
 DoneCriticalSection(CSPoolPay);
 DoneCriticalSection(CSHeadAccess);
 DoneCriticalSection(CSBlocksAccess);
+DoneCriticalSection(CSSumary);
+DoneCriticalSection(CSPending);
+DoneCriticalSection(CSCriptoThread);
 end;
 
 // Form show
@@ -1128,12 +1168,19 @@ procedure TForm1.Grid2PrepareCanvas(sender: TObject; aCol, aRow: Integer;
   aState: TGridDrawState);
 var
   ts: TTextStyle;
+  posrequired : int64;
 begin
+posrequired := (GetSupply(MyLastBlock+1)*PosStackCoins) div 10000;
 if (ACol=1)  then
    begin
    ts := (Sender as TStringGrid).Canvas.TextStyle;
    ts.Alignment := taRightJustify;
    (Sender as TStringGrid).Canvas.TextStyle := ts;
+   if ((aRow>0) and (ListaDirecciones[aRow-1].Balance>posrequired)) then
+      begin
+      (Sender as TStringGrid).Canvas.Brush.Color :=  clmoneygreen;
+      (Sender as TStringGrid).Canvas.font.Color :=  clblack;
+      end
    end;
 end;
 
@@ -1948,7 +1995,7 @@ else
       if BlockVerification = 0 then
          begin
          ConsoleLinesAdd('Pool solution verified');
-         OutgoingMsjs.Add(ProtocolLine(6)+BlockSolTime+' '+BlockSolNumber+' '+
+         OutgoingMsjsAdd(ProtocolLine(6)+BlockSolTime+' '+BlockSolNumber+' '+
                BlockSolMiner+' '+StringReplace(BlockSolution,' ','_',[rfReplaceAll, rfIgnoreCase]));
          ResetPoolMiningInfo();
          TextToSend := 'BLOCKSOLOK '+BlockSolNumber;
@@ -2023,7 +2070,7 @@ if Comando = 'STEP' then
             Begin
             BlockTime := UTCTime;
             consolelinesAdd('Pool solution verified!');
-            OutgoingMsjs.Add(ProtocolLine(6)+BlockTime+' '+IntToStr(PoolMiner.Block)+' '+
+            OutgoingMsjsAdd(ProtocolLine(6)+BlockTime+' '+IntToStr(PoolMiner.Block)+' '+
                PoolInfo.Direccion+' '+StringReplace(PoolMiner.Solucion,' ','_',[rfReplaceAll, rfIgnoreCase]));
             ResetPoolMiningInfo();
             //SendNetworkRequests(blocktime,PoolInfo.Direccion,PoolMiner.Block);
@@ -2135,13 +2182,11 @@ if IsPoolMemberConnected(UserDireccion)>=0 then   // ALREADY CONNECTED
    end;
 if Comando = 'JOIN' then
    begin
-   //consolelines.Add('Pool join requested for address '+UserDireccion);
    JoinPrefijo := PoolAddNewMember(UserDireccion);
    if JoinPrefijo<>'' then
       begin
       Acontext.Connection.IOHandler.WriteLn('JOINOK '+PoolInfo.Direccion+' '+JoinPrefijo+' '+PoolDataString(UserDireccion));
       SavePoolServerConnection(IpUser,UserDireccion,minerversion,Acontext);
-      //ConsoleLines.Add(UserDireccion+' added to the pool: '+JoinPrefijo);
       end
    else
       begin
@@ -2153,6 +2198,16 @@ if Comando = 'JOIN' then
 else if Comando = 'STATUS' then
    begin
    Acontext.Connection.IOHandler.WriteLn(PoolStatusString);
+   AContext.Connection.Disconnect;
+   Acontext.Connection.IOHandler.InputBuffer.Clear;
+   end
+else if Comando = 'ADDRESSBAL' then
+   begin
+   UserDireccion := Parameter(Linea,3);
+   Acontext.Connection.IOHandler.WriteLn('ADDRESSBAL '+UserDireccion+' '+IntToStr(GetAddressBalance(UserDireccion))+' '+
+   IntToStr(GetAddressIncomingpays(UserDireccion))+' '+
+   IntToStr(GetAddressPendingPays(UserDireccion))+' '+
+   IntToStr(GetAddressBalance(UserDireccion)-GetAddressPendingPays(UserDireccion)));
    AContext.Connection.Disconnect;
    Acontext.Connection.IOHandler.InputBuffer.Clear;
    end
@@ -2187,7 +2242,7 @@ try
    AContext.Connection.Disconnect;
 Except on E:Exception do
    begin
-   consolelines.Add('Error closing pool connection');
+   consolelinesAdd('Error closing pool connection');
    end;
 end;
 End;

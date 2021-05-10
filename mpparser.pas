@@ -90,6 +90,10 @@ Procedure ExportAddress(LineText:string);
 Procedure ShowAddressInfo(LineText:string);
 Procedure ShowAddressHistory(LineText:string);
 Procedure ShowTotalFees();
+// 0.2.1 DEBUG
+Procedure ShowBlockPos(LineText:string);
+Procedure showPosrequired(linetext:string);
+Procedure showgmts(LineText:string);
 
 implementation
 
@@ -184,7 +188,6 @@ else if UpperCase(Command) = 'SLOTS' then ShowSlots()
 else if UpperCase(Command) = 'CONNECT' then ConnectToServers()
 else if UpperCase(Command) = 'DISCONNECT' then CerrarClientes()
 else if UpperCase(Command) = 'OFFSET' then ConsoleLinesAdd('Server: '+G_NTPServer+SLINEBREAK+LangLine(17)+IntToStr(G_TimeOffSet))
-//else if UpperCase(Command) = 'SSLPATH' then ConsoleLinesAdd(UserOptions.SSLPath)
 else if UpperCase(Command) = 'NEWADDRESS' then NuevaDireccion(linetext)
 else if UpperCase(Command) = 'USEROPTIONS' then ShowUserOptions()
 else if UpperCase(Command) = 'BALANCE' then ConsoleLinesAdd(Int2Curr(GetWalletBalance)+' '+CoinSimbol)
@@ -252,9 +255,12 @@ else if UpperCase(Command) = 'EXPORTADDRESS' then ExportAddress(LineText)
 else if UpperCase(Command) = 'ADDRESS' then ShowAddressInfo(LineText)
 else if UpperCase(Command) = 'HISTORY' then ShowAddressHistory(LineText)
 else if UpperCase(Command) = 'TOTALFEES' then ShowTotalFees()
-else if UpperCase(Command) = 'R256' then consolelines.Add('R256 : '+Recursive256(parameter(LineText,1)))
-else if UpperCase(Command) = 'SUPPLY' then consolelines.Add('Current supply: '+Int2Curr(GetSupply))
-else if UpperCase(Command) = 'POSSTACK' then consolelines.Add('PoS required Stack: '+Int2Curr((GetSupply*PosStackCoins) div 10000))
+else if UpperCase(Command) = 'R256' then consolelinesAdd('R256 : '+Recursive256(parameter(LineText,1)))
+else if UpperCase(Command) = 'SUPPLY' then consolelinesAdd('Current supply: '+Int2Curr(GetSupply(MyLastBlock)))
+else if UpperCase(Command) = 'GMTS' then showgmts(LineText)
+// 0.2.1 DEBUG
+else if UpperCase(Command) = 'BLOCKPOS' then ShowBlockPos(LineText)
+else if UpperCase(Command) = 'POSSTACK' then showPosrequired(linetext)
 
 // POOL RELATED COMMANDS
 else if UpperCase(Command) = 'CREATEPOOL' then CreatePool(LineText)
@@ -547,13 +553,14 @@ var
   EmptyAddresses : int64 = 0;
   NegAdds : integer = 0;
 Begin
+EnterCriticalSection(CSSumary);
 For contador := 0 to length(ListaSumario)-1 do
    begin
-   //{
+   {
    ConsoleLinesAdd(ListaSumario[contador].Hash+' '+Int2Curr(ListaSumario[contador].Balance)+' '+
       SLINEBREAK+ListaSumario[contador].custom+' '+
       IntToStr(ListaSumario[contador].LastOP)+' '+IntToStr(ListaSumario[contador].Score));
-   //}
+   }
    if ListaSumario[contador].Balance < 0 then NegAdds+=1;
    TotalCOins := totalCoins+ ListaSumario[contador].Balance;
    if ListaSumario[contador].Balance = 0 then EmptyAddresses +=1;
@@ -562,6 +569,7 @@ ConsoleLinesAdd(IntToStr(Length(ListaSumario))+langline(51)); //addresses
 ConsoleLinesAdd(IntToStr(EmptyAddresses)+' empty.'); //addresses
 if NegAdds>0 then ConsoleLinesAdd('Possible issues: '+IntToStr(NegAdds));
 ConsoleLinesAdd(Int2Curr(Totalcoins)+' '+CoinSimbol);
+LeaveCriticalSection(CSSumary);
 End;
 
 Procedure AutoServerON();
@@ -1038,7 +1046,7 @@ if procesar then
       OrderString := orderstring+GetStringfromOrder(ArrayTrfrs[contador])+' $';
       end;
    Setlength(orderstring,length(orderstring)-2);
-   OutgoingMsjs.Add(OrderString);
+   OutgoingMsjsAdd(OrderString);
    setmilitime('SendFunds',2);
    end // End procesar
 else
@@ -1765,7 +1773,7 @@ currtime := UTCTime;
 firma := GetStringSigned(currtime+mensaje,ListaDirecciones[DireccionEsMia(AdminHash)].PrivateKey);
 hashmsg := HashMD5String(currtime+mensaje+firma);
 mensaje := StringReplace(mensaje,' ','_',[rfReplaceAll, rfIgnoreCase]);
-OutgoingMsjs.Add(GetPTCEcn+'ADMINMSG '+currtime+' '+mensaje+' '+firma+' '+hashmsg);
+OutgoingMsjsAdd(GetPTCEcn+'ADMINMSG '+currtime+' '+mensaje+' '+firma+' '+hashmsg);
 mensaje := StringReplace(mensaje,'_',' ',[rfReplaceAll, rfIgnoreCase]);
 ConsoleLinesAdd('Message sent: '+mensaje);
 End;
@@ -1947,6 +1955,73 @@ for counter := 1 to MyLastBlock do
    end;
 ConsoleLinesAdd('Blockchain total fees: '+Int2curr(totalcoins));
 ConsoleLinesAdd('Block average        : '+Int2curr(totalcoins div MyLastBlock));
+End;
+
+// *******************
+// *** DEBUG 0.2.1 ***
+// *******************
+
+Procedure ShowBlockPos(LineText:string);
+var
+  number : integer;
+  ArrayPos : BlockArraysPos;
+  PosReward : int64;
+  PosCount, counterPos : integer;
+Begin
+number := StrToIntDef(parameter(linetext,1),0);
+if ((number < PoSBlockStart) or (number > MyLastBlock))then
+   begin
+   ConsolelinesAdd('Invalid block number: '+number.ToString);
+   end
+else
+   begin
+   ArrayPos := GetBlockPoSes(number);
+   PosReward := StrToIntDef(Arraypos[length(Arraypos)-1].address,0);
+   SetLength(ArrayPos,length(ArrayPos)-1);
+   PosCount := length(ArrayPos);
+   for counterpos := 0 to PosCount-1 do
+      consolelinesadd(ArrayPos[counterPos].address+': '+int2curr(PosReward));
+   ConsoleLinesAdd('Block:   : '+inttostr(number));
+   ConsoleLinesAdd('Addresses: '+IntToStr(PosCount));
+   ConsolelinesAdd('Reward   : '+int2curr(PosReward));
+   ConsolelinesAdd('Total    : '+int2curr(PosCount*PosReward));
+   end;
+End;
+
+Procedure showPosrequired(linetext:string);
+var
+  PosRequired : int64;
+  contador : integer;
+  Cantidad : integer = 0;
+  TotalStacked : int64 =0;
+Begin
+PosRequired := (GetSupply(MyLastBlock+1)*PosStackCoins) div 10000;
+for contador := 0 to length(ListaSumario)-1 do
+      begin
+      if listasumario[contador].Balance >= PosRequired then
+         begin
+         Cantidad +=1;
+         consolelinesadd(listasumario[contador].Hash+': '+Int2curr(listasumario[contador].Balance));
+         TotalStacked := TotalStacked +listasumario[contador].Balance;
+         end;
+      end;
+consolelinesAdd('Pos At block          : '+inttostr(Mylastblock));
+consolelinesAdd('PoS required Stake    : '+Int2Curr(PosRequired));
+ConsoleLinesAdd('Current PoS addresses : '+inttostr(Cantidad));
+ConsoleLinesAdd('Total Staked          : '+Int2Curr(TotalStacked));
+End;
+
+Procedure showgmts(LineText:string);
+var
+  monto: int64;
+  gmts, fee : int64;
+Begin
+monto := StrToInt64Def(Parameter(LineText,1),0);
+gmts := GetMaximunToSend(monto);
+fee := monto-gmts;
+consolelinesadd('Ammount         : '+Int2Curr(monto));
+consolelinesadd('Maximun to send : '+Int2Curr(gmts));
+consolelinesadd('Fee paid        : '+Int2Curr(fee));
 End;
 
 END. // END UNIT

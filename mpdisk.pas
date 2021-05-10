@@ -1042,6 +1042,7 @@ var
   Yaexiste : boolean = false;
   NuevoRegistro : SumarioData;
 Begin
+EnterCriticalSection(CSSumary);
 for contador := 0 to length(ListaSumario)-1 do
    begin
    if ((ListaSumario[contador].Hash=Direccion) or (ListaSumario[contador].Custom=Direccion)) then
@@ -1069,6 +1070,7 @@ if not YaExiste then
    ListaSumario[length(listasumario)-1] := NuevoRegistro;
    end;
 S_Sumario := true;
+LeaveCriticalSection(CSSumary);
 if DireccionEsMia(Direccion)>= 0 then UpdateWalletFromSumario();
 End;
 
@@ -1078,6 +1080,7 @@ var
   cont : integer;
 Begin
 result := false;
+EnterCriticalSection(CSSumary);
 for cont := 0 to length(ListaSumario)-1 do
    begin
    if ((ListaSumario[cont].Hash=Address)and (ListaSumario[cont].custom='')) then
@@ -1087,6 +1090,7 @@ for cont := 0 to length(ListaSumario)-1 do
       break;
       end;
    end;
+LeaveCriticalSection(CSSumary);
 if not result then tolog('Error assigning custom alias to address:'+Address+':'+addalias);
 End;
 
@@ -1228,9 +1232,14 @@ var
   cont : integer;
   BlockHeader : BlockHeaderData;
   ArrayOrders : BlockOrdersArray;
+  ArrayPos    : BlockArraysPos;
+  PosReward   : int64;
+  PosCount    : integer;
+  CounterPos  : integer;
 Begin
 BlockHeader := Default(BlockHeaderData);
 BlockHeader := LoadBlockDataHeader(BlockNumber);
+EnterCriticalSection(CSSumary);
 UpdateSumario(BlockHeader.AccountMiner,BlockHeader.Reward+BlockHeader.MinerFee,0,IntToStr(BlockNumber));
 ArrayOrders := Default(BlockOrdersArray);
 ArrayOrders := GetBlockTrxs(BlockNumber);
@@ -1247,7 +1256,18 @@ for cont := 0 to length(ArrayOrders)-1 do
       UpdateSumario(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,0,IntToStr(BlockNumber));
       end;
    end;
+if blocknumber >= PoSBlockStart then
+   begin
+   ArrayPos := GetBlockPoSes(BlockNumber);
+   PosReward := StrToIntDef(Arraypos[length(Arraypos)-1].address,0);
+   SetLength(ArrayPos,length(ArrayPos)-1);
+   PosCount := length(ArrayPos);
+   for counterpos := 0 to PosCount-1 do
+      UpdateSumario(ArrayPos[counterPos].address,Posreward,0,IntToStr(BlockNumber));
+   UpdateSumario(BlockHeader.AccountMiner,Restar(PosCount*Posreward),0,IntToStr(BlockNumber));
+   end;
 ListaSumario[0].LastOP:=BlockNumber;
+LeaveCriticalSection(CSSumary);
 GuardarSumario();
 UpdateMyData();
 End;
@@ -1258,13 +1278,19 @@ var
   contador, cont : integer;
   BlockHeader : BlockHeaderData;
   ArrayOrders : BlockOrdersArray;
+ ArrayPos    : BlockArraysPos;
+  PosReward   : int64;
+  PosCount    : integer;
+  CounterPos  : integer;
 Begin
+EnterCriticalSection(CSSumary);
 SetLength(ListaSumario,0);
 // incluir el pago del bloque genesys
 UpdateSumario(ADMINHash,PremineAmount,0,'0');
 for contador := 1 to UntilBlock do
    begin
-   info(LangLine(130)+inttoStr(contador));  //'Rebuilding sumary block: '
+   if contador mod 100 = 0 then
+      info(LangLine(130)+inttoStr(contador));  //'Rebuilding sumary block: '
    BlockHeader := Default(BlockHeaderData);
    BlockHeader := LoadBlockDataHeader(contador);
    UpdateSumario(BlockHeader.AccountMiner,BlockHeader.Reward+BlockHeader.MinerFee,0,IntToStr(contador));
@@ -1283,8 +1309,20 @@ for contador := 1 to UntilBlock do
          UpdateSumario(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,0,IntToStr(contador));
          end;
       end;
+   if contador >= PoSBlockStart then
+      begin
+      ArrayPos := GetBlockPoSes(contador);
+      PosReward := StrToIntDef(Arraypos[length(Arraypos)-1].address,0);
+      SetLength(ArrayPos,length(ArrayPos)-1);
+      PosCount := length(ArrayPos);
+      for counterpos := 0 to PosCount-1 do
+         UpdateSumario(ArrayPos[counterPos].address,Posreward,0,IntToStr(contador));
+      // Restar el PoS al minero
+      UpdateSumario(BlockHeader.AccountMiner,Restar(PosCount*Posreward),0,IntToStr(contador));
+      end;
    end;
 ListaSumario[0].LastOP:=contador;
+LeaveCriticalSection(CSSumary);
 GuardarSumario();
 UpdateMyData();
 ConsoleLinesAdd(LangLine(131));  //'Sumary rebuilded.'

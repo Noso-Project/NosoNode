@@ -13,10 +13,12 @@ Procedure CrearNuevoBloque(Numero,TimeStamp: Int64; TargetHash, Minero, Solucion
 function GetDiffForNextBlock(UltimoBloque,Last20Average,lastblocktime,previous:integer):integer;
 function GetLast20Time(LastBlTime:integer):integer;
 function GetBlockReward(BlNumber:int64):Int64;
-Procedure GuardarBloque(NombreArchivo:string;Cabezera:BlockHeaderData;Ordenes:array of OrderData);
+Procedure GuardarBloque(NombreArchivo:string;Cabezera:BlockHeaderData;Ordenes:array of OrderData;
+                        PosPay:Int64;PoSnumber:integer;PosAddresses:array of TArrayPos);
 function LoadBlockDataHeader(BlockNumber:integer):BlockHeaderData;
 function GetBlockTrxs(BlockNumber:integer):BlockOrdersArray;
 Procedure UndoneLastBlock();
+Function GetBlockPoSes(BlockNumber:integer): BlockArraysPos;
 function GetBlockWork(solucion:string):int64;
 
 implementation
@@ -43,15 +45,14 @@ var
   Filename : String;
   Contador : integer = 0;
   OperationAddress : string = '';
-  PoScount : integer = 0;
-  PosRequired, PosReward : int64;
 
-  // Variables para la inclusion de Feecomision
-  {FeeCom : int64 = 0;
-  FeeOrder : OrderData;
-  DelAddr : String = '';
-  LastOP : integer = 0;}
-  PoSAddressess : array of string[32];
+  PoScount : integer = 0;
+  PosRequired, PosReward: int64;
+  PoSTotalReward : int64 = 0;
+  PoSAddressess : array of TArrayPos;
+
+  ComodinOrder : OrderData;
+
 Begin
 if ((numero>0) and (Timestamp < lastblockdata.TimeEnd)) then
    begin
@@ -67,7 +68,9 @@ SetLength(IgnoredTrxs,0);
 // CREAR COPIA DEL SUMARIO
 if fileexists(SumarioFilename+'.bak') then deletefile(SumarioFilename+'.bak');
 copyfile(SumarioFilename,SumarioFilename+'.bak');
+
 // PROCESAR LAS TRANSACCIONES EN LISTAORDENES
+EnterCriticalSection(CSPending);
 for contador := 0 to length(pendingTXs)-1 do
    begin
    if PendingTXs[contador].TimeStamp+60 > TimeStamp then
@@ -103,86 +106,50 @@ for contador := 0 to length(pendingTXs)-1 do
       insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
       end;
    end;
+LeaveCriticalSection(CSPending);
 
 //PoS payment
-{
-SetLength(PoSAddressess,0);
-PosRequired := (GetSupply*PosStackCoins) div 10000;
-for contador := 0 to length(ListaSumario)-1 do
-   begin
-   if listasumario[contador].Balance > PosRequired then
-      begin
-      PoScount +=1;
-      Insert(listasumario[contador].Hash,PoSAddressess,length(PoSAddressess));
-      end;
-   end;
-PosReward := ((GetBlockReward(Numero)+MinerFee)*PoSPercentage) div 10000;
-Consolelines.Add('PoS stack    : '+Int2curr(PosRequired));
-ConsoleLines.Add('PoS addresses: '+IntToStr(PoScount));
-ConsoleLines.Add('PoS reward   : '+Int2curr(PosReward div PoScount));
-}
-//tolog('PoS addresses at block: '+inttostr(Numero));
-//for contador := 0 to length(PoSAddressess)-1 do
-//   tolog(PoSAddressess[contador]);
 
-//** Fin del procesado de las operaciones Pending
-{
-// Procesar si hay que descontar comisiones por inactividad
-if ((numero>0) and (Numero mod ComisionBlockCheck = 0)) then
+if numero >= PoSBlockStart then
    begin
-   for contador := 1 to length(ListaSumario)-1 do
+   SetLength(PoSAddressess,0);
+   PosRequired := (GetSupply(numero)*PosStackCoins) div 10000;
+   EnterCriticalSection(CSSumary);
+   for contador := 0 to length(ListaSumario)-1 do
       begin
-      LastOP := ListaSumario[contador].LastOP;
-      FeeCom := ((Numero-LastOP) div ComisionBlockCheck)*DeadAddressFee;
-      // Si hay comision, si la direccion no tiene pendientes ni es el minero
-      if (FeeCom>0) and (not HaveAddressAnyPending(ListaSumario[contador].Hash)and
-         (ListaSumario[contador].Hash<>Minero)) then
+      if listasumario[contador].Balance >= PosRequired then
          begin
-         deladdr := 'NO';
-         if ((ListaSumario[contador].Balance>0) and (ListaSumario[contador].Balance<FeeCom)) then
-           feeCom := ListaSumario[contador].Balance
-         else if ListaSumario[contador].Balance = 0 then
-            begin
-            deladdr := 'YES';
-            FeeCom := 0;
-            end;
-         FeeOrder := Default(OrderData);
-         FeeOrder.Block:=numero;
-         FeeOrder.OrderID:=GetOrderHash('FEE'+IntToStr(numero)+ListaSumario[contador].Hash+InttoStr(FeeCom));
-         FeeOrder.OrderLines:=1;
-         FeeOrder.OrderType:='FEE';
-         FeeOrder.TimeStamp:=TimeStamp;
-         FeeOrder.Concept:=IntToStr(LastOp)+' to '+IntToStr(numero)+' ('+
-                           IntToStr((Numero-LastOP) div ComisionBlockCheck)+')';
-         FeeOrder.TrxLine:=1;
-         FeeOrder.Sender:=ListaSumario[contador].Hash;
-         FeeOrder.Receiver:='null';
-         FeeOrder.AmmountFee:=FeeCom;
-         FeeOrder.AmmountTrf:=0;
-         FeeOrder.Signature:=deladdr;
-         FeeOrder.TrfrID:=deladdr;
-         minerfee := minerFee+FeeCom;
-         insert(FeeOrder,ListaOrdenes,length(listaordenes));
-         UpdateSumario(FeeOrder.Sender,Restar(feecom),0,IntToStr(LastOP));
-         if DelAddr = 'YES' then
-            begin
-            Delete(ListaSumario,AddressSumaryIndex(FeeOrder.Sender),1);
-            ConsoleLinesAdd('Deleted '+FeeOrder.Sender);
-            end
+         SetLength(PoSAddressess,length(PoSAddressess)+1);
+         PoSAddressess[length(PoSAddressess)-1].address:=listasumario[contador].Hash;
          end;
       end;
+   LeaveCriticalSection(CSSumary);
+   PoScount := length(PoSAddressess);
+   PosTotalReward := ((GetBlockReward(Numero)+MinerFee)*PoSPercentage) div 10000;
+   PosReward := PosTotalReward div PoScount;
+   Tolog('PoS stack    : '+Int2curr(PosRequired));
+   Tolog('PoS addresses: '+IntToStr(PoScount));
+   Tolog('PoS reward   : '+Int2curr(PosReward));
+   // Adjust the nosotoshi difference in TotalPoSReward
+   PosTotalReward := PoSCount * PosReward;
+   //pay POS
+   for contador := 0 to length(PoSAddressess)-1 do
+      UpdateSumario(PoSAddressess[contador].address,PosReward,0,IntToStr(Numero));
    end;
-//** Fin comisiones por inactividad
-}
+
 // Pago del minero
-UpdateSumario(Minero,GetBlockReward(Numero)+MinerFee,0,IntToStr(numero));
+UpdateSumario(Minero,GetBlockReward(Numero)+MinerFee-PosTotalReward,0,IntToStr(numero));
 // Actualizar el ultimo bloque añadido al sumario
+EnterCriticalSection(CSSumary);
 ListaSumario[0].LastOP:=numero;
+LeaveCriticalSection(CSSumary);
 // Guardar el sumario
 GuardarSumario();
 // Limpiar las pendientes
+EnterCriticalSection(CSPending);
 SetLength(PendingTXs,0);
 PendingTXs := copy(IgnoredTrxs,0,length(IgnoredTrxs));
+LeaveCriticalSection(CSPending);
 for contador := 0 to length(ListaDirecciones)-1 do
    ListaDirecciones[contador].Pending:=0;
 // Definir la cabecera del bloque *****
@@ -205,7 +172,7 @@ BlockHeader.MinerFee:=MinerFee;
 BlockHeader.Reward:=GetBlockReward(Numero);
 // Fin de la cabecera -----
 // Guardar bloque al disco
-GuardarBloque(FileName,BlockHeader,ListaOrdenes);
+GuardarBloque(FileName,BlockHeader,ListaOrdenes,PosReward,PosCount,PoSAddressess);
 // Actualizar informacion
 MyLastBlock := Numero;
 MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
@@ -229,9 +196,9 @@ if minero = RPC_MinerInfo then
    end;
 if Numero>0 then
    begin
-   OutgoingMsjs.Add(ProtocolLine(6)+IntToStr(timeStamp)+' '+IntToStr(Numero)+
+   OutgoingMsjsAdd(ProtocolLine(6)+IntToStr(timeStamp)+' '+IntToStr(Numero)+
    ' '+Minero+' '+StringReplace(Solucion,' ','_',[rfReplaceAll, rfIgnoreCase]));
-   OutgoingMsjs.Add(ProtocolLine(ping));
+   OutgoingMsjsAdd(ProtocolLine(ping));
    end;
 OutText(LangLine(89)+IntToStr(numero),true);  //'Block builded: '
 if Numero > 0 then RebuildMyTrx(Numero);
@@ -288,7 +255,8 @@ else result := 0;
 End;
 
 // Guarda el archivo de bloque en disco
-Procedure GuardarBloque(NombreArchivo:string;Cabezera:BlockHeaderData;Ordenes:array of OrderData);
+Procedure GuardarBloque(NombreArchivo:string;Cabezera:BlockHeaderData;
+                        Ordenes:array of OrderData;PosPay:Int64;PoSnumber:integer;PosAddresses:array of TArrayPos);
 var
   MemStr: TMemoryStream;
   NumeroOrdenes : int64;
@@ -300,6 +268,13 @@ MemStr := TMemoryStream.Create;
    MemStr.Write(Cabezera,Sizeof(Cabezera));
    for counter := 0 to NumeroOrdenes-1 do
       MemStr.Write(Ordenes[counter],Sizeof(Ordenes[Counter]));
+   if Cabezera.Number>=PoSBlockStart then
+      begin
+      MemStr.Write(PosPay,Sizeof(PosPay));
+      MemStr.Write(PoSnumber,Sizeof(PoSnumber));
+      for counter := 0 to PoSnumber-1 do
+         MemStr.Write(PosAddresses[counter],Sizeof(PosAddresses[Counter]));
+      end;
    MemStr.SaveToFile(NombreArchivo);
    MemStr.Free;
    Except
@@ -335,7 +310,8 @@ var
   Header : BlockHeaderData;
   ArchData : String;
   counter : integer;
-  TotalTrxs : integer;
+  TotalTrxs, totalposes : integer;
+  posreward : int64;
 Begin
 Setlength(ArrTrxs,0);
 ArchData := BlockDirectory+IntToStr(BlockNumber)+'.blk';
@@ -348,11 +324,48 @@ MemStr := TMemoryStream.Create;
    SetLength(ArrTrxs,TotalTrxs);
    For Counter := 0 to TotalTrxs-1 do
       MemStr.Read(ArrTrxs[Counter],Sizeof(ArrTrxs[Counter])); // read each record
+   MemStr.Read(Header, SizeOf(Header));
+
    Except on E: Exception do // nothing, the block is not founded
    end;
 MemStr.Free;
 Result := ArrTrxs;
 End;
+
+Function GetBlockPoSes(BlockNumber:integer): BlockArraysPos;
+var
+  resultado : BlockArraysPos;
+  ArrTrxs : BlockOrdersArray;
+  ArchData : String;
+  MemStr: TMemoryStream;
+  Header : BlockHeaderData;
+  TotalTrxs, totalposes : integer;
+  posreward : int64;
+  counter : integer;
+Begin
+Setlength(resultado,0);
+ArchData := BlockDirectory+IntToStr(BlockNumber)+'.blk';
+MemStr := TMemoryStream.Create;
+   try
+   MemStr.LoadFromFile(ArchData);
+   MemStr.Position := 0;
+   MemStr.Read(Header, SizeOf(Header));
+   TotalTrxs := header.TrxTotales;
+   SetLength(ArrTrxs,TotalTrxs);
+   For Counter := 0 to TotalTrxs-1 do
+      MemStr.Read(ArrTrxs[Counter],Sizeof(ArrTrxs[Counter])); // read each record
+   MemStr.Read(posreward, SizeOf(int64));
+   MemStr.Read(totalposes, SizeOf(integer));
+   SetLength(resultado,totalposes);
+   For Counter := 0 to totalposes-1 do
+      MemStr.Read(resultado[Counter].address,Sizeof(resultado[Counter]));
+   SetLength(resultado,totalposes+1);
+   resultado[length(resultado)-1].address := IntToStr(posreward);
+   Except on E: Exception do // nothing, the block is not founded
+   end;
+MemStr.Free;
+Result := resultado;
+end;
 
 // Deshacer el ultimo bloque
 Procedure UndoneLastBlock();

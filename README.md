@@ -1,9 +1,9 @@
 # NosoWallet
 Noso Windows Wallet
 
-Official Release Ver 0.2.0Qc
+Official Release Ver 0.2.1Af
 
-May 6, 2021
+May 9, 2021
 
 THIS IS AM OFFICIAL RELEASE
 
@@ -24,6 +24,8 @@ This librarys are in the Packages folder (rar files)
 Tested on Windows 7, 8.1 and 10
 
 Tested runs on uUbuntu usings Wine
+
+Linux version is in beta testings. You can download it from releases.
 
 How to built.
 

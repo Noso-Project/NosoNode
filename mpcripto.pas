@@ -496,12 +496,14 @@ End;
 // Añade una operacion a la espera de cripto
 Procedure AddCriptoOp(tipo:integer;proceso, resultado:string);
 Begin
+EnterCriticalSection(CSCriptoThread);
 SetLength(CriptoOpsTipo,length(CriptoOpsTipo)+1);
 CriptoOpsTipo[length(CriptoOpsTipo)-1] := tipo;
 SetLength(CriptoOpsOper,length(CriptoOpsOper)+1);
 CriptoOpsOper[length(CriptoOpsOper)-1] := proceso;
 SetLength(CriptoOpsResu,length(CriptoOpsResu)+1);
 CriptoOpsResu[length(CriptoOpsResu)-1] := resultado;
+LeaveCriticalSection(CSCriptoThread);
 End;
 
 // Indica que se pueden empezar a realizar las operaciones del cripto thread
@@ -517,9 +519,11 @@ End;
 // Elimina la operacion cripto
 Procedure DeleteCriptoOp();
 Begin
+EnterCriticalSection(CSCriptoThread);
 Delete(CriptoOpsTipo,0,1);
 Delete(CriptoOpsOper,0,1);
 Delete(CriptoOpsResu,0,1);
+LeaveCriticalSection(CSCriptoThread);
 End;
 
 // Procesa las operaciones criptograficas en segundo plano
@@ -549,7 +553,7 @@ Repeat
       claveprivada := copy (CriptoOpsOper[0],posref+1,length(CriptoOpsOper[0]));
       firma := GetStringSigned(cadena,claveprivada);
       resultado := StringReplace(CriptoOpsResu[0],'[[RESULT]]',firma,[rfReplaceAll, rfIgnoreCase]);
-      OutgoingMsjs.Add(resultado);
+      OutgoingMsjsAdd(resultado);
       OutText('Customization sent',false,2);
       end
     else if CriptoOpsTipo[0] = 3 then // enviar fondos

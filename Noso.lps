@@ -20,8 +20,9 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MasterPaskalForm"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="527"/>
-        <CursorPos X="43" Y="546"/>
+        <TopLine Value="797"/>
+        <CursorPos X="52" Y="809"/>
+        <FoldState Value=" T3@H0o}"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -30,18 +31,18 @@
         <Filename Value="mpgui.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpGUI"/>
-        <EditorIndex Value="7"/>
-        <TopLine Value="820"/>
-        <CursorPos X="24" Y="841"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="591"/>
+        <CursorPos X="60" Y="606"/>
         <UsageCount Value="203"/>
         <Loaded Value="True"/>
       </Unit2>
       <Unit3>
         <Filename Value="mpdisk.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="1"/>
-        <TopLine Value="1341"/>
-        <CursorPos X="19" Y="1373"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="1048"/>
+        <CursorPos X="11" Y="1039"/>
         <UsageCount Value="203"/>
         <Loaded Value="True"/>
       </Unit3>
@@ -49,9 +50,9 @@
         <Filename Value="mpparser.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpParser"/>
-        <EditorIndex Value="6"/>
-        <TopLine Value="240"/>
-        <CursorPos X="71" Y="261"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="255"/>
+        <CursorPos X="39" Y="263"/>
         <UsageCount Value="208"/>
         <Loaded Value="True"/>
       </Unit4>
@@ -59,9 +60,8 @@
         <Filename Value="mpred.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpRed"/>
-        <EditorIndex Value="2"/>
-        <TopLine Value="561"/>
-        <CursorPos X="33" Y="581"/>
+        <EditorIndex Value="5"/>
+        <CursorPos X="23" Y="11"/>
         <UsageCount Value="204"/>
         <Loaded Value="True"/>
       </Unit5>
@@ -78,9 +78,9 @@
         <Filename Value="mpcripto.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpCripto"/>
-        <EditorIndex Value="12"/>
-        <TopLine Value="199"/>
-        <CursorPos X="48" Y="847"/>
+        <EditorIndex Value="11"/>
+        <TopLine Value="510"/>
+        <CursorPos X="37" Y="523"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
       </Unit7>
@@ -88,9 +88,9 @@
         <Filename Value="mpprotocol.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpProtocol"/>
-        <EditorIndex Value="5"/>
-        <TopLine Value="414"/>
-        <CursorPos X="51" Y="433"/>
+        <EditorIndex Value="7"/>
+        <TopLine Value="477"/>
+        <CursorPos Y="478"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
       </Unit8>
@@ -98,9 +98,9 @@
         <Filename Value="mpblock.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpBlock"/>
-        <EditorIndex Value="3"/>
-        <TopLine Value="92"/>
-        <CursorPos X="2" Y="123"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="43"/>
+        <CursorPos Y="355"/>
         <UsageCount Value="206"/>
         <Loaded Value="True"/>
       </Unit9>
@@ -110,7 +110,7 @@
         <UnitName Value="mpMiner"/>
         <EditorIndex Value="9"/>
         <TopLine Value="38"/>
-        <CursorPos X="52" Y="58"/>
+        <CursorPos X="22" Y="53"/>
         <UsageCount Value="204"/>
         <Loaded Value="True"/>
       </Unit10>
@@ -128,9 +128,8 @@
         <Filename Value="mpcoin.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpCoin"/>
-        <EditorIndex Value="11"/>
-        <TopLine Value="325"/>
-        <CursorPos X="37" Y="343"/>
+        <EditorIndex Value="10"/>
+        <CursorPos X="13" Y="308"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
       </Unit12>
@@ -147,9 +146,9 @@
         <Filename Value="poolmanage.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="PoolManage"/>
-        <EditorIndex Value="4"/>
-        <TopLine Value="448"/>
-        <CursorPos X="58" Y="469"/>
+        <EditorIndex Value="6"/>
+        <TopLine Value="587"/>
+        <CursorPos X="80" Y="617"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
       </Unit14>
@@ -157,10 +156,10 @@
         <Filename Value="mprpc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpRPC"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="3"/>
         <CursorPos X="21" Y="59"/>
         <UsageCount Value="200"/>
-        <Loaded Value="True"/>
       </Unit15>
       <Unit16>
         <Filename Value="mpoptions.pas"/>
@@ -170,17 +169,17 @@
         <ResourceBaseClass Value="Form"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="14" Y="19"/>
-        <UsageCount Value="199"/>
+        <UsageCount Value="200"/>
       </Unit16>
       <Unit17>
         <Filename Value="mpcross.pas"/>
         <EditorIndex Value="-1"/>
         <CursorPos Y="17"/>
-        <UsageCount Value="183"/>
+        <UsageCount Value="177"/>
       </Unit17>
       <Unit18>
         <Filename Value="Info.txt"/>
-        <EditorIndex Value="13"/>
+        <EditorIndex Value="12"/>
         <TopLine Value="36"/>
         <CursorPos X="12" Y="60"/>
         <UsageCount Value="200"/>
@@ -191,14 +190,14 @@
         <Filename Value="log 0.1.4.txt"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="41" Y="20"/>
-        <UsageCount Value="40"/>
+        <UsageCount Value="34"/>
         <DefaultSyntaxHighlighter Value="None"/>
       </Unit19>
       <Unit20>
         <Filename Value="log 0.2.0.txt"/>
         <EditorIndex Value="-1"/>
         <CursorPos Y="17"/>
-        <UsageCount Value="42"/>
+        <UsageCount Value="36"/>
         <DefaultSyntaxHighlighter Value="None"/>
       </Unit20>
       <Unit21>
@@ -206,143 +205,143 @@
         <UnitName Value="NosoMinerlanguage"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="35" Y="22"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="3"/>
       </Unit21>
       <Unit22>
         <Filename Value="C:\Users\Pedro\AppData\Local\lazarus\onlinepackagemanager\packages\Indy10\Core\IdIOHandler.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="1507"/>
         <CursorPos Y="1524"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="3"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit22>
       <Unit23>
         <Filename Value="C:\Users\Pedro\Desktop\Proyectos lazarus\Noso_old\mptime.pas"/>
         <UnitName Value="mpTime"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="3"/>
       </Unit23>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="mpprotocol.pas"/>
-        <Caret Line="25" Column="11" TopLine="7"/>
+        <Filename Value="mpcoin.pas"/>
+        <Caret Line="391" Column="22" TopLine="361"/>
       </Position1>
       <Position2>
-        <Filename Value="mpprotocol.pas"/>
-        <Caret Line="362" Column="29" TopLine="344"/>
+        <Filename Value="mpparser.pas"/>
+        <Caret Line="259" Column="109" TopLine="241"/>
       </Position2>
       <Position3>
-        <Filename Value="masterpaskalform.pas"/>
-        <Caret Line="867" TopLine="849"/>
+        <Filename Value="mpblock.pas"/>
+        <Caret Line="200" Column="30" TopLine="184"/>
       </Position3>
       <Position4>
-        <Filename Value="mpprotocol.pas"/>
-        <Caret Line="192" Column="74" TopLine="178"/>
+        <Filename Value="mpdisk.pas"/>
+        <Caret Line="70" Column="25" TopLine="51"/>
       </Position4>
       <Position5>
-        <Filename Value="mpprotocol.pas"/>
-        <Caret Line="26" Column="26" TopLine="8"/>
+        <Filename Value="mpdisk.pas"/>
+        <Caret Line="1306" Column="35" TopLine="1293"/>
       </Position5>
       <Position6>
-        <Filename Value="mpprotocol.pas"/>
-        <Caret Line="192" Column="74" TopLine="164"/>
+        <Filename Value="mpdisk.pas"/>
+        <Caret Line="1257" Column="35" TopLine="1234"/>
       </Position6>
       <Position7>
-        <Filename Value="masterpaskalform.pas"/>
-        <Caret Line="397" Column="15" TopLine="384"/>
+        <Filename Value="mpdisk.pas"/>
+        <Caret Line="1307" Column="32" TopLine="1284"/>
       </Position7>
       <Position8>
-        <Filename Value="masterpaskalform.pas"/>
-        <Caret Line="425" Column="62" TopLine="396"/>
+        <Filename Value="mpdisk.pas"/>
+        <Caret Line="1259" Column="32" TopLine="1241"/>
       </Position8>
       <Position9>
-        <Filename Value="masterpaskalform.pas"/>
-        <Caret Line="426" Column="80" TopLine="403"/>
+        <Filename Value="mpdisk.pas"/>
+        <Caret Line="1230" Column="27" TopLine="1211"/>
       </Position9>
       <Position10>
-        <Filename Value="masterpaskalform.pas"/>
-        <Caret Line="651" Column="3" TopLine="622"/>
+        <Filename Value="mpdisk.pas"/>
+        <Caret Line="69" Column="27" TopLine="51"/>
       </Position10>
       <Position11>
         <Filename Value="mpdisk.pas"/>
-        <Caret Line="139" Column="50" TopLine="115"/>
+        <Caret Line="1311" Column="32" TopLine="1289"/>
       </Position11>
       <Position12>
         <Filename Value="mpdisk.pas"/>
-        <Caret Line="73" Column="22" TopLine="55"/>
+        <Caret Line="1267" Column="42" TopLine="1239"/>
       </Position12>
       <Position13>
         <Filename Value="mpdisk.pas"/>
-        <Caret Line="139" Column="50" TopLine="111"/>
+        <Caret Line="1174" Column="46" TopLine="1157"/>
       </Position13>
       <Position14>
         <Filename Value="mpdisk.pas"/>
-        <Caret Line="1343" Column="25" TopLine="1318"/>
+        <Caret Line="1243" Column="39" TopLine="1239"/>
       </Position14>
       <Position15>
-        <Filename Value="masterpaskalform.pas"/>
-        <Caret Line="545" Column="14" TopLine="527"/>
+        <Filename Value="mpdisk.pas"/>
+        <Caret Line="1267" Column="42" TopLine="1106"/>
       </Position15>
       <Position16>
-        <Filename Value="masterpaskalform.pas"/>
-        <Caret Line="546" Column="19" TopLine="527"/>
+        <Filename Value="mpdisk.pas"/>
+        <Caret Line="1296" Column="17" TopLine="1273"/>
       </Position16>
       <Position17>
-        <Filename Value="masterpaskalform.pas"/>
-        <Caret Line="2560" Column="36" TopLine="2532"/>
+        <Filename Value="mpparser.pas"/>
+        <Caret Line="2020" Column="25" TopLine="1993"/>
       </Position17>
       <Position18>
-        <Filename Value="masterpaskalform.pas"/>
-        <Caret Line="2561" Column="36" TopLine="2533"/>
+        <Filename Value="mpcoin.pas"/>
+        <Caret Line="25" Column="26" TopLine="7"/>
       </Position18>
       <Position19>
-        <Filename Value="masterpaskalform.pas"/>
-        <Caret Line="2642" Column="20" TopLine="2523"/>
+        <Filename Value="mpparser.pas"/>
+        <Caret Line="1967" Column="31" TopLine="1954"/>
       </Position19>
       <Position20>
-        <Filename Value="masterpaskalform.pas"/>
-        <Caret Line="2561" Column="20" TopLine="2533"/>
+        <Filename Value="mpparser.pas"/>
+        <Caret Line="34" Column="21" TopLine="16"/>
       </Position20>
       <Position21>
-        <Filename Value="masterpaskalform.pas"/>
-        <Caret Line="2560" Column="20" TopLine="2533"/>
+        <Filename Value="mpparser.pas"/>
+        <Caret Line="199" Column="54" TopLine="170"/>
       </Position21>
       <Position22>
-        <Filename Value="mpdisk.pas"/>
-        <Caret Line="138" Column="63" TopLine="119"/>
+        <Filename Value="mpgui.pas"/>
+        <Caret Line="606" Column="20" TopLine="585"/>
       </Position22>
       <Position23>
-        <Filename Value="mpblock.pas"/>
-        <Caret Line="30" Column="17" TopLine="16"/>
+        <Filename Value="masterpaskalform.pas"/>
+        <Caret Line="679" Column="19" TopLine="662"/>
       </Position23>
       <Position24>
-        <Filename Value="mpblock.pas"/>
-        <Caret Line="12" Column="27"/>
+        <Filename Value="masterpaskalform.pas"/>
+        <Caret Line="1422" Column="17" TopLine="1406"/>
       </Position24>
       <Position25>
-        <Filename Value="mpblock.pas"/>
-        <Caret Line="30" Column="17"/>
+        <Filename Value="masterpaskalform.pas"/>
+        <Caret Line="679" Column="3" TopLine="661"/>
       </Position25>
       <Position26>
         <Filename Value="masterpaskalform.pas"/>
-        <Caret Line="895" Column="24" TopLine="890"/>
+        <Caret Line="1422" Column="63" TopLine="1394"/>
       </Position26>
       <Position27>
         <Filename Value="masterpaskalform.pas"/>
-        <Caret Line="545" Column="14" TopLine="527"/>
+        <Caret Line="1423" Column="96" TopLine="1395"/>
       </Position27>
       <Position28>
         <Filename Value="masterpaskalform.pas"/>
-        <Caret Line="895" Column="24" TopLine="878"/>
+        <Caret Line="1424" Column="105" TopLine="1396"/>
       </Position28>
       <Position29>
-        <Filename Value="masterpaskalform.pas"/>
-        <Caret Line="545" Column="14" TopLine="527"/>
+        <Filename Value="mpprotocol.pas"/>
+        <Caret Line="28" Column="26" TopLine="4"/>
       </Position29>
       <Position30>
-        <Filename Value="mpdisk.pas"/>
-        <Caret Line="1343" Column="14" TopLine="1325"/>
+        <Filename Value="mpprotocol.pas"/>
+        <Caret Line="194" Column="74" TopLine="166"/>
       </Position30>
     </JumpHistory>
     <RunParams>

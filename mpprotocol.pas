@@ -358,7 +358,7 @@ result :=IntToStr(GetTotalConexiones())+' '+
          IntToStr(port);
 End;
 
-// Envia los mensajes salientes a todos los pares
+// Envia los mensajes salientes a todos los pares  --> DEPRECATED MOVED TO A THREAD
 Procedure SendMesjsSalientes();
 Var
   Slot :integer = 1;
@@ -433,7 +433,7 @@ Solucion        := Parameter (Texto,8);
 solucion        := StringReplace(Solucion,'_',' ',[rfReplaceAll, rfIgnoreCase]);
 if MyConStatus < 3 then
    begin
-   OutgoingMsjs.Add(Texto);
+   OutgoingMsjsAdd(Texto);
    Proceder := false;
    end;
 if not TryStrToInt(NumeroBloque,BlockNumber) then
@@ -560,28 +560,7 @@ var
   ZipFileName:String;
 Begin
 SetCurrentJob('PTC_SendBlocks',true);
-
 FirstBlock := StrToIntDef(Parameter(textline,5),-1)+1;
-{
-LastBlock := FirstBlock + 99; if LastBlock>MyLastBlock then LastBlock := MyLastBlock;
-ConsoleLinesAdd(LangLine(92)+'('+Conexiones[Slot].ip+')'+IntToStr(FirstBlock)+'->'+IntToStr(LastBlock)); //'Requested blocks interval: '
-MyZipFile := TZipper.Create;
-MyZipFile.FileName := BlockDirectory+'Blocks_'+IntToStr(FirstBlock)+'_'+IntToStr(LastBlock)+'.zip';
-EnterCriticalSection(CSBlocksAccess);
-for contador := FirstBlock to LastBlock do
-   begin
-   filename := BlockDirectory+IntToStr(contador)+'.blk';
-   {$IFDEF WINDOWS}
-   archivename:= StringReplace(filename,'\','/',[rfReplaceAll]);
-   {$ENDIF}
-   {$IFDEF LINUX}
-   archivename:= filename;
-   {$ENDIF}
-   MyZipFile.Entries.AddFileEntry(filename, archivename);
-   end;
-MyZipFile.ZipAllFiles;
-LeaveCriticalSection(CSBlocksAccess);
-}
 ZipFileName := CreateZipBlockfile(FirstBlock);
 AFileStream := TFileStream.Create(ZipFileName, fmOpenRead + fmShareDenyNone);
    try
@@ -649,7 +628,7 @@ if proceder then
    begin
    OpData := GetOpData(TextLine); // Eliminar el encabezado
    AddPendingTxs(OrderInfo);
-   OutgoingMsjs.Add(GetPTCEcn+opdata);
+   OutgoingMsjsAdd(GetPTCEcn+opdata);
    end;
 End;
 
@@ -726,7 +705,7 @@ if proceder then
    Textbak := GetPTCEcn+'ORDER '+IntToStr(NumTransfers)+' '+Textbak;
    for cont := 0 to NumTransfers-1 do
       AddPendingTxs(TrxArray[cont]);
-   OutgoingMsjs.Add(Textbak);
+   OutgoingMsjsAdd(Textbak);
    U_DirPanel := true;
    end;
 End;
@@ -763,7 +742,7 @@ Tolog('Admin message'+slinebreak+
       TimestampToDate(msgtime)+slinebreak+
       msgtoshow);
 formlog.Visible:=true;
-OutgoingMsjs.Add(TextLine);
+OutgoingMsjsAdd(TextLine);
 End;
 
 // Save the pool files to a zip file
@@ -818,7 +797,7 @@ if request = 1 then // hashrate
       NewValueHash := HashMD5String(newvalor);
       TextToSend := GetPTCEcn+'NETREQ 1 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+
          ReqHash+' '+NewValueHash+' '+newvalor;
-      OutgoingMsjs.Add(texttosend);
+      OutgoingMsjsAdd(texttosend);
       UpdateMyRequests(request,timestamp,bloque, ReqHash,ValueHash );
       end
    else if ( (RequestAlreadyexists(ReqHash)<>'') and  (RequestAlreadyexists(ReqHash)<>ValueHash) ) then
@@ -826,7 +805,7 @@ if request = 1 then // hashrate
       NewValueHash := HashMD5String(valor);
       TextToSend := GetPTCEcn+'NETREQ 1 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+
          ReqHash+' '+NewValueHash+' '+valor;
-      OutgoingMsjs.Add(texttosend);
+      OutgoingMsjsAdd(texttosend);
       ConsoleLinesAdd('Now hashrate: '+valor);
       UpdateMyRequests(request,timestamp,bloque, ReqHash,NewValueHash );
       end
@@ -838,7 +817,7 @@ if request = 1 then // hashrate
          begin
          TextToSend := GetPTCEcn+'NETREQ 1 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+
             ReqHash+' '+ValueHash+' '+valor;
-         OutgoingMsjs.Add(texttosend);
+         OutgoingMsjsAdd(texttosend);
          nethashsend:= true;
          end;
       end;
@@ -854,7 +833,7 @@ else if request = 2 then // peers
       NewValueHash := HashMD5String(newvalor);
       TextToSend := GetPTCEcn+'NETREQ 2 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+
          ReqHash+' '+NewValueHash+' '+newvalor;
-      OutgoingMsjs.Add(texttosend);
+      OutgoingMsjsAdd(texttosend);
       UpdateMyRequests(request,timestamp,bloque, ReqHash,ValueHash );
       end
    else if ( (RequestAlreadyexists(ReqHash)<>'') and  (RequestAlreadyexists(ReqHash)<>ValueHash) ) then
@@ -862,7 +841,7 @@ else if request = 2 then // peers
       NewValueHash := HashMD5String(valor);
       TextToSend := GetPTCEcn+'NETREQ 2 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+
          ReqHash+' '+NewValueHash+' '+valor;
-      OutgoingMsjs.Add(texttosend);
+      OutgoingMsjsAdd(texttosend);
       ConsoleLinesAdd('Now peers: '+valor);
       UpdateMyRequests(request,timestamp,bloque, ReqHash,NewValueHash );
       end
@@ -874,7 +853,7 @@ else if request = 2 then // peers
          begin
          TextToSend := GetPTCEcn+'NETREQ 2 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+
             ReqHash+' '+ValueHash+' '+valor;
-         OutgoingMsjs.Add(texttosend);
+         OutgoingMsjsAdd(texttosend);
          netpeerssend:= true;
          end;
       end;

@@ -50,7 +50,7 @@ if ((Miner_BlockFOund) and (not Miner_SolutionVerified)) then
          blocktime := UTCTime;
          ConsoleLinesAdd(LangLine(40)+IntToStr(Miner_BlockToMine));  //Miner solution found and Verified for block
          Miner_SolutionVerified := true;
-         OutgoingMsjs.Add(ProtocolLine(6)+blocktime+' '+IntToStr(Miner_BlockToMine)+' '+
+         OutgoingMsjsAdd(ProtocolLine(6)+blocktime+' '+IntToStr(Miner_BlockToMine)+' '+
          Miner_Address+' '+StringReplace(Miner_Solution,' ','_',[rfReplaceAll, rfIgnoreCase]));
          Miner_Waiting := StrToInt64(UTCTime);
          //SendNetworkRequests(blocktime,Miner_Address,Miner_BlockToMine);
