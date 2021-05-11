@@ -471,6 +471,7 @@ Begin
    writeln(FileAdvOptions,'RPCPort '+inttoStr(RPCPort));
    writeln(FileAdvOptions,'RPCPass '+RPCPass);
    writeln(FileAdvOptions,'ShowedOrders '+IntToStr(ShowedOrders));
+   writeln(FileAdvOptions,'MaxPeers '+IntToStr(MaxPeersAllow));
    Closefile(FileAdvOptions);
    if saving then ConsoleLinesAdd('Advanced Options file saved');
    Except on E:Exception do
@@ -499,6 +500,7 @@ Begin
       if parameter(linea,0) ='RPCPort' then RPCPort:=StrToIntDef(Parameter(linea,1),RPCPort);
       if parameter(linea,0) ='RPCPass' then RPCPass:=Parameter(linea,1);
       if parameter(linea,0) ='ShowedOrders' then ShowedOrders:=StrToIntDef(Parameter(linea,1),ShowedOrders);
+      if parameter(linea,0) ='MaxPeers' then MaxPeersAllow:=StrToIntDef(Parameter(linea,1),MaxPeersAllow);
       end;
    Closefile(FileAdvOptions);
    Except on E:Exception do
@@ -772,12 +774,6 @@ Begin
          tolog ('Error saving bots to file');
    end;
 End;
-
-
-
-
-
-
 
 // Creates NTP servers file
 Procedure CrearNTPData();
@@ -1712,6 +1708,7 @@ var
   contador : integer;
   dato : PoolMembersData;
 Begin
+// ADD A VERIFICATION BEFORE LOAD IT IN CASE THE FILE IS CORRUPTED?
 TRY
    assignfile(FilePoolMembers,PoolMembersFilename);
    reset(FilePoolMembers);
@@ -1736,8 +1733,9 @@ Procedure GuardarPoolMembers();
 var
   contador : integer;
 Begin
-//assignfile(FilePoolMembers,PoolMembersFilename);
+assignfile(FilePoolMembers,PoolMembersFilename);
 reset(FilePoolMembers);
+EnterCriticalSection(CSPoolMembers);
 TRY
 for contador := 0 to length(ArrayPoolMembers)-1 do
    begin
@@ -1747,6 +1745,7 @@ for contador := 0 to length(ArrayPoolMembers)-1 do
 EXCEPT on E:Exception do
    ToLog('Error saving pool members to disk.');
 END;
+LeaveCriticalSection(CSPoolMembers);
 truncate(FilePoolMembers);
 Closefile(FilePoolMembers);
 S_PoolMembers := false;

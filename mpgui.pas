@@ -41,13 +41,14 @@ type
   TFormPool = class(Tform)
     // poolmembers popup
     Procedure checkPoolMembersPopup(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
+    Procedure checkPoolConexPopup(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
+
     Procedure CopyPoolMemberAddres(Sender:TObject);
     Procedure PoolExpelPaying(Sender:TObject);
     Procedure PoolExpelNotPay(Sender:TObject);
     Procedure BPayuserOnClick(Sender: TObject);
     Procedure SeePoolConex(Sender: TObject);
-
-    Procedure KickPoolConnection(Sender: TObject);
+    Procedure KickBanOnClick(Sender: TObject);
 
     private
     public
@@ -108,6 +109,7 @@ var
 
     MenuItem : TMenuItem;
     PoolMembersPopUp : TPopupMenu;
+    PoolConexPopUP : TPopupMenu;
 
 implementation
 
@@ -396,9 +398,8 @@ GridPoolMembers.Options:= GridPoolMembers.Options+[goRowSelect]-[goRangeSelect];
 GridPoolMembers.ColWidths[0]:= 200;GridPoolMembers.ColWidths[1]:= 80;
 GridPoolMembers.ColWidths[2]:= 50;GridPoolMembers.ColWidths[3]:= 80;
 GridPoolMembers.ColWidths[4]:= 80;GridPoolMembers.ColWidths[5]:= 46;
-
 GridPoolMembers.Cells[0,0]:='Address';GridPoolMembers.Cells[1,0]:='Prefix';
-GridPoolMembers.Cells[2,0]:='Steps';GridPoolMembers.Cells[3,0]:='Earned';
+GridPoolMembers.Cells[2,0]:='Shares';GridPoolMembers.Cells[3,0]:='Earned';
 GridPoolMembers.Cells[4,0]:='Session';GridPoolMembers.Cells[5,0]:='Last';
 GridPoolMembers.Enabled := true;
 GridPoolMembers.GridLineWidth := 1;
@@ -418,6 +419,12 @@ LabelPoolMiner2.Font.Name:='consolas'; LabelPoolMiner2.Font.Size:=8;
 LabelPoolMiner2.Top:= 221; LabelPoolMiner2.Left:= 1;
 LabelPoolMiner2.Caption:='';
 
+PoolConexPopUP := TPopupMenu.Create(Formpool);
+
+MenuItem := TMenuItem.Create(PoolConexPopUP);MenuItem.Caption := 'Ban IP';
+  MenuItem.OnClick := @formpool.KickBanOnClick;
+  PoolConexPopUP.Items.Add(MenuItem);
+
 GridPoolConex := TStringGrid.Create(FormPool);GridPoolConex.Parent:=FormPool;
 GridPoolConex.Font.Name:='consolas'; GridPoolConex.Font.Size:=8;
 GridPoolConex.Left:=1;GridPoolConex.Top:=232;GridPoolConex.Height:=155;GridPoolConex.width:=472;
@@ -434,7 +441,8 @@ GridPoolConex.Cells[2,0]:='HRate';GridPoolConex.Cells[3,0]:='Ver';GridPoolConex.
 GridPoolConex.Cells[5,0]:='Bad';
 GridPoolConex.Enabled := true;
 GridPoolConex.GridLineWidth := 1;
-GridPoolConex.OnDblClick:=@formpool.KickPoolConnection;
+GridPoolConex.PopupMenu:=PoolConexPopUP;
+GridPoolConex.OnContextPopup:=@formpool.checkPoolConexPopup;
 
 EdBuFee := TLabel.Create(FormPool); EdBuFee.Parent:=FormPool;
 EdBuFee.Left:=480;EdBuFee.top:=232;
@@ -482,11 +490,11 @@ Begin
 LabelPoolData.Caption:='ConnectTo: '+MyPoolData.Ip+':'+IntToStr(MyPoolData.port)+' MyAddress: '+MyPoolData.MyAddress+slinebreak+
                        'MineAddres: '+MyPoolData.Direccion+' Prefix: '+MyPoolData.Prefijo+slinebreak+
                        'Balance: '+Int2curr(MyPoolData.balance)+' ('+IntToStr(MyPoolData.LastPago)+') Password: '+MyPoolData.Password+' HashRate: '+IntToStr(Miner_PoolHashRate);
-GridPoolMembers.RowCount:=length(ArrayPoolMembers)+1;
-GridPoolConex.RowCount:=GetPoolTotalActiveConex+1;
-
 if Miner_OwnsAPool then
    begin
+   EnterCriticalSection(CSPoolMembers);
+   GridPoolMembers.RowCount:=length(ArrayPoolMembers)+1;
+   GridPoolConex.RowCount:=GetPoolTotalActiveConex+1;
    if length(ArrayPoolMembers) > 0 then
       begin
       for contador := 0 to length(ArrayPoolMembers)-1 do
@@ -513,6 +521,7 @@ if Miner_OwnsAPool then
    LabelPoolMiner2.Caption:='Members: '+IntToStr(length(ArrayPoolMembers))+' Total Debt: '+Int2Curr(PoolMembersTotalDeuda)+
                                       ' Connected: '+IntToStr(GetPoolTotalActiveConex)+' Hashrate: '+
                                       IntToStr(PoolTotalHashRate);
+   LeaveCriticalSection(CSPoolMembers);
    if (ActiveConex>0)  then
       begin
       if U_PoolConexGrid then
@@ -1034,11 +1043,23 @@ if IsPoolMemberConnected(GridPoolMembers.Cells[0,GridPoolMembers.Row])>=0 then
    end;
 End;
 
+// *** POOL CONECTIONS POPUP ***
 
-Procedure TFormPool.KickPoolConnection(Sender: TObject);
-var
-  slot : integer;
-  thiscontext : TiDContext;
+Procedure TFormPool.checkPoolConexPopup(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
+Begin
+if GridPoolConex.Row>0 then
+   begin
+   PoolConexPopUp.Items[0].Enabled:=true;
+   PoolConexPopUp.Items[0].Caption:='Kick & Ban '+GridPoolConex.Cells[0,GridPoolConex.Row];
+   end
+else
+   begin
+   PoolConexPopUp.Items[0].Enabled:=false;
+   PoolConexPopUp.Items[0].Caption:='Kick && Ban';
+   end;
+End;
+
+Procedure TFormPool.KickBanOnClick(Sender: TObject);
 Begin
 {
 slot := IsPoolMemberConnected(GridPoolConex.Cells[1,GridPoolConex.Row]);
@@ -1054,6 +1075,7 @@ if slot >=0 then
   end;
 }
 End;
+
 
 END. // END UNIT
 

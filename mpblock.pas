@@ -54,6 +54,8 @@ var
   ComodinOrder : OrderData;
 
 Begin
+setmilitime('CrearNuevoBloque',1);
+SetCurrentJob('CrearNuevoBloque',true);
 if ((numero>0) and (Timestamp < lastblockdata.TimeEnd)) then
    begin
    ConsoleLinesAdd('New block '+IntToStr(numero)+' : Invalid timestamp');
@@ -183,12 +185,14 @@ AddBlchHead(Numero,MyLastBlockHash,MySumarioHash);
 MyResumenHash := HashMD5File(ResumenFilename);
 ResetMinerInfo();
 ResetPoolMiningInfo();
+EnterCriticalSection(CSPoolMembers);
 copyfile (PoolMembersFilename,PoolMembersFilename+'.bak');
+LeaveCriticalSection(CSPoolMembers);
 if ((Miner_OwnsAPool) and (PoolExpelBlocks>0)) then ExpelPoolInactives();
 if minero = PoolInfo.Direccion then
    begin
    ConsoleLinesAdd('Your pool solved the block '+inttoStr(numero));
-   DistribuirEnPool(GetBlockReward(Numero)+MinerFee);
+   DistribuirEnPool(GetBlockReward(Numero)+MinerFee-PosTotalReward);
    end;
 if minero = RPC_MinerInfo then
    begin
@@ -205,6 +209,8 @@ if Numero > 0 then RebuildMyTrx(Numero);
 CheckForMyPending;
 if DIreccionEsMia(Minero)>-1 then showglobo('Miner','Block found!');
 U_DataPanel := true;
+SetCurrentJob('CrearNuevoBloque',false);
+setmilitime('CrearNuevoBloque',2);
 End;
 
 // Devuelve cuantos caracteres compondran el targethash del siguiente bloque
@@ -389,7 +395,7 @@ ArrayOrders := GetBlockTrxs(MyLastBlock);
 for cont := 0 to length(ArrayOrders)-1 do
    addpendingtxs(ArrayOrders[cont]);
 if LastBlockData.AccountMiner = PoolInfo.Direccion then // El bloque deshecho fue minado por mi pool
-   PoolUndoneLastPayment();
+   //PoolUndoneLastPayment();
 // Borrar archivo del ultimo bloque
 deletefile(BlockDirectory +IntToStr(MyLastBlock)+'.blk');
 // Actualizar mi informacion

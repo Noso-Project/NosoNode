@@ -40,6 +40,7 @@ function GetOutGoingConnections():integer;
 function GetIncomingConnections():integer;
 Procedure SendNetworkRequests(timestamp,direccion:string;block:integer);
 function GetOrderDetails(orderid:string):orderdata;
+Function GetNodeStatusString():string;
 
 implementation
 
@@ -981,6 +982,13 @@ else
 result := resultorder;
 setmilitime('GetOrderDetails',2);
 End;
+
+Function GetNodeStatusString():string;
+Begin
+result := IntToStr(GetTotalConexiones)+' '+IntToStr(MyLastBlock)+' '+IntToStr(Length(PendingTXs))+' '+
+          IntToStr(UTCTime.ToInt64-EngineLastUpdate);
+End;
+
 
 END. // END UNIT
 

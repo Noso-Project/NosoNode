@@ -281,6 +281,9 @@ else if UpperCase(Command) = 'SENDPOOLSTEPS' then SendPoolStepsInfo(StrToInt(Par
 else if UpperCase(Command) = 'POOLHASHRATE' then SendPoolHashRateRequest()
 else if UpperCase(Command) = 'SAVEPOOLFILES' then SavePoolFiles()
 
+// P2P
+else if UpperCase(Command) = 'PEERS' then ConsoleLinesAdd('Server list: '+IntToStr(form1.ClientsCount))
+
 // RPC
 else if UpperCase(Command) = 'SETRPCPORT' then SetRPCPort(LineText)
 else if UpperCase(Command) = 'RPCON' then SetRPCOn()
@@ -1675,6 +1678,7 @@ else
    end;
 End;
 
+// Expels a pool member
 Procedure PoolExpelMember(LineText:string);
 var
   member: string;
@@ -1685,13 +1689,7 @@ Begin
 member := Parameter(linetext,1);
 paybalance := Uppercase(Parameter(linetext,2));
 if Paybalance <> 'YES' then paybalance := 'NO';
-{
-if DireccionEsMia(member)>=0 then
-   begin
-   ConsoleLinesAdd('You can not expel yourself from your pool');
-   exit;
-   end;
-}
+
 MemberPosition := GetPoolMemberPosition(member);
 if (not Miner_OwnsAPool) then
    begin
@@ -1714,14 +1712,9 @@ else
       tolog('Pool expel payment sent: '+int2curr(GetMaximunToSend(MemberBalance)));
       PoolMembersTotalDeuda := GetTotalPoolDeuda();
       end;
-   arraypoolmembers[MemberPosition].Direccion:='';
-   arraypoolmembers[MemberPosition].prefijo := '';
-   ArrayPoolMembers[MemberPosition].Deuda:=0;
-   ArrayPoolMembers[MemberPosition].Soluciones:=0;
-   ArrayPoolMembers[MemberPosition].LastPago:=0;
-   ArrayPoolMembers[MemberPosition].TotalGanado:=0;
-   ArrayPoolMembers[MemberPosition].LastSolucion:=0;
-   ArrayPoolMembers[MemberPosition].LastEarned:=0;
+   EnterCriticalSection(CSPoolMembers);
+   arraypoolmembers[MemberPosition] := Default(PoolMembersData);
+   LeaveCriticalSection(CSPoolMembers);
    S_PoolMembers := true;
    Tolog('POOLEXPEL: '+member+SLINEBREAK+'BALANCE: '+int2curr(MemberBalance)+' PAID: '+paybalance);
    end;

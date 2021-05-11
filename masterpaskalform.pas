@@ -279,6 +279,7 @@ type
     Procedure LatidoEjecutar(Sender: TObject);
     Procedure InfoTimerEnd(Sender: TObject);
     Procedure CloseTimerEnd(Sender: TObject);
+    function  ClientsCount : Integer ;
     Procedure TryCloseServerConnection(AContext: TIdContext; closemsg:string='');
     procedure IdTCPServer1Execute(AContext: TIdContext);
     procedure IdTCPServer1Connect(AContext: TIdContext);
@@ -401,15 +402,16 @@ CONST
                           '191.96.103.153 '+
                           '45.141.36.117 '+
                           '185.239.236.85 '+
-                          '199.247.12.166';
+                          '199.247.12.166 '+
+                          '108.61.250.100';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Af';
+  SubVersion = 'Ak';
   OficialRelease = true;
   BuildDate = 'April 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   DefaultServerPort = 8080;
-  MaxConecciones  = 50;
+  MaxConecciones  = 75;
   Protocolo = 1;
   Miner_Steps = 10;
   Pool_Max_Members = 1000;
@@ -448,6 +450,8 @@ var
 
   SynchWarnings : integer = 0;
   ConnectedRotor : integer = 0;
+  MaxPeersAllow : integer = 50;
+  EngineLastUpdate : int64 = 0;
 
   // Threads variables
   ReadingClients : boolean = false;
@@ -634,6 +638,7 @@ var
   CSSumary      : TRTLCriticalSection;
   CSPending     : TRTLCriticalSection;
   CSCriptoThread: TRTLCriticalSection;
+  CSPoolMembers : TRTLCriticalSection;
 
   // Cross OS variables
   OSFsep : string = '';
@@ -657,11 +662,7 @@ var
   AdvOptionsFilename : string = '';
   PoolPaymentsFilename : string = '';
 
-  // PROTOCOL CHANGES (WARNING: SENSITIVE VARIABLES)
-
-
-
-  // COmponentes visuales
+  // Visual Components
   MainMenu : TMainMenu;
     MenuItem : TMenuItem;
   ConsolePopUp : TPopupMenu;
@@ -923,6 +924,7 @@ InitCriticalSection(CSBlocksAccess);
 InitCriticalSection(CSSumary);
 InitCriticalSection(CSPending);
 InitCriticalSection(CSCriptoThread);
+InitCriticalSection(CSPoolMembers);
 CreateFormInicio();
 CreateFormLog();
 CreateFormAbout();
@@ -945,6 +947,7 @@ DoneCriticalSection(CSBlocksAccess);
 DoneCriticalSection(CSSumary);
 DoneCriticalSection(CSPending);
 DoneCriticalSection(CSCriptoThread);
+DoneCriticalSection(CSPoolMembers);
 end;
 
 // Form show
@@ -1176,9 +1179,15 @@ if (ACol=1)  then
    ts := (Sender as TStringGrid).Canvas.TextStyle;
    ts.Alignment := taRightJustify;
    (Sender as TStringGrid).Canvas.TextStyle := ts;
-   if ((aRow>0) and (ListaDirecciones[aRow-1].Balance>posrequired)) then
+
+   if ((aRow>0) and (ListaDirecciones[aRow-1].Balance>posrequired) and (ListaDirecciones[aRow-1].Balance>posrequired+7000000000) ) then
       begin
       (Sender as TStringGrid).Canvas.Brush.Color :=  clmoneygreen;
+      (Sender as TStringGrid).Canvas.font.Color :=  clblack;
+      end;
+   if ( (aRow>0) and (ListaDirecciones[aRow-1].Balance<posrequired+7000000000) and (ListaDirecciones[aRow-1].Balance>posrequired) ) then
+      begin
+      (Sender as TStringGrid).Canvas.Brush.Color :=  clYellow;
       (Sender as TStringGrid).Canvas.font.Color :=  clblack;
       end
    end;
@@ -1215,6 +1224,7 @@ End;
 // Ejecutar el ladido del timer
 Procedure TForm1.LatidoEjecutar(Sender: TObject);
 Begin
+if EngineLastUpdate <> UTCtime.ToInt64 then EngineLastUpdate := UTCtime.ToInt64;
 Form1.Latido.Enabled:=false;
 setmilitime('ActualizarGUI',1);
 ActualizarGUI();
@@ -1258,7 +1268,7 @@ if FormSlots.Visible then UpdateSlotsGrid();
 if FormPool.Visible then UpdatePoolForm();
 ConnectedRotor +=1; if ConnectedRotor>3 then ConnectedRotor := 0;
 UpdateStatusBar;
-if ( (StrToInt64(UTCTime) mod 3600=0) and (LastBotClear<>UTCTime) and (Form1.Server.Active) ) then ProcessLinesAdd('delbot all');
+if ( (StrToInt64(UTCTime) mod 86400=0) and (LastBotClear<>UTCTime) and (Form1.Server.Active) ) then ProcessLinesAdd('delbot all');
 Form1.Latido.Enabled:=true;
 end;
 
@@ -2028,6 +2038,7 @@ var
   MemberBalance : Int64;
   BloqueStep: integer; SeedStep, HashStep,Solucion : String;
   PoolSolutionStep : integer = 0;
+  StepLength : integer;
   BlockTime : string;
   SendFundsResult : string = '';
 Begin
@@ -2052,6 +2063,8 @@ if Comando = 'STEP' then
    bloqueStep := StrToIntDef(parameter(linea,3),0);
    SeedStep := parameter(linea,4);
    HashStep := parameter(linea,5);
+   StepLength := StrToIntDef(parameter(linea,6),-1);
+   if StepLength<8 then StepLength := PoolMiner.DiffChars;
    Solucion := HashSha256String(SeedStep+PoolInfo.Direccion+HashStep);
    if ( (AnsiContainsStr(Solucion,copy(PoolMiner.Target,1,PoolMiner.DiffChars))) and
        (GetPoolMemberBalance(UserDireccion)>-1) and (bloqueStep=PoolMiner.Block) and
@@ -2251,6 +2264,19 @@ End;
 // *****************************
 // *** NODE SERVER FUNCTIONS ***
 // *****************************
+
+// returns the number of active connections
+function TForm1.ClientsCount : Integer ;
+var
+  Clients : TList;
+begin
+  Clients:= server.Contexts.LockList;
+  try
+    Result := Clients.Count ;
+  finally
+    server.Contexts.UnlockList;
+  end;
+end ;
 
 // Trys to close a server connection safely
 Procedure TForm1.TryCloseServerConnection(AContext: TIdContext; closemsg:string='');
@@ -2466,6 +2492,11 @@ Except on E:Exception do
 end;
 MiIp := Parameter(LLine,1);
 Peerversion := Parameter(LLine,2);
+if parameter(LLine,0) = 'NODESTATUS' then
+   begin
+   TryCloseServerConnection(AContext,'NODESTATUS '+GetNodeStatusString);
+   exit;
+   end;
 if Copy(LLine,1,4) <> 'PSK ' then  // La linea no contiene un comando valido
    begin
    ConsoleLinesAdd(LangLine(8)+IPUser);     //INVALID CLIENT :
@@ -2484,15 +2515,16 @@ else
    end;
 if BotExists(IPUser) then // Es un bot ya conocido
    begin
-   ConsoleLinesAdd(LAngLine(10)+IPUser);             //BLACKLISTED FROM:
-   TryCloseServerConnection(AContext);
-   Consolelinesadd('ADDBOT '+(IPUser));
+   //ConsoleLinesAdd(LAngLine(10)+IPUser);             //BLACKLISTED FROM:
+   TryCloseServerConnection(AContext,'BANNED');
+   //Consolelinesadd('ADDBOT '+(IPUser));
    exit;
    end;
 if GetSlotFromIP(IPUser) > 0 then // Conexion duplicada
    begin
    ConsoleLinesAdd(LangLine(11)+IPUser);
    TryCloseServerConnection(AContext,GetPTCEcn+'DUPLICATED');
+   UpdateBotData(IPUser);
    exit;
    end;
 if Peerversion < ProgramVersion then // version antigua
