@@ -472,6 +472,7 @@ Begin
    writeln(FileAdvOptions,'RPCPass '+RPCPass);
    writeln(FileAdvOptions,'ShowedOrders '+IntToStr(ShowedOrders));
    writeln(FileAdvOptions,'MaxPeers '+IntToStr(MaxPeersAllow));
+   writeln(FileAdvOptions,'PoolStepsDeep '+IntToStr(PoolStepsDeep));
    Closefile(FileAdvOptions);
    if saving then ConsoleLinesAdd('Advanced Options file saved');
    Except on E:Exception do
@@ -501,6 +502,7 @@ Begin
       if parameter(linea,0) ='RPCPass' then RPCPass:=Parameter(linea,1);
       if parameter(linea,0) ='ShowedOrders' then ShowedOrders:=StrToIntDef(Parameter(linea,1),ShowedOrders);
       if parameter(linea,0) ='MaxPeers' then MaxPeersAllow:=StrToIntDef(Parameter(linea,1),MaxPeersAllow);
+      if parameter(linea,0) ='PoolStepsDeep' then PoolStepsDeep:=StrToIntDef(Parameter(linea,1),PoolStepsDeep);
       end;
    Closefile(FileAdvOptions);
    Except on E:Exception do
@@ -911,7 +913,7 @@ Begin
    closefile(FileWallet);
    S_Wallet := false;
    Except on E:Exception do
-      tolog ('Error saving wallet to disk');
+      tolog ('Error saving wallet to disk ('+E.Message+')');
    end;
 End;
 
@@ -1732,6 +1734,7 @@ End;
 Procedure GuardarPoolMembers();
 var
   contador : integer;
+  SavedOk : boolean = false;
 Begin
 assignfile(FilePoolMembers,PoolMembersFilename);
 reset(FilePoolMembers);
@@ -1741,14 +1744,15 @@ for contador := 0 to length(ArrayPoolMembers)-1 do
    begin
    seek(FilePoolMembers,contador);
    write(FilePoolMembers,ArrayPoolMembers[contador]);
+   SavedOk := true;
    end;
 EXCEPT on E:Exception do
    ToLog('Error saving pool members to disk.');
 END;
 LeaveCriticalSection(CSPoolMembers);
-truncate(FilePoolMembers);
+//truncate(FilePoolMembers);
 Closefile(FilePoolMembers);
-S_PoolMembers := false;
+if SavedOk then S_PoolMembers := false;
 End;
 
 // Creates and executes autolauncher.bat

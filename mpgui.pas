@@ -111,6 +111,8 @@ var
     PoolMembersPopUp : TPopupMenu;
     PoolConexPopUP : TPopupMenu;
 
+    IpToBan : String = '';
+
 implementation
 
 Uses
@@ -1050,7 +1052,8 @@ Begin
 if GridPoolConex.Row>0 then
    begin
    PoolConexPopUp.Items[0].Enabled:=true;
-   PoolConexPopUp.Items[0].Caption:='Kick & Ban '+GridPoolConex.Cells[0,GridPoolConex.Row];
+   PoolConexPopUp.Items[0].Caption:='Kick && Ban '+GridPoolConex.Cells[0,GridPoolConex.Row];
+   IpToBan :=  GridPoolConex.Cells[0,GridPoolConex.Row];
    end
 else
    begin
@@ -1059,21 +1062,27 @@ else
    end;
 End;
 
+// Kick and bans a miner IP
 Procedure TFormPool.KickBanOnClick(Sender: TObject);
+var
+  counter : integer;
+  thiscontext : TIdContext;
 Begin
-{
-slot := IsPoolMemberConnected(GridPoolConex.Cells[1,GridPoolConex.Row]);
-if slot >=0 then
-  begin
-  thiscontext := PoolServerConex[slot].Context;
-    try
-     PoolServerConex[slot].Context.Connection.IOHandler.InputBuffer.Clear;
-     PoolServerConex[slot].Context.Connection.Disconnect;
-    finally
-    end;
-  BorrarPoolServerConex(thiscontext);
-  end;
-}
+UpdateBotData(IpToBan);
+for counter := 0 to length(PoolServerConex)-1 do
+   begin
+   if PoolServerConex[counter].Ip = IpToBan then
+     begin
+     thiscontext := PoolServerConex[counter].Context;
+        try
+        PoolServerConex[counter].Context.Connection.IOHandler.InputBuffer.Clear;
+        PoolServerConex[counter].Context.Connection.Disconnect;
+        finally
+        BorrarPoolServerConex(thiscontext);
+        end;
+     end;
+   end;
+
 End;
 
 

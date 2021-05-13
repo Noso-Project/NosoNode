@@ -21,7 +21,7 @@ Procedure AdjustWrongSteps();
 function GetPoolNumeroDePasos():integer;
 Procedure DistribuirEnPool(cantidad:int64);
 Function GetTotalPoolDeuda():Int64;
-Procedure AcreditarPoolStep(direccion:string);
+Procedure AcreditarPoolStep(direccion:string; value:integer);
 function GetLastPagoPoolMember(direccion:string):integer;
 Procedure ClearPoolUserBalance(direccion:string);
 Procedure PoolUndoneLastPayment();
@@ -36,6 +36,7 @@ function IsPoolMemberConnected(address:string):integer;
 function GetPoolSlotFromContext(context:TIdContext):integer;
 Procedure ExpelPoolInactives();
 function PoolStatusString():String;
+function StepAlreadyAdded(stepstring:string):Boolean;
 
 implementation
 
@@ -82,7 +83,8 @@ allinfotext :=IntToStr(PoolMiner.Block)+' '+         // block target
               inttostr(PoolMiner.Dificult)+' '+      // block difficult
               IntToStr(MemberBalance)+' '+           // member balance
               IntToStr(BlocksTillPayment)+' '+       // block payment
-              IntToStr(PoolTotalHashRate);           // Pool Hash Rate
+              IntToStr(PoolTotalHashRate)+' '+
+              IntToStr(PoolStepsDeep);           // Pool Hash Rate
 Result := 'PoolData '+allinfotext;
 End;
 
@@ -230,6 +232,7 @@ PoolMiner.Dificult:=LastBlockData.NxtBlkDiff;
 PoolMiner.DiffChars:=GetCharsFromDifficult(PoolMiner.Dificult, PoolMiner.steps);
 PoolMiner.Target:=MyLastBlockHash;
 AdjustWrongSteps();
+SetLength(Miner_PoolSharedStep,0);
 ProcessLinesAdd('SENDPOOLSTEPS 0');
 end;
 
@@ -302,6 +305,8 @@ for contador := 0 to length(arraypoolmembers)-1 do
       arraypoolmembers[contador].LastEarned:=0;
       end;
    end;
+ConsoleLinesAdd('Pool Shares   : '+IntToStr(NumeroDePasos));
+ConsoleLinesAdd('Pay per Share : '+IntToStr(PagoPorStep));
 // DISTRIBUTE PART
 MinersConPos := GetValidMinersForShare;
 if ((ARepartir>0) and (MinersConPos>0)) then
@@ -324,7 +329,7 @@ S_PoolMembers := true;
 S_PoolInfo := true;
 End;
 
-Procedure AcreditarPoolStep(direccion:string);
+Procedure AcreditarPoolStep(direccion:string; value:integer);
 var
   contador : integer;
 Begin
@@ -334,7 +339,7 @@ if length(arraypoolmembers)>0 then
       begin
       if arraypoolmembers[contador].Direccion = direccion then
          begin
-         arraypoolmembers[contador].Soluciones+=1;
+         arraypoolmembers[contador].Soluciones :=arraypoolmembers[contador].Soluciones+value;
          arraypoolmembers[contador].LastSolucion:=PoolMiner.Block;
          end;
       end;
@@ -594,6 +599,7 @@ if length(arraypoolmembers)>0 then
             expelled +=1;
             end;
          end;
+      // include auto pool payments
       end;
    end;
 ConsoleLinesAdd('Pool expels: '+IntToStr(expelled));
@@ -617,6 +623,25 @@ for counter := 0 to length(arraypoolmembers)-1 do
 result:= 'STATUS '+IntToStr(PoolTotalHashRate)+' '+IntToStr(poolinfo.Porcentaje)+' '+
    IntToStr(PoolShare)+' '+IntToStr(miners)+' '+resString;
 End;
+
+function StepAlreadyAdded(stepstring:string):Boolean;
+var
+  counter : integer;
+Begin
+result := false;
+if length(Miner_PoolSharedStep) > 0 then
+   begin
+   for counter := 0 to length(Miner_PoolSharedStep)-1 do
+      begin
+      if stepstring = Miner_PoolSharedStep[counter] then
+         begin
+         result := true;
+         break;
+         end;
+      end;
+   end;
+
+end;
 
 END. // END UNIT
 

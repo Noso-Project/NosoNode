@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, LCLType,
   Grids, ExtCtrls, Buttons, IdTCPServer, IdContext, IdGlobal, IdTCPClient,
-  fileutil,Clipbrd, Menus, crt, formexplore, lclintf,poolmanage,strutils, mpoptions;
+  fileutil,Clipbrd, Menus, crt, formexplore, lclintf,poolmanage,strutils, mpoptions, math;
 
 type
 
@@ -403,9 +403,10 @@ CONST
                           '45.141.36.117 '+
                           '185.239.236.85 '+
                           '199.247.12.166 '+
-                          '108.61.250.100';
+                          '108.61.250.100 '+
+                          '114.67.107.90';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Ak';
+  SubVersion = 'B';
   OficialRelease = true;
   BuildDate = 'April 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -447,6 +448,7 @@ var
   RPCPort : integer = 8078;
   RPCPass : string = 'default';
   ShowedOrders : integer = 100;
+  PoolStepsDeep : integer = 3;
 
   SynchWarnings : integer = 0;
   ConnectedRotor : integer = 0;
@@ -616,6 +618,7 @@ var
   Miner_EsteIntervalo : int64 = 0;
   Miner_KillThreads : boolean = false;
   Miner_LastHashRate : int64 = 0;
+  Miner_PoolSharedStep : Array of string;
   RPC_MinerInfo : String = '';
   RPC_MinerReward : int64 = 0;
 
@@ -2038,7 +2041,7 @@ var
   MemberBalance : Int64;
   BloqueStep: integer; SeedStep, HashStep,Solucion : String;
   PoolSolutionStep : integer = 0;
-  StepLength : integer;
+  StepLength, StepValue, StepBase : integer;
   BlockTime : string;
   SendFundsResult : string = '';
 Begin
@@ -2064,14 +2067,29 @@ if Comando = 'STEP' then
    SeedStep := parameter(linea,4);
    HashStep := parameter(linea,5);
    StepLength := StrToIntDef(parameter(linea,6),-1);
-   if StepLength<8 then StepLength := PoolMiner.DiffChars;
+   StepBase := GetCharsFromDifficult(PoolMiner.Dificult, 0)-PoolStepsDeep; //Get the minimun steplength
+   if StepLength<0 then StepLength := PoolMiner.DiffChars;
+   StepValue := 16**(StepLength-Stepbase);
    Solucion := HashSha256String(SeedStep+PoolInfo.Direccion+HashStep);
+   if ((StepLength>=StepBase) and (StepLength<PoolMiner.DiffChars)) then
+      begin                                       // Proof of work solution
+      if ( (AnsiContainsStr(Solucion,copy(PoolMiner.Target,1,StepLength))) and
+         (GetPoolMemberBalance(UserDireccion)>-1) and (bloqueStep=PoolMiner.Block) and
+         (PoolMiner.steps<10) and (not StepAlreadyAdded(SeedStep+HashStep)) ) then
+         begin
+         AcreditarPoolStep(UserDireccion, StepValue);
+         Acontext.Connection.IOHandler.WriteLn('STEPOK '+IntToStr(StepValue));
+         insert(SeedStep+HashStep,Miner_PoolSharedStep,length(Miner_PoolSharedStep)+1);
+         end;
+      end;
    if ( (AnsiContainsStr(Solucion,copy(PoolMiner.Target,1,PoolMiner.DiffChars))) and
        (GetPoolMemberBalance(UserDireccion)>-1) and (bloqueStep=PoolMiner.Block) and
-       (IsValidStep(PoolMiner.Solucion,SeedStep+HashStep)) and (PoolMiner.steps<10) ) then
+       (IsValidStep(PoolMiner.Solucion,SeedStep+HashStep)) and (PoolMiner.steps<10) and
+       (not StepAlreadyAdded(SeedStep+HashStep)) ) then
       begin
-      AcreditarPoolStep(UserDireccion);
-      Acontext.Connection.IOHandler.WriteLn('STEPOK');
+      AcreditarPoolStep(UserDireccion, StepValue);
+      Acontext.Connection.IOHandler.WriteLn('STEPOK '+IntToStr(StepValue));
+      insert(SeedStep+HashStep,Miner_PoolSharedStep,length(Miner_PoolSharedStep)+1);
       PoolMiner.Solucion := PoolMiner.Solucion+SeedStep+HashStep+' ';
       PoolMiner.steps := PoolMiner.steps+1;
       PoolMiner.DiffChars:=GetCharsFromDifficult(PoolMiner.Dificult, PoolMiner.steps);
@@ -2112,6 +2130,7 @@ if Comando = 'STEP' then
       end
    else
       begin
+      Acontext.Connection.IOHandler.WriteLn('STEPFAIL');
       PoolServerConex[IsPoolMemberConnected(UserDireccion)].WrongSteps+=1;
       //consolelinesAdd('*********************************');
       //consolelinesAdd('Wrong step received in pool'+slinebreak+SeedStep+PoolInfo.Direccion+HashStep);
@@ -2170,6 +2189,16 @@ Password := Parameter(Linea,0);
 UserDireccion := Parameter(Linea,1);
 comando :=Parameter(Linea,2);
 minerversion :=Parameter(Linea,3);
+if BotExists(IPUser) then
+   begin
+   //ConsolelinesAdd('Pool Ban: '+IPUser);
+   try
+      Acontext.Connection.IOHandler.WriteLn('BANNED');
+      Acontext.Connection.IOHandler.InputBuffer.Clear;
+      AContext.Connection.Disconnect;
+   except end;
+   exit;
+   end;
 if password <> Poolinfo.PassWord then  // WRONG PASSWORD.
    begin
    try
@@ -2203,7 +2232,7 @@ if Comando = 'JOIN' then
       end
    else
       begin
-      Acontext.Connection.IOHandler.WriteLn('JOINFAILED');
+      Acontext.Connection.IOHandler.WriteLn('POOLFULL');
       AContext.Connection.Disconnect;
       Acontext.Connection.IOHandler.InputBuffer.Clear;
       end;

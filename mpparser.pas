@@ -90,6 +90,10 @@ Procedure ExportAddress(LineText:string);
 Procedure ShowAddressInfo(LineText:string);
 Procedure ShowAddressHistory(LineText:string);
 Procedure ShowTotalFees();
+
+// CONSULTING
+Procedure ShowDiftory();
+
 // 0.2.1 DEBUG
 Procedure ShowBlockPos(LineText:string);
 Procedure showPosrequired(linetext:string);
@@ -258,6 +262,10 @@ else if UpperCase(Command) = 'TOTALFEES' then ShowTotalFees()
 else if UpperCase(Command) = 'R256' then consolelinesAdd('R256 : '+Recursive256(parameter(LineText,1)))
 else if UpperCase(Command) = 'SUPPLY' then consolelinesAdd('Current supply: '+Int2Curr(GetSupply(MyLastBlock)))
 else if UpperCase(Command) = 'GMTS' then showgmts(LineText)
+
+// CONSULTIN
+else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()
+
 // 0.2.1 DEBUG
 else if UpperCase(Command) = 'BLOCKPOS' then ShowBlockPos(LineText)
 else if UpperCase(Command) = 'POSSTACK' then showPosrequired(linetext)
@@ -1873,7 +1881,7 @@ else
    begin
    onsumary := GetAddressBalance(addtoshow);
    pending := GetAddressPendingPays(addtoshow);
-   ConsoleLinesAdd('Address  : '+ListaSumario[sumposition].Hash+slinebreak+
+   ConsoleLinesAdd('Address  : '+ListaSumario[sumposition].Hash+' ('+IntToStr(sumposition)+')'+slinebreak+
                     'Alias    : '+ListaSumario[sumposition].Custom+slinebreak+
                     'Sumary   : '+Int2curr(onsumary)+slinebreak+
                     'Incoming : '+Int2Curr(GetAddressIncomingpays(ListaSumario[sumposition].Hash))+slinebreak+
@@ -2015,6 +2023,21 @@ fee := monto-gmts;
 consolelinesadd('Ammount         : '+Int2Curr(monto));
 consolelinesadd('Maximun to send : '+Int2Curr(gmts));
 consolelinesadd('Fee paid        : '+Int2Curr(fee));
+End;
+
+Procedure ShowDiftory();
+var
+  counter : integer;
+  Header : BlockHeaderData;
+  highDiff : integer = 0;
+Begin
+for counter := 1 to MyLastBlock do
+   begin
+   Header := LoadBlockDataHeader(counter);
+   consolelinesAdd(inttostr(counter)+','+IntToStr(Header.Difficult));
+   if Header.Difficult > HighDiff then HighDiff := Header.Difficult;
+   end;
+ConsoleLinesAdd('Highest ever: '+IntToStr(HighDiff));
 End;
 
 END. // END UNIT
