@@ -70,13 +70,13 @@ jobs:
           cp windows-latest/Noso.exe .
           tag=${{ github.event.ref }}
           tag=${tag#"refs/tags/"}
-          zip noso-${tag}-windows.zip Noso.exe
+          zip noso-${tag}-x86_64-win64.zip Noso.exe
       - name: Package Linux
         run: |
           cp ubuntu-latest/Noso .
           tag=${{ github.event.ref }}
           tag=${tag#"refs/tags/"}
-          tar -zcvf noso-${tag}-linux.tgz Noso
+          tar -zcvf noso-${tag}-x86_64-linux.tgz Noso
       - name: Upload Release
         uses: softprops/action-gh-release@v1
         with:
