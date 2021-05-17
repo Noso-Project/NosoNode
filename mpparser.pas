@@ -90,6 +90,7 @@ Procedure ExportAddress(LineText:string);
 Procedure ShowAddressInfo(LineText:string);
 Procedure ShowAddressHistory(LineText:string);
 Procedure ShowTotalFees();
+function ShowPrivKey(linea:String;ToConsole:boolean = false):String;
 
 // CONSULTING
 Procedure ShowDiftory();
@@ -216,7 +217,7 @@ else if UpperCase(Command) = 'SETDEFAULT' then SetDefaultAddress(LineText)
 else if UpperCase(Command) = 'LBINFO' then ShowBlockInfo(MyLastBlock)
 else if UpperCase(Command) = 'TIMESTAMP' then ConsoleLinesAdd(UTCTime)
 else if UpperCase(Command) = 'MD160' then showmd160(LineText)
-else if UpperCase(Command) = 'UNDONEBLOCK' then UndoneLastBlock  // to be removed
+else if UpperCase(Command) = 'UNDONEBLOCK' then UndoneLastBlock(true,false)  // to be removed
 else if UpperCase(Command) = 'CUSTOMIZE' then CustomizeAddress(LineText)
 else if UpperCase(Command) = 'SENDTO' then Parse_SendFunds(LineText)
 else if UpperCase(Command) = 'HALVING' then ShowHalvings()
@@ -252,7 +253,7 @@ else if UpperCase(Command) = 'UPDATE' then RunUpdate(LineText)
 else if UpperCase(Command) = 'RESTOREBLOCKCHAIN' then RestoreBlockChain()
 else if UpperCase(Command) = 'REQHEAD' then RequestHeaders()
 else if UpperCase(Command) = 'SAVEADV' then CreateADV(true)
-else if UpperCase(Command) = 'PMM' then setlength(PoolServerConex,90)
+//else if UpperCase(Command) = 'PMM' then setlength(PoolServerConex,90)
 else if UpperCase(Command) = 'SHOWADVOPT' then ShowAdvOpt()
 else if UpperCase(Command) = 'ORDER' then ShowOrderDetails(LineText)
 else if UpperCase(Command) = 'EXPORTADDRESS' then ExportAddress(LineText)
@@ -262,8 +263,9 @@ else if UpperCase(Command) = 'TOTALFEES' then ShowTotalFees()
 else if UpperCase(Command) = 'R256' then consolelinesAdd('R256 : '+Recursive256(parameter(LineText,1)))
 else if UpperCase(Command) = 'SUPPLY' then consolelinesAdd('Current supply: '+Int2Curr(GetSupply(MyLastBlock)))
 else if UpperCase(Command) = 'GMTS' then showgmts(LineText)
+else if UpperCase(Command) = 'SHOWPRIVKEY' then ShowPrivKey(LineText, true)
 
-// CONSULTIN
+// CONSULTING
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()
 
 // 0.2.1 DEBUG
@@ -855,8 +857,8 @@ if fileexists(BlockDirectory+IntToStr(numberblock)+'.blk') then
    ConsoleLinesAdd('Last block info');
    ConsoleLinesAdd('Hash  :       '+HashMD5File(BlockDirectory+IntToStr(numberblock)+'.blk'));
    ConsoleLinesAdd('Number:       '+IntToStr(Header.Number));
-   ConsoleLinesAdd('Time start:   '+IntToStr(Header.TimeStart));
-   ConsoleLinesAdd('Time end:     '+IntToStr(Header.TimeEnd));
+   ConsoleLinesAdd('Time start:   '+IntToStr(Header.TimeStart)+' ('+TimestampToDate(IntToStr(Header.TimeStart))+')');
+   ConsoleLinesAdd('Time end:     '+IntToStr(Header.TimeEnd)+' ('+TimestampToDate(IntToStr(Header.TimeEnd))+')');
    ConsoleLinesAdd('Time total:   '+IntToStr(Header.TimeTotal));
    ConsoleLinesAdd('L20 average:  '+IntToStr(Header.TimeLast20));
    ConsoleLinesAdd('Transactions: '+IntToStr(Header.TrxTotales));
@@ -2038,6 +2040,24 @@ for counter := 1 to MyLastBlock do
    if Header.Difficult > HighDiff then HighDiff := Header.Difficult;
    end;
 ConsoleLinesAdd('Highest ever: '+IntToStr(HighDiff));
+End;
+
+function ShowPrivKey(linea:String;ToConsole:boolean = false):String;
+var
+  addtoshow : string;
+  sumposition : integer;
+Begin
+addtoshow := parameter(linea,1);
+sumposition := DireccionEsMia(addtoshow);
+if sumposition<0 then
+   begin
+   if ToConsole then ConsoleLinesAdd('Address do not exists in wallet.');
+   end
+else
+   begin
+   result := ListaDirecciones[sumposition].PrivateKey;
+   end;
+if ToConsole then ConsoleLinesAdd(Result);
 End;
 
 END. // END UNIT

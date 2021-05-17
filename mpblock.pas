@@ -17,7 +17,7 @@ Procedure GuardarBloque(NombreArchivo:string;Cabezera:BlockHeaderData;Ordenes:ar
                         PosPay:Int64;PoSnumber:integer;PosAddresses:array of TArrayPos);
 function LoadBlockDataHeader(BlockNumber:integer):BlockHeaderData;
 function GetBlockTrxs(BlockNumber:integer):BlockOrdersArray;
-Procedure UndoneLastBlock();
+Procedure UndoneLastBlock(ClearPendings,UndoPoolPayment:boolean);
 Function GetBlockPoSes(BlockNumber:integer): BlockArraysPos;
 function GetBlockWork(solucion:string):int64;
 
@@ -374,7 +374,7 @@ Result := resultado;
 end;
 
 // Deshacer el ultimo bloque
-Procedure UndoneLastBlock();
+Procedure UndoneLastBlock(ClearPendings,UndoPoolPayment:boolean);
 var
   blocknumber : integer;
   ArrayOrders : BlockOrdersArray;
@@ -392,12 +392,17 @@ DelBlChHeadLast();
 // Recuperar transacciones
 ArrayOrders := Default(BlockOrdersArray);
 ArrayOrders := GetBlockTrxs(MyLastBlock);
-for cont := 0 to length(ArrayOrders)-1 do
-   addpendingtxs(ArrayOrders[cont]);
+if not ClearPendings then
+   begin
+   for cont := 0 to length(ArrayOrders)-1 do
+      addpendingtxs(ArrayOrders[cont]);
+   end;
 if LastBlockData.AccountMiner = PoolInfo.Direccion then // El bloque deshecho fue minado por mi pool
-   //PoolUndoneLastPayment();
+   begin
+   if UndoPoolPayment then PoolUndoneLastPayment();
+   end;
 // Borrar archivo del ultimo bloque
-deletefile(BlockDirectory +IntToStr(MyLastBlock)+'.blk');
+trydeletefile(BlockDirectory +IntToStr(MyLastBlock)+'.blk');
 // Actualizar mi informacion
 MyLastBlock := GetMyLastUpdatedBlock;
 MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
@@ -408,6 +413,8 @@ ConsoleLinesAdd('****************************');
 ConsoleLinesAdd(LAngLine(90)+IntToStr(blocknumber)); //'Block undone: '
 ConsoleLinesAdd('****************************');
 Tolog('Block Undone: '+IntToStr(blocknumber));
+UndonedBlocks := true;
+U_DataPanel := true;
 End;
 
 // devuelve la suma de los valores de la solucion de un bloque (eliminar?)

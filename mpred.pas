@@ -559,6 +559,7 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
    U_Mytrxs := true;
    SumaryRebuilded:= false;
    ConsoleLinesAdd(LangLine(36));   //Updated!
+   UndonedBlocks := false;
    ResetMinerInfo();
    ResetPoolMiningInfo();
    if ((Miner_OwnsAPool) and (Miner_Active) and(not Form1.PoolServer.Active)) then // Activar el pool propio si se posee uno
@@ -599,7 +600,7 @@ if MyConStatus = 3 then
       if SynchWarnings = 50 then
          begin
          MyConStatus := 2;
-         UndoneLastBlock;
+         UndoneLastBlock(true,false);
          setlength(PendingTxs,0);
          ConsoleLinesAdd('***WARNING SYNCHRONIZATION***');
          end;
@@ -861,7 +862,7 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
         (MySumarioHash<>NetSumarioHash.Value) and (SumaryRebuilded)) then
    begin  // Blockchain status issue
-
+   UndoneLastBlock(true,false);
    //RestoreBlockChain();
    end;
 SetCurrentJob('ActualizarseConLaRed',false);

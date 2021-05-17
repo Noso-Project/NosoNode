@@ -406,7 +406,7 @@ CONST
                           '108.61.250.100 '+
                           '114.67.107.90';
   ProgramVersion = '0.2.1';
-  SubVersion = 'B';
+  SubVersion = 'Bc';
   OficialRelease = true;
   BuildDate = 'April 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -576,6 +576,7 @@ var
   MyResumenHash : String = '';
   MyPublicIP : String = '';
   LastBlockData : BlockHeaderData;
+  UndonedBlocks : boolean = false;
 
   NetSumarioHash : NetworkData;
     SumaryRebuilded : boolean = false;
@@ -2929,7 +2930,9 @@ End;
 // confirmar el envio con los valores
 Procedure Tform1.SCBitConfOnClick(Sender:TObject);
 Begin
-ProcessLinesAdd('SENDTO '+EditSCDest.Text+' '+StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase]));
+ProcessLinesAdd('SENDTO '+EditSCDest.Text+' '+
+                          StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase])+' '+
+                          MemoSCCon.Text);
 ResetearValoresEnvio(Sender);
 End;
 

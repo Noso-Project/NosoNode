@@ -458,7 +458,7 @@ else if ( (BlockNumber = LastBlockData.Number) and
    (VerifySolutionForBlock(lastblockdata.Difficult,LastBlockData.TargetHash,DireccionMinero,Solucion)=0)
    and (StrToInt64(timestamp)+15 > StrToInt64(UTCTime)) ) then
       begin
-      UndoneLastBlock;
+      UndoneLastBlock(false,true);
       CrearNuevoBloque(BlockNumber,StrToInt64(TimeStamp),Miner_Target,DireccionMinero,Solucion);
       end
 // solucion distinta del ultimo con el mismo timestamp se elige la mas corta
@@ -469,7 +469,7 @@ else if ( (BlockNumber = LastBlockData.Number) and
    (DireccionMinero<>LastBlockData.AccountMiner) and
    (Solucion<LastBlockData.Solution) ) then
       begin
-      UndoneLastBlock;
+      UndoneLastBlock(false,true);
       CrearNuevoBloque(BlockNumber,StrToInt64(TimeStamp),Miner_Target,DireccionMinero,Solucion);
       end;
 end; // proceder 1

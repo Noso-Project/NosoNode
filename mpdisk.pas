@@ -1109,7 +1109,9 @@ begin
       end;
    if delfile then Trydeletefile(filename);
    Except on E:Exception do
+      begin
       tolog ('Error unzipping block file');
+      end;
    end;
 end;
 
@@ -1919,6 +1921,7 @@ result := true;
       begin
       result := false;
       ToExcLog('Error deleting file ('+filename+') :'+E.Message);
+      ToLog('Error deleting file ('+filename+') :'+E.Message);
       end;
    end;
 End;
