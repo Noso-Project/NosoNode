@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, mpCripto, mpTime, mpblock, mpcoin,
-  dialogs, fileutil, forms, idglobal, poolmanage, strutils, mpRPC;
+  dialogs, fileutil, forms, idglobal, poolmanage, strutils, mpRPC, DateUtils;
 
 procedure ProcessLinesAdd(const ALine: String);
 procedure ConsoleLinesAdd(const ALine: String);
@@ -192,7 +192,8 @@ else if UpperCase(Command) = 'BOTS' then ShowBots()
 else if UpperCase(Command) = 'SLOTS' then ShowSlots()
 else if UpperCase(Command) = 'CONNECT' then ConnectToServers()
 else if UpperCase(Command) = 'DISCONNECT' then CerrarClientes()
-else if UpperCase(Command) = 'OFFSET' then ConsoleLinesAdd('Server: '+G_NTPServer+SLINEBREAK+LangLine(17)+IntToStr(G_TimeOffSet))
+else if UpperCase(Command) = 'OFFSET' then ConsoleLinesAdd('Server: '+G_NTPServer+SLINEBREAK+
+  LangLine(17)+IntToStr(G_TimeOffSet)+slinebreak+'Local Offset: '+IntToStr(G_TIMELocalTimeOffset))
 else if UpperCase(Command) = 'NEWADDRESS' then NuevaDireccion(linetext)
 else if UpperCase(Command) = 'USEROPTIONS' then ShowUserOptions()
 else if UpperCase(Command) = 'BALANCE' then ConsoleLinesAdd(Int2Curr(GetWalletBalance)+' '+CoinSimbol)
@@ -264,6 +265,8 @@ else if UpperCase(Command) = 'R256' then consolelinesAdd('R256 : '+Recursive256(
 else if UpperCase(Command) = 'SUPPLY' then consolelinesAdd('Current supply: '+Int2Curr(GetSupply(MyLastBlock)))
 else if UpperCase(Command) = 'GMTS' then showgmts(LineText)
 else if UpperCase(Command) = 'SHOWPRIVKEY' then ShowPrivKey(LineText, true)
+else if UpperCase(Command) = 'UNIXTIME' then ConsoleLinesAdd(IntToStr(DateTimeToUnix(now)+G_TIMELocalTimeOffset+G_TimeOffSet))
+
 
 // CONSULTING
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()
@@ -290,9 +293,10 @@ else if UpperCase(Command) = 'POOLSHARE' then SetPoolShare(LineText)
 else if UpperCase(Command) = 'SENDPOOLSTEPS' then SendPoolStepsInfo(StrToInt(Parameter(LineText,1)))
 else if UpperCase(Command) = 'POOLHASHRATE' then SendPoolHashRateRequest()
 else if UpperCase(Command) = 'SAVEPOOLFILES' then SavePoolFiles()
+else if UpperCase(Command) = 'POOLPEERS' then ConsoleLinesAdd('Pool list: '+IntToStr(form1.PoolClientsCount))
 
 // P2P
-else if UpperCase(Command) = 'PEERS' then ConsoleLinesAdd('Server list: '+IntToStr(form1.ClientsCount))
+else if UpperCase(Command) = 'PEERS' then ConsoleLinesAdd('Server list: '+IntToStr(form1.ClientsCount)+'/'+IntToStr(GetIncomingConnections))
 
 // RPC
 else if UpperCase(Command) = 'SETRPCPORT' then SetRPCPort(LineText)

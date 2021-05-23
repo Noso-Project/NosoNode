@@ -421,19 +421,21 @@ Procedure SavePoolPays();
 var
   archivo : textfile;
 Begin
+Assignfile(archivo, PoolPaymentsFilename);
+Append(archivo);
 try
-   Assignfile(archivo, PoolPaymentsFilename);
-   Append(archivo);
    while PoolPaysLines.Count>0 do
       begin
       Writeln(archivo, PoolPaysLines[0]);
+      EnterCriticalSection(CSPoolPay);
       PoolPaysLines.Delete(0);
+      LeaveCriticalSection(CSPoolPay);
       end;
-   Closefile(archivo);
    S_PoolPays := false;
 Except on E:Exception do
    tolog ('Error saving Pool pays file');
 end;
+Closefile(archivo);
 End;
 
 // *** BOTS FILE ***
@@ -765,15 +767,20 @@ Begin
    assignfile (FileBotData,BotDataFilename);
    contador := 0;
    reset (FileBotData);
-   for contador := 0 to length(ListadoBots)-1 do
+   if length(ListadoBots) > 0 then
       begin
-      seek (FileBotData, contador);
-      write (FileBotData, ListadoBots[contador]);
+   for contador := 0 to length(ListadoBots)-1 do
+         begin
+         seek (FileBotData, contador);
+         write (FileBotData, ListadoBots[contador]);
+         end;
       end;
+   Truncate(FileBotData);
    closefile(FileBotData);
    S_BotData := false;
+   tolog ('Bot file saved: '+inttoStr(length(ListadoBots))+' registers');
    Except on E:Exception do
-         tolog ('Error saving bots to file');
+         tolog ('Error saving bots to file :'+E.Message);
    end;
 End;
 
@@ -990,22 +997,22 @@ Procedure GuardarSumario();
 var
   contador : integer = 0;
 Begin
+assignfile(FileSumario,SumarioFilename);
+Reset(FileSumario);
    try
-   assignfile(FileSumario,SumarioFilename);
-   Reset(FileSumario);
    for contador := 0 to length(ListaSumario)-1 do
       Begin
       seek(filesumario,contador);
       write(FileSumario,Listasumario[contador]);
       end;
    Truncate(filesumario);
-   CloseFile(FileSumario);
    MySumarioHash := HashMD5File(SumarioFilename);
    S_Sumario := false;
    U_DataPanel := true;
    Except on E:Exception do
       tolog ('Error saving sumary file');
    end;
+CloseFile(FileSumario);
 End;
 
 // Returns the last downloaded block
@@ -1284,13 +1291,17 @@ var
   CounterPos  : integer;
 Begin
 EnterCriticalSection(CSSumary);
+RebuildingSumary := true;
 SetLength(ListaSumario,0);
 // incluir el pago del bloque genesys
 UpdateSumario(ADMINHash,PremineAmount,0,'0');
 for contador := 1 to UntilBlock do
    begin
-   if contador mod 100 = 0 then
+   if {contador mod 100 = 0} 1=1 then
+      begin
       info(LangLine(130)+inttoStr(contador));  //'Rebuilding sumary block: '
+      application.ProcessMessages;
+      end;
    BlockHeader := Default(BlockHeaderData);
    BlockHeader := LoadBlockDataHeader(contador);
    UpdateSumario(BlockHeader.AccountMiner,BlockHeader.Reward+BlockHeader.MinerFee,0,IntToStr(contador));
@@ -1322,6 +1333,7 @@ for contador := 1 to UntilBlock do
       end;
    end;
 ListaSumario[0].LastOP:=contador;
+RebuildingSumary := false;
 LeaveCriticalSection(CSSumary);
 GuardarSumario();
 UpdateMyData();

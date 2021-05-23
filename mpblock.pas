@@ -62,6 +62,12 @@ if ((numero>0) and (Timestamp < lastblockdata.TimeEnd)) then
    ConsoleLinesAdd('Blocks can not be added until '+TimestampToDate(IntToStr(GenesysTimeStamp)));
    exit;
    end;
+if TimeStamp > UTCTime.ToInt64+5 then
+   begin
+   ConsoleLinesAdd('New block '+IntToStr(numero)+' : Invalid timestamp');
+   ConsoleLinesAdd('Timestamp '+IntToStr(TimeStamp)+' is '+IntToStr(TimeStamp-UTCTime.ToInt64)+' seconds in the future');
+   exit;
+   end;
 if Numero = 0 then StartBlockTime := 1531896783
 else StartBlockTime := LastBlockData.TimeEnd+1;
 FileName := BlockDirectory + IntToStr(Numero)+'.blk';
@@ -73,6 +79,7 @@ copyfile(SumarioFilename,SumarioFilename+'.bak');
 
 // PROCESAR LAS TRANSACCIONES EN LISTAORDENES
 EnterCriticalSection(CSPending);
+SetCurrentJob('NewBLOCK+PENDING',true);
 for contador := 0 to length(pendingTXs)-1 do
    begin
    if PendingTXs[contador].TimeStamp+60 > TimeStamp then
@@ -108,6 +115,15 @@ for contador := 0 to length(pendingTXs)-1 do
       insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
       end;
    end;
+try
+   SetLength(PendingTXs,0);
+   PendingTXs := copy(IgnoredTrxs,0,length(IgnoredTrxs));
+Except on E:Exception do
+   begin
+   ToExcLog('Error asigning pending to Ignored');
+   end;
+end;
+SetCurrentJob('NewBLOCK+PENDING',false);
 LeaveCriticalSection(CSPending);
 
 //PoS payment
@@ -149,8 +165,7 @@ LeaveCriticalSection(CSSumary);
 GuardarSumario();
 // Limpiar las pendientes
 EnterCriticalSection(CSPending);
-SetLength(PendingTXs,0);
-PendingTXs := copy(IgnoredTrxs,0,length(IgnoredTrxs));
+
 LeaveCriticalSection(CSPending);
 for contador := 0 to length(ListaDirecciones)-1 do
    ListaDirecciones[contador].Pending:=0;
@@ -268,6 +283,7 @@ var
   NumeroOrdenes : int64;
   counter : integer;
 Begin
+SetCurrentJob('SAVEBLOCK',true);
 NumeroOrdenes := Cabezera.TrxTotales;
 MemStr := TMemoryStream.Create;
    try
@@ -282,10 +298,11 @@ MemStr := TMemoryStream.Create;
          MemStr.Write(PosAddresses[counter],Sizeof(PosAddresses[Counter]));
       end;
    MemStr.SaveToFile(NombreArchivo);
-   MemStr.Free;
    Except
    On E :Exception do ConsoleLinesAdd(LangLine(20));           //Error saving block to disk
    end;
+MemStr.Free;
+SetCurrentJob('SAVEBLOCK',false);
 End;
 
 // Carga la informacion del bloque

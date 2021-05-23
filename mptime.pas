@@ -20,7 +20,7 @@ function TimeSinceStamp(value:int64):string;
 implementation
 
 uses
-  mpGui;
+  mpGui, mpDisk;
 
 // Inicializa el tiempo para verificar que esta correcto
 procedure InitTime();
@@ -29,6 +29,7 @@ var
   Global : int64 = 0;
 Begin
 OutText('? Initializing time',false,1);
+G_TIMELocalTimeOffset := GetLocalTimeOffset*60;
 global := strtoint64Def(getSNTPStringTime,-1);
 local := strtoint64Def(GetLocalTimestamp,-1);
 if global = -1 then
@@ -49,10 +50,10 @@ if Abs(G_TimeOffSet) > 5 then
    end;
 End;
 
-// Devuelve el tiempo de la red
+// Returns mainnet timestamp
 function UTCTime():string;
 Begin
-result := IntToStr(StrToInt64Def(GetLocalTimestamp,0)+(GetLocalTimeOffset*60)+G_TimeOffSet);
+result := IntToStr(StrToInt64Def(GetLocalTimestamp,0)+G_TIMELocalTimeOffset+G_TimeOffSet);
 End;
 
 // Intenta en los servidores hasta obtener un valor valido
@@ -90,10 +91,21 @@ NTPClient := TIdSNTP.Create(nil);
 NTPClient.Free;
 end;
 
-// Regresa el timestamp del reloj de la computadora
+// Returns local UNIX time
 function GetLocalTimestamp():string;
+var
+  resultado : int64;
 Begin
-GetLocalTimestamp := inttostr(Trunc((Now - EncodeDate(1970, 1 ,1)) * 24 * 60 * 60));
+{
+resultado := Trunc((Now - EncodeDate(1970, 1 ,1)) * 24 * 60 * 60);
+if resultado < G_LastLocalTimestamp then
+   begin
+   Tolog('***CRITICAL*** LOCAL TIMESTAMP ERROR < PREVIOUS ONE');
+   end;
+GetLocalTimestamp := inttostr(resultado);
+G_LastLocalTimestamp := resultado;
+}
+result := IntToStr(DateTimeToUnix(now));
 end;
 
 // Convierte un timestamp en una fecha legible

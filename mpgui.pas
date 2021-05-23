@@ -521,7 +521,7 @@ if Miner_OwnsAPool then
                            ' DiffChars: '+IntToStr(Poolminer.DiffChars)+' Steps: '+IntToStr(PoolMiner.steps)+
                            ' Earned: '+Int2Curr(PoolInfo.FeeEarned)+' '+booltostr(form1.PoolServer.Active,true);
    LabelPoolMiner2.Caption:='Members: '+IntToStr(length(ArrayPoolMembers))+' Total Debt: '+Int2Curr(PoolMembersTotalDeuda)+
-                                      ' Connected: '+IntToStr(GetPoolTotalActiveConex)+' Hashrate: '+
+                                      ' Connected: '+IntToStr(GetPoolTotalActiveConex)+'/'+IntToStr(form1.PoolClientsCount)+' Hashrate: '+
                                       IntToStr(PoolTotalHashRate);
    LeaveCriticalSection(CSPoolMembers);
    if (ActiveConex>0)  then
@@ -544,7 +544,7 @@ if Miner_OwnsAPool then
                end;
             Except on E:Exception do
                begin
-               tolog('Error showing pool connections data, slot '+IntToStr(contador));
+               //tolog('Error showing pool connections data, slot '+IntToStr(contador));
                end;
             end;
             end;
@@ -576,6 +576,7 @@ DataPanel.Cells[2,2]:=LangLine(105);  //'Target'
 DataPanel.Cells[2,3]:=LangLine(106);  //'Reward'
 DataPanel.Cells[2,4]:=LangLine(107);  //'Block Time'
 DataPanel.Cells[2,5]:='PoolBalance';  //'Block Time'
+DataPanel.Cells[2,6]:='Net Time';     //'mainnet Time'
 
 GridMyTxs.Cells[0,0]:=LangLine(108);    //'Block'
 GridMyTxs.Cells[1,0]:=LangLine(109);    //'Time'
@@ -642,15 +643,22 @@ if canal = 2 then // A consola y label info
    end;
 End;
 
-// Muestra las lineas en la consola
+// Show lines to Console
 Procedure MostrarLineasDeConsola();
 Begin
 While ConsoleLines.Count > 0 do
    begin
    Memoconsola.Lines.Add(ConsoleLines[0]);
-   EnterCriticalSection(CSOutgoingMsjs);
-   ConsoleLines.Delete(0);
-   LeaveCriticalSection(CSOutgoingMsjs);
+   EnterCriticalSection(CSConsoleLines);
+      try
+         try
+         ConsoleLines.Delete(0);
+         Except on E:Exception do
+            ToLog('Error showing lines to console');
+         end;
+      finally
+      LeaveCriticalSection(CSConsoleLines);
+      end;
    end;
 End;
 
@@ -698,6 +706,7 @@ else DataPanel.Cells[3,5]:='No Pool';
 DataPanel.Cells[1,2]:=IntToStr(GetTotalConexiones)+' ('+IntToStr(MyConStatus)+') ['+IntToStr(G_TotalPings)+']';
 DataPanel.Cells[1,7]:= IntToStr(Length(PendingTXs))+'/'+NetPendingTrxs.Value+'('+IntToStr(NetPendingTrxs.Porcentaje)+')';
 DataPanel.Cells[1,0]:= Int2Curr(GetWalletBalance)+' '+CoinSimbol;
+DataPanel.Cells[3,6]:= TimestampToDate(UTCTime);
 
 if U_DirPanel then
    begin

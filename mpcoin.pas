@@ -244,7 +244,7 @@ var
   OrderInfo : orderdata;
 Begin
 setmilitime('SendFundsFromAddress',1);
-MontoDisponible := ListaDirecciones[DireccionEsMia(origen)].Balance;
+MontoDisponible := ListaDirecciones[DireccionEsMia(origen)].Balance-GetAddressPendingPays(Origen);
 if MontoDisponible>comision then ComisionTrfr := Comision
 else comisiontrfr := montodisponible;
 if montodisponible>monto+comision then montotrfr := monto

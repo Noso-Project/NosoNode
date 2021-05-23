@@ -112,12 +112,16 @@ function GetMemberPrefijo(poolslot:integer):string;
 var
   firstchar, secondchar : integer;
   resultado : string;
+  HashChars : integer;
 Begin
-firstchar := poolslot div 91;
-secondchar := poolslot mod 91;
-resultado := chr(33+firstchar)+chr(33+secondchar)+'!!!!!!!';
-resultado := StringReplace(resultado,'(','~',[rfReplaceAll, rfIgnoreCase]);
-result := StringReplace(resultado,'_','}',[rfReplaceAll, rfIgnoreCase])
+HashChars :=  length(HasheableChars)-1;
+firstchar := poolslot div HashChars;
+secondchar := poolslot mod HashChars;
+//resultado := chr(33+firstchar)+chr(33+secondchar)+'!!!!!!!';
+//resultado := StringReplace(resultado,'(','~',[rfReplaceAll, rfIgnoreCase]);
+//resultado := StringReplace(resultado,'%','|',[rfReplaceAll, rfIgnoreCase]);
+//result := StringReplace(resultado,'_','}',[rfReplaceAll, rfIgnoreCase])
+result := HasheableChars[firstchar+1]+HasheableChars[secondchar+1]+'0000000';
 End;
 
 //** Returns the prefix for a new connection or empty if pool is full
@@ -125,12 +129,14 @@ function PoolAddNewMember(direccion:string):string;
 var
   PoolSlot : integer;
 Begin
+EnterCriticalSection(CSPoolMembers);
 result := '';
 if length(ArrayPoolMembers)>0 then
    begin
    if GetPoolMemberPosition(direccion)>=0 then
       begin
       result := ArrayPoolMembers[GetPoolMemberPosition(direccion)].Prefijo;
+      LeaveCriticalSection(CSPoolMembers);
       exit;
       end;
    end;
@@ -147,6 +153,7 @@ if ( (length(ArrayPoolMembers)>0) and (PoolSlot >= 0) ) then
    ArrayPoolMembers[PoolSlot].LastEarned:=0;
    S_PoolMembers := true;
    result := ArrayPoolMembers[PoolSlot].Prefijo;
+   LeaveCriticalSection(CSPoolMembers);
    exit;
    end;
 if length(ArrayPoolMembers) < PoolInfo.MaxMembers then
@@ -162,7 +169,8 @@ if length(ArrayPoolMembers) < PoolInfo.MaxMembers then
    ArrayPoolMembers[length(ArrayPoolMembers)-1].LastEarned:=0;
    S_PoolMembers := true;
    result := ArrayPoolMembers[length(ArrayPoolMembers)-1].Prefijo;
-   end
+   end;
+LeaveCriticalSection(CSPoolMembers);
 End;
 
 Procedure LoadMyPoolData();

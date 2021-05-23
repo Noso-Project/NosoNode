@@ -596,6 +596,7 @@ if MyConStatus = 3 then
    if ( (IntToStr(MyLastBlock) <> NetLastBlock.Value) or (MySumarioHash<>NetSumarioHash.Value) or
       (MyResumenhash <> NetResumenHash.Value) ) then // desincronizado
       Begin
+      {
       SynchWarnings +=1;
       if SynchWarnings = 50 then
          begin
@@ -604,6 +605,7 @@ if MyConStatus = 3 then
          setlength(PendingTxs,0);
          ConsoleLinesAdd('***WARNING SYNCHRONIZATION***');
          end;
+      }
       end
    else SynchWarnings := 0;
    if ((Miner_OwnsAPool) and (not Form1.PoolServer.Active)) then // Activar el pool propio si se posee uno
@@ -862,7 +864,7 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
         (MySumarioHash<>NetSumarioHash.Value) and (SumaryRebuilded)) then
    begin  // Blockchain status issue
-   UndoneLastBlock(true,false);
+   //UndoneLastBlock(true,false);
    //RestoreBlockChain();
    end;
 SetCurrentJob('ActualizarseConLaRed',false);
