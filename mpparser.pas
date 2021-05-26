@@ -1594,7 +1594,7 @@ End;
 
 Procedure ShowAdvOpt();
 Begin
-ConsoleLinesAdd('To be implemented');
+ConsoleLinesAdd('AutoConnect: '+booltostr(WO_Autoconnect,true));
 End;
 
 Procedure ChangePoolPassword(LineText:string);

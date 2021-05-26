@@ -122,6 +122,7 @@ Begin
 setmilitime('AddPendingTxs',1);
 if order.OrderType='FEE' then exit;
 if TranxAlreadyPending(order.TrfrID) then exit;
+EnterCriticalSection(CSPending);
 while cont < length(PendingTxs) do
   begin
   if order.TimeStamp < PendingTxs[cont].TimeStamp then
@@ -151,7 +152,6 @@ while cont < length(PendingTxs) do
   cont := cont+1;
   end;
 if not insertar then resultado := length(pendingTXs);
-EnterCriticalSection(CSPending);
 Insert(order,PendingTxs,resultado);
 LeaveCriticalSection(CSPending);
 result := true;

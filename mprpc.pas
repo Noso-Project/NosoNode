@@ -31,7 +31,7 @@ var
   value : integer;
 Begin
 value := StrToIntDef(parameter(LineText,1),0);
-if ((value <=0) or (value >65536)) then
+if ((value <=0) or (value >65535)) then
    begin
    ConsoleLinesAdd('Invalid value');
    end
@@ -138,7 +138,7 @@ function ParseRPCJSON(jsonreceived:string):TJSONStringType;
 var
   jData : TJSONData;
   jObject : TJSONObject;
-  method : string;
+  method, params : string;
   jsonID : integer;
 Begin
 Result := '';
@@ -148,6 +148,7 @@ else
    jData := GetJSON(jsonreceived);
    jObject := TJSONObject(jData);
    method := jObject.Get('method');
+   params := jObject.Get('params');
    jsonid := jObject.Get('id');
    if method = 'test' then result := GetJSONResponse('TestOk',jsonid)
    else if method = 'getbalance' then result := GetJSONResponse(int2curr(GetWalletBalance),jsonid)

@@ -34,6 +34,7 @@ type
     end;
 
   TFormSlots = class(Tform)
+    procedure GridMSlotsPrepareCanvas(sender: TObject; aCol, aRow: Integer;aState: TGridDrawState);
     private
     public
     end;
@@ -297,12 +298,22 @@ Begin
 CheckMonitor := false;
 End;
 
+// Color the conections form
+procedure TFormSlots.GridMSlotsPrepareCanvas(sender: TObject; aCol, aRow: Integer;
+  aState: TGridDrawState);
+Begin
+if ( (Arow>0) and (conexiones[Arow].IsBusy) ) then
+  begin
+  (Sender as TStringGrid).Canvas.Brush.Color :=  clmoneygreen;
+  end;
+End;
+
 // Crea el formulario de monitorizacion de los slots
 Procedure CreateFormSlots();
 Begin
 FormSlots := TFormSlots.Createnew(form1);
 FormSlots.caption := coinname+' Slots Monitor';
-FormSlots.SetBounds(0, 0, 500, 210);
+FormSlots.SetBounds(0, 0, 530, 410);
 FormSlots.BorderStyle := bssingle;
 //FormSlots.Position:=poOwnerFormCenter;
 FormSlots.Top:=1;FormSlots.Left:=1;
@@ -311,24 +322,25 @@ FormSlots.ShowInTaskBar:=sTAlways;
 
 GridMSlots := TStringGrid.Create(FormSlots);GridMSlots.Parent:=FormSlots;
 GridMSlots.Font.Name:='consolas'; GridMSlots.Font.Size:=8;
-GridMSlots.Left:=1;GridMSlots.Top:=1;GridMSlots.Height:=208;GridMSlots.width:=498;
+GridMSlots.Left:=1;GridMSlots.Top:=1;GridMSlots.Height:=408;GridMSlots.width:=528;
 GridMSlots.FixedCols:=0;GridMSlots.FixedRows:=1;
-GridMSlots.rowcount := MaxConecciones+1;GridMSlots.ColCount:=14;
+GridMSlots.rowcount := MaxConecciones+1;GridMSlots.ColCount:=15;
 GridMSlots.ScrollBars:=ssVertical;
 GridMSlots.FocusRectVisible:=false;
-GridMSlots.Options:= GridMSlots.Options+[goRowSelect]-[goRangeSelect];
+GridMSlots.Options:= GridMSlots.Options-[goRangeSelect];
 GridMSlots.ColWidths[0]:= 20;GridMSlots.ColWidths[1]:= 80;GridMSlots.ColWidths[2]:= 25;
 GridMSlots.ColWidths[3]:= 20;GridMSlots.ColWidths[4]:= 48;GridMSlots.ColWidths[5]:= 40;
 GridMSlots.ColWidths[6]:= 40;GridMSlots.ColWidths[7]:= 25;GridMSlots.ColWidths[8]:= 25;
 GridMSlots.ColWidths[9]:= 35;GridMSlots.ColWidths[10]:= 30;GridMSlots.ColWidths[11]:= 25;
-GridMSlots.ColWidths[12]:= 40;GridMSlots.ColWidths[13]:= 25;
+GridMSlots.ColWidths[12]:= 40;GridMSlots.ColWidths[13]:= 25;;GridMSlots.ColWidths[14]:= 29;
 GridMSlots.Enabled := true;
 GridMSlots.Cells[0,0]:='N';GridMSlots.Cells[1,0]:='IP';GridMSlots.Cells[2,0]:='T';
 GridMSlots.Cells[3,0]:='Cx';GridMSlots.Cells[4,0]:='LBl';GridMSlots.Cells[5,0]:='LBlH';
 GridMSlots.Cells[6,0]:='SumH';GridMSlots.Cells[7,0]:='Pen';GridMSlots.Cells[8,0]:='Pro';
 GridMSlots.Cells[9,0]:='Ver';GridMSlots.Cells[10,0]:='LiP';GridMSlots.Cells[11,0]:='Off';
-GridMSlots.Cells[12,0]:='HeaH';GridMSlots.Cells[13,0]:='Sta';
+GridMSlots.Cells[12,0]:='HeaH';GridMSlots.Cells[13,0]:='Sta';GridMSlots.Cells[14,0]:='Ping';
 GridMSlots.GridLineWidth := 1;
+GridMSlots.OnPrepareCanvas:= @FormSlots.GridMSlotsPrepareCanvas;
 End;
 
 Procedure UpdateSlotsGrid();
@@ -352,6 +364,7 @@ for contador := 1 to MaxConecciones do
    GridMSlots.Cells[11,contador]:= IntToStr(Conexiones[contador].offset);
    GridMSlots.Cells[12,contador]:= copy(Conexiones[contador].ResumenHash,0,5);
    GridMSlots.Cells[13,contador]:= IntToStr(Conexiones[contador].ConexStatus);
+   GridMSlots.Cells[14,contador]:= IntToStr(UTCTime.ToInt64-StrToInt64Def(Conexiones[contador].lastping,UTCTime.ToInt64));
    end;
 setmilitime('UpdateSlotsGrid',2);
 End;
@@ -583,11 +596,11 @@ GridMyTxs.Cells[1,0]:=LangLine(109);    //'Time'
 GridMyTxs.Cells[2,0]:=LangLine(110);    //'Type'
 GridMyTxs.Cells[3,0]:=LangLine(111);    //'Amount'
 
-GridScrowSell.Cells[0,0]:=LangLine(112);  //'Method'
-GridScrowSell.Cells[1,0]:=LangLine(111);  //'Amount'
-GridScrowSell.Cells[2,0]:=LangLine(113);  //'Price'
-GridScrowSell.Cells[3,0]:=LangLine(114);  //'Total'
-GridScrowSell.Cells[4,0]:=LangLine(115);  //'Status'
+//GridScrowSell.Cells[0,0]:=LangLine(112);  //'Method'
+//GridScrowSell.Cells[1,0]:=LangLine(111);  //'Amount'
+//GridScrowSell.Cells[2,0]:=LangLine(113);  //'Price'
+//GridScrowSell.Cells[3,0]:=LangLine(114);  //'Total'
+//GridScrowSell.Cells[4,0]:=LangLine(115);  //'Status'
 
 SGridSC.Cells[0,0]:=LangLine(116);  //'Destination'
 SGridSC.Cells[0,1]:=LangLine(111);  //'Amount'

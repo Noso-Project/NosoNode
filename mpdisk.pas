@@ -66,7 +66,8 @@ function SetCustomAlias(Address,Addalias:String):Boolean;
 procedure UnzipBlockFile(filename:String;delfile:boolean);
 Procedure CreateResumen();
 Procedure BuildHeaderFile(untilblock:integer);
-Procedure AddBlockToSumary(BlockNumber:integer);
+Procedure AddBlockToSumary(BlockNumber:integer;SaveAndUpdate:boolean = true);
+Procedure CompleteSumary();
 Procedure RebuildSumario(UntilBlock:integer);
 Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
 Procedure DelBlChHeadLast();
@@ -475,8 +476,13 @@ Begin
    writeln(FileAdvOptions,'ShowedOrders '+IntToStr(ShowedOrders));
    writeln(FileAdvOptions,'MaxPeers '+IntToStr(MaxPeersAllow));
    writeln(FileAdvOptions,'PoolStepsDeep '+IntToStr(PoolStepsDeep));
+   writeln(FileAdvOptions,'AutoConnect '+BoolToStr(WO_AutoConnect,true));
+   writeln(FileAdvOptions,'ToTray '+BoolToStr(WO_ToTray,true));
+   writeln(FileAdvOptions,'MinConexToWork '+IntToStr(MinConexToWork));
+
    Closefile(FileAdvOptions);
    if saving then ConsoleLinesAdd('Advanced Options file saved');
+   S_AdvOpt := false;
    Except on E:Exception do
       tolog ('Error creating AdvOpt file');
    end;
@@ -505,6 +511,9 @@ Begin
       if parameter(linea,0) ='ShowedOrders' then ShowedOrders:=StrToIntDef(Parameter(linea,1),ShowedOrders);
       if parameter(linea,0) ='MaxPeers' then MaxPeersAllow:=StrToIntDef(Parameter(linea,1),MaxPeersAllow);
       if parameter(linea,0) ='PoolStepsDeep' then PoolStepsDeep:=StrToIntDef(Parameter(linea,1),PoolStepsDeep);
+      if parameter(linea,0) ='AutoConnect' then WO_AutoConnect:=StrToBool(Parameter(linea,1));
+      if parameter(linea,0) ='ToTray' then WO_ToTray:=StrToBool(Parameter(linea,1));
+      if parameter(linea,0) ='MinConexToWork' then MinConexToWork:=StrToIntDef(Parameter(linea,1),MinConexToWork);
       end;
    Closefile(FileAdvOptions);
    Except on E:Exception do
@@ -997,9 +1006,11 @@ Procedure GuardarSumario();
 var
   contador : integer = 0;
 Begin
+SetCurrentJob('GuardarSumario',true);
+EnterCriticalSection(CSSumary);
 assignfile(FileSumario,SumarioFilename);
-Reset(FileSumario);
    try
+   Reset(FileSumario);
    for contador := 0 to length(ListaSumario)-1 do
       Begin
       seek(filesumario,contador);
@@ -1013,6 +1024,8 @@ Reset(FileSumario);
       tolog ('Error saving sumary file');
    end;
 CloseFile(FileSumario);
+LeaveCriticalSection(CSSumary);
+SetCurrentJob('GuardarSumario',false);
 End;
 
 // Returns the last downloaded block
@@ -1096,7 +1109,8 @@ for cont := 0 to length(ListaSumario)-1 do
       end;
    end;
 LeaveCriticalSection(CSSumary);
-if not result then tolog('Error assigning custom alias to address:'+Address+':'+addalias);
+if not result then
+   //if MyLastBlock > 10429 then tolog('Error assigning custom alias to address:'+Address+':'+addalias);
 End;
 
 // Unzip a zip file and (optional) delete it
@@ -1233,8 +1247,31 @@ U_Dirpanel := true;
 if g_launching then OutText('✓ '+IntToStr(untilblock+1)+' blocks rebuilded',false,1);
 End;
 
+// COmpletes the sumary from LAstUpdate to Lastblock
+Procedure CompleteSumary();
+var
+  StartBlock, finishblock : integer;
+  counter : integer;
+Begin
+SetCurrentJob('CompleteSumary',true);
+StartBlock := ListaSumario[0].LastOP+1;
+finishblock := Mylastblock;
+for counter := StartBlock to finishblock do
+   begin
+   info(LangLine(130)+inttoStr(counter));  //'Rebuilding sumary block: '
+   AddBlockToSumary(counter, false);
+   end;
+SetCurrentJob('save',true);
+GuardarSumario();
+SetCurrentJob('save',false);
+UpdateMyData();
+ConsoleLinesAdd('Sumary completed from '+IntToStr(StartBlock)+' to '+IntToStr(finishblock));
+SetCurrentJob('CompleteSumary',false);
+info('Sumary completed');
+End;
+
 // Add 1 block transactions to sumary
-Procedure AddBlockToSumary(BlockNumber:integer);
+Procedure AddBlockToSumary(BlockNumber:integer;SaveAndUpdate:boolean = true);
 var
   cont : integer;
   BlockHeader : BlockHeaderData;
@@ -1244,6 +1281,7 @@ var
   PosCount    : integer;
   CounterPos  : integer;
 Begin
+SetCurrentJob('AddBlockToSumary'+inttostr(BlockNumber),true);
 BlockHeader := Default(BlockHeaderData);
 BlockHeader := LoadBlockDataHeader(BlockNumber);
 EnterCriticalSection(CSSumary);
@@ -1274,9 +1312,13 @@ if blocknumber >= PoSBlockStart then
    UpdateSumario(BlockHeader.AccountMiner,Restar(PosCount*Posreward),0,IntToStr(BlockNumber));
    end;
 ListaSumario[0].LastOP:=BlockNumber;
+if SaveAndUpdate then
+   begin
+   GuardarSumario();
+   UpdateMyData();
+   end;
 LeaveCriticalSection(CSSumary);
-GuardarSumario();
-UpdateMyData();
+SetCurrentJob('AddBlockToSumary'+inttostr(BlockNumber),false);
 End;
 
 // Rebuilds totally sumary
@@ -1290,6 +1332,7 @@ var
   PosCount    : integer;
   CounterPos  : integer;
 Begin
+SetCurrentJob('RebuildSumario',true);
 EnterCriticalSection(CSSumary);
 RebuildingSumary := true;
 SetLength(ListaSumario,0);
@@ -1297,7 +1340,7 @@ SetLength(ListaSumario,0);
 UpdateSumario(ADMINHash,PremineAmount,0,'0');
 for contador := 1 to UntilBlock do
    begin
-   if {contador mod 100 = 0} 1=1 then
+   if contador mod 10 = 0 then
       begin
       info(LangLine(130)+inttoStr(contador));  //'Rebuilding sumary block: '
       application.ProcessMessages;
@@ -1337,6 +1380,7 @@ RebuildingSumary := false;
 LeaveCriticalSection(CSSumary);
 GuardarSumario();
 UpdateMyData();
+SetCurrentJob('RebuildSumario',true);
 ConsoleLinesAdd(LangLine(131));  //'Sumary rebuilded.'
 end;
 

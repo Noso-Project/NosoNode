@@ -166,6 +166,7 @@ SetCurrentJob('CerrarSlot',true);
       SlotLines[slot].Clear;
       Conexiones[Slot].context.Connection.IOHandler.InputBuffer.Clear;
       Conexiones[Slot].context.Connection.Disconnect;
+      Conexiones[Slot].Thread.Free;
       Conexiones[Slot] := Default(conectiondata);
       end;
    if conexiones[Slot].tipo='SER' then
@@ -173,18 +174,6 @@ SetCurrentJob('CerrarSlot',true);
       SlotLines[slot].Clear;
       CanalCliente[Slot].IOHandler.InputBuffer.Clear;
       CanalCliente[Slot].Disconnect;
-      {
-      if Conexiones[Slot].IsBusy then
-         begin
-         try
-            conexiones[slot].thread.Terminate;
-         Except on E:Exception do
-            begin
-            ToExcLog('Error killing client thread: '+Conexiones[slot].ip);
-            end;
-         end;
-         end;
-      }
       Conexiones[Slot] := Default(conectiondata);
       end;
    Except on E:Exception do
@@ -466,7 +455,8 @@ for contador := 1 to Maxconecciones do
       end;
    if Conexiones[contador].tipo <> '' then
      begin
-     if StrToInt64(UTCTime) > StrToInt64Def(conexiones[contador].lastping,0)+15 then
+     if ((StrToInt64(UTCTime) > StrToInt64Def(conexiones[contador].lastping,0)+15) and
+        (not conexiones[contador].IsBusy) and (not REbuildingSumary) )then
         begin
         ConsoleLinesAdd(LangLine(32)+conexiones[contador].ip);   //Conection closed: Time Out Auth ->
         CerrarSlot(contador);
@@ -857,9 +847,13 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  /
    end
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
         (MySumarioHash<>NetSumarioHash.Value) and (not SumaryRebuilded)) then
-   begin  // Reconstruir sumario
-   RebuildSumario(MyLastBlock);
-   SumaryRebuilded:= true;
+   begin  // complete or rebuild sumary
+   if ListaSumario[0].LastOP < mylastblock then CompleteSumary()
+   else
+      begin
+      RebuildSumario(MyLastBlock);
+      SumaryRebuilded:= true;
+      end;
    end
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
         (MySumarioHash<>NetSumarioHash.Value) and (SumaryRebuilded)) then

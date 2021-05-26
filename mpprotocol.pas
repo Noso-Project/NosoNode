@@ -240,7 +240,7 @@ End;
 // Envia una linea a un determinado slot
 Procedure PTC_SendLine(Slot:int64;Message:String);
 Begin
-if conexiones[Slot].tipo='CLI' then
+if ((conexiones[Slot].tipo='CLI') and (not conexiones[Slot].IsBusy)) then
    begin
       try
       Conexiones[Slot].context.Connection.IOHandler.WriteLn(Message);
@@ -253,7 +253,7 @@ if conexiones[Slot].tipo='CLI' then
          end;
       end;
    end;
-if conexiones[Slot].tipo='SER' then
+if ((conexiones[Slot].tipo='SER') and (not conexiones[Slot].IsBusy)) then
    begin
       try
       CanalCliente[Slot].IOHandler.WriteLn(Message);
@@ -389,23 +389,27 @@ var
   Encab : string;
   Textline : String;
   TextOrder : String;
+  CopyPendingTXs : Array of OrderData;
 Begin
 Encab := GetPTCEcn;
 TextOrder := encab+'ORDER ';
 if Length(PendingTXs) > 0 then
    begin
-   for contador := 0 to Length(PendingTXs)-1 do
+   EnterCriticalSection(CSPending);
+   SetLength(CopyPendingTXs,0);
+   CopyPendingTXs := copy(PendingTXs,0,length(PendingTXs));
+   for contador := 0 to Length(CopyPendingTXs)-1 do
       begin
-      Textline := GetStringFromOrder(PendingTXs[contador]);
-      if (Pendingtxs[contador].OrderType='CUSTOM') then
+      Textline := GetStringFromOrder(CopyPendingTXs[contador]);
+      if (CopyPendingTXs[contador].OrderType='CUSTOM') then
          begin
          PTC_SendLine(slot,Encab+'$'+TextLine);
          end;
-      if (Pendingtxs[contador].OrderType='TRFR') then
+      if (CopyPendingTXs[contador].OrderType='TRFR') then
          begin
-         if Pendingtxs[contador].TrxLine=1 then TextOrder:= TextOrder+IntToStr(Pendingtxs[contador].OrderLines)+' ';
-         TextOrder := TextOrder+'$'+GetStringfromOrder(Pendingtxs[contador])+' ';
-         if Pendingtxs[contador].OrderLines=Pendingtxs[contador].TrxLine then
+         if CopyPendingTXs[contador].TrxLine=1 then TextOrder:= TextOrder+IntToStr(CopyPendingTXs[contador].OrderLines)+' ';
+         TextOrder := TextOrder+'$'+GetStringfromOrder(CopyPendingTXs[contador])+' ';
+         if CopyPendingTXs[contador].OrderLines=CopyPendingTXs[contador].TrxLine then
             begin
             Setlength(TextOrder,length(TextOrder)-1);
             PTC_SendLine(slot,TextOrder);
@@ -413,6 +417,8 @@ if Length(PendingTXs) > 0 then
             end;
          end;
       end;
+   Tolog('Sent '+IntToStr(Length(CopyPendingTXs))+' pendingTxs to '+conexiones[slot].ip);
+   LeaveCriticalSection(CSPending);
    end;
 End;
 
@@ -523,7 +529,7 @@ var
   filename, archivename: String;
 Begin
 result := '';
-LastBlock := FirstBlock + 99; if LastBlock>MyLastBlock then LastBlock := MyLastBlock;
+LastBlock := FirstBlock + 100; if LastBlock>MyLastBlock then LastBlock := MyLastBlock;
 MyZipFile := TZipper.Create;
 ZipFileName := BlockDirectory+'Blocks_'+IntToStr(FirstBlock)+'_'+IntToStr(LastBlock)+'.zip';
 MyZipFile.FileName := ZipFileName;
