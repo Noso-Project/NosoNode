@@ -1029,7 +1029,7 @@ if procesar then
    begin
    currtime := UTCTime;
    Setlength(ArrayTrfrs,0);
-   Contador := length(ListaDirecciones)-1;
+   Contador := 0;
    OrderHashString := currtime;
    while monto > 0 do
       begin
@@ -1044,7 +1044,7 @@ if procesar then
          monto := monto-ArrayTrfrs[length(arraytrfrs)-1].AmmountTrf;
          OrderHashString := OrderHashString+ArrayTrfrs[length(arraytrfrs)-1].TrfrID;
          end;
-      Contador := contador -1;
+      Contador := contador +1;
       setmilitime('SendFundsVerify',2);
       end;
    for contador := 0 to length(ArrayTrfrs)-1 do

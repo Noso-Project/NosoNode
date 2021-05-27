@@ -48,7 +48,7 @@
         <PackageName Value="LCL"/>
       </Item6>
     </RequiredPackages>
-    <Units Count="17">
+    <Units Count="16">
       <Unit0>
         <Filename Value="Noso.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -130,13 +130,6 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpRPC"/>
       </Unit15>
-      <Unit16>
-        <Filename Value="mpoptions.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="Form2"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-      </Unit16>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

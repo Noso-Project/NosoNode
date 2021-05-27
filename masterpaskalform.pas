@@ -451,7 +451,7 @@ CONST
                           '199.247.12.166 '+
                           '108.61.250.100';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Da6';
+  SubVersion = 'Da7';
   OficialRelease = true;
   BuildDate = 'April 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -766,11 +766,6 @@ var
   PanelTrxDetails : TPanel;
     MemoTrxDetails : TMemo;
     BCloseTrxDetails : TBitBtn;
-
-  //PanelScrow : Tpanel;
-  //  BScrowSell : Tbutton;
-  //  BScrowBuy  : TButton;
-  //  GridScrowSell :TStringGrid;
 
   OptionsPanel : Tpanel;
     LabelNodes : TLabel;
@@ -1490,7 +1485,7 @@ MinerButton.ShowHint:=true;MinerButton.OnMouseEnter:=@Form1.CheckForHint;
 SBOptions := TSpeedButton.Create(Form1);SBOptions.Parent:=Form1;
 SBOptions.Left:=58;SBOptions.Top:=2;SBOptions.Height:=26;SBOptions.Width:=26;
 Form1.imagenes.GetBitmap(22,SBOptions.Glyph);
-SBOptions.Visible:=false;SBOptions.OnClick:=@form1.SBOptionsOnClick;
+SBOptions.Visible:=true;SBOptions.OnClick:=@form1.SBOptionsOnClick;
 SBOptions.hint:='Show/Hide options';SBOptions.ShowHint:=true;
 
 ImageInc := TImage.Create(form1);ImageInc.Parent:=form1;
@@ -2122,39 +2117,6 @@ begin
   end;
 end ;
 
-{
-function ContextOnArray(AContext:TIdContext): boolean;
-var
-  counter : integer;
-Begin
-result := false;
-for counter := 0 to length(PoolServerConex)-1 do
-   begin
-   if AContext = PoolServerConex[counter].Context then
-      begin
-      result := true;
-      break;
-      end;
-   end;
-End;
-
-Function DebugPoolConex():integer;
-var
-  counter : integer;
-  Clients : TList;
-Begin
-Clients:= form1.PoolServer.Contexts.LockList;
-form1.PoolServer.Contexts.UnlockList;
-result := 0;
-for counter := 0 to Clients.count-1 do
-   begin
-   if Not ContextOnArray(form1.PoolServer.Contexts.) then
-      begin
-
-      end;
-   end;
-End;
-}
 // Funciones del servidor Pool
 
 // El servidor del pool recibe una linea
@@ -3116,11 +3078,6 @@ Begin
 If OptionsPanel.Visible then optionspanel.Visible:=false
 else optionspanel.Visible:=true;
 }
-if not FormOptions.Visible then
-  begin
-  FormOptions.LoadOptionsToForm();
-  FormOptions.Visible:= true;
-  end;
 End;
 
 Procedure Tform1.EditIPKeyup(Sender: TObject; var Key: Word; Shift: TShiftState);
