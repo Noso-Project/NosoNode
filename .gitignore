@@ -6,4 +6,5 @@ Noso.exe
 gitinst.txt
 info.txt
 log 0.2.0.txt
-mpoptions.*
+mpoptions.lfm
+mpoptions.pas

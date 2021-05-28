@@ -304,16 +304,7 @@ Procedure FillNodeList();
 var
   cont : integer;
 Begin
-GridNodes.RowCount:=1;
-if Length(ListaNodos)>0 then
-   begin
-   for cont := 0 to Length(ListaNodos)-1 do
-      begin
-      GridNodes.RowCount:=GridNodes.RowCount+1;
-      GridNodes.Cells[0,GridNodes.RowCount-1] := Listanodos[cont].ip;
-      GridNodes.Cells[1,GridNodes.RowCount-1] := Listanodos[cont].port;
-      end;
-   end;
+
 End;
 
 // Creates/updates a node

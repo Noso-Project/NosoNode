@@ -596,30 +596,9 @@ GridMyTxs.Cells[1,0]:=LangLine(109);    //'Time'
 GridMyTxs.Cells[2,0]:=LangLine(110);    //'Type'
 GridMyTxs.Cells[3,0]:=LangLine(111);    //'Amount'
 
-//GridScrowSell.Cells[0,0]:=LangLine(112);  //'Method'
-//GridScrowSell.Cells[1,0]:=LangLine(111);  //'Amount'
-//GridScrowSell.Cells[2,0]:=LangLine(113);  //'Price'
-//GridScrowSell.Cells[3,0]:=LangLine(114);  //'Total'
-//GridScrowSell.Cells[4,0]:=LangLine(115);  //'Status'
-
 SGridSC.Cells[0,0]:=LangLine(116);  //'Destination'
 SGridSC.Cells[0,1]:=LangLine(111);  //'Amount'
 SGridSC.Cells[0,2]:=LangLine(117);  //'Concept'
-
-GridNodes.Cells[0,0]:='IP';
-GridNodes.Cells[1,0]:='Port';
-
-GridOptions.Cells[0,0]:='Language';
-GridOptions.Cells[0,1]:='Port';
-GridOptions.Cells[0,2]:='Max Peers';
-GridOptions.Cells[0,3]:='Min Peers';
-GridOptions.Cells[0,4]:='Miner CPUs';
-GridOptions.Cells[0,5]:='GetNodes';
-GridOptions.Cells[0,6]:='Autoserver';
-GridOptions.Cells[0,7]:='Autoconnect';
-GridOptions.Cells[0,8]:='AutoUpdate';
-GridOptions.Cells[0,9]:='To Tray';
-GridOptions.Cells[0,10]:='Mine with pool';
 
 //Direccionespanel
 Direccionespanel.RowCount:=length(listadirecciones)+1;
@@ -777,7 +756,6 @@ else
       CargarIdioma(strTointDef(number,0));
       Outtext(LangLine(3)+IdiomasDisponibles[StrToIntDef(number,0)],false,2); //Language changed to:
       U_DataPanel := true;
-      LangSelect.ItemIndex := StrToIntDef(number,0);
       end
    else ConsoleLinesAdd(LangLine(4));   //Invalid language number.
    end;

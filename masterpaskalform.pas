@@ -255,6 +255,7 @@ type
     CB_WO_AutoConnect: TCheckBox;
     CB_WO_ToTray: TCheckBox;
     CheckBox1: TCheckBox;
+    CheckBox2: TCheckBox;
     CheckBox3: TCheckBox;
     CheckBox4: TCheckBox;
     CheckBox5: TCheckBox;
@@ -267,14 +268,14 @@ type
     Imagenes: TImageList;
     Label1: TLabel;
     Label2: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
+    Label5: TLabel;
     LabeledEdit10: TLabeledEdit;
     LabeledEdit11: TLabeledEdit;
     LabeledEdit12: TLabeledEdit;
     LabeledEdit13: TLabeledEdit;
     LabeledEdit14: TLabeledEdit;
-    LabeledEdit2: TLabeledEdit;
-    LabeledEdit3: TLabeledEdit;
-    LabeledEdit4: TLabeledEdit;
     LabeledEdit5: TLabeledEdit;
     LabeledEdit6: TLabeledEdit;
     LabeledEdit7: TLabeledEdit;
@@ -293,7 +294,10 @@ type
     Server: TIdTCPServer;
     PoolServer : TIdTCPServer;
     RPCServer : TIdHTTPServer;
+    SE_WO_RTOT: TSpinEdit;
     SE_WO_MinPeers: TSpinEdit;
+    SE_WO_CTOT: TSpinEdit;
+    SE_WO_ShowOrders: TSpinEdit;
     StaticText1: TStaticText;
     SystrayIcon: TTrayIcon;
     tabOptions: TTabSheet;
@@ -306,6 +310,7 @@ type
     TabMonitor: TTabSheet;
     tabExBuy: TTabSheet;
     TabExSell: TTabSheet;
+    TabSheet6: TTabSheet;
     TabWallet: TTabSheet;
     TabConsole: TTabSheet;
 
@@ -333,8 +338,6 @@ type
     Procedure DoubleClickSysTray(Sender: TObject);
     Procedure ConnectCircleOnClick(Sender: TObject);
     Procedure MinerCircleOnClick(Sender: TObject);
-    Procedure LangSelectOnChange(Sender: TObject);
-    Procedure CPUsSelectOnChange(Sender: TObject);
     Procedure GridMyTxsOnDoubleClick(Sender: TObject);
     Procedure BCloseTrxDetailsOnClick(Sender: TObject);
     Procedure BDefAddrOnClick(Sender: TObject);
@@ -358,16 +361,6 @@ type
     Procedure SCBitConfOnClick(Sender:TObject);
     Procedure ResetearValoresEnvio(Sender:TObject);
     Procedure SBOptionsOnClick(Sender:TObject);
-    Procedure EditIPKeyup(Sender: TObject; var Key: Word; Shift: TShiftState);
-    Procedure SBDelNodeOnClick(Sender:TObject);
-    Procedure SBNewNodeOnClick(Sender:TObject);
-    Procedure EditMyportEditingDone(Sender:TObject);
-    Procedure CBGetNodesOnChange(Sender:TObject);
-    Procedure CBAutoserverOnChange(Sender:TObject);
-    Procedure CBAutoConnectOnChange(Sender:TObject);
-    Procedure CBAutoUpdateOnChange(Sender:TObject);
-    Procedure CBToTrayOnChange(Sender:TObject);
-    Procedure CBToPoolOnChange(Sender:TObject);
     // Pool
     //Procedure TryClosePoolConnection(AContext: TIdContext; closemsg:string='');
     function PoolClientsCount : Integer ;
@@ -417,15 +410,6 @@ type
     Procedure TrxDetailsPopUpCopyOrder(Sender:TObject);
     Procedure TrxDetailsPopUpCopy(Sender:TObject);
 
-    // EDITIP POPUP
-    Procedure CheckEditIPPopUp(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
-    Procedure EditIPPopUpPaste(Sender:TObject);
-
-    // NODES POPUP
-    Procedure CheckNodesPopUp(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
-    Procedure NodesPopUpcopy(Sender:TObject);
-    Procedure NodesPopupConnect(Sender:TObject);
-
   private
 
   public
@@ -451,7 +435,7 @@ CONST
                           '199.247.12.166 '+
                           '108.61.250.100';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Da7';
+  SubVersion = 'Db1';
   OficialRelease = true;
   BuildDate = 'April 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -726,8 +710,6 @@ var
   ConsolePopUp : TPopupMenu;
   ConsoLinePopUp : TPopupMenu;
   TrxDetailsPopUp : TPopupMenu;
-  EditIPPopUp : TPopupMenu;
-  NodesPopup: TPopupMenu;
 
   ConnectButton : TSpeedButton;
   MinerButton : TSpeedButton;
@@ -766,28 +748,6 @@ var
   PanelTrxDetails : TPanel;
     MemoTrxDetails : TMemo;
     BCloseTrxDetails : TBitBtn;
-
-  OptionsPanel : Tpanel;
-    LabelNodes : TLabel;
-    SBDelNode : TSpeedButton;
-    GridNodes : TStringGrid;
-    EditIP : TEdit;
-    EditPort : TEdit;
-    SBNewNode :TSpeedButton;
-    LabelOptions:Tlabel;
-    OptionsScroll : TScrollBox;
-    GridOptions : TStringgrid;
-      LangSelect : TComboBox;
-      EditMyPort : TEdit;
-      EditMaxpeer : TEdit;
-      EditMinpeer : TEdit;
-      CPUsSelect : TComboBox;
-      CBGetNodes : TCheckBox;
-      CBAutoserver : TCheckBox;
-      CBAutoConnect: TCheckBox;
-      CBAutoUpdate : TCheckBox;
-      CBToTray : TCheckBox;
-      CBToPool : TCheckBox;
 
   SBOptions : TSpeedButton;
 
@@ -1068,11 +1028,7 @@ OutText('✓ Miner configuration set',false,1);
 LoadOptionsToPanel();
 form1.Caption:=coinname+LangLine(61)+ProgramVersion+SubVersion;    // Wallet
 Application.Title := coinname+LangLine(61)+ProgramVersion;  // Wallet
-for contador := 0 to IdiomasDisponibles.Count-1 do
-   LangSelect.Items.Add(IdiomasDisponibles[contador]);
 OutText('✓ '+IntToStr(IdiomasDisponibles.count)+' languages available',false,1);
-LangSelect.ItemIndex:=0;
-FillNodeList();
 ConsoleLinesAdd(coinname+LangLine(61)+ProgramVersion+SubVersion);  // wallet
 RebuildMyTrx(MyLastBlock);
 UpdateMyTrxGrid();
@@ -1088,11 +1044,7 @@ if fileexists('restart.txt') then RestartConditions();
 if GetEnvironmentVariable('NUMBER_OF_PROCESSORS') = '' then G_CpuCount := 1
 else G_CpuCount := StrToIntDef(GetEnvironmentVariable('NUMBER_OF_PROCESSORS'),1);
 G_CpuCount := 1;
-for contador := 1 to G_CpuCount do
-   CPUsSelect.Items.Add(IntToStr(contador));
-if DefCPUs >= CPUsSelect.Items.Count then CPUsSelect.ItemIndex:= CPUsSelect.Items.Count-1
-else CPUsSelect.ItemIndex:=DefCPUs-1;
-G_MiningCPUs := DefCPUs;
+G_MiningCPUs := G_CpuCount;
 OutText('✓ '+inttostr(G_CpuCount)+' CPUs found',false,1);
 StringAvailableUpdates := AvailableUpdates();
 Form1.Latido.Enabled:=true;
@@ -1121,17 +1073,13 @@ End;
 // Carga las opciones de usuario al panel de opciones
 Procedure TForm1.LoadOptionsToPanel();
 Begin
-EditMyPort.Text:=IntToStr(UserOptions.Port);
-EditMaxpeer.Text :=IntToStr(Maxconecciones);
-EditMinpeer.text := IntToStr(MinConexToWork);
-CBGetNodes.Checked := UserOptions.GetNodes;
-CBAutoserver.Checked := UserOptions.AutoServer;
-CBAutoConnect.Checked := UserOptions.AutoConnect;
-CBAutoUpdate.Checked := UserOptions.Auto_Updater;
-CBTotray.Checked := UserOptions.ToTray;
-CBToPool.checked := UserOptions.UsePool;
-if UserOptions.PoolInfo='' then CBToPool.Enabled := false
-else CBToPool.Enabled :=true;
+CB_WO_AutoConnect.Checked := WO_AutoConnect;
+CB_WO_ToTray.Checked := WO_ToTray;
+SE_WO_MinPeers.Value := MinConexToWork;
+SE_WO_CTOT.Value:= ConnectTimeOutTime;
+SE_WO_RTOT.Value:= ReadTimeOutTIme;
+SE_WO_ShowOrders.Value:= ShowedOrders;
+
 End;
 
 // Cuando se solicita cerrar el programa
@@ -1424,16 +1372,6 @@ MenuItem := TMenuItem.Create(TrxDetailsPopUp);MenuItem.Caption := 'Copy Order';F
 MenuItem := TMenuItem.Create(TrxDetailsPopUp);MenuItem.Caption := 'Copy';Form1.imagenes.GetBitmap(7,MenuItem.Bitmap);
   MenuItem.OnClick := @form1.TrxDetailsPopUpCopy;TrxDetailsPopUp.Items.Add(MenuItem);
 
-EditIPPopUp := TPopupMenu.Create(form1);
-MenuItem := TMenuItem.Create(EditIPPopUp);MenuItem.Caption := 'Paste';Form1.imagenes.GetBitmap(15,MenuItem.Bitmap);
-  MenuItem.OnClick := @form1.EditIPPopUpPaste;EditIPPopUp.Items.Add(MenuItem);
-
-NodesPopup := TPopupMenu.Create(form1);
-MenuItem := TMenuItem.Create(NodesPopup);MenuItem.Caption := 'Copy';Form1.imagenes.GetBitmap(7,MenuItem.Bitmap);
-  MenuItem.OnClick := @form1.NodesPopupCopy;NodesPopup.Items.Add(MenuItem);
-MenuItem := TMenuItem.Create(NodesPopup);MenuItem.Caption := 'ConnectTo';Form1.imagenes.GetBitmap(29,MenuItem.Bitmap);
-  MenuItem.OnClick := @form1.NodesPopupConnect;NodesPopup.Items.Add(MenuItem);
-
 Memoconsola := TMemo.Create(Form1);
 Memoconsola.Parent:=form1.tabconsole;
 Memoconsola.Left:=0;Memoconsola.Top:=0;Memoconsola.Height:=220;Memoconsola.Width:=388;
@@ -1478,7 +1416,7 @@ ConnectButton.ShowHint:=true;ConnectButton.OnMouseEnter:=@Form1.CheckForHint;
 
 MinerButton := TSpeedButton.Create(form1);MinerButton.Parent:=form1;
 MinerButton.Top:=2;MinerButton.Left:=30;MinerButton.Height:=26;MinerButton.Width:=26;
-Form1.imagenes.GetBitmap(4,MinerButton.Glyph);
+Form1.imagenes.GetBitmap(4,MinerButton.Glyph);MinerButton.Visible:=false;
 MinerButton.Caption:='';MinerButton.OnClick:=@Form1.MinerCircleOnClick;
 MinerButton.ShowHint:=true;MinerButton.OnMouseEnter:=@Form1.CheckForHint;
 
@@ -1687,39 +1625,6 @@ PanelTrxDetails.OnContextPopup:=@form1.DisablePopUpMenu;
    BCloseTrxDetails.BiDiMode:= bdRightToLeft;
    BCloseTrxDetails.Visible:=true;BCloseTrxDetails.OnClick:=@form1.BCloseTrxDetailsOnClick;
 
-{
-PanelScrow := TPanel.Create(Form1);PanelScrow.Parent:=form1;
-PanelScrow.Left:=2;PanelScrow.Top:=307;PanelScrow.Height:=181;PanelScrow.Width:=396;
-PanelScrow.BevelColor:=clBlack;PanelScrow.Visible:=false;
-PanelScrow.font.Name:='consolas';PanelScrow.Font.Size:=14;
-
-   BScrowSell := TButton.Create(Form1);BScrowSell.Parent:=PanelScrow;
-   BScrowSell.Left:=2;BScrowSell.Top:=2;
-   BScrowSell.Height:=18;BScrowSell.Width:=50;
-   BScrowSell.Caption:='Sell';BScrowSell.Font.Name:='candaras';BScrowSell.Font.Size:=8;
-   BScrowSell.Visible:=true;//BScrowSell.OnClick:=@form1.BScrowSellOnClick;
-
-   BScrowBuy := TButton.Create(Form1);BScrowBuy.Parent:=PanelScrow;
-   BScrowBuy.Left:=62;BScrowBuy.Top:=2;
-   BScrowBuy.Height:=18;BScrowBuy.Width:=50;
-   BScrowBuy.Caption:='Buy';BScrowBuy.Font.Name:='consolas';BScrowBuy.Font.Size:=8;
-   BScrowBuy.Visible:=true;//BScrowBuy.OnClick:=@form1.BScrowBuyOnClick;
-
-   GridScrowSell := TStringGrid.Create(Form1);GridScrowSell.Parent:=PanelScrow;
-   GridScrowSell.Left:=2;GridScrowSell.Top:=22;GridScrowSell.Height:=157;GridScrowSell.width:=392;
-   GridScrowSell.FixedCols:=0;GridScrowSell.FixedRows:=1;
-   GridScrowSell.rowcount := 1;GridScrowSell.ColCount:=5;
-   GridScrowSell.ScrollBars:=ssVertical;
-   GridScrowSell.Options:= GridScrowSell.Options+[goRowSelect]-[goRangeSelect];
-   GridScrowSell.ColWidths[0]:= 75;GridScrowSell.ColWidths[1]:= 75;GridScrowSell.ColWidths[2]:= 75;
-   GridScrowSell.ColWidths[3]:= 75;GridScrowSell.ColWidths[4]:= 71;
-   GridScrowSell.Font.Name:='consolas'; GridScrowSell.Font.Size:=8;
-   GridScrowSell.FocusRectVisible:=false;
-
-   //GridScrowSell.OnPrepareCanvas:= @Form1.GridScrowSellPrepareCanvas;
-   //GridScrowSell.OnDblClick:= @Form1.GridScrowSellOnDoubleClick;
-}
-
 InfoPanel := TPanel.Create(Form1);InfoPanel.Parent:=form1;
 InfoPanel.Font.Name:='consolas';InfoPanel.Font.Size:=8;
 InfoPanel.Left:=100;InfoPanel.AutoSize:=false;
@@ -1729,142 +1634,8 @@ InfoPanel.Width:=200;InfoPanel.Height:=20;InfoPanel.Alignment:=tacenter;
 InfoPanel.Caption:='';InfoPanel.Visible:=true;
 InfoPanel.BringToFront;
 
-OptionsPanel := TPanel.Create(Form1);OptionsPanel.Parent:=form1;
-OptionsPanel.Left:=2;OptionsPanel.Top:=307;OptionsPanel.Height:=181;OptionsPanel.Width:=396;
-OptionsPanel.BevelColor:=clBlack;OptionsPanel.Visible:=false;
-OptionsPanel.font.Name:='consolas';OptionsPanel.Font.Size:=14;
-
-  LabelNodes := TLabel.Create(OptionsPanel);LabelNodes.Parent := OptionsPanel;
-  LabelNodes.Top :=2;LabelNodes.Left:=2;LabelNodes.AutoSize:=true;
-  LabelNodes.Caption:='Nodes';
-
-  GridNodes := TStringGrid.Create(Form1);GridNodes.Parent:=OptionsPanel;
-  GridNodes.Left:=2;GridNodes.Top:=22;GridNodes.Height:=136;GridNodes.Width:=172;
-  GridNodes.ColCount:=2;GridNodes.rowcount:=1;GridNodes.FixedCols:=0;GridNodes.FixedRows:=1;
-  GridNodes.Options:= GridNodes.Options+[goRowSelect]-[goRangeSelect];
-  GridNodes.ScrollBars:=ssvertical;
-  GridNodes.ColWidths[0]:= 100;GridNodes.ColWidths[1]:= 50;
-  GridNodes.font.Name:='consolas';GridNodes.Font.Size:=8;
-  GridNodes.FocusRectVisible:=false;
-  GridNodes.OnContextPopup:=@Form1.CheckNodesPopUp;
-  GridNodes.PopupMenu:=NodesPopUp;
-
-    SBDelNode := TSpeedButton.Create(Form1);SBDelNode.Parent:=GridNodes;
-    SBDelNode.Left:=78;SBDelNode.Top:=0;SBDelNode.Height:=18;SBDelNode.Width:=18;
-    Form1.imagenes.GetBitmap(23,SBDelNode.Glyph);
-    SBDelNode.Visible:=true;SBDelNode.OnClick:=@form1.SBDelNodeOnClick;
-    SBDelNode.hint:='Delete node';SBDelNode.ShowHint:=true;
-
-  EditIP := TEdit.Create(Form1);EditIP.Parent:=OptionsPanel;EditIP.AutoSize:=false;
-  EditIP.Left:=2;EditIP.Top:=160;EditIP.Height:=18;EditIP.Width:=100;
-  EditIP.Font.Name:='consolas'; EditIP.Font.Size:=8;
-  EditIP.Color:=clBlack;EditIP.Font.color:=clwhite;
-  EditIP.Alignment:=taRightJustify;EditIP.Visible:=true;
-  EditIP.OnContextPopup:=@Form1.CheckEditIPPopUp;
-  EditIP.PopupMenu:=EditIPPopUp ;
-  EditIP.OnKeyUp:=@form1.EditIPKeyup;
-
-  EditPort := TEdit.Create(Form1);EditPort.Parent:=OptionsPanel;EditPort.AutoSize:=false;
-  EditPort.Left:=102;EditPort.Top:=160;EditPort.Height:=18;EditPort.Width:=50;
-  EditPort.Font.Name:='consolas'; EditPort.Font.Size:=8;
-  EditPort.Color:=clBlack;EditPort.Font.color:=clwhite;
-  EditPort.Alignment:=taRightJustify;EditPort.Visible:=true;
-  EditPort.OnKeyUp:=@form1.EditIPKeyup;
-  EditPort.OnContextPopup:=@form1.DisablePopUpMenu;
-
-  SBNewNode := TSpeedButton.Create(Form1);SBNewNode.Parent:=OptionsPanel;
-  SBNewNode.Left:=154;SBNewNode.Top:=160;SBNewNode.Height:=18;SBNewNode.Width:=18;
-  Form1.imagenes.GetBitmap(6,SBNewNode.Glyph);
-  SBNewNode.Visible:=true;SBNewNode.OnClick:=@form1.SBNewNodeOnClick;
-  SBNewNode.hint:='Add new node';SBNewNode.ShowHint:=true;
-
-  LabelOptions := TLabel.Create(OptionsPanel);LabelOptions.Parent := OptionsPanel;
-  LabelOptions.Top :=2;LabelOptions.Left:=176; LabelOptions.AutoSize:=true;
-  LabelOptions.Caption:='Options';
-
-  OptionsScroll := TScrollBox.Create(Form1);OptionsScroll.Parent:=OptionsPanel;
-  OptionsScroll.Left:=176;OptionsScroll.Top:=22;OptionsScroll.Height:=156;
-  OptionsScroll.Width:=218;
-  OptionsScroll.Color:=clWhite;
-  OptionsScroll.Visible:=true;
-
-    GridOptions := TStringGrid.Create(Form1);GridOptions.Parent:=OptionsScroll;
-    GridOptions.Left:=2;GridOptions.Top:=2;GridOptions.Height:=222;GridOptions.Width:=192;
-    GridOptions.DefaultColWidth:= 80;GridOptions.DefaultRowHeight:=20;
-    GridOptions.ColCount:=2;GridOptions.rowcount:=11;GridOptions.FixedCols:=1;GridOptions.FixedRows:=0;
-    GridOptions.Options:= GridOptions.Options+[goRowSelect]-[goRangeSelect];
-    GridOptions.ScrollBars:=ssnone;GridOptions.enabled:= false;
-    GridOptions.font.Name:='consolas';GridOptions.Font.Size:=8;
-    GridOptions.ColWidths[0]:= 110;GridOptions.ColWidths[1]:= 80;
-    GridOptions.FocusRectVisible:=false;
-
-      LangSelect := TComboBox.Create(form1);LangSelect.Parent :=OptionsScroll ;
-      LangSelect.Font.Name:='candara';LangSelect.Font.Size:=8;
-      LangSelect.Left:=114;LangSelect.Top:=2;
-      LangSelect.Height:=12;LangSelect.Width:=80;
-      LangSelect.Style:=csDropDownList ;
-      LangSelect.OnChange:=@form1.LangSelectOnChange;
-
-      EditMyPort := TEdit.Create(Form1);EditMyPort.Parent:=OptionsScroll;EditMyPort.AutoSize:=false;
-      EditMyPort.Left:=114;EditMyPort.Top:=22;EditMyPort.Height:=20;EditMyPort.Width:=80;
-      EditMyPort.Font.Name:='consolas'; EditMyPort.Font.Size:=8;
-      EditMyPort.Color:=clBlack;EditMyPort.Font.color:=clwhite;
-      EditMyPort.Alignment:=taRightJustify;EditMyPort.Visible:=true;
-      EditMyport.OnEditingDone:=@form1.EditMyportEditingDone;
-      EditMyPort.OnContextPopup:=@form1.DisablePopUpMenu;
-
-      EditMaxpeer := TEdit.Create(Form1);EditMaxpeer.Parent:=OptionsScroll;EditMaxpeer.AutoSize:=false;
-      EditMaxpeer.Left:=114;EditMaxpeer.Top:=42;EditMaxpeer.Height:=20;EditMaxpeer.Width:=80;
-      EditMaxpeer.Font.Name:='consolas'; EditMaxpeer.Font.Size:=8;
-      EditMaxpeer.Color:=clBlack;EditMaxpeer.Font.color:=clwhite;
-      EditMaxpeer.Alignment:=taRightJustify;EditMaxpeer.Visible:=true;
-      EditMaxpeer.Enabled:=false;
-      EditMaxpeer.OnContextPopup:=@form1.DisablePopUpMenu;
-
-      EditMinpeer := TEdit.Create(Form1);EditMinpeer.Parent:=OptionsScroll;EditMinpeer.AutoSize:=false;
-      EditMinpeer.Left:=114;EditMinpeer.Top:=62;EditMinpeer.Height:=20;EditMinpeer.Width:=80;
-      EditMinpeer.Font.Name:='consolas'; EditMinpeer.Font.Size:=8;
-      EditMinpeer.Color:=clBlack;EditMinpeer.Font.color:=clwhite;
-      EditMinpeer.Alignment:=taRightJustify;EditMinpeer.Visible:=true;
-      EditMinpeer.OnContextPopup:=@form1.DisablePopUpMenu;
-
-      CPUsSelect := TComboBox.Create(form1);CPUsSelect.Parent :=OptionsScroll ;
-      CPUsSelect.Font.Name:='candara';CPUsSelect.Font.Size:=10;
-      CPUsSelect.Left:=114;CPUsSelect.Top:=82;
-      CPUsSelect.Height:=12;CPUsSelect.Width:=80;
-      CPUsSelect.Style:=csDropDownList ;
-      CPUsSelect.OnChange:=@form1.CPUsSelectOnChange;
-
-      CBGetNodes :=TcheckBox.Create(form1);CBGetNodes.Parent:=OptionsScroll;
-      CBGetNodes.AutoSize:=false;
-      CBGetNodes.Left:=176;CBGetNodes.Top:=106;CBGetNodes.Height:=14;CBGetNodes.Width:=14;
-      CBGetNodes.Visible:=true;CBGetNodes.OnChange:=@Form1.CBGetNodesOnChange;
-      CBGetNodes.Enabled:=false;
-
-      CBAutoserver :=TcheckBox.Create(form1);CBAutoserver.Parent:=OptionsScroll;
-      CBAutoserver.AutoSize:=false;
-      CBAutoserver.Left:=176;CBAutoserver.Top:=126;CBAutoserver.Height:=14;CBAutoserver.Width:=14;
-      CBAutoserver.Visible:=true;CBAutoserver.OnChange:=@Form1.CBAutoserverOnChange;
-
-      CBAutoConnect :=TcheckBox.Create(form1);CBAutoConnect.Parent:=OptionsScroll;
-      CBAutoConnect.AutoSize:=false;
-      CBAutoConnect.Left:=176;CBAutoConnect.Top:=146;CBAutoConnect.Height:=14;CBAutoConnect.Width:=14;
-      CBAutoConnect.Visible:=true;CBAutoConnect.OnChange:=@Form1.CBAutoConnectOnChange;
-
-      CBAutoUpdate :=TcheckBox.Create(form1);CBAutoUpdate.Parent:=OptionsScroll;
-      CBAutoUpdate.AutoSize:=false;
-      CBAutoUpdate.Left:=176;CBAutoUpdate.Top:=166;CBAutoUpdate.Height:=14;CBAutoUpdate.Width:=14;
-      CBAutoUpdate.Visible:=true;CBAutoUpdate.OnChange:=@Form1.CBAutoUpdateOnChange;
-
-      CBToTray :=TcheckBox.Create(form1);CBToTray.Parent:=OptionsScroll;
-      CBToTray.AutoSize:=false;
-      CBToTray.Left:=176;CBToTray.Top:=186;CBToTray.Height:=14;CBToTray.Width:=14;
-      CBToTray.Visible:=true;CBToTray.OnChange:=@Form1.CBToTrayOnChange;
-
-      CBToPool :=TcheckBox.Create(form1);CBToPool.Parent:=OptionsScroll;
-      CBToPool.AutoSize:=false;
-      CBToPool.Left:=176;CBToPool.Top:=206;CBToPool.Height:=14;CBToPool.Width:=14;
-      CBToPool.Visible:=true;CBToPool.OnChange:=@Form1.CBToPoolOnChange;
+{
+}
 
 StatusPanel := TPanel.Create(Form1);StatusPanel.Parent:=form1;
 StatusPanel.Font.Name:='consolas';StatusPanel.Font.Size:=8;
@@ -2750,19 +2521,6 @@ else
    end;
 End;
 
-// Cambiar el idiomar por combobox
-Procedure Tform1.LangSelectOnChange(Sender: TObject);
-Begin
-if LangSelect.Items[LangSelect.ItemIndex] <> CurrentLanguage then
-   ProcessLinesAdd('lang '+IntToStr(LangSelect.ItemIndex ));
-End;
-
-// Cambiar el idiomar por combobox
-Procedure Tform1.CPUsSelectOnChange(Sender: TObject);
-Begin
-if strtointdef(CPUsSelect.Text,1) <> G_MiningCPUs then ProcessLinesAdd('CPUMINE '+CPUsSelect.Text);
-End;
-
 // Mostrar los detalles de una transaccion
 Procedure TForm1.GridMyTxsOnDoubleClick(Sender: TObject);
 var
@@ -3074,86 +2832,7 @@ End;
 // Mostrar/ocultar opciones
 Procedure Tform1.SBOptionsOnClick(Sender:TObject);
 Begin
-{
-If OptionsPanel.Visible then optionspanel.Visible:=false
-else optionspanel.Visible:=true;
-}
-End;
 
-Procedure Tform1.EditIPKeyup(Sender: TObject; var Key: Word; Shift: TShiftState);
-Begin
-if Key=VK_RETURN then
-   begin
-   ProcessLinesAdd('ADDNODE '+EditIP.Text+' '+EditPort.Text);
-   EditIP.Text := '';EditPort.Text := '';
-   end;
-End;
-
-// Boton para borrar un nodo
-Procedure Tform1.SBDelNodeOnClick(Sender:TObject);
-Begin
-ProcessLinesAdd('DELNODE '+IntToStr(Gridnodes.row-1));
-End;
-
-// boton para añadir un nuevo nodo
-Procedure Tform1.SBNewNodeOnClick(Sender:TObject);
-Begin
-ProcessLinesAdd('ADDNODE '+EditIP.Text+' '+EditPort.Text);
-EditIP.Text := '';EditPort.Text := '';
-End;
-
-Procedure Tform1.EditMyportEditingDone(Sender:TObject);
-Begin
-if StrToIntDef(EditMyport.Text,0) <> UserOptions.port then
-  ProcessLinesAdd('SETPORT '+EditMyport.Text);
-End;
-
-// ACTIVA/DESACTIVA GETNODES
-Procedure TForm1.CBGetNodesOnChange(Sender:TObject);
-Begin
-if G_Launching then exit;
-If UserOptions.GetNodes then ProcessLinesAdd('GETNODESOFF')
-else ProcessLinesAdd('GETNODESON');
-End;
-
-// activa/desactiva autoserver
-Procedure TForm1.CBAutoserverOnChange(Sender:TObject);
-Begin
-if G_Launching then exit;
-If UserOptions.AutoServer then ProcessLinesAdd('AUTOSERVEROFF')
-else ProcessLinesAdd('AUTOSERVERON');
-End;
-
-// activa/desactiva autoconnect
-Procedure TForm1.CBAutoConnectOnChange(Sender:TObject);
-Begin
-if G_Launching then exit;
-If UserOptions.AutoConnect then ProcessLinesAdd('AUTOCONNECTOFF')
-else ProcessLinesAdd('AUTOCONNECTON');
-End;
-
-// activa/desactiva autoupdate
-Procedure TForm1.CBAutoUpdateOnChange(Sender:TObject);
-Begin
-if G_Launching then exit;
-If UserOptions.Auto_Updater then ProcessLinesAdd('AUTOUPDATEOFF')
-else ProcessLinesAdd('AUTOUPDATEON');
-End;
-
-// activa/desactiva minimizar
-Procedure TForm1.CBToTrayOnChange(Sender:TObject);
-Begin
-if G_Launching then exit;
-If UserOptions.ToTray then ProcessLinesAdd('TOTRAYOFF')
-else ProcessLinesAdd('TOTRAYON');
-End;
-
-// activa/desactiva minimizar
-Procedure TForm1.CBToPoolOnChange(Sender:TObject);
-Begin
-if G_Launching then exit;
-If UserOptions.UsePool then ProcessLinesAdd('USEPOOLOFF')
-else ProcessLinesAdd('USEPOOLON');
 End;
 
 // Actualizar barra de estado
@@ -3213,14 +2892,6 @@ else MainMenu.Items[0].Items[1].Caption:='Connect';
 if Miner_Active then MainMenu.Items[0].Items[2].Caption:='Stop mining'
 else MainMenu.Items[0].Items[2].Caption:='Mine';
 MainMenu.Items[1].Items[0].Clear;
-for contador := 0 to LangSelect.Items.Count-1 do
-  begin
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:=LangSelect.Items[contador];MenuItem.OnClick:=@Form1.MMChangeLang;
-  if LangSelect.Items[contador] = 'English' then Form1.imagenes.GetBitmap(36,MenuItem.bitmap);
-  if LangSelect.Items[contador] = 'Español' then Form1.imagenes.GetBitmap(37,MenuItem.bitmap);
-  if LangSelect.Items[contador] = 'Polskie' then Form1.imagenes.GetBitmap(38,MenuItem.bitmap);
-  MainMenu.items[1].Items[0].Add(MenuItem);
-  end;
 MainMenu.Items[1].Items[3].Clear;
 if length(StringAvailableUpdates) > 0 then
    begin
@@ -3335,8 +3006,6 @@ if memoconsola.Visible then
    PanelTrxDetails.Visible:=false;
    DireccionesPanel.Visible:=true;
    GridMyTxs.Visible:=true;
-   //PanelScrow.Visible:=true;
-   optionspanel.Visible:=false;
    MainMenu.Items[2].Items[0].Caption:='Console';
    Form1.imagenes.GetBitmap(25,MainMenu.Items[2].Items[0].bitmap);
    end
@@ -3350,8 +3019,6 @@ else
    PanelSend.Visible:=false;
    GridMyTxs.Visible:=false;
    PanelTrxDetails.Visible:=false;
-   //PanelScrow.Visible:=false;
-   optionspanel.Visible:=false;
    ConsoleLine.SetFocus;
    MainMenu.Items[2].Items[0].Caption:='Wallet';
    Form1.imagenes.GetBitmap(30,MainMenu.Items[2].Items[0].bitmap);
@@ -3495,47 +3162,6 @@ Begin
 Clipboard.AsText:= MemoTrxDetails.SelText;
 info('Copied to clipboard');
 End;
-
-//******************************************************************************
-// EditIP PopUp
-//******************************************************************************
-
-// VErifica que mostrar en el consolepopup
-Procedure TForm1.CheckEditIpPopUp(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
-Begin
-if IsValidIp(Clipboard.AsText) then EditIpPopUp.Items[0].enabled:= true
-else EditIpPopUp.Items[0].enabled:= false;
-End;
-
-Procedure TForm1.EditIpPopUpPaste(Sender:TObject);
-Begin
-EditIp.Text := Clipboard.AsText
-End;
-
-//******************************************************************************
-// Nodes PopUp
-//******************************************************************************
-
-// VErifica que mostrar en el consolepopup
-Procedure TForm1.CheckNodesPopUp(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
-Begin
-if GridNodes.Row>0 then NodesPopUp.Items[0].enabled:= true
-else NodesPopUp.Items[0].enabled:= false;
-if GridNodes.Row>0 then NodesPopUp.Items[1].enabled:= true
-else NodesPopUp.Items[1].enabled:= false
-End;
-
-Procedure TForm1.NodesPopUpCopy(Sender:TObject);
-Begin
-Clipboard.AsText := GridNodes.Cells[0,GridNodes.Row];
-info('Node copied to clipboard');
-End;
-
-Procedure TForm1.NodesPopupConnect(Sender:TObject);
-Begin
-ProcessLinesAdd('ConnectTo '+gridnodes.Cells[0,Gridnodes.row]+' '+gridnodes.Cells[1,Gridnodes.row]);
-End;
-
 
 
 END. // END PROGRAM

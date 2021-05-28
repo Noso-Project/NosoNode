@@ -1234,10 +1234,6 @@ for contador := 1 to length(ListaDeIdiomas) do
    end;
 closefile(archivo2);
 CargarIdioma(idiomas-1);
-LangSelect.Items.Clear;
-for contador := 0 to IdiomasDisponibles.Count-1 do
-   LangSelect.Items.Add(IdiomasDisponibles[contador]);
-LangSelect.ItemIndex := idiomas-1;
 InicializarGUI();
 ConsoleLinesAdd('Loaded: '+NombreIdioma);
 End;

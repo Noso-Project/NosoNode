@@ -299,7 +299,7 @@ object Form1: TForm1
     Top = 30
     Width = 396
     ActivePage = tabOptions
-    TabIndex = 3
+    TabIndex = 4
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
@@ -326,6 +326,9 @@ object Form1: TForm1
           Caption = 'Sell'
         end
       end
+    end
+    object TabSheet6: TTabSheet
+      Caption = 'Miner'
     end
     object tabOptions: TTabSheet
       Caption = 'Options'
@@ -359,68 +362,29 @@ object Form1: TForm1
             Caption = 'Minimize to tray'
             TabOrder = 1
           end
-          object LabeledEdit2: TLabeledEdit
-            Left = 8
-            Height = 18
-            Top = 112
-            Width = 40
-            AutoSize = False
-            EditLabel.Height = 15
-            EditLabel.Width = 90
-            EditLabel.Caption = 'ConnectTimeout'
-            EditLabel.ParentColor = False
-            LabelPosition = lpRight
-            TabOrder = 2
-          end
-          object LabeledEdit3: TLabeledEdit
-            Left = 8
-            Height = 18
-            Top = 136
-            Width = 40
-            AutoSize = False
-            EditLabel.Height = 15
-            EditLabel.Width = 74
-            EditLabel.Caption = 'Read Timeout'
-            EditLabel.ParentColor = False
-            LabelPosition = lpRight
-            TabOrder = 3
-          end
-          object LabeledEdit4: TLabeledEdit
-            Left = 8
-            Height = 18
-            Top = 160
-            Width = 40
-            AutoSize = False
-            EditLabel.Height = 15
-            EditLabel.Width = 78
-            EditLabel.Caption = 'Showed orders'
-            EditLabel.ParentColor = False
-            LabelPosition = lpRight
-            TabOrder = 4
-          end
           object CheckBox3: TCheckBox
             Left = 8
             Height = 19
             Top = 184
-            Width = 149
-            Caption = 'Update my PoS earnings'
-            TabOrder = 5
+            Width = 140
+            Caption = 'Show my PoS earnings'
+            TabOrder = 2
           end
           object SE_WO_MinPeers: TSpinEdit
             Left = 8
             Height = 18
-            Top = 88
-            Width = 40
+            Top = 64
+            Width = 48
             AutoSize = False
             MaxValue = 5
             MinValue = 1
-            TabOrder = 6
+            TabOrder = 3
             Value = 1
           end
           object Label2: TLabel
-            Left = 52
+            Left = 64
             Height = 15
-            Top = 88
+            Top = 67
             Width = 164
             Caption = 'Minimum connections to work'
             ParentColor = False
@@ -428,16 +392,84 @@ object Form1: TForm1
           object CheckBox1: TCheckBox
             Left = 8
             Height = 19
-            Top = 64
+            Top = 160
             Width = 135
             Caption = 'Download blockchain'
+            TabOrder = 4
+          end
+          object SE_WO_CTOT: TSpinEdit
+            Left = 8
+            Height = 18
+            Top = 88
+            Width = 48
+            AutoSize = False
+            Increment = 100
+            MaxValue = 2000
+            MinValue = 100
+            TabOrder = 5
+            Value = 500
+          end
+          object Label3: TLabel
+            Left = 64
+            Height = 15
+            Top = 91
+            Width = 93
+            Caption = 'Connect time out'
+            ParentColor = False
+          end
+          object SE_WO_RTOT: TSpinEdit
+            Left = 8
+            Height = 18
+            Top = 112
+            Width = 48
+            AutoSize = False
+            Increment = 100
+            MaxValue = 1000
+            MinValue = 100
+            TabOrder = 6
+            Value = 500
+          end
+          object Label4: TLabel
+            Left = 64
+            Height = 15
+            Top = 115
+            Width = 74
+            Caption = 'Read time out'
+            ParentColor = False
+          end
+          object SE_WO_ShowOrders: TSpinEdit
+            Left = 8
+            Height = 18
+            Top = 136
+            Width = 48
+            AutoSize = False
+            Increment = 100
+            MaxValue = 1000
+            MinValue = 100
             TabOrder = 7
+            Value = 500
+          end
+          object Label5: TLabel
+            Left = 64
+            Height = 15
+            Top = 139
+            Width = 118
+            Caption = 'History orders showed'
+            ParentColor = False
+          end
+          object CheckBox2: TCheckBox
+            Left = 8
+            Height = 19
+            Top = 208
+            Width = 206
+            Caption = 'Use multiple address for send coins'
+            TabOrder = 8
           end
         end
         object TabSheet2: TTabSheet
           Caption = 'Node'
-          ClientHeight = 196
-          ClientWidth = 256
+          ClientHeight = 398
+          ClientWidth = 374
           object CheckBox4: TCheckBox
             Left = 8
             Height = 19
@@ -517,8 +549,8 @@ object Form1: TForm1
         end
         object TabSheet3: TTabSheet
           Caption = 'RPC'
-          ClientHeight = 196
-          ClientWidth = 256
+          ClientHeight = 398
+          ClientWidth = 374
           object CheckBox5: TCheckBox
             Left = 8
             Height = 19
@@ -571,8 +603,8 @@ object Form1: TForm1
         end
         object TabSheet4: TTabSheet
           Caption = 'Pool'
-          ClientHeight = 196
-          ClientWidth = 256
+          ClientHeight = 398
+          ClientWidth = 374
           object Panel1: TPanel
             Left = 8
             Height = 186
@@ -649,8 +681,8 @@ object Form1: TForm1
         end
         object TabSheet5: TTabSheet
           Caption = 'Trade'
-          ClientHeight = 196
-          ClientWidth = 256
+          ClientHeight = 398
+          ClientWidth = 374
           object CheckBox7: TCheckBox
             Left = 8
             Height = 19

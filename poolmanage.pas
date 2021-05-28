@@ -111,7 +111,6 @@ End;
 function GetMemberPrefijo(poolslot:integer):string;
 var
   firstchar, secondchar : integer;
-  resultado : string;
   HashChars : integer;
 Begin
 HashChars :=  length(HasheableChars)-1;
