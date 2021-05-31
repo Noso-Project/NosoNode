@@ -27,6 +27,7 @@ function cadtonum(cadena:string;pordefecto:int64;erroroutput:string):int64;
 Function IsValidIP(IpString:String):boolean;
 function GetCurrentStatus(mode:integer):String;
 function GetSupply(untilblock:integer):int64;
+function GetMyPosAddressesCount():integer;
 
 
 
@@ -372,16 +373,19 @@ resultado := resultado+'ServerON: '+BoolToStr(Form1.Server.Active,true)+' ';
 resultado := resultado+'CONNECT_Try: '+BoolToStr(CONNECT_Try,true)+' ';
 if mode = 1 then
    begin
-   resultado := resultado+'MyConStatus: '+IntToStr(myConStatus)+' ';
-   Resultado := resultado+'CurrentJob: '+CurrentJob+' ';
-   Resultado := resultado+'MinerActive: '+BoolToStr(Miner_Active,true)+' ';
-   Resultado := resultado+'MinerIsOn: '+BoolToStr(Miner_IsON,true)+' ';
-   Resultado := resultado+'CPUs: '+IntToStr(G_CpuCount)+' ';
-   Resultado := resultado+'MinerThreads: '+IntToStr(Length(Miner_Thread)) +' ';
-   Resultado := resultado+'OS: '+OSVersion +' ';
-   Resultado := resultado+'WalletVer: '+ProgramVersion+SubVersion+' ';
-   Resultado := resultado+'Minerhashcount: '+IntToStr(MINER_HashCounter)+' ';
-   Resultado := resultado+'Minerhashseed: '+MINER_HashSeed;
+   resultado := resultado+'MyConStatus: '+IntToStr(myConStatus)+slinebreak;
+   Resultado := resultado+'CurrentJob: '+CurrentJob+slinebreak;
+   Resultado := resultado+'MinerActive: '+BoolToStr(Miner_Active,true)+slinebreak;
+   Resultado := resultado+'MinerIsOn: '+BoolToStr(Miner_IsON,true)+slinebreak;
+   Resultado := resultado+'CPUs: '+IntToStr(G_CpuCount)+slinebreak;
+   Resultado := resultado+'MinerThreads: '+IntToStr(Length(Miner_Thread)) +slinebreak;
+   Resultado := resultado+'OS: '+OSVersion +slinebreak;
+   Resultado := resultado+'WalletVer: '+ProgramVersion+SubVersion+slinebreak;
+   Resultado := resultado+'Minerhashcount: '+IntToStr(MINER_HashCounter)+slinebreak;
+   Resultado := resultado+'Minerhashseed: '+MINER_HashSeed+slinebreak;
+   Resultado := resultado+'SendingMsgs: '+BoolToStr(SendingMsgs,true)+slinebreak;
+   Resultado := resultado+'Autorestarted: '+BoolToStr(AutoRestarted,true)+slinebreak;
+   Resultado := resultado+'InsideMinerJoin: '+BoolToStr(InsideMinerJoin,true)+slinebreak;
    end;
 result := resultado;
 End;
@@ -389,6 +393,18 @@ End;
 function GetSupply(untilblock:integer):int64;
 Begin
 result := (untilblock*5000000000)+1030390730000;
+End;
+
+
+function GetMyPosAddressesCount():integer;
+var
+   PosRequired : int64;
+   Contador : integer;
+Begin
+result := 0;
+PosRequired := (GetSupply(MyLastBlock+1)*PosStackCoins) div 10000;
+for contador := 0 to length(ListaDirecciones)-1 do
+   if ListaDirecciones[contador].Balance > PosRequired then result +=1;
 End;
 
 END. // END UNIT

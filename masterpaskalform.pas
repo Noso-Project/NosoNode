@@ -9,7 +9,7 @@ uses
   Grids, ExtCtrls, Buttons, IdTCPServer, IdContext, IdGlobal, IdTCPClient,
   fileutil, Clipbrd, Menus, crt, formexplore, lclintf, ComCtrls, Spin,
   poolmanage, strutils, mpoptions, math, IdHTTPServer, IdCustomHTTPServer,
-  fpJSON;
+  fpJSON, Types;
 
 type
 
@@ -155,7 +155,7 @@ type
      block : integer;
      time  : int64;
      tipo  : string[6];
-     receiver : string[64];
+     receiver : string[64];     // Used for PoS storage on transaction 0
      monto    : int64;
      trfrID   : string[64];
      OrderID  : String[64];
@@ -256,9 +256,8 @@ type
     CB_WO_ToTray: TCheckBox;
     CheckBox1: TCheckBox;
     CheckBox2: TCheckBox;
-    CheckBox3: TCheckBox;
     CheckBox4: TCheckBox;
-    CheckBox5: TCheckBox;
+    CB_RPC_ON: TCheckBox;
     CheckBox6: TCheckBox;
     CheckBox7: TCheckBox;
     CheckBox8: TCheckBox;
@@ -271,8 +270,9 @@ type
     Label3: TLabel;
     Label4: TLabel;
     Label5: TLabel;
-    LabeledEdit10: TLabeledEdit;
-    LabeledEdit11: TLabeledEdit;
+    Label6: TLabel;
+    LE_Rpc_Port: TLabeledEdit;
+    LE_Rpc_Pass: TLabeledEdit;
     LabeledEdit12: TLabeledEdit;
     LabeledEdit13: TLabeledEdit;
     LabeledEdit14: TLabeledEdit;
@@ -285,10 +285,14 @@ type
     InfoTimer : TTimer;
     InicioTimer : TTimer;
     CloseTimer : TTimer;
+    RestartTimer : Ttimer;
     Memo1: TMemo;
     Memo2: TMemo;
+    MemoLog: TMemo;
+    MemoExceptLog: TMemo;
     PageControl1: TPageControl;
     PageControl2: TPageControl;
+    PageControl3: TPageControl;
     PageMain: TPageControl;
     Panel1: TPanel;
     Server: TIdTCPServer;
@@ -298,6 +302,7 @@ type
     SE_WO_MinPeers: TSpinEdit;
     SE_WO_CTOT: TSpinEdit;
     SE_WO_ShowOrders: TSpinEdit;
+    SE_WO_PosWarning: TSpinEdit;
     StaticText1: TStaticText;
     SystrayIcon: TTrayIcon;
     tabOptions: TTabSheet;
@@ -311,6 +316,9 @@ type
     tabExBuy: TTabSheet;
     TabExSell: TTabSheet;
     TabSheet6: TTabSheet;
+    TabSheet7: TTabSheet;
+    TabSheet8: TTabSheet;
+    TabMainPool: TTabSheet;
     TabWallet: TTabSheet;
     TabConsole: TTabSheet;
 
@@ -321,6 +329,7 @@ type
     Procedure LoadOptionsToPanel();
     procedure FormShow(Sender: TObject);
     Procedure InicoTimerEjecutar(Sender: TObject);
+    Procedure RestartTimerEjecutar(Sender: TObject);
     Procedure EjecutarInicio();
     Procedure ConsoleLineKeyup(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Grid1PrepareCanvas(sender: TObject; aCol, aRow: Integer; aState: TGridDrawState);
@@ -339,6 +348,7 @@ type
     Procedure ConnectCircleOnClick(Sender: TObject);
     Procedure MinerCircleOnClick(Sender: TObject);
     Procedure GridMyTxsOnDoubleClick(Sender: TObject);
+    Procedure BitPosInfoOnClick (Sender: TObject);
     Procedure BCloseTrxDetailsOnClick(Sender: TObject);
     Procedure BDefAddrOnClick(Sender: TObject);
     Procedure BCustomAddrOnClick(Sender: TObject);
@@ -362,7 +372,7 @@ type
     Procedure ResetearValoresEnvio(Sender:TObject);
     Procedure SBOptionsOnClick(Sender:TObject);
     // Pool
-    //Procedure TryClosePoolConnection(AContext: TIdContext; closemsg:string='');
+    Procedure TryClosePoolConnection(AContext: TIdContext; closemsg:string='');
     function PoolClientsCount : Integer ;
     procedure PoolServerConnect(AContext: TIdContext);
     procedure PoolServerExecute(AContext: TIdContext);
@@ -410,6 +420,16 @@ type
     Procedure TrxDetailsPopUpCopyOrder(Sender:TObject);
     Procedure TrxDetailsPopUpCopy(Sender:TObject);
 
+    // OPTIONS
+      // WALLET
+    procedure CB_WO_AutoConnectChange(Sender: TObject);
+    procedure CB_WO_ToTrayChange(Sender: TObject);
+    procedure SE_WO_MinPeersChange(Sender: TObject);
+    procedure SE_WO_CTOTChange(Sender: TObject);
+    procedure SE_WO_RTOTChange(Sender: TObject);
+    procedure SE_WO_ShowOrdersChange(Sender: TObject);
+    procedure SE_WO_PosWarningChange(Sender: TObject);
+
   private
 
   public
@@ -435,9 +455,9 @@ CONST
                           '199.247.12.166 '+
                           '108.61.250.100';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Db1';
+  SubVersion = 'E';
   OficialRelease = true;
-  BuildDate = 'April 2021';
+  BuildDate = 'May 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   HasheableChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -483,6 +503,7 @@ var
   WO_AutoConnect   : boolean = false;
   WO_ToTray        : boolean = false;
   MinConexToWork   : integer = 1;
+  WO_PosWarning    : int64 = 7;
 
 
   SynchWarnings : integer = 0;
@@ -490,14 +511,16 @@ var
   EngineLastUpdate : int64 = 0;
 
   // Threads variables
-  ReadingClients : boolean = false;
-//  HiloLeerClientes : TThreadLeerClientes;
+  // ReadingClients : boolean = false;
+  // HiloLeerClientes : TThreadLeerClientes;
   SendOutMsgsThread : TThreadSendOutMsjs;
     SendingMsgs : boolean = false;
 
   MaxOutgoingConnections : integer = 3;
   FirstShow : boolean = false;
   RunningDoctor : boolean = false;
+
+  G_PoSPayouts, G_PoSEarnings : int64;
 
   CheckMonitor : boolean = false;
   RunDoctorBeforeClose : boolean = false;
@@ -578,6 +601,7 @@ var
   PoolTotalHashRate : int64 = 0;
 
   UserOptions : Options;
+  AutoRestarted : Boolean = false;
   CurrentLanguage : String = '';
   CurrentJob : String = '';
   ForcedQuit : boolean = false;
@@ -624,6 +648,7 @@ var
   NetResumenHash : NetworkData;
     LastTimeRequestResumen : int64 = 0;
     LastTimePendingRequested : int64 = 0;
+
   // Variables asociadas a mi conexion
   MyConStatus :  integer = 0;
   STATUS_Connected : boolean = false;
@@ -680,7 +705,7 @@ var
   CSPending     : TRTLCriticalSection;
   CSCriptoThread: TRTLCriticalSection;
   CSPoolMembers : TRTLCriticalSection;
-  CSMinerJoin   : TRTLCriticalSection;
+  CSMinerJoin   : TRTLCriticalSection; InsideMinerJoin:Boolean;
 
   // Cross OS variables
   OSFsep : string = '';
@@ -743,6 +768,7 @@ var
     SCBitConf : TBitBtn;
   GridMyTxs : TStringGrid;
     BitInfoTrx: TSpeedButton;
+    BitPosInfo: TSpeedButton;
     U_Mytrxs: boolean = false;
     LastMyTrxTimeUpdate : int64;
   PanelTrxDetails : TPanel;
@@ -907,11 +933,11 @@ While OutgoingMsjs.Count > 0 do
    begin
    For Slot := 1 to MaxConecciones do
       begin
-      try
-      if conexiones[Slot].tipo <> '' then PTC_SendLine(Slot,OutgoingMsjs[0]);
-      Except on E:Exception do
-         Tolog('Error sending outgoing message');
-      end;
+         try
+         if conexiones[Slot].tipo <> '' then PTC_SendLine(Slot,OutgoingMsjs[0]);
+         Except on E:Exception do
+            ToExclog('Error sending outgoing message: '+E.Message);
+         end;
       end;
    if OutgoingMsjs.Count > 0 then
       begin
@@ -987,6 +1013,11 @@ if proceder then
    Form1.InicioTimer.Enabled:=true;
    Form1.InicioTimer.Interval:=1;
    Form1.InicioTimer.OnTimer:= @form1.InicoTimerEjecutar;
+
+   Form1.RestartTimer:= TTimer.Create(Form1);
+   Form1.RestartTimer.Enabled:=false;
+   Form1.RestartTimer.Interval:=1000;
+   Form1.RestartTimer.OnTimer:= @form1.RestartTimerEjecutar;
    end;
 end;
 
@@ -994,6 +1025,28 @@ Procedure TForm1.InicoTimerEjecutar(Sender: TObject);
 Begin
 InicioTimer.Enabled:=false;
 EjecutarInicio;
+End;
+
+// Auto restarts the app from hangs
+Procedure TForm1.RestartTimerEjecutar(Sender: TObject);
+Begin
+RestartTimer.Enabled:=false;
+if UTCTime.ToInt64 > EngineLastUpdate+30 then
+   begin
+   CrearBatFileForRestart();
+   AutoRestarted := true;
+   CrearCrashInfo();
+   CrearRestartfile();
+   //CloseAllforms();
+   //CerrarClientes();
+   //StopServer();
+   StopPoolServer();
+   if length(ArrayPoolMembers)>0 then GuardarPoolMembers();
+   RunExternalProgram('nosolauncher.bat');
+   Application.Terminate;
+   halt(0);
+   end;
+RestartTimer.Enabled:=true;
 End;
 
 // Ejecuta todo el proceso de carga y lo muestra en el form inicio
@@ -1051,7 +1104,7 @@ Form1.Latido.Enabled:=true;
 G_Launching := false;
 OutText('Noso is ready',false,1);
 if UserOptions.AutoServer then ProcessLinesAdd('SERVERON');
-if UserOptions.AutoConnect then ProcessLinesAdd('CONNECT');
+if WO_AutoConnect then ProcessLinesAdd('CONNECT');
 FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
 FirstShow := true;
 Setlength(CriptoOpsTipo,0);
@@ -1068,18 +1121,23 @@ infopanel.BringToFront;
 SetCurrentJob('Main',true);
 forminicio.Visible:=false;
 form1.Visible:=true;
+Form1.RestartTimer.Enabled:=true;
 End;
 
 // Carga las opciones de usuario al panel de opciones
 Procedure TForm1.LoadOptionsToPanel();
 Begin
+// WALLET
 CB_WO_AutoConnect.Checked := WO_AutoConnect;
 CB_WO_ToTray.Checked := WO_ToTray;
 SE_WO_MinPeers.Value := MinConexToWork;
 SE_WO_CTOT.Value:= ConnectTimeOutTime;
 SE_WO_RTOT.Value:= ReadTimeOutTIme;
 SE_WO_ShowOrders.Value:= ShowedOrders;
-
+SE_WO_PosWarning.Value := WO_PosWarning;
+// RPC
+LE_Rpc_Port.Text := IntToStr(RPCPort);
+LE_Rpc_Pass.Text := RPCPass;
 End;
 
 // Cuando se solicita cerrar el programa
@@ -1093,7 +1151,7 @@ end;
 // Al minimizar verifica si hay que llevarlo a barra de tareas
 procedure TForm1.FormWindowStateChange(Sender: TObject);
 begin
-if UserOptions.ToTray then
+if WO_ToTray then
    if Form1.WindowState = wsMinimized then
       begin
       SysTrayIcon.visible:=true;
@@ -1189,12 +1247,12 @@ if (ACol=1)  then
    ts.Alignment := taRightJustify;
    (Sender as TStringGrid).Canvas.TextStyle := ts;
 
-   if ((aRow>0) and (ListaDirecciones[aRow-1].Balance>posrequired) and (ListaDirecciones[aRow-1].Balance>posrequired+7000000000) ) then
+   if ((aRow>0) and (ListaDirecciones[aRow-1].Balance>posrequired) and (ListaDirecciones[aRow-1].Balance>(posrequired+(WO_PosWarning*140*10000000))) ) then
       begin
       (Sender as TStringGrid).Canvas.Brush.Color :=  clmoneygreen;
       (Sender as TStringGrid).Canvas.font.Color :=  clblack;
       end;
-   if ( (aRow>0) and (ListaDirecciones[aRow-1].Balance<posrequired+7000000000) and (ListaDirecciones[aRow-1].Balance>posrequired) ) then
+   if ((aRow>0) and (ListaDirecciones[aRow-1].Balance>posrequired) and (ListaDirecciones[aRow-1].Balance< (posrequired+(WO_PosWarning*140*10000000))) ) then
       begin
       (Sender as TStringGrid).Canvas.Brush.Color :=  clYellow;
       (Sender as TStringGrid).Canvas.font.Color :=  clblack;
@@ -1342,7 +1400,7 @@ MenuItem.OnClick:=@form1.CheckMMCaptions;
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Console';MenuItem.OnClick:=@Form1.MMVerConsola;
   MenuItem.Visible:=false;Form1.imagenes.GetBitmap(25,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Log';MenuItem.OnClick:=@Form1.MMVerLog;
-  Form1.imagenes.GetBitmap(42,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
+  MenuItem.Visible:=false;Form1.imagenes.GetBitmap(42,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Monitor';MenuItem.OnClick:=@Form1.MMVerMonitor;
   Form1.imagenes.GetBitmap(44,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='WebPage';MenuItem.OnClick:=@Form1.MMVerWeb;
@@ -1423,7 +1481,7 @@ MinerButton.ShowHint:=true;MinerButton.OnMouseEnter:=@Form1.CheckForHint;
 SBOptions := TSpeedButton.Create(Form1);SBOptions.Parent:=Form1;
 SBOptions.Left:=58;SBOptions.Top:=2;SBOptions.Height:=26;SBOptions.Width:=26;
 Form1.imagenes.GetBitmap(22,SBOptions.Glyph);
-SBOptions.Visible:=true;SBOptions.OnClick:=@form1.SBOptionsOnClick;
+SBOptions.Visible:=false;SBOptions.OnClick:=@form1.SBOptionsOnClick;
 SBOptions.hint:='Show/Hide options';SBOptions.ShowHint:=true;
 
 ImageInc := TImage.Create(form1);ImageInc.Parent:=form1;
@@ -1603,6 +1661,12 @@ GridMyTxs.FocusRectVisible:=false;
   BitInfoTrx.Visible:=true;BitInfoTrx.OnClick:=@form1.GridMyTxsOnDoubleClick;
   BitInfoTrx.hint:=LangLine(73);BitInfoTrx.ShowHint:=true; //'Transaction details'
 
+  BitPosInfo := TSpeedButton.Create(Form1);BitPosInfo.Parent:=GridMyTxs;
+  BitPosInfo.Left:=244;BitPosInfo.Top:=2;BitPosInfo.Height:=18;BitPosInfo.Width:=18;
+  Form1.imagenes.GetBitmap(53,BitPosInfo.Glyph);
+  BitPosInfo.Visible:=true;BitPosInfo.OnClick:=@form1.BitPosInfoOnClick;
+  BitPosInfo.hint:='PoS Statistics';BitPosInfo.ShowHint:=true; //'Transaction details'
+
 PanelTrxDetails := TPanel.Create(Form1);PanelTrxDetails.Parent:=Form1.TabWallet;
 PanelTrxDetails.Left:=0;PanelTrxDetails.Top:=136;PanelTrxDetails.Height:=135;PanelTrxDetails.Width:=388;
 PanelTrxDetails.BevelColor:=clBlack;PanelTrxDetails.Visible:=false;
@@ -1633,9 +1697,6 @@ InfoPanel.Top:=245;InfoPanel.Font.Color:=clBlack;
 InfoPanel.Width:=200;InfoPanel.Height:=20;InfoPanel.Alignment:=tacenter;
 InfoPanel.Caption:='';InfoPanel.Visible:=true;
 InfoPanel.BringToFront;
-
-{
-}
 
 StatusPanel := TPanel.Create(Form1);StatusPanel.Parent:=form1;
 StatusPanel.Font.Name:='consolas';StatusPanel.Font.Size:=8;
@@ -1888,6 +1949,19 @@ begin
   end;
 end ;
 
+// Try to close a pool connection safely
+Procedure TForm1.TryClosePoolConnection(AContext: TIdContext; closemsg:string='');
+Begin
+try
+   if closemsg <>'' then
+      Acontext.Connection.IOHandler.WriteLn(closemsg);
+   Acontext.Connection.IOHandler.InputBuffer.Clear;
+   AContext.Connection.Disconnect;
+Except on E:Exception do
+   ToExcLog('POOL: Error trying close a pool client connection ('+E.Message+')');
+end;
+End;
+
 // Funciones del servidor Pool
 
 // El servidor del pool recibe una linea
@@ -2030,8 +2104,8 @@ else if Comando = 'PAYMENT' then
    end
 else
    begin
-   Acontext.Connection.IOHandler.WriteLn('UNEXPECTED_COMMAND FROM: '+IPUser);
-   ConsoleLinesAdd('UNEXPECTED_COMMAND');
+   ToExcLog('Pool Unexpected command from: '+ipuser+'->'+Linea);
+   //ConsoleLinesAdd('UNEXPECTED_COMMAND');
    end;
 End;
 
@@ -2042,19 +2116,22 @@ var
   UserDireccion : string = '';
   WasHandled : boolean = false;
 Begin
-
-EnterCriticalSection(CSMinerJoin);
+if PoolClientsCount > PoolInfo.MaxMembers+3 then
+  begin
+  TryClosePoolConnection(AContext);
+  exit;
+  end;
+EnterCriticalSection(CSMinerJoin);InsideMinerJoin := true;
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
 Linea := AContext.Connection.IOHandler.ReadLn('',ReadTimeOutTIme,-1,IndyTextEncoding_UTF8);
 if AContext.Connection.IOHandler.ReadLnTimedout then
    begin
       try
-      Acontext.Connection.IOHandler.InputBuffer.Clear;
       AContext.Connection.Disconnect;
       //Tolog('Pool connection ReadTimeOut: '+IPUSER);
       WasHandled := true;
    except end;
-   LeaveCriticalSection(CSMinerJoin);
+   LeaveCriticalSection(CSMinerJoin);InsideMinerJoin := false;
    exit;
    end;
 Password := Parameter(Linea,0);
@@ -2070,7 +2147,7 @@ if BotExists(IPUser) then
       AContext.Connection.Disconnect;
       WasHandled := true;
    except end;
-   LeaveCriticalSection(CSMinerJoin);
+   LeaveCriticalSection(CSMinerJoin);InsideMinerJoin := false;
    exit;
    end;
 if password <> Poolinfo.PassWord then  // WRONG PASSWORD.
@@ -2081,7 +2158,7 @@ if password <> Poolinfo.PassWord then  // WRONG PASSWORD.
       AContext.Connection.Disconnect;
       WasHandled := true;
    except end;
-   LeaveCriticalSection(CSMinerJoin);
+   LeaveCriticalSection(CSMinerJoin);InsideMinerJoin := false;
    exit;
    end;
 if ( (not isvalidaddress(UserDireccion)) and (AddressSumaryIndex(UserDireccion)<0) ) then
@@ -2090,7 +2167,7 @@ if ( (not isvalidaddress(UserDireccion)) and (AddressSumaryIndex(UserDireccion)<
    Acontext.Connection.IOHandler.InputBuffer.Clear;
    AContext.Connection.Disconnect;
    WasHandled := true;
-   LeaveCriticalSection(CSMinerJoin);
+   LeaveCriticalSection(CSMinerJoin);InsideMinerJoin := false;
    exit;
    end;
 if IsPoolMemberConnected(UserDireccion)>=0 then   // ALREADY CONNECTED
@@ -2099,7 +2176,7 @@ if IsPoolMemberConnected(UserDireccion)>=0 then   // ALREADY CONNECTED
    Acontext.Connection.IOHandler.InputBuffer.Clear;
    AContext.Connection.Disconnect;
    WasHandled := true;
-   LeaveCriticalSection(CSMinerJoin);
+   LeaveCriticalSection(CSMinerJoin);InsideMinerJoin := false;
    exit;
    end;
 if Comando = 'JOIN' then
@@ -2108,7 +2185,13 @@ if Comando = 'JOIN' then
    if JoinPrefijo<>'' then
       begin
       Acontext.Connection.IOHandler.WriteLn('JOINOK '+PoolInfo.Direccion+' '+JoinPrefijo+' '+PoolDataString(UserDireccion));
-      SavePoolServerConnection(IpUser,UserDireccion,minerversion,Acontext);
+      if not SavePoolServerConnection(IpUser,JoinPrefijo, UserDireccion,minerversion,Acontext) then
+         begin
+         BorrarPoolServerConex(Acontext);
+         WasHandled := true;
+         LeaveCriticalSection(CSMinerJoin);InsideMinerJoin := false;
+         exit;
+         end;
       end
    else
       begin
@@ -2120,9 +2203,10 @@ if Comando = 'JOIN' then
    end
 else if Comando = 'STATUS' then
    begin
-   Acontext.Connection.IOHandler.WriteLn(PoolStatusString);
-   Acontext.Connection.IOHandler.InputBuffer.Clear;
-   AContext.Connection.Disconnect;
+   TryClosePoolConnection(AContext,PoolStatusString);
+   //Acontext.Connection.IOHandler.WriteLn(PoolStatusString);
+   //Acontext.Connection.IOHandler.InputBuffer.Clear;
+   //AContext.Connection.Disconnect;
    WasHandled := true;
    end
 else if Comando = 'ADDRESSBAL' then
@@ -2149,38 +2233,24 @@ if not WasHandled then
       Acontext.Connection.IOHandler.InputBuffer.Clear;
       AContext.Connection.Disconnect;
       WasHandled := true;
-      Tolog('Closed unhandled pool connection: '+IPUSER);
+      ToExclog('Closed unhandled pool connection: '+IPUSER);
       except end;
    end;
-LeaveCriticalSection(CSMinerJoin);
+LeaveCriticalSection(CSMinerJoin);InsideMinerJoin := false;
 End;
 
 procedure TForm1.PoolServerDisConnect(AContext: TIdContext);
 var
   IPUser : string;
 Begin
-IPUser := AContext.Connection.Socket.Binding.PeerIP;
 BorrarPoolServerConex(AContext);
-   try
-   Acontext.Connection.IOHandler.InputBuffer.Clear;
-   Except on E:Exception do ToLog('PoolServer: ERREXC 001');
-   end;
 End;
 
 procedure TForm1.PoolServerException(AContext: TIdContext;AException: Exception);
 var
   IPUser : string;
 Begin
-IPUser := AContext.Connection.Socket.Binding.PeerIP;
 BorrarPoolServerConex(AContext);
-try
-   Acontext.Connection.IOHandler.InputBuffer.Clear;
-   AContext.Connection.Disconnect;
-Except on E:Exception do
-   begin
-   consolelinesAdd('Error closing pool connection');
-   end;
-end;
 End;
 
 
@@ -2207,8 +2277,7 @@ Begin
 try
    if closemsg <>'' then
       Acontext.Connection.IOHandler.WriteLn(closemsg);
-   Acontext.Connection.IOHandler.InputBuffer.Clear;
-   AContext.Connection.Disconnect;
+   AContext.Connection.Disconnect();
 Except on E:Exception do
    ToExcLog('SERVER: Error trying close a server client connection ('+E.Message+')');
 end;
@@ -2326,7 +2395,7 @@ else if LLine = 'BLOCKZIP' then
       begin
       UnzipBlockFile(BlockDirectory+'blocks.zip',true);
       MyLastBlock := GetMyLastUpdatedBlock();
-      BuildHeaderFile(MyLastBlock);
+      //BuildHeaderFile(MyLastBlock);
       ResetMinerInfo();
       LastTimeRequestBlock := 0;
       end;
@@ -2334,18 +2403,8 @@ else if LLine = 'BLOCKZIP' then
 else if parameter(LLine,4) = '$GETRESUMEN' then
    begin
    EnterCriticalSection(CSHeadAccess);
-      try
-      AFileStream := TFileStream.Create(ResumenFilename, fmOpenRead + fmShareDenyNone);
-      GetFileOk := true;
-      Except on E:Exception do
-         begin
-         GetFileOk := false; // i need free the stream here?
-         AFileStream.Free;
-         end;
-      end;
+   AFileStream := TFileStream.Create(ResumenFilename, fmOpenRead + fmShareDenyNone);
    LeaveCriticalSection(CSHeadAccess);
-   if GetFileOk then
-      begin
       try
       Acontext.Connection.IOHandler.WriteLn('RESUMENFILE');
       Acontext.connection.IOHandler.Write(AFileStream,0,true);
@@ -2356,19 +2415,19 @@ else if parameter(LLine,4) = '$GETRESUMEN' then
          ToExcLog('SERVER: Error sending headers file ('+E.Message+')');
          end;
       end;
-      AFileStream.Free;
-      end;
+   AFileStream.Free;
    end
 else if parameter(LLine,4) = '$LASTBLOCK' then
    begin
    BlockZipName := CreateZipBlockfile(StrToIntDef(parameter(LLine,5),0));
    if BlockZipName <> '' then
       begin
-      try
       AFileStream := TFileStream.Create(BlockZipName, fmOpenRead + fmShareDenyNone);
+      try
          try
          Acontext.Connection.IOHandler.WriteLn('BLOCKZIP');
          Acontext.connection.IOHandler.Write(AFileStream,0,true);
+         ToLog('SERVER: BlockZip send to '+IPUser);
          Except on E:Exception do
             begin
             Form1.TryCloseServerConnection(Conexiones[Slot].context);
@@ -2475,18 +2534,17 @@ var
   IPUser : string;
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
-  try
-  Acontext.Connection.IOHandler.InputBuffer.Clear;
-  Except on E:Exception do ToExcLog('SERVER: Error clearing disconnected buffer');
-  end;
-BorrarSlot('CLI',ipuser);
+CerrarSlot(GetSlotFromIP(IPUser));
 End;
 
 // Excepcion en el servidor
 procedure TForm1.IdTCPServer1Exception(AContext: TIdContext;AException: Exception);
+var
+  IPUser : string;
 Begin
+IPUser := AContext.Connection.Socket.Binding.PeerIP;
+CerrarSlot(GetSlotFromIP(IPUser));
 ToExcLog(LangLine(6)+AException.Message);    //Server Excepcion:
-TryCloseServerConnection(AContext);
 End;
 
 // DOUBLE CLICK TRAY ICON TO RESTORE
@@ -2574,6 +2632,23 @@ if GridMyTxs.Row>0 then
       end;
    end;
 MemoTrxDetails.SelStart:=0;
+End;
+
+Procedure TForm1.BitPosInfoOnClick (Sender: TObject);
+var
+   PosRequired : int64;
+Begin
+PosRequired := (GetSupply(MyLastBlock+1)*PosStackCoins) div 10000;
+PanelTrxDetails.visible := true;
+BCloseTrxDetails.Visible:=true;
+MemoTrxDetails.Lines.Clear;
+MemoTrxDetails.Lines.Add('PoS Statistics'+slinebreak+
+                         'My history'+slinebreak+
+                         'PoS payouts : '+IntToStr(G_PoSPayouts)+' payouts'+slinebreak+
+                         'PoS earnings: '+Int2Curr(G_PoSEarnings)+' Nos'+Slinebreak+
+                         'Mainnet'+Slinebreak+
+                         'Next block required: '+Int2Curr(PosRequired)+' Nos'+Slinebreak+
+                         'My PoS Addresses   : '+IntToStr(GetMyPosAddressesCount));
 End;
 
 // Cierra el panel de detalle de transacciones
@@ -2909,7 +2984,7 @@ if length(StringAvailableUpdates) > 0 then
 else MainMenu.items[1].Items[3].Enabled:=false;
 if NewLogLines>0 then MainMenu.Items[2].Items[1].Caption:='View Log ('+IntToStr(NewLogLines)+')'
 else MainMenu.Items[2].Items[1].Caption:='View Log';
-if useroptions.PoolInfo<>'' then MainMenu.Items[2].Items[5].Visible:=true
+if fileexists(PoolInfoFilename) then MainMenu.Items[2].Items[5].Visible:=true
 else MainMenu.Items[2].Items[5].Visible:=false;
 End;
 
@@ -3162,6 +3237,64 @@ Begin
 Clipboard.AsText:= MemoTrxDetails.SelText;
 info('Copied to clipboard');
 End;
+
+//******************************************************************************
+// OPTIONS CONTROLS
+//******************************************************************************
+
+// WALLET
+
+procedure TForm1.CB_WO_AutoConnectChange(Sender: TObject);
+begin
+if G_Launching then exit;
+if CB_WO_AutoConnect.Checked then WO_AutoConnect := true
+else WO_AutoConnect := false ;
+S_AdvOpt := true;
+end;
+
+procedure TForm1.CB_WO_ToTrayChange(Sender: TObject);
+begin
+if G_Launching then exit;
+if CB_WO_ToTray.Checked then WO_ToTray := true
+else WO_ToTray := false ;
+S_AdvOpt := true;
+end;
+
+procedure TForm1.SE_WO_MinPeersChange(Sender: TObject);
+begin
+if G_Launching then exit;
+MinConexToWork := SE_WO_MinPeers.Value;
+S_AdvOpt := true;
+end;
+
+procedure TForm1.SE_WO_CTOTChange(Sender: TObject);
+begin
+if G_Launching then exit;
+ConnectTimeOutTime := SE_WO_CTOT.Value;
+S_AdvOpt := true;
+end;
+
+procedure TForm1.SE_WO_RTOTChange(Sender: TObject);
+begin
+if G_Launching then exit;
+ReadTimeOutTIme := SE_WO_RTOT.Value;
+S_AdvOpt := true;
+end;
+
+procedure TForm1.SE_WO_ShowOrdersChange(Sender: TObject);
+begin
+if G_Launching then exit;
+ShowedOrders := SE_WO_ShowOrders.Value;
+S_AdvOpt := true;
+end;
+
+procedure TForm1.SE_WO_PosWarningChange(Sender: TObject);
+begin
+if G_Launching then exit;
+WO_PosWarning := SE_WO_PosWarning.Value;
+U_DirPanel := true;
+S_AdvOpt := true;
+end;
 
 
 END. // END PROGRAM

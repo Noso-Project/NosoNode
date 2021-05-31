@@ -500,7 +500,6 @@ Procedure UpdatePoolForm();
 var
   contador : integer;
   ActiveConex : integer;
-  AddedConex : integer =0;
 Begin
 LabelPoolData.Caption:='ConnectTo: '+MyPoolData.Ip+':'+IntToStr(MyPoolData.port)+' MyAddress: '+MyPoolData.MyAddress+slinebreak+
                        'MineAddres: '+MyPoolData.Direccion+' Prefix: '+MyPoolData.Prefijo+slinebreak+
@@ -509,7 +508,6 @@ if Miner_OwnsAPool then
    begin
    EnterCriticalSection(CSPoolMembers);
    GridPoolMembers.RowCount:=length(ArrayPoolMembers)+1;
-   GridPoolConex.RowCount:=GetPoolTotalActiveConex+1;
    if length(ArrayPoolMembers) > 0 then
       begin
       for contador := 0 to length(ArrayPoolMembers)-1 do
@@ -541,30 +539,24 @@ if Miner_OwnsAPool then
       begin
       if U_PoolConexGrid then
          begin
-         GridPoolConex.RowCount:=ActiveConex+1;
          for contador := 0 to length(PoolServerConex)-1 do
          begin
             try
-            if PoolServerConex[contador].Address <> '' then
-               begin
-               GridPoolConex.Cells[0,AddedConex+1]:=PoolServerConex[contador].Ip;
-               GridPoolConex.Cells[1,AddedConex+1]:=PoolServerConex[contador].Address;
-               GridPoolConex.Cells[2,AddedConex+1]:=IntToStr(PoolServerConex[contador].Hashpower);
-               GridPoolConex.Cells[3,AddedConex+1]:=PoolServerConex[contador].version;
-               GridPoolConex.Cells[4,AddedConex+1]:=IntToStr(StrToInt64(UTCTime)-PoolServerConex[contador].LastPing);
-               GridPoolConex.Cells[5,AddedConex+1]:=IntToStr(PoolServerConex[contador].WrongSteps);
-               AddedConex+=1;
-               end;
+               GridPoolConex.Cells[0,contador+1]:=PoolServerConex[contador].Ip;
+               GridPoolConex.Cells[1,contador+1]:=PoolServerConex[contador].Address;
+               GridPoolConex.Cells[2,contador+1]:=IntToStr(PoolServerConex[contador].Hashpower);
+               GridPoolConex.Cells[3,contador+1]:=PoolServerConex[contador].version;
+               GridPoolConex.Cells[4,contador+1]:=IntToStr(StrToInt64(UTCTime)-PoolServerConex[contador].LastPing);
+               GridPoolConex.Cells[5,contador+1]:=IntToStr(PoolServerConex[contador].WrongSteps);
             Except on E:Exception do
                begin
-               //tolog('Error showing pool connections data, slot '+IntToStr(contador));
+               //toexclog('Error showing pool connections data, slot '+IntToStr(contador));
                end;
             end;
             end;
          U_PoolConexGrid := true;
          end;
-      end
-   else GridPoolConex.RowCount:=1;
+      end;
    end;
 End;
 
@@ -947,11 +939,13 @@ if status then
    currentjob := CurrentJob+'>'+CurrJob
 else
    currentjob := StringReplace(currentjob,'>'+CurrJob,'',[rfReplaceAll, rfIgnoreCase]);
+{
 if CheckMonitor then
    begin
    LabelCurrJob.Caption := currentjob;
    LabelCurrJob.Refresh;
    end;
+}
 End;
 
 Procedure CloseAllForms();

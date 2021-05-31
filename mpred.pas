@@ -15,7 +15,6 @@ function SaveConection(tipo,ipuser:String;contextdata:TIdContext):integer;
 procedure StartServer();
 procedure StopServer();
 procedure CerrarSlot(Slot:integer);
-function BorrarSlot(tipo,ipuser:string):boolean;
 Procedure ConnectToServers();
 function GetFreeSlot():integer;
 function ConnectClient(Address,Port:String):integer;
@@ -164,43 +163,22 @@ SetCurrentJob('CerrarSlot',true);
    if conexiones[Slot].tipo='CLI' then
       begin
       SlotLines[slot].Clear;
-      Conexiones[Slot].context.Connection.IOHandler.InputBuffer.Clear;
       Conexiones[Slot].context.Connection.Disconnect;
-      Conexiones[Slot].Thread.Free;
-      Conexiones[Slot] := Default(conectiondata);
+      //Conexiones[Slot].Thread.Free;
       end;
    if conexiones[Slot].tipo='SER' then
       begin
       SlotLines[slot].Clear;
       CanalCliente[Slot].IOHandler.InputBuffer.Clear;
       CanalCliente[Slot].Disconnect;
-      Conexiones[Slot] := Default(conectiondata);
       end;
    Except on E:Exception do
      begin
      ToExcLog('Error: Closing slot '+IntToStr(Slot)+SLINEBREAK+E.Message);
      end;
    end;
+Conexiones[Slot] := Default(conectiondata);
 SetCurrentJob('CerrarSlot',false);
-end;
-
-// ANTICUADO
-// Borra el slot de una conexion determinada para poder reusarlo
-function BorrarSlot(tipo,ipuser:string):boolean;
-var
-  contador : int64 = 1;
-begin
-result := false;
-while contador < MaxConecciones+1 do
-   begin
-   if ((Conexiones[contador].tipo=tipo) and (Conexiones[contador].ip=ipuser)) then
-      begin
-      Conexiones[contador] := Default(conectiondata);
-      result := true;
-      break;
-      end;
-   contador := contador+1;
-   end;
 end;
 
 // Intenta conectar a los nodos
@@ -445,14 +423,6 @@ Begin
 SetCurrentJob('LeerLineasDeClientes',true);
 for contador := 1 to Maxconecciones do
    begin
-   if ((Conexiones[contador].tipo='SER') and(not Conexiones[contador].IsBusy)) then
-      begin
-      //ReadClientLines(contador);
-      //Conexiones[contador].Thread := TThreadClientRead.Create(true, contador);
-      //Conexiones[contador].Thread.FreeOnTerminate:=true;
-      //Conexiones[contador].IsBusy:=true;
-      //Conexiones[contador].Thread.Start;
-      end;
    if Conexiones[contador].tipo <> '' then
      begin
      if ((StrToInt64(UTCTime) > StrToInt64Def(conexiones[contador].lastping,0)+15) and
@@ -466,7 +436,7 @@ for contador := 1 to Maxconecciones do
 SetCurrentJob('LeerLineasDeClientes',false);
 End;
 
-// Verifica el estado de la conexion
+// Checks the current connection status (0-3)
 Procedure VerifyConnectionStatus();
 var
   NumeroConexiones : integer = 0;
@@ -517,18 +487,17 @@ if ((NumeroConexiones>0) and (NumeroConexiones<MinConexToWork) and (MyConStatus 
    end;
 if MyConStatus > 0 then
    begin
-   if G_LastPing + 5 < StrToInt64(UTCTime) then
+   if (G_LastPing + 5) < StrToInt64(UTCTime) then
       begin
       G_LastPing := StrToInt64(UTCTime);
       OutgoingMsjsAdd(ProtocolLine(ping));
       end;
    if not SendingMsgs then // send the outgoing messages
       begin
-      sleep(2);
+      sleep(10);
       SendOutMsgsThread := TThreadSendOutMsjs.Create(true);
       SendOutMsgsThread.FreeOnTerminate:=true;
       SendOutMsgsThread.Start;
-      //SendMesjsSalientes();
       end;
    end;
 if ((NumeroConexiones>=MinConexToWork) and (MyConStatus<2) and (not STATUS_Connected)) then
@@ -573,15 +542,18 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
    end;
 if MyConStatus = 3 then
    begin
+   SetCurrentJob('MyConStatus3',true);
    if StrToIntDef(NetPendingTrxs.Value,0)<length(PendingTXs) then
       begin
       //setlength(PendingTxs,0);
       end;
    if ((StrToIntDef(NetPendingTrxs.Value,0)>length(PendingTXs)) and (LastTimePendingRequested+5<UTCTime.ToInt64)) then
       begin
+      SetCurrentJob('RequestingPendings',true);
       PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));  // Get pending
       LastTimePendingRequested := UTCTime.ToInt64;
       ConsoleLinesAdd('Pending requested');
+      SetCurrentJob('RequestingPendings',false);
       end;
    if ( (IntToStr(MyLastBlock) <> NetLastBlock.Value) or (MySumarioHash<>NetSumarioHash.Value) or
       (MyResumenhash <> NetResumenHash.Value) ) then // desincronizado
@@ -610,8 +582,9 @@ if MyConStatus = 3 then
       end;
    if ((Miner_OwnsAPool) and (Form1.PoolServer.Active) and (LastPoolHashRequest+5<StrToInt64(UTCTime))) then
       begin
-      ProcessLinesAdd('POOLHASHRATE');
+      ProcessLinesAdd('POOLHASHRATE'); // Verify pool pings
       end;
+   SetCurrentJob('MyConStatus3',false);
    end;
 SetCurrentJob('VerifyConnectionStatus',false);
 End;

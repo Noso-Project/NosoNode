@@ -91,6 +91,7 @@ Procedure ShowAddressInfo(LineText:string);
 Procedure ShowAddressHistory(LineText:string);
 Procedure ShowTotalFees();
 function ShowPrivKey(linea:String;ToConsole:boolean = false):String;
+Procedure ExecuteRebuildMyTrx();
 
 // CONSULTING
 Procedure ShowDiftory();
@@ -254,7 +255,6 @@ else if UpperCase(Command) = 'UPDATE' then RunUpdate(LineText)
 else if UpperCase(Command) = 'RESTOREBLOCKCHAIN' then RestoreBlockChain()
 else if UpperCase(Command) = 'REQHEAD' then RequestHeaders()
 else if UpperCase(Command) = 'SAVEADV' then CreateADV(true)
-//else if UpperCase(Command) = 'PMM' then setlength(PoolServerConex,90)
 else if UpperCase(Command) = 'SHOWADVOPT' then ShowAdvOpt()
 else if UpperCase(Command) = 'ORDER' then ShowOrderDetails(LineText)
 else if UpperCase(Command) = 'EXPORTADDRESS' then ExportAddress(LineText)
@@ -266,7 +266,7 @@ else if UpperCase(Command) = 'SUPPLY' then consolelinesAdd('Current supply: '+In
 else if UpperCase(Command) = 'GMTS' then showgmts(LineText)
 else if UpperCase(Command) = 'SHOWPRIVKEY' then ShowPrivKey(LineText, true)
 else if UpperCase(Command) = 'UNIXTIME' then ConsoleLinesAdd(IntToStr(DateTimeToUnix(now)+G_TIMELocalTimeOffset+G_TimeOffSet))
-
+else if UpperCase(Command) = 'REBUILDMYTRX' then ExecuteRebuildMyTrx()
 
 // CONSULTING
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()
@@ -294,6 +294,7 @@ else if UpperCase(Command) = 'SENDPOOLSTEPS' then SendPoolStepsInfo(StrToInt(Par
 else if UpperCase(Command) = 'POOLHASHRATE' then SendPoolHashRateRequest()
 else if UpperCase(Command) = 'SAVEPOOLFILES' then SavePoolFiles()
 else if UpperCase(Command) = 'POOLPEERS' then ConsoleLinesAdd('Pool list: '+IntToStr(form1.PoolClientsCount))
+else if UpperCase(Command) = 'POOLRESET' then PoolInfo.FeeEarned := 0
 
 // P2P
 else if UpperCase(Command) = 'PEERS' then ConsoleLinesAdd('Server list: '+IntToStr(form1.ClientsCount)+'/'+IntToStr(GetIncomingConnections))
@@ -791,8 +792,7 @@ if nuevos > 0 then
    begin
    OutText(LangLine(135)+IntToStr(nuevos),false,2); //'Addresses imported: '
    UpdateWalletFromSumario;
-   Deletefile(MyTrxFilename);
-   RebulidTrxThread := Beginthread(tthreadfunc(@NewMyTrx));
+   ExecuteRebuildMyTrx();
    end
 else ConsoleLinesAdd(LangLine(136));  //'No new addreses found.'
 End;
@@ -2058,6 +2058,15 @@ else
    result := ListaDirecciones[sumposition].PrivateKey;
    end;
 if ToConsole then ConsoleLinesAdd(Result);
+End;
+
+Procedure ExecuteRebuildMyTrx();
+Begin
+TryDeletefile(MyTrxFilename);
+CrearMistrx();
+CargarMisTrx();
+RebuildMyTrx(MyLastBlock);
+ConsoleLinesAdd('My transactions rebuilded');
 End;
 
 END. // END UNIT

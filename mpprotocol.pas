@@ -22,7 +22,6 @@ Procedure PTC_SaveNodes(LineText:String);
 function GetNodeFromString(NodeDataString: string): NodeData;
 Procedure ProcessPing(LineaDeTexto: string; Slot: integer; Responder:boolean);
 function GetPingString():string;
-Procedure SendMesjsSalientes();
 procedure PTC_SendPending(Slot:int64);
 Procedure PTC_Newblock(Texto:String);
 Procedure PTC_SendResumen(Slot:int64);
@@ -240,6 +239,11 @@ End;
 // Envia una linea a un determinado slot
 Procedure PTC_SendLine(Slot:int64;Message:String);
 Begin
+if slot > length(conexiones)-1 then
+   begin
+   ToExcLog('Invalid PTC_SendLine slot: '+IntToStr(slot));
+   exit;
+   end;
 if ((conexiones[Slot].tipo='CLI') and (not conexiones[Slot].IsBusy)) then
    begin
       try
@@ -248,7 +252,7 @@ if ((conexiones[Slot].tipo='CLI') and (not conexiones[Slot].IsBusy)) then
       On E :Exception do
          begin
          ConsoleLinesAdd(E.Message);
-         ToLog('Error sending line: '+E.Message);
+         ToExcLog('Error sending line: '+E.Message);
          CerrarSlot(Slot);
          end;
       end;
@@ -261,7 +265,7 @@ if ((conexiones[Slot].tipo='SER') and (not conexiones[Slot].IsBusy)) then
       On E :Exception do
          begin
          ConsoleLinesAdd(E.Message);
-         ToLog('Error sending line: '+E.Message);
+         ToExcLog('Error sending line: '+E.Message);
          CerrarSlot(Slot);
          end;
       end;
@@ -358,30 +362,6 @@ result :=IntToStr(GetTotalConexiones())+' '+
          IntToStr(port);
 End;
 
-// Envia los mensajes salientes a todos los pares  --> DEPRECATED MOVED TO A THREAD
-Procedure SendMesjsSalientes();
-Var
-  Slot :integer = 1;
-Begin
-While OutgoingMsjs.Count > 0 do
-   begin
-   For Slot := 1 to MaxConecciones do
-      begin
-      try
-      if conexiones[Slot].tipo <> '' then PTC_SendLine(Slot,OutgoingMsjs[0]);
-      Except on E:Exception do
-         Tolog('Error sending outgoing message');
-      end;
-      end;
-   if OutgoingMsjs.Count > 0 then
-      begin
-      EnterCriticalSection(CSOutgoingMsjs);
-      OutgoingMsjs.Delete(0);
-      LeaveCriticalSection(CSOutgoingMsjs);
-      end;
-   end;
-End;
-
 // Envia las TXs pendientes al slot indicado
 procedure PTC_SendPending(Slot:int64);
 var
@@ -398,6 +378,7 @@ if Length(PendingTXs) > 0 then
    EnterCriticalSection(CSPending);
    SetLength(CopyPendingTXs,0);
    CopyPendingTXs := copy(PendingTXs,0,length(PendingTXs));
+   LeaveCriticalSection(CSPending);
    for contador := 0 to Length(CopyPendingTXs)-1 do
       begin
       Textline := GetStringFromOrder(CopyPendingTXs[contador]);
@@ -418,7 +399,6 @@ if Length(PendingTXs) > 0 then
          end;
       end;
    Tolog('Sent '+IntToStr(Length(CopyPendingTXs))+' pendingTxs to '+conexiones[slot].ip);
-   LeaveCriticalSection(CSPending);
    end;
 End;
 

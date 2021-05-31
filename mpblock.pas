@@ -51,8 +51,6 @@ var
   PoSTotalReward : int64 = 0;
   PoSAddressess : array of TArrayPos;
 
-  ComodinOrder : OrderData;
-
 Begin
 setmilitime('CrearNuevoBloque',1);
 SetCurrentJob('CrearNuevoBloque',true);
@@ -91,7 +89,7 @@ for contador := 0 to length(pendingTXs)-1 do
       begin
       minerfee := minerfee+PendingTXs[contador].AmmountFee;
       OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].Sender);
-      if not SetCustomAlias(OperationAddress,PendingTXs[contador].Receiver) then
+      if not SetCustomAlias(OperationAddress,PendingTXs[contador].Receiver,Numero) then
          begin
          // CRITICAL ERROR: NO SE PUDO ASIGNAR EL ALIAS
          end;

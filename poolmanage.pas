@@ -26,7 +26,7 @@ function GetLastPagoPoolMember(direccion:string):integer;
 Procedure ClearPoolUserBalance(direccion:string);
 Procedure PoolUndoneLastPayment();
 function GetPoolConexFreeSlot():integer;
-function SavePoolServerConnection(Ip,UserAddress,minerver:String;contexto:TIdContext):boolean;
+function SavePoolServerConnection(Ip,Prefijo,UserAddress,minerver:String;contexto:TIdContext):boolean;
 function GetPoolTotalActiveConex ():integer;
 Procedure BorrarPoolServerConex(AContext: TIdContext);
 Procedure SendPoolStepsInfo(steps:integer);
@@ -94,6 +94,7 @@ var
   contador : integer;
 Begin
 result := -1;
+Entercriticalsection(CSPoolMembers);
 if length(ArrayPoolMembers)>0 then
    begin
    for contador := 0 to length(ArrayPoolMembers)-1 do
@@ -105,6 +106,7 @@ if length(ArrayPoolMembers)>0 then
          end;
       end;
    end;
+Leavecriticalsection(CSPoolMembers);
 End;
 
 //** returns a valid prefix for the miner
@@ -116,10 +118,6 @@ Begin
 HashChars :=  length(HasheableChars)-1;
 firstchar := poolslot div HashChars;
 secondchar := poolslot mod HashChars;
-//resultado := chr(33+firstchar)+chr(33+secondchar)+'!!!!!!!';
-//resultado := StringReplace(resultado,'(','~',[rfReplaceAll, rfIgnoreCase]);
-//resultado := StringReplace(resultado,'%','|',[rfReplaceAll, rfIgnoreCase]);
-//result := StringReplace(resultado,'_','}',[rfReplaceAll, rfIgnoreCase])
 result := HasheableChars[firstchar+1]+HasheableChars[secondchar+1]+'0000000';
 End;
 
@@ -129,12 +127,14 @@ var
   PoolSlot : integer;
 Begin
 EnterCriticalSection(CSPoolMembers);
+SetCurrentJob('PoolAddNewMember',true);
 result := '';
 if length(ArrayPoolMembers)>0 then
    begin
    if GetPoolMemberPosition(direccion)>=0 then
       begin
       result := ArrayPoolMembers[GetPoolMemberPosition(direccion)].Prefijo;
+      SetCurrentJob('PoolAddNewMember',false);
       LeaveCriticalSection(CSPoolMembers);
       exit;
       end;
@@ -152,6 +152,7 @@ if ( (length(ArrayPoolMembers)>0) and (PoolSlot >= 0) ) then
    ArrayPoolMembers[PoolSlot].LastEarned:=0;
    S_PoolMembers := true;
    result := ArrayPoolMembers[PoolSlot].Prefijo;
+   SetCurrentJob('PoolAddNewMember',false);
    LeaveCriticalSection(CSPoolMembers);
    exit;
    end;
@@ -169,6 +170,7 @@ if length(ArrayPoolMembers) < PoolInfo.MaxMembers then
    S_PoolMembers := true;
    result := ArrayPoolMembers[length(ArrayPoolMembers)-1].Prefijo;
    end;
+SetCurrentJob('PoolAddNewMember',false);
 LeaveCriticalSection(CSPoolMembers);
 End;
 
@@ -203,6 +205,7 @@ var
   contador : integer;
 Begin
 result :=-1;
+Entercriticalsection(CSPoolMembers);
 if length(ArrayPoolMembers)>0 then
    begin
    for contador := 0 to length(ArrayPoolMembers)-1 do
@@ -214,6 +217,7 @@ if length(ArrayPoolMembers)>0 then
          end;
       end;
    end;
+Leavecriticalsection(CSPoolMembers);
 End;
 
 Procedure AdjustWrongSteps();
@@ -248,11 +252,13 @@ var
   contador : integer;
 Begin
 result := 0;
+Entercriticalsection(CSPoolMembers);
 if length(arraypoolmembers)>0 then
    begin
    for contador := 0 to length(arraypoolmembers)-1 do
       result := result + arraypoolmembers[contador].Soluciones;
    end;
+Leavecriticalsection(CSPoolMembers);
 End;
 
 Function GetTotalPoolDeuda():Int64;
@@ -260,11 +266,13 @@ var
   contador : integer;
   resultado : int64 = 0;
 Begin
+Entercriticalsection(CSPoolMembers);
 if length(arraypoolmembers)>0 then
    begin
    for contador := 0 to length(arraypoolmembers)-1 do
       resultado := resultado + arraypoolmembers[contador].Deuda;
    end;
+Leavecriticalsection(CSPoolMembers);
 result := resultado;
 End;
 
@@ -298,6 +306,7 @@ PagoPorStep := RepartirShares div NumeroDePasos;
 // DISTRIBUTE SHARES
 for contador := 0 to length(arraypoolmembers)-1 do
    begin
+   Entercriticalsection(CSPoolMembers);
    if arraypoolmembers[contador].Soluciones > 0 then
       begin
       arraypoolmembers[contador].Deuda:=arraypoolmembers[contador].Deuda+
@@ -311,6 +320,7 @@ for contador := 0 to length(arraypoolmembers)-1 do
       begin
       arraypoolmembers[contador].LastEarned:=0;
       end;
+   Leavecriticalsection(CSPoolMembers);
    end;
 ConsoleLinesAdd('Pool Shares   : '+IntToStr(NumeroDePasos));
 ConsoleLinesAdd('Pay per Share : '+IntToStr(PagoPorStep));
@@ -376,6 +386,7 @@ Procedure ClearPoolUserBalance(direccion:string);
 var
   contador : integer;
 Begin
+entercriticalsection(CSPoolMembers);
 if length(ArrayPoolMembers)>0 then
    begin
    for contador := 0 to length(ArrayPoolMembers)-1 do
@@ -388,6 +399,7 @@ if length(ArrayPoolMembers)>0 then
          end;
       end;
    end;
+Leavecriticalsection(CSPoolMembers);
 S_PoolMembers := true;
 S_PoolInfo := true;
 PoolMembersTotalDeuda := GetTotalPoolDeuda();
@@ -398,6 +410,7 @@ var
   contador : integer;
   totalmenos : int64 = 0;
 Begin
+entercriticalsection(CSPoolMembers);
 if length(arraypoolmembers)>0 then
    begin
    for contador := 0 to length(arraypoolmembers)-1 do
@@ -408,11 +421,13 @@ if length(arraypoolmembers)>0 then
       arraypoolmembers[contador].TotalGanado:=arraypoolmembers[contador].TotalGanado-arraypoolmembers[contador].LastEarned;
       end;
    end;
+Leavecriticalsection(CSPoolMembers);
 S_PoolMembers := true;
 ConsoleLinesAdd('Discounted last payment to pool members : '+Int2curr(totalmenos));
 PoolMembersTotalDeuda := GetTotalPoolDeuda();
 End;
 
+// Probably deprecated
 function GetPoolConexFreeSlot():integer;
 var
   cont: integer;
@@ -426,13 +441,28 @@ for cont := 0 to length(PoolServerConex)-1 do
       end;
 end;
 
-function SavePoolServerConnection(Ip,UserAddress,minerver:String;contexto:TIdContext): boolean;
+function GetPoolSlotFromPrefjo(prefijo:string):Integer;
+var
+  counter : integer;
+Begin
+result := -1;
+for counter := 0 to length(arraypoolmembers)-1 do
+   begin
+   if arraypoolmembers[counter].Prefijo = prefijo then
+      begin
+      result := counter;
+      break;
+      end;
+   end;
+End;
+
+function SavePoolServerConnection(Ip,Prefijo,UserAddress,minerver:String;contexto:TIdContext): boolean;
 var
   newdato : PoolUserConnection;
   slot: integer;
 Begin
 result := false;
-slot := GetPoolConexFreeSlot;
+slot := GetPoolSlotFromPrefjo(Prefijo);
 if slot >= 0 then
    begin
    NewDato := Default(PoolUserConnection);
@@ -528,7 +558,7 @@ if ( (Miner_OwnsAPool) and (length(PoolServerConex)>0) ) then
       if memberaddress <> '' then
          begin
          PoolTotalHashRate := PoolTotalHashRate+PoolServerConex[contador].Hashpower;
-         if PoolServerConex[contador].LastPing+15<StrToInt64Def(UTCTime,0) then
+         if ((PoolServerConex[contador].LastPing+15<StrToInt64Def(UTCTime,0)) or (PoolServerConex[contador].LastPing<0) ) then
             BorrarPoolServerConex(PoolServerConex[contador].Context);
          end;
       except on E:Exception do
@@ -545,6 +575,7 @@ var
   contador : integer;
 Begin
 result := -1;
+Entercriticalsection(CSPoolMembers);
 if length(ArrayPoolMembers)>0 then
    begin
    for contador := 0 to length(ArrayPoolMembers)-1 do
@@ -556,6 +587,7 @@ if length(ArrayPoolMembers)>0 then
          end;
       end;
    end;
+Leavecriticalsection(CSPoolMembers);
 End;
 
 function IsPoolMemberConnected(address:string):integer;
@@ -593,6 +625,7 @@ var
   counter : integer;
   expelled : integer = 0;
 Begin
+Entercriticalsection(CSPoolMembers);
 if length(arraypoolmembers)>0 then
    begin
    for counter := 0 to length(arraypoolmembers)-1 do
@@ -609,6 +642,7 @@ if length(arraypoolmembers)>0 then
       // include auto pool payments
       end;
    end;
+Leavecriticalsection(CSPoolMembers);
 ConsoleLinesAdd('Pool expels: '+IntToStr(expelled));
 End;
 
@@ -618,6 +652,7 @@ var
   counter : integer;
   miners : integer = 0;
 Begin
+Entercriticalsection(CSPoolMembers);
 for counter := 0 to length(arraypoolmembers)-1 do
    begin
    if arraypoolmembers[counter].Direccion<>'' then
@@ -627,6 +662,7 @@ for counter := 0 to length(arraypoolmembers)-1 do
       miners +=1;
       end;
    end;
+Leavecriticalsection(CSPoolMembers);
 result:= 'STATUS '+IntToStr(PoolTotalHashRate)+' '+IntToStr(poolinfo.Porcentaje)+' '+
    IntToStr(PoolShare)+' '+IntToStr(miners)+' '+resString;
 End;
@@ -647,7 +683,6 @@ if length(Miner_PoolSharedStep) > 0 then
          end;
       end;
    end;
-
 end;
 
 END. // END UNIT

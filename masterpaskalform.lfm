@@ -298,8 +298,8 @@ object Form1: TForm1
     Height = 458
     Top = 30
     Width = 396
-    ActivePage = tabOptions
-    TabIndex = 4
+    ActivePage = TabWallet
+    TabIndex = 0
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
@@ -317,10 +317,12 @@ object Form1: TForm1
         Top = 2
         Width = 386
         ActivePage = tabExBuy
+        Enabled = False
         TabIndex = 0
         TabOrder = 0
         object tabExBuy: TTabSheet
           Caption = 'Buy'
+          Enabled = False
         end
         object TabExSell: TTabSheet
           Caption = 'Sell'
@@ -329,6 +331,10 @@ object Form1: TForm1
     end
     object TabSheet6: TTabSheet
       Caption = 'Miner'
+    end
+    object TabMainPool: TTabSheet
+      Caption = 'Pool'
+      TabVisible = False
     end
     object tabOptions: TTabSheet
       Caption = 'Options'
@@ -352,6 +358,7 @@ object Form1: TForm1
             Top = 16
             Width = 131
             Caption = 'Auto connect at start'
+            OnChange = CB_WO_AutoConnectChange
             TabOrder = 0
           end
           object CB_WO_ToTray: TCheckBox
@@ -360,15 +367,8 @@ object Form1: TForm1
             Top = 40
             Width = 106
             Caption = 'Minimize to tray'
+            OnChange = CB_WO_ToTrayChange
             TabOrder = 1
-          end
-          object CheckBox3: TCheckBox
-            Left = 8
-            Height = 19
-            Top = 184
-            Width = 140
-            Caption = 'Show my PoS earnings'
-            TabOrder = 2
           end
           object SE_WO_MinPeers: TSpinEdit
             Left = 8
@@ -376,9 +376,10 @@ object Form1: TForm1
             Top = 64
             Width = 48
             AutoSize = False
-            MaxValue = 5
+            MaxValue = 3
             MinValue = 1
-            TabOrder = 3
+            OnChange = SE_WO_MinPeersChange
+            TabOrder = 2
             Value = 1
           end
           object Label2: TLabel
@@ -392,10 +393,13 @@ object Form1: TForm1
           object CheckBox1: TCheckBox
             Left = 8
             Height = 19
-            Top = 160
+            Top = 208
             Width = 135
             Caption = 'Download blockchain'
-            TabOrder = 4
+            Checked = True
+            Enabled = False
+            State = cbChecked
+            TabOrder = 3
           end
           object SE_WO_CTOT: TSpinEdit
             Left = 8
@@ -406,7 +410,8 @@ object Form1: TForm1
             Increment = 100
             MaxValue = 2000
             MinValue = 100
-            TabOrder = 5
+            OnChange = SE_WO_CTOTChange
+            TabOrder = 4
             Value = 500
           end
           object Label3: TLabel
@@ -426,7 +431,8 @@ object Form1: TForm1
             Increment = 100
             MaxValue = 1000
             MinValue = 100
-            TabOrder = 6
+            OnChange = SE_WO_RTOTChange
+            TabOrder = 5
             Value = 500
           end
           object Label4: TLabel
@@ -446,7 +452,8 @@ object Form1: TForm1
             Increment = 100
             MaxValue = 1000
             MinValue = 100
-            TabOrder = 7
+            OnChange = SE_WO_ShowOrdersChange
+            TabOrder = 6
             Value = 500
           end
           object Label5: TLabel
@@ -460,22 +467,47 @@ object Form1: TForm1
           object CheckBox2: TCheckBox
             Left = 8
             Height = 19
-            Top = 208
+            Top = 184
             Width = 206
             Caption = 'Use multiple address for send coins'
+            Checked = True
+            Enabled = False
+            State = cbChecked
+            TabOrder = 7
+          end
+          object SE_WO_PosWarning: TSpinEdit
+            Left = 8
+            Height = 18
+            Top = 160
+            Width = 48
+            AutoSize = False
+            MaxValue = 30
+            MinValue = 1
+            OnChange = SE_WO_PosWarningChange
             TabOrder = 8
+            Value = 5
+          end
+          object Label6: TLabel
+            Left = 64
+            Height = 15
+            Top = 160
+            Width = 147
+            Caption = 'PoS addresses warning days'
+            ParentColor = False
           end
         end
         object TabSheet2: TTabSheet
           Caption = 'Node'
           ClientHeight = 398
           ClientWidth = 374
+          Enabled = False
           object CheckBox4: TCheckBox
             Left = 8
             Height = 19
             Top = 16
             Width = 109
             Caption = 'Run MasterNode'
+            Enabled = False
             TabOrder = 0
           end
           object LabeledEdit5: TLabeledEdit
@@ -551,7 +583,8 @@ object Form1: TForm1
           Caption = 'RPC'
           ClientHeight = 398
           ClientWidth = 374
-          object CheckBox5: TCheckBox
+          Enabled = False
+          object CB_RPC_ON: TCheckBox
             Left = 8
             Height = 19
             Top = 16
@@ -559,7 +592,7 @@ object Form1: TForm1
             Caption = 'Enable JSON-RPC server'
             TabOrder = 0
           end
-          object LabeledEdit10: TLabeledEdit
+          object LE_Rpc_Port: TLabeledEdit
             Left = 8
             Height = 18
             Top = 40
@@ -572,7 +605,7 @@ object Form1: TForm1
             LabelPosition = lpRight
             TabOrder = 1
           end
-          object LabeledEdit11: TLabeledEdit
+          object LE_Rpc_Pass: TLabeledEdit
             Left = 8
             Height = 18
             Top = 64
@@ -597,7 +630,7 @@ object Form1: TForm1
             Left = 8
             Height = 82
             Top = 112
-            Width = 240
+            Width = 360
             TabOrder = 4
           end
         end
@@ -605,6 +638,7 @@ object Form1: TForm1
           Caption = 'Pool'
           ClientHeight = 398
           ClientWidth = 374
+          Enabled = False
           object Panel1: TPanel
             Left = 8
             Height = 186
@@ -613,6 +647,7 @@ object Form1: TForm1
             BevelOuter = bvNone
             ClientHeight = 186
             ClientWidth = 242
+            Enabled = False
             TabOrder = 0
             object Label1: TLabel
               Left = 8
@@ -683,6 +718,7 @@ object Form1: TForm1
           Caption = 'Trade'
           ClientHeight = 398
           ClientWidth = 374
+          Enabled = False
           object CheckBox7: TCheckBox
             Left = 8
             Height = 19
@@ -703,12 +739,7 @@ object Form1: TForm1
             Left = 8
             Height = 74
             Top = 112
-            Width = 240
-            Lines.Strings = (
-              'btc 3H1VzdL3QFQpc62DUhbtCFV5dG4K1yPwVB'
-              'ltc LUUWwzfeQtJ4dc8A5xJVz3Zacray55f1WH'
-              'nos scalvhh'
-            )
+            Width = 360
             TabOrder = 2
             WordWrap = False
           end
@@ -716,7 +747,7 @@ object Form1: TForm1
             Left = 8
             Height = 18
             Top = 64
-            Width = 240
+            Width = 360
             AutoSize = False
             Enabled = False
             TabOrder = 3
@@ -734,13 +765,69 @@ object Form1: TForm1
     end
     object TabMonitor: TTabSheet
       Caption = 'Monitor'
+      ClientHeight = 430
+      ClientWidth = 388
+      object PageControl3: TPageControl
+        Left = 2
+        Height = 426
+        Top = 2
+        Width = 382
+        ActivePage = TabSheet7
+        TabIndex = 0
+        TabOrder = 0
+        object TabSheet7: TTabSheet
+          Caption = 'Log'
+          ClientHeight = 398
+          ClientWidth = 374
+          ParentShowHint = False
+          object MemoLog: TMemo
+            Left = 0
+            Height = 392
+            Top = 0
+            Width = 368
+            Color = clBlack
+            Font.CharSet = ANSI_CHARSET
+            Font.Color = clWhite
+            Font.Height = -12
+            Font.Name = 'Consolas'
+            Font.Pitch = fpFixed
+            Font.Quality = fqDraft
+            ParentFont = False
+            ReadOnly = True
+            ScrollBars = ssAutoVertical
+            TabOrder = 0
+          end
+        end
+        object TabSheet8: TTabSheet
+          Caption = 'Except'
+          ClientHeight = 398
+          ClientWidth = 374
+          object MemoExceptLog: TMemo
+            Left = 0
+            Height = 392
+            Top = 0
+            Width = 368
+            Color = clBlack
+            Font.CharSet = ANSI_CHARSET
+            Font.Color = clWhite
+            Font.Height = -12
+            Font.Name = 'Consolas'
+            Font.Pitch = fpFixed
+            Font.Quality = fqDraft
+            ParentFont = False
+            ReadOnly = True
+            ScrollBars = ssAutoVertical
+            TabOrder = 0
+          end
+        end
+      end
     end
   end
   object Imagenes: TImageList
     Left = 344
     Top = 472
     Bitmap = {
-      4C69350000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      4C69360000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
@@ -2436,7 +2523,39 @@ object Form1: TForm1
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      00000000000039E1A08435D69840000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000001CDB948F23DC97FF36DE9CC73CD59450207C5201000000000000
+      0000000000000000000000000000000000000000000000000000000000002496
+      6A063FE1A26B29DE99D71ADA93FF1DD58DFF29CE86FF3AC98284000000000000
+      00000000000000000000000000000000000000000000000000002FC0881E2FDF
+      9CD31ADB94FF1ADA93FF1CD790FF20D087FF27C57BFF2AB46D44000000000000
+      0000000000000000000000000000000000000000000018875D0529DE9AD21ADB
+      94FF1ADB94FF1AD992FF1ED38BFF24CA80FF2BBE73C100000000000000000000
+      0000000000000000000000000000000000000000000024D08F561ADB94FF1ADB
+      94E81ADA938215AE74301FBA774729C277FF2BAF673F00000000DFB56A88E0B7
+      6DBFE0B76DBFDEB467580000000000000000000000001BDB948E1ADB947D1193
+      6409000000000000000015673F032DBB70970000000000000000D9AD5ECFD9AD
+      5EFFD9AD5EFFD9AD5E8F00000000000000000000000025DD9845000000000000
+      0000000000000000000000000000000000000000000000000000D2A657CFD2A7
+      57FFD2A757FFD2A6578F00000000000000000000000031B48107000000000000
+      000000000000CEA65970D0A95DBFD0A95DBFCEA6597000000000CBA050CFCBA0
+      51FFCBA051FFCBA0508F00000000000000000000000000000000000000000000
+      000000000000C49B4BAFC49B4BFFC49B4BFFC49B4BAF00000000C39A4ACFC39A
+      4AFFC39A4AFFC39A4A8F0000000000000000A7853F2BB7954D6FB7954D6FB490
+      474700000000BC9444AFBC9544FFBC9544FFBC9444AF00000000BC9443CFBC94
+      44FFBC9444FFBC94438F0000000000000000B791418FB68F3EFFB68F3EFFB791
+      41CF00000000B58E3DAFB58E3DFFB58E3DFFB58E3DAF00000000B58E3DCFB58E
+      3DFFB58E3DFFB48E3D8F0000000000000000AE88378FAF8837FFAF8837FFAE88
+      37CF00000000AE8836AFAE8837FFAE8837FFAE8836AF00000000AD8736CFAE88
+      36FFAE8836FFAD87368F0000000000000000A782328FA78230FFA78230FFA782
+      32CF00000000A68335AFA78230FFA78230FFA68334AF00000000A68232CFA681
+      30FFA68130FFA682318F00000000A2A2A213A2937199A18649F8A18649FBA28E
+      61E1A3A3A289A2926CD6A18649FEA18649FEA2926CD6A3A3A289A28E61E1A186
+      48FBA18648F8A293709BA3A3A3169292920CA4A4A433A4A4A44AA4A4A459A4A4
+      A463A4A4A46BA4A4A470A4A4A472A4A4A472A4A4A470A4A4A46BA4A4A464A4A4
+      A459A4A4A44AA4A4A4359696960E
     }
   end
 end
