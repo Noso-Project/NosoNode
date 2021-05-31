@@ -1245,6 +1245,7 @@ var
   counter : integer;
 Begin
 SetCurrentJob('CompleteSumary',true);
+RebuildingSumary := true;
 StartBlock := ListaSumario[0].LastOP+1;
 finishblock := Mylastblock;
 for counter := StartBlock to finishblock do
@@ -1255,6 +1256,7 @@ for counter := StartBlock to finishblock do
 SetCurrentJob('save',true);
 GuardarSumario();
 SetCurrentJob('save',false);
+RebuildingSumary := false;
 UpdateMyData();
 ConsoleLinesAdd('Sumary completed from '+IntToStr(StartBlock)+' to '+IntToStr(finishblock));
 SetCurrentJob('CompleteSumary',false);
@@ -1335,6 +1337,7 @@ for contador := 1 to UntilBlock do
    if contador mod 10 = 0 then
       begin
       info(LangLine(130)+inttoStr(contador));  //'Rebuilding sumary block: '
+      EngineLastUpdate := UTCTime.ToInt64;
       application.ProcessMessages;
       end;
    BlockHeader := Default(BlockHeaderData);

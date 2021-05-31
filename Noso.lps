@@ -19,9 +19,8 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MasterPaskalForm"/>
-        <IsVisibleTab Value="True"/>
-        <TopLine Value="443"/>
-        <CursorPos X="51" Y="453"/>
+        <TopLine Value="1019"/>
+        <CursorPos X="40" Y="1034"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -39,9 +38,10 @@
       <Unit3>
         <Filename Value="mpdisk.pas"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="1862"/>
-        <CursorPos X="27" Y="1873"/>
+        <TopLine Value="1319"/>
+        <CursorPos X="42" Y="1340"/>
         <UsageCount Value="203"/>
         <Loaded Value="True"/>
       </Unit3>
@@ -147,8 +147,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="PoolManage"/>
         <EditorIndex Value="7"/>
-        <TopLine Value="286"/>
-        <CursorPos X="36" Y="300"/>
+        <TopLine Value="273"/>
+        <CursorPos X="54" Y="301"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
       </Unit14>
@@ -182,7 +182,7 @@
         <Filename Value="Info.txt"/>
         <EditorIndex Value="12"/>
         <TopLine Value="89"/>
-        <CursorPos X="139" Y="109"/>
+        <CursorPos Y="107"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="None"/>

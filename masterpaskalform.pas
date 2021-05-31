@@ -1031,7 +1031,7 @@ End;
 Procedure TForm1.RestartTimerEjecutar(Sender: TObject);
 Begin
 RestartTimer.Enabled:=false;
-if UTCTime.ToInt64 > EngineLastUpdate+30 then
+if ((UTCTime.ToInt64 > EngineLastUpdate+30) and (not RebuildingSumary)) then
    begin
    CrearBatFileForRestart();
    AutoRestarted := true;
