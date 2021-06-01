@@ -456,7 +456,7 @@ CONST
                           '199.247.12.166 '+
                           '108.61.250.100';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Ea3';
+  SubVersion = 'Ea4';
   OficialRelease = true;
   BuildDate = 'May 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';

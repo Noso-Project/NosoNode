@@ -1251,6 +1251,8 @@ finishblock := Mylastblock;
 for counter := StartBlock to finishblock do
    begin
    info(LangLine(130)+inttoStr(counter));  //'Rebuilding sumary block: '
+   application.ProcessMessages;
+   EngineLastUpdate := UTCTime.ToInt64;
    AddBlockToSumary(counter, false);
    end;
 SetCurrentJob('save',true);
