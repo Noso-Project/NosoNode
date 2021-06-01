@@ -256,7 +256,7 @@ type
     CB_WO_ToTray: TCheckBox;
     CheckBox1: TCheckBox;
     CheckBox2: TCheckBox;
-    CheckBox3: TCheckBox;
+    CB_WO_AntiFreeze: TCheckBox;
     CheckBox4: TCheckBox;
     CB_RPC_ON: TCheckBox;
     CheckBox6: TCheckBox;
@@ -456,7 +456,7 @@ CONST
                           '199.247.12.166 '+
                           '108.61.250.100';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Ea4';
+  SubVersion = 'Ea5';
   OficialRelease = true;
   BuildDate = 'May 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';

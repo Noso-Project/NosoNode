@@ -1511,6 +1511,7 @@ for contador := ListaMisTrx[0].Block+1 to blocknumber do
    if Not G_Launching then
       begin
       info(Format('Rebuilding my Trxs: %d',[contador]));
+      EngineLastUpdate := UTCTime.ToInt64;
       application.ProcessMessages;
       end;
    BlockPayouts := 0; BlockEarnings := 0;
@@ -1569,7 +1570,7 @@ for contador := ListaMisTrx[0].Block+1 to blocknumber do
       PosCount := length(ArrayPos);
       for counterpos := 0 to PosCount-1 do
          begin
-         if direccionesmia(ArrayPos[counterPos].address)>0 then
+         if direccionesmia(ArrayPos[counterPos].address)>=0 then
             begin
             BlockPayouts+=1;
             PoSPayouts := PoSPayouts+1;
