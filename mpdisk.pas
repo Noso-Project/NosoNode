@@ -904,10 +904,10 @@ var
   contador : integer = 0;
   previous : int64;
 Begin
+copyfile (UserOptions.Wallet,UserOptions.Wallet+'.bak');
+assignfile(FileWallet,UserOptions.Wallet);
+reset(FileWallet);
    try
-   copyfile (UserOptions.Wallet,UserOptions.Wallet+'.bak');
-   assignfile(FileWallet,UserOptions.Wallet);
-   reset(FileWallet);
    for contador := 0 to Length(ListaDirecciones)-1 do
       begin
       seek(FileWallet,contador);
@@ -916,11 +916,11 @@ Begin
       write(FileWallet,ListaDirecciones[contador]);
       ListaDirecciones[contador].Pending := Previous;
       end;
-   closefile(FileWallet);
    S_Wallet := false;
    Except on E:Exception do
       tolog ('Error saving wallet to disk ('+E.Message+')');
    end;
+closefile(FileWallet);
 End;
 
 // Updates wallet addresses balance from sumary
@@ -1832,21 +1832,24 @@ Procedure GuardarPoolMembers();
 var
   contador : integer;
   SavedOk : boolean = false;
+  CopyArray :array of PoolMembersData;
 Begin
 assignfile(FilePoolMembers,PoolMembersFilename);
 reset(FilePoolMembers);
+setlength(CopyArray,0);
 EnterCriticalSection(CSPoolMembers);
+CopyArray := copy(ArrayPoolMembers,0,length(ArrayPoolMembers));
+LeaveCriticalSection(CSPoolMembers);
 TRY
-for contador := 0 to length(ArrayPoolMembers)-1 do
+for contador := 0 to length(CopyArray)-1 do
    begin
    seek(FilePoolMembers,contador);
-   write(FilePoolMembers,ArrayPoolMembers[contador]);
+   write(FilePoolMembers,CopyArray[contador]);
    SavedOk := true;
    end;
 EXCEPT on E:Exception do
-   ToLog('Error saving pool members to disk.');
+   ToLog('Error saving pool members to disk: '+E.Message);
 END;
-LeaveCriticalSection(CSPoolMembers);
 //truncate(FilePoolMembers);
 Closefile(FilePoolMembers);
 if SavedOk then S_PoolMembers := false;
