@@ -255,7 +255,7 @@ type
     CB_WO_AutoConnect: TCheckBox;
     CB_WO_ToTray: TCheckBox;
     CheckBox1: TCheckBox;
-    CheckBox2: TCheckBox;
+    CB_WO_Multisend: TCheckBox;
     CB_WO_AntiFreeze: TCheckBox;
     CheckBox4: TCheckBox;
     CB_RPC_ON: TCheckBox;
@@ -430,6 +430,8 @@ type
     procedure SE_WO_RTOTChange(Sender: TObject);
     procedure SE_WO_ShowOrdersChange(Sender: TObject);
     procedure SE_WO_PosWarningChange(Sender: TObject);
+    procedure CB_WO_AntiFreezeChange(Sender: TObject);
+    procedure CB_WO_MultisendChange(Sender: TObject);
 
   private
 
@@ -456,7 +458,7 @@ CONST
                           '199.247.12.166 '+
                           '108.61.250.100';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Ea5';
+  SubVersion = 'Ea6';
   OficialRelease = true;
   BuildDate = 'May 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -505,15 +507,14 @@ var
   WO_ToTray        : boolean = false;
   MinConexToWork   : integer = 1;
   WO_PosWarning    : int64 = 7;
+  WO_AntiFreeze    : boolean = true;
+  WO_MultiSend     : boolean = false;
 
 
   SynchWarnings : integer = 0;
   ConnectedRotor : integer = 0;
   EngineLastUpdate : int64 = 0;
 
-  // Threads variables
-  // ReadingClients : boolean = false;
-  // HiloLeerClientes : TThreadLeerClientes;
   SendOutMsgsThread : TThreadSendOutMsjs;
     SendingMsgs : boolean = false;
 
@@ -1032,7 +1033,7 @@ End;
 Procedure TForm1.RestartTimerEjecutar(Sender: TObject);
 Begin
 RestartTimer.Enabled:=false;
-if (UTCTime.ToInt64 > EngineLastUpdate+30) then
+if ((UTCTime.ToInt64 > EngineLastUpdate+30) and (WO_AntiFreeze)) then
    begin
    CrearBatFileForRestart();
    AutoRestarted := true;
@@ -1136,6 +1137,8 @@ SE_WO_CTOT.Value:= ConnectTimeOutTime;
 SE_WO_RTOT.Value:= ReadTimeOutTIme;
 SE_WO_ShowOrders.Value:= ShowedOrders;
 SE_WO_PosWarning.Value := WO_PosWarning;
+CB_WO_AntiFreeze.Checked:=WO_AntiFreeze;
+CB_WO_Multisend.Checked:=WO_Multisend;
 // RPC
 LE_Rpc_Port.Text := IntToStr(RPCPort);
 LE_Rpc_Pass.Text := RPCPass;
@@ -2188,6 +2191,8 @@ if Comando = 'JOIN' then
       Acontext.Connection.IOHandler.WriteLn('JOINOK '+PoolInfo.Direccion+' '+JoinPrefijo+' '+PoolDataString(UserDireccion));
       if not SavePoolServerConnection(IpUser,JoinPrefijo, UserDireccion,minerversion,Acontext) then
          begin
+         Acontext.Connection.IOHandler.InputBuffer.Clear;
+         AContext.Connection.Disconnect;
          BorrarPoolServerConex(Acontext);
          WasHandled := true;
          LeaveCriticalSection(CSMinerJoin);InsideMinerJoin := false;
@@ -3294,6 +3299,22 @@ begin
 if G_Launching then exit;
 WO_PosWarning := SE_WO_PosWarning.Value;
 U_DirPanel := true;
+S_AdvOpt := true;
+end;
+
+procedure TForm1.CB_WO_AntiFreezeChange(Sender: TObject);
+begin
+if G_Launching then exit;
+if CB_WO_AntiFreeze.Checked then WO_AntiFreeze := true
+else WO_AntiFreeze := false ;
+S_AdvOpt := true;
+end;
+
+procedure TForm1.CB_WO_MultisendChange(Sender: TObject);
+begin
+if G_Launching then exit;
+if CB_WO_Multisend.Checked then WO_Multisend := true
+else WO_Multisend := false ;
 S_AdvOpt := true;
 end;
 

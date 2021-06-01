@@ -470,6 +470,8 @@ Begin
    writeln(FileAdvOptions,'ToTray '+BoolToStr(WO_ToTray,true));
    writeln(FileAdvOptions,'MinConexToWork '+IntToStr(MinConexToWork));
    writeln(FileAdvOptions,'PosWarning '+IntToStr(WO_PosWarning));
+   writeln(FileAdvOptions,'AntiFreeze '+BoolToStr(WO_AntiFreeze,true));
+   writeln(FileAdvOptions,'MultiSend '+BoolToStr(WO_MultiSend,true));
    Closefile(FileAdvOptions);
    if saving then tolog('Options file saved');
    S_AdvOpt := false;
@@ -505,6 +507,8 @@ Begin
       if parameter(linea,0) ='ToTray' then WO_ToTray:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='MinConexToWork' then MinConexToWork:=StrToIntDef(Parameter(linea,1),MinConexToWork);
       if parameter(linea,0) ='PosWarning' then WO_PosWarning:=StrToIntDef(Parameter(linea,1),WO_PosWarning);
+      if parameter(linea,0) ='AntiFreeze' then WO_AntiFreeze:=StrToBool(Parameter(linea,1));
+      if parameter(linea,0) ='MultiSend' then WO_MultiSend:=StrToBool(Parameter(linea,1));
       end;
    Closefile(FileAdvOptions);
    Except on E:Exception do

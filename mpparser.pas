@@ -984,6 +984,7 @@ var
   AliasIndex : integer;
   Procesar : boolean = true;
   ResultOrderID : String = '';
+  CoinsAvailable : int64;
 Begin
 result := '';
 setmilitime('SendFunds',1);
@@ -1018,7 +1019,9 @@ if procesar then
    montoToShow := Monto;
    comisionToShow := Comision;
    Restante := monto+comision;
-   if Restante > GetWalletBalance then
+   if WO_Multisend then CoinsAvailable := ListaDirecciones[0].Balance-GetAddressPendingPays(ListaDirecciones[0].Hash)
+   else CoinsAvailable := GetWalletBalance;
+   if Restante > CoinsAvailable then
       begin
       ConsoleLinesAdd(LAngLine(148)+Int2curr(Monto+comision));//'Insufficient funds. Needed: '
       Procesar := false;
