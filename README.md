@@ -2,13 +2,13 @@
 Noso Windows Wallet
 
 
-Unofficial Release Ver 0.2.1Af
+Official Release Ver 0.2.1Af
 
 
-June 01, 2021
+June 07, 2021
 
 
-THIS IS A NON OFFICIAL RELEASE
+THIS IS A OFFICIAL RELEASE
 
 
 Requirements:

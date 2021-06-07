@@ -1932,6 +1932,7 @@ for counter := 1 to MyLastBlock do
             end;
          end;
       end;
+   SetLength(ArrTrxs,0);
    end;
 inbalance := GetAddressBalance(addtoshow);
 ConsoleLinesAdd('Last block : '+inttostr(MyLastBlock));
@@ -1991,6 +1992,7 @@ else
    ConsoleLinesAdd('Addresses: '+IntToStr(PosCount));
    ConsolelinesAdd('Reward   : '+int2curr(PosReward));
    ConsolelinesAdd('Total    : '+int2curr(PosCount*PosReward));
+   SetLength(ArrayPos,0);
    end;
 End;
 

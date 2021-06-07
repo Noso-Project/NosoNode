@@ -141,9 +141,14 @@ if fileexists(PoolInfoFilename) then
    form1.TabMainPool.TabVisible:=true;
    if not FileExists(PoolPaymentsFilename) then CreatePoolPayfile();
    SetLength(PoolServerConex,PoolInfo.MaxMembers);
+   SetLength(ArrayPoolMembers,PoolInfo.MaxMembers);
    for contador := 0 to length(PoolServerConex)-1 do
+      begin
       PoolServerConex[contador] := Default(PoolUserConnection);
+      ArrayPoolMembers[contador] := Default(PoolMembersData)
+      end;
    GridPoolConex.RowCount:=PoolInfo.MaxMembers+1;
+   form1.SG_PoolMiners.RowCount:=PoolInfo.MaxMembers+1;
    ConsoleLinesAdd('PoolMaxMembers:'+inttostr(length(PoolServerConex)));
    Miner_OwnsAPool := true;
    LoadPoolMembers();
@@ -276,6 +281,7 @@ Procedure SaveNodeFile();
 Var
   contador : integer = 0;
 Begin
+setmilitime('SaveNodeFile',1);
    try
    assignfile (FileNodeData,NodeDataFilename);
    contador := 0;
@@ -295,6 +301,7 @@ Begin
    Except on E:Exception do
       tolog ('Error saving nodes to disk');
    end;
+setmilitime('SaveNodeFile',2);
 End;
 
 // Fills options node list
@@ -352,7 +359,12 @@ End;
 // Add Except log line
 Procedure ToExcLog(Texto:string);
 Begin
-ExceptLines.Add(FormatDateTime('dd MMMM YYYY HH:MM:SS.zzz', Now)+' -> '+texto);
+EnterCriticalSection(CSExcLogLines);
+   try
+   ExceptLines.Add(FormatDateTime('dd MMMM YYYY HH:MM:SS.zzz', Now)+' -> '+texto);
+   except on E:Exception do begin end;
+   end;
+LeaveCriticalSection(CSExcLogLines);
 S_Exc := true;
 End;
 
@@ -360,21 +372,33 @@ End;
 Procedure SaveExceptLog();
 var
   archivo : textfile;
+  IOCode : integer;
 Begin
-try
-   Assignfile(archivo, ExceptLogFilename);
-   Append(archivo);
-   while ExceptLines.Count>0 do
-      begin
-      Writeln(archivo, ExceptLines[0]);
-      form1.MemoExceptLog.Lines.Add( ExceptLines[0]);
-      ExceptLines.Delete(0);
+setmilitime('SaveExceptLog',1);
+Assignfile(archivo, ExceptLogFilename);
+{$I-}Append(archivo){$I+};
+IOCode := IOResult;
+If IOCode = 0 then
+   begin
+   EnterCriticalSection(CSExcLogLines);
+      try
+      while ExceptLines.Count>0 do
+         begin
+         Writeln(archivo, ExceptLines[0]);
+         form1.MemoExceptLog.Lines.Add( ExceptLines[0]);
+         NewExclogLines +=1;
+         ExceptLines.Delete(0);
+         end;
+      S_Exc := false;
+      Except on E:Exception do
+         tolog ('Error saving the Except log file: '+E.Message);
       end;
    Closefile(archivo);
-   S_Exc := false;
-Except on E:Exception do
-   tolog ('Error saving to the Except log file: '+E.Message);
-end;
+   LeaveCriticalSection(CSExcLogLines);
+   end
+else if IOCode = 5 then
+   {$I-}Closefile(archivo){$I+};
+setmilitime('SaveExceptLog',2);
 End;
 
 // *** Pool payments file ***
@@ -412,6 +436,7 @@ Procedure SavePoolPays();
 var
   archivo : textfile;
 Begin
+setmilitime('SavePoolPays',1);
 Assignfile(archivo, PoolPaymentsFilename);
 Append(archivo);
 try
@@ -427,6 +452,7 @@ Except on E:Exception do
    tolog ('Error saving Pool pays file');
 end;
 Closefile(archivo);
+setmilitime('SavePoolPays',2);
 End;
 
 // *** BOTS FILE ***
@@ -451,6 +477,7 @@ End;
 // Creates/Saves Advopt file
 Procedure CreateADV(saving:boolean);
 Begin
+setmilitime('CreateADV',1);
    try
    Assignfile(FileAdvOptions, AdvOptionsFilename);
    rewrite(FileAdvOptions);
@@ -472,12 +499,14 @@ Begin
    writeln(FileAdvOptions,'PosWarning '+IntToStr(WO_PosWarning));
    writeln(FileAdvOptions,'AntiFreeze '+BoolToStr(WO_AntiFreeze,true));
    writeln(FileAdvOptions,'MultiSend '+BoolToStr(WO_MultiSend,true));
+   writeln(FileAdvOptions,'AntifreezeTime '+IntToStr(WO_AntifreezeTime));
    Closefile(FileAdvOptions);
    if saving then tolog('Options file saved');
    S_AdvOpt := false;
    Except on E:Exception do
       toexclog ('Error creating AdvOpt file');
    end;
+   setmilitime('CreateADV',2);
 End;
 
 // Loads Advopt values
@@ -509,6 +538,7 @@ Begin
       if parameter(linea,0) ='PosWarning' then WO_PosWarning:=StrToIntDef(Parameter(linea,1),WO_PosWarning);
       if parameter(linea,0) ='AntiFreeze' then WO_AntiFreeze:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='MultiSend' then WO_MultiSend:=StrToBool(Parameter(linea,1));
+      if parameter(linea,0) ='AntifreezeTime' then WO_AntifreezeTime:=StrToIntDef(Parameter(linea,1),WO_AntifreezeTime);
       end;
    Closefile(FileAdvOptions);
    Except on E:Exception do
@@ -519,30 +549,49 @@ End;
 // Add log line
 Procedure ToLog(Texto:string);
 Begin
-LogLines.Add(texto);
-S_Log := true;
+EnterCriticalSection(CSLoglines);
+   try
+   LogLines.Add(timetostr(now)+': '+texto);
+   S_Log := true;
+   Except on E:Exception do
+      begin
+
+      end;
+   end;
+LeaveCriticalSection(CSLoglines);
 End;
 
 // Save log files to disk
 Procedure SaveLog();
 var
   archivo : textfile;
+  IOCode : integer;
 Begin
-try
-   Assignfile(archivo, ErrorLogFilename);
-   Append(archivo);
-   while LogLines.Count>0 do
-      begin
-      Writeln(archivo, timetostr(now)+' '+LogLines[0]);
-      form1.MemoLog.Lines.Add(timetostr(now)+' '+LogLines[0]);
-      if not formlog.Visible then NewLogLines := NewLogLines+1;
-      LogLines.Delete(0);
+setmilitime('SaveLog',1);
+Assignfile(archivo, ErrorLogFilename);
+{$I-}Append(archivo);{$I+}
+IOCode := IOResult;
+if IOCode = 0 then
+   begin
+   EnterCriticalSection(CSLoglines);
+      try
+      while LogLines.Count>0 do
+         begin
+         Writeln(archivo,LogLines[0]);
+         form1.MemoLog.Lines.Add(LogLines[0]);
+         if not formlog.Visible then NewLogLines := NewLogLines+1;
+         LogLines.Delete(0);
+         end;
+      S_Log := false;
+      Except on E:Exception do
+         toExclog ('Error saving to the log file: '+E.Message);
       end;
    Closefile(archivo);
-   S_Log := false;
-Except on E:Exception do
-   tolog ('Error saving to the log file');
-end;
+   LeaveCriticalSection(CSLoglines);
+   end
+else if IOCode = 5 then
+   {$I-}Closefile(archivo){$I+};
+setmilitime('SaveLog',2);
 End;
 
 // Creates options file
@@ -591,6 +640,7 @@ End;
 // Save Options to disk
 Procedure GuardarOpciones();
 Begin
+setmilitime('GuardarOpciones',1);
    try
    assignfile(FileOptions,OptionsFileName);
    reset(FileOptions);
@@ -601,6 +651,7 @@ Begin
    Except on E:Exception do
       tolog ('Error saving user options');
    end;
+   setmilitime('GuardarOpciones',2);
 End;
 
 // Creates the default language file
@@ -745,19 +796,22 @@ End;
 Procedure UpdateBotData(IPUser:String);
 var
   contador : integer = 0;
+  updated : boolean = false;
 Begin
 for contador := 0 to length(ListadoBots)-1 do
    begin
    if ListadoBots[Contador].ip = IPUser then
       begin
       ListadoBots[Contador].LastRefused:=UTCTime;
-      S_BotData := true;
-      Exit;
+      Updated := true;
       end;
    end;
-SetLength(ListadoBots,Length(ListadoBots)+1);
-ListadoBots[Length(listadoBots)-1].ip:=IPUser;
-ListadoBots[Length(listadoBots)-1].LastRefused:=UTCTime;
+if not updated then
+   begin
+   SetLength(ListadoBots,Length(ListadoBots)+1);
+   ListadoBots[Length(listadoBots)-1].ip:=IPUser;
+   ListadoBots[Length(listadoBots)-1].LastRefused:=UTCTime;
+   end;
 S_BotData := true;
 End;
 
@@ -766,6 +820,7 @@ Procedure SaveBotData();
 Var
   contador : integer = 0;
 Begin
+setmilitime('SaveBotData',1);
    try
    assignfile (FileBotData,BotDataFilename);
    contador := 0;
@@ -785,6 +840,7 @@ Begin
    Except on E:Exception do
          tolog ('Error saving bots to file :'+E.Message);
    end;
+setmilitime('SaveBotData',2);
 End;
 
 // Creates NTP servers file
@@ -908,6 +964,7 @@ var
   contador : integer = 0;
   previous : int64;
 Begin
+setmilitime('GuardarWallet',1);
 copyfile (UserOptions.Wallet,UserOptions.Wallet+'.bak');
 assignfile(FileWallet,UserOptions.Wallet);
 reset(FileWallet);
@@ -925,6 +982,7 @@ reset(FileWallet);
       tolog ('Error saving wallet to disk ('+E.Message+')');
    end;
 closefile(FileWallet);
+setmilitime('GuardarWallet',2);
 End;
 
 // Updates wallet addresses balance from sumary
@@ -1000,6 +1058,7 @@ Procedure GuardarSumario();
 var
   contador : integer = 0;
 Begin
+setmilitime('GuardarSumario',1);
 SetCurrentJob('GuardarSumario',true);
 EnterCriticalSection(CSSumary);
 assignfile(FileSumario,SumarioFilename);
@@ -1020,6 +1079,7 @@ assignfile(FileSumario,SumarioFilename);
 CloseFile(FileSumario);
 LeaveCriticalSection(CSSumary);
 SetCurrentJob('GuardarSumario',false);
+setmilitime('GuardarSumario',2);
 End;
 
 // Returns the last downloaded block
@@ -1301,6 +1361,7 @@ for cont := 0 to length(ArrayOrders)-1 do
       UpdateSumario(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,0,IntToStr(BlockNumber));
       end;
    end;
+setlength(ArrayOrders,0);
 if blocknumber >= PoSBlockStart then
    begin
    ArrayPos := GetBlockPoSes(BlockNumber);
@@ -1310,6 +1371,7 @@ if blocknumber >= PoSBlockStart then
    for counterpos := 0 to PosCount-1 do
       UpdateSumario(ArrayPos[counterPos].address,Posreward,0,IntToStr(BlockNumber));
    UpdateSumario(BlockHeader.AccountMiner,Restar(PosCount*Posreward),0,IntToStr(BlockNumber));
+   SetLength(ArrayPos,0);
    end;
 ListaSumario[0].LastOP:=BlockNumber;
 if SaveAndUpdate then
@@ -1364,6 +1426,7 @@ for contador := 1 to UntilBlock do
          UpdateSumario(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,0,IntToStr(contador));
          end;
       end;
+   setlength(ArrayOrders,0);
    if contador >= PoSBlockStart then
       begin
       ArrayPos := GetBlockPoSes(contador);
@@ -1374,6 +1437,7 @@ for contador := 1 to UntilBlock do
          UpdateSumario(ArrayPos[counterPos].address,Posreward,0,IntToStr(contador));
       // Restar el PoS al minero
       UpdateSumario(BlockHeader.AccountMiner,Restar(PosCount*Posreward),0,IntToStr(contador));
+      SetLength(ArrayPos,0);
       end;
    end;
 ListaSumario[0].LastOP:=contador;
@@ -1484,7 +1548,8 @@ Begin
    G_PoSPayouts  := PoSPayouts;
    G_PoSEarnings := PoSEarnings;
    ListaMisTrx[0].receiver := IntToStr(PoSPayouts)+' '+IntToStr(PoSEarnings);
-   ToLog(Format('Total PoS : %d : %s',[G_PoSPayouts,Int2curr(G_PoSEarnings)]));
+   if G_PoSPayouts > 0 then
+      ToLog(Format('Total PoS : %d : %s',[G_PoSPayouts,Int2curr(G_PoSEarnings)]));
    Except on E:Exception do
       toExclog ('Error setting last block checked for my trx');
    end;
@@ -1507,7 +1572,7 @@ var
   BlockPayouts, BlockEarnings : int64;
 Begin
 Existentes := Length(ListaMisTrx);
-if ListaMisTrx[0].Block = blocknumber then exit;  // block number already rebuilded
+if ListaMisTrx[0].Block >= blocknumber then exit;  // block number already rebuilded
 PoSPayouts := StrToInt64Def(parameter(ListaMisTrx[0].receiver,0),0);
 PoSEarnings := StrToInt64Def(parameter(ListaMisTrx[0].receiver,1),0);
 for contador := ListaMisTrx[0].Block+1 to blocknumber do
@@ -1566,6 +1631,7 @@ for contador := ListaMisTrx[0].Block+1 to blocknumber do
             end;
          end;
       end;
+   setlength(ArrTrxs,0);
    if contador >= PoSBlockStart then
       begin
       ArrayPos := GetBlockPoSes(contador);
@@ -1584,6 +1650,7 @@ for contador := ListaMisTrx[0].Block+1 to blocknumber do
          end;
       if BlockPayouts > 0 then
          ToLog(Format('PoS : %d -> %d : %s',[contador,BlockPayouts,Int2curr(BlockEarnings)]));
+      SetLength(ArrayPos,0);
       end;
    end;
 ListaMisTrx[0].block:=blocknumber;
@@ -1635,7 +1702,7 @@ try
   rewrite(archivo);
   writeln(archivo,'echo Restarting Noso...');
   writeln(archivo,'TIMEOUT 5');
-  writeln(archivo,'start noso.exe');
+  writeln(archivo,'start '+Application.ExeName);
   Closefile(archivo);
   Except on E:Exception do
     tolog ('Error creating restart file');
@@ -1772,15 +1839,17 @@ End;
 // Saves the pool info file
 Procedure GuardarArchivoPoolInfo();
 Begin
-try
-assignfile(FilePool,PoolInfoFilename);
-rewrite(FilePool);
-write(filepool,PoolInfo);
-Closefile(FilePool);
-Except on E:Exception do
-   tolog('Error savinf PoolInfo file:'+E.Message);
-end;
+setmilitime('GuardarArchivoPoolInfo',1);
+   try
+   assignfile(FilePool,PoolInfoFilename);
+   rewrite(FilePool);
+   write(filepool,PoolInfo);
+   Closefile(FilePool);
+   Except on E:Exception do
+      tolog('Error saving PoolInfo file:'+E.Message);
+   end;
 S_PoolInfo := false;
+setmilitime('GuardarArchivoPoolInfo',2);
 End;
 
 // Reads pool info from file
@@ -1841,25 +1910,28 @@ var
   SavedOk : boolean = false;
   CopyArray :array of PoolMembersData;
 Begin
+setmilitime('GuardarPoolMembers',1);
 assignfile(FilePoolMembers,PoolMembersFilename);
-reset(FilePoolMembers);
-setlength(CopyArray,0);
-EnterCriticalSection(CSPoolMembers);
-CopyArray := copy(ArrayPoolMembers,0,length(ArrayPoolMembers));
-LeaveCriticalSection(CSPoolMembers);
-TRY
-for contador := 0 to length(CopyArray)-1 do
-   begin
-   seek(FilePoolMembers,contador);
-   write(FilePoolMembers,CopyArray[contador]);
+   TRY
+   reset(FilePoolMembers);
+   setlength(CopyArray,0);
+   EnterCriticalSection(CSPoolMembers);
+   CopyArray := copy(ArrayPoolMembers,0,length(ArrayPoolMembers));
+   LeaveCriticalSection(CSPoolMembers);
+   for contador := 0 to length(CopyArray)-1 do
+      begin
+      seek(FilePoolMembers,contador);
+      write(FilePoolMembers,CopyArray[contador]);
+      end;
+   Closefile(FilePoolMembers);
+   //truncate(FilePoolMembers);
    SavedOk := true;
-   end;
-EXCEPT on E:Exception do
-   ToLog('Error saving pool members to disk: '+E.Message);
-END;
-//truncate(FilePoolMembers);
-Closefile(FilePoolMembers);
+   EXCEPT on E:Exception do
+      ToExcLog('Error saving pool members to disk: '+E.Message);
+   END;
+SetLength(CopyArray,0);
 if SavedOk then S_PoolMembers := false;
+setmilitime('GuardarPoolMembers',2);
 End;
 
 // Creates and executes autolauncher.bat
@@ -1887,14 +1959,14 @@ Procedure CrearRestartfile();
 var
   archivo : textfile;
 Begin
-try
-  Assignfile(archivo, 'restart.txt');
-  rewrite(archivo);
-  writeln(archivo,GetCurrentStatus(0));
-  Closefile(archivo);
-Except on E:Exception do
-   tolog ('Error creating restart file');
-end;
+Assignfile(archivo, 'restart.txt');
+   try
+   rewrite(archivo);
+   writeln(archivo,GetCurrentStatus(0));
+   Closefile(archivo);
+   Except on E:Exception do
+      tolog ('Error creating restart file');
+   end;
 End;
 
 // apply restart conditions
@@ -1907,12 +1979,13 @@ Begin
 Assignfile(archivo, 'restart.txt');
 reset(archivo);
 ReadLn(archivo,linea);
+ReadLn(archivo,Miner_RestartedSolution);
 Closefile(archivo);
 server := StrToBool(parameter(linea,1));
 connect := StrToBool(parameter(linea,3));
 if server then ProcessLinesAdd('SERVERON');
 if connect then ProcessLinesAdd('CONNECT');
-Deletefile('restart.txt');
+tryDeletefile('restart.txt');
 End;
 
 // Creates crashinfofile
@@ -1920,19 +1993,22 @@ Procedure CrearCrashInfo();
 var
   archivo : textfile;
 Begin
-try
-  Assignfile(archivo, 'crashinfo.txt');
-  rewrite(archivo);
-  writeln(archivo,GetCurrentStatus(1));
-  while ExceptLines.Count>0 do
+Assignfile(archivo, 'crashinfo.txt');
+   try
+   if not fileexists('crashinfo.txt') then rewrite(archivo)
+   else append(archivo);
+   writeln(archivo,GetCurrentStatus(1));
+   //{
+   while ExceptLines.Count>0 do
       begin
       Writeln(archivo, ExceptLines[0]);
       ExceptLines.Delete(0);
       end;
-  Closefile(archivo);
-Except on E:Exception do
-   tolog ('Error creating crashinfo file');
-end;
+   //}
+   Closefile(archivo);
+   Except on E:Exception do
+      tolog ('Error creating crashinfo file');
+   end;
 End;
 
 // Gets OS version

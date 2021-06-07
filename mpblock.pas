@@ -121,6 +121,7 @@ Except on E:Exception do
    ToExcLog('Error asigning pending to Ignored');
    end;
 end;
+SetLength(IgnoredTrxs,0);
 SetCurrentJob('NewBLOCK+PENDING',false);
 LeaveCriticalSection(CSPending);
 
@@ -185,6 +186,8 @@ BlockHeader.Reward:=GetBlockReward(Numero);
 // Fin de la cabecera -----
 // Guardar bloque al disco
 GuardarBloque(FileName,BlockHeader,ListaOrdenes,PosReward,PosCount,PoSAddressess);
+SetLength(ListaOrdenes,0);
+SetLength(PoSAddressess,0);
 // Actualizar informacion
 MyLastBlock := Numero;
 MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
@@ -195,15 +198,18 @@ AddBlchHead(Numero,MyLastBlockHash,MySumarioHash);
 MyResumenHash := HashMD5File(ResumenFilename);
 ResetMinerInfo();
 ResetPoolMiningInfo();
-EnterCriticalSection(CSPoolMembers);
-copyfile (PoolMembersFilename,PoolMembersFilename+'.bak');
-LeaveCriticalSection(CSPoolMembers);
 if ((Miner_OwnsAPool) and (PoolExpelBlocks>0)) then ExpelPoolInactives();
 if minero = PoolInfo.Direccion then
    begin
    ConsoleLinesAdd('Your pool solved the block '+inttoStr(numero));
    DistribuirEnPool(GetBlockReward(Numero)+MinerFee-PosTotalReward);
    end;
+EnterCriticalSection(CSPoolMembers);
+setmilitime('BACKUPPoolMembers',1);
+copyfile (PoolMembersFilename,PoolMembersFilename+'.bak');
+setmilitime('BACKUPPoolMembers',2);
+LeaveCriticalSection(CSPoolMembers);
+//processlines.Add('stoppoolserver');
 if minero = RPC_MinerInfo then
    begin
    RPC_MinerReward := GetBlockReward(Numero)+MinerFee;
@@ -278,7 +284,8 @@ var
   NumeroOrdenes : int64;
   counter : integer;
 Begin
-SetCurrentJob('SAVEBLOCK',true);
+SetCurrentJob('GuardarBloque',true);
+setmilitime('GuardarBloque',1);
 NumeroOrdenes := Cabezera.TrxTotales;
 MemStr := TMemoryStream.Create;
    try
@@ -297,7 +304,8 @@ MemStr := TMemoryStream.Create;
    On E :Exception do ConsoleLinesAdd(LangLine(20));           //Error saving block to disk
    end;
 MemStr.Free;
-SetCurrentJob('SAVEBLOCK',false);
+setmilitime('GuardarBloque',2);
+SetCurrentJob('GuardarBloque',false);
 End;
 
 // Carga la informacion del bloque
@@ -348,8 +356,6 @@ MemStr := TMemoryStream.Create;
    SetLength(ArrTrxs,TotalTrxs);
    For Counter := 0 to TotalTrxs-1 do
       MemStr.Read(ArrTrxs[Counter],Sizeof(ArrTrxs[Counter])); // read each record
-   MemStr.Read(Header, SizeOf(Header));
-
    Except on E: Exception do // nothing, the block is not founded
    end;
 MemStr.Free;
@@ -415,6 +421,7 @@ if not ClearPendings then
    for cont := 0 to length(ArrayOrders)-1 do
       addpendingtxs(ArrayOrders[cont]);
    end;
+SetLength(ArrayOrders,0);
 if LastBlockData.AccountMiner = PoolInfo.Direccion then // El bloque deshecho fue minado por mi pool
    begin
    if UndoPoolPayment then PoolUndoneLastPayment();
@@ -446,7 +453,7 @@ for contador := 0 to Miner_Steps-1 do
    begin
    paso := Parameter(solucion,contador);
    paso := copy(paso,10,9);
-   result += CadToNum(paso,0,'**CRITICAL: Error reading value of block solution.');
+   result := result + CadToNum(paso,0,'**CRITICAL: Error reading value of block solution.');
    end;
 End;
 

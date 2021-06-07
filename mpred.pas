@@ -143,15 +143,21 @@ procedure StopServer();
 var
   Contador: integer;
 Begin
-SetCurrentJob('StopServer',true);
-for contador := 1 to MaxConecciones do
-   begin
-   if conexiones[contador].tipo='CLI' then CerrarSlot(contador);
-   end;
-Form1.Server.Active:=false;
-ConsoleLinesAdd(LangLine(16));             //Server stopped
-U_DataPanel := true;
 KeepServerOn := false;
+SetCurrentJob('StopServer',true);
+   try
+   for contador := 1 to MaxConecciones do
+      begin
+      if conexiones[contador].tipo='CLI' then CerrarSlot(contador);
+      end;
+   Form1.Server.Active:=false;
+   ConsoleLinesAdd(LangLine(16));             //Server stopped
+   U_DataPanel := true;
+   Except on E:Exception do
+      begin
+
+      end;
+   end;
 SetCurrentJob('StopServer',false);
 end;
 
@@ -159,12 +165,13 @@ end;
 procedure CerrarSlot(Slot:integer);
 begin
 SetCurrentJob('CerrarSlot',true);
+setmilitime('CerrarSlot',1);
    try
    if conexiones[Slot].tipo='CLI' then
       begin
       SlotLines[slot].Clear;
       Conexiones[Slot].context.Connection.Disconnect;
-      //Conexiones[Slot].Thread.Free;
+      Conexiones[Slot].Thread.Free;
       end;
    if conexiones[Slot].tipo='SER' then
       begin
@@ -178,6 +185,7 @@ SetCurrentJob('CerrarSlot',true);
      end;
    end;
 Conexiones[Slot] := Default(conectiondata);
+setmilitime('CerrarSlot',1);
 SetCurrentJob('CerrarSlot',false);
 end;
 
@@ -301,6 +309,7 @@ var
   Resultado : integer = 0;
   Contador : integer = 0;
 Begin
+setmilitime('GetTotalConexiones',1);
 for contador := 1 to MaxConecciones do
    begin
    if ((conexiones[contador].tipo='SER') and (not CanalCliente[contador].connected)) then
@@ -311,6 +320,7 @@ for contador := 1 to MaxConecciones do
    if conexiones[contador].tipo <> '' then resultado := resultado + 1;
    end;
 result := resultado;
+setmilitime('GetTotalConexiones',2);
 End;
 
 // Cierra todas las conexiones salientes
@@ -318,12 +328,18 @@ Procedure CerrarClientes();
 var
   Contador: integer;
 Begin
-SetCurrentJob('CerrarClientes',true);
-for contador := 1 to MaxConecciones do
-   begin
-   if conexiones[contador].tipo='SER' then CerrarSlot(contador);
-   end;
 CONNECT_Try := false;
+SetCurrentJob('CerrarClientes',true);
+   try
+   for contador := 1 to MaxConecciones do
+      begin
+      if conexiones[contador].tipo='SER' then CerrarSlot(contador);
+      end;
+   Except on E:Exception do
+      begin
+
+      end;
+   end;
 SetCurrentJob('CerrarClientes',false);
 End;
 
@@ -572,6 +588,13 @@ if MyConStatus = 3 then
    else SynchWarnings := 0;
    if ((Miner_OwnsAPool) and (not Form1.PoolServer.Active)) then // Activar el pool propio si se posee uno
       begin
+      if ( (Mylastblock+1 = StrToIntDef(parameter(Miner_RestartedSolution,0),-1)) and
+         (StrToIntDef(parameter(Miner_RestartedSolution,1),-1)>0) ) then
+         begin
+         // REstart pool solution
+         RestartPoolSolution();
+         end;
+      Miner_RestartedSolution := '';
       if LastTryStartPoolServer+5 < StrToInt64(UTCTIME) then
          begin
          StartPoolServer(Poolinfo.Port);
@@ -947,6 +970,7 @@ else
             end;
          end;
       if orderfound then break;
+      SetLength(ArrTrxs,0);
       end;
    end;
 result := resultorder;

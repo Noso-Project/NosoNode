@@ -506,7 +506,7 @@ LabelPoolData.Caption:='ConnectTo: '+MyPoolData.Ip+':'+IntToStr(MyPoolData.port)
                        'Balance: '+Int2curr(MyPoolData.balance)+' ('+IntToStr(MyPoolData.LastPago)+') Password: '+MyPoolData.Password+' HashRate: '+IntToStr(Miner_PoolHashRate);
 if Miner_OwnsAPool then
    begin
-   EnterCriticalSection(CSPoolMembers);
+   //EnterCriticalSection(CSPoolMembers);
    GridPoolMembers.RowCount:=length(ArrayPoolMembers)+1;
    if length(ArrayPoolMembers) > 0 then
       begin
@@ -534,7 +534,7 @@ if Miner_OwnsAPool then
    LabelPoolMiner2.Caption:='Members: '+IntToStr(length(ArrayPoolMembers))+' Total Debt: '+Int2Curr(PoolMembersTotalDeuda)+
                                       ' Connected: '+IntToStr(GetPoolTotalActiveConex)+'/'+IntToStr(form1.PoolClientsCount)+' Hashrate: '+
                                       IntToStr(PoolTotalHashRate);
-   LeaveCriticalSection(CSPoolMembers);
+   //LeaveCriticalSection(CSPoolMembers);
    if (ActiveConex>0)  then
       begin
       if U_PoolConexGrid then
@@ -651,6 +651,91 @@ Procedure ActualizarGUI();
 var
   contador : integer = 0;
 Begin
+// UPDATE POOL MINERS GRID
+if form1.PCPool.ActivePage = Form1.TabPoolMiners then
+   begin
+   //EnterCriticalSection(CSPoolMembers);
+   if length(ArrayPoolMembers) > 0 then
+      begin
+      for contador := 0 to length(ArrayPoolMembers)-1 do
+         begin
+         try
+         Form1.SG_PoolMiners.Cells[0,contador+1]:=Copy(ArrayPoolMembers[contador].Direccion,0,5);
+         Form1.SG_PoolMiners.Cells[1,contador+1]:=Copy(ArrayPoolMembers[contador].Prefijo,0,2);
+         Form1.SG_PoolMiners.Cells[2,contador+1]:=IntToStr(ArrayPoolMembers[contador].Soluciones);
+         Form1.SG_PoolMiners.Cells[3,contador+1]:=Int2curr(ArrayPoolMembers[contador].Deuda);
+         if PoolServerConex[contador].LastPing = 0 then
+            Form1.SG_PoolMiners.Cells[4,contador+1]:= ''
+         else Form1.SG_PoolMiners.Cells[4,contador+1]:=IntToStr(UTCTime.ToInt64-PoolServerConex[contador].LastPing);
+         if Form1.SG_PoolMiners.Cells[4,contador+1]= '' then
+            Form1.SG_PoolMiners.Cells[5,contador+1]:= ''
+         else Form1.SG_PoolMiners.Cells[5,contador+1]:= IntToStr(PoolServerConex[contador].Hashpower);
+         if PoolServerConex[contador].LastPing = 0 then
+            Form1.SG_PoolMiners.Cells[6,contador+1]:= ''
+         else Form1.SG_PoolMiners.Cells[6,contador+1]:= PoolServerConex[contador].version;
+         if PoolServerConex[contador].LastPing = 0 then
+            Form1.SG_PoolMiners.Cells[7,contador+1]:= ''
+         else Form1.SG_PoolMiners.Cells[7,contador+1]:= PoolServerConex[contador].Ip;
+         if PoolServerConex[contador].LastPing = 0 then
+            Form1.SG_PoolMiners.Cells[8,contador+1]:= ''
+         else Form1.SG_PoolMiners.Cells[8,contador+1]:= IntToStr(PoolServerConex[contador].Context.Connection.IOHandler.InputBuffer.Size);
+         Except on E:Exception do
+            begin
+            ToExclog('Error showing pool members data: '+E.Message);
+            end;
+         end;
+         end;
+      end;
+   //LeaveCriticalSection(CSPoolMembers);
+   end;
+
+// Update poolstats grid
+if form1.PCPool.ActivePage = Form1.TabPoolStats then
+   begin
+      try
+      Form1.SG_PoolStats.Cells[1,0] := booltostr(form1.PoolServer.Active,true);
+      Form1.SG_PoolStats.Cells[1,1] := IntToStr(PoolMiner.Block);
+      Form1.SG_PoolStats.Cells[1,2] := IntToStr(poolminer.Dificult);
+      Form1.SG_PoolStats.Cells[1,3] := IntToStr(Poolminer.DiffChars);
+      Form1.SG_PoolStats.Cells[1,4] := IntToStr(PoolMiner.steps);
+      Form1.SG_PoolStats.Cells[1,5] := IntToStr(length(ArrayPoolMembers));
+      Form1.SG_PoolStats.Cells[1,6] := IntToStr(GetPoolTotalActiveConex)+'/'+IntToStr(form1.PoolClientsCount);
+      Form1.SG_PoolStats.Cells[1,7] := Int2Curr(PoolMembersTotalDeuda);
+      Form1.SG_PoolStats.Cells[1,8] := ShowHashrate(PoolTotalHashRate);
+      Form1.SG_PoolStats.Cells[1,9] := Int2Curr(PoolInfo.FeeEarned);
+      Form1.SG_PoolStats.Cells[1,10] := '('+IntToStr(Lastblockdata.TimeLast20)+') '+TimeSinceStamp(LastblockData.TimeEnd);
+      Form1.SG_PoolStats.Cells[1,11] := IntToStr(Length(Miner_PoolSharedStep));
+      Except on E:Exception do
+         begin
+         ToExclog('Error showing pool stats data: '+E.Message);
+         end;
+      end;
+   end;
+
+//Update Monitor Grid
+if form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor then
+   begin
+   setmilitime('UpdateGUIMonitor',1);
+   if length(MilitimeArray)>0 then
+      begin
+      Form1.SG_Monitor.RowCount:=Length(MilitimeArray)+1;
+      for contador := 0 to Length(MilitimeArray)-1 do
+         begin
+            try
+            Form1.SG_Monitor.Cells[0,contador+1]:=MilitimeArray[contador].Name;
+            Form1.SG_Monitor.Cells[1,contador+1]:=IntToStr(MilitimeArray[contador].Count);
+            Form1.SG_Monitor.Cells[2,contador+1]:=IntToStr(MilitimeArray[contador].maximo);
+            Form1.SG_Monitor.Cells[3,contador+1]:=IntToStr(MilitimeArray[contador].Total div MilitimeArray[contador].Count);
+            Except on E:Exception do
+               begin
+               ToExcLog('Error showing milimite data: '+E.Message);
+               end;
+            end;
+         end;
+      end;
+   setmilitime('UpdateGUIMonitor',2);
+   end;
+
 if U_DataPanel then
    begin
    DataPanel.Cells[1,1]:=Booltostr(form1.Server.Active, true)+'('+IntToStr(UserOptions.Port)+')';
@@ -686,14 +771,16 @@ else DataPanel.Cells[3,5]:='No Pool';
 
 // Esta se muestra siempre aparte ya que la funcion GetTotalConexiones es la que permite
 // verificar si los clientes siguen conectados
-
+setmilitime('UpdateGUITime',1);
 DataPanel.Cells[1,2]:=IntToStr(GetTotalConexiones)+' ('+IntToStr(MyConStatus)+') ['+IntToStr(G_TotalPings)+']';
 DataPanel.Cells[1,7]:= IntToStr(Length(PendingTXs))+'/'+NetPendingTrxs.Value+'('+IntToStr(NetPendingTrxs.Porcentaje)+')';
 DataPanel.Cells[1,0]:= Int2Curr(GetWalletBalance)+' '+CoinSimbol;
 DataPanel.Cells[3,6]:= TimestampToDate(UTCTime);
+setmilitime('UpdateGUITime',2);
 
 if U_DirPanel then
    begin
+   setmilitime('UpdateDirPanel',1);
    Direccionespanel.RowCount:=length(listadirecciones)+1;
    for contador := 0 to length(ListaDirecciones)-1 do
       begin
@@ -704,6 +791,7 @@ if U_DirPanel then
       end;
    LabelBigBalance.Caption := DataPanel.Cells[1,0];
    U_DirPanel := false;
+   setmilitime('UpdateDirPanel',2);
    end;
 
 if U_Mytrxs then
@@ -899,7 +987,7 @@ Procedure SetMiliTime(Name:string;tipo:integer);
 var
   count : integer;
 Begin
-if not CheckMonitor then exit;
+//if not CheckMonitor then exit;
 if ((tipo = 1) and (length(MilitimeArray)>0)) then // tipo iniciar
    begin
    for count := 0 to length(MilitimeArray) -1 do
@@ -918,7 +1006,9 @@ if tipo= 2 then
       if name = MilitimeArray[count].Name then
         begin
         MilitimeArray[count].finish:=GetTickCount64;
+        MilitimeArray[count].Count+=1;
         MilitimeArray[count].duration:=MilitimeArray[count].finish-MilitimeArray[count].Start;
+        MilitimeArray[count].Total:=MilitimeArray[count].Total+MilitimeArray[count].duration;
         if MilitimeArray[count].duration>MilitimeArray[count].Maximo then
           MilitimeArray[count].Maximo := MilitimeArray[count].duration;
         if MilitimeArray[count].duration<MilitimeArray[count].Minimo then
@@ -928,7 +1018,9 @@ if tipo= 2 then
       end;
    end;
 setlength(MilitimeArray,length(MilitimeArray)+1);
+MilitimeArray[length(MilitimeArray)-1] := default(MilitimeData);
 MilitimeArray[length(MilitimeArray)-1].Name:=name;
+MilitimeArray[length(MilitimeArray)-1].Minimo:=9999;
 MilitimeArray[length(MilitimeArray)-1].Start:=GetTickCount64;
 End;
 
@@ -950,11 +1042,17 @@ End;
 
 Procedure CloseAllForms();
 Begin
-formmonitor.Visible:=false;
-formlog.Visible:=false;
-formabout.Visible:=false;
-formslots.Visible:=false;
-CloseExplorer;
+   try
+   formmonitor.Visible:=false;
+   formlog.Visible:=false;
+   formabout.Visible:=false;
+   formslots.Visible:=false;
+   CloseExplorer;
+   Except on E: Exception do
+      begin
+
+      end;
+   end;
 End;
 
 Procedure UpdateRowHeigth();

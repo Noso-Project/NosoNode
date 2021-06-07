@@ -28,6 +28,7 @@ Function IsValidIP(IpString:String):boolean;
 function GetCurrentStatus(mode:integer):String;
 function GetSupply(untilblock:integer):int64;
 function GetMyPosAddressesCount():integer;
+function ShowHashrate(hashrate:int64):string;
 
 
 
@@ -111,6 +112,7 @@ for cont := 0 to length(ArrayLastBlockTrxs)-1 do
      break
      end;
    end;
+SetLength(ArrayLastBlockTrxs,0);
 End;
 
 // Añade la transaccion pendiente en su lugar
@@ -370,9 +372,11 @@ var
   Resultado : string = '';
 Begin
 resultado := resultado+'ServerON: '+BoolToStr(Form1.Server.Active,true)+' ';
-resultado := resultado+'CONNECT_Try: '+BoolToStr(CONNECT_Try,true)+' ';
+resultado := resultado+'CONNECT_Try: '+BoolToStr(CONNECT_Try,true)+slinebreak;
+resultado := resultado+IntToStr(PoolMiner.Block)+' '+IntToStr(PoolMiner.steps)+' '+PoolMiner.Solucion+slinebreak;
 if mode = 1 then
    begin
+   resultado := resultado+'Date: '+FormatDateTime('dd MMMM YYYY HH:MM:SS.zzz', Now)+slinebreak;
    resultado := resultado+'MyConStatus: '+IntToStr(myConStatus)+slinebreak;
    Resultado := resultado+'CurrentJob: '+CurrentJob+slinebreak;
    Resultado := resultado+'MinerActive: '+BoolToStr(Miner_Active,true)+slinebreak;
@@ -386,6 +390,7 @@ if mode = 1 then
    Resultado := resultado+'SendingMsgs: '+BoolToStr(SendingMsgs,true)+slinebreak;
    Resultado := resultado+'Autorestarted: '+BoolToStr(AutoRestarted,true)+slinebreak;
    Resultado := resultado+'InsideMinerJoin: '+BoolToStr(InsideMinerJoin,true)+slinebreak;
+   Resultado := resultado+'InsidePoolStep: '+BoolToStr(InsidePoolStep,true)+slinebreak;
    end;
 result := resultado;
 End;
@@ -405,6 +410,26 @@ result := 0;
 PosRequired := (GetSupply(MyLastBlock+1)*PosStackCoins) div 10000;
 for contador := 0 to length(ListaDirecciones)-1 do
    if ListaDirecciones[contador].Balance > PosRequired then result +=1;
+End;
+
+function ShowHashrate(hashrate:int64):string;
+var
+  divisions : integer = 0;
+  HRStr : string;
+Begin
+if hashrate >= 10000 then
+   begin
+   repeat
+      Hashrate := Hashrate div 1000;
+      divisions +=1;
+   until hashrate < 10000;
+   end;
+if divisions = 0 then HRstr := ' Kh/s'
+else if divisions = 1 then HRstr := ' Mh/s'
+else if divisions = 2 then HRstr := ' Gh/s'
+else if divisions = 3 then HRstr := ' Th/s'
+else if divisions = 4 then HRstr := ' Ph/s';
+result := InttoStr(Hashrate)+ HRstr;
 End;
 
 END. // END UNIT

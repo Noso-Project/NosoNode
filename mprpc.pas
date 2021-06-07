@@ -5,7 +5,7 @@ unit mpRPC;
 interface
 
 uses
-  Classes, SysUtils, mpgui, FPJSON, jsonparser;
+  Classes, SysUtils, mpgui, FPJSON, jsonparser, mpCripto, mpCoin;
 
 Procedure SetRPCPort(LineText:string);
 Procedure SetRPCOn();
@@ -18,6 +18,8 @@ Function GetJSONErrorString(ErrorCode:integer):string;
 function GetJSONErrorCode(ErrorCode, JSONIdNumber:integer):TJSONStringType;
 function GetJSONResponse(ResultToSend:string;JSONIdNumber:integer):TJSONStringType;
 function ParseRPCJSON(jsonreceived:string):TJSONStringType;
+
+function RPC_AddressBalance(NosoPParams:string):string;
 
 
 implementation
@@ -41,8 +43,8 @@ else
    begin
    RPCPort := value;
    ConsoleLinesAdd('RPC port set to: '+IntToStr(value));
+   S_AdvOpt := true;
    end;
-S_AdvOpt := true;
 End;
 
 // Turn on RPC server
@@ -58,6 +60,9 @@ if not Form1.RPCServer.Active then
       Except on E:Exception do
          begin
          ConsoleLinesAdd('Unable to start RPC port');
+         G_Launching := true;
+         form1.CB_RPC_ON.Checked:=false;
+         G_Launching := false;
          end;
       end;
    end
@@ -99,6 +104,7 @@ Begin
 if ErrorCode = 400 then result := 'Bad Request'
 else if ErrorCode = 401 then result := 'Invalid JSON request'
 else if ErrorCode = 402 then result := 'Invalid method'
+else if ErrorCode = 499 then result := 'Unexpected error'
 {...}
 else result := 'Unknown error code';
 End;
@@ -127,16 +133,39 @@ End;
 function GetJSONResponse(ResultToSend:string;JSONIdNumber:integer):TJSONStringType;
 var
   JSONResultado: TJSONObject;
+  paramsarray :  TJSONArray;
+  myParams: TStringArray;
+  counter : integer;
 Begin
+paramsarray := TJSONArray.Create;
+if length(ResultToSend)>0 then myParams:= ResultToSend.Split(' ');
 JSONResultado := TJSONObject.Create;
    try
-   JSONResultado.Add('jsonrpc', TJSONString.Create('2.0'));
-   JSONResultado.Add('result', TJSONString.Create(ResultToSend));
-   JSONResultado.Add('id', TJSONIntegerNumber.Create(JSONIdNumber));
+      try
+      JSONResultado.Add('jsonrpc', TJSONString.Create('2.0'));
+      if length(myparams) > 0 then
+         for counter := low(myParams) to high(myParams) do
+            if myParams[counter] <>'' then paramsarray.Add(myParams[counter]);
+      JSONResultado.Add('result', paramsarray);
+      JSONResultado.Add('id', TJSONIntegerNumber.Create(JSONIdNumber));
+      Except on E:Exception do
+         begin
+         result := GetJSONErrorCode(499,JSONIdNumber);
+         JSONResultado.Free;
+         paramsarray.Free;
+         exit;
+         end;
+      end;
    finally
    result := JSONResultado.AsJSON;
+   //paramsarray.Free;
    JSONResultado.Free;
    end;
+End;
+
+function ObjectFromString(MyString:string): TJSONObject;
+Begin
+
 End;
 
 // Parses a incoming JSON string
@@ -144,8 +173,11 @@ function ParseRPCJSON(jsonreceived:string):TJSONStringType;
 var
   jData : TJSONData;
   jObject : TJSONObject;
-  method, params : string;
+  method : string;
+  params: TJSONArray;
   jsonID : integer;
+  NosoPParams: String = '';
+  counter : integer;
 Begin
 Result := '';
 if not IsValidJSON(jsonreceived) then result := GetJSONErrorCode(401,-1)
@@ -153,15 +185,45 @@ else
    begin
    jData := GetJSON(jsonreceived);
    jObject := TJSONObject(jData);
-   method := jObject.Get('method');
-   params := jObject.Get('params');
-   jsonid := jObject.Get('id');
-   if method = 'test' then result := GetJSONResponse('TestOk',jsonid)
+   method := jObject.Strings['method'];
+   params := jObject.Arrays['params'];
+   jsonid := jObject.Integers['id'];
+   for counter := 0 to params.Count-1 do
+      NosoPParams:= NosoPParams+' '+params[counter].AsString;
+   NosoPParams:= Trim(NosoPParams);
+   consolelinesadd(jsonreceived);
+   consolelinesadd(NosoPParams);
+   if method = 'test' then result := GetJSONResponse('testok',jsonid)
    else if method = 'getbalance' then result := GetJSONResponse(int2curr(GetWalletBalance),jsonid)
+   else if method = 'getaddressbalance' then result := GetJSONResponse(RPC_AddressBalance(NosoPParams),jsonid)
 
    else result := GetJSONErrorCode(402,-1);
    end;
 End;
 
-END.
+function RPC_AddressBalance(NosoPParams:string):string;
+var
+  ThisAddress: string;
+  counter : integer = 0;
+  Balance, incoming, outgoing : int64;
+Begin
+result := '';
+if NosoPParams <> '' then
+   begin
+   Repeat
+   ThisAddress := parameter(NosoPParams,counter);
+   if ThisAddress <>'' then
+      begin
+      Balance := GetAddressBalance(ThisAddress);
+      incoming := GetAddressIncomingpays(ThisAddress);
+      outgoing := GetAddressPendingPays(ThisAddress);
+      result := result+format('balance,%s,%d,%d,%d ',[ThisAddress,balance,incoming,outgoing]);
+      end;
+   counter+=1;
+   until ThisAddress = '';
+   trim(result);
+   end;
+End;
+
+END.  // END UNIT
 

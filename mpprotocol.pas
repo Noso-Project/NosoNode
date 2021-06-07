@@ -399,6 +399,7 @@ if Length(PendingTXs) > 0 then
          end;
       end;
    Tolog('Sent '+IntToStr(Length(CopyPendingTXs))+' pendingTxs to '+conexiones[slot].ip);
+   SetLength(CopyPendingTXs,0);
    end;
 End;
 
