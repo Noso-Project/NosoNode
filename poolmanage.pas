@@ -50,17 +50,19 @@ procedure StartPoolServer(port:integer);
 Begin
 if Form1.PoolServer.Active then
    begin
-   ConsoleLinesAdd('Pool server already active'); //'Server Already active'
-   exit;
+   ToLog('Pool server already active'); //'Server Already active'
+   end
+else
+   begin
+      try
+      Form1.PoolServer.Bindings.Clear;
+      Form1.PoolServer.DefaultPort:=port;
+      Form1.PoolServer.Active:=true;
+      ToLog('Pool server enabled at port: '+IntToStr(port));   //Server ENABLED. Listening on port
+      except on E : Exception do
+         ToLog('Unable to start pool server: '+E.Message);       //Unable to start Server
+      end;
    end;
-try
-   Form1.PoolServer.Bindings.Clear;
-   Form1.PoolServer.DefaultPort:=port;
-   Form1.PoolServer.Active:=true;
-   ConsoleLinesAdd('Pool server enabled at port: '+IntToStr(port));   //Server ENABLED. Listening on port
-except on E : Exception do
-   ConsoleLinesAdd('Unable to start pool server: '+E.Message);       //Unable to start Server
-end;
 end;
 
 // Detiene el servidor del pool
@@ -142,7 +144,6 @@ if ( (length(ArrayPoolMembers)>0) and (GetPoolMemberPosition(direccion)>=0) ) th
    result := ArrayPoolMembers[GetPoolMemberPosition(direccion)].Prefijo;
    //SetCurrentJob('PoolAddNewMember',false);
    //LeaveCriticalSection(CSPoolMembers);
-   //exit;
    end
 else if ( (length(ArrayPoolMembers)>0) and (PoolSlot >= 0) ) then
    begin
@@ -160,7 +161,6 @@ else if ( (length(ArrayPoolMembers)>0) and (PoolSlot >= 0) ) then
    result := ArrayPoolMembers[PoolSlot].Prefijo;
    //SetCurrentJob('PoolAddNewMember',false);
    //LeaveCriticalSection(CSPoolMembers);
-   //exit;
    end;
 if length(ArrayPoolMembers) < PoolInfo.MaxMembers then
    begin
@@ -523,6 +523,7 @@ End;
 Procedure BorrarPoolServerConex(AContext: TIdContext);
 var
   contador : integer = 0;
+  IPcon : string;
 Begin
 if length(PoolServerConex) > 0 then
    begin
@@ -530,15 +531,16 @@ if length(PoolServerConex) > 0 then
       begin
       if Poolserverconex[contador].Context=AContext then
          begin
+         IPcon := Poolserverconex[contador].Ip;
          Poolserverconex[contador]:=Default(PoolUserConnection);
-           try
-           Acontext.Connection.IOHandler.InputBuffer.Clear;
-           AContext.Connection.Disconnect;
-           Except on E:Exception do
-           begin
-           ConsoleLinesAdd('Error closing pool connection');
-           end;
-         end;
+            try
+            Acontext.Connection.IOHandler.InputBuffer.Clear;
+            AContext.Connection.Disconnect;
+            Except on E:Exception do
+               begin
+               ToExcLog(Format('Error closing pool connection (%s): %s',[IPcon,E.Message]));
+               end;
+            end;
          U_PoolConexGrid := true;
          break
          end;

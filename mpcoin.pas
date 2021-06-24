@@ -18,7 +18,7 @@ function AddressAlreadyCustomized(address:string):boolean;
 function Restar(number:int64):int64;
 function AddressSumaryIndex(Address:string):integer;
 function GetFee(monto:int64):Int64;
-Function SendFundsFromAddress(Origen, Destino:String; monto, comision:int64; concepto,
+Function SendFundsFromAddress(Origen, Destino:String; monto, comision:int64; reference,
   ordertime:String;linea:integer):OrderData;
 Procedure CheckForMyPending();
 function HaveAddressAnyPending(Address:string):boolean;
@@ -29,6 +29,8 @@ function GetCurrentStatus(mode:integer):String;
 function GetSupply(untilblock:integer):int64;
 function GetMyPosAddressesCount():integer;
 function ShowHashrate(hashrate:int64):string;
+function GetBlockHeaders(numberblock:integer):string;
+function ValidRPCHost(hoststr:string):boolean;
 
 
 
@@ -123,42 +125,44 @@ var
   resultado : integer = 0;
 Begin
 setmilitime('AddPendingTxs',1);
-if order.OrderType='FEE' then exit;
-if TranxAlreadyPending(order.TrfrID) then exit;
-EnterCriticalSection(CSPending);
-while cont < length(PendingTxs) do
-  begin
-  if order.TimeStamp < PendingTxs[cont].TimeStamp then
+//if order.OrderType='FEE' then exit;
+if not TranxAlreadyPending(order.TrfrID) then
+   begin
+   EnterCriticalSection(CSPending);
+   while cont < length(PendingTxs) do
      begin
-     insertar := true;
-     resultado := cont;
-     break;
-     end
-  else if order.TimeStamp = PendingTxs[cont].TimeStamp then
-     begin
-     if order.OrderID < PendingTxs[cont].OrderID then
+     if order.TimeStamp < PendingTxs[cont].TimeStamp then
         begin
         insertar := true;
         resultado := cont;
         break;
         end
-     else if order.OrderID = PendingTxs[cont].OrderID then
+     else if order.TimeStamp = PendingTxs[cont].TimeStamp then
         begin
-        if order.TrxLine < PendingTxs[cont].TrxLine then
+        if order.OrderID < PendingTxs[cont].OrderID then
            begin
            insertar := true;
            resultado := cont;
            break;
+           end
+        else if order.OrderID = PendingTxs[cont].OrderID then
+           begin
+           if order.TrxLine < PendingTxs[cont].TrxLine then
+              begin
+              insertar := true;
+              resultado := cont;
+              break;
+              end;
            end;
         end;
+     cont := cont+1;
      end;
-  cont := cont+1;
-  end;
-if not insertar then resultado := length(pendingTXs);
-Insert(order,PendingTxs,resultado);
-LeaveCriticalSection(CSPending);
-result := true;
-VerifyIfPendingIsMine(order);
+   if not insertar then resultado := length(pendingTXs);
+   Insert(order,PendingTxs,resultado);
+   LeaveCriticalSection(CSPending);
+   result := true;
+   VerifyIfPendingIsMine(order);
+   end;
 setmilitime('AddPendingTxs',2);
 End;
 
@@ -195,15 +199,18 @@ for cont := 0 to length(ListaSumario) -1 do
    if ((ListaSumario[cont].Hash = Address) and (ListaSumario[cont].Custom <> '')) then
       begin
       result := true;
-      exit;
+      break;
       end;
    end;
-for cont := 0 to length(PendingTXs)-1 do
+if result = false then
    begin
-   if ((PendingTxs[cont].Address=address) and (PendingTxs[cont].OrderType = 'CUSTOM')) then
+   for cont := 0 to length(PendingTXs)-1 do
       begin
-      result := true;
-      exit;
+      if ((PendingTxs[cont].Address=address) and (PendingTxs[cont].OrderType = 'CUSTOM')) then
+         begin
+         result := true;
+         break;
+         end;
       end;
    end;
 End;
@@ -221,13 +228,15 @@ var
   cont : integer = 0;
 Begin
 result := -1;
-if address = '' then exit;
-for cont := 0 to length(ListaSumario)-1 do
+if ((address <> '') and (length(ListaSumario) > 0)) then
    begin
-   if ((listasumario[cont].Hash=address) or (Listasumario[cont].Custom=address)) then
+   for cont := 0 to length(ListaSumario)-1 do
       begin
-      result:= cont;
-      break;
+      if ((listasumario[cont].Hash=address) or (Listasumario[cont].Custom=address)) then
+         begin
+         result:= cont;
+         break;
+         end;
       end;
    end;
 End;
@@ -240,7 +249,7 @@ if result < MinimunFee then result := MinimunFee;
 End;
 
 // Obtiene una orden de envio de fondos desde una direccion
-Function SendFundsFromAddress(Origen, Destino:String; monto, comision:int64; concepto,
+Function SendFundsFromAddress(Origen, Destino:String; monto, comision:int64; reference,
   ordertime:String; linea:integer):OrderData;
 var
   MontoDisponible, Montotrfr, comisionTrfr : int64;
@@ -258,7 +267,7 @@ OrderInfo.OrderID    := '';
 OrderInfo.OrderLines := 1;
 OrderInfo.OrderType  := 'TRFR';
 OrderInfo.TimeStamp  := StrToInt64(OrderTime);
-OrderInfo.Concept    := concepto;
+OrderInfo.reference    := reference;
 OrderInfo.TrxLine    := linea;
 OrderInfo.Sender     := ListaDirecciones[DireccionEsMia(origen)].PublicKey;
 OrderInfo.Address    := ListaDirecciones[DireccionEsMia(origen)].Hash;
@@ -285,24 +294,26 @@ if length(PendingTxs) = 0 then
    begin
    ImageInc.Visible:=false;
    ImageOut.Visible:=false;
-   exit;
-   end;
-for counter := 0 to length(PendingTXs)-1 do
+   end
+else
    begin
-   DireccionEnvia := PendingTxs[counter].Address;
-   if DireccionEsMia(DireccionEnvia)>=0 then
+   for counter := 0 to length(PendingTXs)-1 do
       begin
-      MontoOutgoing := MontoOutgoing+PendingTxs[counter].AmmountFee+PendingTxs[counter].AmmountTrf;
-      ListaDirecciones[DireccionEsMia(DireccionEnvia)].Pending:=
-        ListaDirecciones[DireccionEsMia(DireccionEnvia)].Pending+
-        PendingTxs[counter].AmmountFee+PendingTxs[counter].AmmountTrf;
+      DireccionEnvia := PendingTxs[counter].Address;
+      if DireccionEsMia(DireccionEnvia)>=0 then
+         begin
+         MontoOutgoing := MontoOutgoing+PendingTxs[counter].AmmountFee+PendingTxs[counter].AmmountTrf;
+         ListaDirecciones[DireccionEsMia(DireccionEnvia)].Pending:=
+           ListaDirecciones[DireccionEsMia(DireccionEnvia)].Pending+
+           PendingTxs[counter].AmmountFee+PendingTxs[counter].AmmountTrf;
+         end;
+      If DireccionEsMia(PendingTxs[counter].Receiver)>=0 then
+         MontoIncoming := MontoIncoming+PendingTxs[counter].AmmountTrf;
       end;
-   If DireccionEsMia(PendingTxs[counter].Receiver)>=0 then
-      MontoIncoming := MontoIncoming+PendingTxs[counter].AmmountTrf;
+   if MontoIncoming>0 then ImageInc.Visible := true else ImageInc.Visible:= false;
+   if MontoOutgoing>0 then ImageOut.Visible := true else ImageOut.Visible:= false;
+   U_DirPanel := true;
    end;
-if MontoIncoming>0 then ImageInc.Visible := true else ImageInc.Visible:= false;
-if MontoOutgoing>0 then ImageOut.Visible := true else ImageOut.Visible:= false;
-U_DirPanel := true;
 End;
 
 // Verifica si la direccion posee transacciones pendientes
@@ -430,6 +441,45 @@ else if divisions = 2 then HRstr := ' Gh/s'
 else if divisions = 3 then HRstr := ' Th/s'
 else if divisions = 4 then HRstr := ' Ph/s';
 result := InttoStr(Hashrate)+ HRstr;
+End;
+
+function GetBlockHeaders(numberblock:integer):string;
+var
+  Header : BlockHeaderData;
+  blockhash : string;
+Begin
+Header := default (BlockHeaderData);
+if fileexists(BlockDirectory+IntToStr(numberblock)+'.blk') then
+   begin
+   Header := LoadBlockDataHeader(numberblock);
+   blockhash := HashMD5File(BlockDirectory+IntToStr(numberblock)+'.blk');
+   Header.Solution := StringReplace(Header.Solution,' ','',[rfReplaceAll, rfIgnoreCase]);
+   Header.LastBlockHash := StringReplace(Header.LastBlockHash,' ','',[rfReplaceAll, rfIgnoreCase]);
+   result :=(format('%d'#127'%d'#127'%d'#127'%d'#127'%d'#127'%d'#127'%d'#127'%s'#127'%s'#127'%s'#127'%d'#127'%s'#127'%d'#127'%d'#127'%s',
+                    [Header.Number,Header.TimeStart,Header.TimeEnd,Header.TimeTotal,
+                    Header.TimeLast20,Header.TrxTotales,Header.Difficult,Header.TargetHash,
+                    Header.Solution,Header.LastBlockHash,Header.NxtBlkDiff,Header.AccountMiner,
+                    Header.MinerFee,Header.Reward,blockhash]));
+
+   end
+End;
+
+function ValidRPCHost(hoststr:string):boolean;
+var
+  HostIP : string;
+  whitelisted : string;
+  thiswhitelist : string;
+  counter : integer = 0;
+Begin
+result := false;
+HostIP := StringReplace(hoststr,':',' ',[rfReplaceAll, rfIgnoreCase]);
+HostIP := parameter(HostIP,0);
+whitelisted := StringReplace(RPCWhiteList,',',' ',[rfReplaceAll, rfIgnoreCase]);
+   repeat
+   thiswhitelist := parameter(whitelisted,counter);
+   if thiswhitelist = HostIP then result := true;
+   counter+=1;
+   until thiswhitelist = '';
 End;
 
 END. // END UNIT

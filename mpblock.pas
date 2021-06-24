@@ -50,7 +50,7 @@ var
   PosRequired, PosReward: int64;
   PoSTotalReward : int64 = 0;
   PoSAddressess : array of TArrayPos;
-
+  errored : boolean = false;
 Begin
 setmilitime('CrearNuevoBloque',1);
 SetCurrentJob('CrearNuevoBloque',true);
@@ -58,175 +58,178 @@ if ((numero>0) and (Timestamp < lastblockdata.TimeEnd)) then
    begin
    ConsoleLinesAdd('New block '+IntToStr(numero)+' : Invalid timestamp');
    ConsoleLinesAdd('Blocks can not be added until '+TimestampToDate(IntToStr(GenesysTimeStamp)));
-   exit;
+   errored := true;
    end;
 if TimeStamp > UTCTime.ToInt64+5 then
    begin
    ConsoleLinesAdd('New block '+IntToStr(numero)+' : Invalid timestamp');
    ConsoleLinesAdd('Timestamp '+IntToStr(TimeStamp)+' is '+IntToStr(TimeStamp-UTCTime.ToInt64)+' seconds in the future');
-   exit;
+   errored := true;
    end;
-if Numero = 0 then StartBlockTime := 1531896783
-else StartBlockTime := LastBlockData.TimeEnd+1;
-FileName := BlockDirectory + IntToStr(Numero)+'.blk';
-SetLength(ListaOrdenes,0);
-SetLength(IgnoredTrxs,0);
-// CREAR COPIA DEL SUMARIO
-if fileexists(SumarioFilename+'.bak') then deletefile(SumarioFilename+'.bak');
-copyfile(SumarioFilename,SumarioFilename+'.bak');
-
-// PROCESAR LAS TRANSACCIONES EN LISTAORDENES
-EnterCriticalSection(CSPending);
-SetCurrentJob('NewBLOCK+PENDING',true);
-for contador := 0 to length(pendingTXs)-1 do
+if not errored then
    begin
-   if PendingTXs[contador].TimeStamp+60 > TimeStamp then
+   if Numero = 0 then StartBlockTime := 1531896783
+   else StartBlockTime := LastBlockData.TimeEnd+1;
+   FileName := BlockDirectory + IntToStr(Numero)+'.blk';
+   SetLength(ListaOrdenes,0);
+   SetLength(IgnoredTrxs,0);
+   // CREAR COPIA DEL SUMARIO
+   if fileexists(SumarioFilename+'.bak') then deletefile(SumarioFilename+'.bak');
+   copyfile(SumarioFilename,SumarioFilename+'.bak');
+
+   // PROCESAR LAS TRANSACCIONES EN LISTAORDENES
+   EnterCriticalSection(CSPending);
+   SetCurrentJob('NewBLOCK+PENDING',true);
+   for contador := 0 to length(pendingTXs)-1 do
       begin
-      insert(PendingTXs[contador],IgnoredTrxs,length(IgnoredTrxs));
-      continue;
-      end;
-   if PendingTXs[contador].OrderType='CUSTOM' then
-      begin
-      minerfee := minerfee+PendingTXs[contador].AmmountFee;
-      OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].Sender);
-      if not SetCustomAlias(OperationAddress,PendingTXs[contador].Receiver,Numero) then
+      if PendingTXs[contador].TimeStamp+60 > TimeStamp then
          begin
-         // CRITICAL ERROR: NO SE PUDO ASIGNAR EL ALIAS
+         insert(PendingTXs[contador],IgnoredTrxs,length(IgnoredTrxs));
+         continue;
          end;
-      UpdateSumario(OperationAddress,Restar(PendingTXs[contador].AmmountFee),0,IntToStr(Numero));
-      PendingTXs[contador].Block:=numero;
-      PendingTXs[contador].Sender:=OperationAddress;
-      insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
+      if PendingTXs[contador].OrderType='CUSTOM' then
+         begin
+         minerfee := minerfee+PendingTXs[contador].AmmountFee;
+         OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].Sender);
+         if not SetCustomAlias(OperationAddress,PendingTXs[contador].Receiver,Numero) then
+            begin
+            // CRITICAL ERROR: NO SE PUDO ASIGNAR EL ALIAS
+            end;
+         UpdateSumario(OperationAddress,Restar(PendingTXs[contador].AmmountFee),0,IntToStr(Numero));
+         PendingTXs[contador].Block:=numero;
+         PendingTXs[contador].Sender:=OperationAddress;
+         insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
+         end;
+      if PendingTXs[contador].OrderType='TRFR' then
+         begin
+         OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].Sender);
+         // nueva adicion para que no incluya las transacciones invalidas
+         if GetAddressBalance(OperationAddress) < (PendingTXs[contador].AmmountFee+PendingTXs[contador].AmmountTrf) then continue;
+         minerfee := minerfee+PendingTXs[contador].AmmountFee;
+         // restar transferencia y comision de la direccion que envia
+         UpdateSumario(OperationAddress,Restar(PendingTXs[contador].AmmountFee+PendingTXs[contador].AmmountTrf),0,IntToStr(Numero));
+         // sumar transferencia al receptor
+         UpdateSumario(PendingTXs[contador].Receiver,PendingTXs[contador].AmmountTrf,0,IntToStr(Numero));
+         PendingTXs[contador].Block:=numero;
+         PendingTXs[contador].Sender:=OperationAddress;
+         insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
+         end;
       end;
-   if PendingTXs[contador].OrderType='TRFR' then
+   try
+      SetLength(PendingTXs,0);
+      PendingTXs := copy(IgnoredTrxs,0,length(IgnoredTrxs));
+   Except on E:Exception do
       begin
-      OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].Sender);
-      // nueva adicion para que no incluya las transacciones invalidas
-      if GetAddressBalance(OperationAddress) < (PendingTXs[contador].AmmountFee+PendingTXs[contador].AmmountTrf) then continue;
-      minerfee := minerfee+PendingTXs[contador].AmmountFee;
-      // restar transferencia y comision de la direccion que envia
-      UpdateSumario(OperationAddress,Restar(PendingTXs[contador].AmmountFee+PendingTXs[contador].AmmountTrf),0,IntToStr(Numero));
-      // sumar transferencia al receptor
-      UpdateSumario(PendingTXs[contador].Receiver,PendingTXs[contador].AmmountTrf,0,IntToStr(Numero));
-      PendingTXs[contador].Block:=numero;
-      PendingTXs[contador].Sender:=OperationAddress;
-      insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
+      ToExcLog('Error asigning pending to Ignored');
       end;
    end;
-try
-   SetLength(PendingTXs,0);
-   PendingTXs := copy(IgnoredTrxs,0,length(IgnoredTrxs));
-Except on E:Exception do
-   begin
-   ToExcLog('Error asigning pending to Ignored');
-   end;
-end;
-SetLength(IgnoredTrxs,0);
-SetCurrentJob('NewBLOCK+PENDING',false);
-LeaveCriticalSection(CSPending);
+   SetLength(IgnoredTrxs,0);
+   SetCurrentJob('NewBLOCK+PENDING',false);
+   LeaveCriticalSection(CSPending);
 
-//PoS payment
+   //PoS payment
 
-if numero >= PoSBlockStart then
-   begin
-   SetLength(PoSAddressess,0);
-   PosRequired := (GetSupply(numero)*PosStackCoins) div 10000;
+   if numero >= PoSBlockStart then
+      begin
+      SetLength(PoSAddressess,0);
+      PosRequired := (GetSupply(numero)*PosStackCoins) div 10000;
+      EnterCriticalSection(CSSumary);
+      for contador := 0 to length(ListaSumario)-1 do
+         begin
+         if listasumario[contador].Balance >= PosRequired then
+            begin
+            SetLength(PoSAddressess,length(PoSAddressess)+1);
+            PoSAddressess[length(PoSAddressess)-1].address:=listasumario[contador].Hash;
+            end;
+         end;
+      LeaveCriticalSection(CSSumary);
+      PoScount := length(PoSAddressess);
+      PosTotalReward := ((GetBlockReward(Numero)+MinerFee)*PoSPercentage) div 10000;
+      PosReward := PosTotalReward div PoScount;
+      //Tolog('PoS stack    : '+Int2curr(PosRequired));
+      //Tolog('PoS addresses: '+IntToStr(PoScount));
+      Tolog('Block: '+IntToStr(numero)+' - PoS reward   : '+Int2curr(PosReward));
+      // Adjust the nosotoshi difference in TotalPoSReward
+      PosTotalReward := PoSCount * PosReward;
+      //pay POS
+      for contador := 0 to length(PoSAddressess)-1 do
+         UpdateSumario(PoSAddressess[contador].address,PosReward,0,IntToStr(Numero));
+      end;
+
+   // Pago del minero
+   UpdateSumario(Minero,GetBlockReward(Numero)+MinerFee-PosTotalReward,0,IntToStr(numero));
+   // Actualizar el ultimo bloque añadido al sumario
    EnterCriticalSection(CSSumary);
-   for contador := 0 to length(ListaSumario)-1 do
-      begin
-      if listasumario[contador].Balance >= PosRequired then
-         begin
-         SetLength(PoSAddressess,length(PoSAddressess)+1);
-         PoSAddressess[length(PoSAddressess)-1].address:=listasumario[contador].Hash;
-         end;
-      end;
+   ListaSumario[0].LastOP:=numero;
    LeaveCriticalSection(CSSumary);
-   PoScount := length(PoSAddressess);
-   PosTotalReward := ((GetBlockReward(Numero)+MinerFee)*PoSPercentage) div 10000;
-   PosReward := PosTotalReward div PoScount;
-   //Tolog('PoS stack    : '+Int2curr(PosRequired));
-   //Tolog('PoS addresses: '+IntToStr(PoScount));
-   Tolog('Block: '+IntToStr(numero)+' - PoS reward   : '+Int2curr(PosReward));
-   // Adjust the nosotoshi difference in TotalPoSReward
-   PosTotalReward := PoSCount * PosReward;
-   //pay POS
-   for contador := 0 to length(PoSAddressess)-1 do
-      UpdateSumario(PoSAddressess[contador].address,PosReward,0,IntToStr(Numero));
+   // Guardar el sumario
+   GuardarSumario();
+   // Limpiar las pendientes
+   for contador := 0 to length(ListaDirecciones)-1 do
+      ListaDirecciones[contador].Pending:=0;
+   // Definir la cabecera del bloque *****
+   BlockHeader := Default(BlockHeaderData);
+   BlockHeader.Number := Numero;
+   BlockHeader.TimeStart:= StartBlockTime;
+   BlockHeader.TimeEnd:= timeStamp;
+   BlockHeader.TimeTotal:= TimeStamp - StartBlockTime;
+   BlockHeader.TimeLast20:=GetLast20Time(BlockHeader.TimeTotal);
+   BlockHeader.TrxTotales:=length(ListaOrdenes);
+   if numero = 0 then BlockHeader.Difficult:= InitialBlockDiff
+   else BlockHeader.Difficult:= LastBlockData.NxtBlkDiff;
+   BlockHeader.TargetHash:=TargetHash;
+   BlockHeader.Solution:= Solucion;
+   if numero = 0 then BlockHeader.LastBlockHash:='NOSO GENESYS BLOCK'
+   else BlockHeader.LastBlockHash:=MyLastBlockHash;
+   BlockHeader.NxtBlkDiff:=GetDiffForNextBlock(numero,BlockHeader.TimeLast20,BlockHeader.TimeTotal,BlockHeader.Difficult);
+   BlockHeader.AccountMiner:=Minero;
+   BlockHeader.MinerFee:=MinerFee;
+   BlockHeader.Reward:=GetBlockReward(Numero);
+   // Fin de la cabecera -----
+   // Guardar bloque al disco
+   GuardarBloque(FileName,BlockHeader,ListaOrdenes,PosReward,PosCount,PoSAddressess);
+   SetLength(ListaOrdenes,0);
+   SetLength(PoSAddressess,0);
+   // Actualizar informacion
+   MyLastBlock := Numero;
+   MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
+   LastBlockData := LoadBlockDataHeader(MyLastBlock);
+   MySumarioHash := HashMD5File(SumarioFilename);
+   // Actualizar el arvhivo de cabeceras
+   AddBlchHead(Numero,MyLastBlockHash,MySumarioHash);
+   MyResumenHash := HashMD5File(ResumenFilename);
+   ResetMinerInfo();
+   ResetPoolMiningInfo();
+   if ((Miner_OwnsAPool) and (PoolExpelBlocks>0)) then ExpelPoolInactives();
+   if minero = PoolInfo.Direccion then
+      begin
+      ConsoleLinesAdd('Your pool solved the block '+inttoStr(numero));
+      DistribuirEnPool(GetBlockReward(Numero)+MinerFee-PosTotalReward);
+      end;
+   EnterCriticalSection(CSPoolMembers);
+   setmilitime('BACKUPPoolMembers',1);
+   copyfile (PoolMembersFilename,PoolMembersFilename+'.bak');
+   setmilitime('BACKUPPoolMembers',2);
+   LeaveCriticalSection(CSPoolMembers);
+   //processlines.Add('stoppoolserver');
+   if minero = RPC_MinerInfo then
+      begin
+      RPC_MinerReward := GetBlockReward(Numero)+MinerFee;
+      end;
+   if Numero>0 then
+      begin
+      OutgoingMsjsAdd(ProtocolLine(6)+IntToStr(timeStamp)+' '+IntToStr(Numero)+
+      ' '+Minero+' '+StringReplace(Solucion,' ','_',[rfReplaceAll, rfIgnoreCase]));
+      OutgoingMsjsAdd(ProtocolLine(ping));
+      end;
+   OutText(LangLine(89)+IntToStr(numero),true);  //'Block builded: '
+   if Numero > 0 then RebuildMyTrx(Numero);
+   CheckForMyPending;
+   if DIreccionEsMia(Minero)>-1 then showglobo('Miner','Block found!');
+   U_DataPanel := true;
+   SetCurrentJob('CrearNuevoBloque',false);
+   setmilitime('CrearNuevoBloque',2);
    end;
-
-// Pago del minero
-UpdateSumario(Minero,GetBlockReward(Numero)+MinerFee-PosTotalReward,0,IntToStr(numero));
-// Actualizar el ultimo bloque añadido al sumario
-EnterCriticalSection(CSSumary);
-ListaSumario[0].LastOP:=numero;
-LeaveCriticalSection(CSSumary);
-// Guardar el sumario
-GuardarSumario();
-// Limpiar las pendientes
-for contador := 0 to length(ListaDirecciones)-1 do
-   ListaDirecciones[contador].Pending:=0;
-// Definir la cabecera del bloque *****
-BlockHeader := Default(BlockHeaderData);
-BlockHeader.Number := Numero;
-BlockHeader.TimeStart:= StartBlockTime;
-BlockHeader.TimeEnd:= timeStamp;
-BlockHeader.TimeTotal:= TimeStamp - StartBlockTime;
-BlockHeader.TimeLast20:=GetLast20Time(BlockHeader.TimeTotal);
-BlockHeader.TrxTotales:=length(ListaOrdenes);
-if numero = 0 then BlockHeader.Difficult:= InitialBlockDiff
-else BlockHeader.Difficult:= LastBlockData.NxtBlkDiff;
-BlockHeader.TargetHash:=TargetHash;
-BlockHeader.Solution:= Solucion;
-if numero = 0 then BlockHeader.LastBlockHash:='NOSO GENESYS BLOCK'
-else BlockHeader.LastBlockHash:=MyLastBlockHash;
-BlockHeader.NxtBlkDiff:=GetDiffForNextBlock(numero,BlockHeader.TimeLast20,BlockHeader.TimeTotal,BlockHeader.Difficult);
-BlockHeader.AccountMiner:=Minero;
-BlockHeader.MinerFee:=MinerFee;
-BlockHeader.Reward:=GetBlockReward(Numero);
-// Fin de la cabecera -----
-// Guardar bloque al disco
-GuardarBloque(FileName,BlockHeader,ListaOrdenes,PosReward,PosCount,PoSAddressess);
-SetLength(ListaOrdenes,0);
-SetLength(PoSAddressess,0);
-// Actualizar informacion
-MyLastBlock := Numero;
-MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
-LastBlockData := LoadBlockDataHeader(MyLastBlock);
-MySumarioHash := HashMD5File(SumarioFilename);
-// Actualizar el arvhivo de cabeceras
-AddBlchHead(Numero,MyLastBlockHash,MySumarioHash);
-MyResumenHash := HashMD5File(ResumenFilename);
-ResetMinerInfo();
-ResetPoolMiningInfo();
-if ((Miner_OwnsAPool) and (PoolExpelBlocks>0)) then ExpelPoolInactives();
-if minero = PoolInfo.Direccion then
-   begin
-   ConsoleLinesAdd('Your pool solved the block '+inttoStr(numero));
-   DistribuirEnPool(GetBlockReward(Numero)+MinerFee-PosTotalReward);
-   end;
-EnterCriticalSection(CSPoolMembers);
-setmilitime('BACKUPPoolMembers',1);
-copyfile (PoolMembersFilename,PoolMembersFilename+'.bak');
-setmilitime('BACKUPPoolMembers',2);
-LeaveCriticalSection(CSPoolMembers);
-//processlines.Add('stoppoolserver');
-if minero = RPC_MinerInfo then
-   begin
-   RPC_MinerReward := GetBlockReward(Numero)+MinerFee;
-   end;
-if Numero>0 then
-   begin
-   OutgoingMsjsAdd(ProtocolLine(6)+IntToStr(timeStamp)+' '+IntToStr(Numero)+
-   ' '+Minero+' '+StringReplace(Solucion,' ','_',[rfReplaceAll, rfIgnoreCase]));
-   OutgoingMsjsAdd(ProtocolLine(ping));
-   end;
-OutText(LangLine(89)+IntToStr(numero),true);  //'Block builded: '
-if Numero > 0 then RebuildMyTrx(Numero);
-CheckForMyPending;
-if DIreccionEsMia(Minero)>-1 then showglobo('Miner','Block found!');
-U_DataPanel := true;
-SetCurrentJob('CrearNuevoBloque',false);
-setmilitime('CrearNuevoBloque',2);
 End;
 
 // Devuelve cuantos caracteres compondran el targethash del siguiente bloque

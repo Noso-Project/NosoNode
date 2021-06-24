@@ -51,15 +51,15 @@ function GetSlotFromIP(Ip:String):int64;
 var
   contador : integer;
 Begin
+Result := 0;
 for contador := 1 to MaxConecciones do
    begin
    if conexiones[contador].ip=ip then
       begin
       result := contador;
-      exit;
+      break;
       end;
    end;
-Result := 0;
 end;
 
 // Devuelve si un bot existe o no en la base de datos
@@ -123,18 +123,20 @@ KeepServerOn := true;
 if Form1.Server.Active then
    begin
    ConsoleLinesAdd(LangLine(160)); //'Server Already active'
-   exit;
-   end;
-   try
-   LastTryServerOn := StrToInt64(UTCTime);
-   Form1.Server.Bindings.Clear;
-   Form1.Server.DefaultPort:=UserOptions.Port;
-   Form1.Server.Active:=true;
-   ConsoleLinesAdd(LangLine(14)+IntToStr(UserOptions.Port));   //Server ENABLED. Listening on port
-   U_DataPanel := true;
-   except
-   on E : Exception do
-     ConsoleLinesAdd(LangLine(15));       //Unable to start Server
+   end
+else
+   begin
+      try
+      LastTryServerOn := StrToInt64(UTCTime);
+      Form1.Server.Bindings.Clear;
+      Form1.Server.DefaultPort:=UserOptions.Port;
+      Form1.Server.Active:=true;
+      ConsoleLinesAdd(LangLine(14)+IntToStr(UserOptions.Port));   //Server ENABLED. Listening on port
+      U_DataPanel := true;
+      except
+      on E : Exception do
+        ToLog(LangLine(15));       //Unable to start Server
+      end;
    end;
 end;
 
@@ -233,72 +235,71 @@ function GetFreeSlot():integer;
 var
   contador : integer = 1;
 begin
+result := 0;
 for contador := 1 to MaxConecciones do
    begin
    if Conexiones[contador].tipo = '' then
       begin
       result := contador;
-      exit;
+      break;
       end;
    end;
-result := 0;
 end;
 
-// Conecta un cliente
+// Connects a client and returns the slot
 function ConnectClient(Address,Port:String):integer;
 var
   Slot : integer = 0;
   ConContext : TIdContext; // EMPTY
+  Errored : boolean = false;
 Begin
 SetCurrentJob('ConnectClient',true);
 ConContext := Default(TIdContext);
+Slot := GetFreeSlot();
 if Address = '127.0.0.1' then
    begin
-   ConsoleLinesAdd(LangLine(29));    //127.0.0.1 is an invalid server address
+   ToLog(LangLine(29));    //127.0.0.1 is an invalid server address
    SetCurrentJob('ConnectClient',false);
-   exit;
-   end;
-Slot := GetFreeSlot();
-if Slot = 0 then // No free slots
+   errored := true;
+   end
+else if Slot = 0 then // No free slots
    begin
    result := 0;
    SetCurrentJob('ConnectClient',false);
-   exit;
+   errored := true;
    end;
-if CanalCliente[Slot].Connected then
+if not errored then
    begin
-      //{
-      try
-      CanalCliente[Slot].IOHandler.InputBuffer.Clear;
-      CanalCliente[Slot].Disconnect;
-      Except on E:exception do begin end;
-      end;
-      //}
-   end;
-CanalCliente[Slot].Host:=Address;
-CanalCliente[Slot].Port:=StrToIntDef(Port,8080);
-   try
-   CanalCliente[Slot].ConnectTimeout:= ConnectTimeOutTime;
-   CanalCliente[Slot].Connect;
-   SaveConection('SER',Address,ConContext);
-   OutText(LangLine(30)+Address,true);          //Connected TO:
-   UpdateNodeData(Address,Port);
-   CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address+' '+ProgramVersion);
-   CanalCliente[Slot].IOHandler.WriteLn(ProtocolLine(3));   // Send PING
-   Conexiones[slot].Thread := TThreadClientRead.Create(true, slot);
-   Conexiones[slot].Thread.FreeOnTerminate:=true;
-   //Conexiones[slot].IsBusy:=true;
-   Conexiones[slot].Thread.Start;
-   result := Slot;
-   SetCurrentJob('ConnectClient',false);
-   Except
-   on E:Exception do
+   if CanalCliente[Slot].Connected then
       begin
-      if E.Message<>'localhost: Connect timed out.' then
-        ConsoleLinesAdd('EXCP - '+Address+': '+E.Message);
-      result := 0;
+         try
+         CanalCliente[Slot].IOHandler.InputBuffer.Clear;
+         CanalCliente[Slot].Disconnect;
+         Except on E:exception do begin end;
+         end;
+      end;
+   CanalCliente[Slot].Host:=Address;
+   CanalCliente[Slot].Port:=StrToIntDef(Port,8080);
+      try
+      CanalCliente[Slot].ConnectTimeout:= ConnectTimeOutTime;
+      CanalCliente[Slot].Connect;
+      SaveConection('SER',Address,ConContext);
+      ToLog(LangLine(30)+Address);          //Connected TO:
+      UpdateNodeData(Address,Port);
+      CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address+' '+ProgramVersion);
+      CanalCliente[Slot].IOHandler.WriteLn(ProtocolLine(3));   // Send PING
+      Conexiones[slot].Thread := TThreadClientRead.Create(true, slot);
+      Conexiones[slot].Thread.FreeOnTerminate:=true;
+      Conexiones[slot].Thread.Start;
+      result := Slot;
       SetCurrentJob('ConnectClient',false);
-      exit;
+      Except on E:Exception do
+         begin
+         if E.Message<>'localhost: Connect timed out.' then
+            ConsoleLinesAdd('EXCP - '+Address+': '+E.Message);
+         result := 0;
+         SetCurrentJob('ConnectClient',false);
+         end;
       end;
    end;
 End;
@@ -312,11 +313,13 @@ Begin
 setmilitime('GetTotalConexiones',1);
 for contador := 1 to MaxConecciones do
    begin
+   {
    if ((conexiones[contador].tipo='SER') and (not CanalCliente[contador].connected)) then
       begin
       ConsoleLinesAdd(LangLine(31)+conexiones[contador].ip);  //Conection lost to
       cerrarslot(contador);
       end;
+   }
    if conexiones[contador].tipo <> '' then resultado := resultado + 1;
    end;
 result := resultado;
@@ -343,7 +346,7 @@ SetCurrentJob('CerrarClientes',true);
 SetCurrentJob('CerrarClientes',false);
 End;
 
-// Lee las lineas linea de los CanalesCliente
+// Read lines form clients: DEPRECATED
 procedure ReadClientLines(Slot:int64);
 var
   LLine: String;
@@ -780,13 +783,13 @@ if version <= ProgramVersion then
    begin
    ConsoleLinesAdd(LangLine(38)); //Update file received is obsolete
    trydeletefile(namefile);
-   exit;
+   Proceder := false;
    end;
 if fileexists(UpdatesDirectory+namefile) then
    begin
-   ConsoleLinesAdd('Update file already exists'); //Update file received is obsolete
+   ConsoleLinesAdd('Update file already exists');
    trydeletefile(namefile);
-   exit;
+   Proceder := false;
    end;
 if not proceder then
    begin
@@ -868,10 +871,12 @@ IpToAdd := Parameter(Linea,1);
 if not IsValidIP(IpToAdd) then
    begin
    ConsoleLinesAdd('Invalid IP');
-   exit;
+   end
+else
+   begin
+   UpdateBotData(iptoadd);
+   if GetSlotFromIP(iptoadd)>0 then CerrarSlot(GetSlotFromIP(iptoadd));
    end;
-UpdateBotData(iptoadd);
-if GetSlotFromIP(iptoadd)>0 then CerrarSlot(GetSlotFromIP(iptoadd));
 End;
 
 function GetOutGoingConnections():integer;
@@ -940,11 +945,15 @@ if length(PendingTxs)>0 then
       begin
       if PendingTxs[counter].OrderID = orderid then
          begin
-         resultorder.Block := PendingTxs[counter].Block;
-         resultorder.Concept:=PendingTxs[counter].Concept;
+         resultorder.OrderID:=PendingTxs[counter].OrderID;
+         resultorder.Block := -1;
+         resultorder.reference:=PendingTxs[counter].reference;
          resultorder.TimeStamp:=PendingTxs[counter].TimeStamp;
-         resultorder.receiver:=PendingTxs[counter].receiver;
+         resultorder.receiver:= PendingTxs[counter].receiver;
          resultorder.AmmountTrf:=resultorder.AmmountTrf+PendingTxs[counter].AmmountTrf;
+         resultorder.AmmountFee:=resultorder.AmmountFee+PendingTxs[counter].AmmountFee;
+         resultorder.OrderLines+=1;
+         resultorder.OrderType:=PendingTxs[counter].OrderType;
          orderfound := true;
          end;
       end;
@@ -960,11 +969,15 @@ else
             begin
             if ArrTrxs[counter2].OrderID = orderid then
                begin
+               resultorder.OrderID:=ArrTrxs[counter2].OrderID;
                resultorder.Block := ArrTrxs[counter2].Block;
-               resultorder.Concept:=ArrTrxs[counter2].Concept;
+               resultorder.reference:=ArrTrxs[counter2].reference;
                resultorder.TimeStamp:=ArrTrxs[counter2].TimeStamp;
                resultorder.receiver:=ArrTrxs[counter2].receiver;
                resultorder.AmmountTrf:=resultorder.AmmountTrf+ArrTrxs[counter2].AmmountTrf;
+               resultorder.AmmountFee:=resultorder.AmmountFee+ArrTrxs[counter2].AmmountFee;
+               resultorder.OrderLines+=1;
+               resultorder.OrderType:=ArrTrxs[counter2].OrderType;
                orderfound := true;
                end;
             end;
@@ -980,7 +993,7 @@ End;
 Function GetNodeStatusString():string;
 Begin
 result := IntToStr(GetTotalConexiones)+' '+IntToStr(MyLastBlock)+' '+IntToStr(Length(PendingTXs))+' '+
-          IntToStr(UTCTime.ToInt64-EngineLastUpdate);
+          IntToStr(UTCTime.ToInt64-EngineLastUpdate)+' '+copy(myResumenHash,0,5);
 End;
 
 

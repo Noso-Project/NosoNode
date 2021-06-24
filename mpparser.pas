@@ -92,6 +92,7 @@ Procedure ShowAddressHistory(LineText:string);
 Procedure ShowTotalFees();
 function ShowPrivKey(linea:String;ToConsole:boolean = false):String;
 Procedure ExecuteRebuildMyTrx();
+Procedure TestNetwork(LineText:string);
 
 // CONSULTING
 Procedure ShowDiftory();
@@ -180,7 +181,6 @@ var
   Command : String;
 begin
 Command :=GetCommand(Linetext);
-if Command = '' then exit;
 if not AnsiContainsStr(HideCommands,Uppercase(command)) then ConsoleLinesAdd('>> '+Linetext);
 if UpperCase(Command) = 'LANG' then Language(linetext)
 else if UpperCase(Command) = 'VER' then ConsoleLinesAdd(ProgramVersion+SubVersion)
@@ -238,7 +238,7 @@ else if UpperCase(Command) = 'DELBOT' then DeleteBot(LineText)
 else if UpperCase(Command) = 'CRIPTO' then showCriptoThreadinfo()
 else if UpperCase(Command) = 'CPUMINE' then SetMiningCPUS(LineText)
 else if UpperCase(Command) = 'BLOCK' then ParseShowBlockInfo(LineText)
-//else if UpperCase(Command) = 'TESTNET' then TestNetwork(LineText)
+else if UpperCase(Command) = 'TESTNET' then TestNetwork(LineText)
 else if UpperCase(Command) = 'RUNDIAG' then RunDiagnostico(LineText)
 else if UpperCase(Command) = 'RESTART' then Parse_RestartNoso()
 else if UpperCase(Command) = 'SND' then ShowNetworkDataInfo()
@@ -323,11 +323,7 @@ Begin
 while contador <= Length(LineText) do
    begin
    ThisChar := Linetext[contador];
-   if  ThisChar = ' ' then
-      begin
-      result := temp;
-      exit;
-      end
+   if  ThisChar = ' ' then break
    else temp := temp+ ThisChar;
    contador := contador+1;
    end;
@@ -823,22 +819,19 @@ var
 Begin
 Numero := StrToIntDef(Parameter(linetext,1),-1);
 if ((Numero < 0) or (numero > length(ListaDirecciones)-1)) then
-   begin
-   OutText(LangLine(137),false,2);  //'Invalid address number.'
-   exit;
-   end
+   OutText(LangLine(137),false,2)  //'Invalid address number.'
 else if numero = 0 then
+   OutText(LangLine(138),false,2) //'Address 0 is already the default.'
+else
    begin
-   OutText(LangLine(138),false,2); //'Address 0 is already the default.'
-   exit;
+   OldData := ListaDirecciones[0];
+   NewData := ListaDirecciones[numero];
+   ListaDirecciones[numero] := OldData;
+   ListaDirecciones[0] := NewData;
+   OutText(LangLine(139)+NewData.Hash,false,2); //'New default address: '
+   S_Wallet := true;
+   U_DirPanel := true;
    end;
-OldData := ListaDirecciones[0];
-NewData := ListaDirecciones[numero];
-ListaDirecciones[numero] := OldData;
-ListaDirecciones[0] := NewData;
-OutText(LangLine(139)+NewData.Hash,false,2); //'New default address: '
-S_Wallet := true;
-U_DirPanel := true;
 End;
 
 Procedure ParseShowBlockInfo(LineText:string);
@@ -858,7 +851,7 @@ Begin
 if fileexists(BlockDirectory+IntToStr(numberblock)+'.blk') then
    begin
    Header := LoadBlockDataHeader(numberblock);
-   ConsoleLinesAdd('Last block info');
+   ConsoleLinesAdd('Block info: '+IntToStr(numberblock));
    ConsoleLinesAdd('Hash  :       '+HashMD5File(BlockDirectory+IntToStr(numberblock)+'.blk'));
    ConsoleLinesAdd('Number:       '+IntToStr(Header.Number));
    ConsoleLinesAdd('Time start:   '+IntToStr(Header.TimeStart)+' ('+TimestampToDate(IntToStr(Header.TimeStart))+')');
@@ -948,7 +941,7 @@ if procesar then
            '1'+' '+        // OrderLines
            'CUSTOM'+' '+   // OrderType
            CurrTime+' '+   // Timestamp
-           'null'+' '+     // concept
+           'null'+' '+     // reference
            '1'+' '+        // Trxline
            ListaDirecciones[DireccionEsMia(address)].PublicKey+' '+    // sender
            ListaDirecciones[DireccionEsMia(address)].Hash+' '+    // address
@@ -971,7 +964,7 @@ End;
 // Ejecuta una orden de transferencia
 function SendFunds(LineText:string):string;
 var
-  Destination, amount, concepto : string;
+  Destination, amount, reference : string;
   monto, comision : int64;
   montoToShow, comisionToShow : int64;
   contador : integer;
@@ -990,7 +983,7 @@ result := '';
 setmilitime('SendFunds',1);
 Destination := Parameter(Linetext,1);
 amount       := Parameter(Linetext,2);
-concepto    := Parameter(Linetext,3);
+reference    := Parameter(Linetext,3);
 if ((Destination='') or (amount='')) then
    begin
    ConsoleLinesAdd(LAngLine(145)); //'Invalid parameters.'
@@ -1007,7 +1000,7 @@ if not IsValidAddress(Destination) then
    else Destination := ListaSumario[aliasIndex].Hash;
    end;
 monto := StrToInt64Def(amount,-1);
-if concepto = '' then concepto := 'null';
+if reference = '' then reference := 'null';
 if monto<=0 then
    begin
    ConsoleLinesAdd(LangLine(147)); //'Invalid ammount.'
@@ -1042,7 +1035,7 @@ if procesar then
          trxLinea := TrxLinea+1;
          Setlength(ArrayTrfrs,length(arraytrfrs)+1);
          ArrayTrfrs[length(arraytrfrs)-1]:= SendFundsFromAddress(ListaDirecciones[contador].Hash,
-                                            Destination,monto, comision, Concepto, CurrTime,TrxLinea);
+                                            Destination,monto, comision, reference, CurrTime,TrxLinea);
          comision := comision-ArrayTrfrs[length(arraytrfrs)-1].AmmountFee;
          monto := monto-ArrayTrfrs[length(arraytrfrs)-1].AmmountTrf;
          OrderHashString := OrderHashString+ArrayTrfrs[length(arraytrfrs)-1].TrfrID;
@@ -1071,7 +1064,7 @@ if procesar then
    end // End procesar
 else
    begin
-   ConsoleLinesAdd('Syntax: sendto {destination} {ammount} {concept}');
+   ConsoleLinesAdd('Syntax: sendto {destination} {ammount} {reference}');
    end;
 End;
 
@@ -1161,6 +1154,8 @@ var
   ListaDeIdiomas : array of string;
   LineasViejas : array of string;
 Begin
+ConsoleLinesAdd('Function deprecated');
+{
 Nombrearchivo := parameter(linetext,1);
 Nombrearchivo := StringReplace(Nombrearchivo,'*',' ',[rfReplaceAll, rfIgnoreCase]);
 if ((nombrearchivo='') or (not fileexists(Nombrearchivo))) then
@@ -1239,6 +1234,7 @@ closefile(archivo2);
 CargarIdioma(idiomas-1);
 InicializarGUI();
 ConsoleLinesAdd('Loaded: '+NombreIdioma);
+}
 End;
 
 // cambia el puerto de escucha
@@ -1250,11 +1246,13 @@ NewPort := parameter(linetext,1);
 if ((StrToIntDef(NewPort,0) < 1) or (StrToIntDef(NewPort,0)>65535)) then
    begin
    ConsoleLinesAdd('Invalid Port');
-   exit;
+   end
+else
+   begin
+   UserOptions.Port :=StrToIntDef(NewPort,0);
+   OutText('New listening port: '+NewPort,false,2);
+   S_Options := true;
    end;
-UserOptions.Port :=StrToIntDef(NewPort,0);
-OutText('New listening port: '+NewPort,false,2);
-S_Options := true;
 End;
 
 // regresa el sha256 de una cadena
@@ -1293,32 +1291,34 @@ Procedure DeleteBot(LineText:String);
 var
   IPBot : String;
   contador : integer;
+  IPDeleted : boolean = false;
 Begin
 IPBot := Parameter(linetext,1);
 if IPBot = '' then
    begin
    ConsoleLinesAdd('Invalid IP');
-   exit;
-   end;
-if uppercase(IPBot) = 'ALL' then
+   end
+else if uppercase(IPBot) = 'ALL' then
    begin
    SetLength(ListadoBots,0);
    LastBotClear := UTCTime;
    S_BotData := true;
    ConsoleLinesAdd('All bots deleted');
-   exit;
-   end;
-for contador := 0 to length(ListadoBots)-1 do
+   end
+else
    begin
-   if ListadoBots[contador].ip = IPBot then
+   for contador := 0 to length(ListadoBots)-1 do
       begin
-      Delete(ListadoBots,Contador,1);
-      S_BotData := true;
-      ConsoleLinesAdd(IPBot+' deleted from bot list');
-      exit;
+      if ListadoBots[contador].ip = IPBot then
+         begin
+         Delete(ListadoBots,Contador,1);
+         S_BotData := true;
+         ConsoleLinesAdd(IPBot+' deleted from bot list');
+         IPDeleted := true;
+         end;
       end;
+   if not IPDeleted then ConsoleLinesAdd('IP do not exists in Bot list');
    end;
-ConsoleLinesAdd('IP do not exists in Bot list');
 End;
 
 Procedure showCriptoThreadinfo();
@@ -1332,30 +1332,28 @@ End;
 Procedure SetMiningCPUS(LineText:string);
 var
   numero : integer;
+  errored : boolean = false;
 Begin
 numero := StrToIntDef(Parameter(linetext,1),0);
-if numero < 1 then
-  begin
-  outtext('You must set 1 or more CPUs for mining',false,2);
-  exit;
-  end;
-if numero > G_CpuCount then
-  begin
-  outtext('Maximun number of CPUs: '+IntToStr(G_CpuCount),false,2);
-  exit;
-  end;
-G_MiningCPUs := numero;
-outtext('Mining CPUs set to: '+IntToStr(numero),false,2);
-if G_MiningCPUs > 2 then
-  ConsoleLinesAdd('*** WARNING ***'+slinebreak+'Using more than 2 CPUs to mine is NOT RECOMMENDED'+slinebreak+
-                   'Not support if you decide to mine with '+IntToStr(G_MiningCPUs)+' CPUs'+slinebreak+
-                   '***************');
-DefCPUs := G_MiningCPUs;
-ResetMinerInfo;
-KillAllMiningThreads;
-Miner_Active := false;
-if Miner_IsOn then Miner_IsOn := false;
-U_Datapanel := true;
+if ((numero < 1) or (numero > G_CpuCount)) then
+   begin
+   ConsolelinesAdd('Invalid CPUs number: '+parameter(LineText,1));
+   end
+else
+   begin
+   G_MiningCPUs := numero;
+   outtext('Mining CPUs set to: '+IntToStr(numero),false,2);
+   if G_MiningCPUs > 2 then
+     ConsoleLinesAdd('*** WARNING ***'+slinebreak+'Using more than 2 CPUs to mine is NOT RECOMMENDED'+slinebreak+
+                      'Not support if you decide to mine with '+IntToStr(G_MiningCPUs)+' CPUs'+slinebreak+
+                      '***************');
+   DefCPUs := G_MiningCPUs;
+   ResetMinerInfo;
+   KillAllMiningThreads;
+   Miner_Active := false;
+   if Miner_IsOn then Miner_IsOn := false;
+   U_Datapanel := true;
+   end;
 End;
 
 Procedure Parse_RestartNoso();
@@ -1411,36 +1409,35 @@ Begin
 if fileexists(PoolInfoFilename) then
   begin
   ConsoleLinesAdd('You already owns a minning pool');
-  exit;
-  end;
-nombre := Parameter(linetext,1);
-port := StrToIntDef(Parameter(linetext,2),8082);
-Password := Parameter(linetext,3);
-direccionminado := Listadirecciones[0].Hash;
-porcentaje := 100;
-maxmembers := Pool_Max_Members;
-TipoPago := 100;
-if ( (Length(nombre)<3) or (length(nombre)>15) ) then Parametrosok := 1;
-if ((port<1) or (port>65535)) then Parametrosok := 2;
-if port = UserOptions.Port then Parametrosok := 3;
-if ( (length(Password)<1) or (length(Password)>10) ) then Parametrosok := 4;
-if parametrosok = 0 then
-   begin
-   CrearArchivoPoolInfo(nombre,direccionminado,porcentaje,maxmembers,port,tipopago,password);
-   CrearArchivoPoolMembers();
-   ConsoleLinesAdd('Mining pool created');
-   MiPrefijo := PoolAddNewMember(direccionminado);
-   useroptions.PoolInfo:=direccionminado+' '+MiPrefijo+' '+'localhost '+IntToStr(port)+' '+
-      direccionminado+' '+nombre+' '+password;
-   UserOptions.UsePool := true;
-   GuardarOpciones;
-   RestartNosoAfterQuit := true;
-   CerrarPrograma();
-   end
+  end
 else
    begin
-   ConsoleLinesAdd('CreatePool: Invalid parameters'+slinebreak+
-   'createpool {name} {port} {password}');
+   nombre := Parameter(linetext,1);
+   port := StrToIntDef(Parameter(linetext,2),8082);
+   Password := Parameter(linetext,3);
+   direccionminado := Listadirecciones[0].Hash;
+   porcentaje := 100;
+   maxmembers := Pool_Max_Members;
+   TipoPago := 100;
+   if ( (Length(nombre)<3) or (length(nombre)>15) ) then Parametrosok := 1;
+   if ((port<1) or (port>65535)) then Parametrosok := 2;
+   if port = UserOptions.Port then Parametrosok := 3;
+   if ( (length(Password)<1) or (length(Password)>10) ) then Parametrosok := 4;
+   if parametrosok = 0 then
+      begin
+      CrearArchivoPoolInfo(nombre,direccionminado,porcentaje,maxmembers,port,tipopago,password);
+      CrearArchivoPoolMembers();
+      ConsoleLinesAdd('Mining pool created');
+      MiPrefijo := PoolAddNewMember(direccionminado);
+      useroptions.PoolInfo:=direccionminado+' '+MiPrefijo+' '+'localhost '+IntToStr(port)+' '+
+         direccionminado+' '+nombre+' '+password;
+      UserOptions.UsePool := true;
+      GuardarOpciones;
+      RestartNosoAfterQuit := true;
+      CerrarPrograma();
+      end
+   else
+      ConsoleLinesAdd('CreatePool: Invalid parameters'+slinebreak+'createpool {name} {port} {password}');
    end;
 End;
 
@@ -1453,7 +1450,7 @@ var
 Begin
 ConsoleLinesAdd('Deprecated since 0.2.0J');
 ConsoleLinesAdd('Use NosoMiner to mine in a pool');
-exit;
+{
 if UserOptions.poolinfo = '' then
    begin
    ip := Parameter(linetext,1);
@@ -1473,6 +1470,7 @@ if UserOptions.poolinfo = '' then
    else ConsoleLinesAdd('Join Pool: Invalid parameters'+slinebreak+'joinpool {ip} {port} {address} {password}');
    end
 else ConsoleLinesAdd('You already are in a pool');
+}
 End;
 
 Procedure DeletePool(LineText:string);
@@ -1599,11 +1597,12 @@ End;
 Procedure ChangePoolPassword(LineText:string);
 var
   oldpass, newpass : string;
+  errored : boolean = false;
 Begin
 if not Miner_OwnsAPool then
    begin
-   ConsoleLinesAdd('Only pool admin can change password');
-   exit;
+   ConsoleLinesAdd('You do not own a pool');
+   errored := true;
    end;
 oldpass := Parameter(LineText,1);
 newpass := Parameter(LineText,2);
@@ -1611,15 +1610,18 @@ if length(newpass) > 10 then setlength(newpass,10);
 if oldpass <> MyPoolData.Password then
    begin
    ConsoleLinesAdd('Invalid password');
-   exit;
+   errored := true;
    end;
-if Miner_OwnsAPool then // si posse el pool, cambiar ambas
-  begin
-  PoolInfo.PassWord:=newpass;
-  S_PoolInfo:=true;
-  end;
-MyPoolData.Password:= newpass;
-SaveMyPoolData;
+if not errored then
+   begin
+   if Miner_OwnsAPool then // si posse el pool, cambiar ambas
+     begin
+     PoolInfo.PassWord:=newpass;
+     S_PoolInfo:=true;
+     end;
+   MyPoolData.Password:= newpass;
+   SaveMyPoolData;
+   end;
 End;
 
 Procedure ChangePoolFee(LineText:string);
@@ -1629,19 +1631,21 @@ Begin
 newfee := StrToIntDef(Parameter(linetext,1),-1);
 if (not Miner_OwnsAPool) then
    begin
-   ConsoleLinesAdd('Only pool admin can change fees');
-   exit;
+   ConsoleLinesAdd('You do not own a pool');
    end
 else
    begin
-   if newfee<0 then
+   if ((newfee<0) or (newfee>10000)) then
       begin
       ConsoleLinesAdd('Invalid pool fee');
-      exit;
+      end
+   else
+      begin
+      poolinfo.Porcentaje:=newfee;
+      S_PoolInfo:=true;
+      EdBuFee.Caption:='Fee: '+IntToStr(poolinfo.Porcentaje);
+      consolelinesadd('Newpool fee: '+IntToStr(newfee));
       end;
-   poolinfo.Porcentaje:=newfee;
-   S_PoolInfo:=true;
-   EdBuFee.Caption:='Fee: '+IntToStr(poolinfo.Porcentaje);
    end;
 End;
 
@@ -1652,39 +1656,42 @@ Begin
 newmembers := StrToIntDef(Parameter(linetext,1),-1);
 if (not Miner_OwnsAPool) then
    begin
-   ConsoleLinesAdd('Only pool admin can change max members');
-   exit;
+   ConsoleLinesAdd('You do not own a pool');
    end
 else
    begin
    if ( (newmembers<length(arraypoolmembers)) or (newmembers>Pool_Max_Members) ) then
       begin
       ConsoleLinesAdd('Invalid number of members');
-      exit;
+      end
+   else
+      begin
+      poolinfo.MaxMembers:=newmembers;
+      S_PoolInfo:=true;
+      EdMaxMem.Caption:='Members: '+IntToStr(poolinfo.MaxMembers);
+      ConsoleLinesAdd('New pool max members= '+IntToStr(newmembers));
       end;
-   poolinfo.MaxMembers:=newmembers;
-   S_PoolInfo:=true;
-   EdMaxMem.Caption:='Members: '+IntToStr(poolinfo.MaxMembers);
    end;
 End;
 
 Procedure ChangePoolPayrate(LineText:string);
 var
   newpayrate: integer;
+  errored : boolean = false;
 Begin
 newpayrate := StrToIntDef(Parameter(linetext,1),-1);
 if (not Miner_OwnsAPool) then
    begin
    ConsoleLinesAdd('Only pool admin can change pay interval');
-   exit;
-   end
-else
+   errored := true;
+   end;
+if ( (newpayrate<1) or (newpayrate>1008) ) then
    begin
-   if ( (newpayrate<1) or (newpayrate>1008) ) then
-      begin
-      ConsoleLinesAdd('Invalid number for pay interval');
-      exit;
-      end;
+   ConsoleLinesAdd('Invalid number for pay interval');
+   errored := true;
+   end;
+if not errored then
+   begin
    poolinfo.TipoPago:=newpayrate;
    S_PoolInfo:=true;
    EdPayRate.Caption:='Pay: '+IntToStr(poolinfo.TipoPago);
@@ -1698,30 +1705,29 @@ var
   MemberPosition : integer;
   MemberBalance : Int64;
   paybalance : string;
+  errored : boolean = false;
 Begin
 member := Parameter(linetext,1);
 paybalance := Uppercase(Parameter(linetext,2));
 if Paybalance <> 'YES' then paybalance := 'NO';
-
 MemberPosition := GetPoolMemberPosition(member);
 if (not Miner_OwnsAPool) then
    begin
    ConsoleLinesAdd('Only pool admin can expel members');
-   exit;
-   end
-else
+   errored := true;
+   end;
+if (MemberPosition<0) then
    begin
-   if (MemberPosition<0) then
-      begin
-      ConsoleLinesAdd('User do not exists in the pool');
-      exit;
-      end;
+   ConsoleLinesAdd('User do not exists in the pool');
+   errored := true;
+   end;
+if not errored then
+   begin
    MemberBalance := GetPoolMemberBalance(member);
    if ( (MemberBalance>0) and (paybalance='YES') ) then // Enviar pago si posee saldo
       begin
       ProcessLinesAdd('sendto '+member+' '+IntToStr(GetMaximunToSend(MemberBalance))+' EXPEL_POOLPAYMENT_'+PoolInfo.Name);
       ClearPoolUserBalance(member);
-      ConsoleLinesAdd('Pool expel payment sent: '+inttoStr(GetMaximunToSend(MemberBalance)));
       tolog('Pool expel payment sent: '+int2curr(GetMaximunToSend(MemberBalance)));
       PoolMembersTotalDeuda := GetTotalPoolDeuda();
       end;
@@ -1769,19 +1775,18 @@ Procedure SendAdminMessage(linetext:string);
 var
   mensaje,currtime, firma, hashmsg : string;
 Begin
-if (DireccionEsMia(AdminHash)<0) then
+if (DireccionEsMia(AdminHash)<0) then ConsoleLinesAdd(LangLine(54)) //Only the Noso developers can do this
+else
    begin
-   ConsoleLinesAdd(LangLine(54)); //Only the Noso developers can do this
-   exit;
+   Mensaje := parameter(linetext,1);
+   currtime := UTCTime;
+   firma := GetStringSigned(currtime+mensaje,ListaDirecciones[DireccionEsMia(AdminHash)].PrivateKey);
+   hashmsg := HashMD5String(currtime+mensaje+firma);
+   mensaje := StringReplace(mensaje,' ','_',[rfReplaceAll, rfIgnoreCase]);
+   OutgoingMsjsAdd(GetPTCEcn+'ADMINMSG '+currtime+' '+mensaje+' '+firma+' '+hashmsg);
+   mensaje := StringReplace(mensaje,'_',' ',[rfReplaceAll, rfIgnoreCase]);
+   ConsoleLinesAdd('Message sent: '+mensaje);
    end;
-Mensaje := parameter(linetext,1);
-currtime := UTCTime;
-firma := GetStringSigned(currtime+mensaje,ListaDirecciones[DireccionEsMia(AdminHash)].PrivateKey);
-hashmsg := HashMD5String(currtime+mensaje+firma);
-mensaje := StringReplace(mensaje,' ','_',[rfReplaceAll, rfIgnoreCase]);
-OutgoingMsjsAdd(GetPTCEcn+'ADMINMSG '+currtime+' '+mensaje+' '+firma+' '+hashmsg);
-mensaje := StringReplace(mensaje,'_',' ',[rfReplaceAll, rfIgnoreCase]);
-ConsoleLinesAdd('Message sent: '+mensaje);
 End;
 
 Procedure SetReadTimeOutTIme(LineText:string);
@@ -1842,12 +1847,15 @@ if thisorderdata.AmmountTrf<=0 then
   ConsoleLinesAdd('Order not found')
 else
   begin
-  if ThisOrderdata.Block = 0 then ConsoleLinesAdd('Block: Pending')
-  else ConsoleLinesAdd('Block: '+IntToStr(ThisOrderdata.Block));
   ConsoleLinesAdd('Time: '+TimestampToDate(IntToStr(ThisOrderdata.TimeStamp)));
-  ConsoleLinesAdd('Concept: '+ThisOrderdata.Concept);
+  if ThisOrderdata.Block = -1 then ConsoleLinesAdd('Block: Pending')
+  else ConsoleLinesAdd('Block: '+IntToStr(ThisOrderdata.Block));
+  ConsoleLinesAdd('Type: '+ThisOrderdata.OrderType);
+  ConsoleLinesAdd('Trfrs: '+IntToStr(ThisOrderdata.OrderLines));
   ConsoleLinesAdd('Receiver: '+ThisOrderdata.receiver);
   ConsoleLinesAdd('Ammount: '+Int2curr(ThisOrderdata.AmmountTrf));
+  ConsoleLinesAdd('Fee: '+Int2curr(ThisOrderdata.AmmountFee));
+  ConsoleLinesAdd('Reference: '+ThisOrderdata.reference);
   end;
 End;
 
@@ -2072,6 +2080,26 @@ CrearMistrx();
 CargarMisTrx();
 RebuildMyTrx(MyLastBlock);
 ConsoleLinesAdd('My transactions rebuilded');
+End;
+
+Procedure TestNetwork(LineText:string);
+var
+  numero : integer;
+  monto : integer;
+  contador : integer;
+Begin
+numero := StrToIntDef(Parameter(linetext,1),0);
+if ((numero <1) or (numero >100)) then
+  Outtext('Range must be 1-100')
+else
+  begin
+  Randomize;
+  for contador := 1 to numero do
+     begin
+     Monto := Random(50)+1;
+     Processlines.Add('SENDTO gcarreno-main '+IntToStr(Monto));
+     end;
+  end;
 End;
 
 END. // END UNIT

@@ -128,7 +128,7 @@ type
      OrderLines : Integer;
      OrderType : String[6];
      TimeStamp : Int64;
-     Concept : String[64];
+     Reference : String[64];
        TrxLine : integer;
        Sender : String[120];    // La clave publica de quien envia
        Address : String[40];
@@ -165,7 +165,7 @@ type
      monto    : int64;
      trfrID   : string[64];
      OrderID  : String[64];
-     Concepto : String[64];
+     reference : String[64];
      end;
 
   MilitimeData = Packed Record
@@ -261,6 +261,7 @@ type
   TForm1 = class(TForm)
     BitBtn1: TBitBtn;
     BitBtn2: TBitBtn;
+    CB_AUTORPC: TCheckBox;
     CB_WO_AutoConnect: TCheckBox;
     CB_WO_ToTray: TCheckBox;
     CheckBox1: TCheckBox;
@@ -268,7 +269,7 @@ type
     CB_WO_AntiFreeze: TCheckBox;
     CheckBox4: TCheckBox;
     CB_RPC_ON: TCheckBox;
-    CheckBox6: TCheckBox;
+    CB_RPCFilter: TCheckBox;
     CheckBox7: TCheckBox;
     CheckBox8: TCheckBox;
     CheckBox9: TCheckBox;
@@ -293,9 +294,10 @@ type
     InfoTimer : TTimer;
     InicioTimer : TTimer;
     CloseTimer : TTimer;
+    PoolPanelBlink: TPanel;
     PCPool: TPageControl;
     RestartTimer : Ttimer;
-    Memo1: TMemo;
+    MemoRPCWhitelist: TMemo;
     Memo2: TMemo;
     MemoLog: TMemo;
     MemoExceptLog: TMemo;
@@ -341,13 +343,16 @@ type
 
     procedure BitBtn1Click(Sender: TObject);
     procedure BitBtn2Click(Sender: TObject);
+    procedure CB_RPCFilterChange(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormWindowStateChange(Sender: TObject);
+    procedure LE_Rpc_PassEditingDone(Sender: TObject);
     Procedure LoadOptionsToPanel();
     procedure FormShow(Sender: TObject);
     Procedure InicoTimerEjecutar(Sender: TObject);
+    procedure MemoRPCWhitelistEditingDone(Sender: TObject);
     Procedure RestartTimerEjecutar(Sender: TObject);
     Procedure EjecutarInicio();
     Procedure ConsoleLineKeyup(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -455,6 +460,7 @@ type
     procedure CB_WO_MultisendChange(Sender: TObject);
       // RPC
     procedure CB_RPC_ONChange(Sender: TObject);
+    procedure CB_AUTORPCChange(Sender: TObject);
     procedure LE_Rpc_PortEditingDone(Sender: TObject);
 
   private
@@ -481,10 +487,12 @@ CONST
                           '75.127.0.216 '+
                           '191.96.103.153 '+
                           '45.141.36.117 '+
-                          '199.247.12.166 '+
-                          '108.61.250.100';
+                          '192.210.226.118 '+
+                          '107.172.5.8 '+
+                          '185.239.239.184 '+
+                          '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'F';
+  SubVersion = 'G';
   OficialRelease = true;
   BuildDate = 'June 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -537,6 +545,9 @@ var
   WO_AntiFreeze    : boolean = true;
   WO_MultiSend     : boolean = false;
   WO_AntifreezeTime: integer = 10;
+  RPCFilter        : boolean = true;
+  RPCWhitelist     : string = '127.0.0.1,localhost';
+  RPCAuto          : boolean = false;
 
 
   SynchWarnings : integer = 0;
@@ -1178,6 +1189,7 @@ G_Launching := false;
 OutText('Noso is ready',false,1);
 if UserOptions.AutoServer then ProcessLinesAdd('SERVERON');
 if WO_AutoConnect then ProcessLinesAdd('CONNECT');
+if RPCAuto then  ProcessLinesAdd('RPCON');
 FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
 FirstShow := true;
 Setlength(CriptoOpsTipo,0);
@@ -1214,6 +1226,10 @@ SE_WO_AntifreezeTime.value := WO_AntifreezeTime;
 // RPC
 LE_Rpc_Port.Text := IntToStr(RPCPort);
 LE_Rpc_Pass.Text := RPCPass;
+CB_RPCFilter.Checked:=RPCFilter;
+MemoRPCWhitelist.Text:=RPCWhitelist;
+if not RPCFilter then MemoRPCWhitelist.Enabled:=false;
+CB_AUTORPC.Checked:= RPCAuto;
 End;
 
 // Cuando se solicita cerrar el programa
@@ -1261,7 +1277,7 @@ if Key=VK_RETURN then
    begin
    ConsoleLine.Text := '';
    LastCommand := LineText;
-   ProcessLinesAdd(LineText);
+   if LineText <> '' then ProcessLinesAdd(LineText);
    if Uppercase(Linetext) = 'EXIT' then
      begin
      CrearCrashInfo();
@@ -1500,7 +1516,7 @@ MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='View';MenuItem.RightJu
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='ConSlots';MenuItem.OnClick:=@Form1.MMVerSlots;
   Form1.imagenes.GetBitmap(29,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Pool';MenuItem.OnClick:=@Form1.MMVerPool;
-  MenuItem.Visible:=false;Form1.imagenes.GetBitmap(4,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
+  {MenuItem.Visible:=false};Form1.imagenes.GetBitmap(4,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
 
 ConsolePopUp := TPopupMenu.Create(form1);
 MenuItem := TMenuItem.Create(ConsolePopUp);MenuItem.Caption := 'Clear';//Form1.imagenes.GetBitmap(0,MenuItem.Bitmap);
@@ -1952,21 +1968,32 @@ procedure TForm1.RPCServerExecute(AContext: TIdContext;
       ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo);
 var
   PostString: TJSONStringType = '';
-  StreamString: TStream ;
+//  StreamString: TStream ;
+  StreamString: TStringStream ;
 Begin
-if ARequestInfo.Command <> 'POST' then
+consolelinesadd(ARequestInfo.RemoteIP);
+if ( (RPCFilter) and (Not ValidRPCHost(ARequestInfo.RemoteIP)) ) then
    begin
-   AResponseInfo.ContentText:= GetJSONErrorCode(400,1);
+   AResponseInfo.ContentText:= GetJSONErrorCode(498,-1);
+   end
+else if ARequestInfo.Command <> 'POST' then
+   begin
+   AResponseInfo.ContentText:= GetJSONErrorCode(400,-1);
    end
 else if ARequestInfo.Command = 'POST' then
    begin  // Is a post request
-   StreamString := ARequestInfo.PostStream;
+
+   StreamString := TStringStream.Create('', TEncoding.UTF8);
+   StreamString.LoadFromStream(ARequestInfo.PostStream);
+
+   //StreamString := ARequestInfo.PostStream;
    if assigned(StreamString) then
       begin
       StreamString.Position:=0;
       PostString := ReadStringFromStream(StreamString,-1,IndyTextEncoding_UTF8);
       end;
    AResponseInfo.ContentText:= ParseRPCJSON(PostString);
+   StreamString.Free;
    end;
 End;
 
@@ -2017,7 +2044,7 @@ else
          if resultorder.Block = 0 then orderconfirmations := 'Pending'
          else orderconfirmations := IntToStr(MyLastBlock-resultorder.Block);
          TextToSend :=orderconfirmations+' '+TimestampToDate(IntToStr(resultorder.TimeStamp))+' '+
-            resultorder.Concept+' '+resultorder.Receiver+' '+Int2curr(resultorder.AmmountTrf);
+            resultorder.reference+' '+resultorder.Receiver+' '+Int2curr(resultorder.AmmountTrf);
          end;
       CloseConnection := true;
       end;
@@ -2323,7 +2350,7 @@ var
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
 UpdatePoolBot(IPUser);
-if PoolClientsCount > PoolInfo.MaxMembers+3 then
+if PoolClientsCount > GetPoolTotalActiveConex+3 then
   begin
   TryClosePoolConnection(AContext);
   exit;
@@ -2765,6 +2792,7 @@ Procedure TForm1.GridMyTxsOnDoubleClick(Sender: TObject);
 var
   cont : integer;
   extratext :string = '';
+  referencetoshow : string = '';
 Begin
 if GridMyTxs.Row>0 then
    begin
@@ -2775,11 +2803,13 @@ if GridMyTxs.Row>0 then
       Begin
       if GridMyTxs.Cells[10,GridMyTxs.Row] = 'YES' then // Own transaction'
         extratext :=LangLine(75); //' (OWN)'
+      if GridMyTxs.Cells[7,GridMyTxs.Row] <> 'null' then
+         referencetoshow := GridMyTxs.Cells[7,GridMyTxs.Row];
       MemoTrxDetails.Text:=
       GridMyTxs.Cells[4,GridMyTxs.Row]+SLINEBREAK+                    //order ID
       LangLine(76)+AddrText(GridMyTxs.Cells[6,GridMyTxs.Row])+SLINEBREAK+      //'Receiver : '
       LangLine(77)+GridMyTxs.Cells[3,GridMyTxs.Row]+extratext+SLINEBREAK+  //'Ammount  : '
-      LangLine(78)+GridMyTxs.Cells[7,GridMyTxs.Row]+SLINEBREAK+    //'Concept  : '
+      'Reference : '+referencetoshow+SLINEBREAK+    //'reference  : '
       LangLine(79)+GridMyTxs.Cells[9,GridMyTxs.Row]+SLINEBREAK+      //'Transfers: '
       GetCommand(GridMyTxs.Cells[8,GridMyTxs.Row])+SLINEBREAK;
       if StrToIntDef(GridMyTxs.Cells[9,GridMyTxs.Row],1)> 1 then // añadir mas trfids
@@ -2958,11 +2988,15 @@ End;
 // verifica el destino que marca para enviar coins
 Procedure Tform1.EditSCDestChange(Sender:TObject);
 Begin
-EditSCDest.Text :=StringReplace(EditSCDest.Text,' ','',[rfReplaceAll, rfIgnoreCase]);
-if ((IsValidAddress(EditSCDest.Text)) or (AddressSumaryIndex(EditSCDest.Text)>=0)) then
-  Form1.imagenes.GetBitmap(17,ImgSCDest.Picture.Bitmap)
-else Form1.imagenes.GetBitmap(14,ImgSCDest.Picture.Bitmap);
-if EditSCDest.Text = '' then ImgSCDest.Picture.Clear;
+if EditSCDest.Text = '' then ImgSCDest.Picture.Clear
+else
+   begin
+   EditSCDest.Text :=StringReplace(EditSCDest.Text,' ','',[rfReplaceAll, rfIgnoreCase]);
+   if ((IsValidAddress(EditSCDest.Text)) or (AddressSumaryIndex(EditSCDest.Text)>=0)) then
+     Form1.imagenes.GetBitmap(17,ImgSCDest.Picture.Bitmap)
+   else Form1.imagenes.GetBitmap(14,ImgSCDest.Picture.Bitmap);
+   end;
+
 End;
 
 // Modificar el monto a enviar
@@ -3540,12 +3574,66 @@ if not G_Launching then
    end;
 end;
 
+procedure TForm1.CB_AUTORPCChange(Sender: TObject);
+begin
+if not G_Launching then
+   begin
+   RPCAuto:= CB_AUTORPC.Checked;
+   S_AdvOpt := true;
+   end;
+end;
+
 procedure TForm1.LE_Rpc_PortEditingDone(Sender: TObject);
 begin
 if StrToIntDef(LE_Rpc_Port.Text,-1) <> RPCPort then
    begin
    SetRPCPort('SETRPCPORT '+LE_Rpc_Port.Text);
    LE_Rpc_Port.Text := IntToStr(RPCPort);
+   S_AdvOpt := true;
+   info ('New RPC port set');
+   end;
+end;
+
+procedure TForm1.LE_Rpc_PassEditingDone(Sender: TObject);
+begin
+if ((not G_Launching) and (LE_Rpc_Pass.Text<>RPCPass)) then
+   begin
+   setRPCpassword(LE_Rpc_Pass.Text);
+   LE_Rpc_Pass.Text:=RPCPass;
+   S_AdvOpt := true;
+   info ('New RPC password set');
+   end;
+end;
+
+procedure TForm1.CB_RPCFilterChange(Sender: TObject);
+begin
+if not G_Launching then
+   begin
+   if CB_RPCFilter.Checked then
+      begin
+      RPCFilter := true;
+      MemoRPCWhitelist.Enabled:=true;
+      end
+   else
+      begin
+      RPCFilter := false;
+      MemoRPCWhitelist.Enabled:=false;
+      end;
+   S_AdvOpt := true;
+   end;
+end;
+
+procedure TForm1.MemoRPCWhitelistEditingDone(Sender: TObject);
+var
+  newlist : string;
+begin
+if ( (not G_Launching) and (MemoRPCWhitelist.Text<>RPCWhitelist) ) then
+   begin
+   newlist := trim(MemoRPCWhitelist.Text);
+   newlist := parameter(newlist,0);
+   MemoRPCWhitelist.Text := newlist;
+   RPCWhitelist := newlist;
+   S_AdvOpt := true;
    end;
 end;
 

@@ -147,18 +147,13 @@ End;
 // Al cerrar el formulario de inicio
 Procedure TFormInicio.closeFormInicio(Sender: TObject; var CanClose: boolean);
 Begin
-if G_launching then
-  begin
-  canclose := false;
-  exit;
-  end;
-if RunningDoctor then
-  begin
-  canclose := false;
-  exit;
-  end;
-forminicio.Visible:=false;
-form1.Visible:=true;
+if G_launching then canclose := false
+else if RunningDoctor then canclose := false
+else
+   begin
+   forminicio.Visible:=false;
+   form1.Visible:=true;
+   end;
 End;
 
 // Crear el formulario de log viewer
@@ -270,14 +265,16 @@ Procedure UpdateMiliTimeForm();
 var
   count : integer;
 Begin
-if Length(MilitimeArray) < 1 then exit;
-GridMiTime.RowCount:=Length(MilitimeArray)+1;
-for count := 0 to Length(MilitimeArray)-1 do
+if Length(MilitimeArray) > 0 then
    begin
-   GridMiTime.Cells[0,count+1]:=MilitimeArray[count].Name;
-   GridMiTime.Cells[1,count+1]:=IntToStr(MilitimeArray[count].duration);
-   GridMiTime.Cells[2,count+1]:=IntToStr(MilitimeArray[count].maximo);
-   GridMiTime.Cells[3,count+1]:=IntToStr(MilitimeArray[count].minimo);
+   GridMiTime.RowCount:=Length(MilitimeArray)+1;
+   for count := 0 to Length(MilitimeArray)-1 do
+      begin
+      GridMiTime.Cells[0,count+1]:=MilitimeArray[count].Name;
+      GridMiTime.Cells[1,count+1]:=IntToStr(MilitimeArray[count].duration);
+      GridMiTime.Cells[2,count+1]:=IntToStr(MilitimeArray[count].maximo);
+      GridMiTime.Cells[3,count+1]:=IntToStr(MilitimeArray[count].minimo);
+      end;
    end;
 
 GridMValues.Cells[0,0]:='InfoPanelTime';
@@ -590,7 +587,7 @@ GridMyTxs.Cells[3,0]:=LangLine(111);    //'Amount'
 
 SGridSC.Cells[0,0]:=LangLine(116);  //'Destination'
 SGridSC.Cells[0,1]:=LangLine(111);  //'Amount'
-SGridSC.Cells[0,2]:=LangLine(117);  //'Concept'
+SGridSC.Cells[0,2]:='Reference';  //'reference'
 
 //Direccionespanel
 Direccionespanel.RowCount:=length(listadirecciones)+1;
@@ -692,6 +689,11 @@ if form1.PCPool.ActivePage = Form1.TabPoolMiners then
 // Update poolstats grid
 if form1.PCPool.ActivePage = Form1.TabPoolStats then
    begin
+   if form1.PoolServer.Active then
+      begin
+      if form1.PoolPanelBlink.Visible then form1.PoolPanelBlink.Visible := false
+      else form1.PoolPanelBlink.Visible := true;
+      end;
       try
       Form1.SG_PoolStats.Cells[1,0] := booltostr(form1.PoolServer.Active,true);
       Form1.SG_PoolStats.Cells[1,1] := IntToStr(PoolMiner.Block);
@@ -728,7 +730,7 @@ if form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor then
             Form1.SG_Monitor.Cells[3,contador+1]:=IntToStr(MilitimeArray[contador].Total div MilitimeArray[contador].Count);
             Except on E:Exception do
                begin
-               ToExcLog('Error showing milimite data: '+E.Message);
+               ToExcLog(format('Error showing milimite data(%s): %s',[MilitimeArray[contador].Name,E.Message]));
                end;
             end;
          end;
@@ -856,9 +858,11 @@ var
   cont : integer;
 Begin
 result := 0;
-if GridMyTxs.RowCount<= 1 then exit;
-for cont := 1 to GridMyTxs.RowCount-1 do
-   if GridMyTxs.Cells[4,cont] = OrderID then result := cont;
+if GridMyTxs.RowCount> 1 then
+   begin
+   for cont := 1 to GridMyTxs.RowCount-1 do
+      if GridMyTxs.Cells[4,cont] = OrderID then result := cont;
+   end;
 End;
 
 // Actualiza el grid que contiene mis transacciones
@@ -890,7 +894,7 @@ if Length(ListaMisTrx)>1 then
          GridMyTxs.Cells[4,linea]:=ListaMisTrx[contador].OrderID;             //orderID
          GridMyTxs.Cells[5,linea]:=IntToStr(ListaMisTrx[contador].monto);   //elmonto puro
          GridMyTxs.Cells[6,linea]:=ListaMisTrx[contador].receiver;           //address recibe
-         GridMyTxs.Cells[7,linea]:=ListaMisTrx[contador].Concepto;           // conceptp
+         GridMyTxs.Cells[7,linea]:=ListaMisTrx[contador].reference;           // reference
          GridMyTxs.Cells[8,linea]:=ListaMisTrx[contador].trfrID;            // trfrs ids
          GridMyTxs.Cells[9,linea]:='1';                                     //numero trfrs
          end
@@ -914,19 +918,21 @@ SetCurrentJob('UpdateMyTrxGrid',false);
 setmilitime('UpdateMyTrxGrid',2);
 End;
 
-// DEvuelve el alias de una direccion si existe o el mismo hash si no.
+// Returns alias or hash if address is not aliased
 Function AddrText(hash:String):String;
 var
   cont : integer;
 Begin
 Result := hash;
-if length(listasumario) = 0 then exit;
-for cont := 0 to length(listasumario)-1 do
+if length(listasumario) > 0 then
    begin
-   if ((hash = Listasumario[cont].hash) and (Listasumario[cont].Custom<>'')) then
+   for cont := 0 to length(listasumario)-1 do
       begin
-      result := Listasumario[cont].Custom;
-      exit;
+      if ((hash = Listasumario[cont].hash) and (Listasumario[cont].Custom<>'')) then
+         begin
+         result := Listasumario[cont].Custom;
+         break;
+         end;
       end;
    end;
 End;
@@ -975,28 +981,32 @@ End;
 // Mostrar el globo del trayicon
 Procedure ShowGlobo(Titulo,texto:string);
 Begin
-if not Form1.SystrayIcon.Visible then exit;
-form1.SystrayIcon.BalloonTitle:=Titulo;
-Form1.SystrayIcon.BalloonHint:=Texto;
-form1.SystrayIcon.BalloonTimeout:=3000;
-form1.SystrayIcon.ShowBalloonHint;
+if Form1.SystrayIcon.Visible then
+   begin
+   form1.SystrayIcon.BalloonTitle:=Titulo;
+   Form1.SystrayIcon.BalloonHint:=Texto;
+   form1.SystrayIcon.BalloonTimeout:=3000;
+   form1.SystrayIcon.ShowBalloonHint;
+   end;
 End;
 
 // El procemiento para llevar el control del monitoreo del tiempo
 Procedure SetMiliTime(Name:string;tipo:integer);
 var
   count : integer;
+  addnew : boolean = true;
 Begin
-//if not CheckMonitor then exit;
 if ((tipo = 1) and (length(MilitimeArray)>0)) then // tipo iniciar
    begin
    for count := 0 to length(MilitimeArray) -1 do
       begin
       if name = MilitimeArray[count].Name then
-        begin
-        MilitimeArray[count].Start:=GetTickCount64;
-        exit;
-        end;
+         begin
+         MilitimeArray[count].Start:=GetTickCount64;
+         MilitimeArray[count].Count+=1;
+         addnew := false;
+         break;
+         end;
       end;
    end;
 if tipo= 2 then
@@ -1004,24 +1014,28 @@ if tipo= 2 then
    for count := 0 to length(MilitimeArray) -1 do
       begin
       if name = MilitimeArray[count].Name then
-        begin
-        MilitimeArray[count].finish:=GetTickCount64;
-        MilitimeArray[count].Count+=1;
-        MilitimeArray[count].duration:=MilitimeArray[count].finish-MilitimeArray[count].Start;
-        MilitimeArray[count].Total:=MilitimeArray[count].Total+MilitimeArray[count].duration;
-        if MilitimeArray[count].duration>MilitimeArray[count].Maximo then
-          MilitimeArray[count].Maximo := MilitimeArray[count].duration;
-        if MilitimeArray[count].duration<MilitimeArray[count].Minimo then
-          MilitimeArray[count].Minimo := MilitimeArray[count].duration;
-        exit;
-        end;
+         begin
+         MilitimeArray[count].finish:=GetTickCount64;
+         MilitimeArray[count].duration:=MilitimeArray[count].finish-MilitimeArray[count].Start;
+         MilitimeArray[count].Total:=MilitimeArray[count].Total+MilitimeArray[count].duration;
+         if MilitimeArray[count].duration>MilitimeArray[count].Maximo then
+            MilitimeArray[count].Maximo := MilitimeArray[count].duration;
+         if MilitimeArray[count].duration<MilitimeArray[count].Minimo then
+            MilitimeArray[count].Minimo := MilitimeArray[count].duration;
+         addnew := false;
+         break;
+         end;
       end;
    end;
-setlength(MilitimeArray,length(MilitimeArray)+1);
-MilitimeArray[length(MilitimeArray)-1] := default(MilitimeData);
-MilitimeArray[length(MilitimeArray)-1].Name:=name;
-MilitimeArray[length(MilitimeArray)-1].Minimo:=9999;
-MilitimeArray[length(MilitimeArray)-1].Start:=GetTickCount64;
+if addnew then
+   begin
+   setlength(MilitimeArray,length(MilitimeArray)+1);
+   MilitimeArray[length(MilitimeArray)-1] := default(MilitimeData);
+   MilitimeArray[length(MilitimeArray)-1].Name:=name;
+   MilitimeArray[length(MilitimeArray)-1].Minimo:=9999;
+   MilitimeArray[length(MilitimeArray)-1].Start:=GetTickCount64;
+   MilitimeArray[length(MilitimeArray)-1].Count:=1;
+   end;
 End;
 
 // Fija el valor de la variable con el proceso actual

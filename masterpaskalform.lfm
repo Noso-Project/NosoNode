@@ -345,8 +345,8 @@ object Form1: TForm1
         Height = 426
         Top = 2
         Width = 382
-        ActivePage = TabPoolPays
-        TabIndex = 3
+        ActivePage = TabPoolStats
+        TabIndex = 0
         TabOrder = 0
         object TabPoolStats: TTabSheet
           Caption = 'Stats'
@@ -402,6 +402,15 @@ object Form1: TForm1
               11
               'Solutions'
             )
+          end
+          object PoolPanelBlink: TPanel
+            Left = 0
+            Height = 114
+            Top = 280
+            Width = 170
+            Color = clLime
+            ParentColor = False
+            TabOrder = 1
           end
         end
         object TabPoolMiners: TTabSheet
@@ -706,7 +715,7 @@ object Form1: TForm1
           object LE_Rpc_Port: TLabeledEdit
             Left = 8
             Height = 18
-            Top = 40
+            Top = 64
             Width = 40
             AutoSize = False
             EditLabel.Height = 15
@@ -720,7 +729,7 @@ object Form1: TForm1
           object LE_Rpc_Pass: TLabeledEdit
             Left = 8
             Height = 18
-            Top = 64
+            Top = 88
             Width = 80
             AutoSize = False
             EditLabel.Height = 15
@@ -729,21 +738,33 @@ object Form1: TForm1
             EditLabel.ParentColor = False
             LabelPosition = lpRight
             TabOrder = 2
+            OnEditingDone = LE_Rpc_PassEditingDone
           end
-          object CheckBox6: TCheckBox
+          object CB_RPCFilter: TCheckBox
             Left = 8
             Height = 19
-            Top = 88
+            Top = 112
             Width = 177
             Caption = 'Accept only whitelist requests'
+            OnChange = CB_RPCFilterChange
             TabOrder = 3
           end
-          object Memo1: TMemo
+          object MemoRPCWhitelist: TMemo
             Left = 8
             Height = 82
-            Top = 112
+            Top = 136
             Width = 360
+            OnEditingDone = MemoRPCWhitelistEditingDone
             TabOrder = 4
+          end
+          object CB_AUTORPC: TCheckBox
+            Left = 8
+            Height = 19
+            Top = 39
+            Width = 197
+            Caption = 'Active JSON-RPC server at launch'
+            OnChange = CB_AUTORPCChange
+            TabOrder = 5
           end
         end
         object TabSheet5: TTabSheet

@@ -2,13 +2,13 @@
 Noso Windows Wallet
 
 
-Official Release Ver 0.2.1Af
+Un-Official Release Ver 0.2.1G
 
 
-June 07, 2021
+June 24, 2021
 
 
-THIS IS A OFFICIAL RELEASE
+THIS IS A NO-OFFICIAL RELEASE
 
 
 Requirements:
@@ -72,4 +72,4 @@ BTC: 3H1VzdL3QFQpc62DUhbtCFV5dG4K1yPwVB
 LTC: LUUWwzfeQtJ4dc8A5xJVz3Zacray55f1WH
 
 
-NosoCoin:  devteam_donations
+NosoCoin: devteam_donations

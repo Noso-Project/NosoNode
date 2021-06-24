@@ -5,9 +5,24 @@ unit mpRPC;
 interface
 
 uses
-  Classes, SysUtils, mpgui, FPJSON, jsonparser, mpCripto, mpCoin;
+  Classes, SysUtils, mpgui, FPJSON, jsonparser, mpCripto, mpCoin, mpRed, mpBlock;
+
+Type
+
+  TOrderGroup = Packed Record
+     Block : integer;
+     TimeStamp : Int64;
+     OrderID: string[64];
+     OrderType : String[6];
+     OrderLines : Integer;
+     Reference : String[64];
+     Receiver : String[40];
+     AmmountFee : Int64;
+     AmmountTrf : Int64;
+     end;
 
 Procedure SetRPCPort(LineText:string);
+Procedure setRPCpassword(newpassword:string);
 Procedure SetRPCOn();
 Procedure SetRPCOff();
 
@@ -19,7 +34,15 @@ function GetJSONErrorCode(ErrorCode, JSONIdNumber:integer):TJSONStringType;
 function GetJSONResponse(ResultToSend:string;JSONIdNumber:integer):TJSONStringType;
 function ParseRPCJSON(jsonreceived:string):TJSONStringType;
 
-function RPC_AddressBalance(NosoPParams:string):string;
+function ObjectFromString(MyString:string): TJSONStringType;
+
+function RPC_AddressBalance(NosoPParams:string):TJSONStringType;
+function RPC_OrderInfo(NosoPParams:string):TJSONStringType;
+function RPC_Blockinfo(NosoPParams:string):TJSONStringType;
+function RPC_Mininginfo(NosoPParams:string):TJSONStringType;
+function RPC_Mainnetinfo(NosoPParams:string):TJSONStringType;
+function RPC_PendingOrders(NosoPParams:string):TJSONStringType;
+function RPC_BlockOrders(NosoPParams:string):TJSONStringType;
 
 
 implementation
@@ -47,6 +70,16 @@ else
    end;
 End;
 
+Procedure setRPCpassword(newpassword:string);
+var
+  counter : integer;
+  oldpassword : string;
+Begin
+oldpassword := RPCPass;
+trim(newpassword);
+RPCPass := newpassword;
+End;
+
 // Turn on RPC server
 Procedure SetRPCOn();
 Begin
@@ -56,6 +89,9 @@ if not Form1.RPCServer.Active then
       Form1.RPCServer.Bindings.Clear;
       Form1.RPCServer.DefaultPort:=RPCPort;
       Form1.RPCServer.Active:=true;
+      G_Launching := true;
+      form1.CB_RPC_ON.Checked:=false;
+      G_Launching := true;
       ConsoleLinesAdd('RPC server ENABLED');
       Except on E:Exception do
          begin
@@ -104,7 +140,9 @@ Begin
 if ErrorCode = 400 then result := 'Bad Request'
 else if ErrorCode = 401 then result := 'Invalid JSON request'
 else if ErrorCode = 402 then result := 'Invalid method'
+else if ErrorCode = 498 then result := 'Not authorized'
 else if ErrorCode = 499 then result := 'Unexpected error'
+
 {...}
 else result := 'Unknown error code';
 End;
@@ -132,20 +170,27 @@ End;
 // Returns a valid response JSON string
 function GetJSONResponse(ResultToSend:string;JSONIdNumber:integer):TJSONStringType;
 var
-  JSONResultado: TJSONObject;
+  JSONResultado, Resultado: TJSONObject;
   paramsarray :  TJSONArray;
   myParams: TStringArray;
   counter : integer;
+  Errored : boolean = false;
 Begin
 paramsarray := TJSONArray.Create;
 if length(ResultToSend)>0 then myParams:= ResultToSend.Split(' ');
 JSONResultado := TJSONObject.Create;
+//Resultado := TJSONObject.Create;
    try
       try
       JSONResultado.Add('jsonrpc', TJSONString.Create('2.0'));
       if length(myparams) > 0 then
          for counter := low(myParams) to high(myParams) do
-            if myParams[counter] <>'' then paramsarray.Add(myParams[counter]);
+            if myParams[counter] <>'' then
+               begin
+               //resultado := ObjectFromString(myParams[counter]).
+               paramsarray.Add(GetJSON(ObjectFromString(myParams[counter])));
+               end;
+      SetLength(MyParams, 0);
       JSONResultado.Add('result', paramsarray);
       JSONResultado.Add('id', TJSONIntegerNumber.Create(JSONIdNumber));
       Except on E:Exception do
@@ -153,19 +198,125 @@ JSONResultado := TJSONObject.Create;
          result := GetJSONErrorCode(499,JSONIdNumber);
          JSONResultado.Free;
          paramsarray.Free;
-         exit;
+         Errored := true;
          end;
       end;
    finally
-   result := JSONResultado.AsJSON;
-   //paramsarray.Free;
+   if not errored then
+      begin
+      result := JSONResultado.AsJSON;
+      end;
    JSONResultado.Free;
    end;
 End;
 
-function ObjectFromString(MyString:string): TJSONObject;
+function ObjectFromString(MyString:string): TJSONStringType;
+var
+  resultado: TJSONObject;
+  orderobject : TJSONObject;
+  objecttype : string;
+  blockorders : integer;
+  ordersarray : TJSONArray;
+  counter : integer;
 Begin
-
+resultado := TJSONObject.Create;
+MyString := StringReplace(MyString,#127,' ',[rfReplaceAll, rfIgnoreCase]);
+objecttype := parameter(mystring,0);
+if objecttype = 'test' then
+   begin
+   resultado.Add('result','testok');
+   end
+else if objecttype = 'balance' then
+   begin
+   resultado.Add('valid',StrToBool(parameter(mystring,1)));
+   resultado.Add('address', TJSONString.Create(parameter(mystring,2)));
+   if parameter(mystring,3)='null' then resultado.Add('alias',TJSONNull.Create)
+   else resultado.Add('alias',parameter(mystring,3));
+   resultado.Add('balance', TJSONInt64Number.Create(StrToInt64(parameter(mystring,4))));
+   resultado.Add('incoming', TJSONInt64Number.Create(StrToInt64(parameter(mystring,5))));
+   resultado.Add('outgoing', TJSONInt64Number.Create(StrToInt64(parameter(mystring,6))));
+   end
+else if objecttype = 'orderinfo' then
+   begin
+   resultado.Add('valid',StrToBool(parameter(mystring,1)));
+   if StrToBool(parameter(mystring,1)) then
+      begin
+      orderobject := TJSONObject.Create;
+         orderobject.Add('orderid',parameter(mystring,2));
+         orderobject.Add('timestamp',StrToInt(parameter(mystring,3)));
+         orderobject.Add('block',StrToInt64(parameter(mystring,4)));
+         orderobject.Add('type',parameter(mystring,5));
+         orderobject.Add('trfrs',StrToInt(parameter(mystring,6)));
+         orderobject.Add('receiver',parameter(mystring,7));
+         orderobject.Add('amount',StrToInt64(parameter(mystring,8)));
+         orderobject.Add('fee',StrToInt64(parameter(mystring,9)));
+         if parameter(mystring,10)='null' then orderobject.Add('reference',TJSONNull.Create)
+         else orderobject.Add('reference',parameter(mystring,10));
+      resultado.Add('order',orderobject)
+      end
+   else resultado.Add('order',TJSONNull.Create)
+   end
+else if objecttype = 'blockinfo' then
+   begin
+   resultado.Add('valid',StrToBool(parameter(mystring,1)));
+   resultado.Add('number',StrToIntDef(parameter(mystring,2),-1));
+   resultado.Add('timestart',StrToInt64Def(parameter(mystring,3),-1));
+   resultado.Add('timeend',StrToInt64Def(parameter(mystring,4),-1));
+   resultado.Add('timetotal',StrToIntDef(parameter(mystring,5),-1));
+   resultado.Add('last20',StrToIntDef(parameter(mystring,6),-1));
+   resultado.Add('totaltransactions',StrToIntDef(parameter(mystring,7),-1));
+   resultado.Add('difficulty',StrToIntDef(parameter(mystring,8),-1));
+   resultado.Add('target',parameter(mystring,9));
+   resultado.Add('solution',parameter(mystring,10));
+   resultado.Add('lastblockhash',parameter(mystring,11));
+   resultado.Add('nextdifficult',StrToIntDef(parameter(mystring,12),-1));
+   resultado.Add('miner',parameter(mystring,13));
+   resultado.Add('feespaid',StrToInt64Def(parameter(mystring,14),-1));
+   resultado.Add('reward',StrToInt64Def(parameter(mystring,15),-1));
+   resultado.Add('hash',parameter(mystring,16));
+   end
+else if objecttype = 'mininginfo' then
+   begin
+   resultado.Add('block',StrToInt(parameter(mystring,1)));
+   resultado.Add('target',parameter(mystring,2));
+   resultado.Add('difficulty',StrToInt(parameter(mystring,3)));
+   end
+else if objecttype = 'mainnetinfo' then
+   begin
+   resultado.Add('lastblock',StrToIntDef(parameter(mystring,1),0));
+   resultado.Add('lastblockhash',parameter(mystring,2));
+   resultado.Add('headershash',parameter(mystring,3));
+   resultado.Add('sumaryhash',parameter(mystring,4));
+   resultado.Add('pending',StrToInt(parameter(mystring,5)));
+   resultado.Add('supply',StrToInt64Def(parameter(mystring,6),0));
+   end
+else if objecttype = 'blockorder' then
+   begin
+   resultado.Add('valid',StrToBool(parameter(mystring,1)));
+   resultado.Add('block',StrToIntDef(parameter(mystring,2),-1));
+   blockorders := StrToIntDef(parameter(mystring,3),0);
+   ordersarray := TJSONArray.Create;
+   if blockorders>0 then
+      begin
+      for counter := 0 to blockorders-1 do
+         begin
+         orderobject:=TJSONObject.Create;
+         orderobject.Add('orderid',parameter(mystring,4+(counter*9)));
+         orderobject.Add('timestamp',StrToIntDef(parameter(mystring,5+(counter*9)),0));
+         orderobject.Add('block',StrToIntDef(parameter(mystring,6+(counter*9)),0));
+         orderobject.Add('type',parameter(mystring,7+(counter*9)));
+         orderobject.Add('trfrs',StrToIntDef(parameter(mystring,8+(counter*9)),0));
+         orderobject.Add('receiver',parameter(mystring,9+(counter*9)));
+         orderobject.Add('amount',StrToInt64Def(parameter(mystring,10+(counter*9)),0));
+         orderobject.Add('fee',StrToIntDef(parameter(mystring,11+(counter*9)),0));
+         orderobject.Add('reference',parameter(mystring,12+(counter*9)));
+         ordersarray.Add(orderobject);
+         end;
+      end;
+   resultado.Add('orders',ordersarray);
+   end;
+result := resultado.AsJSON;
+resultado.free;
 End;
 
 // Parses a incoming JSON string
@@ -191,39 +342,190 @@ else
    for counter := 0 to params.Count-1 do
       NosoPParams:= NosoPParams+' '+params[counter].AsString;
    NosoPParams:= Trim(NosoPParams);
-   consolelinesadd(jsonreceived);
-   consolelinesadd(NosoPParams);
-   if method = 'test' then result := GetJSONResponse('testok',jsonid)
-   else if method = 'getbalance' then result := GetJSONResponse(int2curr(GetWalletBalance),jsonid)
+   //consolelinesadd(jsonreceived);
+   //consolelinesadd(NosoPParams);
+   if method = 'test' then result := GetJSONResponse('test',jsonid)
    else if method = 'getaddressbalance' then result := GetJSONResponse(RPC_AddressBalance(NosoPParams),jsonid)
-
+   else if method = 'getorderinfo' then result := GetJSONResponse(RPC_OrderInfo(NosoPParams),jsonid)
+   else if method = 'getblocksinfo' then result := GetJSONResponse(RPC_Blockinfo(NosoPParams),jsonid)
+   else if method = 'getmininginfo' then result := GetJSONResponse(RPC_Mininginfo(NosoPParams),jsonid)
+   else if method = 'getmainnetinfo' then result := GetJSONResponse(RPC_Mainnetinfo(NosoPParams),jsonid)
+   else if method = 'getpendingorders' then result := GetJSONResponse(RPC_PendingOrders(NosoPParams),jsonid)
+   else if method = 'getblockorders' then result := GetJSONResponse(RPC_BlockOrders(NosoPParams),jsonid)
    else result := GetJSONErrorCode(402,-1);
    end;
 End;
 
-function RPC_AddressBalance(NosoPParams:string):string;
+// GET DATA FUNCTIONS
+
+function RPC_AddressBalance(NosoPParams:string):TJSONStringType;
 var
   ThisAddress: string;
   counter : integer = 0;
   Balance, incoming, outgoing : int64;
+  addalias : string = '';
+  sumposition : integer;
+  valid : string;
 Begin
 result := '';
 if NosoPParams <> '' then
    begin
    Repeat
    ThisAddress := parameter(NosoPParams,counter);
+   sumposition := AddressSumaryIndex(ThisAddress);
    if ThisAddress <>'' then
       begin
-      Balance := GetAddressBalance(ThisAddress);
-      incoming := GetAddressIncomingpays(ThisAddress);
-      outgoing := GetAddressPendingPays(ThisAddress);
-      result := result+format('balance,%s,%d,%d,%d ',[ThisAddress,balance,incoming,outgoing]);
+      if sumposition<0 then
+         begin
+         balance :=-1;incoming := -1;outgoing := -1;
+         addalias := 'null'; valid := 'false';
+         end
+      else
+         begin
+         Balance := GetAddressBalance(ThisAddress);
+         incoming := GetAddressIncomingpays(ThisAddress);
+         outgoing := GetAddressPendingPays(ThisAddress);
+         addalias := ListaSumario[sumposition].custom;
+         if addalias = '' then addalias := 'null';
+         thisaddress := ListaSumario[sumposition].Hash;
+         valid := 'true';
+         end;
+      result := result+format('balance'#127'%s'#127'%s'#127'%s'#127'%d'#127'%d'#127'%d ',[valid,ThisAddress,addalias,balance,incoming,outgoing]);
       end;
    counter+=1;
    until ThisAddress = '';
    trim(result);
    end;
 End;
+
+function RPC_OrderInfo(NosoPParams:string):TJSONStringType;
+var
+  thisOr : orderdata;
+  validID : string = 'true';
+Begin
+thisor := GetOrderDetails(NosoPParams);
+if thisor.OrderID = '' then validID := 'false';
+result := format('orderinfo'#127'%s'#127'%s'#127+
+                 '%d'#127'%d'#127'%s'#127+
+                 '%d'#127'%s'#127'%d'#127+
+                 '%d'#127'%s'#127,
+                [validid,NosoPParams,
+                thisor.timestamp,thisor.block,thisor.OrderType,
+                thisor.OrderLines,thisor.Receiver,thisor.AmmountTrf,
+                thisor.AmmountFee,thisor.reference]);
+End;
+
+function RPC_Blockinfo(NosoPParams:string):TJSONStringType;
+var
+  thisblock : string;
+  counter : integer = 0;
+Begin
+result := '';
+if NosoPParams <> '' then
+   begin
+   Repeat
+   thisblock := parameter(NosoPParams,counter);
+   if thisblock <>''  then
+      begin
+      if ((StrToIntDef(thisblock,-1)>=0) and (StrToIntDef(thisblock,-1)<=MyLastblock)) then
+         begin
+         result := result+'blockinfo'#127'true'#127+GetBlockHeaders(StrToIntDef(thisblock,-1))+' ';
+         end
+      else result := result+'blockinfo'#127'false'#127+thisblock+#127'-1'#127'-1'#127'-1'#127'-1'#127'-1'#127'-1'#127'-1'#127'null'#127'null'#127'null'#127'-1'#127'null'#127'-1'#127'-1'#127'null ';
+      end;
+   counter+=1;
+   until thisblock = '';
+   trim(result);
+   end;
+End;
+
+function RPC_Mininginfo(NosoPParams:string):TJSONStringType;
+Begin
+result := format('mininginfo'#127'%d'#127'%s'#127'%d'#127'%d',[mylastblock+1,MyLastBlockHash,LastBlockData.NxtBlkDiff]);
+End;
+
+function RPC_Mainnetinfo(NosoPParams:string):TJSONStringType;
+Begin
+result := format('mainnetinfo'#127'%s'#127'%s'#127'%s'#127'%s'#127'%s'#127'%d',
+       [NetLastBlock.Value,NetLastBlockHash.Value,NetResumenHash.Value,NetSumarioHash.Value,NetPendingTrxs.Value,GetSupply(StrToIntDef(NetLastBlock.Value,0))]);
+End;
+
+function RPC_PendingOrders(NosoPParams:string):TJSONStringType;
+Begin
+result := '';
+End;
+
+function RPC_BlockOrders(NosoPParams:string):TJSONStringType;
+var
+  blocknumber : integer;
+  ArraTrxs : BlockOrdersArray;
+  counter : integer;
+  Thisorderinfo : string;
+  arrayOrds : array of TOrderGroup;
+
+  Procedure AddOrder(order:OrderData);
+  var
+    cont : integer;
+    existed : boolean = false;
+  begin
+  if length(arrayOrds)>0 then
+     begin
+     for cont := 0 to length(arrayOrds)-1 do
+        begin
+        if arrayords[cont].OrderID = order.OrderID then
+           begin
+           arrayords[cont].AmmountTrf:=arrayords[cont].AmmountTrf+order.AmmountTrf;
+           arrayords[cont].AmmountFee:=arrayords[cont].AmmountFee+order.AmmountFee;
+           arrayords[cont].OrderLines+=1;
+           existed := true;
+           break;
+           end;
+        end;
+     end;
+  if not Existed then
+     begin
+     setlength(arrayords,length(arrayords)+1);
+     arrayords[length(arrayords)-1].OrderID:=order.OrderID;
+     arrayords[length(arrayords)-1].TimeStamp:=order.TimeStamp;
+     arrayords[length(arrayords)-1].Block:=order.Block;
+     arrayords[length(arrayords)-1].OrderType:=order.OrderType;
+     arrayords[length(arrayords)-1].OrderLines:=1;
+     arrayords[length(arrayords)-1].Receiver:=order.Receiver;
+     arrayords[length(arrayords)-1].AmmountTrf:=order.AmmountTrf;
+     arrayords[length(arrayords)-1].AmmountFee:=order.AmmountFee;
+     arrayords[length(arrayords)-1].Reference:=order.Reference;
+     end;
+  end;
+
+Begin
+result := '';
+setlength(arrayOrds,0);
+blocknumber := StrToIntDef(NosoPParams,-1);
+if ((blocknumber<0) or (blocknumber>MyLastblock)) then
+   result := 'blockorder'#127'false'#127+NosoPParams+#127'0'
+else
+   begin
+   ArraTrxs := GetBlockTrxs(BlockNumber);
+   result := 'blockorder'#127'true'#127+NosoPParams+#127;
+   if length(ArraTrxs) > 0 then
+      begin
+      for counter := 0 to length(ArraTrxs)-1 do
+         AddOrder(ArraTrxs[counter]);
+      result := result+IntToStr(length(arrayOrds))+#127;
+      for counter := 0 to length(arrayOrds)-1 do
+         begin
+         thisorderinfo := format('%s'#127'%d'#127'%d'#127'%s'#127'%d'#127'%s'#127'%d'#127'%d'#127'%s'#127,
+            [ arrayOrds[counter].OrderID,arrayOrds[counter].TimeStamp,arrayOrds[counter].Block,
+            arrayOrds[counter].OrderType,arrayOrds[counter].OrderLines,arrayOrds[counter].Receiver,
+            arrayOrds[counter].AmmountTrf,arrayOrds[counter].AmmountFee,arrayOrds[counter].Reference ]);
+         result := result+thisorderinfo;
+         end;
+      end
+   else result := result+'0'#127;
+   trim(result);
+   end;
+End;
+
 
 END.  // END UNIT
 

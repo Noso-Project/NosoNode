@@ -70,7 +70,7 @@ OrderInfo.OrderID    := Parameter(textline,1);
 OrderInfo.OrderLines := StrToInt(Parameter(textline,2));
 OrderInfo.OrderType  := Parameter(textline,3);
 OrderInfo.TimeStamp  := StrToInt64(Parameter(textline,4));
-OrderInfo.Concept    := Parameter(textline,5);
+OrderInfo.reference    := Parameter(textline,5);
 OrderInfo.TrxLine    := StrToInt(Parameter(textline,6));
 OrderInfo.Sender     := Parameter(textline,7);
 OrderInfo.Address    := Parameter(textline,8);
@@ -90,7 +90,7 @@ result:= Order.OrderType+' '+
          IntToStr(order.OrderLines)+' '+
          order.OrderType+' '+
          IntToStr(Order.TimeStamp)+' '+
-         Order.Concept+' '+
+         Order.reference+' '+
          IntToStr(order.TrxLine)+' '+
          order.Sender+' '+
          Order.Address+' '+
@@ -239,37 +239,36 @@ End;
 // Envia una linea a un determinado slot
 Procedure PTC_SendLine(Slot:int64;Message:String);
 Begin
-if slot > length(conexiones)-1 then
+if slot <= length(conexiones)-1 then
    begin
-   ToExcLog('Invalid PTC_SendLine slot: '+IntToStr(slot));
-   exit;
-   end;
-if ((conexiones[Slot].tipo='CLI') and (not conexiones[Slot].IsBusy)) then
-   begin
-      try
-      Conexiones[Slot].context.Connection.IOHandler.WriteLn(Message);
-      except
-      On E :Exception do
-         begin
-         ConsoleLinesAdd(E.Message);
-         ToExcLog('Error sending line: '+E.Message);
-         CerrarSlot(Slot);
+   if ((conexiones[Slot].tipo='CLI') and (not conexiones[Slot].IsBusy)) then
+      begin
+         try
+         Conexiones[Slot].context.Connection.IOHandler.WriteLn(Message);
+         except
+         On E :Exception do
+            begin
+            ConsoleLinesAdd(E.Message);
+            ToExcLog('Error sending line: '+E.Message);
+            CerrarSlot(Slot);
+            end;
          end;
       end;
-   end;
-if ((conexiones[Slot].tipo='SER') and (not conexiones[Slot].IsBusy)) then
-   begin
-      try
-      CanalCliente[Slot].IOHandler.WriteLn(Message);
-      except
-      On E :Exception do
-         begin
-         ConsoleLinesAdd(E.Message);
-         ToExcLog('Error sending line: '+E.Message);
-         CerrarSlot(Slot);
+   if ((conexiones[Slot].tipo='SER') and (not conexiones[Slot].IsBusy)) then
+      begin
+         try
+         CanalCliente[Slot].IOHandler.WriteLn(Message);
+         except
+         On E :Exception do
+            begin
+            ConsoleLinesAdd(E.Message);
+            ToExcLog('Error sending line: '+E.Message);
+            CerrarSlot(Slot);
+            end;
          end;
       end;
-   end;
+   end
+else ToExcLog('Invalid PTC_SendLine slot: '+IntToStr(slot));
 end;
 
 // Guarda los nodos recibidos desde otro usuario
@@ -282,7 +281,7 @@ var
   ThisNode : NodeData;
 Begin
 ConsoleLinesAdd('Get nodes: deprecated');
-exit;
+{
 NodosList := TStringList.Create;
 while MoreParam do
    begin
@@ -299,6 +298,7 @@ for contador := 0 to NodosList.Count-1 do
       UpdateNodeData(ThisNode.ip,ThisNode.port,ThisNode.LastConexion);
    end;
 NodosList.Free;
+}
 End;
 
 // Devuelve la info de un nodo a partir de una cadena pre-tratada
@@ -702,34 +702,38 @@ var
   msgtime, mensaje, firma, hashmsg : string;
   msgtoshow : string = '';
   contador : integer = 1;
+  errored : boolean = false;
 Begin
 msgtime := parameter(TextLine,5);
 mensaje := parameter(TextLine,6);
 firma := parameter(TextLine,7);
 hashmsg := parameter(TextLine,8);
-if AnsiContainsStr(MsgsReceived,hashmsg) then exit;
-mensaje := StringReplace(mensaje,'_',' ',[rfReplaceAll, rfIgnoreCase]);
+if AnsiContainsStr(MsgsReceived,hashmsg) then errored := true
+else mensaje := StringReplace(mensaje,'_',' ',[rfReplaceAll, rfIgnoreCase]);
 if not VerifySignedString(msgtime+mensaje,firma,AdminPubKey) then
    begin
-   ConsoleLinesAdd('Admin msg wrong sign');
-   exit;
+   ToLog('Admin msg wrong sign');
+   errored := true;
    end;
 if HashMD5String(msgtime+mensaje+firma) <> Hashmsg then
    begin
-   ConsoleLinesAdd('Admin msg wrong hash');
-   exit;
+   ToLog('Admin msg wrong hash');
+   errored :=true;
    end;
-MsgsReceived := MsgsReceived + Hashmsg;
-for contador := 1 to length(mensaje) do
+if not errored then
    begin
-   if mensaje[contador] = '}' then msgtoshow := msgtoshow+slinebreak
-   else msgtoshow := msgtoshow +mensaje[contador];
+   MsgsReceived := MsgsReceived + Hashmsg;
+   for contador := 1 to length(mensaje) do
+      begin
+      if mensaje[contador] = '}' then msgtoshow := msgtoshow+slinebreak
+      else msgtoshow := msgtoshow +mensaje[contador];
+      end;
+   Tolog('Admin message'+slinebreak+
+         TimestampToDate(msgtime)+slinebreak+
+         msgtoshow);
+   formlog.Visible:=true;
+   OutgoingMsjsAdd(TextLine);
    end;
-Tolog('Admin message'+slinebreak+
-      TimestampToDate(msgtime)+slinebreak+
-      msgtoshow);
-formlog.Visible:=true;
-OutgoingMsjsAdd(TextLine);
 End;
 
 // Save the pool files to a zip file

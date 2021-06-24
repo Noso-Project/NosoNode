@@ -19,6 +19,7 @@ Function HashMD5String(StringToHash:String):String;
 procedure NuevaDireccion(linetext:string);
 Function HashMD5File(FileToHash:String):String;
 function IsValidAddress(Address:String):boolean;
+function IsValid58(base58text:string):boolean;
 function DireccionEsMia(direccion:string):integer;
 Procedure RunExternalProgram(ProgramToRun:String);
 {function RunOpenSSLCommand(textline:String):boolean;}
@@ -261,16 +262,42 @@ Begin
 result := UpperCase(MD5Print(MD5File(FileToHash)));
 End;
 
-// Verifica si una direccion tiene un formato valido
+function IsValid58(base58text:string):boolean;
+var
+  counter : integer;
+Begin
+result := true;
+if length(base58text) > 0 then
+   begin
+   for counter := 1 to length(base58text) do
+      begin
+      if pos (base58text[counter],B58Alphabet) = 0 then
+         begin
+         result := false;
+         break;
+         end;
+      end;
+   end
+else result := false;
+End;
+
+// Checks if a string is a valid address
 function IsValidAddress(Address:String):boolean;
 var
   OrigHash : String;
   Clave:String;
 Begin
-OrigHash := Copy(Address,2,length(address)-3);
-Clave := BMDecTo58(BMB58resumen(OrigHash));
-OrigHash := CoinChar+OrigHash+clave;
-If OrigHash = Address then result := true else result := false;
+result := false;
+if ((address[1] = 'N') and (length(address)>20)) then
+   begin
+   OrigHash := Copy(Address,2,length(address)-3);
+   if IsValid58(OrigHash) then
+      begin
+      Clave := BMDecTo58(BMB58resumen(OrigHash));
+      OrigHash := CoinChar+OrigHash+clave;
+      if OrigHash = Address then result := true else result := false;
+      end;
+   end
 End;
 
 // Verifica si la direccion enviada esta en la cartera del usuario
@@ -751,20 +778,15 @@ var
   count : integer = 0;
   resultado : string = '';
 Begin
-if numero2 = '1' then
+if numero2 = '1' then result := numero1
+else if numero2 = '0' then result := '1'
+else
    begin
-   result := numero1;
-   exit;
+   resultado := numero1;
+   for count := 2 to StrToInt(numero2) do
+      resultado := BMMultiplicar(resultado,numero1);
+   result := resultado;
    end;
-if numero2 = '0' then
-   begin
-   result := '1';
-   exit;
-   end;
-resultado := numero1;
-for count := 2 to StrToInt(numero2) do
-   resultado := BMMultiplicar(resultado,numero1);
-result := resultado;
 End;
 
 // HEX TO DECIMAL

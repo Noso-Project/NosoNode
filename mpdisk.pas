@@ -189,7 +189,7 @@ else
    seek(FileNodeData,0);
    read (FileNodeData, Leido);
    closefile(FileNodeData);
-   if leido.ip <> 'NFF1' then // this is to update old node files
+   if leido.ip <> 'NFF2' then // this is to update old node files
       begin
       CrearNodeFile();
       end;
@@ -209,7 +209,7 @@ Begin
    assignfile(FileNodeData,NodeDataFilename);
    rewrite(FileNodeData);
    NodoInicial := Default(nodedata);
-   NodoInicial.ip:='NFF1';
+   NodoInicial.ip:='NFF2';
    write(FileNodeData,nodoinicial);
    Repeat
      begin
@@ -500,6 +500,10 @@ setmilitime('CreateADV',1);
    writeln(FileAdvOptions,'AntiFreeze '+BoolToStr(WO_AntiFreeze,true));
    writeln(FileAdvOptions,'MultiSend '+BoolToStr(WO_MultiSend,true));
    writeln(FileAdvOptions,'AntifreezeTime '+IntToStr(WO_AntifreezeTime));
+   writeln(FileAdvOptions,'RPCFilter '+BoolToStr(RPCFilter,true));
+   writeln(FileAdvOptions,'RPCWhiteList '+RPCWhitelist);
+   writeln(FileAdvOptions,'RPCAuto '+BoolToStr(RPCAuto,true));
+
    Closefile(FileAdvOptions);
    if saving then tolog('Options file saved');
    S_AdvOpt := false;
@@ -539,6 +543,10 @@ Begin
       if parameter(linea,0) ='AntiFreeze' then WO_AntiFreeze:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='MultiSend' then WO_MultiSend:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='AntifreezeTime' then WO_AntifreezeTime:=StrToIntDef(Parameter(linea,1),WO_AntifreezeTime);
+      if parameter(linea,0) ='RPCFilter' then RPCFilter:=StrToBool(Parameter(linea,1));
+      if parameter(linea,0) ='RPCWhiteList' then RPCWhiteList:=Parameter(linea,1);
+      if parameter(linea,0) ='RPCAuto' then RPCAuto:=StrToBool(Parameter(linea,1));
+
       end;
    Closefile(FileAdvOptions);
    Except on E:Exception do
@@ -850,7 +858,7 @@ Var
 Begin
    try
    assignfile(FileNTPData,NTPDataFilename);
-   setlength(ListaNTP,10);
+   setlength(ListaNTP,11);
    ListaNTP[0].host := 'ntp.amnic.net'; ListaNTP[0].LastUsed:='0';
    ListaNTP[1].host := 'ts2.aco.net'; ListaNTP[1].LastUsed:='0';
    ListaNTP[2].host := 'hora.roa.es'; ListaNTP[2].LastUsed:='0';
@@ -861,6 +869,7 @@ Begin
    ListaNTP[7].host := 'ntp3.indypl.org'; ListaNTP[7].LastUsed:='0';
    ListaNTP[8].host := 'ntp1.sp.se'; ListaNTP[8].LastUsed:='0';
    ListaNTP[9].host := 'ntp.ntp-servers.com'; ListaNTP[9].LastUsed:='0';
+   ListaNTP[10].host := '1.de.pool.ntp.org'; ListaNTP[10].LastUsed:='0';
    rewrite(FileNTPData);
    for contador := 0 to 9 do
       begin
@@ -1572,95 +1581,97 @@ var
   BlockPayouts, BlockEarnings : int64;
 Begin
 Existentes := Length(ListaMisTrx);
-if ListaMisTrx[0].Block >= blocknumber then exit;  // block number already rebuilded
-PoSPayouts := StrToInt64Def(parameter(ListaMisTrx[0].receiver,0),0);
-PoSEarnings := StrToInt64Def(parameter(ListaMisTrx[0].receiver,1),0);
-for contador := ListaMisTrx[0].Block+1 to blocknumber do
+if ListaMisTrx[0].Block < blocknumber then
    begin
-   if Not G_Launching then
+   PoSPayouts := StrToInt64Def(parameter(ListaMisTrx[0].receiver,0),0);
+   PoSEarnings := StrToInt64Def(parameter(ListaMisTrx[0].receiver,1),0);
+   for contador := ListaMisTrx[0].Block+1 to blocknumber do
       begin
-      info(Format('Rebuilding my Trxs: %d',[contador]));
-      EngineLastUpdate := UTCTime.ToInt64;
-      application.ProcessMessages;
-      end;
-   BlockPayouts := 0; BlockEarnings := 0;
-   Header := LoadBlockDataHeader(contador);
-   if DireccionEsMia(Header.AccountMiner)>=0 then // user is miner
-      begin
-      NewTrx := Default(MyTrxData);
-      NewTrx.block:=contador;
-      NewTrx.time :=header.TimeEnd;
-      NewTrx.tipo :='MINE';
-      NewTrx.receiver:=header.AccountMiner;
-      NewTrx.monto   :=header.Reward+header.MinerFee;
-      NewTrx.trfrID  :='';
-      NewTrx.OrderID :='';
-      NewTrx.Concepto:='';
-      insert(NewTrx,ListaMisTrx,length(ListaMisTrx));
-      end;
-   ArrTrxs := GetBlockTrxs(contador);
-   if length(ArrTrxs)>0 then
-      begin
-      for contador2 := 0 to length(ArrTrxs)-1 do
+      if Not G_Launching then
          begin
-         if DireccionEsMia(ArrTrxs[contador2].sender)>=0 then // user is sender
+         info(Format('Rebuilding my Trxs: %d',[contador]));
+         EngineLastUpdate := UTCTime.ToInt64;
+         application.ProcessMessages;
+         end;
+      BlockPayouts := 0; BlockEarnings := 0;
+      Header := LoadBlockDataHeader(contador);
+      if DireccionEsMia(Header.AccountMiner)>=0 then // user is miner
+         begin
+         NewTrx := Default(MyTrxData);
+         NewTrx.block:=contador;
+         NewTrx.time :=header.TimeEnd;
+         NewTrx.tipo :='MINE';
+         NewTrx.receiver:=header.AccountMiner;
+         NewTrx.monto   :=header.Reward+header.MinerFee;
+         NewTrx.trfrID  :='';
+         NewTrx.OrderID :='';
+         NewTrx.reference:='';
+         insert(NewTrx,ListaMisTrx,length(ListaMisTrx));
+         end;
+      ArrTrxs := GetBlockTrxs(contador);
+      if length(ArrTrxs)>0 then
+         begin
+         for contador2 := 0 to length(ArrTrxs)-1 do
             begin
-            NewTrx := Default(MyTrxData);
-            NewTrx.block:=contador;
-            NewTrx.time :=header.TimeEnd;
-            NewTrx.tipo :=ArrTrxs[contador2].OrderType;
-            NewTrx.receiver:= ArrTrxs[contador2].Receiver;
-            NewTrx.monto   := Restar(ArrTrxs[contador2].AmmountFee+ArrTrxs[contador2].AmmountTrf);
-            NewTrx.trfrID  := ArrTrxs[contador2].TrfrID;
-            NewTrx.OrderID := ArrTrxs[contador2].OrderID;
-            NewTrx.Concepto:= ArrTrxs[contador2].Concept;
-            insert(NewTrx,ListaMisTrx,length(ListaMisTrx));
-            end;
-         if DireccionEsMia(ArrTrxs[contador2].receiver)>=0 then //user is receiver
-            begin
-            NewTrx := Default(MyTrxData);
-            NewTrx.block:=contador;
-            NewTrx.time :=header.TimeEnd;
-            NewTrx.tipo :=ArrTrxs[contador2].OrderType;
-            NewTrx.receiver:= ArrTrxs[contador2].receiver;
-            NewTrx.monto   := ArrTrxs[contador2].AmmountTrf;
-            NewTrx.trfrID  := ArrTrxs[contador2].TrfrID;
-            NewTrx.OrderID := ArrTrxs[contador2].OrderID;
-            NewTrx.Concepto:= ArrTrxs[contador2].Concept;
-            insert(NewTrx,ListaMisTrx,length(ListaMisTrx));
+            if DireccionEsMia(ArrTrxs[contador2].sender)>=0 then // user is sender
+               begin
+               NewTrx := Default(MyTrxData);
+               NewTrx.block:=contador;
+               NewTrx.time :=header.TimeEnd;
+               NewTrx.tipo :=ArrTrxs[contador2].OrderType;
+               NewTrx.receiver:= ArrTrxs[contador2].Receiver;
+               NewTrx.monto   := Restar(ArrTrxs[contador2].AmmountFee+ArrTrxs[contador2].AmmountTrf);
+               NewTrx.trfrID  := ArrTrxs[contador2].TrfrID;
+               NewTrx.OrderID := ArrTrxs[contador2].OrderID;
+               NewTrx.reference:= ArrTrxs[contador2].reference;
+               insert(NewTrx,ListaMisTrx,length(ListaMisTrx));
+               end;
+            if DireccionEsMia(ArrTrxs[contador2].receiver)>=0 then //user is receiver
+               begin
+               NewTrx := Default(MyTrxData);
+               NewTrx.block:=contador;
+               NewTrx.time :=header.TimeEnd;
+               NewTrx.tipo :=ArrTrxs[contador2].OrderType;
+               NewTrx.receiver:= ArrTrxs[contador2].receiver;
+               NewTrx.monto   := ArrTrxs[contador2].AmmountTrf;
+               NewTrx.trfrID  := ArrTrxs[contador2].TrfrID;
+               NewTrx.OrderID := ArrTrxs[contador2].OrderID;
+               NewTrx.reference:= ArrTrxs[contador2].reference;
+               insert(NewTrx,ListaMisTrx,length(ListaMisTrx));
+               end;
             end;
          end;
-      end;
-   setlength(ArrTrxs,0);
-   if contador >= PoSBlockStart then
-      begin
-      ArrayPos := GetBlockPoSes(contador);
-      PosReward := StrToIntDef(Arraypos[length(Arraypos)-1].address,0);
-      SetLength(ArrayPos,length(ArrayPos)-1);
-      PosCount := length(ArrayPos);
-      for counterpos := 0 to PosCount-1 do
+      setlength(ArrTrxs,0);
+      if contador >= PoSBlockStart then
          begin
-         if direccionesmia(ArrayPos[counterPos].address)>=0 then
+         ArrayPos := GetBlockPoSes(contador);
+         PosReward := StrToIntDef(Arraypos[length(Arraypos)-1].address,0);
+         SetLength(ArrayPos,length(ArrayPos)-1);
+         PosCount := length(ArrayPos);
+         for counterpos := 0 to PosCount-1 do
             begin
-            BlockPayouts+=1;
-            PoSPayouts := PoSPayouts+1;
-            BlockEarnings := BlockEarnings+PosReward;
-            PoSEarnings := PoSEarnings + PosReward;
+            if direccionesmia(ArrayPos[counterPos].address)>=0 then
+               begin
+               BlockPayouts+=1;
+               PoSPayouts := PoSPayouts+1;
+               BlockEarnings := BlockEarnings+PosReward;
+               PoSEarnings := PoSEarnings + PosReward;
+               end;
             end;
+         if BlockPayouts > 0 then
+            ToLog(Format('PoS : %d -> %d : %s',[contador,BlockPayouts,Int2curr(BlockEarnings)]));
+         SetLength(ArrayPos,0);
          end;
-      if BlockPayouts > 0 then
-         ToLog(Format('PoS : %d -> %d : %s',[contador,BlockPayouts,Int2curr(BlockEarnings)]));
-      SetLength(ArrayPos,0);
       end;
+   ListaMisTrx[0].block:=blocknumber;
+   ListaMisTrx[0].receiver:=IntToStr(PoSPayouts)+' '+IntToStr(PoSEarnings);
+   if length(ListaMisTrx) > Existentes then  // se han añadido transacciones
+      begin
+      SaveMyTrxsToDisk(existentes);
+      U_Mytrxs := true;
+      end;
+   SaveMyTrxsLastUpdatedblock(blocknumber, PoSPayouts, PoSEarnings);
    end;
-ListaMisTrx[0].block:=blocknumber;
-ListaMisTrx[0].receiver:=IntToStr(PoSPayouts)+' '+IntToStr(PoSEarnings);
-if length(ListaMisTrx) > Existentes then  // se han añadido transacciones
-   begin
-   SaveMyTrxsToDisk(existentes);
-   U_Mytrxs := true;
-   end;
-SaveMyTrxsLastUpdatedblock(blocknumber, PoSPayouts, PoSEarnings);
 End;
 
 // Save last user transactions to disk
@@ -1998,13 +2009,13 @@ Assignfile(archivo, 'crashinfo.txt');
    if not fileexists('crashinfo.txt') then rewrite(archivo)
    else append(archivo);
    writeln(archivo,GetCurrentStatus(1));
-   //{
+   {
    while ExceptLines.Count>0 do
       begin
       Writeln(archivo, ExceptLines[0]);
       ExceptLines.Delete(0);
       end;
-   //}
+   }
    Closefile(archivo);
    Except on E:Exception do
       tolog ('Error creating crashinfo file');
