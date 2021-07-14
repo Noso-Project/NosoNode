@@ -482,7 +482,7 @@ CONST
                                    '$CUSTOMORDERADMINMSGNETREQ';
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS POOLHASHRATE';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
-  DefaultNodes : String = 'DefNodes 192.210.160.101 '+
+  DefaultNodes : String = 'DefNodes '+
                           '23.95.233.179 '+
                           '75.127.0.216 '+
                           '191.96.103.153 '+
@@ -492,14 +492,14 @@ CONST
                           '185.239.239.184 '+
                           '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'G';
+  SubVersion = 'Ga2';
   OficialRelease = true;
-  BuildDate = 'June 2021';
+  BuildDate = 'July 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   HasheableChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
   DefaultServerPort = 8080;
-  MaxConecciones  = 75;
+  MaxConecciones  = 50;
   Protocolo = 1;
   Miner_Steps = 10;
   Pool_Max_Members = 1000;
@@ -524,6 +524,7 @@ CONST
   PoSBlockStart : integer = 8425;   // first block with PoSPayment
   InitialBlockDiff = 60;            // Dificultad durante los 20 primeros bloques
   GenesysTimeStamp = 1615132800;    // 1615132800;
+  FileFormatVer = 'NFF2';
 
 var
   UserFontSize : integer = 8;
@@ -1992,7 +1993,8 @@ else if ARequestInfo.Command = 'POST' then
       StreamString.Position:=0;
       PostString := ReadStringFromStream(StreamString,-1,IndyTextEncoding_UTF8);
       end;
-   AResponseInfo.ContentText:= ParseRPCJSON(PostString);
+   //AResponseInfo.ContentText:= ParseRPCJSON(PostString);
+   AResponseInfo.ContentText:= 'Ok';
    StreamString.Free;
    end;
 End;

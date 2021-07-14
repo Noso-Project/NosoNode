@@ -189,7 +189,7 @@ else
    seek(FileNodeData,0);
    read (FileNodeData, Leido);
    closefile(FileNodeData);
-   if leido.ip <> 'NFF2' then // this is to update old node files
+   if leido.ip <> FileFormatVer then // this is to update old node files
       begin
       CrearNodeFile();
       end;
@@ -209,7 +209,7 @@ Begin
    assignfile(FileNodeData,NodeDataFilename);
    rewrite(FileNodeData);
    NodoInicial := Default(nodedata);
-   NodoInicial.ip:='NFF2';
+   NodoInicial.ip:= FileFormatVer;
    write(FileNodeData,nodoinicial);
    Repeat
      begin

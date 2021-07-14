@@ -82,6 +82,12 @@ if not errored then
    SetCurrentJob('NewBLOCK+PENDING',true);
    for contador := 0 to length(pendingTXs)-1 do
       begin
+      // Version 0.2.1Ga1 reverification starts
+      if PendingTXs[contador].TimeStamp < LastBlockData.TimeStart then
+         continue;
+      if TrxExistsInLastBlock(PendingTXs[contador].TrfrID) then
+         continue;
+      // Version 0.2.1Ga1 reverification ends
       if PendingTXs[contador].TimeStamp+60 > TimeStamp then
          begin
          insert(PendingTXs[contador],IgnoredTrxs,length(IgnoredTrxs));

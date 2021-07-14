@@ -619,7 +619,7 @@ if proceder then
    end;
 End;
 
-// Valida que una transferencia cumpla los requisitos
+// Verify a transfer
 function ValidateTrfr(order:orderdata;Origen:String):Boolean;
 Begin
 Result := true;
