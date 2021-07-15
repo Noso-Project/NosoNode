@@ -483,16 +483,14 @@ CONST
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS POOLHASHRATE';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
   DefaultNodes : String = 'DefNodes '+
-                          '23.95.233.179 '+
-                          '75.127.0.216 '+
-                          '191.96.103.153 '+
-                          '45.141.36.117 '+
-                          '192.210.226.118 '+
-                          '107.172.5.8 '+
-                          '185.239.239.184 '+
-                          '109.230.238.240';
+                            '45.146.252.103 '+
+                            '194.156.88.117 '+
+                            '192.210.226.118 '+
+                            '107.172.5.8 '+
+                            '185.239.239.184 '+
+                            '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Ga2';
+  SubVersion = 'Ga4';
   OficialRelease = true;
   BuildDate = 'July 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -549,7 +547,6 @@ var
   RPCFilter        : boolean = true;
   RPCWhitelist     : string = '127.0.0.1,localhost';
   RPCAuto          : boolean = false;
-
 
   SynchWarnings : integer = 0;
   ConnectedRotor : integer = 0;
@@ -1993,8 +1990,8 @@ else if ARequestInfo.Command = 'POST' then
       StreamString.Position:=0;
       PostString := ReadStringFromStream(StreamString,-1,IndyTextEncoding_UTF8);
       end;
-   //AResponseInfo.ContentText:= ParseRPCJSON(PostString);
-   AResponseInfo.ContentText:= 'Ok';
+   AResponseInfo.ContentText:= ParseRPCJSON(PostString);
+   //AResponseInfo.ContentText:= 'Ok';
    StreamString.Free;
    end;
 End;

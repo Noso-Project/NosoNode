@@ -806,6 +806,7 @@ var
   contador : integer = 0;
   updated : boolean = false;
 Begin
+if IsAValidNode(IPUser) then exit;
 for contador := 0 to length(ListadoBots)-1 do
    begin
    if ListadoBots[Contador].ip = IPUser then

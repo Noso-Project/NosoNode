@@ -40,6 +40,7 @@ function GetIncomingConnections():integer;
 Procedure SendNetworkRequests(timestamp,direccion:string;block:integer);
 function GetOrderDetails(orderid:string):orderdata;
 Function GetNodeStatusString():string;
+Function IsAValidNode(IP:String):boolean;
 
 implementation
 
@@ -996,6 +997,12 @@ result := IntToStr(GetTotalConexiones)+' '+IntToStr(MyLastBlock)+' '+IntToStr(Le
           IntToStr(UTCTime.ToInt64-EngineLastUpdate)+' '+copy(myResumenHash,0,5);
 End;
 
+Function IsAValidNode(IP:String):boolean;
+Begin
+if Pos(IP,DefaultNodes)>0 then result:=true
+else result := false;
+if IP = '109.230.238.119' then result := true;
+End;
 
 END. // END UNIT
 
