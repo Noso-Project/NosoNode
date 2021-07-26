@@ -51,7 +51,6 @@ jobs:
           Noso
           Noso.exe
 
-          
   package-release:
     if: contains(github.ref, '/tags/')
     name: Package and Upload
@@ -85,7 +84,14 @@ jobs:
             noso-*.tgz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Trigger Downstream
+
+  trigger-downstream:
+    if: contains(github.ref, '/tags/')
+    name: Trigger Downstream
+    runs-on: ubuntu-latest
+    needs: [package-release]
+    steps:
+      - name: noso-docker
         run: |
           tag=${{ github.event.ref }}
           tag=${tag#"refs/tags/"}
