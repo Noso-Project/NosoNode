@@ -30,25 +30,25 @@ Procedure SetRPCOff();
 
 function IsValidJSON (MyJSONstring:string):boolean;
 Function GetJSONErrorString(ErrorCode:integer):string;
-function GetJSONErrorCode(ErrorCode, JSONIdNumber:integer):TJSONStringType;
-function GetJSONResponse(ResultToSend:string;JSONIdNumber:integer):TJSONStringType;
-function ParseRPCJSON(jsonreceived:string):TJSONStringType;
+function GetJSONErrorCode(ErrorCode, JSONIdNumber:integer):string;
+function GetJSONResponse(ResultToSend:string;JSONIdNumber:integer):string;
+function ParseRPCJSON(jsonreceived:string):string;
 
-function ObjectFromString(MyString:string): TJSONStringType;
+function ObjectFromString(MyString:string): string;
 
-function RPC_AddressBalance(NosoPParams:string):TJSONStringType;
-function RPC_OrderInfo(NosoPParams:string):TJSONStringType;
-function RPC_Blockinfo(NosoPParams:string):TJSONStringType;
-function RPC_Mininginfo(NosoPParams:string):TJSONStringType;
-function RPC_Mainnetinfo(NosoPParams:string):TJSONStringType;
-function RPC_PendingOrders(NosoPParams:string):TJSONStringType;
-function RPC_BlockOrders(NosoPParams:string):TJSONStringType;
+function RPC_AddressBalance(NosoPParams:string):string;
+function RPC_OrderInfo(NosoPParams:string):string;
+function RPC_Blockinfo(NosoPParams:string):string;
+function RPC_Mininginfo(NosoPParams:string):string;
+function RPC_Mainnetinfo(NosoPParams:string):string;
+function RPC_PendingOrders(NosoPParams:string):string;
+function RPC_BlockOrders(NosoPParams:string):string;
 
 
 implementation
 
 Uses
-  MasterPaskalForm,mpparser;
+  MasterPaskalForm,mpparser, mpDisk;
 
 // Sets RPC port
 Procedure SetRPCPort(LineText:string);
@@ -148,7 +148,7 @@ else result := 'Unknown error code';
 End;
 
 // Returns a valid error JSON String
-function GetJSONErrorCode(ErrorCode, JSONIdNumber:integer):TJSONStringType;
+function GetJSONErrorCode(ErrorCode, JSONIdNumber:integer):string;
 var
   JSONResultado,JSONErrorObj: TJSONObject;
 Begin
@@ -168,7 +168,7 @@ JSONErrorObj  := TJSONObject.Create;
 End;
 
 // Returns a valid response JSON string
-function GetJSONResponse(ResultToSend:string;JSONIdNumber:integer):TJSONStringType;
+function GetJSONResponse(ResultToSend:string;JSONIdNumber:integer):string;
 var
   JSONResultado, Resultado: TJSONObject;
   paramsarray :  TJSONArray;
@@ -179,7 +179,6 @@ Begin
 paramsarray := TJSONArray.Create;
 if length(ResultToSend)>0 then myParams:= ResultToSend.Split(' ');
 JSONResultado := TJSONObject.Create;
-//Resultado := TJSONObject.Create;
    try
       try
       JSONResultado.Add('jsonrpc', TJSONString.Create('2.0'));
@@ -187,7 +186,6 @@ JSONResultado := TJSONObject.Create;
          for counter := low(myParams) to high(myParams) do
             if myParams[counter] <>'' then
                begin
-               //resultado := ObjectFromString(myParams[counter]).
                paramsarray.Add(GetJSON(ObjectFromString(myParams[counter])));
                end;
       SetLength(MyParams, 0);
@@ -210,7 +208,7 @@ JSONResultado := TJSONObject.Create;
    end;
 End;
 
-function ObjectFromString(MyString:string): TJSONStringType;
+function ObjectFromString(MyString:string): string;
 var
   resultado: TJSONObject;
   orderobject : TJSONObject;
@@ -320,7 +318,7 @@ resultado.free;
 End;
 
 // Parses a incoming JSON string
-function ParseRPCJSON(jsonreceived:string):TJSONStringType;
+function ParseRPCJSON(jsonreceived:string):string;
 var
   jData : TJSONData;
   jObject : TJSONObject;
@@ -335,30 +333,35 @@ if not IsValidJSON(jsonreceived) then result := GetJSONErrorCode(401,-1)
 else
    begin
    jData := GetJSON(jsonreceived);
-   jObject := TJSONObject(jData);
-   method := jObject.Strings['method'];
-   params := jObject.Arrays['params'];
-   jsonid := jObject.Integers['id'];
-   for counter := 0 to params.Count-1 do
-      NosoPParams:= NosoPParams+' '+params[counter].AsString;
-   NosoPParams:= Trim(NosoPParams);
-   //consolelinesadd(jsonreceived);
-   //consolelinesadd(NosoPParams);
-   if method = 'test' then result := GetJSONResponse('test',jsonid)
-   else if method = 'getaddressbalance' then result := GetJSONResponse(RPC_AddressBalance(NosoPParams),jsonid)
-   else if method = 'getorderinfo' then result := GetJSONResponse(RPC_OrderInfo(NosoPParams),jsonid)
-   else if method = 'getblocksinfo' then result := GetJSONResponse(RPC_Blockinfo(NosoPParams),jsonid)
-   else if method = 'getmininginfo' then result := GetJSONResponse(RPC_Mininginfo(NosoPParams),jsonid)
-   else if method = 'getmainnetinfo' then result := GetJSONResponse(RPC_Mainnetinfo(NosoPParams),jsonid)
-   else if method = 'getpendingorders' then result := GetJSONResponse(RPC_PendingOrders(NosoPParams),jsonid)
-   else if method = 'getblockorders' then result := GetJSONResponse(RPC_BlockOrders(NosoPParams),jsonid)
-   else result := GetJSONErrorCode(402,-1);
+      try
+      jObject := TJSONObject(jData);
+      method := jObject.Strings['method'];
+      params := jObject.Arrays['params'];
+      jsonid := jObject.Integers['id'];
+      for counter := 0 to params.Count-1 do
+         NosoPParams:= NosoPParams+' '+params[counter].AsString;
+      NosoPParams:= Trim(NosoPParams);
+      //consolelinesadd(jsonreceived);
+      //consolelinesadd(NosoPParams);
+      if method = 'test' then result := GetJSONResponse('test',jsonid)
+      else if method = 'getaddressbalance' then result := GetJSONResponse(RPC_AddressBalance(NosoPParams),jsonid)
+      else if method = 'getorderinfo' then result := GetJSONResponse(RPC_OrderInfo(NosoPParams),jsonid)
+      else if method = 'getblocksinfo' then result := GetJSONResponse(RPC_Blockinfo(NosoPParams),jsonid)
+      else if method = 'getmininginfo' then result := GetJSONResponse(RPC_Mininginfo(NosoPParams),jsonid)
+      else if method = 'getmainnetinfo' then result := GetJSONResponse(RPC_Mainnetinfo(NosoPParams),jsonid)
+      else if method = 'getpendingorders' then result := GetJSONResponse(RPC_PendingOrders(NosoPParams),jsonid)
+      else if method = 'getblockorders' then result := GetJSONResponse(RPC_BlockOrders(NosoPParams),jsonid)
+      else result := GetJSONErrorCode(402,-1);
+      Except on E:Exception do
+         ToExcLog('JSON RPC error: '+E.Message);
+      end;
+   jData.Free;
    end;
 End;
 
 // GET DATA FUNCTIONS
 
-function RPC_AddressBalance(NosoPParams:string):TJSONStringType;
+function RPC_AddressBalance(NosoPParams:string):string;
 var
   ThisAddress: string;
   counter : integer = 0;
@@ -398,7 +401,7 @@ if NosoPParams <> '' then
    end;
 End;
 
-function RPC_OrderInfo(NosoPParams:string):TJSONStringType;
+function RPC_OrderInfo(NosoPParams:string):string;
 var
   thisOr : orderdata;
   validID : string = 'true';
@@ -415,7 +418,7 @@ result := format('orderinfo'#127'%s'#127'%s'#127+
                 thisor.AmmountFee,thisor.reference]);
 End;
 
-function RPC_Blockinfo(NosoPParams:string):TJSONStringType;
+function RPC_Blockinfo(NosoPParams:string):string;
 var
   thisblock : string;
   counter : integer = 0;
@@ -439,23 +442,23 @@ if NosoPParams <> '' then
    end;
 End;
 
-function RPC_Mininginfo(NosoPParams:string):TJSONStringType;
+function RPC_Mininginfo(NosoPParams:string):string;
 Begin
 result := format('mininginfo'#127'%d'#127'%s'#127'%d'#127'%d',[mylastblock+1,MyLastBlockHash,LastBlockData.NxtBlkDiff]);
 End;
 
-function RPC_Mainnetinfo(NosoPParams:string):TJSONStringType;
+function RPC_Mainnetinfo(NosoPParams:string):string;
 Begin
 result := format('mainnetinfo'#127'%s'#127'%s'#127'%s'#127'%s'#127'%s'#127'%d',
        [NetLastBlock.Value,NetLastBlockHash.Value,NetResumenHash.Value,NetSumarioHash.Value,NetPendingTrxs.Value,GetSupply(StrToIntDef(NetLastBlock.Value,0))]);
 End;
 
-function RPC_PendingOrders(NosoPParams:string):TJSONStringType;
+function RPC_PendingOrders(NosoPParams:string):string;
 Begin
 result := '';
 End;
 
-function RPC_BlockOrders(NosoPParams:string):TJSONStringType;
+function RPC_BlockOrders(NosoPParams:string):string;
 var
   blocknumber : integer;
   ArraTrxs : BlockOrdersArray;

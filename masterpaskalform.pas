@@ -490,7 +490,7 @@ CONST
                             '185.239.239.184 '+
                             '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Ga4';
+  SubVersion = 'Ga7';
   OficialRelease = true;
   BuildDate = 'July 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -1965,11 +1965,11 @@ End;
 procedure TForm1.RPCServerExecute(AContext: TIdContext;
       ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo);
 var
-  PostString: TJSONStringType = '';
+  PostString: String = '';
 //  StreamString: TStream ;
   StreamString: TStringStream ;
 Begin
-consolelinesadd(ARequestInfo.RemoteIP);
+//consolelinesadd(ARequestInfo.RemoteIP);
 if ( (RPCFilter) and (Not ValidRPCHost(ARequestInfo.RemoteIP)) ) then
    begin
    AResponseInfo.ContentText:= GetJSONErrorCode(498,-1);
