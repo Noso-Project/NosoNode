@@ -5,7 +5,7 @@ unit mpCoin;
 interface
 
 uses
-  Classes, SysUtils,MasterPaskalForm,mpgui;
+  Classes, SysUtils,MasterPaskalForm,mpgui,Clipbrd;
 
 function GetAddressBalance(address:string):int64;
 function GetAddressPendingPays(Address:string):int64;
@@ -481,6 +481,8 @@ whitelisted := StringReplace(RPCWhiteList,',',' ',[rfReplaceAll, rfIgnoreCase]);
    counter+=1;
    until thiswhitelist = '';
 End;
+
+
 
 END. // END UNIT
 

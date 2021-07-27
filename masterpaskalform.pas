@@ -396,6 +396,7 @@ type
     Procedure SCBitConfOnClick(Sender:TObject);
     Procedure ResetearValoresEnvio(Sender:TObject);
     Procedure SBOptionsOnClick(Sender:TObject);
+    Procedure CheckClipboardForPays();
     // Pool
     Procedure TryClosePoolConnection(AContext: TIdContext; closemsg:string='');
     Procedure TryMessageToMiner(AContext: TIdContext;message:string);
@@ -490,7 +491,7 @@ CONST
                             '185.239.239.184 '+
                             '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Gb2';
+  SubVersion = 'Gb3';
   OficialRelease = true;
   BuildDate = 'July 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -1403,6 +1404,7 @@ Procedure TForm1.LatidoEjecutar(Sender: TObject);
 Begin
 if EngineLastUpdate <> UTCtime.ToInt64 then EngineLastUpdate := UTCtime.ToInt64;
 Form1.Latido.Enabled:=false;
+CheckClipboardForPays();
 setmilitime('ActualizarGUI',1);
 ActualizarGUI();
 setmilitime('ActualizarGUI',2);
@@ -3642,6 +3644,22 @@ if ( (not G_Launching) and (MemoRPCWhitelist.Text<>RPCWhitelist) ) then
    end;
 end;
 
+Procedure TForm1.CheckClipboardForPays();
+var
+  Intexto : string = '';
+Begin
+Intexto := Clipboard.AsText;
+If (parameter(InTexto,0)) ='<NOSOPAY>' then
+   begin
+   form1.PageMain.ActivePage := form1.TabWallet;
+   PanelSend.Visible:=true;
+   EditSCDest.Text:='devteam_donations';
+   EditSCMont.Text:='1.00000000';
+   MemoSCCon.Text:='OnlinePaymentTest';
+   form1.BringToFront;
+   Clipboard.AsText := '';
+   end;
+End;
 
 END. // END PROGRAM
 
