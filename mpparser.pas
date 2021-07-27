@@ -1584,7 +1584,7 @@ if fileexists(UpdatesDirectory+'nosoupdate'+version+'.zip') then
    GuardarOpciones();
    CrearRestartfile();
    EjecutarAutoUpdate(version);
-   Application.Terminate;
+   form1.close;
    end
 else ConsoleLinesAdd('Invalid update');
 End;

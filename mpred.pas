@@ -809,7 +809,7 @@ else
          GuardarOpciones();
          CrearRestartfile();
          EjecutarAutoUpdate(version);
-         Application.Terminate;
+         form1.close;
          end
    else
       begin

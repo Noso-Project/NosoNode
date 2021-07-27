@@ -490,7 +490,7 @@ CONST
                             '185.239.239.184 '+
                             '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Ga7';
+  SubVersion = 'Ga8';
   OficialRelease = true;
   BuildDate = 'July 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -1054,6 +1054,10 @@ DoneCriticalSection(CSMinerJoin);
 DoneCriticalSection(CSLogLines);
 DoneCriticalSection(CSExcLogLines);
 DoneCriticalSection(CSPoolShares);
+
+form1.Server.Free;
+form1.RPCServer.Free;
+form1.PoolServer.free;
 end;
 
 // Form show
@@ -1126,7 +1130,7 @@ if ((UTCTime.ToInt64 > EngineLastUpdate+WO_AntiFreezeTime) and (WO_AntiFreeze)) 
    RunExternalProgram('nosolauncher.bat');
    info('Noso launcher executed');
    //delay(1000);
-   Application.Terminate;
+   form1.close;
    end;
 RestartTimer.Enabled:=true;
 End;
@@ -1279,7 +1283,7 @@ if Key=VK_RETURN then
    if Uppercase(Linetext) = 'EXIT' then
      begin
      CrearCrashInfo();
-     Application.Terminate;
+     form1.close;
      end;
    end;
 if Key=VK_F3 then
@@ -1455,7 +1459,7 @@ KillAllMiningThreads;
 setlength(CriptoOpsTipo,0);
 if RunDoctorBeforeClose then RunDiagnostico('rundiag fix');
 if RestartNosoAfterQuit then restartnoso();
-Application.Terminate;
+form1.Close;
 Halt;
 End;
 
