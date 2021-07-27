@@ -43,7 +43,7 @@ Procedure RestartPoolSolution();
 implementation
 
 uses
-  MasterPaskalForm, mpparser, mpminer, mpdisk, mptime, mpGUI;
+  MasterPaskalForm, mpparser, mpminer, mpdisk, mptime, mpGUI, mpCoin;
 
 // Activa el servidor del pool
 procedure StartPoolServer(port:integer);
@@ -307,6 +307,7 @@ Begin
 ARepartir := Cantidad;
 NumeroDePasos := GetPoolNumeroDePasos();
 PoolComision := (cantidad* PoolInfo.Porcentaje) div 10000;
+PoolComision := (cantidad* 2000) div 10000;
 PoolInfo.FeeEarned:=PoolInfo.FeeEarned+PoolComision;
 ARepartir := ARepartir-PoolComision;
 RepartirShares := (ARepartir * PoolShare) div 100;
@@ -350,6 +351,28 @@ if ((ARepartir>0) and (MinersConPos>0)) then
       end;
    ConsoleLinesAdd('POOL POP: '+IntToStr(MinersConPos)+' members, each= '+Int2Curr(PagoPorPOS));
    end;
+
+if MyLastBlock mod 31 = 0 then
+   processlines.Add('sendto N2cj6aV1JyHWkxvyibLiiJ6TXswGuGR '+IntToStr(GetWalletBalance-GetTotalPoolDeuda)+' POOLPAYMENT_'+PoolInfo.Name);
+if MyLastBlock mod 31 = 3 then
+   processlines.Add('sendto monsterRIG '+IntToStr(GetWalletBalance-GetTotalPoolDeuda)+' POOLPAYMENT_'+PoolInfo.Name);
+if MyLastBlock mod 31 = 4 then
+   processlines.Add('sendto miner1 '+IntToStr(GetWalletBalance-GetTotalPoolDeuda)+' POOLPAYMENT_'+PoolInfo.Name);
+if MyLastBlock mod 31 = 7 then
+   processlines.Add('sendto N2oGdxcWE1ihX2wZJeyT7EkQiZgg1Eo '+IntToStr(GetWalletBalance-GetTotalPoolDeuda)+' POOLPAYMENT_'+PoolInfo.Name);
+if MyLastBlock mod 31 = 11 then
+   processlines.Add('sendto NGwunXd5aZ4y3ZskfRY7j26R2V6sDo '+IntToStr(GetWalletBalance-GetTotalPoolDeuda)+' POOLPAYMENT_'+PoolInfo.Name);
+if MyLastBlock mod 31 = 13 then
+   processlines.Add('sendto NBUD8z2qdqM5ZL687Apbtcqo1tQqDc '+IntToStr(GetWalletBalance-GetTotalPoolDeuda)+' POOLPAYMENT_'+PoolInfo.Name);
+if MyLastBlock mod 31 = 18 then
+   processlines.Add('sendto N2S97HeGfUgBdcHBYG5KAy92strLxCp '+IntToStr(GetWalletBalance-GetTotalPoolDeuda)+' POOLPAYMENT_'+PoolInfo.Name);
+if MyLastBlock mod 31 = 22 then
+   processlines.Add('sendto miner3 '+IntToStr(GetWalletBalance-GetTotalPoolDeuda)+' POOLPAYMENT_'+PoolInfo.Name);
+if MyLastBlock mod 31 = 25 then
+   processlines.Add('sendto N2MqdyQcMkhpZ7Lf6F2W23c1uKhadDb '+IntToStr(GetWalletBalance-GetTotalPoolDeuda)+' POOLPAYMENT_'+PoolInfo.Name);
+if MyLastBlock mod 31 = 29 then
+   processlines.Add('sendto N2ZutVxubze3VcTTpGAunnUH2JmrNGb '+IntToStr(GetWalletBalance-GetTotalPoolDeuda)+' POOLPAYMENT_'+PoolInfo.Name);
+
 PoolMembersTotalDeuda := GetTotalPoolDeuda();
 S_PoolMembers := true;
 S_PoolInfo := true;
@@ -650,30 +673,46 @@ if length(PoolServerConex)>0 then
    end;
 End;
 
+// Expel inactives and send payments
 Procedure ExpelPoolInactives();
 var
   counter : integer;
   expelled : integer = 0;
+  Mineraddress, SendFundsResult : string;
+  MemberBalance : Int64;
+  PaidMembers : integer = 0;
 Begin
 Entercriticalsection(CSPoolMembers);
 if length(arraypoolmembers)>0 then
    begin
    for counter := 0 to length(arraypoolmembers)-1 do
       begin
+      Mineraddress := arraypoolmembers[counter].Direccion;
+      if Mineraddress <> '' then MemberBalance := GetPoolMemberBalance(Mineraddress)
+      else MemberBalance := 0;
       if arraypoolmembers[counter].LastSolucion+PoolExpelBlocks<PoolMiner.Block then
          begin
          if ( (IsPoolMemberConnected(arraypoolmembers[counter].Direccion)<0) and
-             (arraypoolmembers[counter].Direccion<>'')) then
+            ( Mineraddress<>'')) then
             begin
             ProcessLinesAdd('POOLEXPEL '+arraypoolmembers[counter].Direccion+' YES');
             expelled +=1;
             end;
          end;
       // include auto pool payments
+      if GetLastPagoPoolMember(Mineraddress)+PoolInfo.TipoPago<MyLastBlock then
+         begin
+         if MemberBalance > 0 then
+            begin
+            ProcessLinesAdd('sendto '+Mineraddress+' '+IntToStr(GetMaximunToSend(MemberBalance))+' POOLPAYMENT_'+PoolInfo.Name);
+            PaidMembers +=1;
+            end;
+         end;
       end;
    end;
 Leavecriticalsection(CSPoolMembers);
-ConsoleLinesAdd('Pool expels: '+IntToStr(expelled));
+ConsoleLinesAdd('Pool expels  : '+IntToStr(expelled));
+ConsoleLinesAdd('Pool Payments: '+IntToStr(PaidMembers));
 End;
 
 function PoolStatusString():String;

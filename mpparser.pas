@@ -1053,6 +1053,21 @@ if procesar then
                     'Send '+Int2Curr(montoToShow)+' fee '+Int2Curr(comisionToShow)+slinebreak+
                     'Order ID: '+ResultOrderID);
    result := ResultOrderID;
+
+   // Save pool payments to pool log
+   if reference = 'POOLPAYMENT_'+PoolInfo.Name then
+      begin
+      AddPoolPay(IntToStr(MyLastBlock+1)+' '+Destination+' '+IntToStr(montoToShow)+' '+
+                  ResultOrderID);
+      ClearPoolUserBalance(Destination);
+      PoolMembersTotalDeuda := GetTotalPoolDeuda();
+      end;
+   if reference = 'EXPEL_POOLPAYMENT_'+PoolInfo.Name then
+      begin
+      AddPoolPay(IntToStr(MyLastBlock+1)+' '+Destination+' '+IntToStr(montoToShow)+' '+
+                  ResultOrderID);
+      end;
+
    OrderString := GetPTCEcn+'ORDER '+IntToStr(trxLinea)+' $';
    for contador := 0 to length(ArrayTrfrs)-1 do
       begin
@@ -2060,6 +2075,7 @@ var
   addtoshow : string;
   sumposition : integer;
 Begin
+result := '';
 addtoshow := parameter(linea,1);
 sumposition := DireccionEsMia(addtoshow);
 if sumposition<0 then

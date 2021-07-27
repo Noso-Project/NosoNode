@@ -490,7 +490,7 @@ CONST
                             '185.239.239.184 '+
                             '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Ga8';
+  SubVersion = 'Gb1';
   OficialRelease = true;
   BuildDate = 'July 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -2298,6 +2298,7 @@ else if Comando = 'STEP' then
    end
 else if Comando = 'PAYMENT' then
    Begin
+      {
       try
       if GetLastPagoPoolMember(UserDireccion)+PoolInfo.TipoPago<MyLastBlock then
          begin
@@ -2335,6 +2336,7 @@ else if Comando = 'PAYMENT' then
          ToExclog(Format('Pool: Error Processing payment-> %s',[E.Message]));
          end;
       end;
+      }
    end
 else
    begin
