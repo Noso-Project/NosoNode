@@ -227,6 +227,7 @@ function TExplorerForm.OnlyName(const conpath: String): String;
 var
   cont: Integer;
 begin
+  result := '';
   for cont := Length(conpath) downto 1 do
    if conpath[cont] = DirectorySeparator then
      begin

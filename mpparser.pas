@@ -1059,7 +1059,6 @@ if procesar then
       begin
       AddPoolPay(IntToStr(MyLastBlock+1)+' '+Destination+' '+IntToStr(montoToShow)+' '+
                   ResultOrderID);
-      ClearPoolUserBalance(Destination);
       PoolMembersTotalDeuda := GetTotalPoolDeuda();
       end;
    if reference = 'EXPEL_POOLPAYMENT_'+PoolInfo.Name then
