@@ -43,7 +43,7 @@ jobs:
         lazbuild -qqq Packages/dcpcrypt-2.0.4.1/dcpcrypt.lpk
         lazbuild -qqq Packages/CryptoLib4Pascal-master/CryptoLib/src/Packages/FPC/CryptoLib4PascalPackage.lpk
     - name: Build the Main Application
-      run: lazbuild "Noso.lpi"
+      run: lazbuild -B --bm="Release" "Noso.lpi"
     - uses: actions/upload-artifact@v2
       with:
         name: ${{ matrix.operating-system }}
