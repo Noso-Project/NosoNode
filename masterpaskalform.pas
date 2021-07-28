@@ -491,7 +491,7 @@ CONST
                             '185.239.239.184 '+
                             '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Gb3';
+  SubVersion = 'Gb4';
   OficialRelease = true;
   BuildDate = 'July 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -1113,10 +1113,12 @@ if ((UTCTime.ToInt64 > EngineLastUpdate+WO_AntiFreezeTime) and (WO_AntiFreeze)) 
    CloseAllforms();
    info('All forms closed');
    delay(100);
-   //CerrarClientes();
-   //info('Outgoing connections closed');
+   CerrarClientes();
+   info('Outgoing connections closed');
    //delay(100);
-   StopServer();
+   //StopServer();
+   //This line is for testing purposes
+   //form1.Server.Free;
    info('Node server closed');
    delay(100);
    StopPoolServer();
