@@ -43,6 +43,8 @@ function RPC_Mininginfo(NosoPParams:string):string;
 function RPC_Mainnetinfo(NosoPParams:string):string;
 function RPC_PendingOrders(NosoPParams:string):string;
 function RPC_BlockOrders(NosoPParams:string):string;
+function RPC_NewAddress(NosoPParams:string):string;
+function RPC_SendFunds(NosoPParams:string):string;
 
 
 implementation
@@ -140,6 +142,7 @@ Begin
 if ErrorCode = 400 then result := 'Bad Request'
 else if ErrorCode = 401 then result := 'Invalid JSON request'
 else if ErrorCode = 402 then result := 'Invalid method'
+else if ErrorCode = 407 then result := 'Send funds failed'
 else if ErrorCode = 498 then result := 'Not authorized'
 else if ErrorCode = 499 then result := 'Unexpected error'
 
@@ -213,7 +216,7 @@ var
   resultado: TJSONObject;
   orderobject : TJSONObject;
   objecttype : string;
-  blockorders : integer;
+  blockorders, Newaddresses : integer;
   ordersarray : TJSONArray;
   counter : integer;
 Begin
@@ -312,6 +315,25 @@ else if objecttype = 'blockorder' then
          end;
       end;
    resultado.Add('orders',ordersarray);
+   end
+else if objecttype = 'newaddress' then
+   begin
+   //resultado.Add('valid',StrToBool(parameter(mystring,1)));
+   Newaddresses := StrToIntDef(parameter(mystring,2),1);
+   //resultado.Add('number',Newaddresses);
+   ordersarray := TJSONArray.Create;
+   for counter := 1 to Newaddresses do
+      begin
+      ordersarray.Add(parameter(mystring,2+counter));
+      end;
+   resultado.Add('addresses',ordersarray);
+   end
+else if objecttype = 'sendfunds' then
+   begin
+   if parameter(mystring,1) = 'ERROR' then
+      resultado.Add('result','Failed')
+   else
+      resultado.Add('result',parameter(mystring,1));
    end;
 result := resultado.AsJSON;
 resultado.free;
@@ -341,8 +363,8 @@ else
       for counter := 0 to params.Count-1 do
          NosoPParams:= NosoPParams+' '+params[counter].AsString;
       NosoPParams:= Trim(NosoPParams);
-      //consolelinesadd(jsonreceived);
-      //consolelinesadd(NosoPParams);
+      consolelinesadd(jsonreceived);
+      consolelinesadd('NosoPParams: '+NosoPParams);
       if method = 'test' then result := GetJSONResponse('test',jsonid)
       else if method = 'getaddressbalance' then result := GetJSONResponse(RPC_AddressBalance(NosoPParams),jsonid)
       else if method = 'getorderinfo' then result := GetJSONResponse(RPC_OrderInfo(NosoPParams),jsonid)
@@ -351,6 +373,8 @@ else
       else if method = 'getmainnetinfo' then result := GetJSONResponse(RPC_Mainnetinfo(NosoPParams),jsonid)
       else if method = 'getpendingorders' then result := GetJSONResponse(RPC_PendingOrders(NosoPParams),jsonid)
       else if method = 'getblockorders' then result := GetJSONResponse(RPC_BlockOrders(NosoPParams),jsonid)
+      else if method = 'getnewaddress' then result := GetJSONResponse(RPC_NewAddress(NosoPParams),jsonid)
+      else if method = 'sendfunds' then result := GetJSONResponse(RPC_SendFunds(NosoPParams),jsonid)
       else result := GetJSONErrorCode(402,-1);
       Except on E:Exception do
          ToExcLog('JSON RPC error: '+E.Message);
@@ -526,6 +550,50 @@ else
       end
    else result := result+'0'#127;
    trim(result);
+   end;
+End;
+
+function RPC_NewAddress(NosoPParams:string):string;
+var
+  TotalNumber : integer;
+  counter : integer;
+  ThisWallet : WalletData;
+Begin
+TotalNumber := StrToIntDef(NosoPParams,1);
+if TotalNumber > 100 then TotalNumber := 100;
+//consolelinesAdd('TotalNewAddresses: '+IntToStr(TotalNumber));
+result := 'newaddress'#127'true'#127+IntToStr(TotalNumber)+#127;
+for counter := 1 to totalnumber do
+   begin
+   SetLength(ListaDirecciones,Length(ListaDirecciones)+1);
+   ThisWallet := CreateNewAddress;
+   ListaDirecciones[Length(ListaDirecciones)-1] := ThisWallet;
+   Result := result+ThisWallet.Hash+#127;
+   end;
+trim(result);
+S_Wallet := true;
+U_DirPanel := true;
+//consolelinesAdd(result);
+End;
+
+function RPC_SendFunds(NosoPParams:string):string;
+var
+  destination,  reference : string;
+  amount : int64;
+  resultado : string;
+Begin
+destination := Parameter(NosoPParams,0);
+amount := StrToIntDef(Parameter(NosoPParams,1),0);
+reference := Parameter(NosoPParams,2); if reference = '' then reference := 'null';
+//consolelinesadd('Send to '+destination+' '+int2curr(amount)+' with reference: '+reference)
+Resultado := SendFunds('sendto '+destination+' '+IntToStr(amount)+' '+Reference);
+if resultado = '' then
+   begin
+   result := 'sendfunds'#127'ERROR';
+   end
+else
+   begin
+   result := 'sendfunds'#127+resultado;
    end;
 End;
 

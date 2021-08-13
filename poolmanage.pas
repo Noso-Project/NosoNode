@@ -350,6 +350,7 @@ if ((ARepartir>0) and (MinersConPos>0)) then
       end;
    ConsoleLinesAdd('POOL POP: '+IntToStr(MinersConPos)+' members, each= '+Int2Curr(PagoPorPOS));
    end;
+
 PoolMembersTotalDeuda := GetTotalPoolDeuda();
 S_PoolMembers := true;
 S_PoolInfo := true;

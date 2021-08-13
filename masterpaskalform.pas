@@ -491,7 +491,7 @@ CONST
                             '185.239.239.184 '+
                             '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Gb4';
+  SubVersion = 'Gb8';
   OficialRelease = true;
   BuildDate = 'July 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -524,6 +524,8 @@ CONST
   InitialBlockDiff = 60;            // Dificultad durante los 20 primeros bloques
   GenesysTimeStamp = 1615132800;    // 1615132800;
   FileFormatVer = 'NFF2';
+  NPLS = '<NOS>';
+  NPLE = '<END>';
 
 var
   UserFontSize : integer = 8;
@@ -1134,8 +1136,8 @@ if ((UTCTime.ToInt64 > EngineLastUpdate+WO_AntiFreezeTime) and (WO_AntiFreeze)) 
    info('Noso launcher executed');
    //delay(1000);
    form1.close;
-   end;
-RestartTimer.Enabled:=true;
+   end
+else RestartTimer.Enabled:=true;
 End;
 
 // Ejecuta todo el proceso de carga y lo muestra en el form inicio
