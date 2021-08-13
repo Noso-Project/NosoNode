@@ -861,6 +861,16 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
    //UndoneLastBlock(true,false);
    //RestoreBlockChain();
    end;
+
+// Update headers for pool automatically
+if ((fileexists(PoolInfoFilename)) and (MyResumenhash <> NetResumenHash.Value) and (NLBV=mylastblock)
+   and (MySumarioHash=NetSumarioHash.Value)) then
+   begin
+   PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
+   ConsoleLinesAdd(LangLine(163)); //'Headers file requested'
+   LastTimeRequestResumen := StrToInt64(UTCTime);
+   end;
+
 SetCurrentJob('ActualizarseConLaRed',false);
 End;
 
