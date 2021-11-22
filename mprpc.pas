@@ -363,8 +363,8 @@ else
       for counter := 0 to params.Count-1 do
          NosoPParams:= NosoPParams+' '+params[counter].AsString;
       NosoPParams:= Trim(NosoPParams);
-      consolelinesadd(jsonreceived);
-      consolelinesadd('NosoPParams: '+NosoPParams);
+      //consolelinesadd(jsonreceived);
+      //consolelinesadd('NosoPParams: '+NosoPParams);
       if method = 'test' then result := GetJSONResponse('test',jsonid)
       else if method = 'getaddressbalance' then result := GetJSONResponse(RPC_AddressBalance(NosoPParams),jsonid)
       else if method = 'getorderinfo' then result := GetJSONResponse(RPC_OrderInfo(NosoPParams),jsonid)
@@ -468,7 +468,8 @@ End;
 
 function RPC_Mininginfo(NosoPParams:string):string;
 Begin
-result := format('mininginfo'#127'%d'#127'%s'#127'%d'#127'%d',[mylastblock+1,MyLastBlockHash,LastBlockData.NxtBlkDiff]);
+result := format('mininginfo'#127'%d'#127'%s'#127'%d'#127,[mylastblock+1,MyLastBlockHash,LastBlockData.NxtBlkDiff]);
+consolelinesadd('Resultado:'+result);
 End;
 
 function RPC_Mainnetinfo(NosoPParams:string):string;

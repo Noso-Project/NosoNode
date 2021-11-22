@@ -73,7 +73,6 @@ Begin
    Except on E:Exception do
       begin
       Form1.PoolServer.Destroy;
-
       end;
    end;
 End;
@@ -309,6 +308,7 @@ ARepartir := Cantidad;
 NumeroDePasos := GetPoolNumeroDePasos();
 PoolComision := (cantidad* PoolInfo.Porcentaje) div 10000;
 PoolInfo.FeeEarned:=PoolInfo.FeeEarned+PoolComision;
+
 ARepartir := ARepartir-PoolComision;
 RepartirShares := (ARepartir * PoolShare) div 100;
 ARepartir := ARepartir - RepartirShares;

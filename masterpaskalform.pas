@@ -9,7 +9,7 @@ uses
   Grids, ExtCtrls, Buttons, IdTCPServer, IdContext, IdGlobal, IdTCPClient,
   fileutil, Clipbrd, Menus, crt, formexplore, lclintf, ComCtrls, Spin,
   poolmanage, strutils, mpoptions, math, IdHTTPServer, IdCustomHTTPServer,
-  fpJSON, Types;
+  fpJSON, Types, DefaultTranslator, LCLTranslator, translation;
 
 type
 
@@ -277,12 +277,14 @@ type
     Image1: TImage;
     Image2: TImage;
     Imagenes: TImageList;
+    Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
     Label5: TLabel;
     Label6: TLabel;
     LabAbout: TLabel;
+    Label7: TLabel;
     LE_Rpc_Port: TLabeledEdit;
     LE_Rpc_Pass: TLabeledEdit;
     LabeledEdit5: TLabeledEdit;
@@ -317,6 +319,7 @@ type
     SG_PoolMiners: TStringGrid;
     SG_PoolStats: TStringGrid;
     SG_Monitor: TStringGrid;
+    StringGrid1: TStringGrid;
     SystrayIcon: TTrayIcon;
     tabOptions: TTabSheet;
     TabSheet1: TTabSheet;
@@ -329,7 +332,6 @@ type
     TabExchange: TTabSheet;
     TabMonitor: TTabSheet;
     tabExBuy: TTabSheet;
-    TabExSell: TTabSheet;
     TabSheet6: TTabSheet;
     TabSheet7: TTabSheet;
     TabSheet8: TTabSheet;
@@ -491,9 +493,9 @@ CONST
                             '185.239.239.184 '+
                             '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'H';
+  SubVersion = 'Jb5';
   OficialRelease = true;
-  BuildDate = 'July 2021';
+  BuildDate = 'November 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   HasheableChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -670,7 +672,7 @@ var
 
   // Variables asociadas a la red
   KeepServerOn : Boolean = false;
-     LastTryServerOn : Int64;
+     LastTryServerOn : Int64 = 0;
   DownloadHeaders : boolean = false;
   DownLoadBlocks  : boolean = false;
   CONNECT_LastTime : string = ''; // La ultima vez que se intento una conexion
@@ -883,14 +885,16 @@ if Continuar then
          LLine := CanalCliente[FSlot].IOHandler.ReadLn(IndyTextEncoding_UTF8);
          if CanalCliente[FSlot].IOHandler.ReadLnTimedout then
             begin
-            ToExcLog('TimeOut reading from slot: '+conexiones[Fslot].ip);
+            ToExcLog(Format(rs0001,[conexiones[Fslot].ip]));
+            //ToExcLog('TimeOut reading from slot: '+conexiones[Fslot].ip);
             TruncateLine := TruncateLine+LLine;
             Conexiones[fSlot].IsBusy:=false;
             continue;
             end;
          Except on E:Exception do
             begin
-            tolog ('Error Reading lines from slot: '+IntToStr(Fslot)+slinebreak+E.Message);
+            ToExcLog(Format(rs0002,[IntToStr(Fslot)+slinebreak+E.Message]));
+            //tolog ('Error Reading lines from slot: '+IntToStr(Fslot)+slinebreak+E.Message);
             Conexiones[fSlot].IsBusy:=false;
             continue;
             end;
@@ -900,7 +904,8 @@ if Continuar then
          if GetCommand(LLine) = 'RESUMENFILE' then
             begin
             EnterCriticalSection(CSHeadAccess);
-            ConsoleLinesadd('Receiving headers');
+            ConsoleLinesadd(rs0003);
+            //ConsoleLinesadd('Receiving headers');
             DownloadHeaders := true;
                try
                AFileStream := TFileStream.Create(ResumenFilename, fmCreate);
@@ -909,8 +914,10 @@ if Continuar then
                   CanalCliente[FSlot].IOHandler.ReadStream(AFileStream);
                   Except on E:Exception do
                      begin
-                     toExcLog(format('Error Receiving headers from %s (%s)',[conexiones[fSlot].ip,E.Message]));
-                     consolelinesadd(format('Error Receiving headers from %s (%s)',[conexiones[fSlot].ip,E.Message]));
+                     toExcLog(format(rs0004,[conexiones[fSlot].ip,E.Message]));
+                     //toExcLog(format('Error Receiving headers from %s (%s)',[conexiones[fSlot].ip,E.Message]));
+                     consolelinesadd(format(rs0004,[conexiones[fSlot].ip,E.Message]));
+                     //consolelinesadd(format('Error Receiving headers from %s (%s)',[conexiones[fSlot].ip,E.Message]));
                      end;
                   end;
                finally
@@ -1194,7 +1201,8 @@ StringAvailableUpdates := AvailableUpdates();
 Form1.Latido.Enabled:=true;
 G_Launching := false;
 OutText('Noso is ready',false,1);
-if UserOptions.AutoServer then ProcessLinesAdd('SERVERON');
+//if UserOptions.AutoServer then ProcessLinesAdd('SERVERON');
+if UserOptions.AutoServer then KeepServerOn := true;
 if WO_AutoConnect then ProcessLinesAdd('CONNECT');
 if RPCAuto then  ProcessLinesAdd('RPCON');
 FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
@@ -1433,7 +1441,8 @@ setmilitime('VerifyConnectionStatus',2);
 setmilitime('VerifyMiner',1);
 VerifyMiner();
 setmilitime('VerifyMiner',2);
-if ((KeepServerOn) and (not Form1.Server.Active) and (LastTryServerOn+5<StrToInt64(UTCTime))) then
+if ( (KeepServerOn) and (not Form1.Server.Active) and (LastTryServerOn+5<StrToInt64(UTCTime))
+      and (MyConStatus = 3) ) then
    ProcessLinesAdd('serveron');
 if G_CloseRequested then CerrarPrograma();
 if form1.SystrayIcon.Visible then

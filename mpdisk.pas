@@ -550,7 +550,7 @@ Begin
       end;
    Closefile(FileAdvOptions);
    Except on E:Exception do
-      tolog ('Error creating AdvOpt file');
+      tolog ('Error loading AdvOpt file');
    end;
 End;
 

@@ -93,6 +93,7 @@ Procedure ShowTotalFees();
 function ShowPrivKey(linea:String;ToConsole:boolean = false):String;
 Procedure ExecuteRebuildMyTrx();
 Procedure TestNetwork(LineText:string);
+Procedure ShowPendingTrxs();
 
 // CONSULTING
 Procedure ShowDiftory();
@@ -267,6 +268,7 @@ else if UpperCase(Command) = 'GMTS' then showgmts(LineText)
 else if UpperCase(Command) = 'SHOWPRIVKEY' then ShowPrivKey(LineText, true)
 else if UpperCase(Command) = 'UNIXTIME' then ConsoleLinesAdd(IntToStr(DateTimeToUnix(now)+G_TIMELocalTimeOffset+G_TimeOffSet))
 else if UpperCase(Command) = 'REBUILDMYTRX' then ExecuteRebuildMyTrx()
+else if UpperCase(Command) = 'SHOWPENDING' then ShowPendingTrxs()
 
 // CONSULTING
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()
@@ -2115,6 +2117,11 @@ else
      Processlines.Add('SENDTO gcarreno-main '+IntToStr(Monto));
      end;
   end;
+End;
+
+Procedure ShowPendingTrxs();
+Begin
+
 End;
 
 END. // END UNIT
