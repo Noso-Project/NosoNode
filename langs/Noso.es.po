@@ -1,13 +1,23 @@
 msgid ""
-msgstr "Content-Type: text/plain; charset=UTF-8"
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: es\n"
+"X-Generator: Poedit 3.0\n"
 
 #: tform1.bitbtn1.caption
 msgid "Donate"
-msgstr ""
+msgstr "Donar"
 
 #: tform1.bitbtn2.caption
 msgid "Web"
-msgstr ""
+msgstr "Web"
 
 #: tform1.caption
 msgid "Noso"
@@ -15,117 +25,117 @@ msgstr ""
 
 #: tform1.cb_autorpc.caption
 msgid "Active JSON-RPC server at launch"
-msgstr ""
+msgstr "Activar servidor JSON-RPC al inicio"
 
 #: tform1.cb_rpcfilter.caption
 msgid "Accept only whitelist requests"
-msgstr ""
+msgstr "Aceptar unicamente solicitudes de lista autorizada"
 
 #: tform1.cb_rpc_on.caption
 msgid "Enable JSON-RPC server"
-msgstr ""
+msgstr "Activar servidor JSON-RPC"
 
 #: tform1.cb_wo_antifreeze.caption
 msgid "Anti freeze"
-msgstr ""
+msgstr "Antibloqueo"
 
 #: tform1.cb_wo_autoconnect.caption
 msgid "Auto connect at start"
-msgstr ""
+msgstr "Conectar automaticamente al inicio"
 
 #: tform1.cb_wo_multisend.caption
 msgid "Send coins only from default address"
-msgstr ""
+msgstr "Enviar monedas solo desde la direccion por defecto"
 
 #: tform1.cb_wo_totray.caption
 msgid "Minimize to tray"
-msgstr ""
+msgstr "Minimizar a barra de tareas"
 
 #: tform1.checkbox1.caption
 msgid "Download blockchain"
-msgstr ""
+msgstr "Descargar cadena de bloques"
 
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
-msgstr ""
+msgstr "Ejecutar Nodo maestro"
 
 #: tform1.checkbox7.caption
 msgid "Enable sound alerts"
-msgstr ""
+msgstr "Activar alertas de sonido"
 
 #: tform1.checkbox8.caption
 msgid "Coins filter"
-msgstr ""
+msgstr "Filtro monedas"
 
 #: tform1.checkbox9.caption
 msgid "Use my default addresses"
-msgstr ""
+msgstr "Usar mi direccion por defecto"
 
 #: tform1.lababout.caption
 msgid "About message"
-msgstr ""
+msgstr "Mensaje concepto"
 
 #: tform1.label1.caption
 msgid "Last: -.-"
-msgstr ""
+msgstr "Ultimo: -.-"
 
 #: tform1.label2.caption
 msgid "Minimum connections to work"
-msgstr ""
+msgstr "Minimo conexiones"
 
 #: tform1.label3.caption
 msgid "Connect time out"
-msgstr ""
+msgstr "Tiempo de salida de conexión"
 
 #: tform1.label4.caption
 msgid "Read time out"
-msgstr ""
+msgstr "Tiempo de salida de lectura"
 
 #: tform1.label5.caption
 msgid "History orders showed"
-msgstr ""
+msgstr "Historial de pedidos mostrados"
 
 #: tform1.label6.caption
 msgid "PoS addresses warning days"
-msgstr ""
+msgstr "PoS aborda los días de advertencia"
 
 #: tform1.label7.caption
 msgid "Average: -.-"
-msgstr ""
+msgstr "Promedio: -.-"
 
 #: tform1.labelededit5.editlabel.caption
 msgid "Static IP"
-msgstr ""
+msgstr "IP estática"
 
 #: tform1.labelededit6.editlabel.caption
 msgctxt "tform1.labelededit6.editlabel.caption"
 msgid "Port"
-msgstr ""
+msgstr "Puerto"
 
 #: tform1.labelededit7.editlabel.caption
 msgid "Max peers"
-msgstr ""
+msgstr "Pares"
 
 #: tform1.labelededit8.editlabel.caption
 msgid "Funds address"
-msgstr ""
+msgstr "Dirección fondos"
 
 #: tform1.labelededit9.editlabel.caption
 msgid "Sign address"
-msgstr ""
+msgstr "Dirección firma"
 
 #: tform1.le_rpc_pass.editlabel.caption
 msgid "Funds password"
-msgstr ""
+msgstr "Contraseña  fondos"
 
 #: tform1.le_rpc_port.editlabel.caption
 msgctxt "tform1.le_rpc_port.editlabel.caption"
 msgid "Port"
-msgstr ""
+msgstr "Puerto"
 
 #: tform1.tabconsole.caption
 msgid "Console"
-msgstr ""
+msgstr "Consola"
 
 #: tform1.tabexbuy.caption
 msgid "LTC"
@@ -133,7 +143,7 @@ msgstr ""
 
 #: tform1.tabexchange.caption
 msgid "Exchange"
-msgstr ""
+msgstr "Intercambio"
 
 #: tform1.tabmainpool.caption
 msgid "Pool"
@@ -151,7 +161,7 @@ msgstr ""
 
 #: tform1.taboptions.caption
 msgid "Options"
-msgstr ""
+msgstr "Opciones"
 
 #: tform1.tabpoollog.caption
 msgctxt "tform1.tabpoollog.caption"
@@ -160,28 +170,28 @@ msgstr ""
 
 #: tform1.tabpoolminers.caption
 msgid "Miners"
-msgstr ""
+msgstr "Mineros"
 
 #: tform1.tabpoolpays.caption
 msgid "Pays"
-msgstr ""
+msgstr "Pagos"
 
 #: tform1.tabpoolstats.caption
 msgid "Stats"
-msgstr ""
+msgstr "Estadisticas"
 
 #: tform1.tabsheet1.caption
 msgctxt "tform1.tabsheet1.caption"
 msgid "Wallet"
-msgstr ""
+msgstr "Cartera"
 
 #: tform1.tabsheet10.caption
 msgid "Peers"
-msgstr ""
+msgstr "Pares"
 
 #: tform1.tabsheet2.caption
 msgid "Node"
-msgstr ""
+msgstr "Nodo"
 
 #: tform1.tabsheet3.caption
 msgid "RPC"
@@ -189,11 +199,11 @@ msgstr ""
 
 #: tform1.tabsheet5.caption
 msgid "Trade"
-msgstr ""
+msgstr "Intercambio"
 
 #: tform1.tabsheet6.caption
 msgid "Miner"
-msgstr ""
+msgstr "Minero"
 
 #: tform1.tabsheet7.caption
 msgctxt "tform1.tabsheet7.caption"
@@ -202,30 +212,29 @@ msgstr ""
 
 #: tform1.tabsheet8.caption
 msgid "Except"
-msgstr ""
+msgstr "Excepcion"
 
 #: tform1.tabsheet9.caption
 msgid "About..."
-msgstr ""
+msgstr "Sobre..."
 
 #: tform1.tabwallet.caption
 msgctxt "tform1.tabwallet.caption"
 msgid "Wallet"
-msgstr ""
+msgstr "Cartera"
 
 #: translation.rs0001
 msgid "TimeOut reading from slot: %s"
-msgstr ""
+msgstr "Error conexion desde hueco: %s"
 
 #: translation.rs0002
 msgid "Error Reading lines from slot: %s"
-msgstr ""
+msgstr "Error reciviendo linea desde hueco: %s"
 
 #: translation.rs0003
 msgid "Receiving headers"
-msgstr ""
+msgstr "Recibiendo cabeceras"
 
 #: translation.rs0004
 msgid "Error Receiving headers from %s (%s)"
-msgstr ""
-
+msgstr "Error recibiendo cabeceras desde %s(%s)"

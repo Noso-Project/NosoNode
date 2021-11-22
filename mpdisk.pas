@@ -1714,6 +1714,13 @@ try
   rewrite(archivo);
   writeln(archivo,'echo Restarting Noso...');
   writeln(archivo,'TIMEOUT 5');
+
+  writeln(archivo,'tasklist /FI "IMAGENAME eq '+Application.ExeName+'" 2>NUL | find /I /N "'+Application.ExeName+
+    '">NUL');
+  writeln(archivo,'if "%ERRORLEVEL%"=="0" taskkill /F /im '+Application.ExeName);
+
+  writeln(archivo,'pause');
+
   writeln(archivo,'start '+Application.ExeName);
   Closefile(archivo);
   Except on E:Exception do
