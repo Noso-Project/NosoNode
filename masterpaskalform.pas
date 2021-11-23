@@ -549,6 +549,7 @@ var
   WO_AntiFreeze    : boolean = true;
   WO_MultiSend     : boolean = false;
   WO_AntifreezeTime: integer = 10;
+  WO_Language      : string = 'en';
   RPCFilter        : boolean = true;
   RPCWhitelist     : string = '127.0.0.1,localhost';
   RPCAuto          : boolean = false;
@@ -1475,11 +1476,11 @@ StopServer();
 StopPoolServer();
 if length(ArrayPoolMembers)>0 then GuardarPoolMembers();
 If Miner_IsOn then Miner_IsON := false;
-KillAllMiningThreads;
+//KillAllMiningThreads;
 setlength(CriptoOpsTipo,0);
 if RunDoctorBeforeClose then RunDiagnostico('rundiag fix');
 if RestartNosoAfterQuit then restartnoso();
-form1.Close;
+//form1.Close;
 
 StringListLang.Free;
 ConsoleLines.Free;

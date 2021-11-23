@@ -503,6 +503,8 @@ setmilitime('CreateADV',1);
    writeln(FileAdvOptions,'RPCFilter '+BoolToStr(RPCFilter,true));
    writeln(FileAdvOptions,'RPCWhiteList '+RPCWhitelist);
    writeln(FileAdvOptions,'RPCAuto '+BoolToStr(RPCAuto,true));
+   writeln(FileAdvOptions,'Language '+(WO_Language));
+
 
    Closefile(FileAdvOptions);
    if saving then tolog('Options file saved');
@@ -546,6 +548,7 @@ Begin
       if parameter(linea,0) ='RPCFilter' then RPCFilter:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='RPCWhiteList' then RPCWhiteList:=Parameter(linea,1);
       if parameter(linea,0) ='RPCAuto' then RPCAuto:=StrToBool(Parameter(linea,1));
+      if parameter(linea,0) ='Language' then WO_Language:=Parameter(linea,1);
 
       end;
    Closefile(FileAdvOptions);
@@ -668,7 +671,7 @@ Begin
    try
    CrearArchivoLang();
    CargarIdioma(0);
-   ConsoleLinesAdd(LangLine(18));
+   ConsoleLinesAdd(LangLine(18));  // Default language file created.
    OutText('✓ Language file created',false,1);
    Except on E:Exception do
       tolog ('Error creating default language file');

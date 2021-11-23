@@ -72,7 +72,8 @@ Begin
    if Form1.PoolServer.Active then Form1.PoolServer.Active:=false;
    Except on E:Exception do
       begin
-      Form1.PoolServer.Destroy;
+      ToLog('Unable to close pool server');
+      //Form1.PoolServer.Destroy;
       end;
    end;
 End;

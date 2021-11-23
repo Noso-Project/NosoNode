@@ -486,6 +486,10 @@ ConsoleLinesAdd('AutoConnect: '+BoolToStr(UserOptions.AutoConnect,true));
 ConsoleLinesAdd('AutoUpdate: '+BoolToStr(UserOptions.Auto_Updater,true));
 ConsoleLinesAdd('Version Page: '+UserOptions.VersionPage);
 ConsoleLinesAdd('Mine to pool: '+BoolToStr(UserOptions.UsePool,true));
+consolelinesadd('NEW SYSTEM');
+ConsoleLinesAdd('AutoConnect: '+BoolToStr(WO_AutoConnect,true));
+ConsoleLinesAdd('Language: '+WO_Language);
+
 End;
 
 // devuelve el saldo en satoshis de la cartera
@@ -606,6 +610,8 @@ Procedure AutoConnectON();
 Begin
 UserOptions.AutoConnect := true;
 S_Options := true;
+WO_AutoConnect := true;
+S_AdvOpt := true;
 ConsoleLinesAdd(LangLine(53)+LAngLine(48));     //autoconnect // active
 End;
 
@@ -613,6 +619,8 @@ Procedure AutoConnectOFF();
 Begin
 UserOptions.AutoConnect := false;
 S_Options := true;
+WO_AutoConnect := false;
+S_AdvOpt := true;
 ConsoleLinesAdd(LangLine(53)+LAngLine(49));    //autoconnect // inactive
 End;
 
