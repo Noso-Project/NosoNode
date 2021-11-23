@@ -9,3 +9,5 @@ info.txt
 log 0.2.0.txt
 mpoptions.lfm
 mpoptions.pas
+*.res
+*.lps
