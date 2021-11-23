@@ -1489,6 +1489,7 @@ LogLines.Free;
 ExceptLines.Free;
 ProcessLines.Free;
 OutgoingMsjs.Free;
+PoolPaysLines.free;
 for contador := 1 to maxconecciones do
    SlotLines[contador].Free;
 
