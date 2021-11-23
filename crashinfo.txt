@@ -52,3 +52,21 @@ Autorestarted: True
 InsideMinerJoin: False
 InsidePoolStep: False
 
+ServerON: False CONNECT_Try: False
+33990 0 
+Date: 23 noviembre 2021 09:09:56.984
+MyConStatus: 3
+CurrentJob: >Main
+MinerActive: False
+MinerIsOn: False
+CPUs: 1
+MinerThreads: 0
+OS: WindowsUnknown
+WalletVer: 0.2.1Jb8
+Minerhashcount: 100000000
+Minerhashseed: 000000000
+SendingMsgs: False
+Autorestarted: True
+InsideMinerJoin: False
+InsidePoolStep: False
+

@@ -91,6 +91,7 @@ function OSVersion: string;
 Procedure RestoreBlockChain();
 Procedure InitCrossValues();
 function TryDeleteFile(filename:string):boolean;
+function AppFileName():string;
 
 implementation
 
@@ -504,7 +505,7 @@ setmilitime('CreateADV',1);
    writeln(FileAdvOptions,'RPCWhiteList '+RPCWhitelist);
    writeln(FileAdvOptions,'RPCAuto '+BoolToStr(RPCAuto,true));
    writeln(FileAdvOptions,'Language '+(WO_Language));
-
+   writeln(FileAdvOptions,'Autoserver '+BoolToStr(WO_AutoServer,true));
 
    Closefile(FileAdvOptions);
    if saving then tolog('Options file saved');
@@ -549,6 +550,8 @@ Begin
       if parameter(linea,0) ='RPCWhiteList' then RPCWhiteList:=Parameter(linea,1);
       if parameter(linea,0) ='RPCAuto' then RPCAuto:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='Language' then WO_Language:=Parameter(linea,1);
+      if parameter(linea,0) ='Autoserver' then WO_AutoServer:=StrToBool(Parameter(linea,1));
+
 
       end;
    Closefile(FileAdvOptions);
@@ -1718,13 +1721,13 @@ try
   writeln(archivo,'echo Restarting Noso...');
   writeln(archivo,'TIMEOUT 5');
 
-  writeln(archivo,'tasklist /FI "IMAGENAME eq '+Application.ExeName+'" 2>NUL | find /I /N "'+Application.ExeName+
+  writeln(archivo,'tasklist /FI "IMAGENAME eq '+AppFileName+'" 2>NUL | find /I /N "'+AppFileName+
     '">NUL');
-  writeln(archivo,'if "%ERRORLEVEL%"=="0" taskkill /F /im '+Application.ExeName);
+  writeln(archivo,'if "%ERRORLEVEL%"=="0" taskkill /F /im '+AppFileName);
 
   writeln(archivo,'pause');
 
-  writeln(archivo,'start '+Application.ExeName);
+  writeln(archivo,'start '+'noso.exe');
   Closefile(archivo);
   Except on E:Exception do
     tolog ('Error creating restart file');
@@ -2126,6 +2129,22 @@ result := true;
       ToExcLog('Error deleting file ('+filename+') :'+E.Message);
       end;
    end;
+End;
+
+function AppFileName():string;
+var
+  cont : integer;
+  NameFile : string = '';
+Begin
+NameFile := Application.ExeName;
+result := '';
+for cont := Length(NameFile) downto 1 do
+ if NameFile[cont] = DirectorySeparator then
+   begin
+     Result := Copy(NameFile, cont+1, Length(NameFile));
+     Break;
+   end;
+
 End;
 
 END. // END UNIT

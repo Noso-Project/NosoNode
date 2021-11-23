@@ -94,6 +94,7 @@ function ShowPrivKey(linea:String;ToConsole:boolean = false):String;
 Procedure ExecuteRebuildMyTrx();
 Procedure TestNetwork(LineText:string);
 Procedure ShowPendingTrxs();
+Procedure HangWallet();
 
 // CONSULTING
 Procedure ShowDiftory();
@@ -269,6 +270,7 @@ else if UpperCase(Command) = 'SHOWPRIVKEY' then ShowPrivKey(LineText, true)
 else if UpperCase(Command) = 'UNIXTIME' then ConsoleLinesAdd(IntToStr(DateTimeToUnix(now)+G_TIMELocalTimeOffset+G_TimeOffSet))
 else if UpperCase(Command) = 'REBUILDMYTRX' then ExecuteRebuildMyTrx()
 else if UpperCase(Command) = 'SHOWPENDING' then ShowPendingTrxs()
+else if UpperCase(Command) = 'HANG' then HangWallet()
 
 // CONSULTING
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()
@@ -487,8 +489,9 @@ ConsoleLinesAdd('AutoUpdate: '+BoolToStr(UserOptions.Auto_Updater,true));
 ConsoleLinesAdd('Version Page: '+UserOptions.VersionPage);
 ConsoleLinesAdd('Mine to pool: '+BoolToStr(UserOptions.UsePool,true));
 consolelinesadd('NEW SYSTEM');
-ConsoleLinesAdd('AutoConnect: '+BoolToStr(WO_AutoConnect,true));
-ConsoleLinesAdd('Language: '+WO_Language);
+ConsoleLinesAdd('AutoConnect : '+BoolToStr(WO_AutoConnect,true));
+ConsoleLinesAdd('AutoServer  : '+BoolToStr(WO_AutoServer,true));
+ConsoleLinesAdd('Language    : '+WO_Language);
 
 End;
 
@@ -596,6 +599,8 @@ Procedure AutoServerON();
 Begin
 UserOptions.Autoserver := true;
 S_Options := true;
+WO_autoserver := true;
+S_AdvOpt := true;
 ConsoleLinesAdd(LangLine(52)+LAngLine(48));   //autoserver //active
 End;
 
@@ -603,6 +608,8 @@ Procedure AutoServerOFF();
 Begin
 UserOptions.Autoserver := false;
 S_Options := true;
+WO_autoserver := false;
+S_AdvOpt := true;
 ConsoleLinesAdd(LangLine(52)+LAngLine(49));   //autoserver //inactive
 End;
 
@@ -2129,6 +2136,16 @@ End;
 
 Procedure ShowPendingTrxs();
 Begin
+
+End;
+
+Procedure HangWallet();
+var
+  contador : integer = 0;
+Begin
+Repeat
+
+until contador = 1;
 
 End;
 

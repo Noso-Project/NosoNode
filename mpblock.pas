@@ -154,7 +154,7 @@ if not errored then
       PosReward := PosTotalReward div PoScount;
       //Tolog('PoS stack    : '+Int2curr(PosRequired));
       //Tolog('PoS addresses: '+IntToStr(PoScount));
-      Tolog('Block: '+IntToStr(numero)+' - PoS reward   : '+Int2curr(PosReward));
+      //Tolog('Block: '+IntToStr(numero)+' - PoS reward   : '+Int2curr(PosReward));
       // Adjust the nosotoshi difference in TotalPoSReward
       PosTotalReward := PoSCount * PosReward;
       //pay POS

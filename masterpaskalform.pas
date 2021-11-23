@@ -493,7 +493,7 @@ CONST
                             '185.239.239.184 '+
                             '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Jb7';
+  SubVersion = 'Jb8';
   OficialRelease = true;
   BuildDate = 'November 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -543,6 +543,7 @@ var
   MaxPeersAllow : integer = 50;
   PoolStepsDeep : integer = 3;
   WO_AutoConnect   : boolean = false;
+  WO_AutoServer    : boolean = false;
   WO_ToTray        : boolean = false;
   MinConexToWork   : integer = 1;
   WO_PosWarning    : int64 = 7;
@@ -1109,6 +1110,7 @@ Procedure TForm1.RestartTimerEjecutar(Sender: TObject);
 Begin
 RestartTimer.Enabled:=false;
 StaTimeLab.Caption:=TimestampToDate(UTCTime)+' ('+IntToStr(UTCTime.ToInt64-EngineLastUpdate)+')';
+//StaTimeLab.Update;
 if ((UTCTime.ToInt64 > EngineLastUpdate+WO_AntiFreezeTime) and (WO_AntiFreeze)) then
    begin
    info('Auto restart enabled');
@@ -1206,7 +1208,8 @@ Form1.Latido.Enabled:=true;
 G_Launching := false;
 OutText('Noso is ready',false,1);
 //if UserOptions.AutoServer then ProcessLinesAdd('SERVERON');
-if UserOptions.AutoServer then KeepServerOn := true;
+//if UserOptions.AutoServer then KeepServerOn := true;
+if WO_autoserver then KeepServerOn := true;
 if WO_AutoConnect then ProcessLinesAdd('CONNECT');
 if RPCAuto then  ProcessLinesAdd('RPCON');
 FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
@@ -1480,7 +1483,7 @@ If Miner_IsOn then Miner_IsON := false;
 setlength(CriptoOpsTipo,0);
 if RunDoctorBeforeClose then RunDiagnostico('rundiag fix');
 if RestartNosoAfterQuit then restartnoso();
-//form1.Close;
+form1.Close;
 
 StringListLang.Free;
 ConsoleLines.Free;
@@ -1494,7 +1497,7 @@ PoolPaysLines.free;
 for contador := 1 to maxconecciones do
    SlotLines[contador].Free;
 
-Halt;
+//Halt;
 End;
 
 // Run time creation of form components
