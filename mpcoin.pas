@@ -7,6 +7,7 @@ interface
 uses
   Classes, SysUtils,MasterPaskalForm,mpgui,Clipbrd;
 
+function GetAddressAvailable(address:string):int64;
 function GetAddressBalance(address:string):int64;
 function GetAddressPendingPays(Address:string):int64;
 function GetAddressIncomingpays(Address:string):int64;
@@ -33,11 +34,15 @@ function GetBlockHeaders(numberblock:integer):string;
 function ValidRPCHost(hoststr:string):boolean;
 
 
-
 implementation
 
 Uses
   mpblock, Mpred, mpcripto, mpparser,mpdisk, mpProtocol;
+
+function GetAddressAvailable(address:string):int64;
+Begin
+result := GetAddressBalance(address)-GetAddressPendingPays(address);
+End;
 
 // Devuelve el saldo en sumario de una direccion/alias
 function GetAddressBalance(address:string):int64;

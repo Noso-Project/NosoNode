@@ -104,6 +104,9 @@ Procedure ShowBlockPos(LineText:string);
 Procedure showPosrequired(linetext:string);
 Procedure showgmts(LineText:string);
 
+// EXCHANGE
+Procedure PostOffer(LineText:String);
+
 implementation
 
 uses
@@ -313,6 +316,9 @@ else if UpperCase(Command) = 'RPCOFF' then SetRPCOff()
 else if UpperCase(Command) = 'NETREQS' then ShowNetReqs()
 else if UpperCase(Command) = 'NETHASH' then ConsoleLinesAdd('Network hashrate: '+IntToStr(networkhashrate))
 else if UpperCase(Command) = 'NETPEERS' then ConsoleLinesAdd('Network peers: '+IntToStr(networkpeers))
+
+//EXCHANGE
+else if UpperCase(Command) = 'POST' then PostOffer(LineText)
 
 else ConsoleLinesAdd(LangLine(0)+Command);  // Unknow command
 end;
@@ -2144,10 +2150,72 @@ var
   contador : integer = 0;
 Begin
 Repeat
-
 until contador = 1;
+End;
+
+Procedure PostOffer(LineText:String);
+var
+  FromAddress : String = '';
+  Amount : int64 = 0;
+  Market : String = '';
+  Price : int64;
+  TotalPost : int64;
+  PAyAddress : String = '';
+  Duration : int64;
+  FeeTotal : int64;
+  FeeTramos : int64;
+
+  ErrorCode : integer = 0;
+  errorMessage : string = '';
+Begin
+FromAddress := Parameter(LineText,1);
+if UPPERCASE(FromAddress) = 'DEF' then FromAddress := ListaDirecciones[0].Hash;
+if UPPERCASE(Parameter(linetext,2)) = 'MAX' then Amount := GetMaximunToSend(GetAddressAvailable(FromAddress))
+else Amount := StrToInt64Def(Parameter(linetext,2),0);
+Market := UpperCase(Parameter(LineText,3));
+Price := StrToInt64Def(Parameter(linetext,4),0);
+TotalPost := amount*price div 100000000;
+PayAddress := Parameter(LineText,5);
+Duration := StrToInt64Def(Parameter(LineText,6),100);
+if duration > 1000 then duration := 1000;
+Feetramos := duration div 100; if duration mod 100 > 0 then feetramos +=1;
+FeeTotal := GetFee(amount)*feetramos;
+
+
+if FromAddress = '' then ErrorCode := -1
+else if direccionEsMia(FromAddress) < 0 then ErrorCode := 1
+else if ((amount = 0) or (amount+GetFee(amount)>GetAddressAvailable(FromAddress))) then ErrorCode := 2
+else if not AnsiContainsStr(AvailableMarkets,market) then ErrorCode := 3
+else if price <= 0 then ErrorCode := 4;
+
+if errorcode =-1 then ErrorMessage := 'post {address} {ammount} {market} {price} {payaddress}'+
+   ' {duration}';
+if errorcode = 1 then ErrorMessage := 'Invalid Address';
+if errorcode = 2 then ErrorMessage := 'Invalid Ammount';
+if errorcode = 3 then ErrorMessage := 'Invalid market';
+if errorcode = 4 then ErrorMessage := 'Invalid price';
+
+If ErrorMessage <> '' then ConsoleLinesAdd(ErrorMessage)
+else
+   begin
+   ConsolelinesAdd('Post Exchange Offer');
+   ConsolelinesAdd('From Address: '+FromAddress);
+   ConsolelinesAdd('Ammount     : '+Int2Curr(amount)+' '+CoinSimbol);
+   ConsolelinesAdd('Market      : '+Market);
+   ConsolelinesAdd('Price       : '+Int2Curr(price)+' '+Market);
+   ConsolelinesAdd('Total       : '+Int2Curr(TotalPost)+' '+Market);
+   ConsolelinesAdd('Pay to      : '+PayAddress);
+   ConsolelinesAdd('Duration    : '+IntToStr(Duration)+' blocks');
+   ConsolelinesAdd('Fee         : ('+IntToStr(Feetramos)+') '+Int2Curr(FeeTotal)+' '+CoinSimbol);
+
+
+   end;
 
 End;
+
+{
+post def max ltc 39000 LUUWwzfeQtJ4dc8A5xJVz3Zacray55f1WH 101
+}
 
 END. // END UNIT
 

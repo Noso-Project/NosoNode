@@ -541,6 +541,7 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
    UndonedBlocks := false;
    ResetMinerInfo();
    ResetPoolMiningInfo();
+   if RPCAuto then  ProcessLinesAdd('RPCON');
    if ((Miner_OwnsAPool) and (Miner_Active) and(not Form1.PoolServer.Active)) then // Activar el pool propio si se posee uno
       begin
       StartPoolServer(Poolinfo.Port);

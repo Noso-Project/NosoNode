@@ -493,7 +493,7 @@ CONST
                             '185.239.239.184 '+
                             '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Jb8';
+  SubVersion = 'Jc1';
   OficialRelease = true;
   BuildDate = 'November 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -528,6 +528,7 @@ CONST
   FileFormatVer = 'NFF2';
   NPLS = '<NOS>';
   NPLE = '<END>';
+  AvailableMarkets = '/LTC';
 
 var
   UserFontSize : integer = 8;
@@ -1211,7 +1212,7 @@ OutText('Noso is ready',false,1);
 //if UserOptions.AutoServer then KeepServerOn := true;
 if WO_autoserver then KeepServerOn := true;
 if WO_AutoConnect then ProcessLinesAdd('CONNECT');
-if RPCAuto then  ProcessLinesAdd('RPCON');
+//if RPCAuto then  ProcessLinesAdd('RPCON');
 FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
 FirstShow := true;
 Setlength(CriptoOpsTipo,0);
@@ -1497,7 +1498,7 @@ PoolPaysLines.free;
 for contador := 1 to maxconecciones do
    SlotLines[contador].Free;
 
-//Halt;
+Halt;
 End;
 
 // Run time creation of form components

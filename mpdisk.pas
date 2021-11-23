@@ -1725,8 +1725,6 @@ try
     '">NUL');
   writeln(archivo,'if "%ERRORLEVEL%"=="0" taskkill /F /im '+AppFileName);
 
-  writeln(archivo,'pause');
-
   writeln(archivo,'start '+'noso.exe');
   Closefile(archivo);
   Except on E:Exception do
@@ -2131,6 +2129,7 @@ result := true;
    end;
 End;
 
+// Returns the name of the app file without path
 function AppFileName():string;
 var
   cont : integer;
