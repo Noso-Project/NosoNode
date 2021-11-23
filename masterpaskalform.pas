@@ -1048,6 +1048,8 @@ end;
 
 // Form destroy
 procedure TForm1.FormDestroy(Sender: TObject);
+var
+  contador : integer;
 begin
 DoneCriticalSection(CSProcessLines);
 DoneCriticalSection(CSConsoleLines);
@@ -1068,6 +1070,7 @@ DoneCriticalSection(CSPoolShares);
 form1.Server.Free;
 form1.RPCServer.Free;
 form1.PoolServer.free;
+
 end;
 
 // Form show
@@ -1458,6 +1461,8 @@ end;
 
 //procesa el cierre de la aplicacion
 Procedure CerrarPrograma();
+var
+  contador: integer;
 Begin
 CreateADV(false); // save advopt
 Miner_IsOn := false;
@@ -1475,6 +1480,18 @@ setlength(CriptoOpsTipo,0);
 if RunDoctorBeforeClose then RunDiagnostico('rundiag fix');
 if RestartNosoAfterQuit then restartnoso();
 form1.Close;
+
+StringListLang.Free;
+ConsoleLines.Free;
+DLSL.Free;
+IdiomasDisponibles.Free;
+LogLines.Free;
+ExceptLines.Free;
+ProcessLines.Free;
+OutgoingMsjs.Free;
+for contador := 1 to maxconecciones do
+   SlotLines[contador].Free;
+
 Halt;
 End;
 
