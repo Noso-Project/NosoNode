@@ -3,7 +3,6 @@ object Form1: TForm1
   Height = 550
   Top = 121
   Width = 400
-  BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Noso'
   ClientHeight = 550
@@ -336,25 +335,16 @@ object Form1: TForm1
             ScrollBars = ssVertical
             TabOrder = 0
             Cells = (
-              6
+              3
               0
               0
               'Price'
-              0
-              1
-              '0.00039000'
               1
               0
               'Amount'
-              1
-              1
-              '4000.00000000'
               2
               0
               'Remaining'
-              2
-              1
-              '300 Blocks'
             )
           end
           object Label1: TLabel
@@ -1389,6 +1379,23 @@ object Form1: TForm1
         end
       end
     end
+  end
+  object StatusPanel: TPanel
+    Left = 0
+    Height = 40
+    Top = 510
+    Width = 400
+    Align = alBottom
+    Color = clMedGray
+    Font.CharSet = ANSI_CHARSET
+    Font.Color = clBlack
+    Font.Height = -11
+    Font.Name = 'Consolas'
+    Font.Pitch = fpFixed
+    Font.Quality = fqDraft
+    ParentColor = False
+    ParentFont = False
+    TabOrder = 1
   end
   object Imagenes: TImageList
     Left = 344

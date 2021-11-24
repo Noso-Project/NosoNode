@@ -296,6 +296,7 @@ type
     InfoTimer : TTimer;
     InicioTimer : TTimer;
     CloseTimer : TTimer;
+    StatusPanel: TPanel;
     PoolPanelBlink: TPanel;
     PCPool: TPageControl;
     RestartTimer : Ttimer;
@@ -493,7 +494,7 @@ CONST
                             '185.239.239.184 '+
                             '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Jc1';
+  SubVersion = 'Jc2';
   OficialRelease = true;
   BuildDate = 'November 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -1846,7 +1847,8 @@ InfoPanel.Width:=200;InfoPanel.Height:=20;InfoPanel.Alignment:=tacenter;
 InfoPanel.Caption:='';InfoPanel.Visible:=true;
 InfoPanel.BringToFront;
 
-StatusPanel := TPanel.Create(Form1);StatusPanel.Parent:=form1;
+{
+ := TPanel.Create(Form1);StatusPanel.Parent:=form1;
 StatusPanel.Font.Name:='consolas';StatusPanel.Font.Size:=8;
 StatusPanel.Left:=2;StatusPanel.AutoSize:=false;
 StatusPanel.Color:=clMedGray;
@@ -1854,6 +1856,7 @@ StatusPanel.Top:=488;StatusPanel.Font.Color:=clBlack;
 StatusPanel.Width:=396;StatusPanel.Height:=40;StatusPanel.Alignment:=tacenter;
 StatusPanel.Caption:='';StatusPanel.Visible:=true;
 StatusPanel.BringToFront;
+}
 
   StaConRot := TLabel.Create(StatusPanel);StaConRot.Parent := StatusPanel;StaConRot.AutoSize:=false;
   {StaConRot.Font.Name:='consolas';}StaConRot.Font.Size:=8;

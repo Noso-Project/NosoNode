@@ -2208,7 +2208,6 @@ else
    ConsolelinesAdd('Duration    : '+IntToStr(Duration)+' blocks');
    ConsolelinesAdd('Fee         : ('+IntToStr(Feetramos)+') '+Int2Curr(FeeTotal)+' '+CoinSimbol);
 
-
    end;
 
 End;
