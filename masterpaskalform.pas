@@ -834,7 +834,7 @@ var
   InfoPanel : TPanel;
     InfoPanelTime : integer = 0;
 
-  StatusPanel : TPanel;
+//StatusPanel : TPanel;
     StaConRot : Tlabel;
     StaSerImg : TImage;
     StaRPCLab : Tlabel;
@@ -1848,7 +1848,7 @@ InfoPanel.Caption:='';InfoPanel.Visible:=true;
 InfoPanel.BringToFront;
 
 {
- := TPanel.Create(Form1);StatusPanel.Parent:=form1;
+StatusPanel := TPanel.Create(Form1);StatusPanel.Parent:=form1;
 StatusPanel.Font.Name:='consolas';StatusPanel.Font.Size:=8;
 StatusPanel.Left:=2;StatusPanel.AutoSize:=false;
 StatusPanel.Color:=clMedGray;
@@ -1858,57 +1858,57 @@ StatusPanel.Caption:='';StatusPanel.Visible:=true;
 StatusPanel.BringToFront;
 }
 
-  StaConRot := TLabel.Create(StatusPanel);StaConRot.Parent := StatusPanel;StaConRot.AutoSize:=false;
+  StaConRot := TLabel.Create(Form1.StatusPanel);StaConRot.Parent := Form1.StatusPanel;StaConRot.AutoSize:=false;
   {StaConRot.Font.Name:='consolas';}StaConRot.Font.Size:=8;
   StaConRot.Width:= 16; StaConRot.Height:= 16;StaConRot.Top:= 2; StaConRot.Left:= 2;
   StaConRot.Caption:='|';StaConRot.Alignment:=taCenter;
 
-  StaRPCLab := TLabel.Create(StatusPanel);StaRPCLab.Parent := StatusPanel;StaRPCLab.AutoSize:=false;
+  StaRPCLab := TLabel.Create(Form1.StatusPanel);StaRPCLab.Parent := Form1.StatusPanel;StaRPCLab.AutoSize:=false;
   StaRPCLab.Font.Name:='consolas';StaRPCLab.Font.Size:=8;
   StaRPCLab.Width:= 16; StaRPCLab.Height:= 16;StaRPCLab.Top:= 2; StaRPCLab.Left:= 22;
   StaRPCLab.Caption:='';StaRPCLab.Alignment:=taCenter;StaRPCLab.Transparent:=false;StaRPCLab.Color:=clMoneyGreen;
 
-  StaSerImg:= TImage.Create(StatusPanel);StaSerImg.Parent := StatusPanel;
+  StaSerImg:= TImage.Create(Form1.StatusPanel);StaSerImg.Parent := Form1.StatusPanel;
   StaSerImg.Width:= 16; StaSerImg.Height:= 16;StaSerImg.Top:= 2; StaSerImg.Left:= 22;
   Form1.imagenes.GetBitMap(27,StaSerImg.picture.BitMap);StaSerImg.Visible:=false;
 
-  StaConLab := TLabel.Create(StatusPanel);StaConLab.Parent := StatusPanel;StaConLab.AutoSize:=false;
+  StaConLab := TLabel.Create(Form1.StatusPanel);StaConLab.Parent := Form1.StatusPanel;StaConLab.AutoSize:=false;
   StaConLab.Font.Name:='consolas';StaConLab.Font.Size:=8;
   StaConLab.Width:= 20; StaConLab.Height:= 14;StaConLab.Top:= 4; StaConLab.Left:= 42;
   StaConLab.Caption:='0';StaConLab.Alignment:=taCenter;StaConLab.Transparent:=false;StaConLab.Color:=clRed;
 
-  StaBloImg:= TImage.Create(StatusPanel);StaBloImg.Parent := StatusPanel;
+  StaBloImg:= TImage.Create(Form1.StatusPanel);StaBloImg.Parent := Form1.StatusPanel;
   StaBloImg.Width:= 16; StaBloImg.Height:= 16;StaBloImg.Top:= 2; StaBloImg.Left:= 66;
   Form1.imagenes.GetBitmap(45,StaBloImg.picture.Bitmap);StaBloImg.Visible:=true;
 
-  StaBloLab := TLabel.Create(StatusPanel);StaBloLab.Parent := StatusPanel;StaBloLab.AutoSize:=false;
+  StaBloLab := TLabel.Create(Form1.StatusPanel);StaBloLab.Parent := Form1.StatusPanel;StaBloLab.AutoSize:=false;
   StaBloLab.Font.Name:='consolas';StaBloLab.Font.Size:=8;
   StaBloLab.Width:= 50; StaBloLab.Height:= 16;StaBloLab.Top:= 4; StaBloLab.Left:= 84;
   StaBloLab.Caption:='999999';StaBloLab.Alignment:=taLeftjustify;StaConLab.Transparent:=false;StaConLab.Color:=clgray;
 
-  StaPenImg:= TImage.Create(StatusPanel);StaPenImg.Parent := StatusPanel;
+  StaPenImg:= TImage.Create(Form1.StatusPanel);StaPenImg.Parent := Form1.StatusPanel;
   StaPenImg.Width:= 16; StaPenImg.Height:= 16;StaPenImg.Top:= 2; StaPenImg.Left:= 140;
   Form1.imagenes.GetBitmap(46,StaPenImg.picture.Bitmap);StaPenImg.Visible:=true;
 
-  StaPenLab := TLabel.Create(StatusPanel);StaPenLab.Parent := StatusPanel;StaPenLab.AutoSize:=false;
+  StaPenLab := TLabel.Create(Form1.StatusPanel);StaPenLab.Parent := Form1.StatusPanel;StaPenLab.AutoSize:=false;
   StaPenLab.Font.Name:='consolas';StaPenLab.Font.Size:=8;
   StaPenLab.Width:= 50; StaPenLab.Height:= 14;StaPenLab.Top:= 4; StaPenLab.Left:= 160;
   StaPenLab.Caption:='9999';StaPenLab.Alignment:=taleftjustify;
 
-  StaMinLab := TLabel.Create(StatusPanel);StaMinLab.Parent := StatusPanel;StaMinLab.AutoSize:=false;
+  StaMinLab := TLabel.Create(Form1.StatusPanel);StaMinLab.Parent := Form1.StatusPanel;StaMinLab.AutoSize:=false;
   StaMinLab.Font.Name:='consolas';StaMinLab.Font.Size:=8;
   StaMinLab.Width:= 58; StaMinLab.Height:= 14;StaMinLab.Top:= 4; StaMinLab.Left:= 330;
   StaMinLab.Caption:='9999Kh';StaMinLab.Alignment:=tarightjustify;StaMinLab.Transparent:=false;StaMinLab.Color:=clmenu;
 
-  StaPoolSer:= TImage.Create(StatusPanel);StaPoolSer.Parent := StatusPanel;
+  StaPoolSer:= TImage.Create(Form1.StatusPanel);StaPoolSer.Parent := Form1.StatusPanel;
   StaPoolSer.Width:= 16; StaPoolSer.Height:= 16;StaPoolSer.Top:= 2; StaPoolSer.Left:= 290;
   Form1.imagenes.GetBitmap(27,StaPoolSer.picture.Bitmap);StaPoolSer.Visible:=false;
 
-  StaMinImg:= TImage.Create(StatusPanel);StaMinImg.Parent := StatusPanel;
+  StaMinImg:= TImage.Create(Form1.StatusPanel);StaMinImg.Parent := Form1.StatusPanel;
   StaMinImg.Width:= 16; StaMinImg.Height:= 16;StaMinImg.Top:= 2; StaMinImg.Left:= 330;
   Form1.imagenes.GetBitmap(11,StaMinImg.picture.Bitmap);StaMinImg.Visible:=true;
 
-  StaTimeLab := TLabel.Create(StatusPanel);StaTimeLab.Parent := StatusPanel;StaTimeLab.AutoSize:=false;
+  StaTimeLab := TLabel.Create(Form1.StatusPanel);StaTimeLab.Parent := Form1.StatusPanel;StaTimeLab.AutoSize:=false;
   StaTimeLab.Font.Name:='consolas';StaTimeLab.Font.Size:=8;
   StaTimeLab.Width:= 140; StaTimeLab.Height:= 16;StaTimeLab.Top:= 24; StaTimeLab.Left:= 2;
   StaTimeLab.Caption:='';StaTimeLab.Alignment:=tacenter;StaTimeLab.Transparent:=false;StaTimeLab.Color:=clgray;

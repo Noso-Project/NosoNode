@@ -293,11 +293,12 @@ object Form1: TForm1
     Visible = False
   end
   object PageMain: TPageControl
-    Left = 2
+    Left = 0
     Height = 458
-    Top = 30
-    Width = 396
+    Top = 52
+    Width = 400
     ActivePage = TabWallet
+    Align = alBottom
     TabIndex = 0
     TabOrder = 0
     object TabWallet: TTabSheet
