@@ -106,7 +106,7 @@ msgstr "Média: -.-"
 #: tform1.labelbigbalance.caption
 msgctxt "tform1.labelbigbalance.caption"
 msgid "0 NOS"
-msgstr ""
+msgstr "0 NOS"
 
 #: tform1.labelededit5.editlabel.caption
 msgid "Static IP"
@@ -248,10 +248,8 @@ msgid "LTC"
 msgstr "LTC"
 
 #: tform1.tabexchange.caption
-#, fuzzy
-#| msgid "Exchange"
 msgid "NoBiEx"
-msgstr "Câmbio"
+msgstr "NoBiEx"
 
 #: tform1.tabmainpool.caption
 msgctxt "tform1.tabmainpool.caption"
@@ -348,109 +346,108 @@ msgstr "Recebendo cabeçalhos"
 
 #: translation.rs0004
 msgid "Error Receiving headers from %s (%s)"
-msgstr ""
+msgstr "Erro ao receber cabeçalhos de %s(%s)"
 
 #: translation.rs0005
 msgid "Headers file received: %s"
-msgstr ""
+msgstr "Ficheiro de cabeçalhos recebido: %s"
 
 #: translation.rs0006
 msgid "Receiving blocks"
-msgstr ""
+msgstr "Recebendo blocos"
 
 #: translation.rs0007
 msgid "Error Receiving blocks from %s (%s)"
-msgstr ""
+msgstr "Erro ao receber blocos de %s(%s)"
 
 #: translation.rs0008
 msgid "Error sending outgoing message: %s"
-msgstr ""
+msgstr "Erro ao enviar mensagem de saída: %s"
 
 #: translation.rs0009
 msgid "ERROR: Deleting OutGoingMessage-> %s"
-msgstr ""
+msgstr "ERRO: Apagando mensagem de saída-> %s"
 
 #: translation.rs0010
 msgid "Auto restart enabled"
-msgstr ""
+msgstr "Reinicio automático permitido"
 
 #: translation.rs0011
 msgid "BAT file created"
-msgstr ""
+msgstr "Ficheiro BAT creado"
 
 #: translation.rs0012
 msgid "Crash info file created"
-msgstr ""
+msgstr "Ficheiro informativo de falha criado"
 
 #: translation.rs0013
 msgid "Data restart file created"
-msgstr ""
+msgstr "Ficheiro de dados de reinicio criado"
 
 #: translation.rs0014
 msgid "All forms closed"
-msgstr ""
+msgstr "Todos os formulários fechados"
 
 #: translation.rs0015
 msgid "Outgoing connections closed"
-msgstr ""
+msgstr "Conexões de saída fechadas"
 
 #: translation.rs0016
 msgid "Node server closed"
-msgstr ""
+msgstr "Servidor nó fechado"
 
 #: translation.rs0017
 msgid "Closing pool server..."
-msgstr ""
+msgstr "Fechando servidor pool"
 
 #: translation.rs0018
 msgid "Pool server closed"
-msgstr ""
+msgstr "Servidor pool fechado"
 
 #: translation.rs0019
 msgid "Pool members file saved"
-msgstr ""
+msgstr "Ficheiro de membros da pool guardado"
 
 #: translation.rs0020
 msgid "Noso launcher executed"
-msgstr ""
+msgstr "Inicializador da aplicação Noso executado"
 
 #: translation.rs0021
 msgid "Blocks received up to %s"
-msgstr ""
+msgstr "Blocos recebidos até %s"
 
 #: translation.rs0022
 msgid "✓ Data directory ok"
-msgstr ""
+msgstr "✓ Pasta de dados Ok"
 
 #: translation.rs0023
 msgid "✓ GUI initialized"
-msgstr ""
+msgstr "✓ GUI Inicializada"
 
 #: translation.rs0024
 msgid "✓ My data updated"
-msgstr ""
+msgstr "✓ Meus dados actualizados"
 
 #: translation.rs0025
 msgid "✓ Miner configuration set"
-msgstr ""
+msgstr "✓ Configuração de mineiro establecida"
 
 #: translation.rs0026
 msgid "✓ %s languages available"
-msgstr ""
+msgstr "✓ %s línguas disponíveis"
 
 #: translation.rs0027
 msgid "Wallet %s%s"
-msgstr ""
+msgstr "Carteira %s%s"
 
 #: translation.rs0028
 msgid "✓ %s CPUs found"
-msgstr ""
+msgstr "✓ %s CPUs encontrados"
 
 #: translation.rs0029
 msgid "Noso session started"
-msgstr ""
+msgstr "Sessão Noso iníciada"
 
 #: translation.rs0030
 msgid "Closing wallet"
 msgstr ""
-
