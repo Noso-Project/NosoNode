@@ -300,10 +300,10 @@ object Form1: TForm1
     Height = 482
     Top = 38
     Width = 400
-    ActivePage = TabWallet
+    ActivePage = tabOptions
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 0
+    TabIndex = 5
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
@@ -576,8 +576,11 @@ object Form1: TForm1
           object CB_WO_AutoConnect: TCheckBox
             Left = 8
             Height = 23
-            Top = 16
-            Width = 168
+            Top = 8
+            Width = 372
+            Align = alTop
+            BorderSpacing.Left = 8
+            BorderSpacing.Top = 8
             Caption = 'Auto connect at start'
             OnChange = CB_WO_AutoConnectChange
             TabOrder = 0
@@ -585,155 +588,268 @@ object Form1: TForm1
           object CB_WO_ToTray: TCheckBox
             Left = 8
             Height = 23
-            Top = 40
-            Width = 134
+            Top = 35
+            Width = 372
+            Align = alTop
+            BorderSpacing.Left = 8
+            BorderSpacing.Top = 4
             Caption = 'Minimize to tray'
             OnChange = CB_WO_ToTrayChange
             TabOrder = 1
           end
-          object SE_WO_MinPeers: TSpinEdit
-            Left = 8
-            Height = 18
-            Top = 64
-            Width = 48
-            AutoSize = False
-            MaxValue = 3
-            MinValue = 1
-            OnChange = SE_WO_MinPeersChange
-            TabOrder = 2
-            Value = 1
-          end
-          object Label2: TLabel
-            Left = 64
-            Height = 15
-            Top = 67
-            Width = 202
-            Caption = 'Minimum connections to work'
-            ParentColor = False
-          end
-          object CheckBox1: TCheckBox
-            Left = 8
-            Height = 23
-            Top = 232
-            Width = 167
-            Caption = 'Download blockchain'
-            Checked = True
-            Enabled = False
-            State = cbChecked
-            TabOrder = 3
-          end
-          object SE_WO_CTOT: TSpinEdit
-            Left = 8
-            Height = 18
-            Top = 88
-            Width = 48
-            AutoSize = False
-            Increment = 100
-            MaxValue = 2000
-            MinValue = 100
-            OnChange = SE_WO_CTOTChange
+          object Panel1: TPanel
+            Left = 0
+            Height = 37
+            Top = 58
+            Width = 380
+            Align = alTop
+            AutoSize = True
+            BevelOuter = bvNone
+            ClientHeight = 37
+            ClientWidth = 380
             TabOrder = 4
-            Value = 500
+            object SE_WO_MinPeers: TSpinEdit
+              AnchorSideTop.Control = Label2
+              AnchorSideTop.Side = asrCenter
+              Left = 8
+              Height = 33
+              Top = 4
+              Width = 48
+              BorderSpacing.Left = 8
+              BorderSpacing.Top = 4
+              MaxValue = 3
+              MinValue = 1
+              OnChange = SE_WO_MinPeersChange
+              TabOrder = 0
+              Value = 1
+            end
+            object Label2: TLabel
+              Left = 64
+              Height = 15
+              Top = 13
+              Width = 202
+              BorderSpacing.Left = 8
+              BorderSpacing.Top = 4
+              Caption = 'Minimum connections to work'
+              ParentColor = False
+            end
           end
-          object Label3: TLabel
-            Left = 64
-            Height = 15
-            Top = 91
-            Width = 115
-            Caption = 'Connect time out'
-            ParentColor = False
-          end
-          object SE_WO_RTOT: TSpinEdit
-            Left = 8
-            Height = 18
-            Top = 112
-            Width = 48
-            AutoSize = False
-            Increment = 100
-            MaxValue = 1000
-            MinValue = 100
-            OnChange = SE_WO_RTOTChange
+          object Panel2: TPanel
+            Left = 0
+            Height = 37
+            Top = 95
+            Width = 380
+            Align = alTop
+            AutoSize = True
+            BevelOuter = bvNone
+            ClientHeight = 37
+            ClientWidth = 380
             TabOrder = 5
-            Value = 500
+            object SE_WO_CTOT: TSpinEdit
+              AnchorSideTop.Control = Label3
+              AnchorSideTop.Side = asrCenter
+              Left = 8
+              Height = 33
+              Top = 4
+              Width = 48
+              BorderSpacing.Left = 8
+              BorderSpacing.Top = 4
+              Increment = 100
+              MaxValue = 2000
+              MinValue = 100
+              OnChange = SE_WO_CTOTChange
+              TabOrder = 0
+              Value = 500
+            end
+            object Label3: TLabel
+              Left = 64
+              Height = 15
+              Top = 13
+              Width = 115
+              BorderSpacing.Left = 4
+              Caption = 'Connect time out'
+              ParentColor = False
+            end
           end
-          object Label4: TLabel
-            Left = 64
-            Height = 15
-            Top = 115
-            Width = 94
-            Caption = 'Read time out'
-            ParentColor = False
-          end
-          object SE_WO_ShowOrders: TSpinEdit
-            Left = 8
-            Height = 18
-            Top = 136
-            Width = 48
-            AutoSize = False
-            Increment = 100
-            MaxValue = 1000
-            MinValue = 100
-            OnChange = SE_WO_ShowOrdersChange
+          object Panel3: TPanel
+            Left = 0
+            Height = 37
+            Top = 132
+            Width = 380
+            Align = alTop
+            AutoSize = True
+            BevelOuter = bvNone
+            ClientHeight = 37
+            ClientWidth = 380
             TabOrder = 6
-            Value = 500
+            object SE_WO_RTOT: TSpinEdit
+              AnchorSideTop.Control = Label4
+              AnchorSideTop.Side = asrCenter
+              Left = 8
+              Height = 33
+              Top = 4
+              Width = 48
+              BorderSpacing.Left = 8
+              BorderSpacing.Top = 4
+              Increment = 100
+              MaxValue = 1000
+              MinValue = 100
+              OnChange = SE_WO_RTOTChange
+              TabOrder = 0
+              Value = 500
+            end
+            object Label4: TLabel
+              Left = 64
+              Height = 15
+              Top = 13
+              Width = 94
+              BorderSpacing.Left = 8
+              BorderSpacing.Top = 4
+              Caption = 'Read time out'
+              ParentColor = False
+            end
           end
-          object Label5: TLabel
-            Left = 64
-            Height = 15
-            Top = 139
-            Width = 151
-            Caption = 'History orders showed'
-            ParentColor = False
+          object Panel4: TPanel
+            Left = 0
+            Height = 37
+            Top = 169
+            Width = 380
+            Align = alTop
+            AutoSize = True
+            BevelOuter = bvNone
+            ClientHeight = 37
+            ClientWidth = 380
+            TabOrder = 7
+            object SE_WO_ShowOrders: TSpinEdit
+              AnchorSideTop.Control = Label5
+              AnchorSideTop.Side = asrCenter
+              Left = 8
+              Height = 33
+              Top = 4
+              Width = 48
+              BorderSpacing.Left = 8
+              BorderSpacing.Top = 4
+              Increment = 100
+              MaxValue = 1000
+              MinValue = 100
+              OnChange = SE_WO_ShowOrdersChange
+              TabOrder = 0
+              Value = 500
+            end
+            object Label5: TLabel
+              Left = 64
+              Height = 15
+              Top = 13
+              Width = 151
+              BorderSpacing.Left = 8
+              BorderSpacing.Top = 4
+              Caption = 'History orders showed'
+              ParentColor = False
+            end
+          end
+          object Panel5: TPanel
+            Left = 0
+            Height = 37
+            Top = 206
+            Width = 380
+            Align = alTop
+            AutoSize = True
+            BevelOuter = bvNone
+            ClientHeight = 37
+            ClientWidth = 380
+            TabOrder = 8
+            object SE_WO_PosWarning: TSpinEdit
+              AnchorSideTop.Control = Label6
+              AnchorSideTop.Side = asrCenter
+              AnchorSideRight.Side = asrCenter
+              Left = 8
+              Height = 33
+              Top = 4
+              Width = 48
+              BorderSpacing.Left = 8
+              BorderSpacing.Top = 4
+              MaxValue = 30
+              MinValue = 1
+              OnChange = SE_WO_PosWarningChange
+              TabOrder = 0
+              Value = 5
+            end
+            object Label6: TLabel
+              Left = 64
+              Height = 15
+              Top = 13
+              Width = 187
+              BorderSpacing.Left = 8
+              BorderSpacing.Top = 4
+              Caption = 'PoS addresses warning days'
+              ParentColor = False
+            end
+          end
+          object Panel6: TPanel
+            Left = 0
+            Height = 37
+            Top = 243
+            Width = 380
+            Align = alTop
+            AutoSize = True
+            BevelOuter = bvNone
+            ClientHeight = 37
+            ClientWidth = 380
+            TabOrder = 9
+            object CB_WO_AntiFreeze: TCheckBox
+              AnchorSideTop.Control = SE_WO_AntifreezeTime
+              AnchorSideTop.Side = asrCenter
+              Left = 8
+              Height = 23
+              Top = 9
+              Width = 100
+              BorderSpacing.Left = 8
+              BorderSpacing.Top = 4
+              Caption = 'Anti freeze'
+              OnChange = CB_WO_AntiFreezeChange
+              TabOrder = 0
+            end
+            object SE_WO_AntifreezeTime: TSpinEdit
+              AnchorSideLeft.Control = CB_WO_AntiFreeze
+              AnchorSideLeft.Side = asrBottom
+              Left = 116
+              Height = 33
+              Top = 4
+              Width = 38
+              BorderSpacing.Left = 8
+              BorderSpacing.Top = 4
+              MaxValue = 30
+              MinValue = 5
+              OnChange = SE_WO_AntifreezeTimeChange
+              TabOrder = 1
+              Value = 10
+            end
           end
           object CB_WO_Multisend: TCheckBox
             Left = 8
             Height = 23
-            Top = 208
-            Width = 274
+            Top = 284
+            Width = 372
+            Align = alTop
+            BorderSpacing.Left = 8
+            BorderSpacing.Top = 4
             Caption = 'Send coins only from default address'
             OnChange = CB_WO_MultisendChange
-            TabOrder = 7
+            TabOrder = 3
           end
-          object SE_WO_PosWarning: TSpinEdit
-            Left = 8
-            Height = 18
-            Top = 160
-            Width = 48
-            AutoSize = False
-            MaxValue = 30
-            MinValue = 1
-            OnChange = SE_WO_PosWarningChange
-            TabOrder = 8
-            Value = 5
-          end
-          object Label6: TLabel
-            Left = 64
-            Height = 15
-            Top = 160
-            Width = 187
-            Caption = 'PoS addresses warning days'
-            ParentColor = False
-          end
-          object CB_WO_AntiFreeze: TCheckBox
+          object CheckBox1: TCheckBox
             Left = 8
             Height = 23
-            Top = 184
-            Width = 100
-            Caption = 'Anti freeze'
-            OnChange = CB_WO_AntiFreezeChange
-            TabOrder = 9
-          end
-          object SE_WO_AntifreezeTime: TSpinEdit
-            Left = 90
-            Height = 18
-            Top = 184
-            Width = 38
-            AutoSize = False
-            MaxValue = 30
-            MinValue = 5
-            OnChange = SE_WO_AntifreezeTimeChange
-            TabOrder = 10
-            Value = 10
+            Top = 311
+            Width = 372
+            Align = alTop
+            BorderSpacing.Left = 8
+            BorderSpacing.Top = 4
+            Caption = 'Download blockchain'
+            Checked = True
+            Enabled = False
+            State = cbChecked
+            TabOrder = 2
           end
         end
         object TabSheet2: TTabSheet
@@ -1278,9 +1394,10 @@ object Form1: TForm1
           end
           object BitBtn2: TBitBtn
             Left = 160
-            Height = 30
-            Top = 312
+            Height = 40
+            Top = 304
             Width = 74
+            AutoSize = True
             Caption = 'Web'
             Glyph.Data = {
               36090000424D3609000000000000360000002800000018000000180000000100
