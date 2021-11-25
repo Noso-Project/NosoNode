@@ -122,13 +122,11 @@ msgid "Sign address"
 msgstr "Assinar criptograficamente o endereço"
 
 #: tform1.labelnobiexaverage.caption
-#, fuzzy
 msgctxt "tform1.labelnobiexaverage.caption"
 msgid "Average: -.-"
 msgstr "Média: -.-"
 
 #: tform1.labelnobiexlast.caption
-#, fuzzy
 msgctxt "tform1.labelnobiexlast.caption"
 msgid "Last: -.-"
 msgstr "Último: -.-"
@@ -144,103 +142,97 @@ msgstr "Porto"
 
 #: tform1.menuitem1.caption
 msgid "Network"
-msgstr ""
+msgstr "Rede"
 
 #: tform1.menuitem10.caption
 msgid "Development"
-msgstr ""
+msgstr "Desenvolvimento"
 
 #: tform1.menuitem11.caption
 msgid "View"
-msgstr ""
+msgstr "Vista"
 
 #: tform1.menuitem12.caption
-#, fuzzy
 msgctxt "tform1.menuitem12.caption"
 msgid "Console"
 msgstr "Consola"
 
 #: tform1.menuitem13.caption
-#, fuzzy
 msgctxt "tform1.menuitem13.caption"
 msgid "Log"
 msgstr "Diário"
 
 #: tform1.menuitem14.caption
-#, fuzzy
 msgctxt "tform1.menuitem14.caption"
 msgid "Monitor"
 msgstr "Monitorização"
 
 #: tform1.menuitem15.caption
 msgid "WebPage"
-msgstr ""
+msgstr "Página Web"
 
 #: tform1.menuitem16.caption
 msgid "ConSlots"
-msgstr ""
+msgstr "Lista de conexões"
 
 #: tform1.menuitem17.caption
-#, fuzzy
 msgctxt "tform1.menuitem17.caption"
 msgid "Pool"
 msgstr "Pool"
 
 #: tform1.menuitem18.caption
 msgid "Language"
-msgstr ""
+msgstr "Linguagem"
 
 #: tform1.menuitem19.caption
 msgid "Import"
-msgstr ""
+msgstr "Importar"
 
 #: tform1.menuitem2.caption
 msgid "Start Server"
-msgstr ""
+msgstr "Iniciar Servidor"
 
 #: tform1.menuitem20.caption
 msgid "New file"
-msgstr ""
+msgstr "Novo Ficheiro"
 
 #: tform1.menuitem21.caption
 msgid "Updates"
-msgstr ""
+msgstr "Actualizações"
 
 #: tform1.menuitem22.caption
 msgid "Messages"
-msgstr ""
+msgstr "Mensagens"
 
 #: tform1.menuitem3.caption
 msgid "Connect"
-msgstr ""
+msgstr "Conectar"
 
 #: tform1.menuitem4.caption
-#, fuzzy
 msgctxt "tform1.menuitem4.caption"
 msgid "Miner"
 msgstr "Mineiro"
 
 #: tform1.menuitem5.caption
 msgid "Import Wallet"
-msgstr ""
+msgstr "Importar Carteira"
 
 #: tform1.menuitem6.caption
 msgid "Export Wallet"
-msgstr ""
+msgstr "Exportar Carteira"
 
 #: tform1.menuitem7.caption
-#, fuzzy
 msgctxt "tform1.menuitem7.caption"
 msgid "About..."
 msgstr "Sobre..."
 
 #: tform1.menuitem8.caption
 msgid "Restart"
-msgstr ""
+msgstr "Reiniciar"
 
 #: tform1.menuitem9.caption
 msgid "Quit"
-msgstr ""
+msgstr "Sair"
 
 #: tform1.tabconsole.caption
 msgctxt "tform1.tabconsole.caption"
@@ -310,7 +302,7 @@ msgstr "RPC"
 
 #: tform1.tabsheet4.caption
 msgid "ADA"
-msgstr ""
+msgstr "ADA"
 
 #: tform1.tabsheet5.caption
 msgid "Trade"
@@ -406,7 +398,7 @@ msgstr "Servidor nó fechado"
 
 #: translation.rs0017
 msgid "Closing pool server..."
-msgstr "Fechando servidor pool"
+msgstr "Fechando servidor pool..."
 
 #: translation.rs0018
 msgid "Pool server closed"
@@ -458,5 +450,4 @@ msgstr "Sessão Noso iníciada"
 
 #: translation.rs0030
 msgid "Closing wallet"
-msgstr ""
-
+msgstr "Fechando Carteira"
