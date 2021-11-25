@@ -274,6 +274,7 @@ type
     CheckBox8: TCheckBox;
     CheckBox9: TCheckBox;
     Edit1: TEdit;
+    ConsoleLine: TEdit;
     Image1: TImage;
     Image2: TImage;
     Imagenes: TImageList;
@@ -285,6 +286,7 @@ type
     Label6: TLabel;
     LabAbout: TLabel;
     Label7: TLabel;
+    LabelBigBalance: TLabel;
     LE_Rpc_Port: TLabeledEdit;
     LE_Rpc_Pass: TLabeledEdit;
     LabeledEdit5: TLabeledEdit;
@@ -296,6 +298,10 @@ type
     InfoTimer : TTimer;
     InicioTimer : TTimer;
     CloseTimer : TTimer;
+    ConnectButton: TSpeedButton;
+    MemoConsola: TMemo;
+    DataPanel: TStringGrid;
+    TopPanel: TPanel;
     StatusPanel: TPanel;
     PoolPanelBlink: TPanel;
     PCPool: TPageControl;
@@ -347,6 +353,7 @@ type
     procedure BitBtn1Click(Sender: TObject);
     procedure BitBtn2Click(Sender: TObject);
     procedure CB_RPCFilterChange(Sender: TObject);
+    procedure DataPanelResize(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -494,7 +501,7 @@ CONST
                             '185.239.239.184 '+
                             '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Jc2';
+  SubVersion = 'Jc4';
   OficialRelease = true;
   BuildDate = 'November 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -591,8 +598,8 @@ var
   G_LastPing  : int64;            // El segundo del ultimo ping
   G_TotalPings : Int64 = 0;
   Form1: TForm1;
-  Memoconsola : Tmemo;
-  ConsoleLine : TEdit;
+  //Memoconsola : Tmemo;
+  //ConsoleLine : TEdit;
   LastCommand : string = '';
   ProcessLines : TStringlist;
   StringListLang : TStringlist;
@@ -607,9 +614,9 @@ var
     S_PoolPays : boolean = false;
   ArrPoolPays : array of PoolPaymentData;
   StringAvailableUpdates : String = '';
-  DataPanel : TStringGrid;
+  //DataPanel : TStringGrid;
     U_DataPanel : boolean = true;
-  LabelBigBalance : TLabel;
+  //LabelBigBalance : TLabel;
 
   // Network requests
   ArrayNetworkRequests : array of NetworkRequestData;
@@ -771,6 +778,7 @@ var
   SumarioFilename : string = '';
   LanguageFileName : string = '';
   BlockDirectory : string = '';
+  MarksDirectory : string = '';
   UpdatesDirectory : string = '';
   LogsDirectory : string = '';
   ExceptLogFilename : string = '';
@@ -790,7 +798,7 @@ var
   ConsoLinePopUp : TPopupMenu;
   TrxDetailsPopUp : TPopupMenu;
 
-  ConnectButton : TSpeedButton;
+  //ConnectButton : TSpeedButton;
   MinerButton : TSpeedButton;
   ImageInc :TImage;
     MontoIncoming : Int64 = 0;
@@ -929,13 +937,15 @@ if Continuar then
                DownloadHeaders := false;
                LeaveCriticalSection(CSHeadAccess);
                end;
-            consolelinesAdd(LAngLine(74)+': '+copy(HashMD5File(ResumenFilename),1,5)); //'Headers file received'
+            consolelinesAdd(format(rs0005,[copy(HashMD5File(ResumenFilename),1,5)]));
+            //consolelinesAdd(LAngLine(74)+': '+copy(HashMD5File(ResumenFilename),1,5)); //'Headers file received'
             LastTimeRequestResumen := 0;
             UpdateMyData();
             end
          else if LLine = 'BLOCKZIP' then
             begin
-            ConsoleLinesadd('Receiving blocks');
+            ConsoleLinesadd(rs0006);
+            //ConsoleLinesadd('Receiving blocks');
             BlockZipName := BlockDirectory+'blocks.zip';
             if FileExists(BlockZipName) then DeleteFile(BlockZipName);
             AFileStream := TFileStream.Create(BlockZipName, fmCreate);
@@ -946,7 +956,8 @@ if Continuar then
                   CanalCliente[FSlot].IOHandler.ReadStream(AFileStream);
                   Except on E:Exception do
                      begin
-                     consolelinesadd(format('Error Receiving blocks from %s (%s)',[conexiones[fSlot].ip,E.Message]));
+                     ConsoleLinesadd(format(rs0007,[conexiones[fSlot].ip,E.Message]));
+                     //consolelinesadd(format('Error Receiving blocks from %s (%s)',[conexiones[fSlot].ip,E.Message]));
                      end;
                   end;
                finally
@@ -954,7 +965,8 @@ if Continuar then
                end;
             UnzipBlockFile(BlockDirectory+'blocks.zip',true);
             MyLastBlock := GetMyLastUpdatedBlock();
-            consolelinesadd('Blocks received up to '+IntToStr(MyLastBlock));
+            ConsoleLinesadd(format(rs0021,[IntToStr(MyLastBlock)]));
+            //consolelinesadd('Blocks received up to '+IntToStr(MyLastBlock));
             //BuildHeaderFile(MyLastBlock);
             ResetMinerInfo();
             LastTimeRequestBlock := 0;
@@ -996,7 +1008,8 @@ While OutgoingMsjs.Count > 0 do
          try
          if conexiones[Slot].tipo <> '' then PTC_SendLine(Slot,OutgoingMsjs[0]);
          Except on E:Exception do
-            ToExclog('Error sending outgoing message: '+E.Message);
+             ToExclog(format(rs0008,[E.Message]));
+            //ToExclog('Error sending outgoing message: '+E.Message);
          end;
       end;
    if OutgoingMsjs.Count > 0 then
@@ -1006,7 +1019,8 @@ While OutgoingMsjs.Count > 0 do
          OutgoingMsjs.Delete(0);
          Except on E:Exception do
             begin
-            ToExcLog('ERROR: Deleting OutGoingMessage-> '+E.Message);
+            ToExcLog(format(rs0009,[E.Message]));
+            //ToExcLog('ERROR: Deleting OutGoingMessage-> '+E.Message);
             end;
          end;
       LeaveCriticalSection(CSOutgoingMsjs);
@@ -1115,41 +1129,42 @@ StaTimeLab.Caption:=TimestampToDate(UTCTime)+' ('+IntToStr(UTCTime.ToInt64-Engin
 //StaTimeLab.Update;
 if ((UTCTime.ToInt64 > EngineLastUpdate+WO_AntiFreezeTime) and (WO_AntiFreeze)) then
    begin
-   info('Auto restart enabled');
+   info(rs0010); //'Auto restart enabled'
    delay(100);
    CrearBatFileForRestart();
-   info('BAT file created');
+   info(rs0011); //'BAT file created'
    delay(100);
    AutoRestarted := true;
    CrearCrashInfo();
-   info('Crash info file created');
+   info(rs0012); //'Crash info file created'
    delay(100);
    CrearRestartfile();
-   info('Data restart file created');
+   info(rs0013); //'Data restart file created'
    delay(100);
    CloseAllforms();
-   info('All forms closed');
+   info(rs0014); //'All forms closed'
    delay(100);
    CerrarClientes();
-   info('Outgoing connections closed');
+   info(rs0015); //'Outgoing connections closed'
    //delay(100);
    //StopServer();
    //This line is for testing purposes
    //form1.Server.Free;
-   info('Node server closed');
+   info(rs0016); //'Node server closed'
    delay(100);
+   info(rs0017); //'Closing pool server...'
    StopPoolServer();
-   info('Pool server closed');
+   info(rs0018); //'Pool server closed'
    delay(100);
    if length(ArrayPoolMembers)>0 then
       begin
       GuardarPoolMembers();
-      info('Pool members file saved');
+      info(rs0019); //'Pool members file saved'
       delay(100);
       end;
    RunExternalProgram('nosolauncher.bat');
-   info('Noso launcher executed');
-   //delay(1000);
+   info(rs0020); //'Noso launcher executed'
+   delay(500);
    form1.close;
    end
 else RestartTimer.Enabled:=true;
@@ -1163,7 +1178,7 @@ Begin
 InitCrossValues();
 // A partir de aqui se inicializa todo
 if not directoryexists('NOSODATA') then CreateDir('NOSODATA');
-OutText('✓ Data directory ok',false,1);
+OutText(rs0022,false,1); //'✓ Data directory ok'
 if not FileExists(OptionsFileName) then CrearArchivoOpciones() else CargarOpciones();
 StringListLang := TStringlist.Create;
 ConsoleLines := TStringlist.Create;
@@ -1175,20 +1190,20 @@ PoolPaysLines := TStringlist.Create;
 if not FileExists (LanguageFileName) then CrearIdiomaFile() else CargarIdioma(UserOptions.language);
 // finalizar la inicializacion
 InicializarFormulario();
-OutText('✓ GUI initialized',false,1);
+OutText(rs0023,false,1); //✓ GUI initialized
 VerificarArchivos();
 InicializarGUI();
 InitTime();
 UpdateMyData();
-OutText('✓ My data updated',false,1);
+OutText(rs0024,false,1); //'✓ My data updated'
 ResetMinerInfo();
-OutText('✓ Miner configuration set',false,1);
+OutText(rs0025,false,1); //'✓ Miner configuration set'
 // Ajustes a mostrar
 LoadOptionsToPanel();
-form1.Caption:=coinname+LangLine(61)+ProgramVersion+SubVersion;    // Wallet
-Application.Title := coinname+LangLine(61)+ProgramVersion;  // Wallet
-OutText('✓ '+IntToStr(IdiomasDisponibles.count)+' languages available',false,1);
-ConsoleLinesAdd(coinname+LangLine(61)+ProgramVersion+SubVersion);  // wallet
+form1.Caption:=coinname+format(rs0027,[ProgramVersion,SubVersion]);
+Application.Title := coinname+format(rs0027,[ProgramVersion,SubVersion]);   // Wallet
+OutText(format(rs0026,[IntToStr(IdiomasDisponibles.count)]),false,1); //'✓ %s languages available'
+ConsoleLinesAdd(coinname+format(rs0027,[ProgramVersion,SubVersion]));
 RebuildMyTrx(MyLastBlock);
 UpdateMyTrxGrid();
 if useroptions.JustUpdated then
@@ -1204,7 +1219,7 @@ if GetEnvironmentVariable('NUMBER_OF_PROCESSORS') = '' then G_CpuCount := 1
 else G_CpuCount := StrToIntDef(GetEnvironmentVariable('NUMBER_OF_PROCESSORS'),1);
 G_CpuCount := 1;
 G_MiningCPUs := G_CpuCount;
-OutText('✓ '+inttostr(G_CpuCount)+' CPUs found',false,1);
+OutText(format(rs0028,[inttostr(G_CpuCount)]),false,1);
 StringAvailableUpdates := AvailableUpdates();
 Form1.Latido.Enabled:=true;
 G_Launching := false;
@@ -1224,8 +1239,8 @@ Setlength(Miner_Thread,0);
 SetLength(ArrayNetworkRequests,0);
 SetLength(ArrPoolPays,0);
 
-Tolog('Noso session started'); NewLogLines := NewLogLines-1;
-info('Noso session started');
+Tolog(rs0029); NewLogLines := NewLogLines-1; //'Noso session started'
+info(rs0029);  //'Noso session started'
 infopanel.BringToFront;
 SetCurrentJob('Main',true);
 forminicio.Visible:=false;
@@ -1455,7 +1470,7 @@ if ( (KeepServerOn) and (not Form1.Server.Active) and (LastTryServerOn+5<StrToIn
    ProcessLinesAdd('serveron');
 if G_CloseRequested then CerrarPrograma();
 if form1.SystrayIcon.Visible then
-   form1.SystrayIcon.Hint:=Coinname+' Ver. '+ProgramVersion+SLINEBREAK+LabelBigBalance.Caption;
+   form1.SystrayIcon.Hint:=Coinname+' Ver. '+ProgramVersion+SubVersion+SLINEBREAK+LabelBigBalance.Caption;
 if ((CheckMonitor) and (FormMonitor.Visible)) then UpdateMiliTimeForm();
 if FormSlots.Visible then UpdateSlotsGrid();
 if FormPool.Visible then UpdatePoolForm();
@@ -1579,47 +1594,52 @@ MenuItem := TMenuItem.Create(TrxDetailsPopUp);MenuItem.Caption := 'Copy Order';F
 MenuItem := TMenuItem.Create(TrxDetailsPopUp);MenuItem.Caption := 'Copy';Form1.imagenes.GetBitmap(7,MenuItem.Bitmap);
   MenuItem.OnClick := @form1.TrxDetailsPopUpCopy;TrxDetailsPopUp.Items.Add(MenuItem);
 
-Memoconsola := TMemo.Create(Form1);
+{Memoconsola := TMemo.Create(Form1);
 Memoconsola.Parent:=form1.tabconsole;
 Memoconsola.Left:=0;Memoconsola.Top:=0;Memoconsola.Height:=220;Memoconsola.Width:=388;
 Memoconsola.Color:=clblack;Memoconsola.Font.Color:=clwhite;Memoconsola.ReadOnly:=true;
 Memoconsola.Font.Size:=10;Memoconsola.Font.Name:='consolas';
 Memoconsola.Visible:=true;Memoconsola.ScrollBars:=ssvertical;
 MemoConsola.OnContextPopup:=@Form1.CheckConsolePopUp;
-MemoConsola.PopupMenu:=ConsolePopUp ;
+MemoConsola.PopupMenu:=ConsolePopUp ;}
 
-ConsoleLine := TEdit.Create(Form1); ConsoleLine.Parent:=Form1.tabconsole;
+{ConsoleLine := TEdit.Create(Form1); ConsoleLine.Parent:=Form1.tabconsole;
 ConsoleLine.Font.Name:='consolas';
 ConsoleLine.Left:=0;ConsoleLine.Top:=220;ConsoleLine.Height:=12;ConsoleLine.Width:=388;
 ConsoleLine.AutoSize:=true;ConsoleLine.Color:=clBlack;ConsoleLine.Font.Color:=clWhite;
 ConsoleLine.Visible:=true;ConsoleLine.OnKeyUp:=@form1.ConsoleLineKeyup;
 ConsoleLine.OnContextPopup:=@Form1.CheckConsoLinePopUp;
-ConsoleLine.PopupMenu:=ConsoLinePopUp ;
+ConsoleLine.PopupMenu:=ConsoLinePopUp ;}
 
-DataPanel := TStringGrid.Create(Form1);DataPanel.Parent:=Form1.tabconsole;
+form1.DataPanel.DefaultRowHeight:=UserRowHeigth;
+form1.DataPanel.Font.Size:=UserFontSize;
+form1.DataPanel.FocusRectVisible:=false;
+form1.DataPanel.ColWidths[0]:= 79;
+form1.DataPanel.ColWidths[1]:= 115;
+form1.DataPanel.ColWidths[2]:= 79;
+form1.DataPanel.ColWidths[3]:= 115;
+
+{DataPanel := TStringGrid.Create(Form1);DataPanel.Parent:=Form1.tabconsole;
 DataPanel.Left:=0;DataPanel.Top:=250;DataPanel.Height:=180;DataPanel.Width:=388;
-DataPanel.DefaultRowHeight:=UserRowHeigth;
-DataPanel.Font.Size:=UserFontSize;
 DataPanel.ColCount:=4;DataPanel.rowcount:=8;DataPanel.FixedCols:=0;DataPanel.FixedRows:=0;
 DataPanel.enabled:= false;
 DataPanel.ScrollBars:=ssnone;
-DataPanel.ColWidths[0]:= 79;DataPanel.ColWidths[1]:= 115;DataPanel.ColWidths[2]:= 79;DataPanel.ColWidths[3]:= 115;
 DataPanel.Visible:=true;
-DataPanel.OnPrepareCanvas:= @Form1.Grid1PrepareCanvas;
-DataPanel.FocusRectVisible:=false;
+DataPanel.OnPrepareCanvas:= @Form1.Grid1PrepareCanvas;}
 
-LabelBigBalance := TLabel.Create(Form1);LabelBigBalance.Parent:=form1;
+
+{LabelBigBalance := TLabel.Create(Form1);LabelBigBalance.Parent:=form1.TopPanel;
 LabelBigBalance.Caption:='0 '+Coinsimbol;LabelBigBalance.Font.Size:=18;LabelBigBalance.AutoSize:=false;
 LabelBigBalance.Left:= 2;LabelBigBalance.Top:=2;LabelBigBalance.Width:=396;
 LabelBigBalance.Height:=28;LabelBigBalance.Alignment:=taRightJustify;
 LabelBigBalance.Enabled:=false;
-LabelBigBalance.Font.Name:='consolas';
+LabelBigBalance.Font.Name:='consolas';}
 
-ConnectButton := TSpeedButton.Create(form1);ConnectButton.Parent:=form1;
+{ConnectButton := TSpeedButton.Create(form1);ConnectButton.Parent:=form1;
 ConnectButton.Top:=2;ConnectButton.Left:=2;ConnectButton.Height:=26;ConnectButton.Width:=26;
 Form1.imagenes.GetBitmap(2,ConnectButton.Glyph);
 ConnectButton.Caption:='';ConnectButton.OnClick:=@Form1.ConnectCircleOnClick;
-ConnectButton.ShowHint:=true;ConnectButton.OnMouseEnter:=@Form1.CheckForHint;
+ConnectButton.ShowHint:=true;ConnectButton.OnMouseEnter:=@Form1.CheckForHint;}
 
 MinerButton := TSpeedButton.Create(form1);MinerButton.Parent:=form1;
 MinerButton.Top:=2;MinerButton.Left:=30;MinerButton.Height:=26;MinerButton.Width:=26;
@@ -3667,6 +3687,18 @@ if not G_Launching then
       end;
    S_AdvOpt := true;
    end;
+end;
+
+// Adjust data panel when resizing
+procedure TForm1.DataPanelResize(Sender: TObject);
+var
+  GridWidth : integer;
+begin
+GridWidth := form1.DataPanel.Width;
+form1.DataPanel.ColWidths[0]:= thispercent(20,GridWidth);
+form1.DataPanel.ColWidths[1]:= thispercent(30,GridWidth);
+form1.DataPanel.ColWidths[2]:= thispercent(20,GridWidth);
+form1.DataPanel.ColWidths[3]:= thispercent(30,GridWidth);
 end;
 
 procedure TForm1.MemoRPCWhitelistEditingDone(Sender: TObject);

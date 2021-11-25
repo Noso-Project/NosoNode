@@ -108,6 +108,8 @@ if not directoryexists(BlockDirectory) then CreateDir(BlockDirectory);
 OutText('✓ Block folder ok',false,1);
 if not directoryexists(UpdatesDirectory) then CreateDir(UpdatesDirectory);
 OutText('✓ Updates folder ok',false,1);
+if not directoryexists(MarksDirectory) then CreateDir(MarksDirectory);
+OutText('✓ Marks folder ok',false,1);
 
 if not directoryexists(LogsDirectory) then CreateDir(LogsDirectory);
 if not FileExists (ExceptLogFilename) then CreateExceptlog;
@@ -2102,6 +2104,7 @@ WalletFilename      := 'NOSODATA'+DirectorySeparator+'wallet.pkw';
 SumarioFilename     := 'NOSODATA'+DirectorySeparator+'sumary.psk';
 LanguageFileName    := 'NOSODATA'+DirectorySeparator+'noso.lng';
 BlockDirectory      := 'NOSODATA'+DirectorySeparator+'BLOCKS'+DirectorySeparator;
+MarksDirectory      := 'NOSODATA'+DirectorySeparator+'BLOCKS'+DirectorySeparator+'MARKS'+DirectorySeparator;
 UpdatesDirectory    := 'NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator;
 LogsDirectory       := 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator;
 ExceptLogFilename   := 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'exceptlog.txt';

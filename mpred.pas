@@ -469,18 +469,18 @@ if NumeroConexiones = 0 then  // Desconeectado
    MyConStatus := 0;
    if Form1.Server.Active then
       begin
-      if ConnectButton.Caption='' then
+      if form1.ConnectButton.Caption='' then
         begin
-        ConnectButton.Caption:=' ';
-        Form1.imagenes.GetBitmap(1,ConnectButton.Glyph);
+        form1.ConnectButton.Caption:=' ';
+        Form1.imagenes.GetBitmap(1,form1.ConnectButton.Glyph);
         end
       else
          begin
-         Form1.imagenes.GetBitmap(2,ConnectButton.Glyph);
-         ConnectButton.Caption:='';
+         Form1.imagenes.GetBitmap(2,form1.ConnectButton.Glyph);
+         form1.ConnectButton.Caption:='';
          end;
       end
-   else Form1.imagenes.GetBitmap(2,ConnectButton.Glyph);
+   else Form1.imagenes.GetBitmap(2,form1.ConnectButton.Glyph);
    if STATUS_Connected then
       begin
       STATUS_Connected := false;
@@ -494,7 +494,7 @@ if NumeroConexiones = 0 then  // Desconeectado
       U_Datapanel:= true;
       SetLength(PendingTXs,0);
       StopPoolServer;
-      Form1.imagenes.GetBitmap(2,ConnectButton.Glyph);
+      Form1.imagenes.GetBitmap(2,form1.ConnectButton.Glyph);
       end;
    // Resetear todos los valores
    end;
@@ -503,7 +503,7 @@ if ((NumeroConexiones>0) and (NumeroConexiones<MinConexToWork) and (MyConStatus 
    MyConStatus:=1;
    G_LastPing := StrToInt64(UTCTime);
    ConsoleLinesAdd(LangLine(34)); //Connecting...
-   Form1.imagenes.GetBitmap(2,ConnectButton.Glyph);
+   Form1.imagenes.GetBitmap(2,form1.ConnectButton.Glyph);
    end;
 if MyConStatus > 0 then
    begin
@@ -559,7 +559,7 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
       ConsoleLinesAdd('Pending requested');
       end;
    OutgoingMsjsAdd(ProtocolLine(ping));
-   Form1.imagenes.GetBitmap(0,ConnectButton.Glyph);
+   Form1.imagenes.GetBitmap(0,form1.ConnectButton.Glyph);
    end;
 if MyConStatus = 3 then
    begin

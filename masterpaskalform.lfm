@@ -1,12 +1,13 @@
 object Form1: TForm1
   Left = 929
-  Height = 550
+  Height = 560
   Top = 121
   Width = 400
-  BorderStyle = bsSingle
   Caption = 'Noso'
-  ClientHeight = 550
+  ClientHeight = 560
   ClientWidth = 400
+  Constraints.MinHeight = 560
+  Constraints.MinWidth = 400
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -293,24 +294,86 @@ object Form1: TForm1
     Visible = False
   end
   object PageMain: TPageControl
+    AnchorSideTop.Control = TopPanel
+    AnchorSideBottom.Control = StatusPanel
     Left = 0
-    Height = 458
-    Top = 52
+    Height = 482
+    Top = 38
     Width = 400
-    ActivePage = TabWallet
-    Align = alBottom
-    TabIndex = 0
+    ActivePage = TabConsole
+    Align = alTop
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    TabIndex = 1
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
     end
     object TabConsole: TTabSheet
       Caption = 'Console'
+      ClientHeight = 454
+      ClientWidth = 392
+      object MemoConsola: TMemo
+        AnchorSideBottom.Control = ConsoleLine
+        Left = 0
+        Height = 252
+        Top = 0
+        Width = 392
+        Align = alCustom
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        Color = clBlack
+        Font.CharSet = ANSI_CHARSET
+        Font.Color = clWhite
+        Font.Height = -13
+        Font.Name = 'Consolas'
+        Font.Pitch = fpFixed
+        Font.Quality = fqDraft
+        OnContextPopup = CheckConsolePopUp
+        ParentFont = False
+        ReadOnly = True
+        ScrollBars = ssVertical
+        TabOrder = 0
+      end
+      object ConsoleLine: TEdit
+        AnchorSideTop.Control = MemoConsola
+        AnchorSideBottom.Control = DataPanel
+        Left = 0
+        Height = 22
+        Top = 252
+        Width = 392
+        Align = alBottom
+        Color = clBlack
+        Font.CharSet = ANSI_CHARSET
+        Font.Color = clWhite
+        Font.Height = -12
+        Font.Name = 'Consolas'
+        Font.Pitch = fpFixed
+        Font.Quality = fqDraft
+        OnContextPopup = CheckConsoLinePopUp
+        OnKeyUp = ConsoleLineKeyup
+        ParentFont = False
+        TabOrder = 1
+      end
+      object DataPanel: TStringGrid
+        Left = 0
+        Height = 180
+        Top = 274
+        Width = 392
+        Align = alBottom
+        ColCount = 4
+        Enabled = False
+        FixedCols = 0
+        FixedRows = 0
+        RowCount = 8
+        ScrollBars = ssNone
+        TabOrder = 2
+        OnPrepareCanvas = Grid1PrepareCanvas
+        OnResize = DataPanelResize
+      end
     end
     object TabExchange: TTabSheet
-      Caption = 'Exchange'
+      Caption = 'NoBiEx'
       ClientHeight = 430
-      ClientWidth = 388
+      ClientWidth = 392
       object PageControl2: TPageControl
         Left = 2
         Height = 426
@@ -476,15 +539,15 @@ object Form1: TForm1
     end
     object tabOptions: TTabSheet
       Caption = 'Options'
-      ClientHeight = 430
-      ClientWidth = 388
+      ClientHeight = 454
+      ClientWidth = 392
       object PageControl1: TPageControl
         Left = 2
         Height = 426
         Top = 2
         Width = 382
-        ActivePage = TabSheet5
-        TabIndex = 3
+        ActivePage = TabSheet1
+        TabIndex = 0
         TabOrder = 0
         object TabSheet1: TTabSheet
           Caption = 'Wallet'
@@ -1384,7 +1447,7 @@ object Form1: TForm1
   object StatusPanel: TPanel
     Left = 0
     Height = 40
-    Top = 510
+    Top = 520
     Width = 400
     Align = alBottom
     Color = clMedGray
@@ -1397,6 +1460,49 @@ object Form1: TForm1
     ParentColor = False
     ParentFont = False
     TabOrder = 1
+  end
+  object TopPanel: TPanel
+    Left = 0
+    Height = 38
+    Top = 0
+    Width = 400
+    Align = alTop
+    BevelOuter = bvNone
+    ClientHeight = 38
+    ClientWidth = 400
+    Color = clInactiveCaption
+    ParentColor = False
+    TabOrder = 2
+    object LabelBigBalance: TLabel
+      Left = 331
+      Height = 28
+      Top = 2
+      Width = 65
+      Alignment = taRightJustify
+      Anchors = [akTop, akRight]
+      Caption = '0 NOS'
+      Enabled = False
+      Font.CharSet = ANSI_CHARSET
+      Font.Color = clBlack
+      Font.Height = -24
+      Font.Name = 'Consolas'
+      Font.Pitch = fpFixed
+      Font.Quality = fqDraft
+      ParentColor = False
+      ParentFont = False
+    end
+    object ConnectButton: TSpeedButton
+      Left = 4
+      Height = 26
+      Top = 8
+      Width = 26
+      Images = Imagenes
+      ImageIndex = 2
+      OnClick = ConnectCircleOnClick
+      OnMouseEnter = CheckForHint
+      ShowHint = True
+      ParentShowHint = False
+    end
   end
   object Imagenes: TImageList
     Left = 344

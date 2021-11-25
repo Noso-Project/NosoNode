@@ -2,7 +2,7 @@
 {"hash":349855,"name":"tform1.caption","sourcebytes":[78,111,115,111],"value":"Noso"},
 {"hash":98054852,"name":"tform1.tabwallet.caption","sourcebytes":[87,97,108,108,101,116],"value":"Wallet"},
 {"hash":174433893,"name":"tform1.tabconsole.caption","sourcebytes":[67,111,110,115,111,108,101],"value":"Console"},
-{"hash":245268501,"name":"tform1.tabexchange.caption","sourcebytes":[69,120,99,104,97,110,103,101],"value":"Exchange"},
+{"hash":89361864,"name":"tform1.tabexchange.caption","sourcebytes":[78,111,66,105,69,120],"value":"NoBiEx"},
 {"hash":20867,"name":"tform1.tabexbuy.caption","sourcebytes":[76,84,67],"value":"LTC"},
 {"hash":175931021,"name":"tform1.label1.caption","sourcebytes":[76,97,115,116,58,32,45,46,45],"value":"Last: -.-"},
 {"hash":151054461,"name":"tform1.label7.caption","sourcebytes":[65,118,101,114,97,103,101,58,32,45,46,45],"value":"Average: -.-"},
@@ -49,5 +49,6 @@
 {"hash":21335,"name":"tform1.tabsheet7.caption","sourcebytes":[76,111,103],"value":"Log"},
 {"hash":80649332,"name":"tform1.tabsheet8.caption","sourcebytes":[69,120,99,101,112,116],"value":"Except"},
 {"hash":73730866,"name":"tform1.tabmonitormonitor.caption","sourcebytes":[77,111,110,105,116,111,114],"value":"Monitor"},
-{"hash":5684371,"name":"tform1.tabsheet10.caption","sourcebytes":[80,101,101,114,115],"value":"Peers"}
+{"hash":5684371,"name":"tform1.tabsheet10.caption","sourcebytes":[80,101,101,114,115],"value":"Peers"},
+{"hash":3298115,"name":"tform1.labelbigbalance.caption","sourcebytes":[48,32,78,79,83],"value":"0 NOS"}
 ]}

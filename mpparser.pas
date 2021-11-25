@@ -237,7 +237,7 @@ else if UpperCase(Command) = 'RESETMINER' then ResetMinerInfo
 else if UpperCase(Command) = 'SHA256' then Sha256(LineText)
 else if UpperCase(Command) = 'TOTRAYON' then ToTrayON()
 else if UpperCase(Command) = 'TOTRAYOFF' then ToTrayOFF()
-else if UpperCase(Command) = 'CLEAR' then Memoconsola.Lines.clear
+else if UpperCase(Command) = 'CLEAR' then form1.Memoconsola.Lines.clear
 else if UpperCase(Command) = 'TP' then TestParser(LineText)
 else if UpperCase(Command) = 'DELBOT' then DeleteBot(LineText)
 else if UpperCase(Command) = 'CRIPTO' then showCriptoThreadinfo()
@@ -1559,7 +1559,7 @@ var
   direccion, currtime : string;
 Begin
 direccion := parameter(linetext,1);
-if DireccionEsMia(direccion)<0 then
+if ( (DireccionEsMia(direccion)<0) or (direccion='') ) then
   begin
   ConsoleLinesAdd('Invalid address');
   end

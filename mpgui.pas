@@ -55,6 +55,7 @@ type
     public
     end;
 
+function ThisPercent(percent, thiswidth : integer):integer;
 Procedure CreateFormInicio();
 Procedure CreateFormLog();
 Procedure CreateFormAbout();
@@ -118,6 +119,12 @@ implementation
 
 Uses
   mpParser, mpDisk, mpRed, mpProtocol,mpcoin, mpblock, formexplore, poolmanage;
+
+// Returns the X percentage of a specified number
+function ThisPercent(percent, thiswidth : integer):integer;
+Begin
+result := (percent*thiswidth) div 100;
+End;
 
 // Crea el formulario para el inicio
 Procedure CreateFormInicio();
@@ -563,22 +570,22 @@ var
   contador : integer = 0;
 Begin
 // datapanel
-DataPanel.Cells[0,0]:=LangLine(95);  //'Balance'
-DataPanel.Cells[0,1]:=LangLine(96); //'Server'
-DataPanel.Cells[0,2]:=LangLine(98);  //'Connections'
-DataPanel.Cells[0,3]:=LangLine(97);  //'Headers'
-DataPanel.Cells[0,4]:=LangLine(99);  //'Summary'
-DataPanel.Cells[0,5]:='LastBlock';
-DataPanel.Cells[0,6]:=LangLine(100);  //'Blocks'
-DataPanel.Cells[0,7]:=LangLine(102);  //'Pending'
+form1.DataPanel.Cells[0,0]:=LangLine(95);  //'Balance'
+form1.DataPanel.Cells[0,1]:=LangLine(96); //'Server'
+form1.DataPanel.Cells[0,2]:=LangLine(98);  //'Connections'
+form1.DataPanel.Cells[0,3]:=LangLine(97);  //'Headers'
+form1.DataPanel.Cells[0,4]:=LangLine(99);  //'Summary'
+form1.DataPanel.Cells[0,5]:='LastBlock';
+form1.DataPanel.Cells[0,6]:=LangLine(100);  //'Blocks'
+form1.DataPanel.Cells[0,7]:=LangLine(102);  //'Pending'
 
-DataPanel.Cells[2,0]:=LangLine(103);  //'Miner'
-DataPanel.Cells[2,1]:=LangLine(104);  //'Hashing'
-DataPanel.Cells[2,2]:=LangLine(105);  //'Target'
-DataPanel.Cells[2,3]:=LangLine(106);  //'Reward'
-DataPanel.Cells[2,4]:=LangLine(107);  //'Block Time'
-DataPanel.Cells[2,5]:='PoolBalance';  //'Block Time'
-DataPanel.Cells[2,6]:='Net Time';     //'mainnet Time'
+form1.DataPanel.Cells[2,0]:=LangLine(103);  //'Miner'
+form1.DataPanel.Cells[2,1]:=LangLine(104);  //'Hashing'
+form1.DataPanel.Cells[2,2]:=LangLine(105);  //'Target'
+form1.DataPanel.Cells[2,3]:=LangLine(106);  //'Reward'
+form1.DataPanel.Cells[2,4]:=LangLine(107);  //'Block Time'
+form1.DataPanel.Cells[2,5]:='PoolBalance';  //'Block Time'
+form1.DataPanel.Cells[2,6]:='Net Time';     //'mainnet Time'
 
 GridMyTxs.Cells[0,0]:=LangLine(108);    //'Block'
 GridMyTxs.Cells[1,0]:=LangLine(109);    //'Time'
@@ -629,7 +636,7 @@ Procedure MostrarLineasDeConsola();
 Begin
 While ConsoleLines.Count > 0 do
    begin
-   Memoconsola.Lines.Add(ConsoleLines[0]);
+   form1.Memoconsola.Lines.Add(ConsoleLines[0]);
    EnterCriticalSection(CSConsoleLines);
       try
          try
@@ -740,11 +747,11 @@ if form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor then
 
 if U_DataPanel then
    begin
-   DataPanel.Cells[1,1]:=Booltostr(form1.Server.Active, true)+'('+IntToStr(UserOptions.Port)+')';
-   DataPanel.Cells[1,3]:=copy(myResumenHash,0,5)+'/'+copy(NetResumenHash.Value,0,5)+'('+IntToStr(NetResumenHash.Porcentaje)+')';
-   DataPanel.Cells[1,4]:=Copy(MySumarioHash,0,5)+'/'+Copy(NetSumarioHash.Value,0,5)+'('+IntToStr(NetSumarioHash.Porcentaje)+')';
-   DataPanel.Cells[1,6]:=IntToStr(MyLastBlock)+'/'+NetLastBlock.Value+'('+IntToStr(NetLastBlock.Porcentaje)+')';
-   DataPanel.Cells[1,5]:=Copy(MyLastBlockHash,0,5)+'/'+copy(NetLastBlockHash.Value,0,5)+'('+IntToStr(NetLastBlockHash.Porcentaje)+')';
+   form1.DataPanel.Cells[1,1]:=Booltostr(form1.Server.Active, true)+'('+IntToStr(UserOptions.Port)+')';
+   form1.DataPanel.Cells[1,3]:=copy(myResumenHash,0,5)+'/'+copy(NetResumenHash.Value,0,5)+'('+IntToStr(NetResumenHash.Porcentaje)+')';
+   form1.DataPanel.Cells[1,4]:=Copy(MySumarioHash,0,5)+'/'+Copy(NetSumarioHash.Value,0,5)+'('+IntToStr(NetSumarioHash.Porcentaje)+')';
+   form1.DataPanel.Cells[1,6]:=IntToStr(MyLastBlock)+'/'+NetLastBlock.Value+'('+IntToStr(NetLastBlock.Porcentaje)+')';
+   form1.DataPanel.Cells[1,5]:=Copy(MyLastBlockHash,0,5)+'/'+copy(NetLastBlockHash.Value,0,5)+'('+IntToStr(NetLastBlockHash.Porcentaje)+')';
    U_DataPanel := false;
    end;
 
@@ -753,31 +760,31 @@ if (Miner_IsOn) then
    if MINER_HashCounter > Miner_UltimoRecuento then Miner_EsteIntervalo := MINER_HashCounter-Miner_UltimoRecuento
    else Miner_EsteIntervalo := MINER_HashCounter+900000000-Miner_UltimoRecuento;
    Miner_UltimoRecuento := MINER_HashCounter;
-   DataPanel.Cells[3,0]:=BoolToStr(Miner_IsOn,true)+'('+IntToStr(Miner_DifChars)+') '+IntToStr(Miner_FoundedSteps)+'/'+IntToStr(Miner_Steps);
-   DataPanel.Cells[3,1]:=IntToStr(G_MiningCPUs)+' CPU   '+IntToStr(Miner_EsteIntervalo*5 div 1000) +' k/s';
-   DataPanel.Cells[3,2]:='['+IntToStr(Miner_Difficult)+'] '+copy(Miner_Target,1,Miner_DifChars);
-   DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
-   DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+TimeSinceStamp(LastblockData.TimeEnd)
+   form1.DataPanel.Cells[3,0]:=BoolToStr(Miner_IsOn,true)+'('+IntToStr(Miner_DifChars)+') '+IntToStr(Miner_FoundedSteps)+'/'+IntToStr(Miner_Steps);
+   form1.DataPanel.Cells[3,1]:=IntToStr(G_MiningCPUs)+' CPU   '+IntToStr(Miner_EsteIntervalo*5 div 1000) +' k/s';
+   form1.DataPanel.Cells[3,2]:='['+IntToStr(Miner_Difficult)+'] '+copy(Miner_Target,1,Miner_DifChars);
+   form1.DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
+   form1.DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+TimeSinceStamp(LastblockData.TimeEnd)
    end
 else
    begin
-   DataPanel.Cells[3,0]:=BoolToStr(Miner_IsOn,true)+'('+IntToStr(Miner_DifChars)+') '+IntToStr(Miner_FoundedSteps)+'/'+IntToStr(Miner_Steps);
-   DataPanel.Cells[3,1]:=LangLine(119); //'Not minning'
-   DataPanel.Cells[3,2]:='['+IntToStr(Miner_Difficult)+'] '+copy(Miner_Target,1,Miner_DifChars);
-   DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
-   DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+TimeSinceStamp(LastblockData.TimeEnd);
+   form1.DataPanel.Cells[3,0]:=BoolToStr(Miner_IsOn,true)+'('+IntToStr(Miner_DifChars)+') '+IntToStr(Miner_FoundedSteps)+'/'+IntToStr(Miner_Steps);
+   form1.DataPanel.Cells[3,1]:=LangLine(119); //'Not minning'
+   form1.DataPanel.Cells[3,2]:='['+IntToStr(Miner_Difficult)+'] '+copy(Miner_Target,1,Miner_DifChars);
+   form1.DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
+   form1.DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+TimeSinceStamp(LastblockData.TimeEnd);
    end;
 
-if UserOptions.UsePool then DataPanel.Cells[3,5]:=Int2curr(MyPoolData.balance)
-else DataPanel.Cells[3,5]:='No Pool';
+if UserOptions.UsePool then form1.DataPanel.Cells[3,5]:=Int2curr(MyPoolData.balance)
+else form1.DataPanel.Cells[3,5]:='No Pool';
 
 // Esta se muestra siempre aparte ya que la funcion GetTotalConexiones es la que permite
 // verificar si los clientes siguen conectados
 setmilitime('UpdateGUITime',1);
-DataPanel.Cells[1,2]:=IntToStr(GetTotalConexiones)+' ('+IntToStr(MyConStatus)+') ['+IntToStr(G_TotalPings)+']';
-DataPanel.Cells[1,7]:= IntToStr(Length(PendingTXs))+'/'+NetPendingTrxs.Value+'('+IntToStr(NetPendingTrxs.Porcentaje)+')';
-DataPanel.Cells[1,0]:= Int2Curr(GetWalletBalance)+' '+CoinSimbol;
-DataPanel.Cells[3,6]:= TimestampToDate(UTCTime);
+form1.DataPanel.Cells[1,2]:=IntToStr(GetTotalConexiones)+' ('+IntToStr(MyConStatus)+') ['+IntToStr(G_TotalPings)+']';
+form1.DataPanel.Cells[1,7]:= IntToStr(Length(PendingTXs))+'/'+NetPendingTrxs.Value+'('+IntToStr(NetPendingTrxs.Porcentaje)+')';
+form1.DataPanel.Cells[1,0]:= Int2Curr(GetWalletBalance)+' '+CoinSimbol;
+form1.DataPanel.Cells[3,6]:= TimestampToDate(UTCTime);
 setmilitime('UpdateGUITime',2);
 
 if U_DirPanel then
@@ -791,7 +798,7 @@ if U_DirPanel then
       else Direccionespanel.Cells[0,contador+1] := ListaDirecciones[contador].Hash;
       Direccionespanel.Cells[1,contador+1] := Int2Curr(ListaDirecciones[contador].Balance-ListaDirecciones[contador].pending);
       end;
-   LabelBigBalance.Caption := DataPanel.Cells[1,0];
+   form1.LabelBigBalance.Caption := form1.DataPanel.Cells[1,0];
    U_DirPanel := false;
    setmilitime('UpdateDirPanel',2);
    end;
@@ -953,18 +960,18 @@ Procedure Processhint(sender:TObject);
 var
   texto : string = '';
 Begin
-if sender=ConnectButton then
+if sender=form1.ConnectButton then
    begin
    if MyConStatus = 0 then texto:=LangLine(33); //'Disconnected'
    if MyConStatus = 1 then texto:=LangLine(34); //'Connecting...'
    if MyConStatus = 2 then texto:=LangLine(35); //'Connected'
    if MyConStatus = 3 then texto:=LangLine(122)+IntToStr(GetTotalConexiones)+LangLine(123); //'Updated with '+
-   ConnectButton.Hint:=texto;
+   form1.ConnectButton.Hint:=texto;
    end;
 if sender=MinerButton then
    begin
    texto := LangLine(124); //'Not mining.'
-   if ((Miner_IsON) and (Miner_Active)) then texto:=LangLine(108)+' '+IntToStr(Miner_BlockToMine)+SLINEBREAK+DataPanel.Cells[3,1];  //'Block'
+   if ((Miner_IsON) and (Miner_Active)) then texto:=LangLine(108)+' '+IntToStr(Miner_BlockToMine)+SLINEBREAK+form1.DataPanel.Cells[3,1];  //'Block'
    if ((not Miner_IsON) and (Miner_Active)) then texto := LangLine(125); //'Ready for mine'
    MinerButton.hint:= texto;
    end;
@@ -1073,10 +1080,10 @@ Procedure UpdateRowHeigth();
 var
   contador : integer;
 Begin
-DataPanel.Font.Size:=UserFontSize;
-for contador := 0 to datapanel.RowCount-1 do
+form1.DataPanel.Font.Size:=UserFontSize;
+for contador := 0 to form1.datapanel.RowCount-1 do
    begin
-   DataPanel.RowHeights[contador]:=UserRowHeigth;
+   form1.DataPanel.RowHeights[contador]:=UserRowHeigth;
    end;
 End;
 

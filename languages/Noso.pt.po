@@ -103,6 +103,11 @@ msgstr "Número de dias para aviso de PoS"
 msgid "Average: -.-"
 msgstr "Média: -.-"
 
+#: tform1.labelbigbalance.caption
+msgctxt "tform1.labelbigbalance.caption"
+msgid "0 NOS"
+msgstr ""
+
 #: tform1.labelededit5.editlabel.caption
 msgid "Static IP"
 msgstr "IP estático"
@@ -142,7 +147,9 @@ msgid "LTC"
 msgstr "LTC"
 
 #: tform1.tabexchange.caption
-msgid "Exchange"
+#, fuzzy
+#| msgid "Exchange"
+msgid "NoBiEx"
 msgstr "Câmbio"
 
 #: tform1.tabmainpool.caption
@@ -234,3 +241,108 @@ msgstr "Erro ao ler linhas do índice: %s"
 #: translation.rs0003
 msgid "Receiving headers"
 msgstr "Recebendo cabeçalhos"
+
+#: translation.rs0004
+msgid "Error Receiving headers from %s (%s)"
+msgstr ""
+
+#: translation.rs0005
+msgid "Headers file received: %s"
+msgstr ""
+
+#: translation.rs0006
+msgid "Receiving blocks"
+msgstr ""
+
+#: translation.rs0007
+msgid "Error Receiving blocks from %s (%s)"
+msgstr ""
+
+#: translation.rs0008
+msgid "Error sending outgoing message: %s"
+msgstr ""
+
+#: translation.rs0009
+msgid "ERROR: Deleting OutGoingMessage-> %s"
+msgstr ""
+
+#: translation.rs0010
+msgid "Auto restart enabled"
+msgstr ""
+
+#: translation.rs0011
+msgid "BAT file created"
+msgstr ""
+
+#: translation.rs0012
+msgid "Crash info file created"
+msgstr ""
+
+#: translation.rs0013
+msgid "Data restart file created"
+msgstr ""
+
+#: translation.rs0014
+msgid "All forms closed"
+msgstr ""
+
+#: translation.rs0015
+msgid "Outgoing connections closed"
+msgstr ""
+
+#: translation.rs0016
+msgid "Node server closed"
+msgstr ""
+
+#: translation.rs0017
+msgid "Closing pool server..."
+msgstr ""
+
+#: translation.rs0018
+msgid "Pool server closed"
+msgstr ""
+
+#: translation.rs0019
+msgid "Pool members file saved"
+msgstr ""
+
+#: translation.rs0020
+msgid "Noso launcher executed"
+msgstr ""
+
+#: translation.rs0021
+msgid "Blocks received up to %s"
+msgstr ""
+
+#: translation.rs0022
+msgid "✓ Data directory ok"
+msgstr ""
+
+#: translation.rs0023
+msgid "✓ GUI initialized"
+msgstr ""
+
+#: translation.rs0024
+msgid "✓ My data updated"
+msgstr ""
+
+#: translation.rs0025
+msgid "✓ Miner configuration set"
+msgstr ""
+
+#: translation.rs0026
+msgid "✓ %s languages available"
+msgstr ""
+
+#: translation.rs0027
+msgid "Wallet %s%s"
+msgstr ""
+
+#: translation.rs0028
+msgid "✓ %s CPUs found"
+msgstr ""
+
+#: translation.rs0029
+msgid "Noso session started"
+msgstr ""
+
