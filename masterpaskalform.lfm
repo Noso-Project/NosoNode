@@ -384,8 +384,8 @@ object Form1: TForm1
         TabOrder = 0
         object tabExBuy: TTabSheet
           Caption = 'LTC'
-          ClientHeight = 394
-          ClientWidth = 380
+          ClientHeight = 421
+          ClientWidth = 386
           object GridExLTC: TStringGrid
             Left = 0
             Height = 394
@@ -468,8 +468,8 @@ object Form1: TForm1
         TabOrder = 0
         object TabPoolStats: TTabSheet
           Caption = 'Stats'
-          ClientHeight = 420
-          ClientWidth = 380
+          ClientHeight = 447
+          ClientWidth = 386
           object SG_PoolStats: TStringGrid
             Left = 0
             Height = 268
@@ -533,8 +533,8 @@ object Form1: TForm1
         end
         object TabPoolMiners: TTabSheet
           Caption = 'Miners'
-          ClientHeight = 420
-          ClientWidth = 380
+          ClientHeight = 447
+          ClientWidth = 386
           object SG_PoolMiners: TStringGrid
             Left = 0
             Height = 400
@@ -614,7 +614,7 @@ object Form1: TForm1
               Left = 8
               Height = 33
               Top = 4
-              Width = 48
+              Width = 72
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
               MaxValue = 3
@@ -624,7 +624,9 @@ object Form1: TForm1
               Value = 1
             end
             object Label2: TLabel
-              Left = 64
+              AnchorSideLeft.Control = SE_WO_MinPeers
+              AnchorSideLeft.Side = asrBottom
+              Left = 88
               Height = 15
               Top = 13
               Width = 202
@@ -651,7 +653,7 @@ object Form1: TForm1
               Left = 8
               Height = 33
               Top = 4
-              Width = 48
+              Width = 72
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
               Increment = 100
@@ -662,12 +664,14 @@ object Form1: TForm1
               Value = 500
             end
             object Label3: TLabel
-              Left = 64
+              AnchorSideLeft.Control = SE_WO_CTOT
+              AnchorSideLeft.Side = asrBottom
+              Left = 84
               Height = 15
               Top = 13
-              Width = 115
+              Width = 148
               BorderSpacing.Left = 4
-              Caption = 'Connect time out'
+              Caption = 'Connect time out (ms)'
               ParentColor = False
             end
           end
@@ -688,7 +692,7 @@ object Form1: TForm1
               Left = 8
               Height = 33
               Top = 4
-              Width = 48
+              Width = 72
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
               Increment = 100
@@ -699,13 +703,15 @@ object Form1: TForm1
               Value = 500
             end
             object Label4: TLabel
-              Left = 64
+              AnchorSideLeft.Control = SE_WO_RTOT
+              AnchorSideLeft.Side = asrBottom
+              Left = 88
               Height = 15
               Top = 13
-              Width = 94
+              Width = 127
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
-              Caption = 'Read time out'
+              Caption = 'Read time out (ms)'
               ParentColor = False
             end
           end
@@ -726,7 +732,7 @@ object Form1: TForm1
               Left = 8
               Height = 33
               Top = 4
-              Width = 48
+              Width = 72
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
               Increment = 100
@@ -737,7 +743,9 @@ object Form1: TForm1
               Value = 500
             end
             object Label5: TLabel
-              Left = 64
+              AnchorSideLeft.Control = SE_WO_ShowOrders
+              AnchorSideLeft.Side = asrBottom
+              Left = 88
               Height = 15
               Top = 13
               Width = 151
@@ -765,7 +773,7 @@ object Form1: TForm1
               Left = 8
               Height = 33
               Top = 4
-              Width = 48
+              Width = 72
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
               MaxValue = 30
@@ -775,7 +783,9 @@ object Form1: TForm1
               Value = 5
             end
             object Label6: TLabel
-              Left = 64
+              AnchorSideLeft.Control = SE_WO_PosWarning
+              AnchorSideLeft.Side = asrBottom
+              Left = 88
               Height = 15
               Top = 13
               Width = 187
@@ -802,20 +812,20 @@ object Form1: TForm1
               Left = 8
               Height = 23
               Top = 9
-              Width = 100
+              Width = 120
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
-              Caption = 'Anti freeze'
+              Caption = 'Anti freeze (s)'
               OnChange = CB_WO_AntiFreezeChange
               TabOrder = 0
             end
             object SE_WO_AntifreezeTime: TSpinEdit
               AnchorSideLeft.Control = CB_WO_AntiFreeze
               AnchorSideLeft.Side = asrBottom
-              Left = 116
+              Left = 136
               Height = 33
               Top = 4
-              Width = 38
+              Width = 52
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
               MaxValue = 30
@@ -1496,8 +1506,8 @@ object Form1: TForm1
         TabOrder = 0
         object TabSheet7: TTabSheet
           Caption = 'Log'
-          ClientHeight = 420
-          ClientWidth = 380
+          ClientHeight = 447
+          ClientWidth = 386
           ParentShowHint = False
           object MemoLog: TMemo
             Left = 0
@@ -1520,8 +1530,8 @@ object Form1: TForm1
         end
         object TabSheet8: TTabSheet
           Caption = 'Except'
-          ClientHeight = 420
-          ClientWidth = 380
+          ClientHeight = 447
+          ClientWidth = 386
           object MemoExceptLog: TMemo
             Left = 0
             Height = 420
@@ -1543,8 +1553,8 @@ object Form1: TForm1
         end
         object TabMonitorMonitor: TTabSheet
           Caption = 'Monitor'
-          ClientHeight = 420
-          ClientWidth = 380
+          ClientHeight = 447
+          ClientWidth = 386
           object SG_Monitor: TStringGrid
             Left = 0
             Height = 420
