@@ -301,10 +301,10 @@ object Form1: TForm1
     Height = 462
     Top = 38
     Width = 400
-    ActivePage = TabConsole
+    ActivePage = tabOptions
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 1
+    TabIndex = 5
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
@@ -373,32 +373,35 @@ object Form1: TForm1
     end
     object TabExchange: TTabSheet
       Caption = 'NoBiEx'
-      ClientHeight = 430
+      ClientHeight = 434
       ClientWidth = 392
       object PageControl2: TPageControl
-        Left = 2
-        Height = 426
-        Top = 2
-        Width = 386
+        Left = 0
+        Height = 408
+        Top = 0
+        Width = 392
         ActivePage = tabExBuy
+        Align = alClient
         TabIndex = 0
         TabOrder = 0
         object tabExBuy: TTabSheet
           Caption = 'LTC'
-          ClientHeight = 398
-          ClientWidth = 378
-          object StringGrid1: TStringGrid
+          ClientHeight = 380
+          ClientWidth = 384
+          object GridExLTC: TStringGrid
             Left = 0
-            Height = 360
-            Top = 8
-            Width = 376
+            Height = 380
+            Top = 0
+            Width = 384
+            Align = alClient
             ColCount = 3
             DefaultColWidth = 118
             FixedCols = 0
             Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSelect, goSmoothScroll]
-            RowCount = 2
+            RowCount = 1
             ScrollBars = ssVertical
             TabOrder = 0
+            OnResize = GridExLTCResize
             Cells = (
               3
               0
@@ -412,22 +415,38 @@ object Form1: TForm1
               'Remaining'
             )
           end
-          object Label1: TLabel
-            Left = 0
-            Height = 15
-            Top = 376
-            Width = 40
-            Caption = 'Last: -.-'
-            ParentColor = False
-          end
-          object Label7: TLabel
-            Left = 314
-            Height = 15
-            Top = 376
-            Width = 62
-            Caption = 'Average: -.-'
-            ParentColor = False
-          end
+        end
+        object TabSheet4: TTabSheet
+          Caption = 'ADA'
+        end
+      end
+      object PanelNobiex: TPanel
+        Left = 0
+        Height = 26
+        Top = 408
+        Width = 392
+        Align = alBottom
+        ClientHeight = 26
+        ClientWidth = 392
+        Color = clLime
+        ParentColor = False
+        TabOrder = 1
+        object LabelNobiexLast: TLabel
+          Left = 340
+          Height = 15
+          Top = 8
+          Width = 40
+          Anchors = [akTop, akRight]
+          Caption = 'Last: -.-'
+          ParentColor = False
+        end
+        object LabelNobiexAverage: TLabel
+          Left = 8
+          Height = 15
+          Top = 8
+          Width = 62
+          Caption = 'Average: -.-'
+          ParentColor = False
         end
       end
     end
@@ -540,20 +559,21 @@ object Form1: TForm1
     end
     object tabOptions: TTabSheet
       Caption = 'Options'
-      ClientHeight = 454
+      ClientHeight = 434
       ClientWidth = 392
       object PageControl1: TPageControl
-        Left = 2
-        Height = 426
-        Top = 2
-        Width = 382
+        Left = 0
+        Height = 434
+        Top = 0
+        Width = 392
         ActivePage = TabSheet1
+        Align = alClient
         TabIndex = 0
         TabOrder = 0
         object TabSheet1: TTabSheet
           Caption = 'Wallet'
-          ClientHeight = 398
-          ClientWidth = 374
+          ClientHeight = 406
+          ClientWidth = 384
           object CB_WO_AutoConnect: TCheckBox
             Left = 8
             Height = 19
@@ -1347,8 +1367,8 @@ object Form1: TForm1
     end
     object TabMonitor: TTabSheet
       Caption = 'Monitor'
-      ClientHeight = 430
-      ClientWidth = 388
+      ClientHeight = 434
+      ClientWidth = 392
       object PCMonitor: TPageControl
         Left = 2
         Height = 426
@@ -1506,8 +1526,8 @@ object Form1: TForm1
     end
   end
   object Imagenes: TImageList
-    Left = 344
-    Top = 472
+    Left = 352
+    Top = 504
     Bitmap = {
       4C69360000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
@@ -3243,7 +3263,7 @@ object Form1: TForm1
   object MainMenu: TMainMenu
     Images = Imagenes
     Left = 305
-    Top = 456
+    Top = 504
     object MenuItem1: TMenuItem
       Caption = 'Network'
       OnClick = CheckMMCaptions

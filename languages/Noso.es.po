@@ -75,10 +75,6 @@ msgstr "Usar mi direccion por defecto"
 msgid "About message"
 msgstr "Mensaje concepto"
 
-#: tform1.label1.caption
-msgid "Last: -.-"
-msgstr "Ultimo: -.-"
-
 #: tform1.label2.caption
 msgid "Minimum connections to work"
 msgstr "Minimo conexiones"
@@ -98,10 +94,6 @@ msgstr "Historial de pedidos mostrados"
 #: tform1.label6.caption
 msgid "PoS addresses warning days"
 msgstr "PoS aborda los días de advertencia"
-
-#: tform1.label7.caption
-msgid "Average: -.-"
-msgstr "Promedio: -.-"
 
 #: tform1.labelbigbalance.caption
 msgctxt "tform1.labelbigbalance.caption"
@@ -129,6 +121,18 @@ msgstr "Dirección fondos"
 msgid "Sign address"
 msgstr "Dirección firma"
 
+#: tform1.labelnobiexaverage.caption
+#, fuzzy
+msgctxt "tform1.labelnobiexaverage.caption"
+msgid "Average: -.-"
+msgstr "Promedio: -.-"
+
+#: tform1.labelnobiexlast.caption
+#, fuzzy
+msgctxt "tform1.labelnobiexlast.caption"
+msgid "Last: -.-"
+msgstr "Ultimo: -.-"
+
 #: tform1.le_rpc_pass.editlabel.caption
 msgid "Funds password"
 msgstr "Contraseña  fondos"
@@ -140,15 +144,15 @@ msgstr "Puerto"
 
 #: tform1.menuitem1.caption
 msgid "Network"
-msgstr ""
+msgstr "Red"
 
 #: tform1.menuitem10.caption
 msgid "Development"
-msgstr ""
+msgstr "Desarrollo"
 
 #: tform1.menuitem11.caption
 msgid "View"
-msgstr ""
+msgstr "Ver"
 
 #: tform1.menuitem12.caption
 #, fuzzy
@@ -159,7 +163,7 @@ msgstr "Consola"
 #: tform1.menuitem13.caption
 msgctxt "tform1.menuitem13.caption"
 msgid "Log"
-msgstr ""
+msgstr "Historial"
 
 #: tform1.menuitem14.caption
 msgctxt "tform1.menuitem14.caption"
@@ -168,11 +172,11 @@ msgstr ""
 
 #: tform1.menuitem15.caption
 msgid "WebPage"
-msgstr ""
+msgstr "Pagina Web"
 
 #: tform1.menuitem16.caption
 msgid "ConSlots"
-msgstr ""
+msgstr "Conexiones"
 
 #: tform1.menuitem17.caption
 msgctxt "tform1.menuitem17.caption"
@@ -181,31 +185,31 @@ msgstr ""
 
 #: tform1.menuitem18.caption
 msgid "Language"
-msgstr ""
+msgstr "Idioma"
 
 #: tform1.menuitem19.caption
 msgid "Import"
-msgstr ""
+msgstr "Importar"
 
 #: tform1.menuitem2.caption
 msgid "Start Server"
-msgstr ""
+msgstr "Iniciar servidor"
 
 #: tform1.menuitem20.caption
 msgid "New file"
-msgstr ""
+msgstr "Nuevo archivo"
 
 #: tform1.menuitem21.caption
 msgid "Updates"
-msgstr ""
+msgstr "Actualizaciones"
 
 #: tform1.menuitem22.caption
 msgid "Messages"
-msgstr ""
+msgstr "Mensajes"
 
 #: tform1.menuitem3.caption
 msgid "Connect"
-msgstr ""
+msgstr "Conectar"
 
 #: tform1.menuitem4.caption
 #, fuzzy
@@ -215,11 +219,11 @@ msgstr "Minero"
 
 #: tform1.menuitem5.caption
 msgid "Import Wallet"
-msgstr ""
+msgstr "Importar cartera"
 
 #: tform1.menuitem6.caption
 msgid "Export Wallet"
-msgstr ""
+msgstr "Exportar cartera"
 
 #: tform1.menuitem7.caption
 #, fuzzy
@@ -229,11 +233,11 @@ msgstr "Sobre..."
 
 #: tform1.menuitem8.caption
 msgid "Restart"
-msgstr ""
+msgstr "Reiniciar"
 
 #: tform1.menuitem9.caption
 msgid "Quit"
-msgstr ""
+msgstr "Salir"
 
 #: tform1.tabconsole.caption
 msgctxt "tform1.tabconsole.caption"
@@ -303,6 +307,10 @@ msgstr "Nodo"
 msgid "RPC"
 msgstr ""
 
+#: tform1.tabsheet4.caption
+msgid "ADA"
+msgstr ""
+
 #: tform1.tabsheet5.caption
 msgid "Trade"
 msgstr "Intercambio"
@@ -349,11 +357,11 @@ msgstr "Error recibiendo cabeceras desde %s(%s)"
 
 #: translation.rs0005
 msgid "Headers file received: %s"
-msgstr ""
+msgstr "Cabeceras recibidas: %s"
 
 #: translation.rs0006
 msgid "Receiving blocks"
-msgstr ""
+msgstr "Descargando bloques"
 
 #: translation.rs0007
 msgid "Error Receiving blocks from %s (%s)"
@@ -450,4 +458,3 @@ msgstr ""
 #: translation.rs0030
 msgid "Closing wallet"
 msgstr ""
-

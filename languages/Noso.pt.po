@@ -75,10 +75,6 @@ msgstr "Usar meu endereço por defeito"
 msgid "About message"
 msgstr "Sobre a mensagem"
 
-#: tform1.label1.caption
-msgid "Last: -.-"
-msgstr "Último: -.-"
-
 #: tform1.label2.caption
 msgid "Minimum connections to work"
 msgstr "Mínimo de ligações para funcionar"
@@ -98,10 +94,6 @@ msgstr "Mostrando histórico de ordens"
 #: tform1.label6.caption
 msgid "PoS addresses warning days"
 msgstr "Número de dias para aviso de PoS"
-
-#: tform1.label7.caption
-msgid "Average: -.-"
-msgstr "Média: -.-"
 
 #: tform1.labelbigbalance.caption
 msgctxt "tform1.labelbigbalance.caption"
@@ -128,6 +120,18 @@ msgstr "Endereço de fundos"
 #: tform1.labelededit9.editlabel.caption
 msgid "Sign address"
 msgstr "Assinar criptograficamente o endereço"
+
+#: tform1.labelnobiexaverage.caption
+#, fuzzy
+msgctxt "tform1.labelnobiexaverage.caption"
+msgid "Average: -.-"
+msgstr "Média: -.-"
+
+#: tform1.labelnobiexlast.caption
+#, fuzzy
+msgctxt "tform1.labelnobiexlast.caption"
+msgid "Last: -.-"
+msgstr "Último: -.-"
 
 #: tform1.le_rpc_pass.editlabel.caption
 msgid "Funds password"
@@ -304,6 +308,10 @@ msgstr "Nó"
 msgid "RPC"
 msgstr "RPC"
 
+#: tform1.tabsheet4.caption
+msgid "ADA"
+msgstr ""
+
 #: tform1.tabsheet5.caption
 msgid "Trade"
 msgstr "Intercâmbio"
@@ -451,3 +459,4 @@ msgstr "Sessão Noso iníciada"
 #: translation.rs0030
 msgid "Closing wallet"
 msgstr ""
+

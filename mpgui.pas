@@ -55,7 +55,7 @@ type
     public
     end;
 
-  function ThisPercent(percent, thiswidth : integer;RestarBarra : boolean = true):integer;
+  function ThisPercent(percent, thiswidth : integer;RestarBarra : boolean = false):integer;
 Procedure CreateFormInicio();
 Procedure CreateFormLog();
 Procedure CreateFormAbout();
@@ -121,7 +121,7 @@ Uses
   mpParser, mpDisk, mpRed, mpProtocol,mpcoin, mpblock, formexplore, poolmanage;
 
 // Returns the X percentage of a specified number
-function ThisPercent(percent, thiswidth : integer;RestarBarra : boolean = true):integer;
+function ThisPercent(percent, thiswidth : integer;RestarBarra : boolean = false):integer;
 Begin
 result := (percent*thiswidth) div 100;
 if RestarBarra then result := result-20;

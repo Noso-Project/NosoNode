@@ -65,10 +65,6 @@ msgstr ""
 msgid "About message"
 msgstr ""
 
-#: tform1.label1.caption
-msgid "Last: -.-"
-msgstr ""
-
 #: tform1.label2.caption
 msgid "Minimum connections to work"
 msgstr ""
@@ -87,10 +83,6 @@ msgstr ""
 
 #: tform1.label6.caption
 msgid "PoS addresses warning days"
-msgstr ""
-
-#: tform1.label7.caption
-msgid "Average: -.-"
 msgstr ""
 
 #: tform1.labelbigbalance.caption
@@ -117,6 +109,16 @@ msgstr ""
 
 #: tform1.labelededit9.editlabel.caption
 msgid "Sign address"
+msgstr ""
+
+#: tform1.labelnobiexaverage.caption
+msgctxt "tform1.labelnobiexaverage.caption"
+msgid "Average: -.-"
+msgstr ""
+
+#: tform1.labelnobiexlast.caption
+msgctxt "tform1.labelnobiexlast.caption"
+msgid "Last: -.-"
 msgstr ""
 
 #: tform1.le_rpc_pass.editlabel.caption
@@ -286,6 +288,10 @@ msgstr ""
 
 #: tform1.tabsheet3.caption
 msgid "RPC"
+msgstr ""
+
+#: tform1.tabsheet4.caption
+msgid "ADA"
 msgstr ""
 
 #: tform1.tabsheet5.caption

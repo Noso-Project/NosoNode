@@ -278,14 +278,14 @@ type
     Image1: TImage;
     Image2: TImage;
     Imagenes: TImageList;
-    Label1: TLabel;
+    LabelNobiexLast: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
     Label5: TLabel;
     Label6: TLabel;
     LabAbout: TLabel;
-    Label7: TLabel;
+    LabelNobiexAverage: TLabel;
     LabelBigBalance: TLabel;
     LE_Rpc_Port: TLabeledEdit;
     LE_Rpc_Pass: TLabeledEdit;
@@ -324,6 +324,8 @@ type
     MenuItem7: TMenuItem;
     MenuItem8: TMenuItem;
     MenuItem9: TMenuItem;
+    PanelNobiex: TPanel;
+    TabSheet4: TTabSheet;
     TopPanel: TPanel;
     StatusPanel: TPanel;
     PoolPanelBlink: TPanel;
@@ -349,7 +351,7 @@ type
     SG_PoolMiners: TStringGrid;
     SG_PoolStats: TStringGrid;
     SG_Monitor: TStringGrid;
-    StringGrid1: TStringGrid;
+    GridExLTC: TStringGrid;
     SystrayIcon: TTrayIcon;
     tabOptions: TTabSheet;
     TabSheet1: TTabSheet;
@@ -397,6 +399,7 @@ type
     Procedure CloseTimerEnd(Sender: TObject);
     function  ClientsCount : Integer ;
     procedure SE_WO_AntifreezeTimeChange(Sender: TObject);
+    procedure GridExLTCResize(Sender: TObject);
     Procedure TryCloseServerConnection(AContext: TIdContext; closemsg:string='');
     procedure IdTCPServer1Execute(AContext: TIdContext);
     procedure IdTCPServer1Connect(AContext: TIdContext);
@@ -3666,6 +3669,8 @@ if not G_Launching then
    end;
 end;
 
+
+
 // RPC
 
 procedure TForm1.CB_RPC_ONChange(Sender: TObject);
@@ -3736,6 +3741,17 @@ form1.DataPanel.ColWidths[0]:= thispercent(20,GridWidth);
 form1.DataPanel.ColWidths[1]:= thispercent(30,GridWidth);
 form1.DataPanel.ColWidths[2]:= thispercent(20,GridWidth);
 form1.DataPanel.ColWidths[3]:= thispercent(30,GridWidth);
+end;
+
+// adjust LTC grid
+procedure TForm1.GridExLTCResize(Sender: TObject);
+var
+  GridWidth : integer;
+begin
+GridWidth := form1.GridExLTC.Width;
+form1.GridExLTC.ColWidths[0]:= thispercent(34,GridWidth);
+form1.GridExLTC.ColWidths[1]:= thispercent(33,GridWidth);
+form1.GridExLTC.ColWidths[2]:= thispercent(33,GridWidth,true);
 end;
 
 procedure TForm1.MemoRPCWhitelistEditingDone(Sender: TObject);
