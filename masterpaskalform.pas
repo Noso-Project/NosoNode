@@ -1548,6 +1548,9 @@ Procedure InicializarFormulario();
 var
   contador : integer = 0;
 Begin
+// BY GUS: Make sure TabWallet is always the one shown at start
+Form1.PageMain.ActivePage:= Form1.TabWallet;
+
 // Elementos visuales
 
 {
@@ -1867,6 +1870,8 @@ GridMyTxs.ColWidths[3]:= 147;
 GridMyTxs.OnPrepareCanvas:= @Form1.GridMyTxsPrepareCanvas;
 GridMyTxs.FocusRectVisible:=false;
 // BY GUS
+// I know this reveals the other hidden columns that you were hiding.
+// I'll let you decide how you fix that :)
 GridMyTxs.Align:= alBottom;
 // BY GUS
 
