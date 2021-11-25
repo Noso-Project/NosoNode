@@ -1713,6 +1713,9 @@ DireccionesPanel.Font.Name:='consolas'; DireccionesPanel.Font.Size:=10;
 DireccionesPanel.ColWidths[0]:= 260;DireccionesPanel.ColWidths[1]:= 107;
 DireccionesPanel.OnPrepareCanvas:= @Form1.Grid2PrepareCanvas;
 DireccionesPanel.FocusRectVisible:=false;
+// BY GUS
+DireccionesPanel.Align:= alClient;
+// BY GUS
 
   BDefAddr := TSpeedButton.Create(form1);BDefAddr.Parent:=DireccionesPanel;
   BDefAddr.Top:=2;BDefAddr.Left:=168;BDefAddr.Height:=18;BDefAddr.Width:=18;
@@ -1863,6 +1866,9 @@ GridMyTxs.ColWidths[0]:= 60;GridMyTxs.ColWidths[1]:= 60;GridMyTxs.ColWidths[2]:=
 GridMyTxs.ColWidths[3]:= 147;
 GridMyTxs.OnPrepareCanvas:= @Form1.GridMyTxsPrepareCanvas;
 GridMyTxs.FocusRectVisible:=false;
+// BY GUS
+GridMyTxs.Align:= alBottom;
+// BY GUS
 
   BitInfoTrx := TSpeedButton.Create(Form1);BitInfoTrx.Parent:=GridMyTxs;
   BitInfoTrx.Left:=224;BitInfoTrx.Top:=2;BitInfoTrx.Height:=18;BitInfoTrx.Width:=18;
