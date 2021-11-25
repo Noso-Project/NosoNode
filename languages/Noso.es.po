@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: \n"
 "PO-Revision-Date: \n"
-"Last-Translator: \n"
+"Last-Translator: Gustavo Carreno <guscarreno@gmail.com>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -36,8 +36,8 @@ msgid "Enable JSON-RPC server"
 msgstr "Activar servidor JSON-RPC"
 
 #: tform1.cb_wo_antifreeze.caption
-msgid "Anti freeze"
-msgstr "Antibloqueo"
+msgid "Anti freeze (s)"
+msgstr "Antibloqueo (s)"
 
 #: tform1.cb_wo_autoconnect.caption
 msgid "Auto connect at start"
@@ -80,12 +80,12 @@ msgid "Minimum connections to work"
 msgstr "Minimo conexiones"
 
 #: tform1.label3.caption
-msgid "Connect time out"
-msgstr "Tiempo de salida de conexión"
+msgid "Connect time out (ms)"
+msgstr "Tiempo de salida de conexión (ms)"
 
 #: tform1.label4.caption
-msgid "Read time out"
-msgstr "Tiempo de salida de lectura"
+msgid "Read time out (ms)"
+msgstr "Tiempo de salida de lectura (ms)"
 
 #: tform1.label5.caption
 msgid "History orders showed"
@@ -98,7 +98,7 @@ msgstr "PoS aborda los días de advertencia"
 #: tform1.labelbigbalance.caption
 msgctxt "tform1.labelbigbalance.caption"
 msgid "0 NOS"
-msgstr ""
+msgstr "0 NOS"
 
 #: tform1.labelededit5.editlabel.caption
 msgid "Static IP"
@@ -274,9 +274,10 @@ msgid "Options"
 msgstr "Opciones"
 
 #: tform1.tabpoollog.caption
+#, fuzzy
 msgctxt "tform1.tabpoollog.caption"
 msgid "Log"
-msgstr ""
+msgstr "Historial"
 
 #: tform1.tabpoolminers.caption
 msgid "Miners"
@@ -321,9 +322,10 @@ msgid "Miner"
 msgstr "Minero"
 
 #: tform1.tabsheet7.caption
+#, fuzzy
 msgctxt "tform1.tabsheet7.caption"
 msgid "Log"
-msgstr ""
+msgstr "Historial"
 
 #: tform1.tabsheet8.caption
 msgid "Except"

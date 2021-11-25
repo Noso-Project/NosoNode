@@ -36,8 +36,8 @@ msgid "Enable JSON-RPC server"
 msgstr "Permitir servidor JSON-RPC"
 
 #: tform1.cb_wo_antifreeze.caption
-msgid "Anti freeze"
-msgstr "Anti congelamento da aplicação"
+msgid "Anti freeze (s)"
+msgstr "Anti congelamento da aplicação (s)"
 
 #: tform1.cb_wo_autoconnect.caption
 msgid "Auto connect at start"
@@ -80,12 +80,12 @@ msgid "Minimum connections to work"
 msgstr "Mínimo de ligações para funcionar"
 
 #: tform1.label3.caption
-msgid "Connect time out"
-msgstr "Tempo esgotado para conectar"
+msgid "Connect time out (ms)"
+msgstr "Tempo esgotado para conectar (ms)"
 
 #: tform1.label4.caption
-msgid "Read time out"
-msgstr "Tempo esgotado para leitura"
+msgid "Read time out (ms)"
+msgstr "Tempo esgotado para leitura (ms)"
 
 #: tform1.label5.caption
 msgid "History orders showed"
