@@ -4,10 +4,11 @@ object Form1: TForm1
   Top = 121
   Width = 400
   Caption = 'Noso'
-  ClientHeight = 560
+  ClientHeight = 540
   ClientWidth = 400
   Constraints.MinHeight = 560
   Constraints.MinWidth = 400
+  Menu = MainMenu
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -297,7 +298,7 @@ object Form1: TForm1
     AnchorSideTop.Control = TopPanel
     AnchorSideBottom.Control = StatusPanel
     Left = 0
-    Height = 482
+    Height = 462
     Top = 38
     Width = 400
     ActivePage = TabConsole
@@ -310,12 +311,12 @@ object Form1: TForm1
     end
     object TabConsole: TTabSheet
       Caption = 'Console'
-      ClientHeight = 454
+      ClientHeight = 434
       ClientWidth = 392
       object MemoConsola: TMemo
         AnchorSideBottom.Control = ConsoleLine
         Left = 0
-        Height = 252
+        Height = 232
         Top = 0
         Width = 392
         Align = alCustom
@@ -338,7 +339,7 @@ object Form1: TForm1
         AnchorSideBottom.Control = DataPanel
         Left = 0
         Height = 22
-        Top = 252
+        Top = 232
         Width = 392
         Align = alBottom
         Color = clBlack
@@ -356,7 +357,7 @@ object Form1: TForm1
       object DataPanel: TStringGrid
         Left = 0
         Height = 180
-        Top = 274
+        Top = 254
         Width = 392
         Align = alBottom
         ColCount = 4
@@ -1447,7 +1448,7 @@ object Form1: TForm1
   object StatusPanel: TPanel
     Left = 0
     Height = 40
-    Top = 520
+    Top = 500
     Width = 400
     Align = alBottom
     Color = clMedGray
@@ -3238,5 +3239,113 @@ object Form1: TForm1
       A463A4A4A46BA4A4A470A4A4A472A4A4A472A4A4A470A4A4A46BA4A4A464A4A4
       A459A4A4A44AA4A4A4359696960E
     }
+  end
+  object MainMenu: TMainMenu
+    Images = Imagenes
+    Left = 305
+    Top = 456
+    object MenuItem1: TMenuItem
+      Caption = 'Network'
+      OnClick = CheckMMCaptions
+      object MenuItem2: TMenuItem
+        Caption = 'Start Server'
+        ImageIndex = 27
+        OnClick = MMServer
+      end
+      object MenuItem3: TMenuItem
+        Caption = 'Connect'
+        ImageIndex = 29
+        OnClick = MMConnect
+      end
+      object MenuItem4: TMenuItem
+        Caption = 'Miner'
+        ImageIndex = 4
+        Visible = False
+        OnClick = MMMiner
+      end
+      object MenuItem5: TMenuItem
+        Caption = 'Import Wallet'
+        ImageIndex = 31
+        OnClick = MMImpWallet
+      end
+      object MenuItem6: TMenuItem
+        Caption = 'Export Wallet'
+        ImageIndex = 32
+        OnClick = MMExpWallet
+      end
+      object MenuItem7: TMenuItem
+        Caption = 'About...'
+        ImageIndex = 48
+        Visible = False
+        OnClick = MMAbout
+      end
+      object MenuItem8: TMenuItem
+        Caption = 'Restart'
+        ImageIndex = 49
+        OnClick = MMRestart
+      end
+      object MenuItem9: TMenuItem
+        Caption = 'Quit'
+        ImageIndex = 18
+        OnClick = MMQuit
+      end
+    end
+    object MenuItem10: TMenuItem
+      Caption = 'Development'
+      Visible = False
+      OnClick = CheckMMCaptions
+      object MenuItem18: TMenuItem
+        Caption = 'Language'
+      end
+      object MenuItem19: TMenuItem
+        Caption = 'Import'
+      end
+      object MenuItem20: TMenuItem
+        Caption = 'New file'
+      end
+      object MenuItem21: TMenuItem
+        Caption = 'Updates'
+      end
+      object MenuItem22: TMenuItem
+        Caption = 'Messages'
+      end
+    end
+    object MenuItem11: TMenuItem
+      Caption = 'View'
+      RightJustify = True
+      OnClick = CheckMMCaptions
+      object MenuItem12: TMenuItem
+        Caption = 'Console'
+        ImageIndex = 25
+        Visible = False
+        OnClick = MMVerConsola
+      end
+      object MenuItem13: TMenuItem
+        Caption = 'Log'
+        ImageIndex = 42
+        Visible = False
+        OnClick = MMVerLog
+      end
+      object MenuItem14: TMenuItem
+        Caption = 'Monitor'
+        ImageIndex = 44
+        OnClick = MMVerMonitor
+      end
+      object MenuItem15: TMenuItem
+        Caption = 'WebPage'
+        ImageIndex = 47
+        OnClick = MMVerWeb
+      end
+      object MenuItem16: TMenuItem
+        Caption = 'ConSlots'
+        ImageIndex = 29
+        OnClick = MMVerSlots
+      end
+      object MenuItem17: TMenuItem
+        Caption = 'Pool'
+        ImageIndex = 4
+        OnClick = MMVerPool
+      end
+    end
   end
 end

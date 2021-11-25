@@ -37,6 +37,7 @@ resourcestring
   rs0027 = 'Wallet %s%s';
   rs0028 = '✓ %s CPUs found';
   rs0029 = 'Noso session started';
+  rs0030 = 'Closing wallet';
 
 
 

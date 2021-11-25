@@ -299,8 +299,31 @@ type
     InicioTimer : TTimer;
     CloseTimer : TTimer;
     ConnectButton: TSpeedButton;
+    MainMenu: TMainMenu;
     MemoConsola: TMemo;
     DataPanel: TStringGrid;
+    MenuItem1: TMenuItem;
+    MenuItem10: TMenuItem;
+    MenuItem11: TMenuItem;
+    MenuItem12: TMenuItem;
+    MenuItem13: TMenuItem;
+    MenuItem14: TMenuItem;
+    MenuItem15: TMenuItem;
+    MenuItem16: TMenuItem;
+    MenuItem17: TMenuItem;
+    MenuItem18: TMenuItem;
+    MenuItem19: TMenuItem;
+    MenuItem2: TMenuItem;
+    MenuItem20: TMenuItem;
+    MenuItem21: TMenuItem;
+    MenuItem22: TMenuItem;
+    MenuItem3: TMenuItem;
+    MenuItem4: TMenuItem;
+    MenuItem5: TMenuItem;
+    MenuItem6: TMenuItem;
+    MenuItem7: TMenuItem;
+    MenuItem8: TMenuItem;
+    MenuItem9: TMenuItem;
     TopPanel: TPanel;
     StatusPanel: TPanel;
     PoolPanelBlink: TPanel;
@@ -792,7 +815,7 @@ var
   PoolPaymentsFilename : string = '';
 
   // Visual Components
-  MainMenu : TMainMenu;
+  //MainMenu : TMainMenu;
     MenuItem : TMenuItem;
   ConsolePopUp : TPopupMenu;
   ConsoLinePopUp : TPopupMenu;
@@ -1488,7 +1511,7 @@ Begin
 CreateADV(false); // save advopt
 Miner_IsOn := false;
 Miner_KillThreads := true;
-info(LangLine(62));  //   Closing wallet
+info(rs0030);  //   Closing wallet
 if RestartNosoAfterQuit then CrearRestartfile();
 CloseAllforms();
 CerrarClientes();
@@ -1523,6 +1546,8 @@ var
   contador : integer = 0;
 Begin
 // Elementos visuales
+
+{
 MainMenu := TMainMenu.create(form1);
 form1.Menu:=MainMenu;
 
@@ -1534,14 +1559,19 @@ MenuItem.OnClick:=@form1.CheckMMCaptions;
   Form1.imagenes.GetBitmap(29,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Miner';MenuItem.OnClick:=@Form1.MMMiner;
   MenuItem.visible := false;Form1.imagenes.GetBitmap(4,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
+
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Import Wallet';MenuItem.OnClick:=@Form1.MMImpWallet;
   Form1.imagenes.GetBitmap(31,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
+
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Export Wallet';MenuItem.OnClick:=@Form1.MMExpWallet;
   Form1.imagenes.GetBitmap(32,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
+
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='About...';MenuItem.OnClick:=@Form1.MMAbout;
   MenuItem.visible := false;Form1.imagenes.GetBitmap(48,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
+
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Restart';MenuItem.OnClick:=@Form1.MMRestart;
   Form1.imagenes.GetBitmap(49,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
+
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Quit';MenuItem.OnClick:=@Form1.MMQuit;
   Form1.imagenes.GetBitmap(18,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
 
@@ -1563,16 +1593,23 @@ MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='View';MenuItem.RightJu
 ;MenuItem.OnClick:=@form1.CheckMMCaptions;
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Console';MenuItem.OnClick:=@Form1.MMVerConsola;
   MenuItem.Visible:=false;Form1.imagenes.GetBitmap(25,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
+
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Log';MenuItem.OnClick:=@Form1.MMVerLog;
   MenuItem.Visible:=false;Form1.imagenes.GetBitmap(42,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
+
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Monitor';MenuItem.OnClick:=@Form1.MMVerMonitor;
   Form1.imagenes.GetBitmap(44,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
+
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='WebPage';MenuItem.OnClick:=@Form1.MMVerWeb;
   Form1.imagenes.GetBitmap(47,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
+
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='ConSlots';MenuItem.OnClick:=@Form1.MMVerSlots;
   Form1.imagenes.GetBitmap(29,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
+
   MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Pool';MenuItem.OnClick:=@Form1.MMVerPool;
   {MenuItem.Visible:=false};Form1.imagenes.GetBitmap(4,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
+}
+
 
 ConsolePopUp := TPopupMenu.Create(form1);
 MenuItem := TMenuItem.Create(ConsolePopUp);MenuItem.Caption := 'Clear';//Form1.imagenes.GetBitmap(0,MenuItem.Bitmap);
@@ -3242,14 +3279,14 @@ var
   contador: integer;
   version : string;
 Begin
-if Form1.Server.Active then MainMenu.Items[0].Items[0].Caption:='Stop Server'
-else MainMenu.Items[0].Items[0].Caption:='Start Server';
-if CONNECT_Try then MainMenu.Items[0].Items[1].Caption:='Disconnect'
-else MainMenu.Items[0].Items[1].Caption:='Connect';
-if Miner_Active then MainMenu.Items[0].Items[2].Caption:='Stop mining'
-else MainMenu.Items[0].Items[2].Caption:='Mine';
-MainMenu.Items[1].Items[0].Clear;
-MainMenu.Items[1].Items[3].Clear;
+if Form1.Server.Active then form1.MainMenu.Items[0].Items[0].Caption:='Stop Server'
+else form1.MainMenu.Items[0].Items[0].Caption:='Start Server';
+if CONNECT_Try then form1.MainMenu.Items[0].Items[1].Caption:='Disconnect'
+else form1.MainMenu.Items[0].Items[1].Caption:='Connect';
+if Miner_Active then form1.MainMenu.Items[0].Items[2].Caption:='Stop mining'
+else form1.MainMenu.Items[0].Items[2].Caption:='Mine';
+form1.MainMenu.Items[1].Items[0].Clear;
+form1.MainMenu.Items[1].Items[3].Clear;
 if length(StringAvailableUpdates) > 0 then
    begin
    contador := 0;

@@ -128,7 +128,102 @@ msgctxt "tform1.le_rpc_port.editlabel.caption"
 msgid "Port"
 msgstr ""
 
+#: tform1.menuitem1.caption
+msgid "Network"
+msgstr ""
+
+#: tform1.menuitem10.caption
+msgid "Development"
+msgstr ""
+
+#: tform1.menuitem11.caption
+msgid "View"
+msgstr ""
+
+#: tform1.menuitem12.caption
+msgctxt "tform1.menuitem12.caption"
+msgid "Console"
+msgstr ""
+
+#: tform1.menuitem13.caption
+msgctxt "tform1.menuitem13.caption"
+msgid "Log"
+msgstr ""
+
+#: tform1.menuitem14.caption
+msgctxt "tform1.menuitem14.caption"
+msgid "Monitor"
+msgstr ""
+
+#: tform1.menuitem15.caption
+msgid "WebPage"
+msgstr ""
+
+#: tform1.menuitem16.caption
+msgid "ConSlots"
+msgstr ""
+
+#: tform1.menuitem17.caption
+msgctxt "tform1.menuitem17.caption"
+msgid "Pool"
+msgstr ""
+
+#: tform1.menuitem18.caption
+msgid "Language"
+msgstr ""
+
+#: tform1.menuitem19.caption
+msgid "Import"
+msgstr ""
+
+#: tform1.menuitem2.caption
+msgid "Start Server"
+msgstr ""
+
+#: tform1.menuitem20.caption
+msgid "New file"
+msgstr ""
+
+#: tform1.menuitem21.caption
+msgid "Updates"
+msgstr ""
+
+#: tform1.menuitem22.caption
+msgid "Messages"
+msgstr ""
+
+#: tform1.menuitem3.caption
+msgid "Connect"
+msgstr ""
+
+#: tform1.menuitem4.caption
+msgctxt "tform1.menuitem4.caption"
+msgid "Miner"
+msgstr ""
+
+#: tform1.menuitem5.caption
+msgid "Import Wallet"
+msgstr ""
+
+#: tform1.menuitem6.caption
+msgid "Export Wallet"
+msgstr ""
+
+#: tform1.menuitem7.caption
+msgctxt "tform1.menuitem7.caption"
+msgid "About..."
+msgstr ""
+
+#: tform1.menuitem8.caption
+msgid "Restart"
+msgstr ""
+
+#: tform1.menuitem9.caption
+msgid "Quit"
+msgstr ""
+
 #: tform1.tabconsole.caption
+msgctxt "tform1.tabconsole.caption"
 msgid "Console"
 msgstr ""
 
@@ -141,6 +236,7 @@ msgid "NoBiEx"
 msgstr ""
 
 #: tform1.tabmainpool.caption
+msgctxt "tform1.tabmainpool.caption"
 msgid "Pool"
 msgstr ""
 
@@ -197,6 +293,7 @@ msgid "Trade"
 msgstr ""
 
 #: tform1.tabsheet6.caption
+msgctxt "tform1.tabsheet6.caption"
 msgid "Miner"
 msgstr ""
 
@@ -210,6 +307,7 @@ msgid "Except"
 msgstr ""
 
 #: tform1.tabsheet9.caption
+msgctxt "tform1.tabsheet9.caption"
 msgid "About..."
 msgstr ""
 
@@ -332,5 +430,9 @@ msgstr ""
 
 #: translation.rs0029
 msgid "Noso session started"
+msgstr ""
+
+#: translation.rs0030
+msgid "Closing wallet"
 msgstr ""
 
