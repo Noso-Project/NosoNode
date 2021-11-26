@@ -460,3 +460,4 @@ msgstr ""
 #: translation.rs0030
 msgid "Closing wallet"
 msgstr ""
+

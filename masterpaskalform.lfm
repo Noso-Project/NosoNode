@@ -4,7 +4,7 @@ object Form1: TForm1
   Top = 121
   Width = 400
   Caption = 'Noso'
-  ClientHeight = 560
+  ClientHeight = 540
   ClientWidth = 400
   Constraints.MinHeight = 560
   Constraints.MinWidth = 400
@@ -15,6 +15,7 @@ object Form1: TForm1
   OnShow = FormShow
   OnWindowStateChange = FormWindowStateChange
   Position = poDesktopCenter
+  LCLVersion = '2.0.10.0'
   object Image1: TImage
     Left = 240
     Height = 100
@@ -297,13 +298,13 @@ object Form1: TForm1
     AnchorSideTop.Control = TopPanel
     AnchorSideBottom.Control = StatusPanel
     Left = 0
-    Height = 482
+    Height = 462
     Top = 38
     Width = 400
-    ActivePage = tabOptions
+    ActivePage = TabWallet
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 5
+    TabIndex = 0
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
@@ -558,26 +559,26 @@ object Form1: TForm1
     end
     object tabOptions: TTabSheet
       Caption = 'Options'
-      ClientHeight = 451
-      ClientWidth = 390
+      ClientHeight = 434
+      ClientWidth = 392
       object PageControl1: TPageControl
         Left = 0
-        Height = 451
+        Height = 434
         Top = 0
-        Width = 390
+        Width = 392
         ActivePage = TabSheet1
         Align = alClient
         TabIndex = 0
         TabOrder = 0
         object TabSheet1: TTabSheet
           Caption = 'Wallet'
-          ClientHeight = 420
-          ClientWidth = 380
+          ClientHeight = 406
+          ClientWidth = 384
           object CB_WO_AutoConnect: TCheckBox
             Left = 8
-            Height = 23
+            Height = 19
             Top = 8
-            Width = 372
+            Width = 376
             Align = alTop
             BorderSpacing.Left = 8
             BorderSpacing.Top = 8
@@ -587,9 +588,9 @@ object Form1: TForm1
           end
           object CB_WO_ToTray: TCheckBox
             Left = 8
-            Height = 23
-            Top = 35
-            Width = 372
+            Height = 19
+            Top = 31
+            Width = 376
             Align = alTop
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
@@ -599,20 +600,20 @@ object Form1: TForm1
           end
           object Panel1: TPanel
             Left = 0
-            Height = 37
-            Top = 58
-            Width = 380
+            Height = 27
+            Top = 50
+            Width = 384
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 37
-            ClientWidth = 380
+            ClientHeight = 27
+            ClientWidth = 384
             TabOrder = 4
             object SE_WO_MinPeers: TSpinEdit
               AnchorSideTop.Control = Label2
               AnchorSideTop.Side = asrCenter
               Left = 8
-              Height = 33
+              Height = 23
               Top = 4
               Width = 72
               BorderSpacing.Left = 8
@@ -628,8 +629,8 @@ object Form1: TForm1
               AnchorSideLeft.Side = asrBottom
               Left = 88
               Height = 15
-              Top = 13
-              Width = 202
+              Top = 8
+              Width = 164
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
               Caption = 'Minimum connections to work'
@@ -638,20 +639,20 @@ object Form1: TForm1
           end
           object Panel2: TPanel
             Left = 0
-            Height = 37
-            Top = 95
-            Width = 380
+            Height = 27
+            Top = 77
+            Width = 384
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 37
-            ClientWidth = 380
+            ClientHeight = 27
+            ClientWidth = 384
             TabOrder = 5
             object SE_WO_CTOT: TSpinEdit
               AnchorSideTop.Control = Label3
               AnchorSideTop.Side = asrCenter
               Left = 8
-              Height = 33
+              Height = 23
               Top = 4
               Width = 72
               BorderSpacing.Left = 8
@@ -668,8 +669,8 @@ object Form1: TForm1
               AnchorSideLeft.Side = asrBottom
               Left = 84
               Height = 15
-              Top = 13
-              Width = 148
+              Top = 8
+              Width = 120
               BorderSpacing.Left = 4
               Caption = 'Connect time out (ms)'
               ParentColor = False
@@ -677,20 +678,20 @@ object Form1: TForm1
           end
           object Panel3: TPanel
             Left = 0
-            Height = 37
-            Top = 132
-            Width = 380
+            Height = 27
+            Top = 104
+            Width = 384
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 37
-            ClientWidth = 380
+            ClientHeight = 27
+            ClientWidth = 384
             TabOrder = 6
             object SE_WO_RTOT: TSpinEdit
               AnchorSideTop.Control = Label4
               AnchorSideTop.Side = asrCenter
               Left = 8
-              Height = 33
+              Height = 23
               Top = 4
               Width = 72
               BorderSpacing.Left = 8
@@ -707,8 +708,8 @@ object Form1: TForm1
               AnchorSideLeft.Side = asrBottom
               Left = 88
               Height = 15
-              Top = 13
-              Width = 127
+              Top = 8
+              Width = 101
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
               Caption = 'Read time out (ms)'
@@ -717,20 +718,20 @@ object Form1: TForm1
           end
           object Panel4: TPanel
             Left = 0
-            Height = 37
-            Top = 169
-            Width = 380
+            Height = 27
+            Top = 131
+            Width = 384
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 37
-            ClientWidth = 380
+            ClientHeight = 27
+            ClientWidth = 384
             TabOrder = 7
             object SE_WO_ShowOrders: TSpinEdit
               AnchorSideTop.Control = Label5
               AnchorSideTop.Side = asrCenter
               Left = 8
-              Height = 33
+              Height = 23
               Top = 4
               Width = 72
               BorderSpacing.Left = 8
@@ -747,8 +748,8 @@ object Form1: TForm1
               AnchorSideLeft.Side = asrBottom
               Left = 88
               Height = 15
-              Top = 13
-              Width = 151
+              Top = 8
+              Width = 118
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
               Caption = 'History orders showed'
@@ -757,21 +758,21 @@ object Form1: TForm1
           end
           object Panel5: TPanel
             Left = 0
-            Height = 37
-            Top = 206
-            Width = 380
+            Height = 27
+            Top = 158
+            Width = 384
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 37
-            ClientWidth = 380
+            ClientHeight = 27
+            ClientWidth = 384
             TabOrder = 8
             object SE_WO_PosWarning: TSpinEdit
               AnchorSideTop.Control = Label6
               AnchorSideTop.Side = asrCenter
               AnchorSideRight.Side = asrCenter
               Left = 8
-              Height = 33
+              Height = 23
               Top = 4
               Width = 72
               BorderSpacing.Left = 8
@@ -787,8 +788,8 @@ object Form1: TForm1
               AnchorSideLeft.Side = asrBottom
               Left = 88
               Height = 15
-              Top = 13
-              Width = 187
+              Top = 8
+              Width = 147
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
               Caption = 'PoS addresses warning days'
@@ -797,22 +798,22 @@ object Form1: TForm1
           end
           object Panel6: TPanel
             Left = 0
-            Height = 37
-            Top = 243
-            Width = 380
+            Height = 27
+            Top = 185
+            Width = 384
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 37
-            ClientWidth = 380
+            ClientHeight = 27
+            ClientWidth = 384
             TabOrder = 9
             object CB_WO_AntiFreeze: TCheckBox
               AnchorSideTop.Control = SE_WO_AntifreezeTime
               AnchorSideTop.Side = asrCenter
               Left = 8
-              Height = 23
-              Top = 9
-              Width = 120
+              Height = 19
+              Top = 6
+              Width = 92
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
               Caption = 'Anti freeze (s)'
@@ -822,8 +823,8 @@ object Form1: TForm1
             object SE_WO_AntifreezeTime: TSpinEdit
               AnchorSideLeft.Control = CB_WO_AntiFreeze
               AnchorSideLeft.Side = asrBottom
-              Left = 136
-              Height = 33
+              Left = 108
+              Height = 23
               Top = 4
               Width = 52
               BorderSpacing.Left = 8
@@ -837,9 +838,9 @@ object Form1: TForm1
           end
           object CB_WO_Multisend: TCheckBox
             Left = 8
-            Height = 23
-            Top = 284
-            Width = 372
+            Height = 19
+            Top = 216
+            Width = 376
             Align = alTop
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
@@ -849,9 +850,9 @@ object Form1: TForm1
           end
           object CheckBox1: TCheckBox
             Left = 8
-            Height = 23
-            Top = 311
-            Width = 372
+            Height = 19
+            Top = 239
+            Width = 376
             Align = alTop
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
@@ -1598,7 +1599,7 @@ object Form1: TForm1
   object StatusPanel: TPanel
     Left = 0
     Height = 40
-    Top = 520
+    Top = 500
     Width = 400
     Align = alBottom
     Color = clMedGray
@@ -1625,10 +1626,10 @@ object Form1: TForm1
     ParentColor = False
     TabOrder = 2
     object LabelBigBalance: TLabel
-      Left = 326
-      Height = 27
+      Left = 331
+      Height = 28
       Top = 2
-      Width = 70
+      Width = 65
       Alignment = taRightJustify
       Anchors = [akTop, akRight]
       Caption = '0 NOS'

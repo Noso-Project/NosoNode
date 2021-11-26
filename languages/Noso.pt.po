@@ -451,3 +451,4 @@ msgstr "Sessão Noso iníciada"
 #: translation.rs0030
 msgid "Closing wallet"
 msgstr "Fechando Carteira"
+
