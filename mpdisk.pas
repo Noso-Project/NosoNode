@@ -1727,7 +1727,7 @@ try
     '">NUL');
   writeln(archivo,'if "%ERRORLEVEL%"=="0" taskkill /F /im '+AppFileName);
 
-  writeln(archivo,'start '+'noso.exe');
+  writeln(archivo,'start '+AppFileName);
   Closefile(archivo);
   Except on E:Exception do
     tolog ('Error creating restart file');
