@@ -588,24 +588,24 @@ form1.DataPanel.Cells[2,4]:=LangLine(107);  //'Block Time'
 form1.DataPanel.Cells[2,5]:='PoolBalance';  //'Block Time'
 form1.DataPanel.Cells[2,6]:='Net Time';     //'mainnet Time'
 
-GridMyTxs.Cells[0,0]:=LangLine(108);    //'Block'
-GridMyTxs.Cells[1,0]:=LangLine(109);    //'Time'
-GridMyTxs.Cells[2,0]:=LangLine(110);    //'Type'
-GridMyTxs.Cells[3,0]:=LangLine(111);    //'Amount'
+form1.GridMyTxs.Cells[0,0]:=LangLine(108);    //'Block'
+form1.GridMyTxs.Cells[1,0]:=LangLine(109);    //'Time'
+form1.GridMyTxs.Cells[2,0]:=LangLine(110);    //'Type'
+form1.GridMyTxs.Cells[3,0]:=LangLine(111);    //'Amount'
 
 SGridSC.Cells[0,0]:=LangLine(116);  //'Destination'
 SGridSC.Cells[0,1]:=LangLine(111);  //'Amount'
 SGridSC.Cells[0,2]:='Reference';  //'reference'
 
 //Direccionespanel
-Direccionespanel.RowCount:=length(listadirecciones)+1;
-Direccionespanel.Cells[0,0] := LangLine(118);  //'Address'
-Direccionespanel.Cells[1,0] := LangLine(95);  //'Balance'
+form1.Direccionespanel.RowCount:=length(listadirecciones)+1;
+form1.Direccionespanel.Cells[0,0] := LangLine(118);  //'Address'
+form1.Direccionespanel.Cells[1,0] := LangLine(95);  //'Balance'
 
 for contador := 0 to length(ListaDirecciones)-1 do
    begin
-   Direccionespanel.Cells[0,contador+1] := ListaDirecciones[contador].Hash;
-   Direccionespanel.Cells[1,contador+1] := Int2Curr(ListaDirecciones[contador].Balance);
+   form1.Direccionespanel.Cells[0,contador+1] := ListaDirecciones[contador].Hash;
+   form1.Direccionespanel.Cells[1,contador+1] := Int2Curr(ListaDirecciones[contador].Balance);
    end;
 NetSumarioHash.Value:='?';
 NetLastBlock.Value:='?';
@@ -791,13 +791,13 @@ setmilitime('UpdateGUITime',2);
 if U_DirPanel then
    begin
    setmilitime('UpdateDirPanel',1);
-   Direccionespanel.RowCount:=length(listadirecciones)+1;
+   form1.Direccionespanel.RowCount:=length(listadirecciones)+1;
    for contador := 0 to length(ListaDirecciones)-1 do
       begin
       if ListaDirecciones[contador].Custom<>'' then
-        Direccionespanel.Cells[0,contador+1] := ListaDirecciones[contador].Custom
-      else Direccionespanel.Cells[0,contador+1] := ListaDirecciones[contador].Hash;
-      Direccionespanel.Cells[1,contador+1] := Int2Curr(ListaDirecciones[contador].Balance-ListaDirecciones[contador].pending);
+        form1.Direccionespanel.Cells[0,contador+1] := ListaDirecciones[contador].Custom
+      else form1.Direccionespanel.Cells[0,contador+1] := ListaDirecciones[contador].Hash;
+      form1.Direccionespanel.Cells[1,contador+1] := Int2Curr(ListaDirecciones[contador].Balance-ListaDirecciones[contador].pending);
       end;
    form1.LabelBigBalance.Caption := form1.DataPanel.Cells[1,0];
    U_DirPanel := false;
@@ -866,10 +866,10 @@ var
   cont : integer;
 Begin
 result := 0;
-if GridMyTxs.RowCount> 1 then
+if form1.GridMyTxs.RowCount> 1 then
    begin
-   for cont := 1 to GridMyTxs.RowCount-1 do
-      if GridMyTxs.Cells[4,cont] = OrderID then result := cont;
+   for cont := 1 to form1.GridMyTxs.RowCount-1 do
+      if form1.GridMyTxs.Cells[4,cont] = OrderID then result := cont;
    end;
 End;
 
@@ -884,7 +884,7 @@ var
 Begin
 setmilitime('UpdateMyTrxGrid',1);
 SetCurrentJob('UpdateMyTrxGrid',true);
-GridMyTxs.RowCount:=1;
+form1.GridMyTxs.RowCount:=1;
 if Length(ListaMisTrx)>1 then
    begin
    LastToshow := length(ListaMisTrx)-1- ShowedOrders;
@@ -894,30 +894,30 @@ if Length(ListaMisTrx)>1 then
       OrdIndex := OrderShowed(ListaMisTrx[contador].OrderID);
       if ((ListaMisTrx[contador].tipo='MINE') or (OrdIndex=0)) then // la orden no esta
          begin
-         GridMyTxs.RowCount:=GridMyTxs.RowCount+1; Linea := GridMyTxs.RowCount-1;
-         GridMyTxs.Cells[0,linea]:=IntToStr(ListaMisTrx[contador].block);     //bloque
-         GridMyTxs.Cells[1,linea]:=TimeSinceStamp(ListaMisTrx[contador].time);// tiempo
-         GridMyTxs.Cells[2,linea]:=ListaMisTrx[contador].tipo;                // tipo
-         GridMyTxs.Cells[3,linea]:=Int2curr(ListaMisTrx[contador].monto);     //monto show
-         GridMyTxs.Cells[4,linea]:=ListaMisTrx[contador].OrderID;             //orderID
-         GridMyTxs.Cells[5,linea]:=IntToStr(ListaMisTrx[contador].monto);   //elmonto puro
-         GridMyTxs.Cells[6,linea]:=ListaMisTrx[contador].receiver;           //address recibe
-         GridMyTxs.Cells[7,linea]:=ListaMisTrx[contador].reference;           // reference
-         GridMyTxs.Cells[8,linea]:=ListaMisTrx[contador].trfrID;            // trfrs ids
-         GridMyTxs.Cells[9,linea]:='1';                                     //numero trfrs
+         form1.GridMyTxs.RowCount:=form1.GridMyTxs.RowCount+1; Linea := form1.GridMyTxs.RowCount-1;
+         form1.GridMyTxs.Cells[0,linea]:=IntToStr(ListaMisTrx[contador].block);     //bloque
+         form1.GridMyTxs.Cells[1,linea]:=TimeSinceStamp(ListaMisTrx[contador].time);// tiempo
+         form1.GridMyTxs.Cells[2,linea]:=ListaMisTrx[contador].tipo;                // tipo
+         form1.GridMyTxs.Cells[3,linea]:=Int2curr(ListaMisTrx[contador].monto);     //monto show
+         form1.GridMyTxs.Cells[4,linea]:=ListaMisTrx[contador].OrderID;             //orderID
+         form1.GridMyTxs.Cells[5,linea]:=IntToStr(ListaMisTrx[contador].monto);   //elmonto puro
+         form1.GridMyTxs.Cells[6,linea]:=ListaMisTrx[contador].receiver;           //address recibe
+         form1.GridMyTxs.Cells[7,linea]:=ListaMisTrx[contador].reference;           // reference
+         form1.GridMyTxs.Cells[8,linea]:=ListaMisTrx[contador].trfrID;            // trfrs ids
+         form1.GridMyTxs.Cells[9,linea]:='1';                                     //numero trfrs
          end
       else  // ya hubo otra transfer con este mismo id de orden
          begin
-         PreMonto := StrToInt64Def(GridMyTxs.Cells[5,linea],0);
+         PreMonto := StrToInt64Def(form1.GridMyTxs.Cells[5,linea],0);
          nuevomonto := ListaMisTrx[contador].monto+Premonto;
-         GridMyTxs.Cells[5,linea]:=IntToStr(NuevoMonto);
-         GridMyTxs.Cells[3,linea]:=Int2curr(NuevoMonto);
-         if not AnsiContainsStr(GridMyTxs.Cells[8,linea],ListaMisTrx[contador].trfrID) then
+         form1.GridMyTxs.Cells[5,linea]:=IntToStr(NuevoMonto);
+         form1.GridMyTxs.Cells[3,linea]:=Int2curr(NuevoMonto);
+         if not AnsiContainsStr(form1.GridMyTxs.Cells[8,linea],ListaMisTrx[contador].trfrID) then
             begin
-            GridMyTxs.Cells[8,linea]:=GridMyTxs.Cells[8,linea]+' '+ListaMisTrx[contador].trfrID;
-            GridMyTxs.Cells[9,linea]:=IntToStr(StrToIntDef(GridMyTxs.Cells[9,linea],0)+1);
+            form1.GridMyTxs.Cells[8,linea]:=form1.GridMyTxs.Cells[8,linea]+' '+ListaMisTrx[contador].trfrID;
+            form1.GridMyTxs.Cells[9,linea]:=IntToStr(StrToIntDef(form1.GridMyTxs.Cells[9,linea],0)+1);
             end
-         else GridMyTxs.Cells[10,linea]:='YES'; // Que si es una trfr propia
+         else form1.GridMyTxs.Cells[10,linea]:='YES'; // Que si es una trfr propia
          end;
       end;
    end;

@@ -133,6 +133,10 @@ msgctxt "tform1.labelnobiexlast.caption"
 msgid "Last: -.-"
 msgstr "Ultimo: -.-"
 
+#: tform1.labeltransactiondetails.caption
+msgid "Transaction details"
+msgstr ""
+
 #: tform1.le_rpc_pass.editlabel.caption
 msgid "Funds password"
 msgstr "Contraseña  fondos"
@@ -239,6 +243,14 @@ msgstr "Reiniciar"
 msgid "Quit"
 msgstr "Salir"
 
+#: tform1.panelposmns.caption
+msgid "PoS and MNs info here"
+msgstr ""
+
+#: tform1.tabaddresses.caption
+msgid "Addresses"
+msgstr ""
+
 #: tform1.tabconsole.caption
 msgctxt "tform1.tabconsole.caption"
 msgid "Console"
@@ -253,6 +265,10 @@ msgstr ""
 #| msgid "Exchange"
 msgid "NoBiEx"
 msgstr "Intercambio"
+
+#: tform1.tabhistory.caption
+msgid "History"
+msgstr ""
 
 #: tform1.tabmainpool.caption
 msgctxt "tform1.tabmainpool.caption"
@@ -272,6 +288,10 @@ msgstr ""
 #: tform1.taboptions.caption
 msgid "Options"
 msgstr "Opciones"
+
+#: tform1.tabpending.caption
+msgid "Pending"
+msgstr ""
 
 #: tform1.tabpoollog.caption
 #, fuzzy
