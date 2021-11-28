@@ -56,6 +56,7 @@
 {"hash":80649332,"name":"tform1.tabsheet8.caption","sourcebytes":[69,120,99,101,112,116],"value":"Except"},
 {"hash":73730866,"name":"tform1.tabmonitormonitor.caption","sourcebytes":[77,111,110,105,116,111,114],"value":"Monitor"},
 {"hash":5684371,"name":"tform1.tabsheet10.caption","sourcebytes":[80,101,101,114,115],"value":"Peers"},
+{"hash":5593795,"name":"tform1.tabnodes.caption","sourcebytes":[78,111,100,101,115],"value":"Nodes"},
 {"hash":3298115,"name":"tform1.labelbigbalance.caption","sourcebytes":[48,32,78,79,83],"value":"0 NOS"},
 {"hash":80471771,"name":"tform1.menuitem1.caption","sourcebytes":[78,101,116,119,111,114,107],"value":"Network"},
 {"hash":3544482,"name":"tform1.menuitem2.caption","sourcebytes":[83,116,97,114,116,32,83,101,114,118,101,114],"value":"Start Server"},

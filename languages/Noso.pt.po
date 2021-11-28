@@ -278,6 +278,10 @@ msgctxt "tform1.tabmonitormonitor.caption"
 msgid "Monitor"
 msgstr "Monitorização"
 
+#: tform1.tabnodes.caption
+msgid "Nodes"
+msgstr ""
+
 #: tform1.taboptions.caption
 msgid "Options"
 msgstr "Opções"
@@ -369,6 +373,7 @@ msgid "Error Receiving headers from %s (%s)"
 msgstr "Erro ao receber cabeçalhos de %s(%s)"
 
 #: translation.rs0005
+msgctxt "translation.rs0005"
 msgid "Headers file received: %s"
 msgstr "Ficheiro de cabeçalhos recebido: %s"
 
@@ -471,4 +476,130 @@ msgstr "Sessão Noso iníciada"
 #: translation.rs0030
 msgid "Closing wallet"
 msgstr "Fechando Carteira"
+
+#: translation.rs0031
+msgid "POOL: Error trying close a pool client connection (%s)"
+msgstr ""
+
+#: translation.rs0032
+msgid "POOL: Error sending message to miner (%s)"
+msgstr ""
+
+#: translation.rs0033
+msgid "POOL: Rejected not registered user"
+msgstr ""
+
+#: translation.rs0034
+msgid "Pool: Error registering a ping-> %s"
+msgstr ""
+
+#: translation.rs0035
+msgid "Pool solution verified!"
+msgstr ""
+
+#: translation.rs0036
+msgid "Pool solution FAILED at step %s"
+msgstr ""
+
+#: translation.rs0037
+msgid "Pool: Error inside CSPoolStep-> %s"
+msgstr ""
+
+#: translation.rs0038
+msgid "POOL: Unexpected command from: %s -> %s"
+msgstr ""
+
+#: translation.rs0039
+msgid "POOL: Status requested from %s"
+msgstr ""
+
+#: translation.rs0040
+msgid "Pool: closed incoming %s (%s)"
+msgstr ""
+
+#: translation.rs0041
+msgid "Pool: Error inside MinerJoin-> %s"
+msgstr ""
+
+#: translation.rs0042
+msgid "SERVER: Error trying close a server client connection (%s)"
+msgstr ""
+
+#: translation.rs0043
+msgid "SERVER: Received a line from a client without and assigned slot: %s"
+msgstr ""
+
+#: translation.rs0044
+msgid "SERVER: Timeout reading line from connection"
+msgstr ""
+
+#: translation.rs0045
+msgid "SERVER: Can not read line from connection %s (%s)"
+msgstr ""
+
+#: translation.rs0046
+msgid "SERVER: Server error receiving headers file (%s)"
+msgstr ""
+
+#: translation.rs0047
+#, fuzzy
+msgctxt "translation.rs0047"
+msgid "Headers file received: %s"
+msgstr "Ficheiro de cabeçalhos recebido: %s"
+
+#: translation.rs0048
+msgid "SERVER: Server error receiving block file (%s)"
+msgstr ""
+
+#: translation.rs0049
+msgid "SERVER: Error creating stream from headers: %s"
+msgstr ""
+
+#: translation.rs0050
+msgid "Headers file sent to: %s"
+msgstr ""
+
+#: translation.rs0051
+msgid "SERVER: Error sending headers file (%s)"
+msgstr ""
+
+#: translation.rs0052
+msgid "SERVER: BlockZip send to %s: %s"
+msgstr ""
+
+#: translation.rs0053
+msgid "SERVER: Error sending ZIP blocks file (%s)"
+msgstr ""
+
+#: translation.rs0054
+msgid "SERVER: Error adding received line (%s)"
+msgstr ""
+
+#: translation.rs0055
+msgid "SERVER: Got unexpected line: %s"
+msgstr ""
+
+#: translation.rs0056
+msgid "SERVER: Timeout reading line from new connection"
+msgstr ""
+
+#: translation.rs0057
+msgid "SERVER: Can not read line from new connection (%s)"
+msgstr ""
+
+#: translation.rs0058
+msgid "SERVER: Invalid client -> %s"
+msgstr ""
+
+#: translation.rs0059
+msgid "SERVER: Own connected"
+msgstr ""
+
+#: translation.rs0060
+msgid "SERVER: Duplicated connection -> %s"
+msgstr ""
+
+#: translation.rs0061
+msgid "New Connection from: %s"
+msgstr ""
 

@@ -334,6 +334,7 @@ type
     TabAddresses: TTabSheet;
     TabHistory: TTabSheet;
     TabPending: TTabSheet;
+    TabNodes: TTabSheet;
     TabWalletMain: TPageControl;
     Panel1: TPanel;
     Panel2: TPanel;
@@ -2251,7 +2252,8 @@ Begin
    Acontext.Connection.IOHandler.InputBuffer.Clear;
    AContext.Connection.Disconnect;
    Except on E:Exception do
-      ToExcLog('POOL: Error trying close a pool client connection ('+E.Message+')');
+      ToExcLog(format(rs0031,[E.Message]));
+      //ToExcLog('POOL: Error trying close a pool client connection ('+E.Message+')');
    end;
 End;
 
@@ -2261,7 +2263,8 @@ Begin
    try
    Acontext.Connection.IOHandler.WriteLn(message);
    Except on E:Exception do
-      ToExcLog('POOL: Error sending message to miner ('+E.Message+')');
+      ToExcLog(format(rs0032,[E.Message]));
+      //ToExcLog('POOL: Error sending message to miner ('+E.Message+')');
    end;
 End;
 
@@ -2318,7 +2321,8 @@ UserDireccion := Parameter(Linea,1);
 if IsPoolMemberConnected(UserDireccion)<0 then
    begin
    TryClosePoolConnection(AContext);
-   ConsoleLinesAdd('Pool: Rejected not registered user');
+   ConsoleLinesAdd(rs0033);
+   //ConsoleLinesAdd('Pool: Rejected not registered user');
    exit;
    end;
 Comando := Parameter(Linea,2);
@@ -2333,7 +2337,8 @@ if comando = 'PING' then
       Except on E:Exception do
          begin
          TryClosePoolConnection(Acontext);
-         ToExclog(Format('Pool: Error registerin a ping-> %s',[E.Message]));
+         ToExclog(format(rs0034,[E.Message]));
+         //ToExclog(Format('Pool: Error registerin a ping-> %s',[E.Message]));
          end;
       end;
    end
@@ -2386,7 +2391,8 @@ else if Comando = 'STEP' then
             if PoolSolutionStep=0 then
                Begin
                BlockTime := UTCTime;
-               consolelinesAdd('Pool solution verified!');
+               consolelinesAdd(rs0035);
+               //consolelinesAdd('Pool solution verified!');
                OutgoingMsjsAdd(ProtocolLine(6)+BlockTime+' '+IntToStr(PoolMiner.Block)+' '+
                   PoolInfo.Direccion+' '+StringReplace(PoolMiner.Solucion,' ','_',[rfReplaceAll, rfIgnoreCase]));
                //ResetPoolMiningInfo();
@@ -2394,7 +2400,8 @@ else if Comando = 'STEP' then
                end
             else
                begin
-               consolelinesAdd('Pool solution FAILED at step '+IntToStr(PoolSolutionStep));
+               consolelinesAdd(format(rs0036,[IntToStr(PoolSolutionStep)]));
+               //consolelinesAdd('Pool solution FAILED at step '+IntToStr(PoolSolutionStep));
                PoolSolutionFails := PoolSolutionFails+1;
                if PoolSolutionFails >= 3 then
                   begin
@@ -2426,7 +2433,8 @@ else if Comando = 'STEP' then
       Except on E:Exception do
          begin
          TryClosePoolConnection(Acontext);
-         ToExclog(Format('Pool: Error inside CSPoolStep-> %s',[E.Message]));
+         ToExcLog(Format(rs0037,[E.Message]));
+         //ToExclog(Format('Pool: Error inside CSPoolStep-> %s',[E.Message]));
          end;
       end;
    LeaveCriticalSection(CSPoolStep);InsidePoolStep := false;
@@ -2476,7 +2484,8 @@ else if Comando = 'PAYMENT' then
 else
    begin
    TryClosePoolConnection(Acontext);
-   ToExcLog('POOL: Unexpected command from: '+ipuser+'->'+Linea);
+   ToExcLog(Format(rs0038,[ipuser,linea]));
+   //ToExcLog('POOL: Unexpected command from: '+ipuser+'->'+Linea);
    end;
 End;
 
@@ -2539,7 +2548,8 @@ try
    else if Comando = 'STATUS' then
       begin
       TryClosePoolConnection(AContext,PoolStatusString);
-      consolelinesadd('POOL: Status requested from '+IPUser);
+      ConsoleLinesAdd(Format(rs0039,[IPUser]));
+      //consolelinesadd('POOL: Status requested from '+IPUser);
       end
    else if Comando = 'ADDRESSBAL' then
       begin
@@ -2552,10 +2562,12 @@ try
    else
       begin
       TryClosePoolConnection(AContext,'INVALIDCOMMAND');
-      ToExclog(Format('Pool: closed incoming %s (%s)',[IPUser,comando]));
+      ToExclog(Format(rs0040,[IPUser,comando]));
+      //ToExclog(Format('Pool: closed incoming %s (%s)',[IPUser,comando]));
       end;
 Except on E:Exception do
-   ToExclog(Format('Pool: Error inside MinerJoin-> %s',[E.Message]));
+   ToExclog(Format(rs0041,[E.Message]));
+   //ToExclog(Format('Pool: Error inside MinerJoin-> %s',[E.Message]));
 end;
 LeaveCriticalSection(CSMinerJoin);InsideMinerJoin := false;
 End;
@@ -2603,7 +2615,8 @@ try
    AContext.Connection.Disconnect();
    Acontext.Connection.IOHandler.InputBuffer.Clear;
 Except on E:Exception do
-   ToExcLog('SERVER: Error trying close a server client connection ('+E.Message+')');
+   ToExcLog(format(rs0042,[E.Message]));
+   //ToExcLog('SERVER: Error trying close a server client connection ('+E.Message+')');
 end;
 End;
 
@@ -2625,7 +2638,8 @@ IPUser := AContext.Connection.Socket.Binding.PeerIP;
 slot := GetSlotFromIP(IPUser);
 if slot = 0 then
   begin
-  ToExcLog('SERVER: Received a line from a client without and assigned slot: '+IPUser);
+  ToExcLog(Format(rs0043,[IPUser]));
+  //ToExcLog('SERVER: Received a line from a client without and assigned slot: '+IPUser);
   TryCloseServerConnection(AContext);
   GoAhead := false;
   end;
@@ -2634,13 +2648,15 @@ if slot = 0 then
    if AContext.Connection.IOHandler.ReadLnTimedout then
       begin
       TryCloseServerConnection(AContext);
-      ToExcLog('SERVER: Timeout reading line from connection');
+      ToExcLog(rs0044);
+      //ToExcLog('SERVER: Timeout reading line from connection');
       GoAhead := false;
       end;
    Except on E:Exception do
       begin
       TryCloseServerConnection(AContext);
-      ToExcLog('SERVER: Can not read line from connection '+IPUser+'('+E.Message+')');
+      ToExcLog(format(rs0045,[IPUser,E.Message]));
+      //ToExcLog('SERVER: Can not read line from connection '+IPUser+'('+E.Message+')');
       GoAhead := false;
       end;
    end;
@@ -2683,7 +2699,8 @@ if GoAhead then
             GetFileOk := true;
             except on E:Exception do
                begin
-               ToExcLog('SERVER: Server error receiving headers file ('+E.Message+')');
+               ToExcLog(Format(rs0046,[E.Message]));
+               //ToExcLog('SERVER: Server error receiving headers file ('+E.Message+')');
                TryCloseServerConnection(AContext);
                GetFileOk := false;
                end;
@@ -2695,7 +2712,8 @@ if GoAhead then
          end;
       if GetFileOk then
          begin
-         ConsoleLinesAdd(LAngLine(74)+': '+copy(HashMD5File(ResumenFilename),1,5)); //'Headers file received'
+         ConsoleLinesAdd(Format(rs0047,[copy(HashMD5File(ResumenFilename),1,5)]));
+         //ConsoleLinesAdd(LAngLine(74)+': '+copy(HashMD5File(ResumenFilename),1,5)); //'Headers file received'
          LastTimeRequestResumen := 0;
          UpdateMyData();
          end;
@@ -2712,7 +2730,8 @@ if GoAhead then
             GetFileOk := true;
             except on E:Exception do
                begin
-               ToExcLog('SERVER: Server error receiving block file ('+E.Message+')');
+               ToExcLog(Format(rs0048,[E.Message]));
+               //ToExcLog('SERVER: Server error receiving block file ('+E.Message+')');
                TryCloseServerConnection(AContext);
                GetFileOk := false;
                end;
@@ -2739,7 +2758,8 @@ if GoAhead then
             begin
             GetFileOk := false;
             AFileStream.Free;
-            ToExcLog(Format('SERVER: Error creating stream from headers: %s',[E.Message]));
+            ToExcLog(Format(rs0049,[E.Message]));
+            //ToExcLog(Format('SERVER: Error creating stream from headers: %s',[E.Message]));
             end;
          end;
       if GetFileOk then
@@ -2747,11 +2767,13 @@ if GoAhead then
             try
             Acontext.Connection.IOHandler.WriteLn('RESUMENFILE');
             Acontext.connection.IOHandler.Write(AFileStream,0,true);
-            ConsoleLinesAdd(LangLine(91)+': '+IPUser);//'Headers file sent'
+            ConsoleLinesAdd(format(rs0050,[IPUser]));
+            //ConsoleLinesAdd(LangLine(91)+': '+IPUser);//'Headers file sent'
             Except on E:Exception do
                begin
                Form1.TryCloseServerConnection(Conexiones[Slot].context);
-               ToExcLog('SERVER: Error sending headers file ('+E.Message+')');
+               ToExcLog(Format(rs0051,[E.Message]));
+               //ToExcLog('SERVER: Error sending headers file ('+E.Message+')');
                end;
             end;
          AFileStream.Free;
@@ -2768,11 +2790,13 @@ if GoAhead then
                try
                Acontext.Connection.IOHandler.WriteLn('BLOCKZIP');
                Acontext.connection.IOHandler.Write(AFileStream,0,true);
-               ToLog('SERVER: BlockZip send to '+IPUser+':'+BlockZipName);
+               ToLog(Format(rs0052,[IPUser,BlockZipName]));
+               //ToLog('SERVER: BlockZip send to '+IPUser+':'+BlockZipName);
                Except on E:Exception do
                   begin
                   Form1.TryCloseServerConnection(Conexiones[Slot].context);
-                  ToExcLog('SERVER: Error sending ZIP blocks file ('+E.Message+')');
+                  ToExcLog(Format(rs0053,[E.Message]));
+                  //ToExcLog('SERVER: Error sending ZIP blocks file ('+E.Message+')');
                   end;
                end;
             finally
@@ -2787,13 +2811,15 @@ if GoAhead then
          SlotLines[slot].Add(LLine);
          Except
          On E :Exception do
-            ToExcLog('SERVER: Server error adding received line ('+E.Message+')');
+            ToExcLog(Format(rs0054,[E.Message]));
+            //ToExcLog('SERVER: Server error adding received line ('+E.Message+')');
          end;
       end
    else
       begin
       TryCloseServerConnection(AContext);
-      ToExcLog('SERVER: Got unexpected line: '+LLine);
+      ToExcLog(Format(rs0055,[LLine]));
+      //ToExcLog('SERVER: Got unexpected line: '+LLine);
       end;
    conexiones[slot].IsBusy:=false;
    end;
@@ -2815,13 +2841,15 @@ try
    if AContext.Connection.IOHandler.ReadLnTimedout then
       begin
       TryCloseServerConnection(AContext);
-      ToExcLog('SERVER: Timeout reading line from new connection');
+      ToExcLog(rs0056);
+      //ToExcLog('SERVER: Timeout reading line from new connection');
       GoAhead := false;
       end;
 Except on E:Exception do
    begin
    TryCloseServerConnection(AContext);
-   ToExcLog('SERVER: Can not read line from new connection ('+E.Message+')');
+   ToExcLog(format(rs0057,[E.Message]));
+   //ToExcLog('SERVER: Can not read line from new connection ('+E.Message+')');
    GoAhead := false;
    end;
 end;
@@ -2835,13 +2863,15 @@ if GoAhead then
       end
    else if Copy(LLine,1,4) <> 'PSK ' then  // invalid protocol
       begin
-      ToLog('SERVER: Invalid client->'+IPUser);
+      ToLog(format(rs0058,[IPUser]));
+      //ToLog('SERVER: Invalid client->'+IPUser);
       TryCloseServerConnection(AContext);
       UpdateBotData(IPUser);
       end
    else if IPUser = MyPublicIP then
       begin
-      ToLog('SERVER: Own connected');
+      ToLog(rs0059);
+      //ToLog('SERVER: Own connected');
       TryCloseServerConnection(AContext);
       end
    else if BotExists(IPUser) then // known bot
@@ -2850,7 +2880,8 @@ if GoAhead then
       end
    else if GetSlotFromIP(IPUser) > 0 then
       begin
-      ToLog('SERVER: Duplicated connection->'+IPUser);
+      ToLog(Format(rs0060,[IPUser]));
+      //ToLog('SERVER: Duplicated connection->'+IPUser);
       TryCloseServerConnection(AContext,GetPTCEcn+'DUPLICATED');
       UpdateBotData(IPUser);
       end
@@ -2864,6 +2895,7 @@ if GoAhead then
       end
    else if Copy(LLine,1,4) = 'PSK ' then
       begin    // Se acepta la nueva conexion
+      OutText(format(rs0061,[IPUser]));
       OutText(LangLine(13)+IPUser,true);             //New Connection from:
       MyPublicIP := MiIp;
       U_DataPanel := true;
