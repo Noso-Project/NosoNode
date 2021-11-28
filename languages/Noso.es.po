@@ -612,3 +612,7 @@ msgstr ""
 msgid "New Connection from: %s"
 msgstr ""
 
+#: translation.rs0062
+msgid "SERVER: Closed unhandled incoming connection -> %s"
+msgstr ""
+

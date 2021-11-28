@@ -2552,12 +2552,15 @@ try
       //consolelinesadd('POOL: Status requested from '+IPUser);
       end
    else if Comando = 'ADDRESSBAL' then
+      // this is a deprected function user for the first web api
       begin
+      {
       UserDireccion := Parameter(Linea,3);
       TryClosePoolConnection(AContext,'ADDRESSBAL '+UserDireccion+' '+IntToStr(GetAddressBalance(UserDireccion))+' '+
       IntToStr(GetAddressIncomingpays(UserDireccion))+' '+
       IntToStr(GetAddressPendingPays(UserDireccion))+' '+
       IntToStr(GetAddressBalance(UserDireccion)-GetAddressPendingPays(UserDireccion)));
+      }
       end
    else
       begin
@@ -2896,13 +2899,14 @@ if GoAhead then
    else if Copy(LLine,1,4) = 'PSK ' then
       begin    // Se acepta la nueva conexion
       OutText(format(rs0061,[IPUser]));
-      OutText(LangLine(13)+IPUser,true);             //New Connection from:
+      //OutText(LangLine(13)+IPUser,true);             //New Connection from:
       MyPublicIP := MiIp;
       U_DataPanel := true;
       end
    else
       begin
-      ToLog('SERVER: Closed unhandled incoming connection->'+IPUser);
+      ToLog(Format(rs0062,[IPUser]));
+      //ToLog('SERVER: Closed unhandled incoming connection->'+IPUser);
       TryCloseServerConnection(AContext);
       end;
    end;

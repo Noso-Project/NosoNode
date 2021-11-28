@@ -68,7 +68,8 @@ resourcestring
   rs0058 = 'SERVER: Invalid client -> %s';
   rs0059 = 'SERVER: Own connected';
   rs0060 = 'SERVER: Duplicated connection -> %s';
-  rs0061 ='New Connection from: %s';
+  rs0061 = 'New Connection from: %s';
+  rs0062 = 'SERVER: Closed unhandled incoming connection -> %s';
 
 {
 ConsoleLinesadd(format(rs,[]));
