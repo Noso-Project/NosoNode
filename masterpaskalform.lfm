@@ -301,10 +301,10 @@ object Form1: TForm1
     Height = 462
     Top = 38
     Width = 400
-    ActivePage = TabMonitor
+    ActivePage = TabWallet
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 6
+    TabIndex = 0
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
@@ -1641,9 +1641,9 @@ object Form1: TForm1
         Height = 434
         Top = 0
         Width = 392
-        ActivePage = TabNodes
+        ActivePage = TabSheet7
         Align = alClient
-        TabIndex = 4
+        TabIndex = 0
         TabOrder = 0
         object TabSheet7: TTabSheet
           Caption = 'Log'
@@ -1765,7 +1765,7 @@ object Form1: TForm1
     BevelOuter = bvNone
     ClientHeight = 38
     ClientWidth = 400
-    Color = clInactiveCaption
+    Color = clSkyBlue
     ParentColor = False
     TabOrder = 2
     object LabelBigBalance: TLabel

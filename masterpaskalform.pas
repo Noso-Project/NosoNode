@@ -43,6 +43,24 @@ type
      UsePool : Boolean ;
      end;
 
+  TNobiexData = Packed Record
+     Request : integer;        //1:CREATE, 2:DELETE, 3:ACCEPT, 4:CANCEL, 5:REPORT
+     FromAddress : String[50]; //Noso Address sending the request
+     ToAddress   : String[50]; //Noso address buying
+     Ammount : int64;
+     Market : String[4];
+     Price  : int64;
+     Total  : int64;
+     Fee    : int64;
+     Locked : int64;            //Total nosos locked on selling address
+     Wait : int64;              //Max number of blocks to wait for payment
+     PayAddress : String[120];  //External crypto address receiving the payment
+     Block : int64;
+     PublicKey : string[120];
+     Signature  : String[120];
+     Status : integer;          //1:OPEN, 2:DEAL, 3: PAID, 4:DONE
+     end;
+
   BotData = Packed Record
      ip: string[15];
      LastRefused : string[17];
