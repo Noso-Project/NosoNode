@@ -8,6 +8,7 @@ uses
   Classes, SysUtils;
 
 resourcestring
+  //Master form
   rs0001 = 'TimeOut reading from slot: %s';
   rs0002 = 'Error Reading lines from slot: %s';
   rs0003 = 'Receiving headers';
@@ -70,6 +71,10 @@ resourcestring
   rs0060 = 'SERVER: Duplicated connection -> %s';
   rs0061 = 'New Connection from: %s';
   rs0062 = 'SERVER: Closed unhandled incoming connection -> %s';
+
+  //mpGUI
+  rs0500 = 'Noso Launcher';
+  rs0501 = 'Log Viewer';
 
 {
 ConsoleLinesadd(format(rs,[]));

@@ -301,10 +301,10 @@ object Form1: TForm1
     Height = 462
     Top = 38
     Width = 400
-    ActivePage = TabWallet
+    ActivePage = TabMonitor
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 0
+    TabIndex = 6
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
@@ -3571,7 +3571,6 @@ object Form1: TForm1
         Caption = 'About...'
         ImageIndex = 48
         Visible = False
-        OnClick = MMAbout
       end
       object MenuItem8: TMenuItem
         Caption = 'Restart'
@@ -3618,7 +3617,6 @@ object Form1: TForm1
         Caption = 'Log'
         ImageIndex = 42
         Visible = False
-        OnClick = MMVerLog
       end
       object MenuItem14: TMenuItem
         Caption = 'Monitor'

@@ -595,7 +595,6 @@ if IOCode = 0 then
          begin
          Writeln(archivo,LogLines[0]);
          form1.MemoLog.Lines.Add(LogLines[0]);
-         if not formlog.Visible then NewLogLines := NewLogLines+1;
          LogLines.Delete(0);
          end;
       S_Log := false;

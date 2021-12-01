@@ -45,6 +45,7 @@ type
 
   TNobiexData = Packed Record
      Request : integer;        //1:CREATE, 2:DELETE, 3:ACCEPT, 4:CANCEL, 5:REPORT
+     Id      : string[64];     //Unique ID
      FromAddress : String[50]; //Noso Address sending the request
      ToAddress   : String[50]; //Noso address buying
      Ammount : int64;
@@ -59,6 +60,7 @@ type
      PublicKey : string[120];
      Signature  : String[120];
      Status : integer;          //1:OPEN, 2:DEAL, 3: PAID, 4:DONE
+     Verificator  : String[32]; //Unique ID of the default escrow
      end;
 
   BotData = Packed Record
@@ -493,14 +495,12 @@ type
     Procedure MMImpWallet(Sender:TObject);
     Procedure MMExpWallet(Sender:TObject);
     Procedure MMQuit(Sender:TObject);
-    Procedure MMAbout(Sender:TObject);
     Procedure MMRestart(Sender:TObject);
     Procedure MMChangeLang(Sender:TObject);
     Procedure MMRunUpdate(Sender:TObject);
     Procedure MMImpLang(Sender:TObject);
     Procedure MMNewLang(Sender:TObject);
     Procedure MMVerConsola(Sender:TObject);
-    Procedure MMVerLog(Sender:TObject);
     Procedure MMVerWeb(Sender:TObject);
     Procedure MMVerSlots(Sender:TObject);
     Procedure MMVerPool(Sender:TObject);
@@ -1119,8 +1119,6 @@ InitCriticalSection(CSExcLogLines);
 InitCriticalSection(CSPoolShares);
 
 CreateFormInicio();
-CreateFormLog();
-CreateFormAbout();
 CreateFormMilitime();
 CreateFormSlots();
 CreateFormPool();
@@ -1734,12 +1732,12 @@ Form1.imagenes.GetBitmap(22,SBOptions.Glyph);
 SBOptions.Visible:=false;SBOptions.OnClick:=@form1.SBOptionsOnClick;
 SBOptions.hint:='Show/Hide options';SBOptions.ShowHint:=true;
 
-ImageInc := TImage.Create(form1);ImageInc.Parent:=form1;
+ImageInc := TImage.Create(form1);ImageInc.Parent:=Form1.TopPAnel;
 ImageInc.Top:=2;ImageInc.Left:=30;ImageInc.Height:=17;ImageInc.Width:=17;
 Form1.imagenes.GetBitMap(9,ImageInc.Picture.Bitmap);ImageInc.Visible:=false;
 ImageInc.ShowHint:=true;ImageInc.OnMouseEnter:=@Form1.CheckForHint;
 
-ImageOut := TImage.Create(form1);ImageOut.Parent:=form1;
+ImageOut := TImage.Create(form1);ImageOut.Parent:=Form1.TopPAnel;
 ImageOut.Top:=12;ImageOut.Left:=37;ImageOut.Height:=17;ImageOut.Width:=17;
 Form1.imagenes.GetBitmap(10,Imageout.Picture.Bitmap);ImageOut.Visible:=false;
 ImageOut.ShowHint:=true;ImageOut.OnMouseEnter:=@Form1.CheckForHint;
@@ -3424,12 +3422,6 @@ Begin
 ShowExplorer(GetCurrentDir,'Export Wallet to','*.pkw','expwallet (-resultado-)',false);
 End;
 
-// menuprincipal about
-Procedure Tform1.MMAbout(Sender:TObject);
-Begin
-formabout.Visible:=true;
-End;
-
 // menuprincipal restart
 Procedure Tform1.MMRestart(Sender:TObject);
 Begin
@@ -3501,14 +3493,6 @@ else
    MainMenu.Items[2].Items[0].Caption:='Wallet';
    Form1.imagenes.GetBitmap(30,MainMenu.Items[2].Items[0].bitmap);
    end;
-End;
-
-// Ver el formulario del log
-Procedure Tform1.MMVerLog(Sender:TObject);
-Begin
-FormLog.Visible:=true;
-NewLogLines := 0;
-FormLog.BringToFront;
 End;
 
 // Ver monitor

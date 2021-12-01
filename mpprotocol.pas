@@ -731,7 +731,7 @@ if not errored then
    Tolog('Admin message'+slinebreak+
          TimestampToDate(msgtime)+slinebreak+
          msgtoshow);
-   formlog.Visible:=true;
+   form1.MemoLog.Visible:=true;
    OutgoingMsjsAdd(TextLine);
    end;
 End;

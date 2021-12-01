@@ -15,18 +15,6 @@ type
     public
     end;
 
-  TFormLog = class(Tform)
-    procedure closeFormLog(Sender: TObject; var CanClose: boolean);
-    Procedure ClearLog(Sender: TObject);
-    private
-    public
-    end;
-
-  TFormAbout = class(Tform)
-    private
-    public
-    end;
-
   TFormMonitor = class(Tform)
     Procedure closeFormMonitor(Sender: TObject; var CanClose: boolean);
     private
@@ -55,10 +43,8 @@ type
     public
     end;
 
-  function ThisPercent(percent, thiswidth : integer;RestarBarra : boolean = false):integer;
+function ThisPercent(percent, thiswidth : integer;RestarBarra : boolean = false):integer;
 Procedure CreateFormInicio();
-Procedure CreateFormLog();
-Procedure CreateFormAbout();
 Procedure CreateFormMilitime();
 Procedure UpdateMiliTimeForm();
 Procedure CreateFormSlots();
@@ -86,11 +72,6 @@ Procedure UpdateRowHeigth();
 var
   FormInicio : TFormInicio;
     GridInicio : TStringgrid;
-  FormLog : TFormLog;
-    LogMemo : TMemo;
-  FormAbout : TFormAbout;
-    ImgAbout : TImage;
-    LabelAbout : Tlabel;
   FormMonitor : TFormMonitor;
     GridMiTime : TStringgrid;
     GridMValues : TStringgrid;
@@ -118,7 +99,7 @@ var
 implementation
 
 Uses
-  mpParser, mpDisk, mpRed, mpProtocol,mpcoin, mpblock, formexplore, poolmanage;
+  mpParser, mpDisk, mpRed, mpProtocol,mpcoin, mpblock, formexplore, poolmanage, translation;
 
 // Returns the X percentage of a specified number
 function ThisPercent(percent, thiswidth : integer;RestarBarra : boolean = false):integer;
@@ -131,7 +112,7 @@ End;
 Procedure CreateFormInicio();
 Begin
 FormInicio := TFormInicio.Createnew(form1);
-FormInicio.caption := 'Noso Launcher';
+FormInicio.caption := rs0500;
 FormInicio.SetBounds(0, 0, 350, 200);
 FormInicio.BorderStyle := bssingle;
 FormInicio.Position:=poOwnerFormCenter;
@@ -164,39 +145,8 @@ else
    end;
 End;
 
-// Crear el formulario de log viewer
-Procedure CreateFormLog();
-Begin
-FormLog := TFormLog.Createnew(form1);
-FormLog.caption := 'Log Viewer';
-FormLog.SetBounds(0, 0, 450, 200);
-FormLog.BorderStyle := bssingle;
-FormLog.Position:=poOwnerFormCenter;
-FormLog.BorderIcons:=FormLog.BorderIcons-[biminimize];
-FormLog.ShowInTaskBar:=sTAlways;
-FormLog.OnCloseQuery:=@FormLog.closeFormLog;
-
-LogMemo := TMemo.Create(FormLog);
-LogMemo.Parent:=FormLog;
-LogMemo.Left:=1;LogMemo.Top:=1;LogMemo.Height:=198;LogMemo.Width:=448;
-LogMemo.Color:=clblack;LogMemo.Font.Color:=clwhite;LogMemo.ReadOnly:=true;
-LogMemo.Font.Size:=10;LogMemo.Font.Name:='consolas';
-LogMemo.Visible:=true;LogMemo.ScrollBars:=ssvertical;
-LogMemo.OnDblClick:=@FormLog.ClearLog;
-End;
-
-Procedure TFormLog.ClearLog(Sender: TObject);
-Begin
-LogMemo.Clear;
-End;
-
-// Al cerrar el formulario de log viewer
-Procedure TFormLog.closeFormLog(Sender: TObject; var CanClose: boolean);
-Begin
-FormLog.Visible:=false;
-End;
-
 // Crear el formulario de about
+{
 Procedure CreateFormAbout();
 Begin
 FormAbout := TFormAbout.Createnew(form1);
@@ -222,7 +172,7 @@ LabelAbout.Caption:=CoinName+' project'+SLINEBREAK+'Designed by PedroJOR'+SLINEB
 'Crypto routines by Xor-el'+SLINEBREAK+
 'Version '+ProgramVersion+SLINEBREAK+'Protocol '+IntToStr(Protocolo)+SLINEBREAK+BuildDate;
 LabelAbout.Alignment:=taCenter;
-End;
+End;}
 
 // Crear el formulario del monitor
 Procedure CreateFormMilitime();
@@ -1066,8 +1016,6 @@ Procedure CloseAllForms();
 Begin
    try
    formmonitor.Visible:=false;
-   formlog.Visible:=false;
-   formabout.Visible:=false;
    formslots.Visible:=false;
    CloseExplorer;
    Except on E: Exception do
