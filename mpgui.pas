@@ -15,12 +15,6 @@ type
     public
     end;
 
-  TFormMonitor = class(Tform)
-    Procedure closeFormMonitor(Sender: TObject; var CanClose: boolean);
-    private
-    public
-    end;
-
   TFormSlots = class(Tform)
     procedure GridMSlotsPrepareCanvas(sender: TObject; aCol, aRow: Integer;aState: TGridDrawState);
     private
@@ -45,8 +39,6 @@ type
 
 function ThisPercent(percent, thiswidth : integer;RestarBarra : boolean = false):integer;
 Procedure CreateFormInicio();
-Procedure CreateFormMilitime();
-Procedure UpdateMiliTimeForm();
 Procedure CreateFormSlots();
 Procedure UpdateSlotsGrid();
 Procedure CreateFormPool();
@@ -72,10 +64,7 @@ Procedure UpdateRowHeigth();
 var
   FormInicio : TFormInicio;
     GridInicio : TStringgrid;
-  FormMonitor : TFormMonitor;
-    GridMiTime : TStringgrid;
-    GridMValues : TStringgrid;
-    LabelCurrJob : TLabel;
+
   FormSlots : TFormSlots;
     GridMSlots : TStringgrid;
   FormPool : TformPool;
@@ -143,114 +132,6 @@ else
    forminicio.Visible:=false;
    form1.Visible:=true;
    end;
-End;
-
-// Crear el formulario de about
-{
-Procedure CreateFormAbout();
-Begin
-FormAbout := TFormAbout.Createnew(form1);
-FormAbout.caption := 'About '+coinname;
-FormAbout.SetBounds(0, 0, 200, 210);
-FormAbout.BorderStyle := bssingle;
-FormAbout.Position:=poOwnerFormCenter;
-FormAbout.BorderIcons:=FormAbout.BorderIcons-[biminimize];
-FormAbout.ShowInTaskBar:=sTAlways;
-//FormAbout.OnCloseQuery:=@FormLog.closeFormLog;
-
-ImgAbout:= TImage.Create(FormAbout);
-ImgAbout.Parent := FormAbout;
-ImgAbout.Width:= 100; ImgAbout.Height:= 100;
-ImgAbout.Top:= 10; ImgAbout.Left:= 50;
-ImgAbout.Picture:=form1.Image1.Picture;
-
-LabelAbout := TLabel.Create(FormAbout);
-LabelAbout.Parent := FormAbout;LabelAbout.AutoSize:=false;
-LabelAbout.Width:= 200; LabelAbout.Height:= 90;
-LabelAbout.Top:= 112; LabelAbout.Left:= 1;
-LabelAbout.Caption:=CoinName+' project'+SLINEBREAK+'Designed by PedroJOR'+SLINEBREAK+
-'Crypto routines by Xor-el'+SLINEBREAK+
-'Version '+ProgramVersion+SLINEBREAK+'Protocol '+IntToStr(Protocolo)+SLINEBREAK+BuildDate;
-LabelAbout.Alignment:=taCenter;
-End;}
-
-// Crear el formulario del monitor
-Procedure CreateFormMilitime();
-Begin
-FormMonitor := TFormMonitor.Createnew(form1);
-FormMonitor.caption := CoinName+' Monitor';;
-FormMonitor.SetBounds(0, 0, 302, 320);
-FormMonitor.BorderStyle := bssingle;
-//FormMonitor.Position:=poOwnerFormCenter;
-FormMonitor.Top:=1;FormMonitor.Left:=1;
-FormMonitor.BorderIcons:=FormMonitor.BorderIcons-[biminimize];
-FormMonitor.ShowInTaskBar:=sTAlways;
-FormMonitor.OnCloseQuery:=@FormMonitor.closeFormMonitor;
-
-GridMiTime := TStringGrid.Create(FormMonitor);GridMiTime.Parent:=FormMonitor;
-GridMiTime.Font.Name:='consolas'; GridMiTime.Font.Size:=10;
-GridMiTime.Left:=1;GridMiTime.Top:=1;GridMiTime.Height:=200;GridMiTime.width:=300;
-GridMiTime.FixedCols:=0;GridMiTime.FixedRows:=1;
-GridMiTime.rowcount := 1;GridMiTime.ColCount:=4;
-GridMiTime.ScrollBars:=ssVertical;
-GridMiTime.FocusRectVisible:=false;
-GridMiTime.Options:= GridMiTime.Options+[goRowSelect]-[goRangeSelect];
-GridMiTime.ColWidths[0]:= 160;GridMiTime.ColWidths[1]:= 40;GridMiTime.ColWidths[2]:= 40;GridMiTime.ColWidths[3]:= 40;
-GridMiTime.Enabled := true;
-GridMiTime.Cells[0,0]:='Function';GridMiTime.Cells[1,0]:='Last';GridMiTime.Cells[2,0]:='Max';GridMiTime.Cells[3,0]:='Min';
-GridMiTime.GridLineWidth := 1;
-
-GridMValues := TStringGrid.Create(FormMonitor);GridMValues.Parent:=FormMonitor;
-GridMValues.Font.Name:='consolas'; GridMValues.Font.Size:=8;
-GridMValues.Left:=1;GridMValues.Top:=202;GridMValues.Height:=100;GridMValues.width:=190;
-GridMValues.FixedCols:=0;GridMValues.FixedRows:=0;
-GridMValues.rowcount := 5;GridMValues.ColCount:=2;
-GridMValues.ScrollBars:=ssVertical;
-GridMValues.FocusRectVisible:=false;
-GridMValues.Options:= GridMValues.Options+[goRowSelect]-[goRangeSelect];
-GridMValues.ColWidths[0]:= 100;GridMValues.ColWidths[1]:= 70;
-GridMValues.Enabled := true;
-GridMValues.GridLineWidth := 1;
-
-LabelCurrJob := TLabel.Create(FormMonitor);
-LabelCurrJob.Parent := FormMonitor;LabelCurrJob.AutoSize:=true;
-LabelCurrJob.Top:= 304; LabelCurrJob.Left:= 1;
-LabelCurrJob.Caption:='';
-End;
-
-// Actualizar el monitor
-Procedure UpdateMiliTimeForm();
-var
-  count : integer;
-Begin
-if Length(MilitimeArray) > 0 then
-   begin
-   GridMiTime.RowCount:=Length(MilitimeArray)+1;
-   for count := 0 to Length(MilitimeArray)-1 do
-      begin
-      GridMiTime.Cells[0,count+1]:=MilitimeArray[count].Name;
-      GridMiTime.Cells[1,count+1]:=IntToStr(MilitimeArray[count].duration);
-      GridMiTime.Cells[2,count+1]:=IntToStr(MilitimeArray[count].maximo);
-      GridMiTime.Cells[3,count+1]:=IntToStr(MilitimeArray[count].minimo);
-      end;
-   end;
-
-GridMValues.Cells[0,0]:='InfoPanelTime';
-  GridMValues.Cells[1,0]:=IntToStr(InfoPanelTime);
-GridMValues.Cells[0,1]:='CriptoThread';
-  GridMValues.Cells[1,1]:=IntToStr(length(CriptoOpsTipo));
-GridMValues.Cells[0,2]:='MinerSeed';
-  GridMValues.Cells[1,2]:=MINER_HashSeed;
-GridMValues.Cells[0,3]:='MinerCounter';
-  GridMValues.Cells[1,3]:=IntToStr(MINER_HashCounter);
-GridMValues.Cells[0,4]:='MinerThreads';
-  GridMValues.Cells[1,4]:=IntToStr(Length(Miner_Thread));
-End;
-
-// Al cerrar el formulario de log viewer
-Procedure TFormMonitor.closeFormMonitor(Sender: TObject; var CanClose: boolean);
-Begin
-CheckMonitor := false;
 End;
 
 // Color the conections form
@@ -1003,19 +884,11 @@ if status then
    currentjob := CurrentJob+'>'+CurrJob
 else
    currentjob := StringReplace(currentjob,'>'+CurrJob,'',[rfReplaceAll, rfIgnoreCase]);
-{
-if CheckMonitor then
-   begin
-   LabelCurrJob.Caption := currentjob;
-   LabelCurrJob.Refresh;
-   end;
-}
 End;
 
 Procedure CloseAllForms();
 Begin
    try
-   formmonitor.Visible:=false;
    formslots.Visible:=false;
    CloseExplorer;
    Except on E: Exception do

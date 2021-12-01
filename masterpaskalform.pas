@@ -504,7 +504,6 @@ type
     Procedure MMVerWeb(Sender:TObject);
     Procedure MMVerSlots(Sender:TObject);
     Procedure MMVerPool(Sender:TObject);
-    Procedure MMVerMonitor(Sender:TObject);
 
     // CONSOLE POPUP
     Procedure CheckConsolePopUp(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
@@ -1119,7 +1118,6 @@ InitCriticalSection(CSExcLogLines);
 InitCriticalSection(CSPoolShares);
 
 CreateFormInicio();
-CreateFormMilitime();
 CreateFormSlots();
 CreateFormPool();
 Setlength(ListaPoolBots,0);
@@ -1533,7 +1531,6 @@ if ( (KeepServerOn) and (not Form1.Server.Active) and (LastTryServerOn+5<StrToIn
 if G_CloseRequested then CerrarPrograma();
 if form1.SystrayIcon.Visible then
    form1.SystrayIcon.Hint:=Coinname+' Ver. '+ProgramVersion+SubVersion+SLINEBREAK+LabelBigBalance.Caption;
-if ((CheckMonitor) and (FormMonitor.Visible)) then UpdateMiliTimeForm();
 if FormSlots.Visible then UpdateSlotsGrid();
 if FormPool.Visible then UpdatePoolForm();
 ConnectedRotor +=1; if ConnectedRotor>3 then ConnectedRotor := 0;
@@ -3493,14 +3490,6 @@ else
    MainMenu.Items[2].Items[0].Caption:='Wallet';
    Form1.imagenes.GetBitmap(30,MainMenu.Items[2].Items[0].bitmap);
    end;
-End;
-
-// Ver monitor
-Procedure TForm1.MMVerMonitor(Sender:TObject);
-Begin
-FormMonitor.Visible:=true;
-FormMonitor.BringToFront;
-CheckMonitor := true;
 End;
 
 // Abrir pagina web

@@ -74,7 +74,7 @@ resourcestring
 
   //mpGUI
   rs0500 = 'Noso Launcher';
-  rs0501 = 'Log Viewer';
+  rs0501 = '';
 
 {
 ConsoleLinesadd(format(rs,[]));

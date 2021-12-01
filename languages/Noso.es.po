@@ -620,7 +620,3 @@ msgstr ""
 msgid "Noso Launcher"
 msgstr ""
 
-#: translation.rs0501
-msgid "Log Viewer"
-msgstr ""
-
