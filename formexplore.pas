@@ -24,7 +24,7 @@ type
     FilesDir: TStringList;
     FoldersDir: TStringList;
 
-
+    procedure ResizeExplorer(Sender: TObject);
     procedure FSBOkFileOnClick(Sender: TObject);
     function OnlyName(const conpath: String): String;
     procedure FGridFilesDblClick(Sender: TObject);
@@ -49,7 +49,7 @@ type
 implementation
 
 Uses
-  MasterPaskalForm;
+  MasterPaskalForm, MpGUI;
 
 var
   explorer: TExplorerForm = Nil;
@@ -65,6 +65,7 @@ begin
   Explorer.FEditFilename.ReadOnly:=fijarnombre;
   explorer.Show;
   FResult := '';
+  explorer.FGridFiles.ColWidths[0] := thispercent(100,explorer.FGridFiles.Width);
 end;
 
 Procedure CloseExplorer();
@@ -82,7 +83,7 @@ begin
 
   Constraints.MinWidth:= 450;
   // This hides the extra cols, remove if you want full resize
-  Constraints.MaxWidth:= 450;
+  //Constraints.MaxWidth:= 450;
 
   Constraints.MinHeight:= 350;
   // BY GUS
@@ -91,6 +92,7 @@ begin
   Position := poOwnerFormCenter;
   BorderIcons := BorderIcons - [biminimize];
   ShowInTaskBar:=sTAlways;
+  OnResize:=@ResizeExplorer;
 
   FilesDir := TStringList.Create;
   FoldersDir := TStringList.Create;
@@ -132,7 +134,7 @@ begin
       OnClick := @SBUpPathClick;
     end;
 
-  FGridFiles := TStringGrid.Create(Self);
+  FGridFiles := TStringGrid.Create(explorer);
   with FGridFiles do
     begin
       Align:= alClient;
@@ -141,11 +143,10 @@ begin
       FixedCols := 0;
       FixedRows := 1;
       RowCount := 1;
-      ColCount := 4;
+      ColCount := 1;
       GridLineWidth := 0;
       ScrollBars := ssAutoVertical;
       Options := Options - [goRangeSelect];
-      ColWidths[0] := 444;
       Cells[0,0] := 'Name';
       FocusRectVisible := False;
       OnDblClick := @FGridFilesDblClick;
@@ -201,6 +202,15 @@ begin
   FilesDir.Free;
   FoldersDir.Free;
   inherited Destroy;
+end;
+
+// Adjust grid when resizing
+procedure TExplorerForm.ResizeExplorer(Sender: TObject);
+var
+  GridWidth : integer;
+begin
+GridWidth := FGridFiles.Width;
+FGridFiles.ColWidths[0]:= thispercent(100,GridWidth);
 end;
 
 procedure TExplorerForm.FGridFilesDblClick(Sender: TObject);
