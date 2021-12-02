@@ -4,6 +4,7 @@
 {"hash":193785443,"name":"tform1.tabaddresses.caption","sourcebytes":[65,100,100,114,101,115,115,101,115],"value":"Addresses"},
 {"hash":252360409,"name":"tform1.tabhistory.caption","sourcebytes":[72,105,115,116,111,114,121],"value":"History"},
 {"hash":199386995,"name":"tform1.labeltransactiondetails.caption","sourcebytes":[84,114,97,110,115,97,99,116,105,111,110,32,100,101,116,97,105,108,115],"value":"Transaction details"},
+{"hash":46920180,"name":"tform1.speedbutton1.hint","sourcebytes":[67,111,112,121,32,79,114,100,101,114,32,73,68],"value":"Copy Order ID"},
 {"hash":170628053,"name":"tform1.panelposmns.caption","sourcebytes":[80,111,83,32,97,110,100,32,77,78,115,32,105,110,102,111,32,104,101,114,101],"value":"PoS and MNs info here"},
 {"hash":113553431,"name":"tform1.tabpending.caption","sourcebytes":[80,101,110,100,105,110,103],"value":"Pending"},
 {"hash":174433893,"name":"tform1.tabconsole.caption","sourcebytes":[67,111,110,115,111,108,101],"value":"Console"},
@@ -79,5 +80,10 @@
 {"hash":73730866,"name":"tform1.menuitem14.caption","sourcebytes":[77,111,110,105,116,111,114],"value":"Monitor"},
 {"hash":230123397,"name":"tform1.menuitem15.caption","sourcebytes":[87,101,98,80,97,103,101],"value":"WebPage"},
 {"hash":104477203,"name":"tform1.menuitem16.caption","sourcebytes":[67,111,110,83,108,111,116,115],"value":"ConSlots"},
-{"hash":357980,"name":"tform1.menuitem17.caption","sourcebytes":[80,111,111,108],"value":"Pool"}
+{"hash":357980,"name":"tform1.menuitem17.caption","sourcebytes":[80,111,111,108],"value":"Pool"},
+{"hash":4729730,"name":"tform1.menuitem23.caption","sourcebytes":[67,76,101,97,114],"value":"CLear"},
+{"hash":304761,"name":"tform1.menuitem24.caption","sourcebytes":[67,111,112,121],"value":"Copy"},
+{"hash":4860802,"name":"tform1.menuitem25.caption","sourcebytes":[67,108,101,97,114],"value":"Clear"},
+{"hash":304761,"name":"tform1.menuitem26.caption","sourcebytes":[67,111,112,121],"value":"Copy"},
+{"hash":5671589,"name":"tform1.menuitem27.caption","sourcebytes":[80,97,115,116,101],"value":"Paste"}
 ]}

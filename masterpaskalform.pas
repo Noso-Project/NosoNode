@@ -339,6 +339,11 @@ type
     MenuItem20: TMenuItem;
     MenuItem21: TMenuItem;
     MenuItem22: TMenuItem;
+    MenuItem23: TMenuItem;
+    MenuItem24: TMenuItem;
+    MenuItem25: TMenuItem;
+    MenuItem26: TMenuItem;
+    MenuItem27: TMenuItem;
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
@@ -351,6 +356,9 @@ type
     PanelTrxDetails: TPanel;
     PanelSend: TPanel;
     GridMyTxs: TStringGrid;
+    ConsolePopUp2: TPopupMenu;
+    ConsoLinePopUp2: TPopupMenu;
+    SpeedButton1: TSpeedButton;
     TabAddresses: TTabSheet;
     TabHistory: TTabSheet;
     TabPending: TTabSheet;
@@ -517,9 +525,9 @@ type
     Procedure ConsoLinePopUpPaste(Sender:TObject);
 
     // TRXDETAILS POPUP
-    Procedure CheckTrxDetailsPopUp(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
+    //Procedure CheckTrxDetailsPopUp(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
     Procedure TrxDetailsPopUpCopyOrder(Sender:TObject);
-    Procedure TrxDetailsPopUpCopy(Sender:TObject);
+
 
     // OPTIONS
       // WALLET
@@ -857,9 +865,9 @@ var
   // Visual Components
   //MainMenu : TMainMenu;
     MenuItem : TMenuItem;
-  ConsolePopUp : TPopupMenu;
-  ConsoLinePopUp : TPopupMenu;
-  TrxDetailsPopUp : TPopupMenu;
+  //ConsolePopUp : TPopupMenu;
+  //ConsoLinePopUp : TPopupMenu;
+  //TrxDetailsPopUp : TPopupMenu;
 
   //ConnectButton : TSpeedButton;
   MinerButton : TSpeedButton;
@@ -1584,92 +1592,15 @@ Begin
 // BY GUS: Make sure TabWallet is always the one shown at start
 Form1.PageMain.ActivePage:= Form1.TabWallet;
 
-// Elementos visuales
+// Visual components
 
 {
-MainMenu := TMainMenu.create(form1);
-form1.Menu:=MainMenu;
-
-MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Network';MainMenu.items.Add(MenuItem);
-MenuItem.OnClick:=@form1.CheckMMCaptions;
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Start Server';MenuItem.OnClick:=@Form1.MMServer;
-  Form1.imagenes.GetBitmap(27,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Connect';MenuItem.OnClick:=@Form1.MMConnect;
-  Form1.imagenes.GetBitmap(29,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Miner';MenuItem.OnClick:=@Form1.MMMiner;
-  MenuItem.visible := false;Form1.imagenes.GetBitmap(4,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
-
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Import Wallet';MenuItem.OnClick:=@Form1.MMImpWallet;
-  Form1.imagenes.GetBitmap(31,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
-
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Export Wallet';MenuItem.OnClick:=@Form1.MMExpWallet;
-  Form1.imagenes.GetBitmap(32,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
-
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='About...';MenuItem.OnClick:=@Form1.MMAbout;
-  MenuItem.visible := false;Form1.imagenes.GetBitmap(48,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
-
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Restart';MenuItem.OnClick:=@Form1.MMRestart;
-  Form1.imagenes.GetBitmap(49,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
-
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Quit';MenuItem.OnClick:=@Form1.MMQuit;
-  Form1.imagenes.GetBitmap(18,MenuItem.bitmap); MainMenu.items[0].Add(MenuItem);
-
-MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Development';
-MenuItem.visible := false; MainMenu.items.Add(MenuItem);
-MenuItem.OnClick:=@form1.CheckMMCaptions;
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Language';
-  Form1.imagenes.GetBitmap(51,MenuItem.bitmap); MainMenu.items[1].Add(MenuItem);
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Import';MenuItem.OnClick:=@Form1.MMImpLang;
-  Form1.imagenes.GetBitmap(33,MenuItem.bitmap); MainMenu.items[1].Add(MenuItem);
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='New file';MenuItem.OnClick:=@Form1.MMNewLang;
-  Form1.imagenes.GetBitmap(34,MenuItem.bitmap); MainMenu.items[1].Add(MenuItem);
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Updates';
-  Form1.imagenes.GetBitmap(50,MenuItem.bitmap); MainMenu.items[1].Add(MenuItem);
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Messages';//MenuItem.OnClick:=@Form1.MMNewLang;
-  Form1.imagenes.GetBitmap(52,MenuItem.bitmap); MainMenu.items[1].Add(MenuItem);
-
-MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='View';MenuItem.RightJustify:=true;MainMenu.items.Add(MenuItem);
-;MenuItem.OnClick:=@form1.CheckMMCaptions;
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Console';MenuItem.OnClick:=@Form1.MMVerConsola;
-  MenuItem.Visible:=false;Form1.imagenes.GetBitmap(25,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
-
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Log';MenuItem.OnClick:=@Form1.MMVerLog;
-  MenuItem.Visible:=false;Form1.imagenes.GetBitmap(42,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
-
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Monitor';MenuItem.OnClick:=@Form1.MMVerMonitor;
-  Form1.imagenes.GetBitmap(44,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
-
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='WebPage';MenuItem.OnClick:=@Form1.MMVerWeb;
-  Form1.imagenes.GetBitmap(47,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
-
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='ConSlots';MenuItem.OnClick:=@Form1.MMVerSlots;
-  Form1.imagenes.GetBitmap(29,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
-
-  MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:='Pool';MenuItem.OnClick:=@Form1.MMVerPool;
-  {MenuItem.Visible:=false};Form1.imagenes.GetBitmap(4,MenuItem.bitmap); MainMenu.items[2].Add(MenuItem);
-}
-
-
-ConsolePopUp := TPopupMenu.Create(form1);
-MenuItem := TMenuItem.Create(ConsolePopUp);MenuItem.Caption := 'Clear';//Form1.imagenes.GetBitmap(0,MenuItem.Bitmap);
-  MenuItem.OnClick := @form1.ConsolePopUpClear;ConsolePopUp.Items.Add(MenuItem);
-MenuItem := TMenuItem.Create(ConsolePopUp);MenuItem.Caption := 'Copy';Form1.imagenes.GetBitmap(7,MenuItem.Bitmap);
-  MenuItem.OnClick := @form1.ConsolePopUpCopy;ConsolePopUp.Items.Add(MenuItem);
-
-ConsoLinePopUp := TPopupMenu.Create(form1);
-MenuItem := TMenuItem.Create(ConsoLinePopUp);MenuItem.Caption := 'Clear';//Form1.imagenes.GetBitmap(0,MenuItem.Bitmap);
-  MenuItem.OnClick := @form1.ConsoLinePopUpClear;ConsoLinePopUp.Items.Add(MenuItem);
-MenuItem := TMenuItem.Create(ConsoLinePopUp);MenuItem.Caption := 'Copy';Form1.imagenes.GetBitmap(7,MenuItem.Bitmap);
-  MenuItem.OnClick := @form1.ConsoLinePopUpCopy;ConsoLinePopUp.Items.Add(MenuItem);
-MenuItem := TMenuItem.Create(ConsoLinePopUp);MenuItem.Caption := 'Paste';Form1.imagenes.GetBitmap(15,MenuItem.Bitmap);
-  MenuItem.OnClick := @form1.ConsoLinePopUpPaste;ConsoLinePopUp.Items.Add(MenuItem);
-
 TrxDetailsPopUp := TPopupMenu.Create(form1);
 MenuItem := TMenuItem.Create(TrxDetailsPopUp);MenuItem.Caption := 'Copy Order';Form1.imagenes.GetBitmap(7,MenuItem.Bitmap);
   MenuItem.OnClick := @form1.TrxDetailsPopUpCopyOrder;TrxDetailsPopUp.Items.Add(MenuItem);
 MenuItem := TMenuItem.Create(TrxDetailsPopUp);MenuItem.Caption := 'Copy';Form1.imagenes.GetBitmap(7,MenuItem.Bitmap);
   MenuItem.OnClick := @form1.TrxDetailsPopUpCopy;TrxDetailsPopUp.Items.Add(MenuItem);
-
+}
 {Memoconsola := TMemo.Create(Form1);
 Memoconsola.Parent:=form1.tabconsole;
 Memoconsola.Left:=0;Memoconsola.Top:=0;Memoconsola.Height:=220;Memoconsola.Width:=388;
@@ -3534,10 +3465,10 @@ End;
 // VErifica que mostrar en el consolepopup
 Procedure TForm1.CheckConsolePopUp(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
 Begin
-if MemoConsola.Text <> '' then ConsolePopUp.Items[0].Enabled:= true
-else ConsolePopUp.Items[0].Enabled:= false;
-if length(Memoconsola.SelText)>0 then ConsolePopUp.Items[1].Enabled:= true
-else ConsolePopUp.Items[1].Enabled:= false;
+if MemoConsola.Text <> '' then ConsolePopUp2.Items[0].Enabled:= true
+else ConsolePopUp2.Items[0].Enabled:= false;
+if length(Memoconsola.SelText)>0 then ConsolePopUp2.Items[1].Enabled:= true
+else ConsolePopUp2.Items[1].Enabled:= false;
 End;
 
 Procedure TForm1.ConsolePopUpClear(Sender:TObject);
@@ -3558,12 +3489,12 @@ End;
 // VErifica que mostrar en el consolepopup
 Procedure TForm1.CheckConsoLinePopUp(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
 Begin
-if ConsoleLine.Text <> '' then ConsoLinePopUp.Items[0].Enabled:= true
-else ConsoLinePopUp.Items[0].Enabled:= false;
-if length(ConsoleLine.SelText)>0 then ConsoLinePopUp.Items[1].Enabled:= true
-else ConsoLinePopUp.Items[1].Enabled:= false;
-if length(Clipboard.AsText)>0 then ConsoLinePopUp.Items[2].Enabled:= true
-else ConsoLinePopUp.Items[2].Enabled:= false;
+if ConsoleLine.Text <> '' then ConsoLinePopUp2.Items[0].Enabled:= true
+else ConsoLinePopUp2.Items[0].Enabled:= false;
+if length(ConsoleLine.SelText)>0 then ConsoLinePopUp2.Items[1].Enabled:= true
+else ConsoLinePopUp2.Items[1].Enabled:= false;
+if length(Clipboard.AsText)>0 then ConsoLinePopUp2.Items[2].Enabled:= true
+else ConsoLinePopUp2.Items[2].Enabled:= false;
 End;
 
 Procedure TForm1.ConsoLinePopUpClear(Sender:TObject);
@@ -3593,26 +3524,13 @@ End;
 // TrxDetails PopUp
 //******************************************************************************
 
-// VErifica que mostrar en el consolepopup
-Procedure TForm1.CheckTrxDetailsPopUp(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
-Begin
-if GridMyTxs.Cells[2,GridMyTxs.row] ='TRFR' then TrxDetailsPopUp.Items[0].Visible:= true
-else TrxDetailsPopUp.Items[0].visible:= false;
-if length(MemoTrxDetails.SelText)>0 then TrxDetailsPopUp.Items[1].Enabled:= true
-else TrxDetailsPopUp.Items[1].Enabled:= false;
-End;
-
+// Copy the Order ID to clipboard
 Procedure TForm1.TrxDetailsPopUpCopyOrder(Sender:TObject);
 Begin
 Clipboard.AsText:= GridMyTxs.Cells[4,GridMyTxs.row];
 info('Order ID copied to clipboard');
 End;
 
-Procedure TForm1.TrxDetailsPopUpCopy(Sender:TObject);
-Begin
-Clipboard.AsText:= MemoTrxDetails.SelText;
-info('Copied to clipboard');
-End;
 
 //******************************************************************************
 // OPTIONS CONTROLS

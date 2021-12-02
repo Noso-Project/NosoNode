@@ -208,6 +208,28 @@ msgstr "Actualizações"
 msgid "Messages"
 msgstr "Mensagens"
 
+#: tform1.menuitem23.caption
+msgid "CLear"
+msgstr ""
+
+#: tform1.menuitem24.caption
+msgctxt "tform1.menuitem24.caption"
+msgid "Copy"
+msgstr ""
+
+#: tform1.menuitem25.caption
+msgid "Clear"
+msgstr ""
+
+#: tform1.menuitem26.caption
+msgctxt "tform1.menuitem26.caption"
+msgid "Copy"
+msgstr ""
+
+#: tform1.menuitem27.caption
+msgid "Paste"
+msgstr ""
+
 #: tform1.menuitem3.caption
 msgid "Connect"
 msgstr "Conectar"
@@ -240,6 +262,10 @@ msgstr "Sair"
 
 #: tform1.panelposmns.caption
 msgid "PoS and MNs info here"
+msgstr ""
+
+#: tform1.speedbutton1.hint
+msgid "Copy Order ID"
 msgstr ""
 
 #: tform1.tabaddresses.caption

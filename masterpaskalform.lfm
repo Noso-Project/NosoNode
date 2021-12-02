@@ -301,10 +301,10 @@ object Form1: TForm1
     Height = 462
     Top = 38
     Width = 400
-    ActivePage = TabMonitor
+    ActivePage = TabWallet
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 6
+    TabIndex = 0
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
@@ -315,9 +315,9 @@ object Form1: TForm1
         Height = 434
         Top = 0
         Width = 392
-        ActivePage = TabAddresses
+        ActivePage = TabHistory
         Align = alClient
-        TabIndex = 0
+        TabIndex = 1
         TabOrder = 0
         object TabAddresses: TTabSheet
           Caption = 'Addresses'
@@ -427,10 +427,23 @@ object Form1: TForm1
               Font.Name = 'Consolas'
               Font.Pitch = fpFixed
               Font.Quality = fqDraft
-              OnContextPopup = CheckTrxDetailsPopUp
+              OnContextPopup = DisablePopUpMenu
               ParentFont = False
               ReadOnly = True
               TabOrder = 0
+            end
+            object SpeedButton1: TSpeedButton
+              Left = 200
+              Height = 20
+              Hint = 'Copy Order ID'
+              Top = 3
+              Width = 20
+              AutoSize = True
+              Images = Imagenes
+              ImageIndex = 7
+              OnClick = TrxDetailsPopUpCopyOrder
+              ShowHint = True
+              ParentShowHint = False
             end
           end
           object PanelPoSMNs: TPanel
@@ -468,6 +481,7 @@ object Form1: TForm1
         Font.Quality = fqDraft
         OnContextPopup = CheckConsolePopUp
         ParentFont = False
+        PopupMenu = ConsolePopUp2
         ParentShowHint = False
         ReadOnly = True
         ScrollBars = ssVertical
@@ -491,6 +505,7 @@ object Form1: TForm1
         OnContextPopup = CheckConsoLinePopUp
         OnKeyUp = ConsoleLineKeyup
         ParentFont = False
+        PopupMenu = ConsoLinePopUp2
         TabOrder = 1
       end
       object DataPanel: TStringGrid
@@ -1801,7 +1816,7 @@ object Form1: TForm1
   end
   object Imagenes: TImageList
     Left = 352
-    Top = 504
+    Top = 480
     Bitmap = {
       4C69360000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
@@ -3536,8 +3551,8 @@ object Form1: TForm1
   end
   object MainMenu: TMainMenu
     Images = Imagenes
-    Left = 305
-    Top = 504
+    Left = 304
+    Top = 480
     object MenuItem1: TMenuItem
       Caption = 'Network'
       OnClick = CheckMMCaptions
@@ -3638,6 +3653,34 @@ object Form1: TForm1
         ImageIndex = 4
         OnClick = MMVerPool
       end
+    end
+  end
+  object ConsolePopUp2: TPopupMenu
+    Left = 271
+    Top = 483
+    object MenuItem23: TMenuItem
+      Caption = 'CLear'
+      OnClick = ConsolePopUpClear
+    end
+    object MenuItem24: TMenuItem
+      Caption = 'Copy'
+      OnClick = ConsolePopUpCopy
+    end
+  end
+  object ConsoLinePopUp2: TPopupMenu
+    Left = 215
+    Top = 481
+    object MenuItem25: TMenuItem
+      Caption = 'Clear'
+      OnClick = ConsoLinePopUpClear
+    end
+    object MenuItem26: TMenuItem
+      Caption = 'Copy'
+      OnClick = ConsoLinePopUpCopy
+    end
+    object MenuItem27: TMenuItem
+      Caption = 'Paste'
+      OnClick = ConsoLinePopUpPaste
     end
   end
 end
