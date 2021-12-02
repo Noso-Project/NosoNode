@@ -79,7 +79,11 @@ begin
   inherited CreateNew(TheOwner);
   Caption := 'File Explorer';
   //SetBounds(0, 0, 450, 350);
+
   Constraints.MinWidth:= 450;
+  // This hides the extra cols, remove if you want full resize
+  Constraints.MaxWidth:= 450;
+
   Constraints.MinHeight:= 350;
   // BY GUS
   // Remove this comment if you want to make it non resizable
