@@ -71,6 +71,9 @@ resourcestring
   rs0060 = 'SERVER: Duplicated connection -> %s';
   rs0061 = 'New Connection from: %s';
   rs0062 = 'SERVER: Closed unhandled incoming connection -> %s';
+  rs0063 = 'Next block required';
+  rs0064 = 'My PoS addresses';
+  rs0065 = 'My PoS earnings';
 
   //mpGUI
   rs0500 = 'Noso Launcher';

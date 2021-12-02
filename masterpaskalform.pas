@@ -60,7 +60,7 @@ type
      PublicKey : string[120];
      Signature  : String[120];
      Status : integer;          //1:OPEN, 2:DEAL, 3: PAID, 4:DONE
-     Verificator  : String[32]; //Unique ID of the default escrow
+     Verificator  : String[32]; //Unique ID of the escrow service
      end;
 
   BotData = Packed Record
@@ -363,6 +363,7 @@ type
     SpeedButton1: TSpeedButton;
     BDefAddr: TSpeedButton;
     BCustomAddr: TSpeedButton;
+    GridPoS: TStringGrid;
     TabAddresses: TTabSheet;
     TabHistory: TTabSheet;
     TabPending: TTabSheet;
@@ -436,6 +437,7 @@ type
     procedure FormWindowStateChange(Sender: TObject);
     procedure GridMyTxsResize(Sender: TObject);
     procedure GridMyTxsSelection(Sender: TObject; aCol, aRow: Integer);
+    procedure GridPoSResize(Sender: TObject);
     procedure LE_Rpc_PassEditingDone(Sender: TObject);
     Procedure LoadOptionsToPanel();
     procedure FormShow(Sender: TObject);
@@ -453,6 +455,7 @@ type
     function  ClientsCount : Integer ;
     procedure SE_WO_AntifreezeTimeChange(Sender: TObject);
     procedure GridExLTCResize(Sender: TObject);
+    procedure TabHistoryShow(Sender: TObject);
     Procedure TryCloseServerConnection(AContext: TIdContext; closemsg:string='');
     procedure IdTCPServer1Execute(AContext: TIdContext);
     procedure IdTCPServer1Connect(AContext: TIdContext);
@@ -594,7 +597,7 @@ CONST
   HalvingSteps = 10;                // total number of halvings
   Comisiontrfr = 10000;             // ammount/Comisiontrfr = 0.01 % of the ammount
   ComisionCustom = 200000;          // 0.05 % of the Initial reward
-  CoinSimbol = 'NOS';               // Coin 3 chars
+  CoinSimbol = 'NOSO';               // Coin 3 chars
   CoinName = 'Noso';                // Coin name
   CoinChar = 'N';                   // Char for addresses
   MinimunFee = 10;                  // Minimun fee for transfer
@@ -690,7 +693,7 @@ var
   //DataPanel : TStringGrid;
     U_DataPanel : boolean = true;
   //LabelBigBalance : TLabel;
-
+    U_PoSGrid : Boolean = true;
   // Network requests
   ArrayNetworkRequests : array of NetworkRequestData;
      networkhashrate: int64 = 0;
@@ -1594,6 +1597,15 @@ Form1.PageMain.ActivePage:= Form1.TabWallet;
 
 // Visual components
 
+// Resize all grids at launch
+Form1.GridPoSResize(nil);
+Form1.GridPoS.Cells[0,0] := rs0063;
+Form1.GridPoS.Cells[0,1] := rs0064;
+Form1.GridPoS.Cells[0,2] := rs0065;
+form1.GridPoS.FocusRectVisible:=false;
+
+
+
 form1.DataPanel.DefaultRowHeight:=UserRowHeigth;
 form1.DataPanel.Font.Size:=UserFontSize;
 form1.DataPanel.FocusRectVisible:=false;
@@ -1612,20 +1624,9 @@ form1.DireccionesPanel.FocusRectVisible:=false;
 Form1.BDefAddr.Parent:=form1.DireccionesPanel;
 form1.BCustomAddr.Parent:=form1.DireccionesPanel;
 
-  {
-  BDefAddr := TSpeedButton.Create(form1);
-  BDefAddr.Top:=2;BDefAddr.Left:=168;BDefAddr.Height:=18;BDefAddr.Width:=18;
-  Form1.imagenes.GetBitmap(40,BDefAddr.Glyph);
-  BDefAddr.Caption:='';BDefAddr.OnClick:=@Form1.BDefAddrOnClick;
-  BDefAddr.Hint:='Set as Default';BDefAddr.ShowHint:=true;
-  }
-  {
-  BCustomAddr := TSpeedButton.Create(form1);BCustomAddr.Parent:=form1.DireccionesPanel;
-  BCustomAddr.Top:=2;BCustomAddr.Left:=192;BCustomAddr.Height:=18;BCustomAddr.Width:=18;
-  Form1.imagenes.GetBitmap(12,BCustomAddr.Glyph);
-  BCustomAddr.Caption:='';BCustomAddr.OnClick:=@Form1.BCustomAddrOnClick;
-  BCustomAddr.Hint:='Customize address';BCustomAddr.ShowHint:=true;
-  }
+
+
+
     PanelCustom := TPanel.Create(Form1);PanelCustom.Parent:=form1.DireccionesPanel;
     PanelCustom.Left:=0;PanelCustom.Top:=0;PanelCustom.Height:=20;PanelCustom.Width:=250;
     PanelCustom.BevelColor:=clBlack;PanelCustom.Visible:=false;
@@ -3649,6 +3650,12 @@ form1.GridExLTC.ColWidths[1]:= thispercent(33,GridWidth);
 form1.GridExLTC.ColWidths[2]:= thispercent(33,GridWidth,true);
 end;
 
+// Fill the transaction details when Tab is selected
+procedure TForm1.TabHistoryShow(Sender: TObject);
+begin
+GridMyTxsSelection(nil,GridMyTxs.Col,GridMyTxs.Row)
+end;
+
 // adjust transactions history grid when resize
 procedure TForm1.GridMyTxsResize(Sender: TObject);
 var
@@ -3660,6 +3667,16 @@ form1.GridMyTxs.ColWidths[1]:= thispercent(20,GridWidth);
 form1.GridMyTxs.ColWidths[2]:= thispercent(25,GridWidth);
 form1.GridMyTxs.ColWidths[3]:= thispercent(35,GridWidth,true);
 end;
+
+// Adjust grid with PoS information at resize
+procedure TForm1.GridPoSResize(Sender: TObject);
+var
+  GridWidth : integer;
+begin
+GridWidth := form1.GridPoS.Width;
+form1.GridPoS.ColWidths[0]:= thispercent(50,GridWidth);
+form1.GridPoS.ColWidths[1]:= thispercent(50,GridWidth);
+End;
 
 // Adjust the trxdetails when a selection is done
 procedure TForm1.GridMyTxsSelection(Sender: TObject; aCol, aRow: Integer);
@@ -3718,6 +3735,8 @@ if GridMyTxs.Row>0 then
    end;
 
 End;
+
+
 
 procedure TForm1.MemoRPCWhitelistEditingDone(Sender: TObject);
 var

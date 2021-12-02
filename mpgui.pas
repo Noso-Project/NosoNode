@@ -587,6 +587,14 @@ if U_DataPanel then
    U_DataPanel := false;
    end;
 
+if U_PoSGrid then
+   begin
+   form1.GridPoS.Cells[1,0]:=Int2Curr((GetSupply(MyLastBlock+1)*PosStackCoins) div 10000)+' '+coinsimbol;
+   form1.GridPoS.Cells[1,1]:=IntToStr(GetMyPosAddressesCount);
+   form1.GridPoS.Cells[1,2]:=Int2Curr(G_PoSEarnings)+' '+CoinSimbol;
+   U_PoSGrid := false;
+   End;
+
 if (Miner_IsOn) then
    Begin
    if MINER_HashCounter > Miner_UltimoRecuento then Miner_EsteIntervalo := MINER_HashCounter-Miner_UltimoRecuento

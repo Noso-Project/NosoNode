@@ -7,7 +7,6 @@
 {"hash":252360409,"name":"tform1.tabhistory.caption","sourcebytes":[72,105,115,116,111,114,121],"value":"History"},
 {"hash":199386995,"name":"tform1.labeltransactiondetails.caption","sourcebytes":[84,114,97,110,115,97,99,116,105,111,110,32,100,101,116,97,105,108,115],"value":"Transaction details"},
 {"hash":46920180,"name":"tform1.speedbutton1.hint","sourcebytes":[67,111,112,121,32,79,114,100,101,114,32,73,68],"value":"Copy Order ID"},
-{"hash":170628053,"name":"tform1.panelposmns.caption","sourcebytes":[80,111,83,32,97,110,100,32,77,78,115,32,105,110,102,111,32,104,101,114,101],"value":"PoS and MNs info here"},
 {"hash":113553431,"name":"tform1.tabpending.caption","sourcebytes":[80,101,110,100,105,110,103],"value":"Pending"},
 {"hash":174433893,"name":"tform1.tabconsole.caption","sourcebytes":[67,111,110,115,111,108,101],"value":"Console"},
 {"hash":89361864,"name":"tform1.tabexchange.caption","sourcebytes":[78,111,66,105,69,120],"value":"NoBiEx"},

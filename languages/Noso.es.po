@@ -273,10 +273,6 @@ msgstr "Reiniciar"
 msgid "Quit"
 msgstr "Salir"
 
-#: tform1.panelposmns.caption
-msgid "PoS and MNs info here"
-msgstr ""
-
 #: tform1.speedbutton1.hint
 msgid "Copy Order ID"
 msgstr ""
@@ -648,6 +644,18 @@ msgstr ""
 
 #: translation.rs0062
 msgid "SERVER: Closed unhandled incoming connection -> %s"
+msgstr ""
+
+#: translation.rs0063
+msgid "Next block required"
+msgstr ""
+
+#: translation.rs0064
+msgid "My PoS addresses"
+msgstr ""
+
+#: translation.rs0065
+msgid "My PoS earnings"
 msgstr ""
 
 #: translation.rs0500

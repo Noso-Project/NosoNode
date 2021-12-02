@@ -771,6 +771,7 @@ MySumarioHash := HashMD5File(SumarioFilename);
 MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
 LastBlockData := LoadBlockDataHeader(MyLastBlock);
 MyResumenHash := HashMD5File(ResumenFilename);
+U_PoSGrid := true;
 End;
 
 // Verificar y que hacer con un archivo de Update
