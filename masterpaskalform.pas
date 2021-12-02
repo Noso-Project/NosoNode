@@ -361,6 +361,8 @@ type
     ConsolePopUp2: TPopupMenu;
     ConsoLinePopUp2: TPopupMenu;
     SpeedButton1: TSpeedButton;
+    BDefAddr: TSpeedButton;
+    BCustomAddr: TSpeedButton;
     TabAddresses: TTabSheet;
     TabHistory: TTabSheet;
     TabPending: TTabSheet;
@@ -864,7 +866,7 @@ var
 
   // Visual Components
   //MainMenu : TMainMenu;
-    MenuItem : TMenuItem;
+  //  MenuItem : TMenuItem;
   //ConsolePopUp : TPopupMenu;
   //ConsoLinePopUp : TPopupMenu;
   //TrxDetailsPopUp : TPopupMenu;
@@ -876,8 +878,8 @@ var
   //ImageOut :TImage;
     MontoOutgoing : Int64 = 0;
   //DireccionesPanel : TStringGrid;
-    BDefAddr : TSpeedButton;
-    BCustomAddr : TSpeedButton;
+    //BDefAddr : TSpeedButton;
+    //BCustomAddr : TSpeedButton;
       PanelCustom : TPanel;
         EditCustom : TEdit;
         BOkCustom : TSpeedButton;
@@ -1607,20 +1609,23 @@ form1.DireccionesPanel.Options:= form1.DireccionesPanel.Options+[goRowSelect]-[g
 form1.DireccionesPanel.ColWidths[0]:= 260;form1.DireccionesPanel.ColWidths[1]:= 107;
 form1.DireccionesPanel.FocusRectVisible:=false;
 
+Form1.BDefAddr.Parent:=form1.DireccionesPanel;
+form1.BCustomAddr.Parent:=form1.DireccionesPanel;
 
-
-  BDefAddr := TSpeedButton.Create(form1);BDefAddr.Parent:=form1.DireccionesPanel;
+  {
+  BDefAddr := TSpeedButton.Create(form1);
   BDefAddr.Top:=2;BDefAddr.Left:=168;BDefAddr.Height:=18;BDefAddr.Width:=18;
   Form1.imagenes.GetBitmap(40,BDefAddr.Glyph);
   BDefAddr.Caption:='';BDefAddr.OnClick:=@Form1.BDefAddrOnClick;
   BDefAddr.Hint:='Set as Default';BDefAddr.ShowHint:=true;
-
+  }
+  {
   BCustomAddr := TSpeedButton.Create(form1);BCustomAddr.Parent:=form1.DireccionesPanel;
   BCustomAddr.Top:=2;BCustomAddr.Left:=192;BCustomAddr.Height:=18;BCustomAddr.Width:=18;
   Form1.imagenes.GetBitmap(12,BCustomAddr.Glyph);
   BCustomAddr.Caption:='';BCustomAddr.OnClick:=@Form1.BCustomAddrOnClick;
   BCustomAddr.Hint:='Customize address';BCustomAddr.ShowHint:=true;
-
+  }
     PanelCustom := TPanel.Create(Form1);PanelCustom.Parent:=form1.DireccionesPanel;
     PanelCustom.Left:=0;PanelCustom.Top:=0;PanelCustom.Height:=20;PanelCustom.Width:=250;
     PanelCustom.BevelColor:=clBlack;PanelCustom.Visible:=false;

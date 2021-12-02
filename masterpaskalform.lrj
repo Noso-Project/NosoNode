@@ -2,6 +2,8 @@
 {"hash":349855,"name":"tform1.caption","sourcebytes":[78,111,115,111],"value":"Noso"},
 {"hash":98054852,"name":"tform1.tabwallet.caption","sourcebytes":[87,97,108,108,101,116],"value":"Wallet"},
 {"hash":193785443,"name":"tform1.tabaddresses.caption","sourcebytes":[65,100,100,114,101,115,115,101,115],"value":"Addresses"},
+{"hash":110439380,"name":"tform1.bdefaddr.hint","sourcebytes":[83,101,116,32,97,100,100,114,101,115,115,32,97,115,32,68,101,102,97,117,108,116],"value":"Set address as Default"},
+{"hash":18891123,"name":"tform1.bcustomaddr.hint","sourcebytes":[67,117,115,116,111,109,105,122,101,32,97,100,100,114,101,115,115],"value":"Customize address"},
 {"hash":252360409,"name":"tform1.tabhistory.caption","sourcebytes":[72,105,115,116,111,114,121],"value":"History"},
 {"hash":199386995,"name":"tform1.labeltransactiondetails.caption","sourcebytes":[84,114,97,110,115,97,99,116,105,111,110,32,100,101,116,97,105,108,115],"value":"Transaction details"},
 {"hash":46920180,"name":"tform1.speedbutton1.hint","sourcebytes":[67,111,112,121,32,79,114,100,101,114,32,73,68],"value":"Copy Order ID"},

@@ -1,6 +1,14 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8"
 
+#: tform1.bcustomaddr.hint
+msgid "Customize address"
+msgstr ""
+
+#: tform1.bdefaddr.hint
+msgid "Set address as Default"
+msgstr ""
+
 #: tform1.bitbtn1.caption
 msgid "Donate"
 msgstr ""

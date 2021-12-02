@@ -11,6 +11,14 @@ msgstr ""
 "Language: es\n"
 "X-Generator: Poedit 3.0\n"
 
+#: tform1.bcustomaddr.hint
+msgid "Customize address"
+msgstr ""
+
+#: tform1.bdefaddr.hint
+msgid "Set address as Default"
+msgstr ""
+
 #: tform1.bitbtn1.caption
 msgid "Donate"
 msgstr "Donar"
