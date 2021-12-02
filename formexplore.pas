@@ -6,19 +6,23 @@ interface
 
 uses
   Classes, SysUtils, FileUtil,
-  Forms, Controls, StdCtrls, Graphics, Buttons, Grids;
+  Forms, Controls, StdCtrls, Graphics, Buttons, Grids, ExtCtrls;
 
 type
   TExplorerForm = class(TForm)
   private
-    EditPath: TEdit;
-    FActiveDir: String;
+    FPathPanel: TPanel;
+    FEditPath: TEdit;
+    FSBUpPath: TSpeedButton;
+
+    FFilenamePanel: TPanel;
     FEditFilename: TEdit;
+    FSBOkFile: TSpeedButton;
+
+    FActiveDir: String;
     FGridFiles: TStringGrid;
     FilesDir: TStringList;
     FoldersDir: TStringList;
-    FSBOkFile: TSpeedButton;
-    FSBUpPath: TSpeedButton;
 
 
     procedure FSBOkFileOnClick(Sender: TObject);
@@ -74,8 +78,12 @@ constructor TExplorerForm.Create(TheOwner: TComponent);
 begin
   inherited CreateNew(TheOwner);
   Caption := 'File Explorer';
-  SetBounds(0, 0, 450, 350);
-  BorderStyle := bssingle;
+  //SetBounds(0, 0, 450, 350);
+  Constraints.MinWidth:= 450;
+  Constraints.MinHeight:= 350;
+  // BY GUS
+  // Remove this comment if you want to make it non resizable
+  //BorderStyle := bssingle;
   Position := poOwnerFormCenter;
   BorderIcons := BorderIcons - [biminimize];
   ShowInTaskBar:=sTAlways;
@@ -83,33 +91,47 @@ begin
   FilesDir := TStringList.Create;
   FoldersDir := TStringList.Create;
 
-  EditPath := TEdit.Create(Self);
-  with EditPath do
+  FPathPanel:= TPanel.Create(Self);
+  with FPathPanel do
     begin
-      SetBounds(1, 1, 424, 24);
+      Parent:= Self;
+      AutoSize:= True;
+      Align:= alTop;
+      Caption:='';
+      BevelOuter:= bvNone;
+    end;
+
+  FEditPath := TEdit.Create(FPathPanel);
+  with FEditPath do
+    begin
+      Parent:= FPathPanel;
+      Align:= alLeft;
+      Width:= FPathPanel.ClientWidth - 50;
+      Anchors:= [akTop, akleft, akRight];
       Font.Name := 'consolas';
       Font.Size := 12;
       Font.Color := clWhite;
       Color := clBlack;
       Alignment := taLeftJustify;
       ReadOnly := True;
-      Parent := Self;
     end;
 
-  FSBUpPath := TSpeedButton.Create(Self);
+  FSBUpPath := TSpeedButton.Create(FPathPanel);
   with FSBUpPath do
     begin
-      SetBounds(426, 2, 22, 22);
+      Parent := FPathPanel;
+      Align:= alRight;
+      Width:= 42;
+      Anchors:= [akTop, akRight];
       Hint := 'Go up';
       ShowHint := True;
       OnClick := @SBUpPathClick;
-      Parent := Self;
     end;
 
   FGridFiles := TStringGrid.Create(Self);
   with FGridFiles do
     begin
-      SetBounds(2, 24, 446, 298);
+      Align:= alClient;
       Font.Name := 'consolas';
       Font.Size := 9;
       FixedCols := 0;
@@ -129,29 +151,43 @@ begin
       Parent := Self;
     end;
 
-  FEditFilename := TEdit.Create(Self);
+  FFilenamePanel:= TPanel.Create(Self);
+  with FFilenamePanel do
+    begin
+      Parent:= Self;
+      AutoSize:= True;
+      Align:= alBottom;
+      Caption:='';
+      BevelOuter:= bvNone;
+    end;
+
+  FEditFilename := TEdit.Create(FFilenamePanel);
   with FEditFilename do
     begin
-      SetBounds(1, 324, 384, 24);
-      AutoSize := False;
+      Parent := FFilenamePanel;
+      Align:= alLeft;
+      Width:= FFilenamePanel.ClientWidth - 50;
+      Anchors:= [akTop, akleft, akRight];
       Font.Name := 'consolas';
       Font.Size := 12;
       Font.Color := clWhite;
       Color := clBlack;
       Alignment := taLeftJustify;
-      ReadOnly := true;
-      Parent := Self;
+      ReadOnly := True;
     end;
 
-  FSBOkFile := TSpeedButton.Create(Self);
+  FSBOkFile := TSpeedButton.Create(FFilenamePanel);
   with FSBOkFile do
     begin
-      SetBounds(388, 324, 60, 22);
+      Parent := FFilenamePanel;
+      Align:= alRight;
+      Width:= 42;
+      Anchors:= [akTop, akRight];
       ShowHint := True;
       Hint := 'Accept';
       OnClick := @FSBOkFileOnClick;
-      Parent := Self;
     end;
+
 Form1.imagenes.GetBitmap(17,FSBOkFile.Glyph);
 Form1.imagenes.GetBitmap(40,FSBUpPath.Glyph);
 end;
@@ -217,7 +253,7 @@ begin
         FGridFiles.RowCount := FGridFiles.RowCount+1;
         FGridFiles.Cells[0,FGridFiles.RowCount-1] := OnlyName(FilesDir[cont]);
       end;
-  EditPath.Text := Directory;
+  FEditPath.Text := Directory;
   FActiveDir := Directory;
   FEditFilename.Text := FGridFiles.Cells[0,FGridFiles.Row];
   if Copy(FEditFilename.Text,1,3) = '   ' then FEditFilename.Text := '';
