@@ -182,13 +182,13 @@ if DireccionEsMia(DireccionEnvia)>=0 then
    ListaDirecciones[DireccionEsMia(DireccionEnvia)].Pending:=ListaDirecciones[DireccionEsMia(DireccionEnvia)].Pending+
       Order.AmmountFee+order.AmmountTrf;
    montooutgoing := montooutgoing+Order.AmmountFee+order.AmmountTrf;
-   if not ImageOut.Visible then ImageOut.Visible:= true;
+   if not form1.ImageOut.Visible then form1.ImageOut.Visible:= true;
    end;
 if DireccionEsMia(Order.Receiver)>=0 then
    begin
    montoincoming := montoincoming+order.AmmountTrf;
    ShowGlobo('Incoming transfer',Int2curr(order.AmmountTrf));
-   if not ImageInc.Visible then ImageInc.Visible:= true;
+   if not form1.ImageInc.Visible then form1.ImageInc.Visible:= true;
    end;
 U_DirPanel := true;
 End;
@@ -297,8 +297,8 @@ MontoIncoming := 0;
 MontoOutgoing := 0;
 if length(PendingTxs) = 0 then
    begin
-   ImageInc.Visible:=false;
-   ImageOut.Visible:=false;
+   form1.ImageInc.Visible:=false;
+   form1.ImageOut.Visible:=false;
    end
 else
    begin
@@ -315,8 +315,8 @@ else
       If DireccionEsMia(PendingTxs[counter].Receiver)>=0 then
          MontoIncoming := MontoIncoming+PendingTxs[counter].AmmountTrf;
       end;
-   if MontoIncoming>0 then ImageInc.Visible := true else ImageInc.Visible:= false;
-   if MontoOutgoing>0 then ImageOut.Visible := true else ImageOut.Visible:= false;
+   if MontoIncoming>0 then form1.ImageInc.Visible := true else form1.ImageInc.Visible:= false;
+   if MontoOutgoing>0 then form1.ImageOut.Visible := true else form1.ImageOut.Visible:= false;
    U_DirPanel := true;
    end;
 End;

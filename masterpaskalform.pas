@@ -297,6 +297,8 @@ type
     ConsoleLine: TEdit;
     Image1: TImage;
     Image2: TImage;
+    ImageOut: TImage;
+    ImageInc: TImage;
     Imagenes: TImageList;
     LAbelTransactionDetails: TLabel;
     LabelNobiexLast: TLabel;
@@ -456,7 +458,6 @@ type
     procedure IdTCPServer1Exception(AContext: TIdContext;AException: Exception);
     Procedure DoubleClickSysTray(Sender: TObject);
     Procedure ConnectCircleOnClick(Sender: TObject);
-    Procedure MinerCircleOnClick(Sender: TObject);
     Procedure GridMyTxsOnDoubleClick(Sender: TObject);
     Procedure BitPosInfoOnClick (Sender: TObject);
     Procedure BDefAddrOnClick(Sender: TObject);
@@ -479,7 +480,6 @@ type
     Procedure SCBitCancelOnClick(Sender:TObject);
     Procedure SCBitConfOnClick(Sender:TObject);
     Procedure ResetearValoresEnvio(Sender:TObject);
-    Procedure SBOptionsOnClick(Sender:TObject);
     Procedure CheckClipboardForPays();
     // Pool
     Procedure TryClosePoolConnection(AContext: TIdContext; closemsg:string='');
@@ -870,10 +870,10 @@ var
   //TrxDetailsPopUp : TPopupMenu;
 
   //ConnectButton : TSpeedButton;
-  MinerButton : TSpeedButton;
-  ImageInc :TImage;
+  //MinerButton : TSpeedButton;
+  //ImageInc :TImage;
     MontoIncoming : Int64 = 0;
-  ImageOut :TImage;
+  //ImageOut :TImage;
     MontoOutgoing : Int64 = 0;
   //DireccionesPanel : TStringGrid;
     BDefAddr : TSpeedButton;
@@ -907,8 +907,6 @@ var
   //PanelTrxDetails : TPanel;
   //  MemoTrxDetails : TMemo;
   //BCloseTrxDetails : TBitBtn;
-
-  SBOptions : TSpeedButton;
 
   InfoPanel : TPanel;
     InfoPanelTime : integer = 0;
@@ -1594,30 +1592,6 @@ Form1.PageMain.ActivePage:= Form1.TabWallet;
 
 // Visual components
 
-{
-TrxDetailsPopUp := TPopupMenu.Create(form1);
-MenuItem := TMenuItem.Create(TrxDetailsPopUp);MenuItem.Caption := 'Copy Order';Form1.imagenes.GetBitmap(7,MenuItem.Bitmap);
-  MenuItem.OnClick := @form1.TrxDetailsPopUpCopyOrder;TrxDetailsPopUp.Items.Add(MenuItem);
-MenuItem := TMenuItem.Create(TrxDetailsPopUp);MenuItem.Caption := 'Copy';Form1.imagenes.GetBitmap(7,MenuItem.Bitmap);
-  MenuItem.OnClick := @form1.TrxDetailsPopUpCopy;TrxDetailsPopUp.Items.Add(MenuItem);
-}
-{Memoconsola := TMemo.Create(Form1);
-Memoconsola.Parent:=form1.tabconsole;
-Memoconsola.Left:=0;Memoconsola.Top:=0;Memoconsola.Height:=220;Memoconsola.Width:=388;
-Memoconsola.Color:=clblack;Memoconsola.Font.Color:=clwhite;Memoconsola.ReadOnly:=true;
-Memoconsola.Font.Size:=10;Memoconsola.Font.Name:='consolas';
-Memoconsola.Visible:=true;Memoconsola.ScrollBars:=ssvertical;
-MemoConsola.OnContextPopup:=@Form1.CheckConsolePopUp;
-MemoConsola.PopupMenu:=ConsolePopUp ;}
-
-{ConsoleLine := TEdit.Create(Form1); ConsoleLine.Parent:=Form1.tabconsole;
-ConsoleLine.Font.Name:='consolas';
-ConsoleLine.Left:=0;ConsoleLine.Top:=220;ConsoleLine.Height:=12;ConsoleLine.Width:=388;
-ConsoleLine.AutoSize:=true;ConsoleLine.Color:=clBlack;ConsoleLine.Font.Color:=clWhite;
-ConsoleLine.Visible:=true;ConsoleLine.OnKeyUp:=@form1.ConsoleLineKeyup;
-ConsoleLine.OnContextPopup:=@Form1.CheckConsoLinePopUp;
-ConsoleLine.PopupMenu:=ConsoLinePopUp ;}
-
 form1.DataPanel.DefaultRowHeight:=UserRowHeigth;
 form1.DataPanel.Font.Size:=UserFontSize;
 form1.DataPanel.FocusRectVisible:=false;
@@ -1626,60 +1600,13 @@ form1.DataPanel.ColWidths[1]:= 115;
 form1.DataPanel.ColWidths[2]:= 79;
 form1.DataPanel.ColWidths[3]:= 115;
 
-{DataPanel := TStringGrid.Create(Form1);DataPanel.Parent:=Form1.tabconsole;
-DataPanel.Left:=0;DataPanel.Top:=250;DataPanel.Height:=180;DataPanel.Width:=388;
-DataPanel.ColCount:=4;DataPanel.rowcount:=8;DataPanel.FixedCols:=0;DataPanel.FixedRows:=0;
-DataPanel.enabled:= false;
-DataPanel.ScrollBars:=ssnone;
-DataPanel.Visible:=true;
-DataPanel.OnPrepareCanvas:= @Form1.Grid1PrepareCanvas;}
-
-
-{LabelBigBalance := TLabel.Create(Form1);LabelBigBalance.Parent:=form1.TopPanel;
-LabelBigBalance.Caption:='0 '+Coinsimbol;LabelBigBalance.Font.Size:=18;LabelBigBalance.AutoSize:=false;
-LabelBigBalance.Left:= 2;LabelBigBalance.Top:=2;LabelBigBalance.Width:=396;
-LabelBigBalance.Height:=28;LabelBigBalance.Alignment:=taRightJustify;
-LabelBigBalance.Enabled:=false;
-LabelBigBalance.Font.Name:='consolas';}
-
-{ConnectButton := TSpeedButton.Create(form1);ConnectButton.Parent:=form1;
-ConnectButton.Top:=2;ConnectButton.Left:=2;ConnectButton.Height:=26;ConnectButton.Width:=26;
-Form1.imagenes.GetBitmap(2,ConnectButton.Glyph);
-ConnectButton.Caption:='';ConnectButton.OnClick:=@Form1.ConnectCircleOnClick;
-ConnectButton.ShowHint:=true;ConnectButton.OnMouseEnter:=@Form1.CheckForHint;}
-
-MinerButton := TSpeedButton.Create(form1);MinerButton.Parent:=form1;
-MinerButton.Top:=2;MinerButton.Left:=30;MinerButton.Height:=26;MinerButton.Width:=26;
-Form1.imagenes.GetBitmap(4,MinerButton.Glyph);MinerButton.Visible:=false;
-MinerButton.Caption:='';MinerButton.OnClick:=@Form1.MinerCircleOnClick;
-MinerButton.ShowHint:=true;MinerButton.OnMouseEnter:=@Form1.CheckForHint;
-
-SBOptions := TSpeedButton.Create(Form1);SBOptions.Parent:=Form1;
-SBOptions.Left:=58;SBOptions.Top:=2;SBOptions.Height:=26;SBOptions.Width:=26;
-Form1.imagenes.GetBitmap(22,SBOptions.Glyph);
-SBOptions.Visible:=false;SBOptions.OnClick:=@form1.SBOptionsOnClick;
-SBOptions.hint:='Show/Hide options';SBOptions.ShowHint:=true;
-
-ImageInc := TImage.Create(form1);ImageInc.Parent:=Form1.TopPAnel;
-ImageInc.Top:=2;ImageInc.Left:=30;ImageInc.Height:=17;ImageInc.Width:=17;
-Form1.imagenes.GetBitMap(9,ImageInc.Picture.Bitmap);ImageInc.Visible:=false;
-ImageInc.ShowHint:=true;ImageInc.OnMouseEnter:=@Form1.CheckForHint;
-
-ImageOut := TImage.Create(form1);ImageOut.Parent:=Form1.TopPAnel;
-ImageOut.Top:=12;ImageOut.Left:=37;ImageOut.Height:=17;ImageOut.Width:=17;
-Form1.imagenes.GetBitmap(10,Imageout.Picture.Bitmap);ImageOut.Visible:=false;
-ImageOut.ShowHint:=true;ImageOut.OnMouseEnter:=@Form1.CheckForHint;
+Form1.imagenes.GetBitMap(9,Form1.ImageInc.Picture.Bitmap);
+Form1.imagenes.GetBitmap(10,Form1.Imageout.Picture.Bitmap);
 
 form1.DireccionesPanel.Options:= form1.DireccionesPanel.Options+[goRowSelect]-[goRangeSelect];
 form1.DireccionesPanel.ColWidths[0]:= 260;form1.DireccionesPanel.ColWidths[1]:= 107;
 form1.DireccionesPanel.FocusRectVisible:=false;
 
-{DireccionesPanel := TStringGrid.Create(Form1);DireccionesPanel.Parent:=form1.TabWallet;
-DireccionesPanel.Left:=0;DireccionesPanel.Top:=0;DireccionesPanel.Height:=135;DireccionesPanel.Width:=388;
-DireccionesPanel.ColCount:=2;DireccionesPanel.rowcount:=1;DireccionesPanel.FixedCols:=0;DireccionesPanel.FixedRows:=1;
-DireccionesPanel.ScrollBars:=ssVertical;
-DireccionesPanel.Font.Name:='consolas'; DireccionesPanel.Font.Size:=10;
-DireccionesPanel.OnPrepareCanvas:= @Form1.Grid2PrepareCanvas;}
 
 
   BDefAddr := TSpeedButton.Create(form1);BDefAddr.Parent:=form1.DireccionesPanel;
@@ -2894,19 +2821,6 @@ else
    end;
 End;
 
-// click en el boton de minar
-Procedure Tform1.MinerCircleOnClick(Sender: TObject);
-Begin
-if Miner_Active then
-   begin
-   ProcessLinesAdd('mineroff');
-   end
-else
-   begin
-   ProcessLinesAdd('mineron');
-   end;
-End;
-
 // Mostrar los detalles de una transaccion
 Procedure TForm1.GridMyTxsOnDoubleClick(Sender: TObject);
 var
@@ -3231,12 +3145,6 @@ MemoSCCon.Enabled:=true;MemoSCCon.Text:='';
 SCBitSend.Visible:=true;
 SCBitConf.Visible:=false;
 SCBitCancel.Visible:=false;
-End;
-
-// Mostrar/ocultar opciones
-Procedure Tform1.SBOptionsOnClick(Sender:TObject);
-Begin
-
 End;
 
 // Actualizar barra de estado

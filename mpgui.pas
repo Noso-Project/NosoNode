@@ -800,20 +800,13 @@ if sender=form1.ConnectButton then
    if MyConStatus = 3 then texto:=LangLine(122)+IntToStr(GetTotalConexiones)+LangLine(123); //'Updated with '+
    form1.ConnectButton.Hint:=texto;
    end;
-if sender=MinerButton then
+if sender=form1.ImageInc then
    begin
-   texto := LangLine(124); //'Not mining.'
-   if ((Miner_IsON) and (Miner_Active)) then texto:=LangLine(108)+' '+IntToStr(Miner_BlockToMine)+SLINEBREAK+form1.DataPanel.Cells[3,1];  //'Block'
-   if ((not Miner_IsON) and (Miner_Active)) then texto := LangLine(125); //'Ready for mine'
-   MinerButton.hint:= texto;
+   form1.ImageInc.Hint:='Incoming: '+Int2curr(MontoIncoming);
    end;
-if sender=ImageInc then
+if sender=form1.ImageOut then
    begin
-   ImageInc.Hint:='Incoming: '+Int2curr(MontoIncoming);
-   end;
-if sender=ImageOut then
-   begin
-   ImageOut.Hint:='Outgoing: '+Int2curr(MontoOutgoing);
+   form1.ImageOut.Hint:='Outgoing: '+Int2curr(MontoOutgoing);
    end;
 End;
 

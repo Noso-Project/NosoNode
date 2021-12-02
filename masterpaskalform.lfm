@@ -1813,6 +1813,27 @@ object Form1: TForm1
       ShowHint = True
       ParentShowHint = False
     end
+    object ImageInc: TImage
+      Left = 40
+      Height = 17
+      Top = 8
+      Width = 17
+      AutoSize = True
+      OnMouseEnter = CheckForHint
+      ParentShowHint = False
+      ShowHint = True
+      Visible = False
+    end
+    object ImageOut: TImage
+      Left = 56
+      Height = 17
+      Top = 17
+      Width = 17
+      OnMouseEnter = CheckForHint
+      ParentShowHint = False
+      ShowHint = True
+      Visible = False
+    end
   end
   object Imagenes: TImageList
     Left = 352
