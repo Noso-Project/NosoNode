@@ -1,6 +1,10 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8"
 
+#: tform1.bcopyaddr.hint
+msgid "Copy address to clipboard"
+msgstr ""
+
 #: tform1.bcustomaddr.hint
 msgid "Customize address"
 msgstr ""
@@ -15,6 +19,14 @@ msgstr ""
 
 #: tform1.bitbtn2.caption
 msgid "Web"
+msgstr ""
+
+#: tform1.bnewaddr.hint
+msgid "Generate new address"
+msgstr ""
+
+#: tform1.bokcustom.hint
+msgid "Confirm"
 msgstr ""
 
 #: tform1.caption
@@ -67,6 +79,10 @@ msgstr ""
 
 #: tform1.checkbox9.caption
 msgid "Use my default addresses"
+msgstr ""
+
+#: tform1.editscmont.text
+msgid "0.00000000"
 msgstr ""
 
 #: tform1.lababout.caption
@@ -140,6 +156,10 @@ msgstr ""
 #: tform1.le_rpc_port.editlabel.caption
 msgctxt "tform1.le_rpc_port.editlabel.caption"
 msgid "Port"
+msgstr ""
+
+#: tform1.lsctop.caption
+msgid "Send coins"
 msgstr ""
 
 #: tform1.menuitem1.caption
@@ -258,6 +278,18 @@ msgstr ""
 msgid "Quit"
 msgstr ""
 
+#: tform1.panelcustom.caption
+msgid "PanelCustom"
+msgstr ""
+
+#: tform1.sbscmax.hint
+msgid "Send all"
+msgstr ""
+
+#: tform1.sbscpaste.hint
+msgid "Paste destination"
+msgstr ""
+
 #: tform1.speedbutton1.hint
 msgid "Copy Order ID"
 msgstr ""
@@ -304,10 +336,6 @@ msgstr ""
 
 #: tform1.taboptions.caption
 msgid "Options"
-msgstr ""
-
-#: tform1.tabpending.caption
-msgid "Pending"
 msgstr ""
 
 #: tform1.tabpoollog.caption

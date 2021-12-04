@@ -727,8 +727,7 @@ Begin
       if not G_Launching then
          begin
          InicializarGUI();
-         BNewAddr.Hint:=LAngLine(64);BCopyAddr.Hint:=LAngLine(65);BSendCoins.Hint:=LangLine(66);
-         LSCTop.Caption:=LangLine(66);SBSCPaste.hint:=LangLine(67);SBSCMax.hint:=LangLine(68);
+         Form1.BNewAddr.Hint:=LAngLine(64);form1.BCopyAddr.Hint:=LAngLine(65);
          SCBitClea.Caption:=LangLine(69);SCBitSend.Caption:=LangLine(70);SCBitCancel.Caption:=LangLine(71);
          SCBitConf.Caption:=LangLine(72);//BitInfoTrx.hint:=LangLine(73);
          end;

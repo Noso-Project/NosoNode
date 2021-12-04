@@ -424,9 +424,9 @@ form1.GridMyTxs.Cells[1,0]:=LangLine(109);    //'Time'
 form1.GridMyTxs.Cells[2,0]:=LangLine(110);    //'Type'
 form1.GridMyTxs.Cells[3,0]:=LangLine(111);    //'Amount'
 
-SGridSC.Cells[0,0]:=LangLine(116);  //'Destination'
-SGridSC.Cells[0,1]:=LangLine(111);  //'Amount'
-SGridSC.Cells[0,2]:='Reference';  //'reference'
+Form1.SGridSC.Cells[0,0]:=LangLine(116);  //'Destination'
+Form1.SGridSC.Cells[0,1]:=LangLine(111);  //'Amount'
+Form1.SGridSC.Cells[0,2]:='Reference';  //'reference'
 
 //Direccionespanel
 form1.Direccionespanel.RowCount:=length(listadirecciones)+1;
@@ -787,11 +787,11 @@ End;
 // Actualiza la informacion de la label info
 Procedure Info(text:string);
 Begin
-InfoPanel.Caption:=copy(text,1,33);
-InfoPanelTime := 1000;
-InfoPanel.Visible:=true;
-InfoPanel.BringToFront;
-InfoPanel.Refresh;
+Form1.InfoPanel.Caption:=copy(text,1,40);
+InfoPanelTime := Length(text)*50;If InfoPanelTime<1000 then InfoPanelTime:= 1000;
+Form1.InfoPanel.Visible:=true;
+Form1.InfoPanel.BringToFront;
+Form1.InfoPanel.Refresh;
 if form1.InfoTimer.Enabled=false then form1.InfoTimer.Enabled:=true;
 End;
 

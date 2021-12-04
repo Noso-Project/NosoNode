@@ -11,6 +11,10 @@ msgstr ""
 "Language: pt\n"
 "X-Generator: Poedit 3.0\n"
 
+#: tform1.bcopyaddr.hint
+msgid "Copy address to clipboard"
+msgstr ""
+
 #: tform1.bcustomaddr.hint
 msgid "Customize address"
 msgstr ""
@@ -26,6 +30,14 @@ msgstr "Doar"
 #: tform1.bitbtn2.caption
 msgid "Web"
 msgstr "Web"
+
+#: tform1.bnewaddr.hint
+msgid "Generate new address"
+msgstr ""
+
+#: tform1.bokcustom.hint
+msgid "Confirm"
+msgstr ""
 
 #: tform1.caption
 msgid "Noso"
@@ -78,6 +90,10 @@ msgstr "Filtro de moedas"
 #: tform1.checkbox9.caption
 msgid "Use my default addresses"
 msgstr "Usar meu endereço por defeito"
+
+#: tform1.editscmont.text
+msgid "0.00000000"
+msgstr ""
 
 #: tform1.lababout.caption
 msgid "About message"
@@ -151,6 +167,10 @@ msgstr "Palavra-passe dos fundos"
 msgctxt "tform1.le_rpc_port.editlabel.caption"
 msgid "Port"
 msgstr "Porto"
+
+#: tform1.lsctop.caption
+msgid "Send coins"
+msgstr ""
 
 #: tform1.menuitem1.caption
 msgid "Network"
@@ -268,6 +288,18 @@ msgstr "Reiniciar"
 msgid "Quit"
 msgstr "Sair"
 
+#: tform1.panelcustom.caption
+msgid "PanelCustom"
+msgstr ""
+
+#: tform1.sbscmax.hint
+msgid "Send all"
+msgstr ""
+
+#: tform1.sbscpaste.hint
+msgid "Paste destination"
+msgstr ""
+
 #: tform1.speedbutton1.hint
 msgid "Copy Order ID"
 msgstr ""
@@ -315,10 +347,6 @@ msgstr ""
 #: tform1.taboptions.caption
 msgid "Options"
 msgstr "Opções"
-
-#: tform1.tabpending.caption
-msgid "Pending"
-msgstr ""
 
 #: tform1.tabpoollog.caption
 msgctxt "tform1.tabpoollog.caption"

@@ -12,6 +12,7 @@ object Form1: TForm1
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnResize = FormResize
   OnShow = FormShow
   OnWindowStateChange = FormWindowStateChange
   Position = poDesktopCenter
@@ -351,6 +352,8 @@ object Form1: TForm1
             Width = 384
             Align = alBottom
             BevelColor = clBlack
+            ClientHeight = 135
+            ClientWidth = 384
             Font.CharSet = ANSI_CHARSET
             Font.Color = clBlack
             Font.Height = -19
@@ -359,6 +362,110 @@ object Form1: TForm1
             Font.Quality = fqDraft
             ParentFont = False
             TabOrder = 1
+            object LSCTop: TLabel
+              Left = 152
+              Height = 22
+              Top = 2
+              Width = 100
+              Caption = 'Send coins'
+              ParentColor = False
+            end
+            object SGridSC: TStringGrid
+              Left = 8
+              Height = 57
+              Top = 24
+              Width = 115
+              ColCount = 1
+              DefaultColWidth = 120
+              DefaultRowHeight = 18
+              Enabled = False
+              FixedRows = 0
+              Font.CharSet = ANSI_CHARSET
+              Font.Color = clBlack
+              Font.Height = -12
+              Font.Name = 'Consolas'
+              Font.Pitch = fpFixed
+              Font.Quality = fqDraft
+              ParentFont = False
+              RowCount = 3
+              ScrollBars = ssNone
+              TabOrder = 0
+            end
+            object SBSCPaste: TSpeedButton
+              Left = 124
+              Height = 18
+              Hint = 'Paste destination'
+              Top = 24
+              Width = 18
+              Images = Imagenes
+              ImageIndex = 15
+              OnClick = SBSCPasteOnClick
+              ShowHint = True
+              ParentShowHint = False
+            end
+            object SBSCMax: TSpeedButton
+              Left = 124
+              Height = 18
+              Hint = 'Send all'
+              Top = 42
+              Width = 18
+              Images = Imagenes
+              ImageIndex = 6
+              OnClick = SBSCMaxOnClick
+              ShowHint = True
+              ParentShowHint = False
+            end
+            object EditSCDest: TEdit
+              Left = 144
+              Height = 18
+              Top = 24
+              Width = 222
+              Alignment = taRightJustify
+              AutoSize = False
+              Font.CharSet = ANSI_CHARSET
+              Font.Color = clBlack
+              Font.Height = -11
+              Font.Name = 'Consolas'
+              Font.Pitch = fpFixed
+              Font.Quality = fqDraft
+              OnChange = EditSCDestChange
+              OnContextPopup = DisablePopUpMenu
+              ParentFont = False
+              TabOrder = 1
+            end
+            object EditSCMont: TEdit
+              Left = 144
+              Height = 18
+              Top = 42
+              Width = 222
+              Alignment = taRightJustify
+              AutoSize = False
+              Font.CharSet = ANSI_CHARSET
+              Font.Color = clBlack
+              Font.Height = -11
+              Font.Name = 'Consolas'
+              Font.Pitch = fpFixed
+              Font.Quality = fqDraft
+              OnChange = EditSCMontChange
+              OnContextPopup = DisablePopUpMenu
+              OnKeyPress = EditMontoOnKeyUp
+              ParentFont = False
+              ReadOnly = True
+              TabOrder = 2
+              Text = '0.00000000'
+            end
+            object ImgSCDest: TImage
+              Left = 369
+              Height = 16
+              Top = 24
+              Width = 16
+            end
+            object ImgSCMont: TImage
+              Left = 369
+              Height = 16
+              Top = 42
+              Width = 16
+            end
           end
           object BDefAddr: TSpeedButton
             Left = 168
@@ -383,6 +490,80 @@ object Form1: TForm1
             OnClick = BCustomAddrOnClick
             ShowHint = True
             ParentShowHint = False
+          end
+          object BCopyAddr: TSpeedButton
+            Left = 216
+            Height = 18
+            Hint = 'Copy address to clipboard'
+            Top = 2
+            Width = 18
+            Images = Imagenes
+            ImageIndex = 7
+            OnClick = BCopyAddrClick
+            ShowHint = True
+            ParentShowHint = False
+          end
+          object BNewAddr: TSpeedButton
+            Left = 240
+            Height = 18
+            Hint = 'Generate new address'
+            Top = 2
+            Width = 18
+            Images = Imagenes
+            ImageIndex = 6
+            OnClick = BNewAddrOnClick
+            ShowHint = True
+            ParentShowHint = False
+          end
+          object PanelCustom: TPanel
+            Left = 0
+            Height = 20
+            Top = 0
+            Width = 250
+            BevelColor = clBlack
+            Caption = 'PanelCustom'
+            ClientHeight = 20
+            ClientWidth = 250
+            Font.CharSet = ANSI_CHARSET
+            Font.Color = clBlack
+            Font.Height = -19
+            Font.Name = 'Consolas'
+            Font.Pitch = fpFixed
+            Font.Quality = fqDraft
+            ParentFont = False
+            TabOrder = 2
+            Visible = False
+            OnMouseLeave = PanelCustomMouseLeave
+            object EditCustom: TEdit
+              Left = 1
+              Height = 18
+              Top = 1
+              Width = 230
+              AutoSize = False
+              Color = clBlack
+              Font.CharSet = ANSI_CHARSET
+              Font.Color = clWhite
+              Font.Height = -11
+              Font.Name = 'Consolas'
+              Font.Pitch = fpFixed
+              Font.Quality = fqDraft
+              OnContextPopup = DisablePopUpMenu
+              OnKeyUp = EditCustomKeyUp
+              ParentFont = False
+              TabOrder = 0
+            end
+            object BOkCustom: TSpeedButton
+              Left = 231
+              Height = 18
+              Hint = 'Confirm'
+              Top = 1
+              Width = 18
+              Images = Imagenes
+              ImageIndex = 17
+              OnClick = BOkCustomClick
+              ShowHint = True
+              ParentShowHint = False
+            end
           end
         end
         object TabHistory: TTabSheet
@@ -503,9 +684,6 @@ object Form1: TForm1
               OnResize = GridPoSResize
             end
           end
-        end
-        object TabPending: TTabSheet
-          Caption = 'Pending'
         end
       end
     end
@@ -1881,6 +2059,22 @@ object Form1: TForm1
       ShowHint = True
       Visible = False
     end
+  end
+  object InfoPanel: TPanel
+    Left = 50
+    Height = 20
+    Top = 245
+    Width = 300
+    Color = clMedGray
+    Font.CharSet = ANSI_CHARSET
+    Font.Color = clBlack
+    Font.Height = -13
+    Font.Name = 'Consolas'
+    Font.Pitch = fpFixed
+    Font.Quality = fqDraft
+    ParentColor = False
+    ParentFont = False
+    TabOrder = 3
   end
   object Imagenes: TImageList
     Left = 352

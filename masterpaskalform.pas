@@ -295,11 +295,17 @@ type
     CheckBox9: TCheckBox;
     Edit1: TEdit;
     ConsoleLine: TEdit;
+    EditSCMont: TEdit;
+    EditSCDest: TEdit;
+    EditCustom: TEdit;
     Image1: TImage;
     Image2: TImage;
+    ImgSCMont: TImage;
+    ImgSCDest: TImage;
     ImageOut: TImage;
     ImageInc: TImage;
     Imagenes: TImageList;
+    LSCTop: TLabel;
     LAbelTransactionDetails: TLabel;
     LabelNobiexLast: TLabel;
     Label2: TLabel;
@@ -354,6 +360,8 @@ type
     MenuItem8: TMenuItem;
     MenuItem9: TMenuItem;
     DireccionesPanel: TStringGrid;
+    InfoPanel: TPanel;
+    PanelCustom: TPanel;
     PanelPoSMNs: TPanel;
     PanelTrxDetails: TPanel;
     PanelSend: TPanel;
@@ -364,9 +372,14 @@ type
     BDefAddr: TSpeedButton;
     BCustomAddr: TSpeedButton;
     GridPoS: TStringGrid;
+    BCopyAddr: TSpeedButton;
+    BNewAddr: TSpeedButton;
+    BOkCustom: TSpeedButton;
+    SGridSC: TStringGrid;
+    SBSCPaste: TSpeedButton;
+    SBSCMax: TSpeedButton;
     TabAddresses: TTabSheet;
     TabHistory: TTabSheet;
-    TabPending: TTabSheet;
     TabNodes: TTabSheet;
     TabWalletMain: TPageControl;
     Panel1: TPanel;
@@ -434,6 +447,7 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormResize(Sender: TObject);
     procedure FormWindowStateChange(Sender: TObject);
     procedure GridMyTxsResize(Sender: TObject);
     procedure GridMyTxsSelection(Sender: TObject; aCol, aRow: Integer);
@@ -883,37 +897,37 @@ var
   //DireccionesPanel : TStringGrid;
     //BDefAddr : TSpeedButton;
     //BCustomAddr : TSpeedButton;
-      PanelCustom : TPanel;
-        EditCustom : TEdit;
-        BOkCustom : TSpeedButton;
-    BNewAddr : TSpeedButton;
-    BCopyAddr : TSpeedButton;
-    BSendCoins : TSpeedButton;
+    //PanelCustom : TPanel;
+        //EditCustom : TEdit;
+        //BOkCustom : TSpeedButton;
+  //BNewAddr : TSpeedButton;
+    //BCopyAddr : TSpeedButton;
+    //BSendCoins : TSpeedButton;
   //PanelSend : Tpanel;
-    LSCTop : Tlabel;
-    BCLoseSend : TSpeedButton;
-    SGridSC   : Tstringgrid;
-    SBSCPaste : TSpeedButton;
-    SBSCMax: TSpeedButton;
-    EditSCDest : TEdit;
-    EditSCMont : TEdit;
-    ImgSCDest  : TImage;
-    ImgSCMont  : TImage;
+    //LSCTop : Tlabel;
+    //BCLoseSend : TSpeedButton;
+    //SGridSC   : Tstringgrid;
+    //SBSCPaste : TSpeedButton;
+    //SBSCMax: TSpeedButton;
+    //EditSCDest : TEdit;
+    //EditSCMont : TEdit;
+    //ImgSCDest  : TImage;
+    //ImgSCMont  : TImage;
     MemoSCCon : Tmemo;
     SCBitClea : TBitBtn;
     SCBitSend : TBitBtn;
     SCBitCancel : TBitBtn;
     SCBitConf : TBitBtn;
   //GridMyTxs : TStringGrid;
-    BitInfoTrx: TSpeedButton;
-    BitPosInfo: TSpeedButton;
+    //BitInfoTrx: TSpeedButton;
+    //BitPosInfo: TSpeedButton;
     U_Mytrxs: boolean = false;
     LastMyTrxTimeUpdate : int64;
   //PanelTrxDetails : TPanel;
   //  MemoTrxDetails : TMemo;
   //BCloseTrxDetails : TBitBtn;
 
-  InfoPanel : TPanel;
+  //InfoPanel : TPanel;
     InfoPanelTime : integer = 0;
 
 //StatusPanel : TPanel;
@@ -1162,6 +1176,13 @@ form1.PoolServer.free;
 
 end;
 
+// RESIZE MAIN FORM (Lot of things to add here)
+procedure TForm1.FormResize(Sender: TObject);
+begin
+infopanel.Left:=(Form1.Width div 2)-150;
+infopanel.Top:=((Form1.Height-560) div 2)+245;
+end;
+
 // Form show
 procedure TForm1.FormShow(Sender: TObject);
 var
@@ -1355,8 +1376,8 @@ procedure TForm1.BitBtn1Click(Sender: TObject);
 begin
 form1.PageMain.ActivePage := form1.TabWallet;
 PanelSend.Visible:=true;
-EditSCDest.Text:='devteam_donations';
-EditSCMont.Text:=IntToStr(DefaultDonation)+'.00000000';
+Form1.EditSCDest.Text:='devteam_donations';
+Form1.EditSCMont.Text:=IntToStr(DefaultDonation)+'.00000000';
 MemoSCCon.Text:='Donation';
 end;
 
@@ -1605,7 +1626,6 @@ Form1.GridPoS.Cells[0,2] := rs0065;
 form1.GridPoS.FocusRectVisible:=false;
 
 
-
 form1.DataPanel.DefaultRowHeight:=UserRowHeigth;
 form1.DataPanel.Font.Size:=UserFontSize;
 form1.DataPanel.FocusRectVisible:=false;
@@ -1623,49 +1643,10 @@ form1.DireccionesPanel.FocusRectVisible:=false;
 
 Form1.BDefAddr.Parent:=form1.DireccionesPanel;
 form1.BCustomAddr.Parent:=form1.DireccionesPanel;
+form1.BCopyAddr.Parent:=form1.DireccionesPanel;
+Form1.BNewAddr.Parent:=form1.DireccionesPanel;
 
-
-
-
-    PanelCustom := TPanel.Create(Form1);PanelCustom.Parent:=form1.DireccionesPanel;
-    PanelCustom.Left:=0;PanelCustom.Top:=0;PanelCustom.Height:=20;PanelCustom.Width:=250;
-    PanelCustom.BevelColor:=clBlack;PanelCustom.Visible:=false;
-    PanelCustom.font.Name:='consolas';PanelCustom.Font.Size:=14;
-    PanelCustom.BringToFront;PanelCustom.OnMouseLeave:=@Form1.PanelCustomMouseLeave;
-
-      EditCustom := TEdit.Create(Form1);EditCustom.Parent:=PanelCustom;EditCustom.AutoSize:=false;
-      EditCustom.Left:=1;EditCustom.Top:=1;EditCustom.Height:=18;EditCustom.Width:=230;
-      EditCustom.Font.Name:='consolas'; EditCustom.Font.Size:=8;
-      EditCustom.Alignment:=taLeftJustify;EditCustom.Visible:=true;
-      EditCustom.Color:=clBlack;EditCustom.Font.color:=clwhite;
-      EditCustom.OnKeyUp :=@form1.EditCustomKeyUp;
-      EditCustom.OnContextPopup:=@form1.DisablePopUpMenu;
-
-      BOkCustom := TSpeedButton.Create(form1);BOkCustom.Parent:=PanelCustom;
-      BOkCustom.Top:=1;BOkCustom.Left:=231;BOkCustom.Height:=18;BOkCustom.Width:=18;
-      Form1.imagenes.GetBitmap(17,BOkCustom.Glyph);
-      BOkCustom.Caption:='';
-      BOkCustom.OnClick:=@Form1.BOkCustomClick;
-      BOkCustom.Hint:='Confirm';BOkCustom.ShowHint:=true;
-
-  BNewAddr := TSpeedButton.Create(form1);BNewAddr.Parent:=form1.DireccionesPanel;
-  BNewAddr.Top:=2;BNewAddr.Left:=240;BNewAddr.Height:=18;BNewAddr.Width:=18;
-  Form1.imagenes.GetBitmap(6,BNewAddr.Glyph);
-  BNewAddr.Caption:='';BNewAddr.OnClick:=@Form1.BNewAddrOnClick;
-  BNewAddr.Hint:=LAngLine(64);BNewAddr.ShowHint:=true;                    //Generate new address
-
-  BCopyAddr := TSpeedButton.Create(form1);BCopyAddr.Parent:=form1.DireccionesPanel;
-  BCopyAddr.Top:=2;BCopyAddr.Left:=216;BCopyAddr.Height:=18;BCopyAddr.Width:=18;
-  Form1.imagenes.GetBitmap(7,BCopyAddr.Glyph);
-  BCopyAddr.Caption:='';BCopyAddr.OnClick:=@Form1.BCopyAddrClick;
-  BCopyAddr.Hint:=LAngLine(65);BCopyAddr.ShowHint:=true; //Copy address to clipboard
-
-  BSendCoins := TSpeedButton.Create(form1);BSendCoins.Parent:=form1.DireccionesPanel;
-  BSendCoins.Top:=2;BSendCoins.Left:=264;BSendCoins.Height:=18;BSendCoins.Width:=18;
-  Form1.imagenes.GetBitmap(8,BSendCoins.Glyph);
-  BSendCoins.Caption:='';BSendCoins.OnClick:=@Form1.BSendCoinsClick;
-  BSendCoins.Hint:=LangLine(66);BSendCoins.ShowHint:=true;     //Send coins
-  BSendCoins.visible := false;
+Form1.SGridSC.FocusRectVisible:=false;
 
 {PanelSend := TPanel.Create(Form1);PanelSend.Parent:=form1.TabWallet;
 PanelSend.Left:=0;PanelSend.Top:=0;PanelSend.Height:=135;PanelSend.Width:=388;
@@ -1673,41 +1654,48 @@ PanelSend.BevelColor:=clBlack;PanelSend.Visible:=false;
 PanelSend.font.Name:='consolas';PanelSend.Font.Size:=14;}
 
   // La etiqueta que identifica el panel 'send coins';
+  {
   LSCTop := TLabel.Create(form1);LSCTop.Parent := form1.PanelSend;
   LSCTop.Top :=2;LSCTop.Left:=152;LSCTop.AutoSize:=true;       //Send coins
   LSCTop.Caption:=LangLine(66);
-
+  }
+  {
   BCLoseSend := TSpeedButton.Create(Form1);BCLoseSend.Parent:=form1.PanelSend;
   BCLoseSend.Left:=369;BCLoseSend.Top:=2;
   BCLoseSend.Height:=18;BCLoseSend.Width:=18;
   Form1.imagenes.GetBitmap(14,BCLoseSend.Glyph);
   BCLoseSend.Visible:=false;BCLoseSend.OnClick:=@form1.BCLoseSendOnClick;
-
+  }
+  {
   SGridSC := TStringGrid.Create(Form1);SGridSC.Parent:=form1.PanelSend;
   SGridSC.Left:=8;SGridSC.Top:=24;SGridSC.Height:=57;SGridSC.Width:=115;
   SGridSC.ColCount:=1;SGridSC.rowcount:=3;SGridSC.FixedCols:=1;SGridSC.FixedRows:=0;
   SGridSC.DefaultColWidth:=120;SGridSC.DefaultRowHeight:=18;
   SGridSC.ScrollBars:=ssnone;SGridSC.Font.Size:=9;SGridSC.Enabled := false;
   SGridSC.FocusRectVisible:=false;
-
+  }
+  {
   SBSCPaste := TSpeedButton.Create(Form1);SBSCPaste.Parent:=form1.PanelSend;
   SBSCPaste.Left:=124;SBSCPaste.Top:=24;SBSCPaste.Height:=18;SBSCPaste.Width:=18;
   Form1.imagenes.GetBitmap(15,SBSCPaste.Glyph);
   SBSCPaste.Visible:=true;SBSCPaste.OnClick:=@form1.SBSCPasteOnClick;
   SBSCPaste.hint:=LangLine(67);SBSCPaste.ShowHint:=true;           //Paste destination
-
+  }
+  {
   SBSCMax := TSpeedButton.Create(Form1);SBSCMax.Parent:=form1.PanelSend;
   SBSCMax.Left:=124;SBSCMax.Top:=42;SBSCMax.Height:=18;SBSCMax.Width:=18;
   Form1.imagenes.GetBitmap(6,SBSCMax.Glyph);
   SBSCMax.Visible:=true;SBSCMax.OnClick:=@form1.SBSCMaxOnClick;
   SBSCMax.hint:=LangLine(68);SBSCMax.ShowHint:=true;             //Send all
-
+  }
+  {
   EditSCDest := TEdit.Create(Form1);EditSCDest.Parent:=form1.PanelSend;EditSCDest.AutoSize:=false;
   EditSCDest.Left:=144;EditSCDest.Top:=24;EditSCDest.Height:=18;EditSCDest.Width:=222;
   EditSCDest.Font.Name:='consolas'; EditSCDest.Font.Size:=8;
   EditSCDest.Alignment:=taRightJustify;EditSCDest.Visible:=true;
   EditSCDest.OnChange:=@form1.EditSCDestChange;EditSCDest.OnContextPopup:=@form1.DisablePopUpMenu;
-
+  }
+  {
   EditSCMont := TEdit.Create(Form1);EditSCMont.Parent:=form1.PanelSend;EditSCMont.AutoSize:=false;
   EditSCMont.Left:=144;EditSCMont.Top:=42;EditSCMont.Height:=18;EditSCMont.Width:=222;
   EditSCMont.Font.Name:='consolas'; EditSCMont.Font.Size:=8;
@@ -1715,15 +1703,17 @@ PanelSend.font.Name:='consolas';PanelSend.Font.Size:=14;}
   EditSCMont.Alignment:=taRightJustify;EditSCMont.Visible:=true;
   EditSCMont.OnKeyPress :=@form1.EditMontoOnKeyUp;
   EditSCMont.OnChange:=@form1.EditSCMontChange;EditSCMont.OnContextPopup:=@form1.DisablePopUpMenu;
-
+  }
+  {
   ImgSCDest := TImage.Create(form1);ImgSCDest.Parent:=form1.PanelSend;
   ImgSCDest.Top:=24;ImgSCDest.Left:=369;ImgSCDest.Height:=16;ImgSCDest.Width:=16;
   ImgSCDest.Visible:=true;
-
+  }
+  {
   ImgSCMont := TImage.Create(form1);ImgSCMont.Parent:=form1.PanelSend;
   ImgSCMont.Top:=42;ImgSCMont.Left:=369;ImgSCMont.Height:=16;ImgSCMont.Width:=16;
   ImgSCMont.Visible:=true;
-
+  }
   MemoSCCon := TMemo.Create(Form1);MemoSCCon.Parent:=form1.PanelSend;
   MemoSCCon.Left:=124;MemoSCCon.Top:=60;MemoSCCon.Height:=40;MemoSCCon.Width:=242;
   MemoSCCon.Font.Size:=10;MemoSCCon.Font.Name:='consolas';
@@ -1775,13 +1765,13 @@ GridMyTxs.ScrollBars:=ssVertical;
 GridMyTxs.Font.Name:='consolas'; GridMyTxs.Font.Size:=10;
 GridMyTxs.OnPrepareCanvas:= @Form1.GridMyTxsPrepareCanvas;}
 
-
+  {
   BitInfoTrx := TSpeedButton.Create(Form1);BitInfoTrx.Parent:=form1.GridMyTxs;
   BitInfoTrx.Left:=224;BitInfoTrx.Top:=2;BitInfoTrx.Height:=18;BitInfoTrx.Width:=18;
   Form1.imagenes.GetBitmap(13,BitInfoTrx.Glyph);
   BitInfoTrx.Visible:=false;BitInfoTrx.OnClick:=@form1.GridMyTxsOnDoubleClick;
   BitInfoTrx.hint:=LangLine(73);BitInfoTrx.ShowHint:=true; //'Transaction details'
-
+  }
   {BitPosInfo := TSpeedButton.Create(Form1);BitPosInfo.Parent:=form1.GridMyTxs;
   BitPosInfo.Left:=244;BitPosInfo.Top:=2;BitPosInfo.Height:=18;BitPosInfo.Width:=18;
   Form1.imagenes.GetBitmap(53,BitPosInfo.Glyph);
@@ -1810,6 +1800,7 @@ PanelTrxDetails.OnContextPopup:=@form1.DisablePopUpMenu;}
    BCloseTrxDetails.BiDiMode:= bdRightToLeft;
    BCloseTrxDetails.Visible:=true;BCloseTrxDetails.OnClick:=@form1.BCloseTrxDetailsOnClick;}
 
+{
 InfoPanel := TPanel.Create(Form1);InfoPanel.Parent:=form1;
 InfoPanel.Font.Name:='consolas';InfoPanel.Font.Size:=8;
 InfoPanel.Left:=100;InfoPanel.AutoSize:=false;
@@ -1818,7 +1809,7 @@ InfoPanel.Top:=245;InfoPanel.Font.Color:=clBlack;
 InfoPanel.Width:=200;InfoPanel.Height:=20;InfoPanel.Alignment:=tacenter;
 InfoPanel.Caption:='';InfoPanel.Visible:=true;
 InfoPanel.BringToFront;
-
+}
 {
 StatusPanel := TPanel.Create(Form1);StatusPanel.Parent:=form1;
 StatusPanel.Font.Name:='consolas';StatusPanel.Font.Size:=8;
@@ -2919,8 +2910,10 @@ else if AddressAlreadyCustomized(address) then info('Address already customized'
 else if GetAddressBalance(Address)-GetAddressPendingPays(address)< Customizationfee then info('Insufficient funds')
 else
    begin
+   DireccionesPanel.Enabled:=false;
    PanelCustom.Visible := true;
    PanelCustom.BringToFront;
+
    EditCustom.SetFocus;
    end;
 End;
@@ -2948,6 +2941,7 @@ End;
 Procedure TForm1.PanelCustomMouseLeave(Sender: TObject);
 Begin
 PanelCustom.Visible := false;
+DireccionesPanel.Enabled:=true;
 End;
 
 // El boton para crear una nueva direccion
@@ -3763,7 +3757,7 @@ If (parameter(InTexto,0)) ='<NOSOPAY>' then
    PanelSend.Visible:=true;
    EditSCDest.Text:='devteam_donations';
    EditSCMont.Text:='1.00000000';
-   MemoSCCon.Text:='OnlinePaymentTest';
+   MemoSCCon.Text:='WebpageDonation';
    form1.BringToFront;
    Clipboard.AsText := '';
    end;
