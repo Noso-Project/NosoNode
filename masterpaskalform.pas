@@ -281,6 +281,8 @@ type
   TForm1 = class(TForm)
     BitBtn1: TBitBtn;
     BitBtn2: TBitBtn;
+    SCBitSend: TBitBtn;
+    SCBitClea: TBitBtn;
     CB_AUTORPC: TCheckBox;
     CB_WO_AutoConnect: TCheckBox;
     CB_WO_ToTray: TCheckBox;
@@ -329,6 +331,7 @@ type
     CloseTimer : TTimer;
     ConnectButton: TSpeedButton;
     MainMenu: TMainMenu;
+    MemoSCCon: TMemo;
     MemoTrxDetails: TMemo;
     MemoConsola: TMemo;
     DataPanel: TStringGrid;
@@ -368,6 +371,8 @@ type
     GridMyTxs: TStringGrid;
     ConsolePopUp2: TPopupMenu;
     ConsoLinePopUp2: TPopupMenu;
+    SCBitCancel: TBitBtn;
+    SCBitConf: TBitBtn;
     SpeedButton1: TSpeedButton;
     BDefAddr: TSpeedButton;
     BCustomAddr: TSpeedButton;
@@ -510,7 +515,6 @@ type
     procedure PoolServerDisconnect(AContext: TIdContext);
     procedure PoolServerException(AContext: TIdContext;AException: Exception);
     // RPC
-    procedure RPCServerConnect(AContext: TIdContext);
     procedure RPCServerExecute(AContext: TIdContext;
       ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo);
 
@@ -591,9 +595,9 @@ CONST
                             '185.239.239.184 '+
                             '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Jc5';
+  SubVersion = 'Jc6';
   OficialRelease = true;
-  BuildDate = 'November 2021';
+  BuildDate = 'December 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   HasheableChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -913,11 +917,11 @@ var
     //EditSCMont : TEdit;
     //ImgSCDest  : TImage;
     //ImgSCMont  : TImage;
-    MemoSCCon : Tmemo;
-    SCBitClea : TBitBtn;
-    SCBitSend : TBitBtn;
-    SCBitCancel : TBitBtn;
-    SCBitConf : TBitBtn;
+    //MemoSCCon : Tmemo;
+    //SCBitClea : TBitBtn;
+    //SCBitSend : TBitBtn;
+    //SCBitCancel : TBitBtn;
+    //SCBitConf : TBitBtn;
   //GridMyTxs : TStringGrid;
     //BitInfoTrx: TSpeedButton;
     //BitPosInfo: TSpeedButton;
@@ -1378,7 +1382,7 @@ form1.PageMain.ActivePage := form1.TabWallet;
 PanelSend.Visible:=true;
 Form1.EditSCDest.Text:='devteam_donations';
 Form1.EditSCMont.Text:=IntToStr(DefaultDonation)+'.00000000';
-MemoSCCon.Text:='Donation';
+Form1.MemoSCCon.Text:='Donation';
 end;
 
 // visit web button
@@ -1648,168 +1652,21 @@ Form1.BNewAddr.Parent:=form1.DireccionesPanel;
 
 Form1.SGridSC.FocusRectVisible:=false;
 
-{PanelSend := TPanel.Create(Form1);PanelSend.Parent:=form1.TabWallet;
-PanelSend.Left:=0;PanelSend.Top:=0;PanelSend.Height:=135;PanelSend.Width:=388;
-PanelSend.BevelColor:=clBlack;PanelSend.Visible:=false;
-PanelSend.font.Name:='consolas';PanelSend.Font.Size:=14;}
+form1.GridMyTxs.SelectedColor:=clLtGray;
+form1.GridMyTxs.Options:= form1.GridMyTxs.Options+[goRowSelect]-[goRangeSelect];
+form1.GridMyTxs.ColWidths[0]:= 60;
+form1.GridMyTxs.ColWidths[1]:= 60;
+form1.GridMyTxs.ColWidths[2]:= 100;
+form1.GridMyTxs.ColWidths[3]:= 147;
+form1.GridMyTxs.ColWidths[4]:= 0;
+form1.GridMyTxs.ColWidths[5]:= 0;
+form1.GridMyTxs.ColWidths[6]:= 0;
+form1.GridMyTxs.ColWidths[7]:= 0;
+form1.GridMyTxs.ColWidths[8]:= 0;
+form1.GridMyTxs.ColWidths[9]:= 0;
+form1.GridMyTxs.ColWidths[10]:= 0;
+form1.GridMyTxs.FocusRectVisible:=false;
 
-  // La etiqueta que identifica el panel 'send coins';
-  {
-  LSCTop := TLabel.Create(form1);LSCTop.Parent := form1.PanelSend;
-  LSCTop.Top :=2;LSCTop.Left:=152;LSCTop.AutoSize:=true;       //Send coins
-  LSCTop.Caption:=LangLine(66);
-  }
-  {
-  BCLoseSend := TSpeedButton.Create(Form1);BCLoseSend.Parent:=form1.PanelSend;
-  BCLoseSend.Left:=369;BCLoseSend.Top:=2;
-  BCLoseSend.Height:=18;BCLoseSend.Width:=18;
-  Form1.imagenes.GetBitmap(14,BCLoseSend.Glyph);
-  BCLoseSend.Visible:=false;BCLoseSend.OnClick:=@form1.BCLoseSendOnClick;
-  }
-  {
-  SGridSC := TStringGrid.Create(Form1);SGridSC.Parent:=form1.PanelSend;
-  SGridSC.Left:=8;SGridSC.Top:=24;SGridSC.Height:=57;SGridSC.Width:=115;
-  SGridSC.ColCount:=1;SGridSC.rowcount:=3;SGridSC.FixedCols:=1;SGridSC.FixedRows:=0;
-  SGridSC.DefaultColWidth:=120;SGridSC.DefaultRowHeight:=18;
-  SGridSC.ScrollBars:=ssnone;SGridSC.Font.Size:=9;SGridSC.Enabled := false;
-  SGridSC.FocusRectVisible:=false;
-  }
-  {
-  SBSCPaste := TSpeedButton.Create(Form1);SBSCPaste.Parent:=form1.PanelSend;
-  SBSCPaste.Left:=124;SBSCPaste.Top:=24;SBSCPaste.Height:=18;SBSCPaste.Width:=18;
-  Form1.imagenes.GetBitmap(15,SBSCPaste.Glyph);
-  SBSCPaste.Visible:=true;SBSCPaste.OnClick:=@form1.SBSCPasteOnClick;
-  SBSCPaste.hint:=LangLine(67);SBSCPaste.ShowHint:=true;           //Paste destination
-  }
-  {
-  SBSCMax := TSpeedButton.Create(Form1);SBSCMax.Parent:=form1.PanelSend;
-  SBSCMax.Left:=124;SBSCMax.Top:=42;SBSCMax.Height:=18;SBSCMax.Width:=18;
-  Form1.imagenes.GetBitmap(6,SBSCMax.Glyph);
-  SBSCMax.Visible:=true;SBSCMax.OnClick:=@form1.SBSCMaxOnClick;
-  SBSCMax.hint:=LangLine(68);SBSCMax.ShowHint:=true;             //Send all
-  }
-  {
-  EditSCDest := TEdit.Create(Form1);EditSCDest.Parent:=form1.PanelSend;EditSCDest.AutoSize:=false;
-  EditSCDest.Left:=144;EditSCDest.Top:=24;EditSCDest.Height:=18;EditSCDest.Width:=222;
-  EditSCDest.Font.Name:='consolas'; EditSCDest.Font.Size:=8;
-  EditSCDest.Alignment:=taRightJustify;EditSCDest.Visible:=true;
-  EditSCDest.OnChange:=@form1.EditSCDestChange;EditSCDest.OnContextPopup:=@form1.DisablePopUpMenu;
-  }
-  {
-  EditSCMont := TEdit.Create(Form1);EditSCMont.Parent:=form1.PanelSend;EditSCMont.AutoSize:=false;
-  EditSCMont.Left:=144;EditSCMont.Top:=42;EditSCMont.Height:=18;EditSCMont.Width:=222;
-  EditSCMont.Font.Name:='consolas'; EditSCMont.Font.Size:=8;
-  EditSCMont.ReadOnly:=true;EditSCMont.Text:='0.00000000';
-  EditSCMont.Alignment:=taRightJustify;EditSCMont.Visible:=true;
-  EditSCMont.OnKeyPress :=@form1.EditMontoOnKeyUp;
-  EditSCMont.OnChange:=@form1.EditSCMontChange;EditSCMont.OnContextPopup:=@form1.DisablePopUpMenu;
-  }
-  {
-  ImgSCDest := TImage.Create(form1);ImgSCDest.Parent:=form1.PanelSend;
-  ImgSCDest.Top:=24;ImgSCDest.Left:=369;ImgSCDest.Height:=16;ImgSCDest.Width:=16;
-  ImgSCDest.Visible:=true;
-  }
-  {
-  ImgSCMont := TImage.Create(form1);ImgSCMont.Parent:=form1.PanelSend;
-  ImgSCMont.Top:=42;ImgSCMont.Left:=369;ImgSCMont.Height:=16;ImgSCMont.Width:=16;
-  ImgSCMont.Visible:=true;
-  }
-  MemoSCCon := TMemo.Create(Form1);MemoSCCon.Parent:=form1.PanelSend;
-  MemoSCCon.Left:=124;MemoSCCon.Top:=60;MemoSCCon.Height:=40;MemoSCCon.Width:=242;
-  MemoSCCon.Font.Size:=10;MemoSCCon.Font.Name:='consolas';
-  MemoSCCon.MaxLength:=64;
-  MemoSCCon.Visible:=true;MemoSCCon.ScrollBars:=ssnone;
-  MemoSCCon.OnContextPopup:=@form1.DisablePopUpMenu;
-
-  SCBitClea := TBitBtn.Create(Form1);SCBitClea.Parent:=form1.PanelSend;
-  SCBitClea.Left:=11;SCBitClea.Top:=104;SCBitClea.Height:=22;SCBitClea.Width:=75;
-  Form1.imagenes.GetBitmap(20,SCBitClea.Glyph);SCBitClea.Caption:=LangLine(69);    //'Clear'
-  SCBitClea.Font.Name:='segoe ui';SCBitClea.Font.Size:=9;
-  SCBitClea.Visible:=true;SCBitClea.OnClick:=@form1.ResetearValoresEnvio;
-
-  SCBitSend := TBitBtn.Create(Form1);SCBitSend.Parent:=form1.PanelSend;
-  SCBitSend.Left:=160;SCBitSend.Top:=104;SCBitSend.Height:=22;SCBitSend.Width:=75;
-  Form1.imagenes.GetBitmap(16,SCBitSend.Glyph);SCBitSend.Caption:=LangLine(70);         //'Send'
-  SCBitSend.Font.Name:='segoe ui';SCBitSend.Font.Size:=9;
-  SCBitSend.Visible:=true;SCBitSend.OnClick:=@form1.SCBitSendOnClick;
-
-  SCBitCancel := TBitBtn.Create(Form1);SCBitCancel.Parent:=form1.PanelSend;
-  SCBitCancel.Left:=160;SCBitCancel.Top:=104;SCBitCancel.Height:=22;SCBitCancel.Width:=75;
-  Form1.imagenes.GetBitmap(18,SCBitCancel.Glyph);SCBitCancel.Caption:=LangLine(71); //'Cancel'
-  SCBitCancel.Font.Name:='segoe ui';SCBitCancel.Font.Size:=9;
-  SCBitCancel.Visible:=false;SCBitCancel.OnClick:=@form1.SCBitCancelOnClick;
-
-  SCBitConf := TBitBtn.Create(Form1);SCBitConf.Parent:=form1.PanelSend;
-  SCBitConf.Left:=309;SCBitConf.Top:=104;SCBitConf.Height:=22;SCBitConf.Width:=75;
-  Form1.imagenes.GetBitmap(16,SCBitConf.Glyph);SCBitConf.Caption:=LangLine(72);       //'Confirm'
-  SCBitConf.Font.Name:='segoe ui';SCBitConf.Font.Size:=9;
-  SCBitConf.Visible:=false;SCBitConf.OnClick:=@form1.SCBitConfOnClick;
-
-  form1.GridMyTxs.SelectedColor:=clLtGray;
-  form1.GridMyTxs.Options:= form1.GridMyTxs.Options+[goRowSelect]-[goRangeSelect];
-  form1.GridMyTxs.ColWidths[0]:= 60;form1.GridMyTxs.ColWidths[1]:= 60;form1.GridMyTxs.ColWidths[2]:= 100;
-  form1.GridMyTxs.ColWidths[3]:= 147;
-  form1.GridMyTxs.ColWidths[4]:= 0;
-  form1.GridMyTxs.ColWidths[5]:= 0;
-  form1.GridMyTxs.ColWidths[6]:= 0;
-  form1.GridMyTxs.ColWidths[7]:= 0;
-  form1.GridMyTxs.ColWidths[8]:= 0;
-  form1.GridMyTxs.ColWidths[9]:= 0;
-  form1.GridMyTxs.ColWidths[10]:= 0;
-  form1.GridMyTxs.FocusRectVisible:=false;
-
-{GridMyTxs := TStringGrid.Create(Form1);GridMyTxs.Parent:=Form1.TabWallet;
-GridMyTxs.Left:=0;GridMyTxs.Top:=136;GridMyTxs.Height:=135;GridMyTxs.Width:=388;
-GridMyTxs.ColCount:=11;GridMyTxs.rowcount:=1;GridMyTxs.FixedCols:=0;GridMyTxs.FixedRows:=1;
-GridMyTxs.ScrollBars:=ssVertical;
-GridMyTxs.Font.Name:='consolas'; GridMyTxs.Font.Size:=10;
-GridMyTxs.OnPrepareCanvas:= @Form1.GridMyTxsPrepareCanvas;}
-
-  {
-  BitInfoTrx := TSpeedButton.Create(Form1);BitInfoTrx.Parent:=form1.GridMyTxs;
-  BitInfoTrx.Left:=224;BitInfoTrx.Top:=2;BitInfoTrx.Height:=18;BitInfoTrx.Width:=18;
-  Form1.imagenes.GetBitmap(13,BitInfoTrx.Glyph);
-  BitInfoTrx.Visible:=false;BitInfoTrx.OnClick:=@form1.GridMyTxsOnDoubleClick;
-  BitInfoTrx.hint:=LangLine(73);BitInfoTrx.ShowHint:=true; //'Transaction details'
-  }
-  {BitPosInfo := TSpeedButton.Create(Form1);BitPosInfo.Parent:=form1.GridMyTxs;
-  BitPosInfo.Left:=244;BitPosInfo.Top:=2;BitPosInfo.Height:=18;BitPosInfo.Width:=18;
-  Form1.imagenes.GetBitmap(53,BitPosInfo.Glyph);
-  BitPosInfo.Visible:=true;BitPosInfo.OnClick:=@form1.BitPosInfoOnClick;
-  BitPosInfo.hint:='PoS Statistics';BitPosInfo.ShowHint:=true; //'Transaction details'}
-
-{PanelTrxDetails := TPanel.Create(Form1);PanelTrxDetails.Parent:=Form1.TabWallet;
-PanelTrxDetails.Left:=0;PanelTrxDetails.Top:=136;PanelTrxDetails.Height:=135;PanelTrxDetails.Width:=388;
-PanelTrxDetails.BevelColor:=clBlack;PanelTrxDetails.Visible:=false;
-PanelTrxDetails.font.Name:='consolas';PanelTrxDetails.Font.Size:=14;
-PanelTrxDetails.OnContextPopup:=@form1.DisablePopUpMenu;}
-
-   {MemoTrxDetails := TMemo.Create(Form1);MemoTrxDetails.Parent:=form1.PanelTrxDetails;
-   MemoTrxDetails.Font.Size:=10;MemoTrxDetails.ReadOnly:=true;
-   MemoTrxDetails.Color:=clForm;MemoTrxDetails.BorderStyle:=bsNone;
-   MemoTrxDetails.Height:=115;MemoTrxDetails.Width:=381;
-   MemoTrxDetails.Font.Name:='consolas';MemoTrxDetails.Alignment:=taLeftJustify;
-   MemoTrxDetails.Left:=5;MemoTrxDetails.Top:=10;MemoTrxDetails.AutoSize:=false;
-   MemoTrxDetails.OnContextPopup:=@Form1.CheckTrxDetailsPopUp;
-   MemoTrxDetails.PopupMenu:=TrxDetailsPopUp ;}
-
-   {BCloseTrxDetails := TbitBtn.Create(Form1);BCloseTrxDetails.Parent:=form1.PanelTrxDetails;
-   BCloseTrxDetails.Left:=369;BCloseTrxDetails.Top:=2;
-   BCloseTrxDetails.Height:=18;BCloseTrxDetails.Width:=18;
-   Form1.imagenes.GetBitmap(14,BCloseTrxDetails.Glyph);BCloseTrxDetails.Caption:='';
-   BCloseTrxDetails.BiDiMode:= bdRightToLeft;
-   BCloseTrxDetails.Visible:=true;BCloseTrxDetails.OnClick:=@form1.BCloseTrxDetailsOnClick;}
-
-{
-InfoPanel := TPanel.Create(Form1);InfoPanel.Parent:=form1;
-InfoPanel.Font.Name:='consolas';InfoPanel.Font.Size:=8;
-InfoPanel.Left:=100;InfoPanel.AutoSize:=false;
-InfoPanel.Color:=clMedGray;
-InfoPanel.Top:=245;InfoPanel.Font.Color:=clBlack;
-InfoPanel.Width:=200;InfoPanel.Height:=20;InfoPanel.Alignment:=tacenter;
-InfoPanel.Caption:='';InfoPanel.Visible:=true;
-InfoPanel.BringToFront;
-}
 {
 StatusPanel := TPanel.Create(Form1);StatusPanel.Parent:=form1;
 StatusPanel.Font.Name:='consolas';StatusPanel.Font.Size:=8;
@@ -1962,9 +1819,7 @@ Form1.RPCServer.Active:=false;
 Form1.RPCServer.UseNagle:=true;
 Form1.RPCServer.TerminateWaitTime:=50000;
 Form1.RPCServer.OnCommandGet:=@form1.RPCServerExecute;
-//Form1.RPCServer.OnConnect:=@form1.RPCServerConnect;
-//Form1.RCPServer.OnDisconnect:=@form1.PoolServerDisconnect;
-//Form1.RCPServer.OnException:=@Form1.PoolServerException;
+
 End;
 
 // Funciones del Servidor RPC
@@ -2004,7 +1859,8 @@ else if ARequestInfo.Command = 'POST' then
    end;
 End;
 
-// MOSTLY DEPRECATED
+// DEPRECATED
+{
 procedure TForm1.RPCServerConnect(AContext: TIdContext);
 var
   CloseConnection : boolean = false;
@@ -2093,6 +1949,7 @@ TRY
 EXCEPT on E:Exception do ToLog('Error on RPC request:'+E.Message);
 END;
 End;
+}
 
 // *******************
 // *** POOL SERVER ***

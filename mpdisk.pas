@@ -728,8 +728,7 @@ Begin
          begin
          InicializarGUI();
          Form1.BNewAddr.Hint:=LAngLine(64);form1.BCopyAddr.Hint:=LAngLine(65);
-         SCBitClea.Caption:=LangLine(69);SCBitSend.Caption:=LangLine(70);SCBitCancel.Caption:=LangLine(71);
-         SCBitConf.Caption:=LangLine(72);//BitInfoTrx.hint:=LangLine(73);
+
          end;
       UserOptions.language:=numero;
       S_Options := true;

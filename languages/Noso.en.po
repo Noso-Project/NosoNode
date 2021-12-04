@@ -26,6 +26,7 @@ msgid "Generate new address"
 msgstr ""
 
 #: tform1.bokcustom.hint
+msgctxt "tform1.bokcustom.hint"
 msgid "Confirm"
 msgstr ""
 
@@ -236,6 +237,7 @@ msgid "Copy"
 msgstr ""
 
 #: tform1.menuitem25.caption
+msgctxt "tform1.menuitem25.caption"
 msgid "Clear"
 msgstr ""
 
@@ -278,16 +280,30 @@ msgstr ""
 msgid "Quit"
 msgstr ""
 
-#: tform1.panelcustom.caption
-msgid "PanelCustom"
-msgstr ""
-
 #: tform1.sbscmax.hint
 msgid "Send all"
 msgstr ""
 
 #: tform1.sbscpaste.hint
 msgid "Paste destination"
+msgstr ""
+
+#: tform1.scbitcancel.caption
+msgid "Cancel"
+msgstr ""
+
+#: tform1.scbitclea.caption
+msgctxt "tform1.scbitclea.caption"
+msgid "Clear"
+msgstr ""
+
+#: tform1.scbitconf.caption
+msgctxt "tform1.scbitconf.caption"
+msgid "Confirm"
+msgstr ""
+
+#: tform1.scbitsend.caption
+msgid "Send"
 msgstr ""
 
 #: tform1.speedbutton1.hint

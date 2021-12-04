@@ -13,15 +13,15 @@ msgstr ""
 
 #: tform1.bcopyaddr.hint
 msgid "Copy address to clipboard"
-msgstr ""
+msgstr "Copiar direccion al portapapeles"
 
 #: tform1.bcustomaddr.hint
 msgid "Customize address"
-msgstr ""
+msgstr "Personalizar direccion"
 
 #: tform1.bdefaddr.hint
 msgid "Set address as Default"
-msgstr ""
+msgstr "Fijar direccion como principal"
 
 #: tform1.bitbtn1.caption
 msgid "Donate"
@@ -33,11 +33,12 @@ msgstr "Web"
 
 #: tform1.bnewaddr.hint
 msgid "Generate new address"
-msgstr ""
+msgstr "Crear nueva direccion"
 
 #: tform1.bokcustom.hint
+msgctxt "tform1.bokcustom.hint"
 msgid "Confirm"
-msgstr ""
+msgstr "Confirmar"
 
 #: tform1.caption
 msgid "Noso"
@@ -159,7 +160,7 @@ msgstr "Ultimo: -.-"
 
 #: tform1.labeltransactiondetails.caption
 msgid "Transaction details"
-msgstr ""
+msgstr "Detalles de transaccion"
 
 #: tform1.le_rpc_pass.editlabel.caption
 msgid "Funds password"
@@ -172,7 +173,7 @@ msgstr "Puerto"
 
 #: tform1.lsctop.caption
 msgid "Send coins"
-msgstr ""
+msgstr "Enviar fondos"
 
 #: tform1.menuitem1.caption
 msgid "Network"
@@ -241,25 +242,26 @@ msgstr "Mensajes"
 
 #: tform1.menuitem23.caption
 msgid "CLear"
-msgstr ""
+msgstr "Limpiar"
 
 #: tform1.menuitem24.caption
 msgctxt "tform1.menuitem24.caption"
 msgid "Copy"
-msgstr ""
+msgstr "Copiar"
 
 #: tform1.menuitem25.caption
+msgctxt "tform1.menuitem25.caption"
 msgid "Clear"
-msgstr ""
+msgstr "Limpiar"
 
 #: tform1.menuitem26.caption
 msgctxt "tform1.menuitem26.caption"
 msgid "Copy"
-msgstr ""
+msgstr "Copiar"
 
 #: tform1.menuitem27.caption
 msgid "Paste"
-msgstr ""
+msgstr "Pegar"
 
 #: tform1.menuitem3.caption
 msgid "Connect"
@@ -293,25 +295,39 @@ msgstr "Reiniciar"
 msgid "Quit"
 msgstr "Salir"
 
-#: tform1.panelcustom.caption
-msgid "PanelCustom"
-msgstr ""
-
 #: tform1.sbscmax.hint
 msgid "Send all"
-msgstr ""
+msgstr "Enviar todo"
 
 #: tform1.sbscpaste.hint
 msgid "Paste destination"
-msgstr ""
+msgstr "Pegar destino"
+
+#: tform1.scbitcancel.caption
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: tform1.scbitclea.caption
+msgctxt "tform1.scbitclea.caption"
+msgid "Clear"
+msgstr "Limpiar"
+
+#: tform1.scbitconf.caption
+msgctxt "tform1.scbitconf.caption"
+msgid "Confirm"
+msgstr "Confirmar"
+
+#: tform1.scbitsend.caption
+msgid "Send"
+msgstr "Enviar"
 
 #: tform1.speedbutton1.hint
 msgid "Copy Order ID"
-msgstr ""
+msgstr "Copiar ID de orden"
 
 #: tform1.tabaddresses.caption
 msgid "Addresses"
-msgstr ""
+msgstr "Direcciones"
 
 #: tform1.tabconsole.caption
 msgctxt "tform1.tabconsole.caption"
@@ -330,7 +346,7 @@ msgstr "Intercambio"
 
 #: tform1.tabhistory.caption
 msgid "History"
-msgstr ""
+msgstr "Historial"
 
 #: tform1.tabmainpool.caption
 msgctxt "tform1.tabmainpool.caption"
@@ -349,7 +365,7 @@ msgstr ""
 
 #: tform1.tabnodes.caption
 msgid "Nodes"
-msgstr ""
+msgstr "Nodos"
 
 #: tform1.taboptions.caption
 msgid "Options"
@@ -450,43 +466,43 @@ msgstr "Descargando bloques"
 
 #: translation.rs0007
 msgid "Error Receiving blocks from %s (%s)"
-msgstr ""
+msgstr "Error recibiendo bloques desde %s (%s)"
 
 #: translation.rs0008
 msgid "Error sending outgoing message: %s"
-msgstr ""
+msgstr "Error al enviar el mensaje saliente: %s"
 
 #: translation.rs0009
 msgid "ERROR: Deleting OutGoingMessage-> %s"
-msgstr ""
+msgstr "ERROR: Eliminar OutGoingMessage-> %s"
 
 #: translation.rs0010
 msgid "Auto restart enabled"
-msgstr ""
+msgstr "Reinicio automático habilitado"
 
 #: translation.rs0011
 msgid "BAT file created"
-msgstr ""
+msgstr "Archivo BAT creado"
 
 #: translation.rs0012
 msgid "Crash info file created"
-msgstr ""
+msgstr "Archivo de información de error creado"
 
 #: translation.rs0013
 msgid "Data restart file created"
-msgstr ""
+msgstr "Archivo de reinicio creado"
 
 #: translation.rs0014
 msgid "All forms closed"
-msgstr ""
+msgstr "Todos los formularios cerrados"
 
 #: translation.rs0015
 msgid "Outgoing connections closed"
-msgstr ""
+msgstr "Conexiones salientes cerradas"
 
 #: translation.rs0016
 msgid "Node server closed"
-msgstr ""
+msgstr "Servidor de nodo cerrado"
 
 #: translation.rs0017
 msgid "Closing pool server..."
@@ -689,4 +705,3 @@ msgstr ""
 #: translation.rs0500
 msgid "Noso Launcher"
 msgstr ""
-

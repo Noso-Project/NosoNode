@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 929
+  Left = 936
   Height = 560
-  Top = 121
+  Top = 73
   Width = 400
   Caption = 'Noso'
   ClientHeight = 540
@@ -316,9 +316,9 @@ object Form1: TForm1
         Height = 434
         Top = 0
         Width = 392
-        ActivePage = TabAddresses
+        ActivePage = TabHistory
         Align = alClient
-        TabIndex = 0
+        TabIndex = 1
         TabOrder = 0
         object TabAddresses: TTabSheet
           Caption = 'Addresses'
@@ -466,6 +466,96 @@ object Form1: TForm1
               Top = 42
               Width = 16
             end
+            object MemoSCCon: TMemo
+              Left = 124
+              Height = 40
+              Top = 60
+              Width = 242
+              Font.CharSet = ANSI_CHARSET
+              Font.Color = clBlack
+              Font.Height = -13
+              Font.Name = 'Consolas'
+              Font.Pitch = fpFixed
+              Font.Quality = fqDraft
+              MaxLength = 64
+              OnContextPopup = DisablePopUpMenu
+              ParentFont = False
+              TabOrder = 3
+            end
+            object SCBitClea: TBitBtn
+              Left = 11
+              Height = 22
+              Top = 104
+              Width = 75
+              Caption = 'Clear'
+              Font.CharSet = ANSI_CHARSET
+              Font.Color = clBlack
+              Font.Height = -12
+              Font.Name = 'Segoe UI'
+              Font.Pitch = fpVariable
+              Font.Quality = fqDraft
+              Images = Imagenes
+              ImageIndex = 20
+              OnClick = ResetearValoresEnvio
+              ParentFont = False
+              TabOrder = 4
+            end
+            object SCBitCancel: TBitBtn
+              Left = 160
+              Height = 22
+              Top = 104
+              Width = 75
+              Caption = 'Cancel'
+              Font.CharSet = ANSI_CHARSET
+              Font.Color = clBlack
+              Font.Height = -12
+              Font.Name = 'Segoe UI'
+              Font.Pitch = fpVariable
+              Font.Quality = fqDraft
+              Images = Imagenes
+              ImageIndex = 18
+              OnClick = SCBitCancelOnClick
+              ParentFont = False
+              TabOrder = 6
+              Visible = False
+            end
+            object SCBitSend: TBitBtn
+              Left = 160
+              Height = 22
+              Top = 104
+              Width = 75
+              Caption = 'Send'
+              Font.CharSet = ANSI_CHARSET
+              Font.Color = clBlack
+              Font.Height = -12
+              Font.Name = 'Segoe UI'
+              Font.Pitch = fpVariable
+              Font.Quality = fqDraft
+              Images = Imagenes
+              ImageIndex = 16
+              OnClick = SCBitSendOnClick
+              ParentFont = False
+              TabOrder = 5
+            end
+            object SCBitConf: TBitBtn
+              Left = 306
+              Height = 22
+              Top = 104
+              Width = 75
+              Caption = 'Confirm'
+              Font.CharSet = ANSI_CHARSET
+              Font.Color = clBlack
+              Font.Height = -12
+              Font.Name = 'Segoe UI'
+              Font.Pitch = fpVariable
+              Font.Quality = fqDraft
+              Images = Imagenes
+              ImageIndex = 16
+              OnClick = SCBitConfOnClick
+              ParentFont = False
+              TabOrder = 7
+              Visible = False
+            end
           end
           object BDefAddr: TSpeedButton
             Left = 168
@@ -521,7 +611,6 @@ object Form1: TForm1
             Top = 0
             Width = 250
             BevelColor = clBlack
-            Caption = 'PanelCustom'
             ClientHeight = 20
             ClientWidth = 250
             Font.CharSet = ANSI_CHARSET
@@ -644,6 +733,7 @@ object Form1: TForm1
               Hint = 'Copy Order ID'
               Top = 3
               Width = 20
+              Anchors = [akRight]
               AutoSize = True
               Images = Imagenes
               ImageIndex = 7
@@ -2077,8 +2167,8 @@ object Form1: TForm1
     TabOrder = 3
   end
   object Imagenes: TImageList
-    Left = 352
-    Top = 480
+    Left = 224
+    Top = 304
     Bitmap = {
       4C69360000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
@@ -3813,8 +3903,8 @@ object Form1: TForm1
   end
   object MainMenu: TMainMenu
     Images = Imagenes
-    Left = 304
-    Top = 480
+    Left = 168
+    Top = 304
     object MenuItem1: TMenuItem
       Caption = 'Network'
       OnClick = CheckMMCaptions
@@ -3918,8 +4008,8 @@ object Form1: TForm1
     end
   end
   object ConsolePopUp2: TPopupMenu
-    Left = 271
-    Top = 483
+    Left = 104
+    Top = 304
     object MenuItem23: TMenuItem
       Caption = 'CLear'
       OnClick = ConsolePopUpClear
@@ -3930,8 +4020,8 @@ object Form1: TForm1
     end
   end
   object ConsoLinePopUp2: TPopupMenu
-    Left = 215
-    Top = 481
+    Left = 32
+    Top = 304
     object MenuItem25: TMenuItem
       Caption = 'Clear'
       OnClick = ConsoLinePopUpClear
