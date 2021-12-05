@@ -424,9 +424,9 @@ form1.GridMyTxs.Cells[1,0]:=LangLine(109);    //'Time'
 form1.GridMyTxs.Cells[2,0]:=LangLine(110);    //'Type'
 form1.GridMyTxs.Cells[3,0]:=LangLine(111);    //'Amount'
 
-Form1.SGridSC.Cells[0,0]:=LangLine(116);  //'Destination'
-Form1.SGridSC.Cells[0,1]:=LangLine(111);  //'Amount'
-Form1.SGridSC.Cells[0,2]:='Reference';  //'reference'
+Form1.SGridSC.Cells[0,0]:=rs0501;  //'Destination'
+Form1.SGridSC.Cells[0,1]:=rs0502;  //'Amount'
+Form1.SGridSC.Cells[0,2]:=rs0503;  //'reference'
 
 //Direccionespanel
 form1.Direccionespanel.RowCount:=length(listadirecciones)+1;

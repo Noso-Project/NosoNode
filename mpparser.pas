@@ -274,6 +274,7 @@ else if UpperCase(Command) = 'UNIXTIME' then ConsoleLinesAdd(IntToStr(DateTimeTo
 else if UpperCase(Command) = 'REBUILDMYTRX' then ExecuteRebuildMyTrx()
 else if UpperCase(Command) = 'SHOWPENDING' then ShowPendingTrxs()
 else if UpperCase(Command) = 'HANG' then HangWallet()
+else if UpperCase(Command) = 'CHECKUPDATES' then ConsoleLinesAdd(GetLastRelease)
 
 // CONSULTING
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()

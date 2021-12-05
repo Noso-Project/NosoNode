@@ -31,6 +31,23 @@ msgstr "Donar"
 msgid "Web"
 msgstr "Web"
 
+#: tform1.bitbtnblocks.caption
+msgctxt "tform1.bitbtnblocks.caption"
+msgid "000000"
+msgstr ""
+
+#: tform1.bitbtnblocks.hint
+msgid "Last downloaded block"
+msgstr ""
+
+#: tform1.bitbtnpending.caption
+msgid "00"
+msgstr ""
+
+#: tform1.bitbtnpending.hint
+msgid "Network pending orders"
+msgstr ""
+
 #: tform1.bnewaddr.hint
 msgid "Generate new address"
 msgstr "Crear nueva direccion"
@@ -324,6 +341,30 @@ msgstr "Enviar"
 #: tform1.speedbutton1.hint
 msgid "Copy Order ID"
 msgstr "Copiar ID de orden"
+
+#: tform1.staconlab.caption
+msgid "0"
+msgstr ""
+
+#: tform1.staconlab.hint
+msgid "Connected peers"
+msgstr ""
+
+#: tform1.stapoolser.hint
+msgid "Pool server active"
+msgstr ""
+
+#: tform1.starpcimg.hint
+msgid "RPC server active"
+msgstr ""
+
+#: tform1.staserimg.hint
+msgid "Masternode active"
+msgstr ""
+
+#: tform1.statimelab.hint
+msgid "Noso network time"
+msgstr ""
 
 #: tform1.tabaddresses.caption
 msgid "Addresses"
@@ -702,6 +743,39 @@ msgstr ""
 msgid "My PoS earnings"
 msgstr ""
 
+#: translation.rs0066
+msgid "Rebuilding my transactions..."
+msgstr ""
+
+#: translation.rs0067
+msgid "✓ My transactions rebuilded"
+msgstr ""
+
+#: translation.rs0068
+msgid "✓ My transactions grid updated"
+msgstr ""
+
+#: translation.rs0069
+msgid "✓ Launcher file deleted"
+msgstr ""
+
+#: translation.rs0070
+msgid "✓ Restart file deleted"
+msgstr ""
+
 #: translation.rs0500
 msgid "Noso Launcher"
 msgstr ""
+
+#: translation.rs0501
+msgid "Destination"
+msgstr "Destino"
+
+#: translation.rs0502
+msgid "Amount"
+msgstr "Monto"
+
+#: translation.rs0503
+msgid "Reference"
+msgstr "Referencia"
+

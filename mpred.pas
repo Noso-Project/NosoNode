@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, forms, SysUtils, MasterPaskalForm, MPTime, IdContext, IdGlobal, mpGUI, mpDisk,
-  mpBlock, mpMiner, fileutil, graphics,  dialogs,poolmanage, strutils, mpcoin;
+  mpBlock, mpMiner, fileutil, graphics,  dialogs,poolmanage, strutils, mpcoin, fphttpclient,opensslsockets ;
 
 function GetSlotFromIP(Ip:String):int64;
 function BotExists(IPUser:String):Boolean;
@@ -41,6 +41,7 @@ Procedure SendNetworkRequests(timestamp,direccion:string;block:integer);
 function GetOrderDetails(orderid:string):orderdata;
 Function GetNodeStatusString():string;
 Function IsAValidNode(IP:String):boolean;
+Function GetLastRelease():String;
 
 implementation
 
@@ -1014,6 +1015,20 @@ Begin
 if Pos(IP,DefaultNodes)>0 then result:=true
 else result := false;
 if IP = '109.230.238.119' then result := true;
+End;
+
+Function GetLastRelease():String;
+var
+  readedLine : string;
+Begin
+Try
+   readedLine := TFPHttpClient.SimpleGet('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/lastrelease.txt');
+Except on E: Exception do
+   begin
+   Consolelinesadd('ERROR RETRIEVING LAST RELEASES DATA: '+E.Message);
+   end;
+end;//TRY
+result := readedLine;
 End;
 
 END. // END UNIT

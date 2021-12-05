@@ -1598,6 +1598,11 @@ if ListaMisTrx[0].Block < blocknumber then
          info(Format('Rebuilding my Trxs: %d',[contador]));
          EngineLastUpdate := UTCTime.ToInt64;
          application.ProcessMessages;
+         end
+      else
+         begin
+         gridinicio.RowCount:=gridinicio.RowCount-1;
+         OutText(Format('Rebuilding my Trxs: %d',[contador]),false,1);
          end;
       BlockPayouts := 0; BlockEarnings := 0;
       Header := LoadBlockDataHeader(contador);

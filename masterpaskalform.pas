@@ -281,6 +281,15 @@ type
   TForm1 = class(TForm)
     BitBtn1: TBitBtn;
     BitBtn2: TBitBtn;
+    BitBtnPending: TBitBtn;
+    BitBtnBlocks: TBitBtn;
+    StaRPCimg: TImage;
+    StaSerImg: TImage;
+    StaConLab: TLabel;
+    StaPoolSer: TImage;
+    Imgs32: TImageList;
+    ImgRotor: TImage;
+    StaTimeLab: TLabel;
     SCBitSend: TBitBtn;
     SCBitClea: TBitBtn;
     CB_AUTORPC: TCheckBox;
@@ -935,18 +944,18 @@ var
     InfoPanelTime : integer = 0;
 
 //StatusPanel : TPanel;
-    StaConRot : Tlabel;
-    StaSerImg : TImage;
-    StaRPCLab : Tlabel;
-    StaConLab : TLabel;
-    StaBloImg : TImage;
-    StaBloLab : TLabel;
-    StaPenImg : TImage;
-    StaPenLab : TLabel;
-    StaPoolSer : Timage;
-    StaMinImg : Timage;
-    StaTimeLab : TLabel;
-    StaMinLab : TLabel;
+    //StaConRot : Tlabel;
+    //StaSerImg : TImage;
+    //StaRPCLab : Tlabel;
+    //StaConLab : TLabel;
+    //StaBloImg : TImage;
+    //StaBloLab : TLabel;
+    //StaPenImg : TImage;
+    //StaPenLab : TLabel;
+    //StaPoolSer : Timage;
+    //StaMinImg : Timage;
+    //StaTimeLab : TLabel;
+    //StaMinLab : TLabel;
 
   //OTHER
   U_PoolConexGrid : boolean = false;
@@ -1300,8 +1309,12 @@ form1.Caption:=coinname+format(rs0027,[ProgramVersion,SubVersion]);
 Application.Title := coinname+format(rs0027,[ProgramVersion,SubVersion]);   // Wallet
 OutText(format(rs0026,[IntToStr(IdiomasDisponibles.count)]),false,1); //'✓ %s languages available'
 ConsoleLinesAdd(coinname+format(rs0027,[ProgramVersion,SubVersion]));
+OutText(rs0066,false,1); // Rebuilding my transactions
 RebuildMyTrx(MyLastBlock);
+gridinicio.RowCount:=gridinicio.RowCount-1;
+OutText(rs0067,false,1); // '✓ My transactions rebuilded';
 UpdateMyTrxGrid();
+OutText(rs0068,false,1); // '✓ My transactions grid updated';
 if useroptions.JustUpdated then
    begin
    ConsoleLinesAdd(LangLine(19)+ProgramVersion);  // Update to version sucessfull:
@@ -1309,8 +1322,16 @@ if useroptions.JustUpdated then
    S_Options := true;
    OutText('✓ Just updated to a new version',false,1);
    end;
-if fileexists('nosolauncher.bat') then Deletefile('nosolauncher.bat');
-if fileexists('restart.txt') then RestartConditions();
+if fileexists('nosolauncher.bat') then
+   begin
+   Deletefile('nosolauncher.bat');
+   OutText(rs0069,false,1); // '✓ Launcher file deleted';
+   end;
+if fileexists('restart.txt') then
+   begin
+   RestartConditions();
+   OutText(rs0070,false,1); // '✓ Restart file deleted';
+   end;
 if GetEnvironmentVariable('NUMBER_OF_PROCESSORS') = '' then G_CpuCount := 1
 else G_CpuCount := StrToIntDef(GetEnvironmentVariable('NUMBER_OF_PROCESSORS'),1);
 G_CpuCount := 1;
@@ -1379,6 +1400,7 @@ end;
 procedure TForm1.BitBtn1Click(Sender: TObject);
 begin
 form1.PageMain.ActivePage := form1.TabWallet;
+form1.TabWalletMain.ActivePage := form1.TabAddresses;
 PanelSend.Visible:=true;
 Form1.EditSCDest.Text:='devteam_donations';
 Form1.EditSCMont.Text:=IntToStr(DefaultDonation)+'.00000000';
@@ -1569,7 +1591,7 @@ if form1.SystrayIcon.Visible then
    form1.SystrayIcon.Hint:=Coinname+' Ver. '+ProgramVersion+SubVersion+SLINEBREAK+LabelBigBalance.Caption;
 if FormSlots.Visible then UpdateSlotsGrid();
 if FormPool.Visible then UpdatePoolForm();
-ConnectedRotor +=1; if ConnectedRotor>3 then ConnectedRotor := 0;
+ConnectedRotor +=1; if ConnectedRotor>6 then ConnectedRotor := 0;
 UpdateStatusBar;
 if ( (StrToInt64(UTCTime) mod 86400=0) and (LastBotClear<>UTCTime) and (Form1.Server.Active) ) then ProcessLinesAdd('delbot all');
 Form1.Latido.Enabled:=true;
@@ -1667,71 +1689,7 @@ form1.GridMyTxs.ColWidths[9]:= 0;
 form1.GridMyTxs.ColWidths[10]:= 0;
 form1.GridMyTxs.FocusRectVisible:=false;
 
-{
-StatusPanel := TPanel.Create(Form1);StatusPanel.Parent:=form1;
-StatusPanel.Font.Name:='consolas';StatusPanel.Font.Size:=8;
-StatusPanel.Left:=2;StatusPanel.AutoSize:=false;
-StatusPanel.Color:=clMedGray;
-StatusPanel.Top:=488;StatusPanel.Font.Color:=clBlack;
-StatusPanel.Width:=396;StatusPanel.Height:=40;StatusPanel.Alignment:=tacenter;
-StatusPanel.Caption:='';StatusPanel.Visible:=true;
-StatusPanel.BringToFront;
-}
-
-  StaConRot := TLabel.Create(Form1.StatusPanel);StaConRot.Parent := Form1.StatusPanel;StaConRot.AutoSize:=false;
-  {StaConRot.Font.Name:='consolas';}StaConRot.Font.Size:=8;
-  StaConRot.Width:= 16; StaConRot.Height:= 16;StaConRot.Top:= 2; StaConRot.Left:= 2;
-  StaConRot.Caption:='|';StaConRot.Alignment:=taCenter;
-
-  StaRPCLab := TLabel.Create(Form1.StatusPanel);StaRPCLab.Parent := Form1.StatusPanel;StaRPCLab.AutoSize:=false;
-  StaRPCLab.Font.Name:='consolas';StaRPCLab.Font.Size:=8;
-  StaRPCLab.Width:= 16; StaRPCLab.Height:= 16;StaRPCLab.Top:= 2; StaRPCLab.Left:= 22;
-  StaRPCLab.Caption:='';StaRPCLab.Alignment:=taCenter;StaRPCLab.Transparent:=false;StaRPCLab.Color:=clMoneyGreen;
-
-  StaSerImg:= TImage.Create(Form1.StatusPanel);StaSerImg.Parent := Form1.StatusPanel;
-  StaSerImg.Width:= 16; StaSerImg.Height:= 16;StaSerImg.Top:= 2; StaSerImg.Left:= 22;
-  Form1.imagenes.GetBitMap(27,StaSerImg.picture.BitMap);StaSerImg.Visible:=false;
-
-  StaConLab := TLabel.Create(Form1.StatusPanel);StaConLab.Parent := Form1.StatusPanel;StaConLab.AutoSize:=false;
-  StaConLab.Font.Name:='consolas';StaConLab.Font.Size:=8;
-  StaConLab.Width:= 20; StaConLab.Height:= 14;StaConLab.Top:= 4; StaConLab.Left:= 42;
-  StaConLab.Caption:='0';StaConLab.Alignment:=taCenter;StaConLab.Transparent:=false;StaConLab.Color:=clRed;
-
-  StaBloImg:= TImage.Create(Form1.StatusPanel);StaBloImg.Parent := Form1.StatusPanel;
-  StaBloImg.Width:= 16; StaBloImg.Height:= 16;StaBloImg.Top:= 2; StaBloImg.Left:= 66;
-  Form1.imagenes.GetBitmap(45,StaBloImg.picture.Bitmap);StaBloImg.Visible:=true;
-
-  StaBloLab := TLabel.Create(Form1.StatusPanel);StaBloLab.Parent := Form1.StatusPanel;StaBloLab.AutoSize:=false;
-  StaBloLab.Font.Name:='consolas';StaBloLab.Font.Size:=8;
-  StaBloLab.Width:= 50; StaBloLab.Height:= 16;StaBloLab.Top:= 4; StaBloLab.Left:= 84;
-  StaBloLab.Caption:='999999';StaBloLab.Alignment:=taLeftjustify;StaConLab.Transparent:=false;StaConLab.Color:=clgray;
-
-  StaPenImg:= TImage.Create(Form1.StatusPanel);StaPenImg.Parent := Form1.StatusPanel;
-  StaPenImg.Width:= 16; StaPenImg.Height:= 16;StaPenImg.Top:= 2; StaPenImg.Left:= 140;
-  Form1.imagenes.GetBitmap(46,StaPenImg.picture.Bitmap);StaPenImg.Visible:=true;
-
-  StaPenLab := TLabel.Create(Form1.StatusPanel);StaPenLab.Parent := Form1.StatusPanel;StaPenLab.AutoSize:=false;
-  StaPenLab.Font.Name:='consolas';StaPenLab.Font.Size:=8;
-  StaPenLab.Width:= 50; StaPenLab.Height:= 14;StaPenLab.Top:= 4; StaPenLab.Left:= 160;
-  StaPenLab.Caption:='9999';StaPenLab.Alignment:=taleftjustify;
-
-  StaMinLab := TLabel.Create(Form1.StatusPanel);StaMinLab.Parent := Form1.StatusPanel;StaMinLab.AutoSize:=false;
-  StaMinLab.Font.Name:='consolas';StaMinLab.Font.Size:=8;
-  StaMinLab.Width:= 58; StaMinLab.Height:= 14;StaMinLab.Top:= 4; StaMinLab.Left:= 330;
-  StaMinLab.Caption:='9999Kh';StaMinLab.Alignment:=tarightjustify;StaMinLab.Transparent:=false;StaMinLab.Color:=clmenu;
-
-  StaPoolSer:= TImage.Create(Form1.StatusPanel);StaPoolSer.Parent := Form1.StatusPanel;
-  StaPoolSer.Width:= 16; StaPoolSer.Height:= 16;StaPoolSer.Top:= 2; StaPoolSer.Left:= 290;
-  Form1.imagenes.GetBitmap(27,StaPoolSer.picture.Bitmap);StaPoolSer.Visible:=false;
-
-  StaMinImg:= TImage.Create(Form1.StatusPanel);StaMinImg.Parent := Form1.StatusPanel;
-  StaMinImg.Width:= 16; StaMinImg.Height:= 16;StaMinImg.Top:= 2; StaMinImg.Left:= 330;
-  Form1.imagenes.GetBitmap(11,StaMinImg.picture.Bitmap);StaMinImg.Visible:=true;
-
-  StaTimeLab := TLabel.Create(Form1.StatusPanel);StaTimeLab.Parent := Form1.StatusPanel;StaTimeLab.AutoSize:=false;
-  StaTimeLab.Font.Name:='consolas';StaTimeLab.Font.Size:=8;
-  StaTimeLab.Width:= 140; StaTimeLab.Height:= 16;StaTimeLab.Top:= 24; StaTimeLab.Left:= 2;
-  StaTimeLab.Caption:='';StaTimeLab.Alignment:=tacenter;StaTimeLab.Transparent:=false;StaTimeLab.Color:=clgray;
+Form1.imagenes.GetBitMap(54,form1.ImgRotor.picture.BitMap);
 
 // Pre-designed elements adjustments
 form1.SG_PoolMiners.Font.Name:='consolas'; form1.SG_PoolMiners.Font.Size:=8;
@@ -3007,41 +2965,21 @@ End;
 // Actualizar barra de estado
 Procedure UpdateStatusBar();
 Begin
-if Form1.Server.Active then StaSerImg.Visible:=true
-else StaSerImg.Visible:=false;
-StaConLab.Caption:=IntToStr(GetTotalConexiones);
-if MyConStatus = 0 then StaConLab.Color:= clred;
-if MyConStatus = 1 then StaConLab.Color:= clyellow;
-if MyConStatus = 2 then StaConLab.Color:= claqua;
-if MyConStatus = 3 then StaConLab.Color:= clgreen;
-StaBloLab.Caption:=IntToStr(MyLastBlock);
-if Miner_IsON then
-  begin
-  StaMinLab.Visible:=true;
-  StaMinLab.Caption:=IntToStr(Miner_EsteIntervalo*5 div 1000)+'Kh ';
-  StaMinImg.Visible:=true;
-  end
-else
-   begin
-   StaMinLab.Visible:=false;
-   StaMinImg.Visible:=false;
-   end;
-if length(PendingTXs)>0 then
-  begin
-  StaPenImg.Visible:=true;
-  StaPenLab.Visible:=true;staPenLab.Caption:=IntToStr(length(PendingTXs));
-  end
-else
-   begin
-   StaPenImg.Visible:=false;
-   StaPenLab.Visible:=false;
-   end;
-if form1.PoolServer.active then StaPoolSer.Visible:=true
-else StaPoolSer.Visible:=false;
-if form1.RPCServer.active then StaRPCLab.Visible:=true
-else StaRPCLab.Visible:=false;
-if ConnectedRotor= 0 then StaConRot.Caption:='|';if ConnectedRotor= 1 then StaConRot.Caption:='/';
-if ConnectedRotor= 2 then StaConRot.Caption:='--';if ConnectedRotor= 3 then StaConRot.Caption:='\';
+if Form1.Server.Active then Form1.StaSerImg.Visible:=true
+else Form1.StaSerImg.Visible:=false;
+Form1.StaConLab.Caption:=IntToStr(GetTotalConexiones);
+if MyConStatus = 0 then Form1.StaConLab.Color:= clred;
+if MyConStatus = 1 then Form1.StaConLab.Color:= clyellow;
+if MyConStatus = 2 then Form1.StaConLab.Color:= claqua;
+if MyConStatus = 3 then Form1.StaConLab.Color:= clgreen;
+Form1.BitBtnBlocks.Caption:=IntToStr(MyLastBlock);
+form1.BitBtnPending.Caption:=IntToStr(length(PendingTXs));
+if form1.PoolServer.active then Form1.StaPoolSer.Visible:=true
+else Form1.StaPoolSer.Visible:=false;
+if form1.RPCServer.active then Form1.StaRPCimg.Visible:=true
+else Form1.StaRPCimg.Visible:=false;
+Form1.Imgs32.GetBitMap(ConnectedRotor,form1.ImgRotor.picture.BitMap);
+
 End;
 
 //******************************************************************************

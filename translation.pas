@@ -74,10 +74,17 @@ resourcestring
   rs0063 = 'Next block required';
   rs0064 = 'My PoS addresses';
   rs0065 = 'My PoS earnings';
+  rs0066 = 'Rebuilding my transactions...';
+  rs0067 = '✓ My transactions rebuilded';
+  rs0068 = '✓ My transactions grid updated';
+  rs0069 = '✓ Launcher file deleted';
+  rs0070 = '✓ Restart file deleted';
 
   //mpGUI
   rs0500 = 'Noso Launcher';
-  rs0501 = '';
+  rs0501 = 'Destination';
+  rs0502 = 'Amount';
+  rs0503 = 'Reference';
 
 {
 ConsoleLinesadd(format(rs,[]));
