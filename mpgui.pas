@@ -402,21 +402,21 @@ var
   contador : integer = 0;
 Begin
 // datapanel
-form1.DataPanel.Cells[0,0]:=LangLine(95);  //'Balance'
-form1.DataPanel.Cells[0,1]:=LangLine(96); //'Server'
-form1.DataPanel.Cells[0,2]:=LangLine(98);  //'Connections'
-form1.DataPanel.Cells[0,3]:=LangLine(97);  //'Headers'
-form1.DataPanel.Cells[0,4]:=LangLine(99);  //'Summary'
-form1.DataPanel.Cells[0,5]:='LastBlock';
-form1.DataPanel.Cells[0,6]:=LangLine(100);  //'Blocks'
-form1.DataPanel.Cells[0,7]:=LangLine(102);  //'Pending'
+form1.DataPanel.Cells[0,0]:=rs0504;  //'Balance'
+form1.DataPanel.Cells[0,1]:=rs0505; //'Server'
+form1.DataPanel.Cells[0,2]:=rs0506;  //'Connections'
+form1.DataPanel.Cells[0,3]:=rs0507;  //'Headers'
+form1.DataPanel.Cells[0,4]:=rs0508;  //'Summary'
+form1.DataPanel.Cells[0,5]:=rs0509;  //Lastblock
+form1.DataPanel.Cells[0,6]:=rs0510;  //'Blocks'
+form1.DataPanel.Cells[0,7]:=rs0511;  //'Pending'
 
 form1.DataPanel.Cells[2,0]:=LangLine(103);  //'Miner'
 form1.DataPanel.Cells[2,1]:=LangLine(104);  //'Hashing'
 form1.DataPanel.Cells[2,2]:=LangLine(105);  //'Target'
 form1.DataPanel.Cells[2,3]:=LangLine(106);  //'Reward'
 form1.DataPanel.Cells[2,4]:=LangLine(107);  //'Block Time'
-form1.DataPanel.Cells[2,5]:='PoolBalance';  //'Block Time'
+form1.DataPanel.Cells[2,5]:='PoolBalance';  //'Pool Balance'
 form1.DataPanel.Cells[2,6]:='Net Time';     //'mainnet Time'
 
 form1.GridMyTxs.Cells[0,0]:=LangLine(108);    //'Block'

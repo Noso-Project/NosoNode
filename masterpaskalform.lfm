@@ -302,10 +302,10 @@ object Form1: TForm1
     Height = 462
     Top = 38
     Width = 400
-    ActivePage = TabWallet
+    ActivePage = tabOptions
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 0
+    TabIndex = 5
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
@@ -662,7 +662,7 @@ object Form1: TForm1
           OnShow = TabHistoryShow
           object GridMyTxs: TStringGrid
             Left = 0
-            Height = 188
+            Height = 184
             Top = 0
             Width = 384
             Align = alClient
@@ -744,17 +744,17 @@ object Form1: TForm1
           end
           object PanelPoSMNs: TPanel
             Left = 0
-            Height = 68
-            Top = 188
+            Height = 72
+            Top = 184
             Width = 384
             Align = alBottom
             BevelColor = clBlack
-            ClientHeight = 68
+            ClientHeight = 72
             ClientWidth = 384
             TabOrder = 2
             object GridPoS: TStringGrid
               Left = 1
-              Height = 66
+              Height = 70
               Top = 1
               Width = 382
               Align = alClient
@@ -846,7 +846,7 @@ object Form1: TForm1
       ClientWidth = 392
       object PageControl2: TPageControl
         Left = 0
-        Height = 408
+        Height = 250
         Top = 0
         Width = 392
         ActivePage = tabExBuy
@@ -855,11 +855,11 @@ object Form1: TForm1
         TabOrder = 0
         object tabExBuy: TTabSheet
           Caption = 'LTC'
-          ClientHeight = 380
+          ClientHeight = 222
           ClientWidth = 384
           object GridExLTC: TStringGrid
             Left = 0
-            Height = 380
+            Height = 222
             Top = 0
             Width = 384
             Align = alClient
@@ -885,37 +885,65 @@ object Form1: TForm1
             )
           end
         end
-        object TabSheet4: TTabSheet
-          Caption = 'ADA'
-        end
       end
       object PanelNobiex: TPanel
         Left = 0
-        Height = 26
-        Top = 408
+        Height = 34
+        Top = 250
         Width = 392
         Align = alBottom
-        ClientHeight = 26
+        ClientHeight = 34
         ClientWidth = 392
         Color = clLime
         ParentColor = False
         TabOrder = 1
         object LabelNobiexLast: TLabel
-          Left = 340
-          Height = 15
-          Top = 8
+          Left = 351
+          Height = 32
+          Top = 1
           Width = 40
+          Align = alRight
           Anchors = [akTop, akRight]
+          AutoSize = False
           Caption = 'Last: -.-'
+          Layout = tlCenter
           ParentColor = False
         end
         object LabelNobiexAverage: TLabel
-          Left = 8
+          Left = 1
+          Height = 32
+          Top = 1
+          Width = 62
+          Align = alLeft
+          Caption = 'Average: -.-'
+          Layout = tlCenter
+          ParentColor = False
+        end
+      end
+      object PanelPostOffer: TPanel
+        AnchorSideBottom.Control = LabelNobiexAverage
+        Left = 0
+        Height = 150
+        Top = 284
+        Width = 392
+        Align = alBottom
+        ClientHeight = 150
+        ClientWidth = 392
+        TabOrder = 2
+        object Label1: TLabel
+          Left = 4
           Height = 15
           Top = 8
-          Width = 62
-          Caption = 'Average: -.-'
+          Width = 70
+          Caption = 'Post offer'
+          Font.CharSet = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -13
+          Font.Name = 'Consolas'
+          Font.Pitch = fpFixed
+          Font.Quality = fqDraft
           ParentColor = False
+          ParentFont = False
         end
       end
     end
@@ -1036,9 +1064,9 @@ object Form1: TForm1
         Height = 434
         Top = 0
         Width = 392
-        ActivePage = TabSheet1
+        ActivePage = TabNodeOptions
         Align = alClient
-        TabIndex = 0
+        TabIndex = 1
         TabOrder = 0
         object TabSheet1: TTabSheet
           Caption = 'Wallet'
@@ -1333,17 +1361,17 @@ object Form1: TForm1
             TabOrder = 2
           end
         end
-        object TabSheet2: TTabSheet
+        object TabNodeOptions: TTabSheet
           Caption = 'Node'
-          ClientHeight = 420
-          ClientWidth = 380
+          ClientHeight = 406
+          ClientWidth = 384
+          OnShow = TabNodeOptionsShow
           object CheckBox4: TCheckBox
             Left = 8
-            Height = 23
+            Height = 19
             Top = 16
-            Width = 139
+            Width = 109
             Caption = 'Run MasterNode'
-            Enabled = False
             TabOrder = 0
           end
           object LabeledEdit5: TLabeledEdit
@@ -1353,10 +1381,9 @@ object Form1: TForm1
             Width = 80
             AutoSize = False
             EditLabel.Height = 15
-            EditLabel.Width = 55
+            EditLabel.Width = 42
             EditLabel.Caption = 'Static IP'
             EditLabel.ParentColor = False
-            Enabled = False
             LabelPosition = lpRight
             TabOrder = 1
           end
@@ -1367,63 +1394,57 @@ object Form1: TForm1
             Width = 80
             AutoSize = False
             EditLabel.Height = 15
-            EditLabel.Width = 30
+            EditLabel.Width = 22
             EditLabel.Caption = 'Port'
             EditLabel.ParentColor = False
-            Enabled = False
             LabelPosition = lpRight
             TabOrder = 2
-          end
-          object LabeledEdit7: TLabeledEdit
-            Left = 8
-            Height = 18
-            Top = 88
-            Width = 80
-            AutoSize = False
-            EditLabel.Height = 15
-            EditLabel.Width = 69
-            EditLabel.Caption = 'Max peers'
-            EditLabel.ParentColor = False
-            Enabled = False
-            LabelPosition = lpRight
-            TabOrder = 3
           end
           object LabeledEdit8: TLabeledEdit
             Left = 8
             Height = 18
-            Top = 128
+            Top = 104
             Width = 232
             AutoSize = False
             EditLabel.Height = 15
             EditLabel.Width = 232
             EditLabel.Caption = 'Funds address'
             EditLabel.ParentColor = False
-            Enabled = False
-            TabOrder = 4
+            TabOrder = 3
           end
           object LabeledEdit9: TLabeledEdit
             Left = 8
             Height = 18
-            Top = 168
+            Top = 144
             Width = 232
             AutoSize = False
             EditLabel.Height = 15
             EditLabel.Width = 232
             EditLabel.Caption = 'Sign address'
             EditLabel.ParentColor = False
-            Enabled = False
+            TabOrder = 4
+          end
+          object BSaveNodeOptions: TBitBtn
+            Left = 8
+            Height = 30
+            Top = 184
+            Width = 75
+            Caption = 'Save'
+            Images = Imagenes
+            ImageIndex = 24
+            OnClick = BSaveNodeOptionsClick
             TabOrder = 5
           end
         end
         object TabSheet3: TTabSheet
           Caption = 'RPC'
-          ClientHeight = 420
-          ClientWidth = 380
+          ClientHeight = 406
+          ClientWidth = 384
           object CB_RPC_ON: TCheckBox
             Left = 8
-            Height = 23
+            Height = 19
             Top = 16
-            Width = 187
+            Width = 147
             Caption = 'Enable JSON-RPC server'
             OnChange = CB_RPC_ONChange
             TabOrder = 0
@@ -1435,7 +1456,7 @@ object Form1: TForm1
             Width = 40
             AutoSize = False
             EditLabel.Height = 15
-            EditLabel.Width = 30
+            EditLabel.Width = 22
             EditLabel.Caption = 'Port'
             EditLabel.ParentColor = False
             LabelPosition = lpRight
@@ -1449,7 +1470,7 @@ object Form1: TForm1
             Width = 80
             AutoSize = False
             EditLabel.Height = 15
-            EditLabel.Width = 109
+            EditLabel.Width = 85
             EditLabel.Caption = 'Funds password'
             EditLabel.ParentColor = False
             LabelPosition = lpRight
@@ -1458,9 +1479,9 @@ object Form1: TForm1
           end
           object CB_RPCFilter: TCheckBox
             Left = 8
-            Height = 23
+            Height = 19
             Top = 112
-            Width = 227
+            Width = 177
             Caption = 'Accept only whitelist requests'
             OnChange = CB_RPCFilterChange
             TabOrder = 3
@@ -1475,9 +1496,9 @@ object Form1: TForm1
           end
           object CB_AUTORPC: TCheckBox
             Left = 8
-            Height = 23
+            Height = 19
             Top = 39
-            Width = 247
+            Width = 197
             Caption = 'Active JSON-RPC server at launch'
             OnChange = CB_AUTORPCChange
             TabOrder = 5
@@ -1485,22 +1506,22 @@ object Form1: TForm1
         end
         object TabSheet5: TTabSheet
           Caption = 'Trade'
-          ClientHeight = 420
-          ClientWidth = 380
+          ClientHeight = 406
+          ClientWidth = 384
           Enabled = False
           object CheckBox7: TCheckBox
             Left = 8
-            Height = 23
+            Height = 19
             Top = 16
-            Width = 157
+            Width = 122
             Caption = 'Enable sound alerts'
             TabOrder = 0
           end
           object CheckBox8: TCheckBox
             Left = 8
-            Height = 23
+            Height = 19
             Top = 40
-            Width = 99
+            Width = 77
             Caption = 'Coins filter'
             TabOrder = 1
           end
@@ -1523,9 +1544,9 @@ object Form1: TForm1
           end
           object CheckBox9: TCheckBox
             Left = 8
-            Height = 23
+            Height = 19
             Top = 88
-            Width = 197
+            Width = 153
             Caption = 'Use my default addresses'
             TabOrder = 4
           end

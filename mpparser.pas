@@ -499,6 +499,7 @@ consolelinesadd('NEW SYSTEM');
 ConsoleLinesAdd('AutoConnect : '+BoolToStr(WO_AutoConnect,true));
 ConsoleLinesAdd('AutoServer  : '+BoolToStr(WO_AutoServer,true));
 ConsoleLinesAdd('Language    : '+WO_Language);
+ConsoleLinesAdd('To Tray     : '+BoolToStr(WO_ToTray,true));
 
 End;
 
@@ -554,15 +555,25 @@ End;
 
 Procedure ToTrayON();
 Begin
-UserOptions.ToTray :=true;
-S_Options := true;
+//UserOptions.ToTray :=true;
+WO_ToTray := true;
+//S_Options := true;
+S_AdvOpt := true;
+G_Launching := true;
+form1.CB_WO_ToTray.Checked:=true;
+G_Launching := false;
 ConsoleLinesAdd('Minimize to tray is now '+LangLine(48)); //GetNodes option is now  // INACTIVE
 End;
 
 Procedure ToTrayOFF();
 Begin
-UserOptions.ToTray :=false;
-S_Options := true;
+//UserOptions.ToTray :=false;
+WO_ToTray := false;
+//S_Options := true;
+S_AdvOpt := false;
+G_Launching := true;
+form1.CB_WO_ToTray.Checked:=false;
+G_Launching := false;
 ConsoleLinesAdd('Minimize to tray is now '+LangLine(49)); //GetNodes option is now  // INACTIVE
 End;
 

@@ -92,8 +92,8 @@ if not Form1.RPCServer.Active then
       Form1.RPCServer.DefaultPort:=RPCPort;
       Form1.RPCServer.Active:=true;
       G_Launching := true;
-      form1.CB_RPC_ON.Checked:=false;
-      G_Launching := true;
+      form1.CB_RPC_ON.Checked:=true;
+      G_Launching := false;
       ConsoleLinesAdd('RPC server ENABLED');
       Except on E:Exception do
          begin
@@ -114,6 +114,9 @@ if Form1.RPCServer.Active then
    begin
    Form1.RPCServer.Active:=false;
    ConsoleLinesAdd('RPC server DISABLED');
+   G_Launching := true;
+   form1.CB_RPC_ON.Checked:=false;
+   G_Launching := false;
    end
 else ConsoleLinesAdd('RPC server already DISABLED');
 End;

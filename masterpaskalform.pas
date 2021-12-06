@@ -281,8 +281,11 @@ type
   TForm1 = class(TForm)
     BitBtn1: TBitBtn;
     BitBtn2: TBitBtn;
+    BSaveNodeOptions: TBitBtn;
     BitBtnPending: TBitBtn;
     BitBtnBlocks: TBitBtn;
+    Label1: TLabel;
+    PanelPostOffer: TPanel;
     StaRPCimg: TImage;
     StaSerImg: TImage;
     StaConLab: TLabel;
@@ -331,7 +334,6 @@ type
     LE_Rpc_Pass: TLabeledEdit;
     LabeledEdit5: TLabeledEdit;
     LabeledEdit6: TLabeledEdit;
-    LabeledEdit7: TLabeledEdit;
     LabeledEdit8: TLabeledEdit;
     LabeledEdit9: TLabeledEdit;
     Latido : TTimer;
@@ -403,7 +405,6 @@ type
     Panel5: TPanel;
     Panel6: TPanel;
     PanelNobiex: TPanel;
-    TabSheet4: TTabSheet;
     TopPanel: TPanel;
     StatusPanel: TPanel;
     PoolPanelBlink: TPanel;
@@ -434,7 +435,7 @@ type
     tabOptions: TTabSheet;
     TabSheet1: TTabSheet;
     TabSheet10: TTabSheet;
-    TabSheet2: TTabSheet;
+    TabNodeOptions: TTabSheet;
     TabSheet3: TTabSheet;
     TabPoolLog: TTabSheet;
     TabPoolPays: TTabSheet;
@@ -455,6 +456,7 @@ type
 
     procedure BitBtn1Click(Sender: TObject);
     procedure BitBtn2Click(Sender: TObject);
+    procedure BSaveNodeOptionsClick(Sender: TObject);
     procedure CB_RPCFilterChange(Sender: TObject);
     procedure DataPanelResize(Sender: TObject);
     procedure DireccionesPanelResize(Sender: TObject);
@@ -484,6 +486,7 @@ type
     procedure SE_WO_AntifreezeTimeChange(Sender: TObject);
     procedure GridExLTCResize(Sender: TObject);
     procedure TabHistoryShow(Sender: TObject);
+    procedure TabNodeOptionsShow(Sender: TObject);
     Procedure TryCloseServerConnection(AContext: TIdContext; closemsg:string='');
     procedure IdTCPServer1Execute(AContext: TIdContext);
     procedure IdTCPServer1Connect(AContext: TIdContext);
@@ -557,7 +560,6 @@ type
     Procedure ConsoLinePopUpPaste(Sender:TObject);
 
     // TRXDETAILS POPUP
-    //Procedure CheckTrxDetailsPopUp(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
     Procedure TrxDetailsPopUpCopyOrder(Sender:TObject);
 
 
@@ -632,6 +634,7 @@ CONST
   DeadAddressFee = 0;               // unactive acount fee
   ComisionScrow = 200;              // Coin/BTC market comision = 0.5%
   PoSPercentage = 1000;             // PoS part: reward * PoS / 10000
+  MNsPercentage = 2000;
   PosStackCoins = 20;               // PoS stack ammoount: supply*20 / PoSStack
   PoSBlockStart : integer = 8425;   // first block with PoSPayment
   InitialBlockDiff = 60;            // Dificultad durante los 20 primeros bloques
@@ -666,6 +669,10 @@ var
   RPCFilter        : boolean = true;
   RPCWhitelist     : string = '127.0.0.1,localhost';
   RPCAuto          : boolean = false;
+  MN_IP            : string = 'localhost';
+  MN_Port          : string = '8080';
+  MN_Funds         : string = '';
+  MN_Sign          : string = '';
 
   SynchWarnings : integer = 0;
   ConnectedRotor : integer = 0;
@@ -893,71 +900,11 @@ var
   PoolMembersFilename : string = '';
   AdvOptionsFilename : string = '';
   PoolPaymentsFilename : string = '';
-
-  // Visual Components
-  //MainMenu : TMainMenu;
-  //  MenuItem : TMenuItem;
-  //ConsolePopUp : TPopupMenu;
-  //ConsoLinePopUp : TPopupMenu;
-  //TrxDetailsPopUp : TPopupMenu;
-
-  //ConnectButton : TSpeedButton;
-  //MinerButton : TSpeedButton;
-  //ImageInc :TImage;
-    MontoIncoming : Int64 = 0;
-  //ImageOut :TImage;
-    MontoOutgoing : Int64 = 0;
-  //DireccionesPanel : TStringGrid;
-    //BDefAddr : TSpeedButton;
-    //BCustomAddr : TSpeedButton;
-    //PanelCustom : TPanel;
-        //EditCustom : TEdit;
-        //BOkCustom : TSpeedButton;
-  //BNewAddr : TSpeedButton;
-    //BCopyAddr : TSpeedButton;
-    //BSendCoins : TSpeedButton;
-  //PanelSend : Tpanel;
-    //LSCTop : Tlabel;
-    //BCLoseSend : TSpeedButton;
-    //SGridSC   : Tstringgrid;
-    //SBSCPaste : TSpeedButton;
-    //SBSCMax: TSpeedButton;
-    //EditSCDest : TEdit;
-    //EditSCMont : TEdit;
-    //ImgSCDest  : TImage;
-    //ImgSCMont  : TImage;
-    //MemoSCCon : Tmemo;
-    //SCBitClea : TBitBtn;
-    //SCBitSend : TBitBtn;
-    //SCBitCancel : TBitBtn;
-    //SCBitConf : TBitBtn;
-  //GridMyTxs : TStringGrid;
-    //BitInfoTrx: TSpeedButton;
-    //BitPosInfo: TSpeedButton;
-    U_Mytrxs: boolean = false;
-    LastMyTrxTimeUpdate : int64;
-  //PanelTrxDetails : TPanel;
-  //  MemoTrxDetails : TMemo;
-  //BCloseTrxDetails : TBitBtn;
-
-  //InfoPanel : TPanel;
-    InfoPanelTime : integer = 0;
-
-//StatusPanel : TPanel;
-    //StaConRot : Tlabel;
-    //StaSerImg : TImage;
-    //StaRPCLab : Tlabel;
-    //StaConLab : TLabel;
-    //StaBloImg : TImage;
-    //StaBloLab : TLabel;
-    //StaPenImg : TImage;
-    //StaPenLab : TLabel;
-    //StaPoolSer : Timage;
-    //StaMinImg : Timage;
-    //StaTimeLab : TLabel;
-    //StaMinLab : TLabel;
-
-  //OTHER
+  MontoIncoming : Int64 = 0;
+  MontoOutgoing : Int64 = 0;
+  U_Mytrxs: boolean = false;
+  LastMyTrxTimeUpdate : int64;
+  InfoPanelTime : integer = 0;
   U_PoolConexGrid : boolean = false;
 
 implementation
@@ -3344,8 +3291,6 @@ if not G_Launching then
    end;
 end;
 
-
-
 // RPC
 
 procedure TForm1.CB_RPC_ONChange(Sender: TObject);
@@ -3353,7 +3298,7 @@ begin
 if not G_Launching then
    begin
    if CB_RPC_ON.Checked then SetRPCOn
-   else setrpcoff;
+   else SetRPCOff;
    end;
 end;
 
@@ -3443,6 +3388,28 @@ end;
 procedure TForm1.TabHistoryShow(Sender: TObject);
 begin
 GridMyTxsSelection(nil,GridMyTxs.Col,GridMyTxs.Row)
+end;
+
+// Load Masternode options when TAB is selected
+procedure TForm1.TabNodeOptionsShow(Sender: TObject);
+begin
+CheckBox4.Checked:=WO_AutoServer;
+LabeledEdit5.Text:=MN_IP;
+LabeledEdit6.Text:=MN_Port;
+LabeledEdit8.Text:=MN_Funds;
+LabeledEdit9.Text:=MN_Sign;
+end;
+
+// Save Node options
+procedure TForm1.BSaveNodeOptionsClick(Sender: TObject);
+begin
+WO_AutoServer:=CheckBox4.Checked;
+MN_IP:=LabeledEdit5.Text;
+MN_Port:=LabeledEdit6.Text;
+MN_Funds:=LabeledEdit8.Text;
+MN_Sign:=LabeledEdit9.Text;
+S_AdvOpt := true;
+info('Masternode options saved');
 end;
 
 // adjust transactions history grid when resize

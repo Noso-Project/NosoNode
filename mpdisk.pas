@@ -509,6 +509,12 @@ setmilitime('CreateADV',1);
    writeln(FileAdvOptions,'Language '+(WO_Language));
    writeln(FileAdvOptions,'Autoserver '+BoolToStr(WO_AutoServer,true));
 
+   writeln(FileAdvOptions,'MNIP '+(MN_IP));
+   writeln(FileAdvOptions,'MNPort '+(MN_Port));
+   writeln(FileAdvOptions,'MNFunds '+(MN_Funds));
+   if MN_Sign = '' then MN_Sign := ListaDirecciones[0].Hash;
+   writeln(FileAdvOptions,'MNSign '+(MN_Sign));
+
    Closefile(FileAdvOptions);
    if saving then tolog('Options file saved');
    S_AdvOpt := false;
@@ -554,6 +560,10 @@ Begin
       if parameter(linea,0) ='Language' then WO_Language:=Parameter(linea,1);
       if parameter(linea,0) ='Autoserver' then WO_AutoServer:=StrToBool(Parameter(linea,1));
 
+      if parameter(linea,0) ='MNIP' then MN_IP:=Parameter(linea,1);
+      if parameter(linea,0) ='MNPort' then MN_Port:=Parameter(linea,1);
+      if parameter(linea,0) ='MNFunds' then MN_Funds:=Parameter(linea,1);
+      if parameter(linea,0) ='MNSign' then MN_Sign:=Parameter(linea,1);
 
       end;
    Closefile(FileAdvOptions);
@@ -1527,6 +1537,7 @@ Procedure CargarMisTrx();
 var
   dato : MyTrxData;
 Begin
+setmilitime('CargarMisTrx',1);
    try
    assignfile(FileMyTrx,MyTrxFilename);
    reset(FileMyTrx);
@@ -1541,9 +1552,12 @@ Begin
    closefile(FileMyTrx);
    G_PoSPayouts := StrToInt64Def(parameter(ListaMisTrx[0].receiver,0),0);
    G_PoSEarnings := StrToInt64Def(parameter(ListaMisTrx[0].receiver,1),0);
+   if G_Launching then
+      OutText('✓ '+IntToStr(length(ListaMisTrx))+' own transactions',false,1);
    Except on E:Exception do
       toexclog ('Error loading my trx from file');
    end;
+setmilitime('CargarMisTrx',2);
 End;
 
 // Save value of last checked block for user transactions
@@ -1690,6 +1704,7 @@ Procedure SaveMyTrxsToDisk(Cantidad:integer);
 var
   contador : integer;
 Begin
+setmilitime('SaveMyTrxsToDisk',1);
    try
    assignfile (FileMyTrx,MyTrxFilename);
    reset(FileMyTrx);
@@ -1702,6 +1717,7 @@ Begin
    Except on E:Exception do
       tolog ('Error saving my trx to disk');
    end;
+setmilitime('SaveMyTrxsToDisk',2);
 End;
 
 // Non blocking rebuilding user transactions

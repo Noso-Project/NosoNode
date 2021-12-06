@@ -85,11 +85,19 @@ resourcestring
   rs0501 = 'Destination';
   rs0502 = 'Amount';
   rs0503 = 'Reference';
+  rs0504 = 'Balance';
+  rs0505 = 'Server';
+  rs0506 = 'Connections';
+  rs0507 = 'Headers';
+  rs0508 = 'Summary';
+  rs0509 = 'LastBlock';
+  rs0510 = 'Blocks';
+  rs0511 = 'Pending';
 
 {
 ConsoleLinesadd(format(rs,[]));
 }
 implementation
 
-end.
+END.
 

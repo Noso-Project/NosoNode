@@ -57,6 +57,10 @@ msgctxt "tform1.bokcustom.hint"
 msgid "Confirm"
 msgstr "Confirmar"
 
+#: tform1.bsavenodeoptions.caption
+msgid "Save"
+msgstr ""
+
 #: tform1.caption
 msgid "Noso"
 msgstr ""
@@ -117,6 +121,10 @@ msgstr ""
 msgid "About message"
 msgstr "Mensaje concepto"
 
+#: tform1.label1.caption
+msgid "Post offer"
+msgstr ""
+
 #: tform1.label2.caption
 msgid "Minimum connections to work"
 msgstr "Minimo conexiones"
@@ -150,10 +158,6 @@ msgstr "IP estática"
 msgctxt "tform1.labelededit6.editlabel.caption"
 msgid "Port"
 msgstr "Puerto"
-
-#: tform1.labelededit7.editlabel.caption
-msgid "Max peers"
-msgstr "Pares"
 
 #: tform1.labelededit8.editlabel.caption
 msgid "Funds address"
@@ -404,6 +408,12 @@ msgctxt "tform1.tabmonitormonitor.caption"
 msgid "Monitor"
 msgstr ""
 
+#: tform1.tabnodeoptions.caption
+#, fuzzy
+msgctxt "tform1.tabnodeoptions.caption"
+msgid "Node"
+msgstr "Nodo"
+
 #: tform1.tabnodes.caption
 msgid "Nodes"
 msgstr "Nodos"
@@ -439,16 +449,8 @@ msgstr "Cartera"
 msgid "Peers"
 msgstr "Pares"
 
-#: tform1.tabsheet2.caption
-msgid "Node"
-msgstr "Nodo"
-
 #: tform1.tabsheet3.caption
 msgid "RPC"
-msgstr ""
-
-#: tform1.tabsheet4.caption
-msgid "ADA"
 msgstr ""
 
 #: tform1.tabsheet5.caption
@@ -778,4 +780,36 @@ msgstr "Monto"
 #: translation.rs0503
 msgid "Reference"
 msgstr "Referencia"
+
+#: translation.rs0504
+msgid "Balance"
+msgstr ""
+
+#: translation.rs0505
+msgid "Server"
+msgstr ""
+
+#: translation.rs0506
+msgid "Connections"
+msgstr ""
+
+#: translation.rs0507
+msgid "Headers"
+msgstr ""
+
+#: translation.rs0508
+msgid "Summary"
+msgstr ""
+
+#: translation.rs0509
+msgid "LastBlock"
+msgstr ""
+
+#: translation.rs0510
+msgid "Blocks"
+msgstr ""
+
+#: translation.rs0511
+msgid "Pending"
+msgstr ""
 

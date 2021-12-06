@@ -126,6 +126,7 @@ if Form1.Server.Active then
    begin
    ConsoleLinesAdd(LangLine(160)); //'Server Already active'
    end
+
 else
    begin
       try
