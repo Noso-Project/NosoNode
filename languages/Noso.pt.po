@@ -97,6 +97,10 @@ msgstr "Minimizar para a barra"
 msgid "Download blockchain"
 msgstr "Baixar a cadeia de blocos"
 
+#: tform1.checkbox2.caption
+msgid "Install automatically new official releases"
+msgstr ""
+
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
 msgstr "Ativar o nó mestre"
@@ -144,6 +148,10 @@ msgstr "Mostrando histórico de ordens"
 #: tform1.label6.caption
 msgid "PoS addresses warning days"
 msgstr "Número de dias para aviso de PoS"
+
+#: tform1.label7.caption
+msgid "Wallet language"
+msgstr ""
 
 #: tform1.labelbigbalance.caption
 msgctxt "tform1.labelbigbalance.caption"

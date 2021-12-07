@@ -87,6 +87,10 @@ msgstr ""
 msgid "Download blockchain"
 msgstr ""
 
+#: tform1.checkbox2.caption
+msgid "Install automatically new official releases"
+msgstr ""
+
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
 msgstr ""
@@ -133,6 +137,10 @@ msgstr ""
 
 #: tform1.label6.caption
 msgid "PoS addresses warning days"
+msgstr ""
+
+#: tform1.label7.caption
+msgid "Wallet language"
 msgstr ""
 
 #: tform1.labelbigbalance.caption

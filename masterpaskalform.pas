@@ -284,7 +284,10 @@ type
     BSaveNodeOptions: TBitBtn;
     BitBtnPending: TBitBtn;
     BitBtnBlocks: TBitBtn;
+    CheckBox2: TCheckBox;
+    ComboBox1: TComboBox;
     Label1: TLabel;
+    Label7: TLabel;
     PanelPostOffer: TPanel;
     StaRPCimg: TImage;
     StaSerImg: TImage;
@@ -458,6 +461,8 @@ type
     procedure BitBtn2Click(Sender: TObject);
     procedure BSaveNodeOptionsClick(Sender: TObject);
     procedure CB_RPCFilterChange(Sender: TObject);
+    procedure ComboBox1DrawItem(Control: TWinControl; Index: Integer;
+      ARect: TRect; State: TOwnerDrawState);
     procedure DataPanelResize(Sender: TObject);
     procedure DireccionesPanelResize(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
@@ -3352,6 +3357,38 @@ if not G_Launching then
    S_AdvOpt := true;
    end;
 end;
+
+// Draw item on combobox language
+procedure TForm1.ComboBox1DrawItem(Control: TWinControl; Index: Integer;
+  ARect: TRect; State: TOwnerDrawState);
+begin
+ComboBox1.Canvas.FillRect(ARect);
+if ComboBox1.Items[Index] ='en' then
+   begin
+   ComboBox1.Canvas.TextRect(ARect, 20, ARect.Top, 'English');
+   Imagenes.Draw(ComboBox1.Canvas, ARect.Left + 1, ARect.Top + 1, 36);
+   end;
+if ComboBox1.Items[Index] ='es' then
+   begin
+   ComboBox1.Canvas.TextRect(ARect, 20, ARect.Top, 'Español');
+   Imagenes.Draw(ComboBox1.Canvas, ARect.Left + 1, ARect.Top + 1, 37);
+   end;
+if ComboBox1.Items[Index] ='pt' then
+   begin
+   ComboBox1.Canvas.TextRect(ARect, 20, ARect.Top, 'Português');
+   Imagenes.Draw(ComboBox1.Canvas, ARect.Left + 1, ARect.Top + 1, 61);
+   end;
+if ComboBox1.Items[Index] ='de' then
+   begin
+   ComboBox1.Canvas.TextRect(ARect, 20, ARect.Top, 'Deutsch');
+   Imagenes.Draw(ComboBox1.Canvas, ARect.Left + 1, ARect.Top + 1, 62);
+   end;
+if ComboBox1.Items[Index] ='zn' then
+   begin
+   ComboBox1.Canvas.TextRect(ARect, 20, ARect.Top, '中文');
+   Imagenes.Draw(ComboBox1.Canvas, ARect.Left + 1, ARect.Top + 1, 63);
+   end;
+End;
 
 // Adjust data panel when resizing
 procedure TForm1.DataPanelResize(Sender: TObject);
