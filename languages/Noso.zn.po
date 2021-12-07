@@ -40,7 +40,7 @@ msgstr "000000"
 
 #: tform1.bitbtnblocks.hint
 msgid "Last downloaded block"
-msgstr "最后一个区块"
+msgstr "最新区块"
 
 #: tform1.bitbtnpending.caption
 msgid "00"
@@ -69,7 +69,7 @@ msgstr "Noso"
 
 #: tform1.cb_autorpc.caption
 msgid "Active JSON-RPC server at launch"
-msgstr "JSON-RPC 服务器运行中"
+msgstr "运行 JSON-RPC 服务器"
 
 #: tform1.cb_rpcfilter.caption
 msgid "Accept only whitelist requests"
@@ -98,10 +98,6 @@ msgstr "最小化"
 #: tform1.checkbox1.caption
 msgid "Download blockchain"
 msgstr "下载区块链"
-
-#: tform1.checkbox2.caption
-msgid "Install automatically new official releases"
-msgstr ""
 
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
@@ -133,7 +129,7 @@ msgstr "发布报价"
 
 #: tform1.label2.caption
 msgid "Minimum connections to work"
-msgstr "最少连接"
+msgstr "连接"
 
 #: tform1.label3.caption
 msgid "Connect time out (ms)"
@@ -150,10 +146,6 @@ msgstr "区块订单"
 #: tform1.label6.caption
 msgid "PoS addresses warning days"
 msgstr "PoS地址报警"
-
-#: tform1.label7.caption
-msgid "Wallet language"
-msgstr ""
 
 #: tform1.labelbigbalance.caption
 msgctxt "tform1.labelbigbalance.caption"
@@ -185,7 +177,7 @@ msgstr "平均数： -。-"
 #: tform1.labelnobiexlast.caption
 msgctxt "tform1.labelnobiexlast.caption"
 msgid "Last: -.-"
-msgstr "最后一个区块"
+msgstr "最新区块"
 
 #: tform1.labeltransactiondetails.caption
 msgid "Transaction details"
@@ -193,7 +185,7 @@ msgstr "交易明细"
 
 #: tform1.le_rpc_pass.editlabel.caption
 msgid "Funds password"
-msgstr "资金密码"
+msgstr "密码"
 
 #: tform1.le_rpc_port.editlabel.caption
 msgctxt "tform1.le_rpc_port.editlabel.caption"
@@ -214,7 +206,7 @@ msgstr "进展"
 
 #: tform1.menuitem11.caption
 msgid "View"
-msgstr "选项"
+msgstr "其他"
 
 #: tform1.menuitem12.caption
 msgctxt "tform1.menuitem12.caption"
@@ -327,7 +319,7 @@ msgstr "全部发送"
 
 #: tform1.sbscpaste.hint
 msgid "Paste destination"
-msgstr "粘贴目的地址"
+msgstr "粘贴目标地址"
 
 #: tform1.scbitcancel.caption
 msgid "Cancel"
@@ -390,7 +382,7 @@ msgstr "LTC"
 
 #: tform1.tabexchange.caption
 msgid "NoBiEx"
-msgstr "NoBiEx"
+msgstr "内置交易所"
 
 #: tform1.tabhistory.caption
 msgid "History"
@@ -456,7 +448,7 @@ msgstr "RPC"
 
 #: tform1.tabsheet5.caption
 msgid "Trade"
-msgstr "交易"
+msgstr "设置"
 
 #: tform1.tabsheet6.caption
 msgctxt "tform1.tabsheet6.caption"
@@ -492,11 +484,11 @@ msgstr "插槽数据读取错误：%s"
 
 #: translation.rs0003
 msgid "Receiving headers"
-msgstr "接收 标头"
+msgstr "接收 头文件"
 
 #: translation.rs0004
 msgid "Error Receiving headers from %s (%s)"
-msgstr "标头接收错误  %s (%s)"
+msgstr "头文件错误  %s (%s)"
 
 #: translation.rs0005
 msgctxt "translation.rs0005"
@@ -565,7 +557,7 @@ msgstr "Noso 启动器已执行"
 
 #: translation.rs0021
 msgid "Blocks received up to %s"
-msgstr "收到区块 %s"
+msgstr "同步区块 %s"
 
 #: translation.rs0022
 msgid "✓ Data directory ok"
@@ -694,7 +686,7 @@ msgstr "服务器: 区块Zip文件 发送到 %s: %s"
 
 #: translation.rs0053
 msgid "SERVER: Error sending ZIP blocks file (%s)"
-msgstr "服务器：发送 ZIP 区块文件时出错 (%s)"
+msgstr "服务器: 发送 ZIP 区块文件时出错 (%s)"
 
 #: translation.rs0054
 msgid "SERVER: Error adding received line (%s)"
@@ -706,7 +698,7 @@ msgstr "服务器: 有异常数据：%s"
 
 #: translation.rs0056
 msgid "SERVER: Timeout reading line from new connection"
-msgstr "服务器：读取新连接超时"
+msgstr "服务器: 读取新连接超时"
 
 #: translation.rs0057
 msgid "SERVER: Can not read line from new connection (%s)"
@@ -714,15 +706,15 @@ msgstr "服务器: 无法读取新连接 (%s)"
 
 #: translation.rs0058
 msgid "SERVER: Invalid client -> %s"
-msgstr "服务器：无效的客户端 -> %s"
+msgstr "服务器: 无效的客户端 -> %s"
 
 #: translation.rs0059
 msgid "SERVER: Own connected"
-msgstr "服务器：连接"
+msgstr "服务器: 连接"
 
 #: translation.rs0060
 msgid "SERVER: Duplicated connection -> %s"
-msgstr "服务器：重复连接 -> %s"
+msgstr "服务器: 重复连接 -> %s"
 
 #: translation.rs0061
 msgid "New Connection from: %s"
@@ -734,7 +726,7 @@ msgstr "服务器：关闭未处理的传入连接 -> %s"
 
 #: translation.rs0063
 msgid "Next block required"
-msgstr "需要下一个区块信息"
+msgstr "PoS需要硬币"
 
 #: translation.rs0064
 msgid "My PoS addresses"
@@ -742,19 +734,19 @@ msgstr "我的PoS地址"
 
 #: translation.rs0065
 msgid "My PoS earnings"
-msgstr "我的 PoS 收入"
+msgstr "我的PoS收入"
 
 #: translation.rs0066
 msgid "Rebuilding my transactions..."
-msgstr "重建我的交易..."
+msgstr "重建交易..."
 
 #: translation.rs0067
 msgid "✓ My transactions rebuilded"
-msgstr "✓ 我的交易重建成功"
+msgstr "✓ 交易重建成功"
 
 #: translation.rs0068
 msgid "✓ My transactions grid updated"
-msgstr "✓ 我的交易网格已更新"
+msgstr "✓ 交易网格已更新"
 
 #: translation.rs0069
 msgid "✓ Launcher file deleted"
@@ -770,7 +762,7 @@ msgstr "Noso启动器"
 
 #: translation.rs0501
 msgid "Destination"
-msgstr "目的地址"
+msgstr "目标地址"
 
 #: translation.rs0502
 msgid "Amount"
@@ -798,21 +790,16 @@ msgstr "头文件"
 
 #: translation.rs0508
 msgid "Summary"
-msgstr "总结"
+msgstr "摘要"
 
 #: translation.rs0509
 msgid "LastBlock"
-msgstr "最后一个区块"
+msgstr "最新区块"
 
 #: translation.rs0510
 msgid "Blocks"
-msgstr "区块"
+msgstr "已发现区块"
 
 #: translation.rs0511
 msgid "Pending"
 msgstr "待办"
-
-#: translation.rs0512
-msgid "Invalid language: %s"
-msgstr ""
-

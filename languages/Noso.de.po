@@ -1,806 +1,803 @@
 msgid ""
-msgstr "Content-Type: text/plain; charset=UTF-8"
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: Fechi92 <fechi1712@gmail.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: de\n"
+"X-Generator: Poedit 3.0\n"
 
 #: tform1.bcopyaddr.hint
 msgid "Copy address to clipboard"
-msgstr ""
+msgstr "Adresse in Zwischenablage kopieren"
 
 #: tform1.bcustomaddr.hint
 msgid "Customize address"
-msgstr ""
+msgstr "Adresse anpassen"
 
 #: tform1.bdefaddr.hint
 msgid "Set address as Default"
-msgstr ""
+msgstr "Adresse als Standard festlegen"
 
 #: tform1.bitbtn1.caption
 msgid "Donate"
-msgstr ""
+msgstr "Spenden"
 
 #: tform1.bitbtn2.caption
 msgid "Web"
-msgstr ""
+msgstr "Web"
 
 #: tform1.bitbtnblocks.caption
 msgctxt "tform1.bitbtnblocks.caption"
 msgid "000000"
-msgstr ""
+msgstr "000000"
 
 #: tform1.bitbtnblocks.hint
 msgid "Last downloaded block"
-msgstr ""
+msgstr "Zuletzt heruntergeladener Block"
 
 #: tform1.bitbtnpending.caption
 msgid "00"
-msgstr ""
+msgstr "00"
 
 #: tform1.bitbtnpending.hint
 msgid "Network pending orders"
-msgstr ""
+msgstr "Ausstehende Aufträge im Netz"
 
 #: tform1.bnewaddr.hint
 msgid "Generate new address"
-msgstr ""
+msgstr "Neue Adresse generieren"
 
 #: tform1.bokcustom.hint
 msgctxt "tform1.bokcustom.hint"
 msgid "Confirm"
-msgstr ""
+msgstr "Bestätigen"
 
 #: tform1.bsavenodeoptions.caption
 msgid "Save"
-msgstr ""
+msgstr "Speichern"
 
 #: tform1.caption
 msgid "Noso"
-msgstr ""
+msgstr "Noso"
 
 #: tform1.cb_autorpc.caption
 msgid "Active JSON-RPC server at launch"
-msgstr ""
+msgstr "Aktiver JSON-RPC-Server beim Start"
 
 #: tform1.cb_rpcfilter.caption
 msgid "Accept only whitelist requests"
-msgstr ""
+msgstr "Nur Whitelist-Anfragen akzeptieren"
 
 #: tform1.cb_rpc_on.caption
 msgid "Enable JSON-RPC server"
-msgstr ""
+msgstr "JSON-RPC-Server einschalten"
 
 #: tform1.cb_wo_antifreeze.caption
 msgid "Anti freeze (s)"
-msgstr ""
+msgstr "Gegen einfrieren (s)"
 
 #: tform1.cb_wo_autoconnect.caption
 msgid "Auto connect at start"
-msgstr ""
+msgstr "Automatische Verbindung beim Start"
 
 #: tform1.cb_wo_multisend.caption
 msgid "Send coins only from default address"
-msgstr ""
+msgstr "Münzen nur von der Standardadresse senden"
 
 #: tform1.cb_wo_totray.caption
 msgid "Minimize to tray"
-msgstr ""
+msgstr "In die Ablage minimieren"
 
 #: tform1.checkbox1.caption
 msgid "Download blockchain"
-msgstr ""
-
-#: tform1.checkbox2.caption
-msgid "Install automatically new official releases"
-msgstr ""
+msgstr "Blockchain herunterladen"
 
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
-msgstr ""
+msgstr "MasterNode ausführen"
 
 #: tform1.checkbox7.caption
 msgid "Enable sound alerts"
-msgstr ""
+msgstr "Akustische Warnungen aktivieren"
 
 #: tform1.checkbox8.caption
 msgid "Coins filter"
-msgstr ""
+msgstr "Münzen filtern"
 
 #: tform1.checkbox9.caption
 msgid "Use my default addresses"
-msgstr ""
+msgstr "Meine Standardadressen verwenden"
 
 #: tform1.editscmont.text
 msgid "0.00000000"
-msgstr ""
+msgstr "0.00000000"
 
 #: tform1.lababout.caption
 msgid "About message"
-msgstr ""
+msgstr "Über Nachricht"
 
 #: tform1.label1.caption
 msgid "Post offer"
-msgstr ""
+msgstr "Angebot veröffentlichen"
 
 #: tform1.label2.caption
 msgid "Minimum connections to work"
-msgstr ""
+msgstr "Minimale Verbindungen zum Arbeiten"
 
 #: tform1.label3.caption
 msgid "Connect time out (ms)"
-msgstr ""
+msgstr "Zeitüberschreitung beim Verbinden (ms)"
 
 #: tform1.label4.caption
 msgid "Read time out (ms)"
-msgstr ""
+msgstr "Zeitüberschreitung beim Lesen (ms)"
 
 #: tform1.label5.caption
 msgid "History orders showed"
-msgstr ""
+msgstr "Historische Aufträge zeigen"
 
 #: tform1.label6.caption
 msgid "PoS addresses warning days"
-msgstr ""
-
-#: tform1.label7.caption
-msgid "Wallet language"
-msgstr ""
+msgstr "PoS Adressen Warntage"
 
 #: tform1.labelbigbalance.caption
 msgctxt "tform1.labelbigbalance.caption"
 msgid "0 NOS"
-msgstr ""
+msgstr "0 NOS"
 
 #: tform1.labelededit5.editlabel.caption
 msgid "Static IP"
-msgstr ""
+msgstr "Statische IP"
 
 #: tform1.labelededit6.editlabel.caption
 msgctxt "tform1.labelededit6.editlabel.caption"
 msgid "Port"
-msgstr ""
+msgstr "Port"
 
 #: tform1.labelededit8.editlabel.caption
 msgid "Funds address"
-msgstr ""
+msgstr "Guthaben Adresse"
 
 #: tform1.labelededit9.editlabel.caption
 msgid "Sign address"
-msgstr ""
+msgstr "Unterschrifts Adresse"
 
 #: tform1.labelnobiexaverage.caption
 msgctxt "tform1.labelnobiexaverage.caption"
 msgid "Average: -.-"
-msgstr ""
+msgstr "Durchschnitt: -.-"
 
 #: tform1.labelnobiexlast.caption
 msgctxt "tform1.labelnobiexlast.caption"
 msgid "Last: -.-"
-msgstr ""
+msgstr "Letzte: -.-"
 
 #: tform1.labeltransactiondetails.caption
 msgid "Transaction details"
-msgstr ""
+msgstr "Einzelheiten zur Transaktion"
 
 #: tform1.le_rpc_pass.editlabel.caption
 msgid "Funds password"
-msgstr ""
+msgstr "Guthaben Passwort"
 
 #: tform1.le_rpc_port.editlabel.caption
 msgctxt "tform1.le_rpc_port.editlabel.caption"
 msgid "Port"
-msgstr ""
+msgstr "Port"
 
 #: tform1.lsctop.caption
 msgid "Send coins"
-msgstr ""
+msgstr "Münzen versenden"
 
 #: tform1.menuitem1.caption
 msgid "Network"
-msgstr ""
+msgstr "Netzwerk"
 
 #: tform1.menuitem10.caption
 msgid "Development"
-msgstr ""
+msgstr "Entwicklung"
 
 #: tform1.menuitem11.caption
 msgid "View"
-msgstr ""
+msgstr "Ansicht"
 
 #: tform1.menuitem12.caption
 msgctxt "tform1.menuitem12.caption"
 msgid "Console"
-msgstr ""
+msgstr "Konsole"
 
 #: tform1.menuitem13.caption
 msgctxt "tform1.menuitem13.caption"
 msgid "Log"
-msgstr ""
+msgstr "Log"
 
 #: tform1.menuitem14.caption
 msgctxt "tform1.menuitem14.caption"
 msgid "Monitor"
-msgstr ""
+msgstr "Überwachen"
 
 #: tform1.menuitem15.caption
 msgid "WebPage"
-msgstr ""
+msgstr "WebSeite"
 
 #: tform1.menuitem16.caption
 msgid "ConSlots"
-msgstr ""
+msgstr "ConSlots"
 
 #: tform1.menuitem17.caption
 msgctxt "tform1.menuitem17.caption"
 msgid "Pool"
-msgstr ""
+msgstr "Pool"
 
 #: tform1.menuitem18.caption
 msgid "Language"
-msgstr ""
+msgstr "Sprache"
 
 #: tform1.menuitem19.caption
 msgid "Import"
-msgstr ""
+msgstr "Importieren"
 
 #: tform1.menuitem2.caption
 msgid "Start Server"
-msgstr ""
+msgstr "Server starten"
 
 #: tform1.menuitem20.caption
 msgid "New file"
-msgstr ""
+msgstr "Neue Datei"
 
 #: tform1.menuitem21.caption
 msgid "Updates"
-msgstr ""
+msgstr "Aktualisierungen"
 
 #: tform1.menuitem22.caption
 msgid "Messages"
-msgstr ""
+msgstr "Nachrichten"
 
 #: tform1.menuitem23.caption
 msgid "CLear"
-msgstr ""
+msgstr "Löschen"
 
 #: tform1.menuitem24.caption
 msgctxt "tform1.menuitem24.caption"
 msgid "Copy"
-msgstr ""
+msgstr "Kopieren"
 
 #: tform1.menuitem25.caption
 msgctxt "tform1.menuitem25.caption"
 msgid "Clear"
-msgstr ""
+msgstr "Löschen"
 
 #: tform1.menuitem26.caption
 msgctxt "tform1.menuitem26.caption"
 msgid "Copy"
-msgstr ""
+msgstr "Kopieren"
 
 #: tform1.menuitem27.caption
 msgid "Paste"
-msgstr ""
+msgstr "Einfügen"
 
 #: tform1.menuitem3.caption
 msgid "Connect"
-msgstr ""
+msgstr "Verbinden"
 
 #: tform1.menuitem4.caption
 msgctxt "tform1.menuitem4.caption"
 msgid "Miner"
-msgstr ""
+msgstr "Miner"
 
 #: tform1.menuitem5.caption
 msgid "Import Wallet"
-msgstr ""
+msgstr "Brieftasche importieren"
 
 #: tform1.menuitem6.caption
 msgid "Export Wallet"
-msgstr ""
+msgstr "Brieftasche exportieren"
 
 #: tform1.menuitem7.caption
 msgctxt "tform1.menuitem7.caption"
 msgid "About..."
-msgstr ""
+msgstr "Über..."
 
 #: tform1.menuitem8.caption
 msgid "Restart"
-msgstr ""
+msgstr "Neustart"
 
 #: tform1.menuitem9.caption
 msgid "Quit"
-msgstr ""
+msgstr "Beenden"
 
 #: tform1.sbscmax.hint
 msgid "Send all"
-msgstr ""
+msgstr "Alle senden"
 
 #: tform1.sbscpaste.hint
 msgid "Paste destination"
-msgstr ""
+msgstr "Ziel einfügen"
 
 #: tform1.scbitcancel.caption
 msgid "Cancel"
-msgstr ""
+msgstr "Abbrechen"
 
 #: tform1.scbitclea.caption
 msgctxt "tform1.scbitclea.caption"
 msgid "Clear"
-msgstr ""
+msgstr "Löschen"
 
 #: tform1.scbitconf.caption
 msgctxt "tform1.scbitconf.caption"
 msgid "Confirm"
-msgstr ""
+msgstr "Bestätigen"
 
 #: tform1.scbitsend.caption
 msgid "Send"
-msgstr ""
+msgstr "Senden"
 
 #: tform1.speedbutton1.hint
 msgid "Copy Order ID"
-msgstr ""
+msgstr "Auftrags-ID kopieren"
 
 #: tform1.staconlab.caption
 msgid "0"
-msgstr ""
+msgstr "0"
 
 #: tform1.staconlab.hint
 msgid "Connected peers"
-msgstr ""
+msgstr "Verbundene Peers"
 
 #: tform1.stapoolser.hint
 msgid "Pool server active"
-msgstr ""
+msgstr "Pool Server aktiv"
 
 #: tform1.starpcimg.hint
 msgid "RPC server active"
-msgstr ""
+msgstr "RPC Server aktiv"
 
 #: tform1.staserimg.hint
 msgid "Masternode active"
-msgstr ""
+msgstr "Masternode aktiv"
 
 #: tform1.statimelab.hint
 msgid "Noso network time"
-msgstr ""
+msgstr "Noso Netzwerk-Zeit"
 
 #: tform1.tabaddresses.caption
 msgid "Addresses"
-msgstr ""
+msgstr "Adressen"
 
 #: tform1.tabconsole.caption
 msgctxt "tform1.tabconsole.caption"
 msgid "Console"
-msgstr ""
+msgstr "Konsole"
 
 #: tform1.tabexbuy.caption
 msgid "LTC"
-msgstr ""
+msgstr "LTC"
 
 #: tform1.tabexchange.caption
 msgid "NoBiEx"
-msgstr ""
+msgstr "NoBiEx"
 
 #: tform1.tabhistory.caption
 msgid "History"
-msgstr ""
+msgstr "Verlauf"
 
 #: tform1.tabmainpool.caption
 msgctxt "tform1.tabmainpool.caption"
 msgid "Pool"
-msgstr ""
+msgstr "Pool"
 
 #: tform1.tabmonitor.caption
 msgctxt "tform1.tabmonitor.caption"
 msgid "Monitor"
-msgstr ""
+msgstr "Überwachen"
 
 #: tform1.tabmonitormonitor.caption
 msgctxt "tform1.tabmonitormonitor.caption"
 msgid "Monitor"
-msgstr ""
+msgstr "Überwachen"
 
 #: tform1.tabnodeoptions.caption
 msgctxt "tform1.tabnodeoptions.caption"
 msgid "Node"
-msgstr ""
+msgstr "Knoten"
 
 #: tform1.tabnodes.caption
 msgid "Nodes"
-msgstr ""
+msgstr "Knoten"
 
 #: tform1.taboptions.caption
 msgid "Options"
-msgstr ""
+msgstr "Optionen"
 
 #: tform1.tabpoollog.caption
 msgctxt "tform1.tabpoollog.caption"
 msgid "Log"
-msgstr ""
+msgstr "Log"
 
 #: tform1.tabpoolminers.caption
 msgid "Miners"
-msgstr ""
+msgstr "Miners"
 
 #: tform1.tabpoolpays.caption
 msgid "Pays"
-msgstr ""
+msgstr "Bezahlt"
 
 #: tform1.tabpoolstats.caption
 msgid "Stats"
-msgstr ""
+msgstr "Statistiken"
 
 #: tform1.tabsheet1.caption
 msgctxt "tform1.tabsheet1.caption"
 msgid "Wallet"
-msgstr ""
+msgstr "Brieftasche"
 
 #: tform1.tabsheet10.caption
 msgid "Peers"
-msgstr ""
+msgstr "Peers"
 
 #: tform1.tabsheet3.caption
 msgid "RPC"
-msgstr ""
+msgstr "RPC"
 
 #: tform1.tabsheet5.caption
 msgid "Trade"
-msgstr ""
+msgstr "Handel"
 
 #: tform1.tabsheet6.caption
 msgctxt "tform1.tabsheet6.caption"
 msgid "Miner"
-msgstr ""
+msgstr "Miner"
 
 #: tform1.tabsheet7.caption
 msgctxt "tform1.tabsheet7.caption"
 msgid "Log"
-msgstr ""
+msgstr "Log"
 
 #: tform1.tabsheet8.caption
 msgid "Except"
-msgstr ""
+msgstr "Ausnahme"
 
 #: tform1.tabsheet9.caption
 msgctxt "tform1.tabsheet9.caption"
 msgid "About..."
-msgstr ""
+msgstr "Über..."
 
 #: tform1.tabwallet.caption
 msgctxt "tform1.tabwallet.caption"
 msgid "Wallet"
-msgstr ""
+msgstr "Brieftasche"
 
 #: translation.rs0001
 msgid "TimeOut reading from slot: %s"
-msgstr ""
+msgstr "Zeitüberschreitung beim Lesen vom Slot: %s"
 
 #: translation.rs0002
 msgid "Error Reading lines from slot: %s"
-msgstr ""
+msgstr "Fehler beim Lesen von Zeilen aus Slot: %s"
 
 #: translation.rs0003
 msgid "Receiving headers"
-msgstr ""
+msgstr "Empfangen von Kopfzeilen"
 
 #: translation.rs0004
 msgid "Error Receiving headers from %s (%s)"
-msgstr ""
+msgstr "Fehler beim Empfangen von Kopfzeilen von %s (%s)"
 
 #: translation.rs0005
 msgctxt "translation.rs0005"
 msgid "Headers file received: %s"
-msgstr ""
+msgstr "Kopfzeilendatei empfangen: %s"
 
 #: translation.rs0006
 msgid "Receiving blocks"
-msgstr ""
+msgstr "Empfang von Blöcken"
 
 #: translation.rs0007
 msgid "Error Receiving blocks from %s (%s)"
-msgstr ""
+msgstr "Fehler beim Empfang von Blöcken von %s (%s)"
 
 #: translation.rs0008
 msgid "Error sending outgoing message: %s"
-msgstr ""
+msgstr "Fehler beim Senden einer ausgehenden Nachricht: %s"
 
 #: translation.rs0009
 msgid "ERROR: Deleting OutGoingMessage-> %s"
-msgstr ""
+msgstr "FEHLER: Löschen der ausgehenden Nachricht-> %s"
 
 #: translation.rs0010
 msgid "Auto restart enabled"
-msgstr ""
+msgstr "Automatischer Neustart aktiviert"
 
 #: translation.rs0011
 msgid "BAT file created"
-msgstr ""
+msgstr "BAT-Datei erstellt"
 
 #: translation.rs0012
 msgid "Crash info file created"
-msgstr ""
+msgstr "Absturzinfodatei erstellt"
 
 #: translation.rs0013
 msgid "Data restart file created"
-msgstr ""
+msgstr "Daten-Neustartdatei erstellt"
 
 #: translation.rs0014
 msgid "All forms closed"
-msgstr ""
+msgstr "Alle Formen geschlossen"
 
 #: translation.rs0015
 msgid "Outgoing connections closed"
-msgstr ""
+msgstr "Ausgehende Verbindungen geschlossen"
 
 #: translation.rs0016
 msgid "Node server closed"
-msgstr ""
+msgstr "Knotenserver geschlossen"
 
 #: translation.rs0017
 msgid "Closing pool server..."
-msgstr ""
+msgstr "Pool Server schließen..."
 
 #: translation.rs0018
 msgid "Pool server closed"
-msgstr ""
+msgstr "Pool Server geschlossen"
 
 #: translation.rs0019
 msgid "Pool members file saved"
-msgstr ""
+msgstr "Datei der Poolmitglieder gespeichert"
 
 #: translation.rs0020
 msgid "Noso launcher executed"
-msgstr ""
+msgstr "Noso Launcher ausgeführt"
 
 #: translation.rs0021
 msgid "Blocks received up to %s"
-msgstr ""
+msgstr "Empfangene Blöcke bis zu %s"
 
 #: translation.rs0022
 msgid "✓ Data directory ok"
-msgstr ""
+msgstr "✓ Datenverzeichnis ok"
 
 #: translation.rs0023
 msgid "✓ GUI initialized"
-msgstr ""
+msgstr "✓ GUI initialisiert"
 
 #: translation.rs0024
 msgid "✓ My data updated"
-msgstr ""
+msgstr "✓ Meine Daten aktualisiert"
 
 #: translation.rs0025
 msgid "✓ Miner configuration set"
-msgstr ""
+msgstr "✓ Miner-Konfiguration eingestellt"
 
 #: translation.rs0026
 msgid "✓ %s languages available"
-msgstr ""
+msgstr "✓ %s Sprachen verfügbar"
 
 #: translation.rs0027
 msgid "Wallet %s%s"
-msgstr ""
+msgstr "Brieftasche %s%s"
 
 #: translation.rs0028
 msgid "✓ %s CPUs found"
-msgstr ""
+msgstr "✓ %s CPUs gefunden"
 
 #: translation.rs0029
 msgid "Noso session started"
-msgstr ""
+msgstr "Noso-Sitzung gestartet"
 
 #: translation.rs0030
 msgid "Closing wallet"
-msgstr ""
+msgstr "Brieftasche schließen"
 
 #: translation.rs0031
 msgid "POOL: Error trying close a pool client connection (%s)"
-msgstr ""
+msgstr "POOL: Fehler beim Versuch, eine Pool-Client-Verbindung zu schließen (%s)"
 
 #: translation.rs0032
 msgid "POOL: Error sending message to miner (%s)"
-msgstr ""
+msgstr "POOL: Fehler beim Senden der Nachricht an den Miner (%s)"
 
 #: translation.rs0033
 msgid "POOL: Rejected not registered user"
-msgstr ""
+msgstr "POOL: Abgelehnter nicht registrierter Benutzer"
 
 #: translation.rs0034
 msgid "Pool: Error registering a ping-> %s"
-msgstr ""
+msgstr "Pool: Fehler bei der Registrierung eines Pings-> %s"
 
 #: translation.rs0035
 msgid "Pool solution verified!"
-msgstr ""
+msgstr "Pool-Lösung bestätigt!"
 
 #: translation.rs0036
 msgid "Pool solution FAILED at step %s"
-msgstr ""
+msgstr "Pool-Lösung FEHLGESCHLAGEN bei Schritt %s"
 
 #: translation.rs0037
 msgid "Pool: Error inside CSPoolStep-> %s"
-msgstr ""
+msgstr "Pool: Fehler in CSPoolSchritt-> %s"
 
 #: translation.rs0038
 msgid "POOL: Unexpected command from: %s -> %s"
-msgstr ""
+msgstr "POOL: Unerwarteter Befehl von: %s -> %s"
 
 #: translation.rs0039
 msgid "POOL: Status requested from %s"
-msgstr ""
+msgstr "POOL: Status angefordert von %s"
 
 #: translation.rs0040
 msgid "Pool: closed incoming %s (%s)"
-msgstr ""
+msgstr "Pool: schließe eingehende %s (%s)"
 
 #: translation.rs0041
 msgid "Pool: Error inside MinerJoin-> %s"
-msgstr ""
+msgstr "Pool: Fehler innerhalb von MinerJoin-> %s"
 
 #: translation.rs0042
 msgid "SERVER: Error trying close a server client connection (%s)"
-msgstr ""
+msgstr "SERVER: Fehler beim Schließen einer Server-Client-Verbindung (%s)"
 
 #: translation.rs0043
 msgid "SERVER: Received a line from a client without and assigned slot: %s"
-msgstr ""
+msgstr "SERVER: Eine Zeile von einem Client ohne zugewiesenen Slot wurde empfangen: %s"
 
 #: translation.rs0044
 msgid "SERVER: Timeout reading line from connection"
-msgstr ""
+msgstr "SERVER: Zeitüberschreitung beim Lesen der Zeile von der Verbindung"
 
 #: translation.rs0045
 msgid "SERVER: Can not read line from connection %s (%s)"
-msgstr ""
+msgstr "SERVER: Kann Zeile von Verbindung nicht lesen %s (%s)"
 
 #: translation.rs0046
 msgid "SERVER: Server error receiving headers file (%s)"
-msgstr ""
+msgstr "SERVER: Serverfehler beim Empfang der Kopfzeilen-Datei (%s)"
 
 #: translation.rs0047
 msgctxt "translation.rs0047"
 msgid "Headers file received: %s"
-msgstr ""
+msgstr "Kopfzeilendatei empfangen: %s"
 
 #: translation.rs0048
 msgid "SERVER: Server error receiving block file (%s)"
-msgstr ""
+msgstr "SERVER: Serverfehler beim Empfang der Blockdatei (%s)"
 
 #: translation.rs0049
 msgid "SERVER: Error creating stream from headers: %s"
-msgstr ""
+msgstr "SERVER: Fehler beim Erstellen eines Datenstroms aus den Kopfzeilen: %s"
 
 #: translation.rs0050
 msgid "Headers file sent to: %s"
-msgstr ""
+msgstr "Kopfzeilen-Datei gesendet an: %s"
 
 #: translation.rs0051
 msgid "SERVER: Error sending headers file (%s)"
-msgstr ""
+msgstr "SERVER: Fehler beim Senden der Kopfzeilen-Datei (%s)"
 
 #: translation.rs0052
 msgid "SERVER: BlockZip send to %s: %s"
-msgstr ""
+msgstr "SERVER: BlockZip sendet an %s: %s"
 
 #: translation.rs0053
 msgid "SERVER: Error sending ZIP blocks file (%s)"
-msgstr ""
+msgstr "SERVER: Fehler beim Senden der ZIP-Blockdatei (%s)"
 
 #: translation.rs0054
 msgid "SERVER: Error adding received line (%s)"
-msgstr ""
+msgstr "SERVER: Fehler beim Hinzufügen der empfangenen Zeile (%s)"
 
 #: translation.rs0055
 msgid "SERVER: Got unexpected line: %s"
-msgstr ""
+msgstr "SERVER: Unerwartete Zeile erhalten: %s"
 
 #: translation.rs0056
 msgid "SERVER: Timeout reading line from new connection"
-msgstr ""
+msgstr "SERVER: Zeitüberschreitung beim Lesen der Zeile einer neuen Verbindung"
 
 #: translation.rs0057
 msgid "SERVER: Can not read line from new connection (%s)"
-msgstr ""
+msgstr "SERVER: Kann Zeile von neuer Verbindung nicht lesen (%s)"
 
 #: translation.rs0058
 msgid "SERVER: Invalid client -> %s"
-msgstr ""
+msgstr "SERVER: Ungültiger Client -> %s"
 
 #: translation.rs0059
 msgid "SERVER: Own connected"
-msgstr ""
+msgstr "SERVER: Eigene Verbindung"
 
 #: translation.rs0060
 msgid "SERVER: Duplicated connection -> %s"
-msgstr ""
+msgstr "SERVER: Doppelte Verbindung -> %s"
 
 #: translation.rs0061
 msgid "New Connection from: %s"
-msgstr ""
+msgstr "Neue Verbindung von: %s"
 
 #: translation.rs0062
 msgid "SERVER: Closed unhandled incoming connection -> %s"
-msgstr ""
+msgstr "SERVER: Unbehandelte eingehende Verbindung geschlossen -> %s"
 
 #: translation.rs0063
 msgid "Next block required"
-msgstr ""
+msgstr "Nächster Block benötigt"
 
 #: translation.rs0064
 msgid "My PoS addresses"
-msgstr ""
+msgstr "Meine PoS Adressen"
 
 #: translation.rs0065
 msgid "My PoS earnings"
-msgstr ""
+msgstr "Meine PoS Einnahmen"
 
 #: translation.rs0066
 msgid "Rebuilding my transactions..."
-msgstr ""
+msgstr "Wiederaufbau meiner Transaktionen..."
 
 #: translation.rs0067
 msgid "✓ My transactions rebuilded"
-msgstr ""
+msgstr "✓ Meine Transaktionen wurden wiederhergestellt"
 
 #: translation.rs0068
 msgid "✓ My transactions grid updated"
-msgstr ""
+msgstr "✓ Mein Transaktionsgitter aktualisiert"
 
 #: translation.rs0069
 msgid "✓ Launcher file deleted"
-msgstr ""
+msgstr "✓ Launcher Datei gelöscht"
 
 #: translation.rs0070
 msgid "✓ Restart file deleted"
-msgstr ""
+msgstr "✓ Neustart Datei gelöscht"
 
 #: translation.rs0500
 msgid "Noso Launcher"
-msgstr ""
+msgstr "Noso Launcher"
 
 #: translation.rs0501
 msgid "Destination"
-msgstr ""
+msgstr "Ziel"
 
 #: translation.rs0502
 msgid "Amount"
-msgstr ""
+msgstr "Betrag"
 
 #: translation.rs0503
 msgid "Reference"
-msgstr ""
+msgstr "Referenz"
 
 #: translation.rs0504
 msgid "Balance"
-msgstr ""
+msgstr "Balance"
 
 #: translation.rs0505
 msgid "Server"
-msgstr ""
+msgstr "Server"
 
 #: translation.rs0506
 msgid "Connections"
-msgstr ""
+msgstr "Verbindungen"
 
 #: translation.rs0507
 msgid "Headers"
-msgstr ""
+msgstr "Kopfzeilen"
 
 #: translation.rs0508
 msgid "Summary"
-msgstr ""
+msgstr "Zusammenfassung"
 
 #: translation.rs0509
 msgid "LastBlock"
-msgstr ""
+msgstr "LetzterBlock"
 
 #: translation.rs0510
 msgid "Blocks"
-msgstr ""
+msgstr "Blöcke"
 
 #: translation.rs0511
 msgid "Pending"
-msgstr ""
-
-#: translation.rs0512
-msgid "Invalid language: %s"
-msgstr ""
-
+msgstr "Ausstehend"
