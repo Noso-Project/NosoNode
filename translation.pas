@@ -93,6 +93,7 @@ resourcestring
   rs0509 = 'LastBlock';
   rs0510 = 'Blocks';
   rs0511 = 'Pending';
+  rs0512 = 'Invalid language: %s';
 
 {
 ConsoleLinesadd(format(rs,[]));

@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, mpTime, graphics, strutils, forms, controls, grids,stdctrls,
-  crt,ExtCtrls, buttons, editbtn , menus, Clipbrd, IdContext;
+  crt,ExtCtrls, buttons, editbtn , menus, Clipbrd, IdContext, LCLTranslator;
 
 type
   TFormInicio = class(Tform)
@@ -669,6 +669,17 @@ var
   contador : integer = 0;
   Disponibles : string = '';
 Begin
+number := Lowercase(parameter(linea,1));
+if not fileexists('locale'+DirectorySeparator+'noso.'+number+'.po') then
+   ConsoleLinesadd(format(rs0512,[number]))
+else
+   Begin
+   SetDefaultLang(number);
+   //InicializarGUI();
+   WO_Language := number;
+   S_AdvOpt := true;
+   end;
+{// DEPRECATED LANGUAGE SYSTEM
 number := Parameter(linea,1);
 if number = '' then // mostrar la info
    begin
@@ -688,6 +699,7 @@ else
       end
    else ConsoleLinesAdd(LangLine(4));   //Invalid language number.
    end;
+   }
 end;
 
 // Muestra el numero de notoshis como currency

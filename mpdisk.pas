@@ -33,6 +33,9 @@ Procedure SavePoolPays();
 Procedure CreateLog();
 Procedure CreateADV(saving:boolean);
 Procedure LoadADV();
+Function GetLanguage():string;
+Procedure ExtractPoFiles();
+Procedure CreateFileFromResource(resourcename,filename:string);
 Procedure ToLog(Texto:string);
 Procedure SaveLog();
 Procedure CrearArchivoOpciones();
@@ -104,8 +107,8 @@ var
   contador : integer;
 Begin
 LoadDefLangList();
-if not directoryexists(BlockDirectory) then CreateDir(BlockDirectory);
-OutText('✓ Block folder ok',false,1);
+//if not directoryexists(BlockDirectory) then CreateDir(BlockDirectory);
+//OutText('✓ Block folder ok',false,1);
 if not directoryexists(UpdatesDirectory) then CreateDir(UpdatesDirectory);
 OutText('✓ Updates folder ok',false,1);
 if not directoryexists(MarksDirectory) then CreateDir(MarksDirectory);
@@ -508,6 +511,7 @@ setmilitime('CreateADV',1);
    writeln(FileAdvOptions,'RPCAuto '+BoolToStr(RPCAuto,true));
    writeln(FileAdvOptions,'Language '+(WO_Language));
    writeln(FileAdvOptions,'Autoserver '+BoolToStr(WO_AutoServer,true));
+   writeln(FileAdvOptions,'PoUpdate '+(WO_LastPoUpdate));
 
    writeln(FileAdvOptions,'MNIP '+(MN_IP));
    writeln(FileAdvOptions,'MNPort '+(MN_Port));
@@ -559,6 +563,7 @@ Begin
       if parameter(linea,0) ='RPCAuto' then RPCAuto:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='Language' then WO_Language:=Parameter(linea,1);
       if parameter(linea,0) ='Autoserver' then WO_AutoServer:=StrToBool(Parameter(linea,1));
+      if parameter(linea,0) ='PoUpdate' then WO_LastPoUpdate:=Parameter(linea,1);
 
       if parameter(linea,0) ='MNIP' then MN_IP:=Parameter(linea,1);
       if parameter(linea,0) ='MNPort' then MN_Port:=Parameter(linea,1);
@@ -570,6 +575,52 @@ Begin
    Except on E:Exception do
       tolog ('Error loading AdvOpt file');
    end;
+End;
+
+// returns the language to load the
+Function GetLanguage():string;
+var
+  linea : string = '';
+  archivo : textfile;
+Begin
+result := 'en';
+WO_LastPoUpdate := '';
+if not fileexists('NOSODATA'+DirectorySeparator+'advopt.txt') then
+  begin
+  result := 'en';
+  WO_LastPoUpdate := '';
+  end
+else
+   begin
+   Assignfile(archivo, 'NOSODATA'+DirectorySeparator+'advopt.txt');
+   reset(archivo);
+   while not eof(archivo) do
+      begin
+      readln(archivo,linea);
+      if parameter(linea,0) ='Language' then result:=Parameter(linea,1);
+      if parameter(linea,0) ='PoUpdate' then WO_LastPoUpdate:=Parameter(linea,1);
+      end;
+   Closefile(archivo);
+   end;
+End;
+
+Procedure ExtractPoFiles();
+Begin
+CreateFileFromResource('Noso.en','locale'+DirectorySeparator+'noso.en.po');
+CreateFileFromResource('Noso.es','locale'+DirectorySeparator+'noso.es.po');
+CreateFileFromResource('Noso.pt','locale'+DirectorySeparator+'noso.pt.po');
+CreateFileFromResource('Noso.zn','locale'+DirectorySeparator+'noso.zn.po');
+CreateFileFromResource('Noso.de','locale'+DirectorySeparator+'noso.de.po');
+End;
+
+Procedure CreateFileFromResource(resourcename,filename:string);
+var
+  Resource: TResourceStream;
+begin
+  Resource := TResourceStream.Create(HInstance, resourcename, RT_RCDATA);
+  Resource.Position := 0;
+  Resource.SaveToFile(filename);
+  Resource.Free;
 End;
 
 // Add log line

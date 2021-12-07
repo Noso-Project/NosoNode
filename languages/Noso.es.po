@@ -801,3 +801,8 @@ msgstr "Bloques"
 #: translation.rs0511
 msgid "Pending"
 msgstr "Pendiente"
+
+#: translation.rs0512
+msgid "Invalid language: %s"
+msgstr ""
+

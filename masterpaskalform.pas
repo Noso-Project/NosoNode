@@ -666,6 +666,7 @@ var
   WO_MultiSend     : boolean = false;
   WO_AntifreezeTime: integer = 10;
   WO_Language      : string = 'en';
+    WO_LastPoUpdate: string = ProgramVersion+Subversion;
   RPCFilter        : boolean = true;
   RPCWhitelist     : string = '127.0.0.1,localhost';
   RPCAuto          : boolean = false;
@@ -890,6 +891,7 @@ var
   BlockDirectory : string = '';
   MarksDirectory : string = '';
   UpdatesDirectory : string = '';
+  LanguagesDirectory : String = '';
   LogsDirectory : string = '';
   ExceptLogFilename : string = '';
   ResumenFilename: string = '';

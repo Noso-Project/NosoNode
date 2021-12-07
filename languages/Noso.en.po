@@ -792,3 +792,7 @@ msgstr ""
 msgid "Pending"
 msgstr ""
 
+#: translation.rs0512
+msgid "Invalid language: %s"
+msgstr ""
+
