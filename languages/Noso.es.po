@@ -34,19 +34,19 @@ msgstr "Web"
 #: tform1.bitbtnblocks.caption
 msgctxt "tform1.bitbtnblocks.caption"
 msgid "000000"
-msgstr ""
+msgstr "000000"
 
 #: tform1.bitbtnblocks.hint
 msgid "Last downloaded block"
-msgstr ""
+msgstr "Ultimo bloque descargado"
 
 #: tform1.bitbtnpending.caption
 msgid "00"
-msgstr ""
+msgstr "00"
 
 #: tform1.bitbtnpending.hint
 msgid "Network pending orders"
-msgstr ""
+msgstr "Ordenes pendientes en red"
 
 #: tform1.bnewaddr.hint
 msgid "Generate new address"
@@ -59,11 +59,11 @@ msgstr "Confirmar"
 
 #: tform1.bsavenodeoptions.caption
 msgid "Save"
-msgstr ""
+msgstr "Guardar"
 
 #: tform1.caption
 msgid "Noso"
-msgstr ""
+msgstr "Noso"
 
 #: tform1.cb_autorpc.caption
 msgid "Active JSON-RPC server at launch"
@@ -115,7 +115,7 @@ msgstr "Usar mi direccion por defecto"
 
 #: tform1.editscmont.text
 msgid "0.00000000"
-msgstr ""
+msgstr "0.00000000"
 
 #: tform1.lababout.caption
 msgid "About message"
@@ -123,7 +123,7 @@ msgstr "Mensaje concepto"
 
 #: tform1.label1.caption
 msgid "Post offer"
-msgstr ""
+msgstr "Abrir oferta"
 
 #: tform1.label2.caption
 msgid "Minimum connections to work"
@@ -168,13 +168,11 @@ msgid "Sign address"
 msgstr "Dirección firma"
 
 #: tform1.labelnobiexaverage.caption
-#, fuzzy
 msgctxt "tform1.labelnobiexaverage.caption"
 msgid "Average: -.-"
 msgstr "Promedio: -.-"
 
 #: tform1.labelnobiexlast.caption
-#, fuzzy
 msgctxt "tform1.labelnobiexlast.caption"
 msgid "Last: -.-"
 msgstr "Ultimo: -.-"
@@ -209,7 +207,6 @@ msgid "View"
 msgstr "Ver"
 
 #: tform1.menuitem12.caption
-#, fuzzy
 msgctxt "tform1.menuitem12.caption"
 msgid "Console"
 msgstr "Consola"
@@ -222,7 +219,7 @@ msgstr "Historial"
 #: tform1.menuitem14.caption
 msgctxt "tform1.menuitem14.caption"
 msgid "Monitor"
-msgstr ""
+msgstr "Monitor"
 
 #: tform1.menuitem15.caption
 msgid "WebPage"
@@ -235,7 +232,7 @@ msgstr "Conexiones"
 #: tform1.menuitem17.caption
 msgctxt "tform1.menuitem17.caption"
 msgid "Pool"
-msgstr ""
+msgstr "Pool"
 
 #: tform1.menuitem18.caption
 msgid "Language"
@@ -289,7 +286,6 @@ msgid "Connect"
 msgstr "Conectar"
 
 #: tform1.menuitem4.caption
-#, fuzzy
 msgctxt "tform1.menuitem4.caption"
 msgid "Miner"
 msgstr "Minero"
@@ -303,7 +299,6 @@ msgid "Export Wallet"
 msgstr "Exportar cartera"
 
 #: tform1.menuitem7.caption
-#, fuzzy
 msgctxt "tform1.menuitem7.caption"
 msgid "About..."
 msgstr "Sobre..."
@@ -348,27 +343,27 @@ msgstr "Copiar ID de orden"
 
 #: tform1.staconlab.caption
 msgid "0"
-msgstr ""
+msgstr "0"
 
 #: tform1.staconlab.hint
 msgid "Connected peers"
-msgstr ""
+msgstr "Pares conectados"
 
 #: tform1.stapoolser.hint
 msgid "Pool server active"
-msgstr ""
+msgstr "Servidor pool activo"
 
 #: tform1.starpcimg.hint
 msgid "RPC server active"
-msgstr ""
+msgstr "Servidor RPC activo"
 
 #: tform1.staserimg.hint
 msgid "Masternode active"
-msgstr ""
+msgstr "Masternodo activo"
 
 #: tform1.statimelab.hint
 msgid "Noso network time"
-msgstr ""
+msgstr "Hora de red Noso"
 
 #: tform1.tabaddresses.caption
 msgid "Addresses"
@@ -381,13 +376,11 @@ msgstr "Consola"
 
 #: tform1.tabexbuy.caption
 msgid "LTC"
-msgstr ""
+msgstr "LTC"
 
 #: tform1.tabexchange.caption
-#, fuzzy
-#| msgid "Exchange"
 msgid "NoBiEx"
-msgstr "Intercambio"
+msgstr "NoBiEx"
 
 #: tform1.tabhistory.caption
 msgid "History"
@@ -396,20 +389,19 @@ msgstr "Historial"
 #: tform1.tabmainpool.caption
 msgctxt "tform1.tabmainpool.caption"
 msgid "Pool"
-msgstr ""
+msgstr "Pool"
 
 #: tform1.tabmonitor.caption
 msgctxt "tform1.tabmonitor.caption"
 msgid "Monitor"
-msgstr ""
+msgstr "Monitor"
 
 #: tform1.tabmonitormonitor.caption
 msgctxt "tform1.tabmonitormonitor.caption"
 msgid "Monitor"
-msgstr ""
+msgstr "Monitor"
 
 #: tform1.tabnodeoptions.caption
-#, fuzzy
 msgctxt "tform1.tabnodeoptions.caption"
 msgid "Node"
 msgstr "Nodo"
@@ -423,7 +415,6 @@ msgid "Options"
 msgstr "Opciones"
 
 #: tform1.tabpoollog.caption
-#, fuzzy
 msgctxt "tform1.tabpoollog.caption"
 msgid "Log"
 msgstr "Historial"
@@ -451,7 +442,7 @@ msgstr "Pares"
 
 #: tform1.tabsheet3.caption
 msgid "RPC"
-msgstr ""
+msgstr "RPC"
 
 #: tform1.tabsheet5.caption
 msgid "Trade"
@@ -463,7 +454,6 @@ msgid "Miner"
 msgstr "Minero"
 
 #: tform1.tabsheet7.caption
-#, fuzzy
 msgctxt "tform1.tabsheet7.caption"
 msgid "Log"
 msgstr "Historial"
@@ -549,225 +539,224 @@ msgstr "Servidor de nodo cerrado"
 
 #: translation.rs0017
 msgid "Closing pool server..."
-msgstr ""
+msgstr "Cerrando servidor de pool..."
 
 #: translation.rs0018
 msgid "Pool server closed"
-msgstr ""
+msgstr "Servidor de pool cerrado"
 
 #: translation.rs0019
 msgid "Pool members file saved"
-msgstr ""
+msgstr "Archivo de miembros de pool guardado"
 
 #: translation.rs0020
 msgid "Noso launcher executed"
-msgstr ""
+msgstr "Lanzador Noso ejecutado"
 
 #: translation.rs0021
 msgid "Blocks received up to %s"
-msgstr ""
+msgstr "Bloques recibidos hasta el %s"
 
 #: translation.rs0022
 msgid "✓ Data directory ok"
-msgstr ""
+msgstr "✓ Directorio de datos Ok"
 
 #: translation.rs0023
 msgid "✓ GUI initialized"
-msgstr ""
+msgstr "✓ Interfaz de usuario inicializada"
 
 #: translation.rs0024
 msgid "✓ My data updated"
-msgstr ""
+msgstr "✓ Mis datos actualizados"
 
 #: translation.rs0025
 msgid "✓ Miner configuration set"
-msgstr ""
+msgstr "✓ Fijada configuraciond el minero"
 
 #: translation.rs0026
 msgid "✓ %s languages available"
-msgstr ""
+msgstr "✓ %s idiomas disponibles"
 
 #: translation.rs0027
 msgid "Wallet %s%s"
-msgstr ""
+msgstr "Cartera %s%s"
 
 #: translation.rs0028
 msgid "✓ %s CPUs found"
-msgstr ""
+msgstr "✓ %s CPUs presentes"
 
 #: translation.rs0029
 msgid "Noso session started"
-msgstr ""
+msgstr "Sesion Noso iniciada"
 
 #: translation.rs0030
 msgid "Closing wallet"
-msgstr ""
+msgstr "Cerrando cartera"
 
 #: translation.rs0031
 msgid "POOL: Error trying close a pool client connection (%s)"
-msgstr ""
+msgstr "POOL: Error intentando cerrar conexion de cliente (%s)"
 
 #: translation.rs0032
 msgid "POOL: Error sending message to miner (%s)"
-msgstr ""
+msgstr "POOL: Error enviando mensaje a minero (%s)"
 
 #: translation.rs0033
 msgid "POOL: Rejected not registered user"
-msgstr ""
+msgstr "POOL: Rechazado usuario no registrado"
 
 #: translation.rs0034
 msgid "Pool: Error registering a ping-> %s"
-msgstr ""
+msgstr "Pool: Error registrando un ping-> %s"
 
 #: translation.rs0035
 msgid "Pool solution verified!"
-msgstr ""
+msgstr "Solucion del pool verificada!"
 
 #: translation.rs0036
 msgid "Pool solution FAILED at step %s"
-msgstr ""
+msgstr "Solucion del pool fallo en el paso %s"
 
 #: translation.rs0037
 msgid "Pool: Error inside CSPoolStep-> %s"
-msgstr ""
+msgstr "Pool: Error dentro de CSPoolStep-> %s"
 
 #: translation.rs0038
 msgid "POOL: Unexpected command from: %s -> %s"
-msgstr ""
+msgstr "POOL: Comando inesperado desde: %s -> %s"
 
 #: translation.rs0039
 msgid "POOL: Status requested from %s"
-msgstr ""
+msgstr "POOL: Estado solicitado desde %s"
 
 #: translation.rs0040
 msgid "Pool: closed incoming %s (%s)"
-msgstr ""
+msgstr "Pool: Cerrado entrante %s (%s)"
 
 #: translation.rs0041
 msgid "Pool: Error inside MinerJoin-> %s"
-msgstr ""
+msgstr "Pool: Error dentro de  MinerJoin-> %s"
 
 #: translation.rs0042
 msgid "SERVER: Error trying close a server client connection (%s)"
-msgstr ""
+msgstr "SERVER: Error intentando cerrar conexion con cliente (%s)"
 
 #: translation.rs0043
 msgid "SERVER: Received a line from a client without and assigned slot: %s"
-msgstr ""
+msgstr "SERVER: Recibida linea de cliente sin ranura asignada: %s"
 
 #: translation.rs0044
 msgid "SERVER: Timeout reading line from connection"
-msgstr ""
+msgstr "SERVER: Fuera de tiempo leyendo linea desde conexion"
 
 #: translation.rs0045
 msgid "SERVER: Can not read line from connection %s (%s)"
-msgstr ""
+msgstr "SERVER: No se puede leer linea desde conexion %s (%s)"
 
 #: translation.rs0046
 msgid "SERVER: Server error receiving headers file (%s)"
-msgstr ""
+msgstr "SERVER: Error recibiendo archivo de cabeceras (%s)"
 
 #: translation.rs0047
-#, fuzzy
 msgctxt "translation.rs0047"
 msgid "Headers file received: %s"
 msgstr "Cabeceras recibidas: %s"
 
 #: translation.rs0048
 msgid "SERVER: Server error receiving block file (%s)"
-msgstr ""
+msgstr "SERVER: Error recibiendo archivo de bloque (%s)"
 
 #: translation.rs0049
 msgid "SERVER: Error creating stream from headers: %s"
-msgstr ""
+msgstr "SERVER: Error creando copia en memoria de cabeceras: %s"
 
 #: translation.rs0050
 msgid "Headers file sent to: %s"
-msgstr ""
+msgstr "Cabeceras enviadas a: %s"
 
 #: translation.rs0051
 msgid "SERVER: Error sending headers file (%s)"
-msgstr ""
+msgstr "SERVER: Error enviando archivo de cabeceras (%s)"
 
 #: translation.rs0052
 msgid "SERVER: BlockZip send to %s: %s"
-msgstr ""
+msgstr "SERVER: Archivo ZIP de bloques enviado a %s: %s"
 
 #: translation.rs0053
 msgid "SERVER: Error sending ZIP blocks file (%s)"
-msgstr ""
+msgstr "SERVER: Error enviandos archivo ZIP de bloques (%s)"
 
 #: translation.rs0054
 msgid "SERVER: Error adding received line (%s)"
-msgstr ""
+msgstr "SERVER: Error añadiendo linea recibida (%s)"
 
 #: translation.rs0055
 msgid "SERVER: Got unexpected line: %s"
-msgstr ""
+msgstr "SERVER: Recibida linea no experada: %s"
 
 #: translation.rs0056
 msgid "SERVER: Timeout reading line from new connection"
-msgstr ""
+msgstr "SERVER: Fuera de tiempo leyendo linea de nueva conexion"
 
 #: translation.rs0057
 msgid "SERVER: Can not read line from new connection (%s)"
-msgstr ""
+msgstr "SERVER: No se puede leer linea de nueva conexion (%s)"
 
 #: translation.rs0058
 msgid "SERVER: Invalid client -> %s"
-msgstr ""
+msgstr "SERVER: Cliente invalido -> %s"
 
 #: translation.rs0059
 msgid "SERVER: Own connected"
-msgstr ""
+msgstr "SERVER: Conexion propia"
 
 #: translation.rs0060
 msgid "SERVER: Duplicated connection -> %s"
-msgstr ""
+msgstr "SERVER: Conexion duplicada -> %s"
 
 #: translation.rs0061
 msgid "New Connection from: %s"
-msgstr ""
+msgstr "Nueva conexion desde: %s"
 
 #: translation.rs0062
 msgid "SERVER: Closed unhandled incoming connection -> %s"
-msgstr ""
+msgstr "SERVER: Cerrada conexion entrante sin resolver -> %s"
 
 #: translation.rs0063
 msgid "Next block required"
-msgstr ""
+msgstr "Requerido en siguiente bloque"
 
 #: translation.rs0064
 msgid "My PoS addresses"
-msgstr ""
+msgstr "Mis direcciones PoS"
 
 #: translation.rs0065
 msgid "My PoS earnings"
-msgstr ""
+msgstr "Mis ganancias PoS"
 
 #: translation.rs0066
 msgid "Rebuilding my transactions..."
-msgstr ""
+msgstr "Reconstruyendo mis transacciones..."
 
 #: translation.rs0067
 msgid "✓ My transactions rebuilded"
-msgstr ""
+msgstr "✓ Mis transacciones recontruido"
 
 #: translation.rs0068
 msgid "✓ My transactions grid updated"
-msgstr ""
+msgstr "✓ Tabla de historial actualizada"
 
 #: translation.rs0069
 msgid "✓ Launcher file deleted"
-msgstr ""
+msgstr "✓ Archivo de ejecucion borrado"
 
 #: translation.rs0070
 msgid "✓ Restart file deleted"
-msgstr ""
+msgstr "✓ Archivo de reinicio borrado"
 
 #: translation.rs0500
 msgid "Noso Launcher"
-msgstr ""
+msgstr "Lanzador Noso"
 
 #: translation.rs0501
 msgid "Destination"
@@ -783,33 +772,32 @@ msgstr "Referencia"
 
 #: translation.rs0504
 msgid "Balance"
-msgstr ""
+msgstr "Saldo"
 
 #: translation.rs0505
 msgid "Server"
-msgstr ""
+msgstr "Servidor"
 
 #: translation.rs0506
 msgid "Connections"
-msgstr ""
+msgstr "Conexiones"
 
 #: translation.rs0507
 msgid "Headers"
-msgstr ""
+msgstr "Cabeceras"
 
 #: translation.rs0508
 msgid "Summary"
-msgstr ""
+msgstr "Sumario"
 
 #: translation.rs0509
 msgid "LastBlock"
-msgstr ""
+msgstr "UltBloque"
 
 #: translation.rs0510
 msgid "Blocks"
-msgstr ""
+msgstr "Bloques"
 
 #: translation.rs0511
 msgid "Pending"
-msgstr ""
-
+msgstr "Pendiente"
