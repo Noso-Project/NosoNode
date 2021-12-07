@@ -268,7 +268,7 @@ msgstr "Mensagens"
 
 #: tform1.menuitem23.caption
 msgid "CLear"
-msgstr "Remover todos"
+msgstr "Limpar"
 
 #: tform1.menuitem24.caption
 msgctxt "tform1.menuitem24.caption"
@@ -278,7 +278,7 @@ msgstr "Copiar"
 #: tform1.menuitem25.caption
 msgctxt "tform1.menuitem25.caption"
 msgid "Clear"
-msgstr "Remover todos"
+msgstr "Limpar"
 
 #: tform1.menuitem26.caption
 msgctxt "tform1.menuitem26.caption"
@@ -334,7 +334,7 @@ msgstr "Cancelar"
 #: tform1.scbitclea.caption
 msgctxt "tform1.scbitclea.caption"
 msgid "Clear"
-msgstr "Remover todos"
+msgstr "Limpar"
 
 #: tform1.scbitconf.caption
 msgctxt "tform1.scbitconf.caption"
@@ -744,7 +744,7 @@ msgstr "Meus ganhos PoS"
 
 #: translation.rs0066
 msgid "Rebuilding my transactions..."
-msgstr "Reconstruindo transações pessoais"
+msgstr "Reconstruindo transações pessoais..."
 
 #: translation.rs0067
 msgid "✓ My transactions rebuilded"
