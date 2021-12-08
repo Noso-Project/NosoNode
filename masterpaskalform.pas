@@ -1351,7 +1351,7 @@ Tolog(rs0029); NewLogLines := NewLogLines-1; //'Noso session started'
 info(rs0029);  //'Noso session started'
 infopanel.BringToFront;
 SetCurrentJob('Main',true);
-//forminicio.Visible:=false;
+forminicio.Visible:=false;
 form1.Visible:=true;
 Form1.RestartTimer.Enabled:=true;
 End;
@@ -3004,10 +3004,10 @@ var
   contador: integer;
   version : string;
 Begin
-if Form1.Server.Active then form1.MainMenu.Items[0].Items[0].Caption:='Stop Server'
-else form1.MainMenu.Items[0].Items[0].Caption:='Start Server';
-if CONNECT_Try then form1.MainMenu.Items[0].Items[1].Caption:='Disconnect'
-else form1.MainMenu.Items[0].Items[1].Caption:='Connect';
+if Form1.Server.Active then form1.MainMenu.Items[0].Items[0].Caption:=rs0077
+else form1.MainMenu.Items[0].Items[0].Caption:=rs0076;
+if CONNECT_Try then form1.MainMenu.Items[0].Items[1].Caption:=rs0079
+else form1.MainMenu.Items[0].Items[1].Caption:=rs0078;
 if Miner_Active then form1.MainMenu.Items[0].Items[2].Caption:='Stop mining'
 else form1.MainMenu.Items[0].Items[2].Caption:='Mine';
 form1.MainMenu.Items[1].Items[0].Clear;

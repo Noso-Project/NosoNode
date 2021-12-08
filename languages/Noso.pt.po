@@ -298,6 +298,7 @@ msgid "Paste"
 msgstr "Colar"
 
 #: tform1.menuitem3.caption
+msgctxt "tform1.menuitem3.caption"
 msgid "Connect"
 msgstr "Conectar"
 
@@ -790,6 +791,24 @@ msgstr ""
 msgid "✓ Running a development version"
 msgstr ""
 
+#: translation.rs0076
+msgid "Start server"
+msgstr ""
+
+#: translation.rs0077
+msgid "Stop server"
+msgstr ""
+
+#: translation.rs0078
+#, fuzzy
+msgctxt "translation.rs0078"
+msgid "Connect"
+msgstr "Conectar"
+
+#: translation.rs0079
+msgid "Disconnect"
+msgstr ""
+
 #: translation.rs0500
 msgid "Noso Launcher"
 msgstr "Lançador Noso"
@@ -807,6 +826,7 @@ msgid "Reference"
 msgstr "Referencia"
 
 #: translation.rs0504
+msgctxt "translation.rs0504"
 msgid "Balance"
 msgstr "Saldo"
 
@@ -841,4 +861,18 @@ msgstr "Pendentes"
 #: translation.rs0512
 msgid "Invalid language: %s"
 msgstr "Língua inválida: %s"
+
+#: translation.rs0513
+msgid "Wallet restart needed"
+msgstr ""
+
+#: translation.rs0514
+msgid "Address"
+msgstr ""
+
+#: translation.rs0515
+#, fuzzy
+msgctxt "translation.rs0515"
+msgid "Balance"
+msgstr "Saldo"
 

@@ -1021,14 +1021,18 @@ End;
 Function GetLastRelease():String;
 var
   readedLine : string = '';
+  Conector : TFPHttpClient;
 Begin
+Conector := TFPHttpClient.Create(nil);
+conector.ConnectTimeout:=ConnectTimeOutTime;
 Try
-   readedLine := TFPHttpClient.SimpleGet('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/lastrelease.txt');
+   readedLine := Conector.SimpleGet('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/lastrelease.txt');
 Except on E: Exception do
    begin
    Consolelinesadd('ERROR RETRIEVING LAST RELEASES DATA: '+E.Message);
    end;
 end;//TRY
+Conector.Free;
 result := readedLine;
 End;
 

@@ -430,8 +430,8 @@ Form1.SGridSC.Cells[0,2]:=rs0503;  //'reference'
 
 //Direccionespanel
 form1.Direccionespanel.RowCount:=length(listadirecciones)+1;
-form1.Direccionespanel.Cells[0,0] := LangLine(118);  //'Address'
-form1.Direccionespanel.Cells[1,0] := LangLine(95);  //'Balance'
+form1.Direccionespanel.Cells[0,0] := rs0514;  //'Address'
+form1.Direccionespanel.Cells[1,0] := rs0515;  //'Balance'
 
 for contador := 0 to length(ListaDirecciones)-1 do
    begin
@@ -675,7 +675,7 @@ if not fileexists('locale'+DirectorySeparator+'noso.'+number+'.po') then
 else
    Begin
    SetDefaultLang(number);
-   //InicializarGUI();
+   outtext(rs0513,false,2);
    WO_Language := number;
    S_AdvOpt := true;
    end;

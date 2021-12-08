@@ -84,6 +84,10 @@ resourcestring
   rs0073 = '✓ Running last release version';
   rs0074 = '✗ New version available on project repo';
   rs0075 = '✓ Running a development version';
+  rs0076 = 'Start server';
+  rs0077 = 'Stop server';
+  rs0078 = 'Connect';
+  rs0079 = 'Disconnect';
   //mpGUI
   rs0500 = 'Noso Launcher';
   rs0501 = 'Destination';
@@ -98,6 +102,9 @@ resourcestring
   rs0510 = 'Blocks';
   rs0511 = 'Pending';
   rs0512 = 'Invalid language: %s';
+  rs0513 = 'Wallet restart needed';
+  rs0514 = 'Address';
+  rs0515 = 'Balance';
 
 {
 ConsoleLinesadd(format(rs,[]));

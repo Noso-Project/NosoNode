@@ -13,7 +13,7 @@ msgstr ""
 
 #: tform1.barcodeqr1.hint
 msgid "Click on image to close it"
-msgstr ""
+msgstr "Click en la imagen para cerrarla"
 
 #: tform1.bcopyaddr.hint
 msgid "Copy address to clipboard"
@@ -63,7 +63,7 @@ msgstr "Confirmar"
 
 #: tform1.bqrcode.hint
 msgid "Show QR code"
-msgstr ""
+msgstr "Mostar codigo QR"
 
 #: tform1.bsavenodeoptions.caption
 msgid "Save"
@@ -107,7 +107,7 @@ msgstr "Descargar cadena de bloques"
 
 #: tform1.checkbox2.caption
 msgid "Install automatically new official releases"
-msgstr ""
+msgstr "Instalar automaticamente actualizaciones oficiales"
 
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
@@ -159,7 +159,7 @@ msgstr "PoS aborda los días de advertencia"
 
 #: tform1.label7.caption
 msgid "Wallet language"
-msgstr ""
+msgstr "Idioma"
 
 #: tform1.labelbigbalance.caption
 msgctxt "tform1.labelbigbalance.caption"
@@ -298,6 +298,7 @@ msgid "Paste"
 msgstr "Pegar"
 
 #: tform1.menuitem3.caption
+msgctxt "tform1.menuitem3.caption"
 msgid "Connect"
 msgstr "Conectar"
 
@@ -772,22 +773,40 @@ msgstr "✓ Archivo de reinicio borrado"
 
 #: translation.rs0071
 msgid "Checking last release available..."
-msgstr ""
+msgstr "Verificando ultima version disponible..."
 
 #: translation.rs0072
 msgid "✗ Failed connecting with project repo"
-msgstr ""
+msgstr "✗ Fallo conectando con repositorio del proyecto"
 
 #: translation.rs0073
 msgid "✓ Running last release version"
-msgstr ""
+msgstr "✓ Ejecutando version actualizada"
 
 #: translation.rs0074
 msgid "✗ New version available on project repo"
-msgstr ""
+msgstr "✗ Existe una nueva version disponible"
 
 #: translation.rs0075
 msgid "✓ Running a development version"
+msgstr "✓ Ejecutando version de desarrollo"
+
+#: translation.rs0076
+msgid "Start server"
+msgstr ""
+
+#: translation.rs0077
+msgid "Stop server"
+msgstr ""
+
+#: translation.rs0078
+#, fuzzy
+msgctxt "translation.rs0078"
+msgid "Connect"
+msgstr "Conectar"
+
+#: translation.rs0079
+msgid "Disconnect"
 msgstr ""
 
 #: translation.rs0500
@@ -807,6 +826,7 @@ msgid "Reference"
 msgstr "Referencia"
 
 #: translation.rs0504
+msgctxt "translation.rs0504"
 msgid "Balance"
 msgstr "Saldo"
 
@@ -840,5 +860,19 @@ msgstr "Pendiente"
 
 #: translation.rs0512
 msgid "Invalid language: %s"
+msgstr "Idioma invalido: %s"
+
+#: translation.rs0513
+msgid "Wallet restart needed"
+msgstr "Se requiere reiniciar"
+
+#: translation.rs0514
+msgid "Address"
 msgstr ""
+
+#: translation.rs0515
+#, fuzzy
+msgctxt "translation.rs0515"
+msgid "Balance"
+msgstr "Saldo"
 
