@@ -772,6 +772,26 @@ msgstr "✓ 启动器文件已删除"
 msgid "✓ Restart file deleted"
 msgstr "✓ 重启文件已删除"
 
+#: translation.rs0071
+msgid "Checking last release available..."
+msgstr ""
+
+#: translation.rs0072
+msgid "✗ Failed connecting with project repo"
+msgstr ""
+
+#: translation.rs0073
+msgid "✓ Running last release version"
+msgstr ""
+
+#: translation.rs0074
+msgid "✗ New version available on project repo"
+msgstr ""
+
+#: translation.rs0075
+msgid "✓ Running a development version"
+msgstr ""
+
 #: translation.rs0500
 msgid "Noso Launcher"
 msgstr "Noso启动器"

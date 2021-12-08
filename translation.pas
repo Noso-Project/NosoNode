@@ -79,7 +79,11 @@ resourcestring
   rs0068 = '✓ My transactions grid updated';
   rs0069 = '✓ Launcher file deleted';
   rs0070 = '✓ Restart file deleted';
-
+  rs0071 = 'Checking last release available...';
+  rs0072 = '✗ Failed connecting with project repo';
+  rs0073 = '✓ Running last release version';
+  rs0074 = '✗ New version available on project repo';
+  rs0075 = '✓ Running a development version';
   //mpGUI
   rs0500 = 'Noso Launcher';
   rs0501 = 'Destination';

@@ -619,7 +619,7 @@ CONST
                             '185.239.239.184 '+
                             '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Jc6';
+  SubVersion = 'Jc7';
   OficialRelease = true;
   BuildDate = 'December 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -1241,7 +1241,36 @@ End;
 Procedure TForm1.EjecutarInicio();
 var
   contador : integer;
+  LastRelease : String = '';
 Begin
+// Check last release
+OutText(rs0071,false,1); // Checking last release available...
+LastRelease := GetLastRelease;
+if lastrelease <> '' then // Data retrieved
+   begin
+   if Parameter(lastrelease,0)+Parameter(lastrelease,1) = ProgramVersion+Subversion then
+      begin
+      gridinicio.RowCount:=gridinicio.RowCount-1;
+      OutText(rs0073,false,1);
+      end
+   else if Parameter(lastrelease,0)+Parameter(lastrelease,1) > ProgramVersion+Subversion then
+      begin // new version available
+      gridinicio.RowCount:=gridinicio.RowCount-1;
+      OutText(rs0074,false,1);
+      ShowMessage(rs0074);
+      // If option is active, download the new release here
+      end
+   else
+      begin
+      gridinicio.RowCount:=gridinicio.RowCount-1;
+      OutText(rs0075,false,1);
+      end;
+   end
+else // Error retrieving last release data
+   begin
+   gridinicio.RowCount:=gridinicio.RowCount-1;
+   OutText(rs0072,false,1);
+   end;
 InitCrossValues();
 // A partir de aqui se inicializa todo
 if not directoryexists('NOSODATA') then CreateDir('NOSODATA');
@@ -1322,7 +1351,7 @@ Tolog(rs0029); NewLogLines := NewLogLines-1; //'Noso session started'
 info(rs0029);  //'Noso session started'
 infopanel.BringToFront;
 SetCurrentJob('Main',true);
-forminicio.Visible:=false;
+//forminicio.Visible:=false;
 form1.Visible:=true;
 Form1.RestartTimer.Enabled:=true;
 End;

@@ -1020,7 +1020,7 @@ End;
 
 Function GetLastRelease():String;
 var
-  readedLine : string;
+  readedLine : string = '';
 Begin
 Try
    readedLine := TFPHttpClient.SimpleGet('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/lastrelease.txt');
