@@ -290,6 +290,7 @@ type
     ComboBoxLang: TComboBox;
     Label1: TLabel;
     Label7: TLabel;
+    PanelBlocks: TPanel;
     PanelQRImg: TPanel;
     PanelPostOffer: TPanel;
     StaRPCimg: TImage;

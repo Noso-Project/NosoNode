@@ -31,6 +31,7 @@ msgid "000000"
 msgstr ""
 
 #: tform1.bitbtnblocks.hint
+msgctxt "tform1.bitbtnblocks.hint"
 msgid "Last downloaded block"
 msgstr ""
 
@@ -316,6 +317,11 @@ msgstr ""
 
 #: tform1.menuitem9.caption
 msgid "Quit"
+msgstr ""
+
+#: tform1.panelblocks.hint
+msgctxt "tform1.panelblocks.hint"
+msgid "Last downloaded block"
 msgstr ""
 
 #: tform1.sbscmax.hint

@@ -41,6 +41,7 @@ msgid "000000"
 msgstr "000000"
 
 #: tform1.bitbtnblocks.hint
+msgctxt "tform1.bitbtnblocks.hint"
 msgid "Last downloaded block"
 msgstr "Ultimo bloque descargado"
 
@@ -327,6 +328,12 @@ msgstr "Reiniciar"
 #: tform1.menuitem9.caption
 msgid "Quit"
 msgstr "Salir"
+
+#: tform1.panelblocks.hint
+#, fuzzy
+msgctxt "tform1.panelblocks.hint"
+msgid "Last downloaded block"
+msgstr "Ultimo bloque descargado"
 
 #: tform1.sbscmax.hint
 msgid "Send all"

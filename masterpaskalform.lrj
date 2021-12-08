@@ -75,6 +75,7 @@
 {"hash":5593795,"name":"tform1.tabnodes.caption","sourcebytes":[78,111,100,101,115],"value":"Nodes"},
 {"hash":265189445,"name":"tform1.statimelab.hint","sourcebytes":[78,111,115,111,32,110,101,116,119,111,114,107,32,116,105,109,101],"value":"Noso network time"},
 {"hash":180699893,"name":"tform1.stapoolser.hint","sourcebytes":[80,111,111,108,32,115,101,114,118,101,114,32,97,99,116,105,118,101],"value":"Pool server active"},
+{"hash":154889035,"name":"tform1.panelblocks.hint","sourcebytes":[76,97,115,116,32,100,111,119,110,108,111,97,100,101,100,32,98,108,111,99,107],"value":"Last downloaded block"},
 {"hash":154889035,"name":"tform1.bitbtnblocks.hint","sourcebytes":[76,97,115,116,32,100,111,119,110,108,111,97,100,101,100,32,98,108,111,99,107],"value":"Last downloaded block"},
 {"hash":53687088,"name":"tform1.bitbtnblocks.caption","sourcebytes":[48,48,48,48,48,48],"value":"000000"},
 {"hash":22008787,"name":"tform1.bitbtnpending.hint","sourcebytes":[78,101,116,119,111,114,107,32,112,101,110,100,105,110,103,32,111,114,100,101,114,115],"value":"Network pending orders"},
