@@ -13,6 +13,10 @@ msgstr ""
 "X-Generator: Poedit 3.0\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
+#: tform1.barcodeqr1.hint
+msgid "Click on image to close it"
+msgstr ""
+
 #: tform1.bcopyaddr.hint
 msgid "Copy address to clipboard"
 msgstr "将地址复制到剪贴板"
@@ -59,6 +63,10 @@ msgctxt "tform1.bokcustom.hint"
 msgid "Confirm"
 msgstr "确认"
 
+#: tform1.bqrcode.hint
+msgid "Show QR code"
+msgstr ""
+
 #: tform1.bsavenodeoptions.caption
 msgid "Save"
 msgstr "保存"
@@ -98,6 +106,10 @@ msgstr "最小化"
 #: tform1.checkbox1.caption
 msgid "Download blockchain"
 msgstr "下载区块链"
+
+#: tform1.checkbox2.caption
+msgid "Install automatically new official releases"
+msgstr ""
 
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
@@ -146,6 +158,10 @@ msgstr "区块订单"
 #: tform1.label6.caption
 msgid "PoS addresses warning days"
 msgstr "PoS地址报警"
+
+#: tform1.label7.caption
+msgid "Wallet language"
+msgstr ""
 
 #: tform1.labelbigbalance.caption
 msgctxt "tform1.labelbigbalance.caption"
@@ -803,3 +819,8 @@ msgstr "已发现区块"
 #: translation.rs0511
 msgid "Pending"
 msgstr "待办"
+
+#: translation.rs0512
+msgid "Invalid language: %s"
+msgstr ""
+

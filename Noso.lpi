@@ -111,25 +111,28 @@
       <FormatVersion Value="2"/>
       <Modes Count="0"/>
     </RunParams>
-    <RequiredPackages Count="6">
+    <RequiredPackages Count="7">
       <Item1>
-        <PackageName Value="dcpcrypt"/>
+        <PackageName Value="lazbarcodes"/>
       </Item1>
       <Item2>
-        <PackageName Value="CryptoLib4PascalPackage"/>
+        <PackageName Value="dcpcrypt"/>
       </Item2>
       <Item3>
-        <PackageName Value="SimpleBaseLib4PascalPackage"/>
+        <PackageName Value="CryptoLib4PascalPackage"/>
       </Item3>
       <Item4>
-        <PackageName Value="HashLib4PascalPackage"/>
+        <PackageName Value="SimpleBaseLib4PascalPackage"/>
       </Item4>
       <Item5>
-        <PackageName Value="indylaz"/>
+        <PackageName Value="HashLib4PascalPackage"/>
       </Item5>
       <Item6>
-        <PackageName Value="LCL"/>
+        <PackageName Value="indylaz"/>
       </Item6>
+      <Item7>
+        <PackageName Value="LCL"/>
+      </Item7>
     </RequiredPackages>
     <Units Count="17">
       <Unit0>

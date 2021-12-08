@@ -1,6 +1,10 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8"
 
+#: tform1.barcodeqr1.hint
+msgid "Click on image to close it"
+msgstr ""
+
 #: tform1.bcopyaddr.hint
 msgid "Copy address to clipboard"
 msgstr ""
@@ -45,6 +49,10 @@ msgstr ""
 #: tform1.bokcustom.hint
 msgctxt "tform1.bokcustom.hint"
 msgid "Confirm"
+msgstr ""
+
+#: tform1.bqrcode.hint
+msgid "Show QR code"
 msgstr ""
 
 #: tform1.bsavenodeoptions.caption

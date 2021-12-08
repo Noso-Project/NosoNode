@@ -11,6 +11,10 @@ msgstr ""
 "Language: pt\n"
 "X-Generator: Poedit 3.0\n"
 
+#: tform1.barcodeqr1.hint
+msgid "Click on image to close it"
+msgstr ""
+
 #: tform1.bcopyaddr.hint
 msgid "Copy address to clipboard"
 msgstr "Copiar endereço para a área de transferência"
@@ -56,6 +60,10 @@ msgstr "Gerar novo endereço"
 msgctxt "tform1.bokcustom.hint"
 msgid "Confirm"
 msgstr "Confirmar"
+
+#: tform1.bqrcode.hint
+msgid "Show QR code"
+msgstr ""
 
 #: tform1.bsavenodeoptions.caption
 msgid "Save"
@@ -813,3 +821,4 @@ msgstr "Pendentes"
 #: translation.rs0512
 msgid "Invalid language: %s"
 msgstr "Língua inválida: %s"
+

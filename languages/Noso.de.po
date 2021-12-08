@@ -11,6 +11,10 @@ msgstr ""
 "Language: de\n"
 "X-Generator: Poedit 3.0\n"
 
+#: tform1.barcodeqr1.hint
+msgid "Click on image to close it"
+msgstr ""
+
 #: tform1.bcopyaddr.hint
 msgid "Copy address to clipboard"
 msgstr "Adresse in Zwischenablage kopieren"
@@ -57,6 +61,10 @@ msgctxt "tform1.bokcustom.hint"
 msgid "Confirm"
 msgstr "Bestätigen"
 
+#: tform1.bqrcode.hint
+msgid "Show QR code"
+msgstr ""
+
 #: tform1.bsavenodeoptions.caption
 msgid "Save"
 msgstr "Speichern"
@@ -96,6 +104,10 @@ msgstr "In die Ablage minimieren"
 #: tform1.checkbox1.caption
 msgid "Download blockchain"
 msgstr "Blockchain herunterladen"
+
+#: tform1.checkbox2.caption
+msgid "Install automatically new official releases"
+msgstr ""
 
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
@@ -144,6 +156,10 @@ msgstr "Historische Aufträge zeigen"
 #: tform1.label6.caption
 msgid "PoS addresses warning days"
 msgstr "PoS Adressen Warntage"
+
+#: tform1.label7.caption
+msgid "Wallet language"
+msgstr ""
 
 #: tform1.labelbigbalance.caption
 msgctxt "tform1.labelbigbalance.caption"
@@ -801,3 +817,8 @@ msgstr "Blöcke"
 #: translation.rs0511
 msgid "Pending"
 msgstr "Ausstehend"
+
+#: translation.rs0512
+msgid "Invalid language: %s"
+msgstr ""
+

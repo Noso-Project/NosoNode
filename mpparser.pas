@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, mpCripto, mpTime, mpblock, mpcoin,
-  dialogs, fileutil, forms, idglobal, poolmanage, strutils, mpRPC, DateUtils;
+  dialogs, fileutil, forms, idglobal, poolmanage, strutils, mpRPC, DateUtils, Clipbrd;
 
 procedure ProcessLinesAdd(const ALine: String);
 procedure ConsoleLinesAdd(const ALine: String);
@@ -95,6 +95,7 @@ Procedure ExecuteRebuildMyTrx();
 Procedure TestNetwork(LineText:string);
 Procedure ShowPendingTrxs();
 Procedure HangWallet();
+Procedure WebWallet();
 
 // CONSULTING
 Procedure ShowDiftory();
@@ -273,6 +274,7 @@ else if UpperCase(Command) = 'SHOWPRIVKEY' then ShowPrivKey(LineText, true)
 else if UpperCase(Command) = 'UNIXTIME' then ConsoleLinesAdd(IntToStr(DateTimeToUnix(now)+G_TIMELocalTimeOffset+G_TimeOffSet))
 else if UpperCase(Command) = 'REBUILDMYTRX' then ExecuteRebuildMyTrx()
 else if UpperCase(Command) = 'SHOWPENDING' then ShowPendingTrxs()
+else if UpperCase(Command) = 'WEBWAL' then WebWallet()
 else if UpperCase(Command) = 'HANG' then HangWallet()
 else if UpperCase(Command) = 'CHECKUPDATES' then ConsoleLinesAdd(GetLastRelease)
 
@@ -2163,6 +2165,20 @@ var
 Begin
 Repeat
 until contador = 1;
+End;
+
+Procedure WebWallet();
+var
+  contador : integer;
+  ToClipboard : String = '';
+Begin
+for contador := 0 to length(ListaDirecciones)-1 do
+   begin
+   ToClipboard := ToClipboard+(Listadirecciones[contador].Hash)+',';
+   end;
+Setlength(ToClipboard,length(ToClipboard)-1);
+Clipboard.AsText := ToClipboard;
+ConsoleLinesadd('Web wallet data copied to clipboard');
 End;
 
 Procedure PostOffer(LineText:String);

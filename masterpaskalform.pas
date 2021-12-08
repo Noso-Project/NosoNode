@@ -9,7 +9,7 @@ uses
   Grids, ExtCtrls, Buttons, IdTCPServer, IdContext, IdGlobal, IdTCPClient,
   fileutil, Clipbrd, Menus, crt, formexplore, lclintf, ComCtrls, Spin,
   poolmanage, strutils, mpoptions, math, IdHTTPServer, IdCustomHTTPServer,
-  fpJSON, Types, DefaultTranslator, LCLTranslator, translation;
+  fpJSON, Types, DefaultTranslator, LCLTranslator, translation, ubarcodes;
 
 type
 
@@ -279,6 +279,8 @@ type
   { TForm1 }
 
   TForm1 = class(TForm)
+    BarcodeQR1: TBarcodeQR;
+    BQRCode: TSpeedButton;
     BitBtn1: TBitBtn;
     BitBtn2: TBitBtn;
     BSaveNodeOptions: TBitBtn;
@@ -288,6 +290,7 @@ type
     ComboBox1: TComboBox;
     Label1: TLabel;
     Label7: TLabel;
+    PanelQRImg: TPanel;
     PanelPostOffer: TPanel;
     StaRPCimg: TImage;
     StaSerImg: TImage;
@@ -295,6 +298,7 @@ type
     StaPoolSer: TImage;
     Imgs32: TImageList;
     ImgRotor: TImage;
+    TextQRcode: TStaticText;
     StaTimeLab: TLabel;
     SCBitSend: TBitBtn;
     SCBitClea: TBitBtn;
@@ -457,10 +461,13 @@ type
     TabWallet: TTabSheet;
     TabConsole: TTabSheet;
 
+    procedure BarcodeQR1Click(Sender: TObject);
     procedure BitBtn1Click(Sender: TObject);
     procedure BitBtn2Click(Sender: TObject);
+    procedure BQRCodeClick(Sender: TObject);
     procedure BSaveNodeOptionsClick(Sender: TObject);
     procedure CB_RPCFilterChange(Sender: TObject);
+    procedure ComboBox1Change(Sender: TObject);
     procedure ComboBox1DrawItem(Control: TWinControl; Index: Integer;
       ARect: TRect; State: TOwnerDrawState);
     procedure DataPanelResize(Sender: TObject);
@@ -593,6 +600,7 @@ type
 Procedure InicializarFormulario();
 Procedure CerrarPrograma();
 Procedure UpdateStatusBar();
+Procedure GenerateCode();
 
 CONST
   HexAlphabet : string = '0123456789ABCDEF';
@@ -1361,10 +1369,29 @@ Form1.EditSCMont.Text:=IntToStr(DefaultDonation)+'.00000000';
 Form1.MemoSCCon.Text:='Donation';
 end;
 
+procedure TForm1.BarcodeQR1Click(Sender: TObject);
+begin
+form1.PanelQRImg.Visible:=false;
+form1.DireccionesPanel.Enabled:=true;
+end;
+
 // visit web button
 procedure TForm1.BitBtn2Click(Sender: TObject);
 begin
 OpenDocument('https://nosocoin.com');
+end;
+
+Procedure GenerateCode();
+begin
+form1.BarcodeQR1.Text:=form1.Direccionespanel.Cells[0,form1.Direccionespanel.Row];
+end;
+
+procedure TForm1.BQRCodeClick(Sender: TObject);
+begin
+GenerateCode();
+form1.DireccionesPanel.Enabled:=false;
+form1.TextQRcode.caption := form1.Direccionespanel.Cells[0,form1.Direccionespanel.Row];
+form1.PanelQRImg.Visible:=true;
 end;
 
 // Al minimizar verifica si hay que llevarlo a barra de tareas
@@ -1621,6 +1648,7 @@ form1.DireccionesPanel.Options:= form1.DireccionesPanel.Options+[goRowSelect]-[g
 form1.DireccionesPanel.ColWidths[0]:= 260;form1.DireccionesPanel.ColWidths[1]:= 107;
 form1.DireccionesPanel.FocusRectVisible:=false;
 
+Form1.BQRCode.Parent:=form1.DireccionesPanel;
 Form1.BDefAddr.Parent:=form1.DireccionesPanel;
 form1.BCustomAddr.Parent:=form1.DireccionesPanel;
 form1.BCopyAddr.Parent:=form1.DireccionesPanel;
@@ -3356,6 +3384,11 @@ if not G_Launching then
       end;
    S_AdvOpt := true;
    end;
+end;
+
+procedure TForm1.ComboBox1Change(Sender: TObject);
+begin
+Processlinesadd('lang '+ComboBox1.Text);
 end;
 
 // Draw item on combobox language
