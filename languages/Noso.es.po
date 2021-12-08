@@ -330,7 +330,6 @@ msgid "Quit"
 msgstr "Salir"
 
 #: tform1.panelblocks.hint
-#, fuzzy
 msgctxt "tform1.panelblocks.hint"
 msgid "Last downloaded block"
 msgstr "Ultimo bloque descargado"
@@ -800,21 +799,20 @@ msgstr "✓ Ejecutando version de desarrollo"
 
 #: translation.rs0076
 msgid "Start server"
-msgstr ""
+msgstr "Iniciar nodo"
 
 #: translation.rs0077
 msgid "Stop server"
-msgstr ""
+msgstr "Detener nodo"
 
 #: translation.rs0078
-#, fuzzy
 msgctxt "translation.rs0078"
 msgid "Connect"
 msgstr "Conectar"
 
 #: translation.rs0079
 msgid "Disconnect"
-msgstr ""
+msgstr "Desconnectar"
 
 #: translation.rs0500
 msgid "Noso Launcher"
@@ -875,10 +873,9 @@ msgstr "Se requiere reiniciar"
 
 #: translation.rs0514
 msgid "Address"
-msgstr ""
+msgstr "Direccion"
 
 #: translation.rs0515
-#, fuzzy
 msgctxt "translation.rs0515"
 msgid "Balance"
 msgstr "Saldo"

@@ -1025,6 +1025,7 @@ var
 Begin
 Conector := TFPHttpClient.Create(nil);
 conector.ConnectTimeout:=ConnectTimeOutTime;
+conector.IOTimeout:=ReadTimeOutTime;
 Try
    readedLine := Conector.SimpleGet('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/lastrelease.txt');
 Except on E: Exception do

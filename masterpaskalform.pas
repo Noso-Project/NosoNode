@@ -620,7 +620,7 @@ CONST
                             '185.239.239.184 '+
                             '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Jc7';
+  SubVersion = 'Ka1';
   OficialRelease = true;
   BuildDate = 'December 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -1245,6 +1245,7 @@ var
   LastRelease : String = '';
 Begin
 // Check last release
+ConsoleLines := TStringlist.Create;
 OutText(rs0071,false,1); // Checking last release available...
 LastRelease := GetLastRelease;
 if lastrelease <> '' then // Data retrieved
@@ -1278,7 +1279,6 @@ if not directoryexists('NOSODATA') then CreateDir('NOSODATA');
 OutText(rs0022,false,1); //'✓ Data directory ok'
 if not FileExists(OptionsFileName) then CrearArchivoOpciones() else CargarOpciones();
 StringListLang := TStringlist.Create;
-ConsoleLines := TStringlist.Create;
 DLSL := TStringlist.Create;
 IdiomasDisponibles := TStringlist.Create;
 LogLines := TStringlist.Create;
