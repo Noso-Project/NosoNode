@@ -287,7 +287,7 @@ type
     BitBtnPending: TBitBtn;
     BitBtnBlocks: TBitBtn;
     CheckBox2: TCheckBox;
-    ComboBox1: TComboBox;
+    ComboBoxLang: TComboBox;
     Label1: TLabel;
     Label7: TLabel;
     PanelQRImg: TPanel;
@@ -467,8 +467,8 @@ type
     procedure BQRCodeClick(Sender: TObject);
     procedure BSaveNodeOptionsClick(Sender: TObject);
     procedure CB_RPCFilterChange(Sender: TObject);
-    procedure ComboBox1Change(Sender: TObject);
-    procedure ComboBox1DrawItem(Control: TWinControl; Index: Integer;
+    procedure ComboBoxLangChange(Sender: TObject);
+    procedure ComboBoxLangDrawItem(Control: TWinControl; Index: Integer;
       ARect: TRect; State: TOwnerDrawState);
     procedure DataPanelResize(Sender: TObject);
     procedure DireccionesPanelResize(Sender: TObject);
@@ -1348,6 +1348,7 @@ CB_RPCFilter.Checked:=RPCFilter;
 MemoRPCWhitelist.Text:=RPCWhitelist;
 if not RPCFilter then MemoRPCWhitelist.Enabled:=false;
 CB_AUTORPC.Checked:= RPCAuto;
+ComboBoxLang.Text:=WO_Language;
 End;
 
 // Cuando se solicita cerrar el programa
@@ -3386,40 +3387,40 @@ if not G_Launching then
    end;
 end;
 
-procedure TForm1.ComboBox1Change(Sender: TObject);
+procedure TForm1.ComboBoxLangChange(Sender: TObject);
 begin
-Processlinesadd('lang '+ComboBox1.Text);
+Processlinesadd('lang '+ComboBoxLang.Text);
 end;
 
 // Draw item on combobox language
-procedure TForm1.ComboBox1DrawItem(Control: TWinControl; Index: Integer;
+procedure TForm1.ComboBoxLangDrawItem(Control: TWinControl; Index: Integer;
   ARect: TRect; State: TOwnerDrawState);
 begin
-ComboBox1.Canvas.FillRect(ARect);
-if ComboBox1.Items[Index] ='en' then
+ComboBoxLang.Canvas.FillRect(ARect);
+if ComboBoxLang.Items[Index] ='en' then
    begin
-   ComboBox1.Canvas.TextRect(ARect, 20, ARect.Top, 'English');
-   Imagenes.Draw(ComboBox1.Canvas, ARect.Left + 1, ARect.Top + 1, 36);
+   ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'English');
+   Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 36);
    end;
-if ComboBox1.Items[Index] ='es' then
+if ComboBoxLang.Items[Index] ='es' then
    begin
-   ComboBox1.Canvas.TextRect(ARect, 20, ARect.Top, 'Español');
-   Imagenes.Draw(ComboBox1.Canvas, ARect.Left + 1, ARect.Top + 1, 37);
+   ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Español');
+   Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 37);
    end;
-if ComboBox1.Items[Index] ='pt' then
+if ComboBoxLang.Items[Index] ='pt' then
    begin
-   ComboBox1.Canvas.TextRect(ARect, 20, ARect.Top, 'Português');
-   Imagenes.Draw(ComboBox1.Canvas, ARect.Left + 1, ARect.Top + 1, 61);
+   ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Português');
+   Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 61);
    end;
-if ComboBox1.Items[Index] ='de' then
+if ComboBoxLang.Items[Index] ='de' then
    begin
-   ComboBox1.Canvas.TextRect(ARect, 20, ARect.Top, 'Deutsch');
-   Imagenes.Draw(ComboBox1.Canvas, ARect.Left + 1, ARect.Top + 1, 62);
+   ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Deutsch');
+   Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 62);
    end;
-if ComboBox1.Items[Index] ='zn' then
+if ComboBoxLang.Items[Index] ='zn' then
    begin
-   ComboBox1.Canvas.TextRect(ARect, 20, ARect.Top, '中文');
-   Imagenes.Draw(ComboBox1.Canvas, ARect.Left + 1, ARect.Top + 1, 63);
+   ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, '中文');
+   Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 63);
    end;
 End;
 

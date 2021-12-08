@@ -1426,7 +1426,7 @@ object Form1: TForm1
             Caption = 'Wallet language'
             ParentColor = False
           end
-          object ComboBox1: TComboBox
+          object ComboBoxLang: TComboBox
             Left = 104
             Height = 24
             Top = 296
@@ -1439,8 +1439,8 @@ object Form1: TForm1
               'de'
               'zn'
             )
-            OnChange = ComboBox1Change
-            OnDrawItem = ComboBox1DrawItem
+            OnChange = ComboBoxLangChange
+            OnDrawItem = ComboBoxLangDrawItem
             Style = csOwnerDrawFixed
             TabOrder = 11
           end
