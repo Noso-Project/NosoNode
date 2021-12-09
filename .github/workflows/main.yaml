@@ -32,6 +32,7 @@ jobs:
       uses: gcarreno/setup-lazarus@v2.2.9
       with:
         lazarus-version: ${{ matrix.lazarus-versions }}
+        include-packages: "LazBarcodes"
     - uses: actions/checkout@v2
     - name: Unzip packages
       run: unzip -q Packages/\*.zip -d Packages
