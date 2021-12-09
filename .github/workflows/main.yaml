@@ -32,7 +32,6 @@ jobs:
       uses: gcarreno/setup-lazarus@v2.2.9
       with:
         lazarus-version: ${{ matrix.lazarus-versions }}
-        include-packages: "LazBarcodes"
     - uses: actions/checkout@v2
     - name: Unzip packages
       run: unzip -q Packages/\*.zip -d Packages
@@ -43,6 +42,8 @@ jobs:
         lazbuild -qqq Packages/SimpleBaseLib/src/Packages/FPC/SimpleBaseLib4PascalPackage.lpk
         lazbuild -qqq Packages/dcpcrypt-2.0.4.1/dcpcrypt.lpk
         lazbuild -qqq Packages/CryptoLib4Pascal-master/CryptoLib/src/Packages/FPC/CryptoLib4PascalPackage.lpk
+        lazbuild -qqq Packages/lazbarcodes/packages/lazbarcodes_runtimeonly.lpk
+        lazbuild -qqq Packages/lazbarcodes/packages/lazbarcodes.lpk
     - name: Build the Main Application
       run: lazbuild -B --bm="Release" "Noso.lpi"
     - uses: actions/upload-artifact@v2
