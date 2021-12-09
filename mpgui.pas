@@ -670,7 +670,7 @@ var
   Disponibles : string = '';
 Begin
 number := Lowercase(parameter(linea,1));
-if not fileexists('locale'+DirectorySeparator+'noso.'+number+'.po') then
+if not fileexists('locale'+DirectorySeparator+'Noso.'+number+'.po') then
    ConsoleLinesadd(format(rs0512,[number]))
 else
    Begin

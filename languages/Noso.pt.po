@@ -27,14 +27,6 @@ msgstr "Personalizar endereço"
 msgid "Set address as Default"
 msgstr "Definir endereço como padrão"
 
-#: tform1.bitbtn1.caption
-msgid "Donate"
-msgstr "Doar"
-
-#: tform1.bitbtn2.caption
-msgid "Web"
-msgstr "Web"
-
 #: tform1.bitbtnblocks.caption
 msgctxt "tform1.bitbtnblocks.caption"
 msgid "000000"
@@ -45,6 +37,12 @@ msgctxt "tform1.bitbtnblocks.hint"
 msgid "Last downloaded block"
 msgstr "Último bloco baixado"
 
+#: tform1.bitbtndonate.caption
+#, fuzzy
+msgctxt "tform1.bitbtndonate.caption"
+msgid "Donate"
+msgstr "Doar"
+
 #: tform1.bitbtnpending.caption
 msgid "00"
 msgstr "00"
@@ -52,6 +50,12 @@ msgstr "00"
 #: tform1.bitbtnpending.hint
 msgid "Network pending orders"
 msgstr "Ordens pendentes na rede"
+
+#: tform1.bitbtnweb.caption
+#, fuzzy
+msgctxt "tform1.bitbtnweb.caption"
+msgid "Web"
+msgstr "Web"
 
 #: tform1.bnewaddr.hint
 msgid "Generate new address"
@@ -138,6 +142,30 @@ msgstr "Sobre a mensagem"
 msgid "Post offer"
 msgstr "Postar oferta"
 
+#: tform1.label10.caption
+#, fuzzy
+msgctxt "tform1.label10.caption"
+msgid "Funds address"
+msgstr "Endereço de fundos"
+
+#: tform1.label11.caption
+#, fuzzy
+msgctxt "tform1.label11.caption"
+msgid "Sign address"
+msgstr "Assinar criptograficamente o endereço"
+
+#: tform1.label12.caption
+#, fuzzy
+msgctxt "tform1.label12.caption"
+msgid "Port"
+msgstr "Porto"
+
+#: tform1.label13.caption
+#, fuzzy
+msgctxt "tform1.label13.caption"
+msgid "Funds password"
+msgstr "Palavra-passe dos fundos"
+
 #: tform1.label2.caption
 msgid "Minimum connections to work"
 msgstr "Mínimo de ligações para funcionar"
@@ -162,27 +190,20 @@ msgstr "Número de dias para aviso de PoS"
 msgid "Wallet language"
 msgstr "Língua da carteira"
 
+#: tform1.label8.caption
+msgid "IP"
+msgstr ""
+
+#: tform1.label9.caption
+#, fuzzy
+msgctxt "tform1.label9.caption"
+msgid "Port"
+msgstr "Porto"
+
 #: tform1.labelbigbalance.caption
 msgctxt "tform1.labelbigbalance.caption"
 msgid "0 NOS"
 msgstr "0 NOS"
-
-#: tform1.labelededit5.editlabel.caption
-msgid "Static IP"
-msgstr "IP estático"
-
-#: tform1.labelededit6.editlabel.caption
-msgctxt "tform1.labelededit6.editlabel.caption"
-msgid "Port"
-msgstr "Porto"
-
-#: tform1.labelededit8.editlabel.caption
-msgid "Funds address"
-msgstr "Endereço de fundos"
-
-#: tform1.labelededit9.editlabel.caption
-msgid "Sign address"
-msgstr "Assinar criptograficamente o endereço"
 
 #: tform1.labelnobiexaverage.caption
 msgctxt "tform1.labelnobiexaverage.caption"
@@ -197,15 +218,6 @@ msgstr "Último: -.-"
 #: tform1.labeltransactiondetails.caption
 msgid "Transaction details"
 msgstr "Detalhes de transação"
-
-#: tform1.le_rpc_pass.editlabel.caption
-msgid "Funds password"
-msgstr "Palavra-passe dos fundos"
-
-#: tform1.le_rpc_port.editlabel.caption
-msgctxt "tform1.le_rpc_port.editlabel.caption"
-msgid "Port"
-msgstr "Porto"
 
 #: tform1.lsctop.caption
 msgid "Send coins"
@@ -329,12 +341,6 @@ msgstr "Reiniciar"
 msgid "Quit"
 msgstr "Sair"
 
-#: tform1.panelblocks.hint
-#, fuzzy
-msgctxt "tform1.panelblocks.hint"
-msgid "Last downloaded block"
-msgstr "Último bloco baixado"
-
 #: tform1.sbscmax.hint
 msgid "Send all"
 msgstr "Enviar todos"
@@ -384,6 +390,10 @@ msgstr "Servidor RPC ativo"
 #: tform1.staserimg.hint
 msgid "Masternode active"
 msgstr "Masternode ativo"
+
+#: tform1.statimelab.caption
+msgid "00-00-00 00:00:00 (0)"
+msgstr ""
 
 #: tform1.statimelab.hint
 msgid "Noso network time"
@@ -484,7 +494,7 @@ msgstr "Diário"
 
 #: tform1.tabsheet8.caption
 msgid "Except"
-msgstr "Exceção"
+msgstr "Exceções(Erros)"
 
 #: tform1.tabsheet9.caption
 msgctxt "tform1.tabsheet9.caption"

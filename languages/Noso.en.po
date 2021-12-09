@@ -17,14 +17,6 @@ msgstr ""
 msgid "Set address as Default"
 msgstr ""
 
-#: tform1.bitbtn1.caption
-msgid "Donate"
-msgstr ""
-
-#: tform1.bitbtn2.caption
-msgid "Web"
-msgstr ""
-
 #: tform1.bitbtnblocks.caption
 msgctxt "tform1.bitbtnblocks.caption"
 msgid "000000"
@@ -35,12 +27,22 @@ msgctxt "tform1.bitbtnblocks.hint"
 msgid "Last downloaded block"
 msgstr ""
 
+#: tform1.bitbtndonate.caption
+msgctxt "tform1.bitbtndonate.caption"
+msgid "Donate"
+msgstr ""
+
 #: tform1.bitbtnpending.caption
 msgid "00"
 msgstr ""
 
 #: tform1.bitbtnpending.hint
 msgid "Network pending orders"
+msgstr ""
+
+#: tform1.bitbtnweb.caption
+msgctxt "tform1.bitbtnweb.caption"
+msgid "Web"
 msgstr ""
 
 #: tform1.bnewaddr.hint
@@ -128,6 +130,26 @@ msgstr ""
 msgid "Post offer"
 msgstr ""
 
+#: tform1.label10.caption
+msgctxt "tform1.label10.caption"
+msgid "Funds address"
+msgstr ""
+
+#: tform1.label11.caption
+msgctxt "tform1.label11.caption"
+msgid "Sign address"
+msgstr ""
+
+#: tform1.label12.caption
+msgctxt "tform1.label12.caption"
+msgid "Port"
+msgstr ""
+
+#: tform1.label13.caption
+msgctxt "tform1.label13.caption"
+msgid "Funds password"
+msgstr ""
+
 #: tform1.label2.caption
 msgid "Minimum connections to work"
 msgstr ""
@@ -152,26 +174,18 @@ msgstr ""
 msgid "Wallet language"
 msgstr ""
 
-#: tform1.labelbigbalance.caption
-msgctxt "tform1.labelbigbalance.caption"
-msgid "0 NOS"
+#: tform1.label8.caption
+msgid "IP"
 msgstr ""
 
-#: tform1.labelededit5.editlabel.caption
-msgid "Static IP"
-msgstr ""
-
-#: tform1.labelededit6.editlabel.caption
-msgctxt "tform1.labelededit6.editlabel.caption"
+#: tform1.label9.caption
+msgctxt "tform1.label9.caption"
 msgid "Port"
 msgstr ""
 
-#: tform1.labelededit8.editlabel.caption
-msgid "Funds address"
-msgstr ""
-
-#: tform1.labelededit9.editlabel.caption
-msgid "Sign address"
+#: tform1.labelbigbalance.caption
+msgctxt "tform1.labelbigbalance.caption"
+msgid "0 NOS"
 msgstr ""
 
 #: tform1.labelnobiexaverage.caption
@@ -186,15 +200,6 @@ msgstr ""
 
 #: tform1.labeltransactiondetails.caption
 msgid "Transaction details"
-msgstr ""
-
-#: tform1.le_rpc_pass.editlabel.caption
-msgid "Funds password"
-msgstr ""
-
-#: tform1.le_rpc_port.editlabel.caption
-msgctxt "tform1.le_rpc_port.editlabel.caption"
-msgid "Port"
 msgstr ""
 
 #: tform1.lsctop.caption
@@ -319,11 +324,6 @@ msgstr ""
 msgid "Quit"
 msgstr ""
 
-#: tform1.panelblocks.hint
-msgctxt "tform1.panelblocks.hint"
-msgid "Last downloaded block"
-msgstr ""
-
 #: tform1.sbscmax.hint
 msgid "Send all"
 msgstr ""
@@ -372,6 +372,10 @@ msgstr ""
 
 #: tform1.staserimg.hint
 msgid "Masternode active"
+msgstr ""
+
+#: tform1.statimelab.caption
+msgid "00-00-00 00:00:00 (0)"
 msgstr ""
 
 #: tform1.statimelab.hint

@@ -606,11 +606,11 @@ End;
 
 Procedure ExtractPoFiles();
 Begin
-CreateFileFromResource('Noso.en','locale'+DirectorySeparator+'noso.en.po');
-CreateFileFromResource('Noso.es','locale'+DirectorySeparator+'noso.es.po');
-CreateFileFromResource('Noso.pt','locale'+DirectorySeparator+'noso.pt.po');
-CreateFileFromResource('Noso.zn','locale'+DirectorySeparator+'noso.zn.po');
-CreateFileFromResource('Noso.de','locale'+DirectorySeparator+'noso.de.po');
+CreateFileFromResource('Noso.en','locale'+DirectorySeparator+'Noso.en.po');
+CreateFileFromResource('Noso.es','locale'+DirectorySeparator+'Noso.es.po');
+CreateFileFromResource('Noso.pt','locale'+DirectorySeparator+'Noso.pt.po');
+CreateFileFromResource('Noso.zh','locale'+DirectorySeparator+'Noso.zh.po');
+CreateFileFromResource('Noso.de','locale'+DirectorySeparator+'Noso.de.po');
 End;
 
 Procedure CreateFileFromResource(resourcename,filename:string);

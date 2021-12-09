@@ -18,8 +18,8 @@
         <Resource_0 FileName="languages\Noso.en.po" Type="RCDATA" ResourceName="NOSO.EN"/>
         <Resource_1 FileName="languages\Noso.es.po" Type="RCDATA" ResourceName="NOSO.ES"/>
         <Resource_2 FileName="languages\Noso.pt.po" Type="RCDATA" ResourceName="NOSO.PT"/>
-        <Resource_3 FileName="languages\Noso.zn.po" Type="RCDATA" ResourceName="NOSO.ZN"/>
-        <Resource_4 FileName="languages\Noso.de.po" Type="RCDATA" ResourceName="NOSO.DE"/>
+        <Resource_3 FileName="languages\Noso.de.po" Type="RCDATA" ResourceName="NOSO.DE"/>
+        <Resource_4 FileName="languages/Noso.zh.po" Type="RCDATA" ResourceName="NOSO.ZH"/>
       </Resources>
     </General>
     <i18n>

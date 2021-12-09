@@ -281,16 +281,40 @@ type
   TForm1 = class(TForm)
     BarcodeQR1: TBarcodeQR;
     BQRCode: TSpeedButton;
-    BitBtn1: TBitBtn;
-    BitBtn2: TBitBtn;
+    BitBtnDonate: TBitBtn;
+    BitBtnWeb: TBitBtn;
     BSaveNodeOptions: TBitBtn;
     BitBtnPending: TBitBtn;
     BitBtnBlocks: TBitBtn;
     CheckBox2: TCheckBox;
     ComboBoxLang: TComboBox;
+    LE_Rpc_Pass: TEdit;
+    Label13: TLabel;
+    LE_Rpc_Port: TEdit;
+    Label12: TLabel;
+    LabeledEdit9: TEdit;
+    Label11: TLabel;
+    LabeledEdit8: TEdit;
+    Label10: TLabel;
+    LabeledEdit6: TEdit;
+    Label8: TLabel;
+    Label9: TLabel;
+    LabeledEdit5: TEdit;
     Label1: TLabel;
     Label7: TLabel;
-    PanelBlocks: TPanel;
+    Panel10: TPanel;
+    Panel11: TPanel;
+    Panel12: TPanel;
+    Panel13: TPanel;
+    Panel14: TPanel;
+    Panel15: TPanel;
+    Panel16: TPanel;
+    Panel17: TPanel;
+    Panel18: TPanel;
+    Panel19: TPanel;
+    Panel7: TPanel;
+    Panel8: TPanel;
+    Panel9: TPanel;
     PanelQRImg: TPanel;
     PanelPostOffer: TPanel;
     StaRPCimg: TImage;
@@ -321,7 +345,7 @@ type
     EditSCDest: TEdit;
     EditCustom: TEdit;
     Image1: TImage;
-    Image2: TImage;
+    ImageOptionsAbout: TImage;
     ImgSCMont: TImage;
     ImgSCDest: TImage;
     ImageOut: TImage;
@@ -338,12 +362,6 @@ type
     LabAbout: TLabel;
     LabelNobiexAverage: TLabel;
     LabelBigBalance: TLabel;
-    LE_Rpc_Port: TLabeledEdit;
-    LE_Rpc_Pass: TLabeledEdit;
-    LabeledEdit5: TLabeledEdit;
-    LabeledEdit6: TLabeledEdit;
-    LabeledEdit8: TLabeledEdit;
-    LabeledEdit9: TLabeledEdit;
     Latido : TTimer;
     InfoTimer : TTimer;
     InicioTimer : TTimer;
@@ -463,8 +481,8 @@ type
     TabConsole: TTabSheet;
 
     procedure BarcodeQR1Click(Sender: TObject);
-    procedure BitBtn1Click(Sender: TObject);
-    procedure BitBtn2Click(Sender: TObject);
+    procedure BitBtnDonateClick(Sender: TObject);
+    procedure BitBtnWebClick(Sender: TObject);
     procedure BQRCodeClick(Sender: TObject);
     procedure BSaveNodeOptionsClick(Sender: TObject);
     procedure CB_RPCFilterChange(Sender: TObject);
@@ -500,6 +518,7 @@ type
     procedure GridExLTCResize(Sender: TObject);
     procedure TabHistoryShow(Sender: TObject);
     procedure TabNodeOptionsShow(Sender: TObject);
+    procedure TabSheet9Resize(Sender: TObject);
     Procedure TryCloseServerConnection(AContext: TIdContext; closemsg:string='');
     procedure IdTCPServer1Execute(AContext: TIdContext);
     procedure IdTCPServer1Connect(AContext: TIdContext);
@@ -1390,7 +1409,7 @@ canclose := false;
 end;
 
 // Button donate
-procedure TForm1.BitBtn1Click(Sender: TObject);
+procedure TForm1.BitBtnDonateClick(Sender: TObject);
 begin
 form1.PageMain.ActivePage := form1.TabWallet;
 form1.TabWalletMain.ActivePage := form1.TabAddresses;
@@ -1407,7 +1426,7 @@ form1.DireccionesPanel.Enabled:=true;
 end;
 
 // visit web button
-procedure TForm1.BitBtn2Click(Sender: TObject);
+procedure TForm1.BitBtnWebClick(Sender: TObject);
 begin
 OpenDocument('https://nosocoin.com');
 end;
@@ -1651,8 +1670,12 @@ Procedure InicializarFormulario();
 var
   contador : integer = 0;
 Begin
-// BY GUS: Make sure TabWallet is always the one shown at start
+// BY GUS: Make sure ALL tabs are set correct at startup
 Form1.PageMain.ActivePage:= Form1.TabWallet;
+Form1.TabWalletMain.ActivePage:= Form1.TabAddresses;
+Form1.PageControl2.ActivePage:= Form1.tabExBuy;
+Form1.PageControl1.ActivePage:= Form1.TabSheet1;
+
 
 // Visual components
 
@@ -3447,7 +3470,7 @@ if ComboBoxLang.Items[Index] ='de' then
    ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Deutsch');
    Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 62);
    end;
-if ComboBoxLang.Items[Index] ='zn' then
+if ComboBoxLang.Items[Index] ='zh' then
    begin
    ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, '中文');
    Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 63);
@@ -3501,6 +3524,19 @@ LabeledEdit5.Text:=MN_IP;
 LabeledEdit6.Text:=MN_Port;
 LabeledEdit8.Text:=MN_Funds;
 LabeledEdit9.Text:=MN_Sign;
+end;
+
+procedure TForm1.TabSheet9Resize(Sender: TObject);
+begin
+  ImageOptionsAbout.BorderSpacing.Left:=
+    (TabSheet9.ClientWidth div 2) -
+    (ImageOptionsAbout.Width div 2);
+  BitBtnWeb.BorderSpacing.Left:=
+    (TabSheet9.ClientWidth div 2) -
+    (BitBtnWeb.Width div 2);
+  BitBtnDonate.BorderSpacing.Left:=
+    (TabSheet9.ClientWidth div 2) -
+    (BitBtnDonate.Width div 2);
 end;
 
 // Save Node options
