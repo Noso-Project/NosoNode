@@ -1531,10 +1531,19 @@ if ((Shift = [ssCtrl]) and (Key = VK_L)) then
    ConsoleLinesAdd('UserFontSize:'+inttostr(UserFontSize));
    UpdateRowHeigth();
    end;
-if ((Shift = [ssCtrl]) and (Key = VK_D)) then
+if ((Shift = [ssCtrl, ssAlt]) and (Key = VK_D)) then
    begin
-   Form1.PageMain.ActivePage:= Form1.TabMonitor;
-   Form1.PCMonitor.ActivePage:= Form1.TabDoctor;
+   if not Form1.TabDoctor.TabVisible then
+      begin
+      Form1.PageMain.ActivePage:= Form1.TabMonitor;
+      Form1.TabDoctor.TabVisible:= True;
+      Form1.PCMonitor.ActivePage:= Form1.TabDoctor;
+      end
+      else
+      begin
+      Form1.PCMonitor.ActivePage:= Form1.TabSheet7;
+      Form1.TabDoctor.TabVisible:= False;
+      end;
    end;
 end;
 
