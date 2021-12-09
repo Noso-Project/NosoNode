@@ -68,35 +68,15 @@ msgstr "Bestätigen"
 
 #: tform1.bqrcode.hint
 msgid "Show QR code"
-msgstr ""
+msgstr "QR-Code anzeigen"
 
 #: tform1.bsavenodeoptions.caption
 msgid "Save"
 msgstr "Speichern"
 
-#: tform1.butstartdoctor.caption
-msgid "Start"
-msgstr ""
-
-#: tform1.butstopdoctor.caption
-msgid "Stop"
-msgstr ""
-
 #: tform1.caption
 msgid "Noso"
 msgstr "Noso"
-
-#: tform1.cbblockexists.caption
-msgid "Block file"
-msgstr ""
-
-#: tform1.cbblockhash.caption
-msgid "Block hash"
-msgstr ""
-
-#: tform1.cbsummaryhash.caption
-msgid "Summary hash"
-msgstr ""
 
 #: tform1.cb_autorpc.caption
 msgid "Active JSON-RPC server at launch"
@@ -132,7 +112,7 @@ msgstr "Blockchain herunterladen"
 
 #: tform1.checkbox2.caption
 msgid "Install automatically new official releases"
-msgstr ""
+msgstr "Neue offizielle Versionen automatisch installieren"
 
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
@@ -208,11 +188,11 @@ msgstr "PoS Adressen Warntage"
 
 #: tform1.label7.caption
 msgid "Wallet language"
-msgstr ""
+msgstr "Sprache der Brieftasche"
 
 #: tform1.label8.caption
 msgid "IP"
-msgstr ""
+msgstr "IP"
 
 #: tform1.label9.caption
 #, fuzzy
@@ -224,10 +204,6 @@ msgstr "Port"
 msgctxt "tform1.labelbigbalance.caption"
 msgid "0 NOS"
 msgstr "0 NOS"
-
-#: tform1.labeldoctor.caption
-msgid "Waiting"
-msgstr ""
 
 #: tform1.labelnobiexaverage.caption
 msgctxt "tform1.labelnobiexaverage.caption"
@@ -417,7 +393,7 @@ msgstr "Masternode aktiv"
 
 #: tform1.statimelab.caption
 msgid "00-00-00 00:00:00 (0)"
-msgstr ""
+msgstr "00-00-00 00:00:00 (0)"
 
 #: tform1.statimelab.hint
 msgid "Noso network time"
@@ -431,10 +407,6 @@ msgstr "Adressen"
 msgctxt "tform1.tabconsole.caption"
 msgid "Console"
 msgstr "Konsole"
-
-#: tform1.tabdoctor.caption
-msgid "Doctor"
-msgstr ""
 
 #: tform1.tabexbuy.caption
 msgid "LTC"
@@ -818,31 +790,31 @@ msgstr "✓ Neustart Datei gelöscht"
 
 #: translation.rs0071
 msgid "Checking last release available..."
-msgstr ""
+msgstr "Überprüfung der letzten verfügbaren Version..."
 
 #: translation.rs0072
 msgid "✗ Failed connecting with project repo"
-msgstr ""
+msgstr "✗ Verbindung zum Projektarchiv fehlgeschlagen"
 
 #: translation.rs0073
 msgid "✓ Running last release version"
-msgstr ""
+msgstr "✓ Laufende letzte Release-Version"
 
 #: translation.rs0074
 msgid "✗ New version available on project repo"
-msgstr ""
+msgstr "✗ Neue Version im Projekt-Repository verfügbar"
 
 #: translation.rs0075
 msgid "✓ Running a development version"
-msgstr ""
+msgstr "✓ Ausführen einer Entwicklungsversion"
 
 #: translation.rs0076
 msgid "Start server"
-msgstr ""
+msgstr "Server starten"
 
 #: translation.rs0077
 msgid "Stop server"
-msgstr ""
+msgstr "Server anhalten"
 
 #: translation.rs0078
 #, fuzzy
@@ -852,7 +824,7 @@ msgstr "Verbinden"
 
 #: translation.rs0079
 msgid "Disconnect"
-msgstr ""
+msgstr "Trennen Sie die Verbindung"
 
 #: translation.rs0500
 msgid "Noso Launcher"
@@ -905,47 +877,18 @@ msgstr "Ausstehend"
 
 #: translation.rs0512
 msgid "Invalid language: %s"
-msgstr ""
+msgstr "Ungültige Sprache: %s"
 
 #: translation.rs0513
 msgid "Wallet restart needed"
-msgstr ""
+msgstr "Neustart der Brieftasche erforderlich"
 
 #: translation.rs0514
 msgid "Address"
-msgstr ""
+msgstr "Adresse"
 
 #: translation.rs0515
 #, fuzzy
 msgctxt "translation.rs0515"
 msgid "Balance"
 msgstr "Balance"
-
-#: translation.rs1000
-msgid "Processing block %d (%d %%)"
-msgstr ""
-
-#: translation.rs1001
-msgid ""
-"----- ERROR ----\n"
-"Block: %d\n"
-msgstr ""
-
-#: translation.rs1002
-msgid ""
-"Wrong block hash\n"
-"File: %s\n"
-"Headers: %s\n"
-msgstr ""
-
-#: translation.rs1003
-msgid "File not found: %s"
-msgstr ""
-
-#: translation.rs1004
-msgid ""
-"Wrong summary hash\n"
-"Summary: %s\n"
-"Headers: %s\n"
-msgstr ""
-
