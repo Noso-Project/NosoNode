@@ -15,7 +15,7 @@ msgstr ""
 
 #: tform1.barcodeqr1.hint
 msgid "Click on image to close it"
-msgstr ""
+msgstr "单击图像将其关闭"
 
 #: tform1.bcopyaddr.hint
 msgid "Copy address to clipboard"
@@ -29,6 +29,14 @@ msgstr "自定义地址"
 msgid "Set address as Default"
 msgstr "设置为默认地址"
 
+#: tform1.bitbtn1.caption
+msgid "Donate"
+msgstr "捐赠"
+
+#: tform1.bitbtn2.caption
+msgid "Web"
+msgstr "页面"
+
 #: tform1.bitbtnblocks.caption
 msgctxt "tform1.bitbtnblocks.caption"
 msgid "000000"
@@ -39,12 +47,6 @@ msgctxt "tform1.bitbtnblocks.hint"
 msgid "Last downloaded block"
 msgstr "最新区块"
 
-#: tform1.bitbtndonate.caption
-#, fuzzy
-msgctxt "tform1.bitbtndonate.caption"
-msgid "Donate"
-msgstr "捐赠"
-
 #: tform1.bitbtnpending.caption
 msgid "00"
 msgstr "00"
@@ -52,12 +54,6 @@ msgstr "00"
 #: tform1.bitbtnpending.hint
 msgid "Network pending orders"
 msgstr "待处理订单"
-
-#: tform1.bitbtnweb.caption
-#, fuzzy
-msgctxt "tform1.bitbtnweb.caption"
-msgid "Web"
-msgstr "页面"
 
 #: tform1.bnewaddr.hint
 msgid "Generate new address"
@@ -70,7 +66,7 @@ msgstr "确认"
 
 #: tform1.bqrcode.hint
 msgid "Show QR code"
-msgstr ""
+msgstr "显示二维码"
 
 #: tform1.bsavenodeoptions.caption
 msgid "Save"
@@ -114,7 +110,7 @@ msgstr "下载区块链"
 
 #: tform1.checkbox2.caption
 msgid "Install automatically new official releases"
-msgstr ""
+msgstr "自动更新版本"
 
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
@@ -144,30 +140,6 @@ msgstr "关于留言"
 msgid "Post offer"
 msgstr "发布报价"
 
-#: tform1.label10.caption
-#, fuzzy
-msgctxt "tform1.label10.caption"
-msgid "Funds address"
-msgstr "资金地址"
-
-#: tform1.label11.caption
-#, fuzzy
-msgctxt "tform1.label11.caption"
-msgid "Sign address"
-msgstr "签名地址"
-
-#: tform1.label12.caption
-#, fuzzy
-msgctxt "tform1.label12.caption"
-msgid "Port"
-msgstr "端口"
-
-#: tform1.label13.caption
-#, fuzzy
-msgctxt "tform1.label13.caption"
-msgid "Funds password"
-msgstr "密码"
-
 #: tform1.label2.caption
 msgid "Minimum connections to work"
 msgstr "连接"
@@ -190,22 +162,29 @@ msgstr "PoS地址报警"
 
 #: tform1.label7.caption
 msgid "Wallet language"
-msgstr ""
-
-#: tform1.label8.caption
-msgid "IP"
-msgstr ""
-
-#: tform1.label9.caption
-#, fuzzy
-msgctxt "tform1.label9.caption"
-msgid "Port"
-msgstr "端口"
+msgstr "钱包语言"
 
 #: tform1.labelbigbalance.caption
 msgctxt "tform1.labelbigbalance.caption"
 msgid "0 NOS"
 msgstr "0 NOS"
+
+#: tform1.labelededit5.editlabel.caption
+msgid "Static IP"
+msgstr "静态IP"
+
+#: tform1.labelededit6.editlabel.caption
+msgctxt "tform1.labelededit6.editlabel.caption"
+msgid "Port"
+msgstr "端口"
+
+#: tform1.labelededit8.editlabel.caption
+msgid "Funds address"
+msgstr "资金地址"
+
+#: tform1.labelededit9.editlabel.caption
+msgid "Sign address"
+msgstr "签名地址"
 
 #: tform1.labelnobiexaverage.caption
 msgctxt "tform1.labelnobiexaverage.caption"
@@ -220,6 +199,15 @@ msgstr "最新区块"
 #: tform1.labeltransactiondetails.caption
 msgid "Transaction details"
 msgstr "交易明细"
+
+#: tform1.le_rpc_pass.editlabel.caption
+msgid "Funds password"
+msgstr "密码"
+
+#: tform1.le_rpc_port.editlabel.caption
+msgctxt "tform1.le_rpc_port.editlabel.caption"
+msgid "Port"
+msgstr "端口"
 
 #: tform1.lsctop.caption
 msgid "Send coins"
@@ -343,6 +331,11 @@ msgstr "重启"
 msgid "Quit"
 msgstr "退出"
 
+#: tform1.panelblocks.hint
+msgctxt "tform1.panelblocks.hint"
+msgid "Last downloaded block"
+msgstr "最新区块"
+
 #: tform1.sbscmax.hint
 msgid "Send all"
 msgstr "全部发送"
@@ -392,10 +385,6 @@ msgstr "RPC服务器正常"
 #: tform1.staserimg.hint
 msgid "Masternode active"
 msgstr "主节点正常"
-
-#: tform1.statimelab.caption
-msgid "00-00-00 00:00:00 (0)"
-msgstr ""
 
 #: tform1.statimelab.hint
 msgid "Noso network time"
@@ -792,41 +781,40 @@ msgstr "✓ 重启文件已删除"
 
 #: translation.rs0071
 msgid "Checking last release available..."
-msgstr ""
+msgstr "正在检查可用的最新版本..."
 
 #: translation.rs0072
 msgid "✗ Failed connecting with project repo"
-msgstr ""
+msgstr "✗ 与项目库连接失败"
 
 #: translation.rs0073
 msgid "✓ Running last release version"
-msgstr ""
+msgstr "✓ 运行最新版本"
 
 #: translation.rs0074
 msgid "✗ New version available on project repo"
-msgstr ""
+msgstr "✗ 有新版本"
 
 #: translation.rs0075
 msgid "✓ Running a development version"
-msgstr ""
+msgstr "✓ 运行开发版本"
 
 #: translation.rs0076
 msgid "Start server"
-msgstr ""
+msgstr "启动服务器"
 
 #: translation.rs0077
 msgid "Stop server"
-msgstr ""
+msgstr "停止服务器"
 
 #: translation.rs0078
-#, fuzzy
 msgctxt "translation.rs0078"
 msgid "Connect"
 msgstr "连接"
 
 #: translation.rs0079
 msgid "Disconnect"
-msgstr ""
+msgstr "断开"
 
 #: translation.rs0500
 msgid "Noso Launcher"
@@ -879,19 +867,17 @@ msgstr "待办"
 
 #: translation.rs0512
 msgid "Invalid language: %s"
-msgstr ""
+msgstr "无效语言：%s"
 
 #: translation.rs0513
 msgid "Wallet restart needed"
-msgstr ""
+msgstr "需要重启钱包"
 
 #: translation.rs0514
 msgid "Address"
-msgstr ""
+msgstr "地址"
 
 #: translation.rs0515
-#, fuzzy
 msgctxt "translation.rs0515"
 msgid "Balance"
 msgstr "余额"
-
