@@ -23,9 +23,9 @@ To build from source you'll need a working installation of [Lazarus](https://www
 - CryptoLib4PascalPackage
 - LazBarcodes
 
-These packages are included in a folder called `Pacakges` located from the root of the repository. This is provided for convinience of the GitHub builds and may not always conatin the latest version of these packages.
+These packages are included in a folder called `Pacakges` located from the root of the repository. This is provided for convinience of the GitHub builds and may not always contain the latest version of these packages.
 
-The best way to ensure that these packages are the latest version is to install them form the Online Package Manager(OPM).
+The best way to ensure that these packages are the latest version is to install them from the Online Package Manager(OPM).
 
 ## Platforms
 
@@ -45,7 +45,8 @@ The Linux version has been tested on:
 
 **Disclaimer**
 
-The Linux version sometimes misbehaves in terms of the User Interface.  
+The Linux version sometimes misbehaves in terms of the User Interface.
+
 Apart from that, the network and blockchain code has been known to be working with no problems.
 
 
