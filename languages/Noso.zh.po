@@ -40,7 +40,6 @@ msgid "Last downloaded block"
 msgstr "最新区块"
 
 #: tform1.bitbtndonate.caption
-#, fuzzy
 msgctxt "tform1.bitbtndonate.caption"
 msgid "Donate"
 msgstr "捐赠"
@@ -54,7 +53,6 @@ msgid "Network pending orders"
 msgstr "待处理订单"
 
 #: tform1.bitbtnweb.caption
-#, fuzzy
 msgctxt "tform1.bitbtnweb.caption"
 msgid "Web"
 msgstr "页面"
@@ -78,11 +76,11 @@ msgstr "保存"
 
 #: tform1.butstartdoctor.caption
 msgid "Start"
-msgstr ""
+msgstr "开始"
 
 #: tform1.butstopdoctor.caption
 msgid "Stop"
-msgstr ""
+msgstr "停止"
 
 #: tform1.caption
 msgid "Noso"
@@ -90,15 +88,15 @@ msgstr "Noso"
 
 #: tform1.cbblockexists.caption
 msgid "Block file"
-msgstr ""
+msgstr "区块文件"
 
 #: tform1.cbblockhash.caption
 msgid "Block hash"
-msgstr ""
+msgstr "区块哈希"
 
 #: tform1.cbsummaryhash.caption
 msgid "Summary hash"
-msgstr ""
+msgstr "摘要哈希"
 
 #: tform1.cb_autorpc.caption
 msgid "Active JSON-RPC server at launch"
@@ -165,25 +163,21 @@ msgid "Post offer"
 msgstr "发布报价"
 
 #: tform1.label10.caption
-#, fuzzy
 msgctxt "tform1.label10.caption"
 msgid "Funds address"
 msgstr "资金地址"
 
 #: tform1.label11.caption
-#, fuzzy
 msgctxt "tform1.label11.caption"
 msgid "Sign address"
 msgstr "签名地址"
 
 #: tform1.label12.caption
-#, fuzzy
 msgctxt "tform1.label12.caption"
 msgid "Port"
 msgstr "端口"
 
 #: tform1.label13.caption
-#, fuzzy
 msgctxt "tform1.label13.caption"
 msgid "Funds password"
 msgstr "密码"
@@ -214,10 +208,9 @@ msgstr "钱包语言"
 
 #: tform1.label8.caption
 msgid "IP"
-msgstr ""
+msgstr "IP"
 
 #: tform1.label9.caption
-#, fuzzy
 msgctxt "tform1.label9.caption"
 msgid "Port"
 msgstr "端口"
@@ -229,7 +222,7 @@ msgstr "0 NOS"
 
 #: tform1.labeldoctor.caption
 msgid "Waiting"
-msgstr ""
+msgstr "等待"
 
 #: tform1.labelnobiexaverage.caption
 msgctxt "tform1.labelnobiexaverage.caption"
@@ -419,7 +412,7 @@ msgstr "主节点正常"
 
 #: tform1.statimelab.caption
 msgid "00-00-00 00:00:00 (0)"
-msgstr ""
+msgstr "00-00-00 00:00:00 (0)"
 
 #: tform1.statimelab.hint
 msgid "Noso network time"
@@ -436,7 +429,7 @@ msgstr "控制台"
 
 #: tform1.tabdoctor.caption
 msgid "Doctor"
-msgstr ""
+msgstr "修复"
 
 #: tform1.tabexbuy.caption
 msgid "LTC"
@@ -898,11 +891,11 @@ msgstr "最新区块"
 
 #: translation.rs0510
 msgid "Blocks"
-msgstr "已发现区块"
+msgstr "已同步区块"
 
 #: translation.rs0511
 msgid "Pending"
-msgstr "待办"
+msgstr "待处理订单"
 
 #: translation.rs0512
 msgid "Invalid language: %s"
@@ -923,13 +916,15 @@ msgstr "余额"
 
 #: translation.rs1000
 msgid "Processing block %d (%d %%)"
-msgstr ""
+msgstr "处理区块 %d (%d %%)"
 
 #: translation.rs1001
 msgid ""
 "----- ERROR ----\n"
 "Block: %d\n"
 msgstr ""
+"- - - 错误 - - \n"
+"区块：%d\n"
 
 #: translation.rs1002
 msgid ""
@@ -937,10 +932,13 @@ msgid ""
 "File: %s\n"
 "Headers: %s\n"
 msgstr ""
+"错误的区块哈希\n"
+"文件：%s\n"
+"头文件：%s\n"
 
 #: translation.rs1003
 msgid "File not found: %s"
-msgstr ""
+msgstr "未找到文件：%s"
 
 #: translation.rs1004
 msgid ""
@@ -948,4 +946,6 @@ msgid ""
 "Summary: %s\n"
 "Headers: %s\n"
 msgstr ""
-
+"错误的摘要哈希\n"
+"摘要：%s\n"
+"头文件：%s\n"
