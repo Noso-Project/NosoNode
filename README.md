@@ -43,11 +43,11 @@ The Linux version has been tested on:
 
 - Ubuntu 21.10 64b with a Light/Dark Theme
 
-**Disclaimer**
-
-The Linux version sometimes misbehaves in terms of the User Interface.
-
-Apart from that, the network and blockchain code has been known to be working with no problems.
+> **Disclaimer**
+>
+> The Linux version sometimes misbehaves in terms of the User Interface.
+>
+> Apart from that, the network and blockchain code has been known to be working with no problems.
 
 
 ## Donations
