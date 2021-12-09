@@ -1137,8 +1137,8 @@ object Form1: TForm1
         TabOrder = 0
         object TabSheet1: TTabSheet
           Caption = 'Wallet'
-          ClientHeight = 432
-          ClientWidth = 380
+          ClientHeight = 459
+          ClientWidth = 386
           object CB_WO_AutoConnect: TCheckBox
             Left = 8
             Height = 23
@@ -1171,8 +1171,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 37
-            ClientWidth = 380
+            ClientHeight = 33
+            ClientWidth = 376
             TabOrder = 4
             object SE_WO_MinPeers: TSpinEdit
               AnchorSideTop.Control = Label2
@@ -1210,8 +1210,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 37
-            ClientWidth = 380
+            ClientHeight = 33
+            ClientWidth = 376
             TabOrder = 5
             object SE_WO_CTOT: TSpinEdit
               AnchorSideTop.Control = Label3
@@ -1249,8 +1249,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 37
-            ClientWidth = 380
+            ClientHeight = 33
+            ClientWidth = 376
             TabOrder = 6
             object SE_WO_RTOT: TSpinEdit
               AnchorSideTop.Control = Label4
@@ -1289,8 +1289,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 37
-            ClientWidth = 380
+            ClientHeight = 33
+            ClientWidth = 376
             TabOrder = 7
             object SE_WO_ShowOrders: TSpinEdit
               AnchorSideTop.Control = Label5
@@ -1329,8 +1329,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 37
-            ClientWidth = 380
+            ClientHeight = 33
+            ClientWidth = 376
             TabOrder = 8
             object SE_WO_PosWarning: TSpinEdit
               AnchorSideTop.Control = Label6
@@ -1369,8 +1369,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 37
-            ClientWidth = 380
+            ClientHeight = 33
+            ClientWidth = 376
             TabOrder = 9
             object CB_WO_AntiFreeze: TCheckBox
               AnchorSideTop.Control = SE_WO_AntifreezeTime
@@ -1447,8 +1447,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 37
-            ClientWidth = 380
+            ClientHeight = 33
+            ClientWidth = 376
             TabOrder = 11
             object Label7: TLabel
               AnchorSideRight.Control = ComboBoxLang
@@ -1488,8 +1488,8 @@ object Form1: TForm1
         end
         object TabNodeOptions: TTabSheet
           Caption = 'Node'
-          ClientHeight = 432
-          ClientWidth = 380
+          ClientHeight = 459
+          ClientWidth = 386
           OnShow = TabNodeOptionsShow
           object CheckBox4: TCheckBox
             Left = 8
@@ -1510,8 +1510,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 56
-            ClientWidth = 380
+            ClientHeight = 52
+            ClientWidth = 376
             TabOrder = 1
             object Label8: TLabel
               Left = 8
@@ -1544,8 +1544,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 56
-            ClientWidth = 380
+            ClientHeight = 52
+            ClientWidth = 376
             TabOrder = 2
             object Label9: TLabel
               Left = 8
@@ -1578,8 +1578,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 56
-            ClientWidth = 380
+            ClientHeight = 52
+            ClientWidth = 376
             TabOrder = 3
             object Label10: TLabel
               Left = 8
@@ -1612,8 +1612,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 56
-            ClientWidth = 380
+            ClientHeight = 52
+            ClientWidth = 376
             TabOrder = 4
             object Label11: TLabel
               Left = 8
@@ -1646,8 +1646,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 34
-            ClientWidth = 380
+            ClientHeight = 30
+            ClientWidth = 376
             TabOrder = 5
             object BSaveNodeOptions: TBitBtn
               Left = 8
@@ -1666,8 +1666,8 @@ object Form1: TForm1
         end
         object TabSheet3: TTabSheet
           Caption = 'RPC'
-          ClientHeight = 432
-          ClientWidth = 380
+          ClientHeight = 459
+          ClientWidth = 386
           object CB_RPC_ON: TCheckBox
             Left = 8
             Height = 23
@@ -1724,8 +1724,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 56
-            ClientWidth = 380
+            ClientHeight = 52
+            ClientWidth = 376
             TabOrder = 4
             object Label12: TLabel
               Left = 8
@@ -1758,8 +1758,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 56
-            ClientWidth = 380
+            ClientHeight = 52
+            ClientWidth = 376
             TabOrder = 5
             object Label13: TLabel
               Left = 8
@@ -1787,8 +1787,8 @@ object Form1: TForm1
         end
         object TabSheet5: TTabSheet
           Caption = 'Trade'
-          ClientHeight = 432
-          ClientWidth = 380
+          ClientHeight = 459
+          ClientWidth = 386
           Enabled = False
           object CheckBox7: TCheckBox
             Left = 8
@@ -1850,8 +1850,8 @@ object Form1: TForm1
         end
         object TabSheet9: TTabSheet
           Caption = 'About...'
-          ClientHeight = 432
-          ClientWidth = 380
+          ClientHeight = 459
+          ClientWidth = 386
           OnResize = TabSheet9Resize
           object LabAbout: TLabel
             Left = 8
@@ -1880,8 +1880,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 100
-            ClientWidth = 380
+            ClientHeight = 96
+            ClientWidth = 376
             TabOrder = 0
             object ImageOptionsAbout: TImage
               Left = 0
@@ -2169,8 +2169,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 40
-            ClientWidth = 380
+            ClientHeight = 36
+            ClientWidth = 376
             TabOrder = 1
             object BitBtnWeb: TBitBtn
               Left = 0
@@ -2269,8 +2269,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 40
-            ClientWidth = 380
+            ClientHeight = 36
+            ClientWidth = 376
             TabOrder = 2
             object BitBtnDonate: TBitBtn
               Left = 0
@@ -2751,10 +2751,10 @@ object Form1: TForm1
     end
   end
   object InfoPanel: TPanel
-    Left = 50
+    Left = 32
     Height = 20
     Top = 245
-    Width = 300
+    Width = 350
     Color = clMedGray
     Font.CharSet = ANSI_CHARSET
     Font.Color = clBlack

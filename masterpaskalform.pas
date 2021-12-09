@@ -1174,8 +1174,19 @@ end;
 // RESIZE MAIN FORM (Lot of things to add here)
 procedure TForm1.FormResize(Sender: TObject);
 begin
-infopanel.Left:=(Form1.Width div 2)-150;
-infopanel.Top:=((Form1.Height-560) div 2)+245;
+//infopanel.Left:=(Form1.Width div 2)-150;
+//infopanel.Top:=((Form1.Height-560) div 2)+245;
+InfoPanel.Left:=
+  (Form1.ClientWidth div 2) -
+  (InfoPanel.Width div 2);
+
+InfoPanel.Top:=
+  (Form1.ClientHeight div 2) -
+  (InfoPanel.Height div 2);
+
+PanelQRImg.Left:=
+  (TabAddresses.ClientWidth div 2) -
+  (PanelQRImg.Width div 2);
 end;
 
 // Form show
