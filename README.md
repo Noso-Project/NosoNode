@@ -1,75 +1,58 @@
 # NosoWallet
-Noso Windows Wallet
+[![Build Status](https://github.com/Noso-Project/NosoWallet/workflows/Build NosoWallet/badge.svg?branch=main)](https://github.com/Noso-Project/NosoWallet/actions)
+[![Supports Windows](https://img.shields.io/badge/support-Windows-blue?logo=Windows)](https://github.com/Noso-Project/NosoWallet/releases/latest)
+[![Supprts Linux](https://img.shields.io/badge/support-Linux-yellow?logo=Linux)](https://github.com/Noso-Project/NosoWallet/releases/latest)
+[![License](https://img.shields.io/github/license/Noso-Project/NosoWallet)](https://github.com/Noso-Project/NosoWallet/blob/master/LICENSE)
+[![Latest Release](https://img.shields.io/github/v/release/Noso-Project/NosoWallet?label=latest%20release)](https://github.com/Noso-Project/NosoWallet/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/Noso-Project/NosoWallet/total)](https://github.com/Noso-Project/NosoWallet/releases)
+
+## Running the wallet
+
+This software does not need to be installed.
+
+You just need to download the appropriate Windows or Linux(Beta) version, uncompress the arquive and run it from the folder.
+
+## Building from source
+
+To build from source you'll need a working installation of [Lazarus](https://www.lazarus-ide.org/index.php?page=downloads) and the following packages:
+
+- Indy 10
+- DCPCrypt
+- HashLib4PascalPackage
+- SimpleBaseLib4PascalPackage
+- CryptoLib4PascalPackage
+- LazBarcodes
+
+These packages are included in a folder called `Pacakges` located from the root of the repository. This is provided for convinience of the GitHub builds and may not always conatin the latest version of these packages.
+
+The best way to ensure that these packages are the latest version is to install them form the Online Package Manager(OPM).
+
+## Platforms
+
+### Windows
+
+The Windows version has been tested on:
+
+- Windows 7
+- Windows 8.1
+- Windows 10
+
+### Linux
+
+The Linux version has been tested on:
+
+- Ubuntu 21.10 64b with a Light/Dark Theme
+
+**Disclaimer**
+
+The Linux version sometimes misbehaves in terms of the User Interface.  
+Apart from that, the network and blockchain code has been known to be working with no problems.
 
 
-Un-Official Release Ver 0.2.1G
-
-
-June 24, 2021
-
-
-THIS IS A NO-OFFICIAL RELEASE
-
-
-Requirements:
-
-Library Indy 10
-
-
-DCPCrypt
-
-
-HashLib4PascalPackage
-
-
-SimpleBaseLib4PascalPackage
-
-
-CryptoLib4PascalPackage
-
-
-This librarys are in the Packages folder (rar files) 
-
-Tested on Windows 7, 8.1 and 10
-
-
-Tested runs on LuUbuntu usings Wine
-
-
-Linux version is in beta testings. 
-You can download it from releases.
-
-
-How to built.
-
-
-Download lazarus IDE from https://www.lazarus-ide.org/index.php?page=downloads
-
-
-Install lazarus
-
-
-Run lazarus. Package > Online Package Manager.
-
-
-Select the packages mentioned above and then click install.
-
-
-File > Open > Select the .LPI file from this repository.
-
-
-To compile, just click CTRL+F9; it will create the .EXE file in the same folder
-
-
-
-Donations for the project:
-
-
+## Donations
 
 BTC: 3H1VzdL3QFQpc62DUhbtCFV5dG4K1yPwVB
 
-
 LTC: LUUWwzfeQtJ4dc8A5xJVz3Zacray55f1WH
-
 
 NosoCoin: devteam_donations
