@@ -13,4 +13,5 @@ mpoptions.pas
 *.res
 *.lps
 *.mo
+*.backup
 crashinfo.txt

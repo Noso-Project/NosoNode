@@ -1,5 +1,5 @@
 # NosoWallet
-[![Build Status](https://github.com/Noso-Project/NosoWallet/workflows/Build NosoWallet/badge.svg?branch=main)](https://github.com/Noso-Project/NosoWallet/actions)
+[![Build Status](https://github.com/Noso-Project/NosoWallet/workflows/Build%20NosoWallet/badge.svg?branch=main)](https://github.com/Noso-Project/NosoWallet/actions)
 [![Supports Windows](https://img.shields.io/badge/support-Windows-blue?logo=Windows)](https://github.com/Noso-Project/NosoWallet/releases/latest)
 [![Supprts Linux](https://img.shields.io/badge/support-Linux-yellow?logo=Linux)](https://github.com/Noso-Project/NosoWallet/releases/latest)
 [![License](https://img.shields.io/github/license/Noso-Project/NosoWallet)](https://github.com/Noso-Project/NosoWallet/blob/master/LICENSE)
