@@ -25,7 +25,7 @@ To build from source you'll need a working installation of [Lazarus](https://www
 
 These packages are included in a folder called `Pacakges` located from the root of the repository. This is provided for convinience of the GitHub builds and may not always contain the latest version of these packages.
 
-The best way to ensure that these packages are the latest version is to install them from the Online Package Manager(OPM).
+The best way to ensure that these packages are the latest version is to install them from the [Online Package Manager](https://wiki.freepascal.org/Online_Package_Manager)(OPM).
 
 ## Platforms
 
