@@ -286,8 +286,14 @@ type
     BSaveNodeOptions: TBitBtn;
     BitBtnPending: TBitBtn;
     BitBtnBlocks: TBitBtn;
+    ButStartDoctor: TButton;
+    ButStopDoctor: TButton;
     CheckBox2: TCheckBox;
+    CBBlockexists: TCheckBox;
+    CBBlockhash: TCheckBox;
+    CBSummaryhash: TCheckBox;
     ComboBoxLang: TComboBox;
+    LabelDoctor: TLabel;
     LE_Rpc_Pass: TEdit;
     Label13: TLabel;
     LE_Rpc_Port: TEdit;
@@ -302,6 +308,7 @@ type
     LabeledEdit5: TEdit;
     Label1: TLabel;
     Label7: TLabel;
+    MemoDoctor: TMemo;
     Panel10: TPanel;
     Panel11: TPanel;
     Panel12: TPanel;
@@ -312,17 +319,21 @@ type
     Panel17: TPanel;
     Panel18: TPanel;
     Panel19: TPanel;
+    PanelDoctor: TPanel;
     Panel7: TPanel;
     Panel8: TPanel;
     Panel9: TPanel;
     PanelQRImg: TPanel;
     PanelPostOffer: TPanel;
+    SpinDoctor1: TSpinEdit;
+    SpinDoctor2: TSpinEdit;
     StaRPCimg: TImage;
     StaSerImg: TImage;
     StaConLab: TLabel;
     StaPoolSer: TImage;
     Imgs32: TImageList;
     ImgRotor: TImage;
+    TabDoctor: TTabSheet;
     TextQRcode: TStaticText;
     StaTimeLab: TLabel;
     SCBitSend: TBitBtn;
@@ -485,6 +496,8 @@ type
     procedure BitBtnWebClick(Sender: TObject);
     procedure BQRCodeClick(Sender: TObject);
     procedure BSaveNodeOptionsClick(Sender: TObject);
+    procedure ButStartDoctorClick(Sender: TObject);
+    procedure ButStopDoctorClick(Sender: TObject);
     procedure CB_RPCFilterChange(Sender: TObject);
     procedure ComboBoxLangChange(Sender: TObject);
     procedure ComboBoxLangDrawItem(Control: TWinControl; Index: Integer;
@@ -711,6 +724,7 @@ var
   SynchWarnings : integer = 0;
   ConnectedRotor : integer = 0;
   EngineLastUpdate : int64 = 0;
+  StopDoctor : boolean = false;
 
   SendOutMsgsThread : TThreadSendOutMsjs;
     SendingMsgs : boolean = false;
@@ -1516,6 +1530,11 @@ if ((Shift = [ssCtrl]) and (Key = VK_L)) then
    UserFontSize := UserFontSize-1;
    ConsoleLinesAdd('UserFontSize:'+inttostr(UserFontSize));
    UpdateRowHeigth();
+   end;
+if ((Shift = [ssCtrl]) and (Key = VK_D)) then
+   begin
+   Form1.PageMain.ActivePage:= Form1.TabMonitor;
+   Form1.PCMonitor.ActivePage:= Form1.TabDoctor;
    end;
 end;
 
@@ -3560,6 +3579,21 @@ MN_Funds:=LabeledEdit8.Text;
 MN_Sign:=LabeledEdit9.Text;
 S_AdvOpt := true;
 info('Masternode options saved');
+end;
+
+// Execute new doctor
+procedure TForm1.ButStartDoctorClick(Sender: TObject);
+begin
+StopDoctor := false;
+ButStartDoctor.Visible:=false;
+ButStopDoctor.Visible:=true;
+NewDoctor;
+end;
+
+// Stop new doctor execution
+procedure TForm1.ButStopDoctorClick(Sender: TObject);
+begin
+StopDoctor := true;
 end;
 
 // adjust transactions history grid when resize

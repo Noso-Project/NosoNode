@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, MasterPaskalForm, Dialogs, Forms, mpTime, FileUtil, LCLType,
   lclintf, controls, mpCripto, mpBlock, Zipper, mpLang, mpcoin, poolmanage,
   {$IFDEF WINDOWS}Win32Proc, {$ENDIF}
-  mpminer;
+  mpminer, translation;
 
 Procedure VerificarArchivos();
 
@@ -78,6 +78,7 @@ Procedure SaveMyTrxsToDisk(Cantidad:integer);
 function NewMyTrx(aParam:Pointer):PtrInt;
 Procedure CrearBatFileForRestart();
 Procedure RestartNoso();
+Procedure NewDoctor();
 Procedure RunDiagnostico(linea:string);
 Procedure CrearArchivoPoolInfo(nombre,direccion:string;porcentaje,miembros,port,tipo:integer;pass:string);
 Procedure GuardarArchivoPoolInfo();
@@ -1810,6 +1811,66 @@ CrearBatFileForRestart();
 RunExternalProgram('nosolauncher.bat');
 End;
 
+Procedure NewDoctor();
+var
+  cont : integer;
+  firstB,lastB : integer;
+  dato : ResumenData;
+  WorkLoad : integer;
+Begin
+firstB := form1.SpinDoctor1.Value;
+LastB := form1.SpinDoctor2.Value;
+WorkLoad := LastB-FirstB;
+form1.MemoDoctor.Lines.Clear;
+assignfile(FileResumen,ResumenFilename);
+if ((form1.CBBlockhash.Checked) or (form1.CBSummaryhash.Checked)) then
+   reset(FileResumen);
+if form1.CBSummaryhash.Checked then Rebuildsumario(FirstB-1);
+for cont := firstB to lastB do
+   begin
+   if ((form1.CBBlockhash.Checked) or (form1.CBSummaryhash.Checked)) then
+      begin
+      Seek(FileResumen,cont);
+      Read(FileResumen,dato);
+      end;
+   form1.LabelDoctor.Caption:=format(rs1000,[cont,((Cont-firstB)*100) div Workload]);
+   form1.LabelDoctor.Update;
+   EngineLastUpdate := UTCTime.ToInt64;
+   Application.ProcessMessages;
+   if form1.CBBlockexists.Checked then  // check block file
+      begin
+      if not fileexists(BlockDirectory+IntToStr(cont)+'.blk') then
+         begin
+         form1.MemoDoctor.Lines.Add(format(rs1001,[cont]));
+         form1.MemoDoctor.Lines.Add(format(rs1003,[BlockDirectory+IntToStr(cont)]));
+         end;
+      end;
+   if form1.CBBlockhash.Checked then    // check block hash
+      begin
+      if HashMD5File(BlockDirectory+IntToStr(cont)+'.blk')<> dato.blockhash then
+         begin
+         form1.MemoDoctor.Lines.Add(format(rs1001,[cont]));
+         form1.MemoDoctor.Lines.Add(Format(rs1002,[HashMD5File(BlockDirectory+IntToStr(cont)+'.blk'),dato.blockhash]));
+         end;
+      end;
+   if form1.CBSummaryhash.Checked then   // Check summary hash
+      begin
+      AddBlockToSumary(cont);
+      if HashMD5File(SumarioFilename) <> dato.SumHash then
+         begin
+         form1.MemoDoctor.Lines.Add(format(rs1001,[cont]));
+         form1.MemoDoctor.Lines.Add(format(rs1004,[HashMD5File(SumarioFilename),dato.SumHash]));
+         end;
+      end;
+   if stopdoctor then break;
+   end;
+if ((form1.CBBlockhash.Checked) or (form1.CBSummaryhash.Checked)) then
+   CloseFile(FileResumen);
+form1.ButStartDoctor.Visible:=true;
+form1.ButStopDoctor.Visible:=false;
+
+End;
+
 // Runs doctor tool
 Procedure RunDiagnostico(linea:string);
 var
@@ -1820,6 +1881,7 @@ var
   errores : integer = 0;
   fixed : integer = 0;
   porcentaje : integer;
+  badBlockHashes : string = '';
 Begin
 Miner_KillThreads := true;
 CloseAllforms();
@@ -1844,6 +1906,7 @@ if lastblock = 0 then
    FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
    exit;
    end;
+{
 outtext('Blocks to check: '+IntToStr(lastblock+1),false,1);
 outtext('Checking block files 0 %',false,1);
 for cont := 0 to lastblock do
@@ -1853,20 +1916,26 @@ for cont := 0 to lastblock do
       begin
       errores +=1;
       end;
+   EngineLastUpdate := UTCTime.ToInt64;
    porcentaje := (cont * 100) div lastblock;
    outtext('Checking block files '+inttostr(porcentaje)+' %',false,1);
    end;
+outtext('Missing blocks: '+IntToStr(errores),false,1);
+errores := 0;
+}
 outtext('Block hash correct 0 %',false,1);
 assignfile(FileResumen,ResumenFilename);
 reset(FileResumen);
 for cont := 0 to lastblock do
    begin
+   EngineLastUpdate := UTCTime.ToInt64;
    Seek(FileResumen,cont);
    Read(FileResumen,dato);
    gridinicio.RowCount := gridinicio.RowCount-1;
    if HashMD5File(BlockDirectory+IntToStr(cont)+'.blk')<> dato.blockhash then
       begin
       errores +=1;
+      badBlockHashes := badBlockHashes+IntToStr(cont)+',';
       if fixfiles then
          begin
          fixed +=1;
@@ -1879,9 +1948,14 @@ for cont := 0 to lastblock do
    porcentaje := (cont * 100) div lastblock;
    outtext('Block hash correct '+inttostr(porcentaje)+' %',false,1);
    end;
+outtext('Wrong block hashes: '+IntToStr(errores),false,1);
+outtext('Numbers: '+badBlockHashes,false,1);
+errores := 0;
+{
 outtext('Sumary hash correct 0 %',false,1);
 for cont := 1 to lastblock do
    begin
+   EngineLastUpdate := UTCTime.ToInt64;
    Seek(FileResumen,cont);
    Read(FileResumen,dato);
    gridinicio.RowCount := gridinicio.RowCount-1;
@@ -1903,7 +1977,10 @@ for cont := 1 to lastblock do
    outtext('Sumary hash correct '+IntToStr(porcentaje)+' %',false,1);
    end;
 closefile(FileResumen);
-outtext('Errors: '+IntToStr(errores)+' / Fixed: '+IntToStr(fixed),false,1);
+outtext('Wrong sumary hashes: '+IntToStr(errores),false,1);
+errores := 0;
+}
+//outtext('Errors: '+IntToStr(errores)+' / Fixed: '+IntToStr(fixed),false,1);
 RunningDoctor := false;
 FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
 UpdateMyData();

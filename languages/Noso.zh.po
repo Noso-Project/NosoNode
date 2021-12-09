@@ -29,14 +29,6 @@ msgstr "自定义地址"
 msgid "Set address as Default"
 msgstr "设置为默认地址"
 
-#: tform1.bitbtn1.caption
-msgid "Donate"
-msgstr "捐赠"
-
-#: tform1.bitbtn2.caption
-msgid "Web"
-msgstr "页面"
-
 #: tform1.bitbtnblocks.caption
 msgctxt "tform1.bitbtnblocks.caption"
 msgid "000000"
@@ -47,6 +39,12 @@ msgctxt "tform1.bitbtnblocks.hint"
 msgid "Last downloaded block"
 msgstr "最新区块"
 
+#: tform1.bitbtndonate.caption
+#, fuzzy
+msgctxt "tform1.bitbtndonate.caption"
+msgid "Donate"
+msgstr "捐赠"
+
 #: tform1.bitbtnpending.caption
 msgid "00"
 msgstr "00"
@@ -54,6 +52,12 @@ msgstr "00"
 #: tform1.bitbtnpending.hint
 msgid "Network pending orders"
 msgstr "待处理订单"
+
+#: tform1.bitbtnweb.caption
+#, fuzzy
+msgctxt "tform1.bitbtnweb.caption"
+msgid "Web"
+msgstr "页面"
 
 #: tform1.bnewaddr.hint
 msgid "Generate new address"
@@ -72,9 +76,29 @@ msgstr "显示二维码"
 msgid "Save"
 msgstr "保存"
 
+#: tform1.butstartdoctor.caption
+msgid "Start"
+msgstr ""
+
+#: tform1.butstopdoctor.caption
+msgid "Stop"
+msgstr ""
+
 #: tform1.caption
 msgid "Noso"
 msgstr "Noso"
+
+#: tform1.cbblockexists.caption
+msgid "Block file"
+msgstr ""
+
+#: tform1.cbblockhash.caption
+msgid "Block hash"
+msgstr ""
+
+#: tform1.cbsummaryhash.caption
+msgid "Summary hash"
+msgstr ""
 
 #: tform1.cb_autorpc.caption
 msgid "Active JSON-RPC server at launch"
@@ -140,6 +164,30 @@ msgstr "关于留言"
 msgid "Post offer"
 msgstr "发布报价"
 
+#: tform1.label10.caption
+#, fuzzy
+msgctxt "tform1.label10.caption"
+msgid "Funds address"
+msgstr "资金地址"
+
+#: tform1.label11.caption
+#, fuzzy
+msgctxt "tform1.label11.caption"
+msgid "Sign address"
+msgstr "签名地址"
+
+#: tform1.label12.caption
+#, fuzzy
+msgctxt "tform1.label12.caption"
+msgid "Port"
+msgstr "端口"
+
+#: tform1.label13.caption
+#, fuzzy
+msgctxt "tform1.label13.caption"
+msgid "Funds password"
+msgstr "密码"
+
 #: tform1.label2.caption
 msgid "Minimum connections to work"
 msgstr "连接"
@@ -164,27 +212,24 @@ msgstr "PoS地址报警"
 msgid "Wallet language"
 msgstr "钱包语言"
 
+#: tform1.label8.caption
+msgid "IP"
+msgstr ""
+
+#: tform1.label9.caption
+#, fuzzy
+msgctxt "tform1.label9.caption"
+msgid "Port"
+msgstr "端口"
+
 #: tform1.labelbigbalance.caption
 msgctxt "tform1.labelbigbalance.caption"
 msgid "0 NOS"
 msgstr "0 NOS"
 
-#: tform1.labelededit5.editlabel.caption
-msgid "Static IP"
-msgstr "静态IP"
-
-#: tform1.labelededit6.editlabel.caption
-msgctxt "tform1.labelededit6.editlabel.caption"
-msgid "Port"
-msgstr "端口"
-
-#: tform1.labelededit8.editlabel.caption
-msgid "Funds address"
-msgstr "资金地址"
-
-#: tform1.labelededit9.editlabel.caption
-msgid "Sign address"
-msgstr "签名地址"
+#: tform1.labeldoctor.caption
+msgid "Waiting"
+msgstr ""
 
 #: tform1.labelnobiexaverage.caption
 msgctxt "tform1.labelnobiexaverage.caption"
@@ -199,15 +244,6 @@ msgstr "最新区块"
 #: tform1.labeltransactiondetails.caption
 msgid "Transaction details"
 msgstr "交易明细"
-
-#: tform1.le_rpc_pass.editlabel.caption
-msgid "Funds password"
-msgstr "密码"
-
-#: tform1.le_rpc_port.editlabel.caption
-msgctxt "tform1.le_rpc_port.editlabel.caption"
-msgid "Port"
-msgstr "端口"
 
 #: tform1.lsctop.caption
 msgid "Send coins"
@@ -331,11 +367,6 @@ msgstr "重启"
 msgid "Quit"
 msgstr "退出"
 
-#: tform1.panelblocks.hint
-msgctxt "tform1.panelblocks.hint"
-msgid "Last downloaded block"
-msgstr "最新区块"
-
 #: tform1.sbscmax.hint
 msgid "Send all"
 msgstr "全部发送"
@@ -386,6 +417,10 @@ msgstr "RPC服务器正常"
 msgid "Masternode active"
 msgstr "主节点正常"
 
+#: tform1.statimelab.caption
+msgid "00-00-00 00:00:00 (0)"
+msgstr ""
+
 #: tform1.statimelab.hint
 msgid "Noso network time"
 msgstr "Noso网络时间"
@@ -398,6 +433,10 @@ msgstr "地址"
 msgctxt "tform1.tabconsole.caption"
 msgid "Console"
 msgstr "控制台"
+
+#: tform1.tabdoctor.caption
+msgid "Doctor"
+msgstr ""
 
 #: tform1.tabexbuy.caption
 msgid "LTC"
@@ -881,3 +920,32 @@ msgstr "地址"
 msgctxt "translation.rs0515"
 msgid "Balance"
 msgstr "余额"
+
+#: translation.rs1000
+msgid "Processing block %d (%d %%)"
+msgstr ""
+
+#: translation.rs1001
+msgid ""
+"----- ERROR ----\n"
+"Block: %d\n"
+msgstr ""
+
+#: translation.rs1002
+msgid ""
+"Wrong block hash\n"
+"File: %s\n"
+"Headers: %s\n"
+msgstr ""
+
+#: translation.rs1003
+msgid "File not found: %s"
+msgstr ""
+
+#: translation.rs1004
+msgid ""
+"Wrong summary hash\n"
+"Summary: %s\n"
+"Headers: %s\n"
+msgstr ""
+

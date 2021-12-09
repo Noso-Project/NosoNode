@@ -74,9 +74,29 @@ msgstr "Mostar codigo QR"
 msgid "Save"
 msgstr "Guardar"
 
+#: tform1.butstartdoctor.caption
+msgid "Start"
+msgstr ""
+
+#: tform1.butstopdoctor.caption
+msgid "Stop"
+msgstr ""
+
 #: tform1.caption
 msgid "Noso"
 msgstr "Noso"
+
+#: tform1.cbblockexists.caption
+msgid "Block file"
+msgstr ""
+
+#: tform1.cbblockhash.caption
+msgid "Block hash"
+msgstr ""
+
+#: tform1.cbsummaryhash.caption
+msgid "Summary hash"
+msgstr ""
 
 #: tform1.cb_autorpc.caption
 msgid "Active JSON-RPC server at launch"
@@ -204,6 +224,10 @@ msgstr "Puerto"
 msgctxt "tform1.labelbigbalance.caption"
 msgid "0 NOS"
 msgstr "0 NOS"
+
+#: tform1.labeldoctor.caption
+msgid "Waiting"
+msgstr ""
 
 #: tform1.labelnobiexaverage.caption
 msgctxt "tform1.labelnobiexaverage.caption"
@@ -407,6 +431,10 @@ msgstr "Direcciones"
 msgctxt "tform1.tabconsole.caption"
 msgid "Console"
 msgstr "Consola"
+
+#: tform1.tabdoctor.caption
+msgid "Doctor"
+msgstr ""
 
 #: tform1.tabexbuy.caption
 msgid "LTC"
@@ -890,4 +918,32 @@ msgstr "Direccion"
 msgctxt "translation.rs0515"
 msgid "Balance"
 msgstr "Saldo"
+
+#: translation.rs1000
+msgid "Processing block %d (%d %%)"
+msgstr ""
+
+#: translation.rs1001
+msgid ""
+"----- ERROR ----\n"
+"Block: %d\n"
+msgstr ""
+
+#: translation.rs1002
+msgid ""
+"Wrong block hash\n"
+"File: %s\n"
+"Headers: %s\n"
+msgstr ""
+
+#: translation.rs1003
+msgid "File not found: %s"
+msgstr ""
+
+#: translation.rs1004
+msgid ""
+"Wrong summary hash\n"
+"Summary: %s\n"
+"Headers: %s\n"
+msgstr ""
 

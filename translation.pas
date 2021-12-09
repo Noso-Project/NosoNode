@@ -105,7 +105,12 @@ resourcestring
   rs0513 = 'Wallet restart needed';
   rs0514 = 'Address';
   rs0515 = 'Balance';
-
+  //mpDisk
+  rs1000 = 'Processing block %d (%d %%)';
+  rs1001 = '----- ERROR ----'+Slinebreak+'Block: %d';
+  rs1002 = 'Wrong block hash'+SlineBreak+'File: %s'+Slinebreak+'Headers: %s';
+  rs1003 = 'File not found: %s';
+  rs1004 = 'Wrong summary hash'+SlineBreak+'Summary: %s'+Slinebreak+'Headers: %s';
 {
 ConsoleLinesadd(format(rs,[]));
 }
