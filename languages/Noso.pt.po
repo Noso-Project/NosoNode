@@ -13,7 +13,7 @@ msgstr ""
 
 #: tform1.barcodeqr1.hint
 msgid "Click on image to close it"
-msgstr ""
+msgstr "Clique na imagem para fecha-la"
 
 #: tform1.bcopyaddr.hint
 msgid "Copy address to clipboard"
@@ -38,7 +38,6 @@ msgid "Last downloaded block"
 msgstr "Último bloco baixado"
 
 #: tform1.bitbtndonate.caption
-#, fuzzy
 msgctxt "tform1.bitbtndonate.caption"
 msgid "Donate"
 msgstr "Doar"
@@ -52,7 +51,6 @@ msgid "Network pending orders"
 msgstr "Ordens pendentes na rede"
 
 #: tform1.bitbtnweb.caption
-#, fuzzy
 msgctxt "tform1.bitbtnweb.caption"
 msgid "Web"
 msgstr "Web"
@@ -68,7 +66,7 @@ msgstr "Confirmar"
 
 #: tform1.bqrcode.hint
 msgid "Show QR code"
-msgstr ""
+msgstr "Mostrar código QR"
 
 #: tform1.bsavenodeoptions.caption
 msgid "Save"
@@ -143,25 +141,21 @@ msgid "Post offer"
 msgstr "Postar oferta"
 
 #: tform1.label10.caption
-#, fuzzy
 msgctxt "tform1.label10.caption"
 msgid "Funds address"
 msgstr "Endereço de fundos"
 
 #: tform1.label11.caption
-#, fuzzy
 msgctxt "tform1.label11.caption"
 msgid "Sign address"
-msgstr "Assinar criptograficamente o endereço"
+msgstr "Endereço para assinar criptograficamente"
 
 #: tform1.label12.caption
-#, fuzzy
 msgctxt "tform1.label12.caption"
 msgid "Port"
 msgstr "Porto"
 
 #: tform1.label13.caption
-#, fuzzy
 msgctxt "tform1.label13.caption"
 msgid "Funds password"
 msgstr "Palavra-passe dos fundos"
@@ -192,10 +186,9 @@ msgstr "Língua da carteira"
 
 #: tform1.label8.caption
 msgid "IP"
-msgstr ""
+msgstr "IP"
 
 #: tform1.label9.caption
-#, fuzzy
 msgctxt "tform1.label9.caption"
 msgid "Port"
 msgstr "Porto"
@@ -393,7 +386,7 @@ msgstr "Masternode ativo"
 
 #: tform1.statimelab.caption
 msgid "00-00-00 00:00:00 (0)"
-msgstr ""
+msgstr "00-00-00 00:00:00 (0)"
 
 #: tform1.statimelab.hint
 msgid "Noso network time"
@@ -790,41 +783,40 @@ msgstr "✓ Ficheiro de reinicio apagado"
 
 #: translation.rs0071
 msgid "Checking last release available..."
-msgstr ""
+msgstr "Verificando se existe uma nova versão..."
 
 #: translation.rs0072
 msgid "✗ Failed connecting with project repo"
-msgstr ""
+msgstr "✗ Falha ao tentar ligar ao repositório do projeto"
 
 #: translation.rs0073
 msgid "✓ Running last release version"
-msgstr ""
+msgstr "✓ Esta é a ultima versão"
 
 #: translation.rs0074
 msgid "✗ New version available on project repo"
-msgstr ""
+msgstr "✗ Nova versão disponível no repositório do projeto"
 
 #: translation.rs0075
 msgid "✓ Running a development version"
-msgstr ""
+msgstr "✓ Esta é uma versão de desenvolvimento"
 
 #: translation.rs0076
 msgid "Start server"
-msgstr ""
+msgstr "Inicializar servidor"
 
 #: translation.rs0077
 msgid "Stop server"
-msgstr ""
+msgstr "Parar servidor"
 
 #: translation.rs0078
-#, fuzzy
 msgctxt "translation.rs0078"
 msgid "Connect"
 msgstr "Conectar"
 
 #: translation.rs0079
 msgid "Disconnect"
-msgstr ""
+msgstr "Desconectar"
 
 #: translation.rs0500
 msgid "Noso Launcher"
@@ -881,15 +873,13 @@ msgstr "Língua inválida: %s"
 
 #: translation.rs0513
 msgid "Wallet restart needed"
-msgstr ""
+msgstr "A carteira precisa de re-inicializar"
 
 #: translation.rs0514
 msgid "Address"
-msgstr ""
+msgstr "Endereço"
 
 #: translation.rs0515
-#, fuzzy
 msgctxt "translation.rs0515"
 msgid "Balance"
 msgstr "Saldo"
-
