@@ -108,8 +108,8 @@ var
   contador : integer;
 Begin
 LoadDefLangList();
-//if not directoryexists(BlockDirectory) then CreateDir(BlockDirectory);
-//OutText('✓ Block folder ok',false,1);
+if not directoryexists(BlockDirectory) then CreateDir(BlockDirectory);
+OutText('✓ Block folder ok',false,1);
 if not directoryexists(UpdatesDirectory) then CreateDir(UpdatesDirectory);
 OutText('✓ Updates folder ok',false,1);
 if not directoryexists(MarksDirectory) then CreateDir(MarksDirectory);
