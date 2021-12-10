@@ -42,6 +42,7 @@ The Windows version has been tested on:
 The Linux version has been tested on:
 
 - Ubuntu 21.10 64b with a Light/Dark Theme
+- Debian 11 64bit (Bullseye) with the Adwaita Dark Theme
 
 > **Note**
 >
