@@ -702,7 +702,7 @@ var
   RPCPass : string = 'default';
   ShowedOrders : integer = 100;
   MaxPeersAllow : integer = 50;
-  PoolStepsDeep : integer = 3;
+  PoolStepsDeep : integer = 2;
   WO_AutoConnect   : boolean = false;
   WO_AutoServer    : boolean = false;
   WO_ToTray        : boolean = false;
@@ -756,8 +756,6 @@ var
   G_LastPing  : int64;            // El segundo del ultimo ping
   G_TotalPings : Int64 = 0;
   Form1: TForm1;
-  //Memoconsola : Tmemo;
-  //ConsoleLine : TEdit;
   LastCommand : string = '';
   ProcessLines : TStringlist;
   StringListLang : TStringlist;
