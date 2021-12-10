@@ -74,11 +74,11 @@ msgstr "Guardar"
 
 #: tform1.butstartdoctor.caption
 msgid "Start"
-msgstr ""
+msgstr "Começar"
 
 #: tform1.butstopdoctor.caption
 msgid "Stop"
-msgstr ""
+msgstr "Parar"
 
 #: tform1.caption
 msgid "Noso"
@@ -86,15 +86,15 @@ msgstr "Noso"
 
 #: tform1.cbblockexists.caption
 msgid "Block file"
-msgstr ""
+msgstr "Ficheiro de bloco"
 
 #: tform1.cbblockhash.caption
 msgid "Block hash"
-msgstr ""
+msgstr "Cifra de bloco"
 
 #: tform1.cbsummaryhash.caption
 msgid "Summary hash"
-msgstr ""
+msgstr "Cifra do summario"
 
 #: tform1.cb_autorpc.caption
 msgid "Active JSON-RPC server at launch"
@@ -220,7 +220,7 @@ msgstr "0 NOS"
 
 #: tform1.labeldoctor.caption
 msgid "Waiting"
-msgstr ""
+msgstr "Esperando"
 
 #: tform1.labelnobiexaverage.caption
 msgctxt "tform1.labelnobiexaverage.caption"
@@ -427,7 +427,7 @@ msgstr "Consola"
 
 #: tform1.tabdoctor.caption
 msgid "Doctor"
-msgstr ""
+msgstr "Doutor"
 
 #: tform1.tabexbuy.caption
 msgid "LTC"
@@ -914,13 +914,15 @@ msgstr "Saldo"
 
 #: translation.rs1000
 msgid "Processing block %d (%d %%)"
-msgstr ""
+msgstr "Processando bloco %d (%d %%)"
 
 #: translation.rs1001
 msgid ""
 "----- ERROR ----\n"
 "Block: %d\n"
 msgstr ""
+"----- ERRO ----\n"
+"Bloco: %d\n"
 
 #: translation.rs1002
 msgid ""
@@ -928,10 +930,13 @@ msgid ""
 "File: %s\n"
 "Headers: %s\n"
 msgstr ""
+"Cifra de bloco errada\n"
+"Ficheiro: %s\n"
+"Cabeçalhos: %s\n"
 
 #: translation.rs1003
 msgid "File not found: %s"
-msgstr ""
+msgstr "Ficheiro não encontrado: %s"
 
 #: translation.rs1004
 msgid ""
@@ -939,4 +944,6 @@ msgid ""
 "Summary: %s\n"
 "Headers: %s\n"
 msgstr ""
-
+"Cifra de sumario errada\n"
+"Sumario: %s\n"
+"Cabeçalhos: %s\n"
