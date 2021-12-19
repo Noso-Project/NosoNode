@@ -111,6 +111,12 @@ resourcestring
   rs1002 = 'Wrong block hash'+SlineBreak+'File: %s'+Slinebreak+'Headers: %s';
   rs1003 = 'File not found: %s';
   rs1004 = 'Wrong summary hash'+SlineBreak+'Summary: %s'+Slinebreak+'Headers: %s';
+  //mpParser
+  rs1501 = 'Invalid address';
+  rs1502 = 'You can not do it while pool is active.';
+  rs1503 = 'Totals: %d connections, %d IPs';
+  rs1504 = 'Address do not exists in wallet.';
+  rs1505 = 'Keys pasted to clipboard.';
 {
 ConsoleLinesadd(format(rs,[]));
 }

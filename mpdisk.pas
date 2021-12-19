@@ -85,7 +85,7 @@ Procedure GuardarArchivoPoolInfo();
 function GetPoolInfoFromDisk():PoolInfoData;
 Procedure LoadPoolMembers();
 Procedure CrearArchivoPoolMembers;
-Procedure GuardarPoolMembers();
+Procedure GuardarPoolMembers(TruncateFile:Boolean=false);
 Procedure EjecutarAutoUpdate(version:string);
 Procedure CrearRestartfile();
 Procedure RestartConditions();
@@ -612,6 +612,7 @@ CreateFileFromResource('Noso.es','locale'+DirectorySeparator+'Noso.es.po');
 CreateFileFromResource('Noso.pt','locale'+DirectorySeparator+'Noso.pt.po');
 CreateFileFromResource('Noso.zh','locale'+DirectorySeparator+'Noso.zh.po');
 CreateFileFromResource('Noso.de','locale'+DirectorySeparator+'Noso.de.po');
+CreateFileFromResource('Noso.ro','locale'+DirectorySeparator+'Noso.ro.po');
 End;
 
 Procedure CreateFileFromResource(resourcename,filename:string);
@@ -2075,7 +2076,7 @@ END;
 End;
 
 // Save pool members file to disk
-Procedure GuardarPoolMembers();
+Procedure GuardarPoolMembers(TruncateFile:boolean=false);
 var
   contador : integer;
   SavedOk : boolean = false;
@@ -2094,8 +2095,8 @@ assignfile(FilePoolMembers,PoolMembersFilename);
       seek(FilePoolMembers,contador);
       write(FilePoolMembers,CopyArray[contador]);
       end;
+   if TruncateFile then truncate(FilePoolMembers);
    Closefile(FilePoolMembers);
-   //truncate(FilePoolMembers);
    SavedOk := true;
    EXCEPT on E:Exception do
       ToExcLog('Error saving pool members to disk: '+E.Message);
@@ -2144,16 +2145,22 @@ End;
 Procedure RestartConditions();
 var
   archivo : textfile;
-  linea : string;
+  linea : string = '';
   Server,connect : boolean;
 Begin
 Assignfile(archivo, 'restart.txt');
 reset(archivo);
+TRY
 ReadLn(archivo,linea);
 ReadLn(archivo,Miner_RestartedSolution);
+EXCEPT ON E:Exception do
+   begin
+
+   end;
+END{Try};
 Closefile(archivo);
-server := StrToBool(parameter(linea,1));
-connect := StrToBool(parameter(linea,3));
+server := StrToBoolDef(parameter(linea,1),WO_AutoServer);
+connect := StrToBoolDef(parameter(linea,3),WO_AutoConnect);
 if server then ProcessLinesAdd('SERVERON');
 if connect then ProcessLinesAdd('CONNECT');
 tryDeletefile('restart.txt');

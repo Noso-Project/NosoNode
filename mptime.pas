@@ -96,15 +96,6 @@ function GetLocalTimestamp():string;
 var
   resultado : int64;
 Begin
-{
-resultado := Trunc((Now - EncodeDate(1970, 1 ,1)) * 24 * 60 * 60);
-if resultado < G_LastLocalTimestamp then
-   begin
-   Tolog('***CRITICAL*** LOCAL TIMESTAMP ERROR < PREVIOUS ONE');
-   end;
-GetLocalTimestamp := inttostr(resultado);
-G_LastLocalTimestamp := resultado;
-}
 result := IntToStr(DateTimeToUnix(now));
 end;
 

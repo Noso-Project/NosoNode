@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, mpCripto, mpTime, mpblock, mpcoin,
-  dialogs, fileutil, forms, idglobal, poolmanage, strutils, mpRPC, DateUtils, Clipbrd;
+  dialogs, fileutil, forms, idglobal, poolmanage, strutils, mpRPC, DateUtils, Clipbrd,translation;
 
 procedure ProcessLinesAdd(const ALine: String);
 procedure ConsoleLinesAdd(const ALine: String);
@@ -68,11 +68,13 @@ Procedure CreatePool(LineText:string);
 Procedure ShowPoolInfo();
 Procedure JoinPool(LineText:string);
 Procedure Deletepool(LineText:string);
+Procedure PoolIPPower();
 Procedure GetOwnerHash(LineText:string);
 Procedure CheckOwnerHash(LineText:string);
 function AvailableUpdates():string;
 Procedure RunUpdate(linea:string);
 Procedure ShowAdvOpt();
+Procedure SetPoolAddress(LineText:string);
 Procedure ChangePoolPassword(LineText:string);
 Procedure ChangePoolFee(LineText:string);
 Procedure ChangePoolMembers(LineText:string);
@@ -96,6 +98,7 @@ Procedure TestNetwork(LineText:string);
 Procedure ShowPendingTrxs();
 Procedure HangWallet();
 Procedure WebWallet();
+Procedure ExportKeys(linea:string);
 
 // CONSULTING
 Procedure ShowDiftory();
@@ -275,6 +278,7 @@ else if UpperCase(Command) = 'UNIXTIME' then ConsoleLinesAdd(IntToStr(DateTimeTo
 else if UpperCase(Command) = 'REBUILDMYTRX' then ExecuteRebuildMyTrx()
 else if UpperCase(Command) = 'SHOWPENDING' then ShowPendingTrxs()
 else if UpperCase(Command) = 'WEBWAL' then WebWallet()
+else if UpperCase(Command) = 'EXPKEYS' then ExportKeys(LineText)
 else if UpperCase(Command) = 'HANG' then HangWallet()
 else if UpperCase(Command) = 'CHECKUPDATES' then ConsoleLinesAdd(GetLastRelease)
 
@@ -293,6 +297,7 @@ else if UpperCase(Command) = 'STARTPOOLSERVER' then StartPoolServer(poolinfo.Por
 else if UpperCase(Command) = 'STOPPOOLSERVER' then StopPoolServer()
 else if UpperCase(Command) = 'USEPOOLON' then UsePoolOn()
 else if UpperCase(Command) = 'USEPOOLOFF' then UsePoolOff()
+else if UpperCase(Command) = 'POOLADDRESS' then SetPoolAddress(LineText)
 else if UpperCase(Command) = 'POOLPASS' then ChangePoolPassword(LineText)
 else if UpperCase(Command) = 'POOLFEE' then ChangePoolFee(LineText)
 else if UpperCase(Command) = 'POOLMEMBERS' then ChangePoolMembers(LineText)
@@ -305,6 +310,7 @@ else if UpperCase(Command) = 'POOLHASHRATE' then SendPoolHashRateRequest()
 else if UpperCase(Command) = 'SAVEPOOLFILES' then SavePoolFiles()
 else if UpperCase(Command) = 'POOLPEERS' then ConsoleLinesAdd('Pool list: '+IntToStr(form1.PoolClientsCount))
 else if UpperCase(Command) = 'POOLRESET' then PoolInfo.FeeEarned := 0
+else if UpperCase(Command) = 'POOLIPPOWER' then PoolIPPower()
 
 // P2P
 else if UpperCase(Command) = 'PEERS' then ConsoleLinesAdd('Server list: '+IntToStr(form1.ClientsCount)+'/'+IntToStr(GetIncomingConnections))
@@ -1568,6 +1574,77 @@ else
    end;
 End;
 
+Procedure PoolIPPower();
+type
+  IPData = Packed Record
+     ip: string[15];
+     count : integer;
+     Power : int64;
+     end;
+var
+  ArrIPs : Array of IPData;
+  ArrOrdered : Array of IPData;
+  SlotsArray :array of PoolUserConnection;
+  counter, count2 : integer;
+  IPPosition : integer;
+  AlreadyOrdered : boolean = false;
+
+  function IPAlready(ThisData:PoolUserConnection):integer;
+  var
+    cont : integer;
+  Begin
+  if ThisData.ip <> '' then
+     begin
+     for cont := 0 to length(ArrIPs)-1 do
+        begin
+        if Thisdata.IP = ArrIPs[cont].ip then
+           begin
+           ArrIPs[cont].count+=1;
+           ArrIPs[cont].Power:=ArrIPs[cont].Power+Thisdata.Hashpower;
+           exit;
+           end;
+        end;
+     Setlength(ArrIPs,length(ArrIPs)+1);
+     ArrIPs[length(ArrIPs)-1].ip:=Thisdata.Ip;
+     ArrIPs[length(ArrIPs)-1].count+=1;
+     ArrIPs[length(ArrIPs)-1].Power:=ArrIPs[length(ArrIPs)-1].Power+Thisdata.Hashpower;
+     end;
+  end;
+
+Begin
+setlength(ArrIPs,0);
+setlength(ArrOrdered,0);
+setlength(SlotsArray,0);
+SlotsArray := copy(PoolServerConex,0,length(PoolServerConex));
+for counter := 0 to length(SlotsArray)-1 do
+   IPAlready(SlotsArray[counter]);
+for counter := 0 to length(ArrIPs)-1 do
+   begin
+   AlreadyOrdered := false;
+   if length(ArrOrdered) = 0 then
+      begin
+      insert(ArrIPs[0],ArrOrdered,0);
+      AlreadyOrdered := true;
+      end
+   else
+      begin
+      for count2 := 0 to length(ArrOrdered)-1 do
+         begin
+         if ((ArrIPs[counter].Power>ArrOrdered[count2].Power) and (not AlreadyOrdered))then
+            begin
+            insert(ArrIPs[counter],ArrOrdered,count2);
+            AlreadyOrdered := true;
+            end;
+         end;
+      if not AlreadyOrdered then insert(ArrIPs[counter],ArrOrdered,length(ArrOrdered));
+      end;
+   end;
+for counter := 0 to length(ArrOrdered)-1 do
+   consolelines.Add(ArrOrdered[counter].ip+'-> '+ShowHashRate(ArrOrdered[counter].Power)+' ('+
+   IntToStr(ArrOrdered[counter].count)+')');
+consolelinesAdd(format(rs1503,[length(SlotsArray),length(ArrIPs)]));
+End;
+
 Procedure GetOwnerHash(LineText:string);
 var
   direccion, currtime : string;
@@ -1645,6 +1722,34 @@ Begin
 ConsoleLinesAdd('AutoConnect: '+booltostr(WO_Autoconnect,true));
 End;
 
+Procedure SetPoolAddress(LineText:string);
+var
+  NewAddress : String = '';
+  errored : boolean = false;
+Begin
+if not Miner_OwnsAPool then
+   begin
+   ConsoleLinesAdd('You do not own a pool');
+   errored := true;
+   end;
+NewAddress := Parameter(LineText,1);
+If DireccionEsMia(NewAddress)<0 then
+   begin
+   ConsoleLinesAdd(rs1501);
+   errored := true;
+   end;
+if not errored then
+   begin
+   if Miner_OwnsAPool then // si posse el pool, cambiar ambas
+      begin
+      PoolInfo.Direccion:=NewAddress;
+      S_PoolInfo:=true;
+      end;
+   MyPoolData.Direccion:= NewAddress;
+   SaveMyPoolData;
+   end;
+End;
+
 Procedure ChangePoolPassword(LineText:string);
 var
   oldpass, newpass : string;
@@ -1709,15 +1814,24 @@ if (not Miner_OwnsAPool) then
    begin
    ConsoleLinesAdd('You do not own a pool');
    end
+else if form1.PoolServer.Active then
+   begin
+   ConsoleLinesAdd(rs1502);
+   end
 else
    begin
-   if ( (newmembers<length(arraypoolmembers)) or (newmembers>Pool_Max_Members) ) then
+   if newmembers>Pool_Max_Members then
+   //if ( (newmembers<length(arraypoolmembers)) or (newmembers>Pool_Max_Members) ) then
       begin
       ConsoleLinesAdd('Invalid number of members');
       end
    else
       begin
       poolinfo.MaxMembers:=newmembers;
+      EnterCriticalSection(CSPoolMembers);
+      Setlength(ArrayPoolMembers,newmembers);
+      LeaveCriticalSection(CSPoolMembers);
+      GuardarPoolMembers(true);
       S_PoolInfo:=true;
       EdMaxMem.Caption:='Members: '+IntToStr(poolinfo.MaxMembers);
       ConsoleLinesAdd('New pool max members= '+IntToStr(newmembers));
@@ -2116,7 +2230,7 @@ addtoshow := parameter(linea,1);
 sumposition := DireccionEsMia(addtoshow);
 if sumposition<0 then
    begin
-   if ToConsole then ConsoleLinesAdd('Address do not exists in wallet.');
+   if ToConsole then ConsoleLinesAdd(rs1504);
    end
 else
    begin
@@ -2180,6 +2294,26 @@ Setlength(ToClipboard,length(ToClipboard)-1);
 Clipboard.AsText := ToClipboard;
 ConsoleLinesadd('Web wallet data copied to clipboard');
 End;
+
+Procedure ExportKeys(linea:string);
+var
+  sumposition : integer;
+  addtoshow : string = '';
+  Resultado : string = '';
+Begin
+addtoshow := parameter(linea,1);
+sumposition := DireccionEsMia(addtoshow);
+if sumposition<0 then
+   begin
+   ConsoleLinesAdd(rs1504);
+   end
+else
+   begin
+   Resultado := ListaDirecciones[sumposition].PublicKey+' '+ListaDirecciones[sumposition].PrivateKey;
+   Clipboard.AsText := Resultado;
+   ConsoleLinesAdd(rs1505);
+   end;
+end;
 
 Procedure PostOffer(LineText:String);
 var

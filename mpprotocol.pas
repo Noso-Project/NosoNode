@@ -23,7 +23,7 @@ function GetNodeFromString(NodeDataString: string): NodeData;
 Procedure ProcessPing(LineaDeTexto: string; Slot: integer; Responder:boolean);
 function GetPingString():string;
 procedure PTC_SendPending(Slot:int64);
-Procedure PTC_Newblock(Texto:String);
+Procedure PTC_Newblock(Texto:String;connectionNumber:Integer);
 Procedure PTC_SendResumen(Slot:int64);
 function CreateZipBlockfile(firstblock:integer):string;
 Procedure PTC_SendBlocks(Slot:integer;TextLine:String);
@@ -189,7 +189,7 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = '$PING' then ProcessPing(SlotLines[contador][0],contador,true)
       else if UpperCase(LineComando) = '$PONG' then ProcessPing(SlotLines[contador][0],contador,false)
       else if UpperCase(LineComando) = '$GETPENDING' then PTC_SendPending(contador)
-      else if UpperCase(LineComando) = '$NEWBL' then PTC_NewBlock(SlotLines[contador][0])
+      else if UpperCase(LineComando) = '$NEWBL' then PTC_NewBlock(SlotLines[contador][0], contador)
       else if UpperCase(LineComando) = '$GETRESUMEN' then PTC_SendResumen(contador)
       else if UpperCase(LineComando) = '$LASTBLOCK' then PTC_SendBlocks(contador,SlotLines[contador][0])
       else if UpperCase(LineComando) = '$CUSTOM' then INC_PTC_Custom(GetOpData(SlotLines[contador][0]))
@@ -404,7 +404,7 @@ if Length(PendingTXs) > 0 then
 End;
 
 // Se recibe un mensaje con una solucion para el bloque
-Procedure PTC_Newblock(Texto:String);
+Procedure PTC_Newblock(Texto:String;connectionNumber:Integer);
 var
   TimeStamp       : string = '';
   NumeroBloque    : string = '';
@@ -438,6 +438,7 @@ if ( (BlockNumber = LastBlockData.Number+1) and
    begin
    ConsoleLinesAdd(LangLine(21)+NumeroBloque); //Solution for block received and verified:
    CrearNuevoBloque(BlockNumber,StrToInt64(TimeStamp),Miner_Target,DireccionMinero,Solucion);
+   Consolelinesadd('Received from: '+Conexiones[connectionNumber].ip);
    end
 // se recibe una solucion distinta del ultimo bloque pero mas antigua
 else if ( (BlockNumber = LastBlockData.Number) and

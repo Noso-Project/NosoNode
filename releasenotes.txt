@@ -1,0 +1,12 @@
+Version 0.2.1Ka3
+
+- Romanian language included.
+- Default pool deepstep set to 2.
+- Added new console command: pooladdress.
+- Default pool maxmembers set to 300.
+- Now it is possible to decrease max number of members in a pool.
+- Added new console command: poolippower.
+- Fixed bug on restart when restart.txt is empty.
+- Fixed memory leaks from indylaz.
+- Added console command: expkeys.
+

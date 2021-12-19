@@ -22,9 +22,8 @@ function IsValidAddress(Address:String):boolean;
 function IsValid58(base58text:string):boolean;
 function DireccionEsMia(direccion:string):integer;
 Procedure RunExternalProgram(ProgramToRun:String);
-{function RunOpenSSLCommand(textline:String):boolean;}
 function GetStringSigned(StringtoSign, PrivateKey:String):String;
-function GetBase64TextFromFile(fileb64:string):string;
+{function GetBase64TextFromFile(fileb64:string):string;}
 function VerifySignedString(StringToVerify,B64String,PublicKey:String):boolean;
 function GetTransferHash(TextLine:string):String;
 function GetOrderHash(TextLine:string):String;
@@ -81,40 +80,6 @@ Deletefile('public.pem');
 Result := MyData;
 setmilitime('CreateNewAddress',2);
 End;
-
-
-// Crea las claves publicas y privadas
-{
-Procedure CreateKeysPair();
-var
-  MyProcess, MyProcess2 : TProcess;
-Begin
-//Generates the private
-MyProcess:= TProcess.Create(nil);
-MyProcess.Executable := UserOptions.SSLPath;
-MyProcess.Parameters.Add('ecparam');
-MyProcess.Parameters.Add('-name');
-MyProcess.Parameters.Add('secp256k1');
-MyProcess.Parameters.Add('-genkey');
-MyProcess.Parameters.Add('-noout');
-MyProcess.Parameters.Add('-out');
-MyProcess.Parameters.Add('private.pem');
-MyProcess.Options := MyProcess.Options + [poWaitOnExit, poUsePipes, poNoConsole];
-MyProcess.Execute;
-// Extract public key
-MyProcess2:= TProcess.Create(nil);
-MyProcess2.Executable := UserOptions.SSLPath;
-MyProcess2.Parameters.Add('ec');
-MyProcess2.Parameters.Add('-in');
-MyProcess2.Parameters.Add('private.pem');
-MyProcess2.Parameters.Add('-pubout');
-MyProcess2.Parameters.Add('-out');
-MyProcess2.Parameters.Add('public.pem');
-MyProcess2.Options := MyProcess2.Options + [poWaitOnExit, poUsePipes, poNoConsole];
-MyProcess2.Execute;
-MyProcess.Free;MyProcess2.Free;
-End;
-}
 
 // RETURNS THE PUBLIC KEY WHEN CREATED
 Function GetPublicKeyFromPem():String;
@@ -185,54 +150,16 @@ End;
 
 // RETURNS THE SHA256 OF A STRING
 function HashSha256String(StringToHash:string):string;
-var
-  Hash: TDCP_sha256;
-  Digest: array[0..31] of byte;  // sha256 produces a 256bit digest (32bytes)
-  Source: string;
-  i: integer;
-  str1: string;
 begin
-{result :=
-THashFactory.TCrypto.CreateSHA2_256().ComputeString(StringToHash, TEncoding.UTF8).ToString();}
-Source:= StringToHash;  // here your string for get sha256
-if Source <> '' then
-   begin
-   Hash:= TDCP_sha256.Create(nil);  // create the hash
-   Hash.Init;                        // initialize it
-   Hash.UpdateStr(Source);
-   Hash.Final(Digest);               // produce the digest
-   str1:= '';
-   for i:= 0 to 31 do
-   str1:= str1 + IntToHex(Digest[i],2);
-   Result:=UpperCase(str1);         // display the digest in capital letter
-   Hash.Free;
-   end;
+result :=
+THashFactory.TCrypto.CreateSHA2_256().ComputeString(StringToHash, TEncoding.UTF8).ToString();
 end;
 
 // RETURNS HASH MD160 OF A STRING
 function HashMD160String(StringToHash:string):String;
-{var
-  Hash: TDCP_ripemd160;
-  Digest: array[0..19] of byte;
-  Source: string;
-  i: integer;
-  str1: string;}
 Begin
 result :=
 THashFactory.TCrypto.CreateRIPEMD160().ComputeString(StringToHash, TEncoding.UTF8).ToString();
-{Source:= StringToHash;
-if Source <> '' then
-   begin
-   Hash:= TDCP_ripemd160.Create(nil);
-   Hash.Init;
-   Hash.UpdateStr(Source);
-   Hash.Final(Digest);
-   str1:= '';
-   for i:= 0 to 19 do
-   str1:= str1 + IntToHex(Digest[i],2);
-   Result:=UpperCase(str1);
-   Hash.Free;
-   end; }
 End;
 
 // RETURNS THE MD5 HASH OF A STRING
@@ -337,95 +264,19 @@ Process := TProcess.Create(nil);
    end;
 End;
 
-{
-function RunOpenSSLCommand(textline:String):boolean;
-var
-  ArrParameters : Array of string;
-  contador : integer = 1;
-  ThisParam : String = '';
-  MoreParam: boolean = true;
-  MyProcess : TProcess;
-  Resultado, Errores : TStringList;
-Begin
-result := false;
-Resultado := TStringList.Create;
-Errores := TStringList.Create;
-SetLength(ArrParameters,0);
-while MoreParam do
-   begin
-   ThisParam := Parameter(textline,contador);
-   if thisparam = '' then MoreParam := false
-   else
-     begin
-     SetLength(ArrParameters,length(ArrParameters)+1);
-     ArrParameters[length(ArrParameters)-1] := ThisParam;
-     end;
-   contador := contador+1;
-   end;
-MyProcess:= TProcess.Create(nil);
-MyProcess.Executable := UserOptions.SSLPath;
-For contador := 0 to length(ArrParameters)-1 do
-  MyProcess.Parameters.Add(ArrParameters[contador]);
-MyProcess.Options := MyProcess.Options + [poWaitOnExit, poUsePipes, poNoConsole];
-MyProcess.Execute;
-Resultado.LoadFromStream(MyProcess.Output);
-Errores.LoadFromStream(MyProcess.stderr);
-if ((Resultado.Count>0) and (Resultado[0] = 'Verified OK')) then result := true;
-while Resultado.Count > 0 do
-   begin
-   //ConsoleLinesAdd(Resultado[0]);
-   Resultado.Delete(0);
-   end;
-if Errores.Count > 0 then
-   begin
-   ConsoleLinesAdd('ERRORS');
-   while Errores.Count > 0 do
-      begin
-      ConsoleLinesAdd(Errores[0]);
-      Errores.Delete(0);
-      end;
-   end;
-MyProcess.Free;Resultado.Free; Errores.Free;
-end;
-}
-
 // Regresa la firma de la cadena especificada usando la clave privada
 function GetStringSigned(StringtoSign, PrivateKey:String):String;
 var
-  //FileToSign :Textfile;
-  //FilePrivate : TextFile;
   Signature, MessageAsBytes: TBytes;
 Begin
 MessageAsBytes :=StrToByte(DecodeStringBase64(StringtoSign));
 Signature := TSignerUtils.SignMessage(MessageAsBytes, StrToByte(DecodeStringBase64(PrivateKey)),
       TKeyType.SECP256K1);
 Result := EncodeStringBase64(ByteToString(Signature));
-{
-//creates the file with the string to be signed
-AssignFile(FileToSign, 'temp_string.txt');
-rewrite(FileToSign);
-write(FileToSign,StringtoSign);
-CloseFile(FileToSign);
-//creates the file with the private key
-AssignFile(FilePrivate, 'temp_priv.pem');
-rewrite(FilePrivate);
-writeln(FilePrivate,'-----BEGIN EC PRIVATE KEY-----');
-writeln(FilePrivate,copy(PrivateKey,1,64));
-writeln(FilePrivate,copy(PrivateKey,65,64));
-writeln(FilePrivate,copy(PrivateKey,129,64));
-writeln(FilePrivate,'-----END EC PRIVATE KEY-----');
-CloseFile(FilePrivate);
-RunOpenSSLCommand('openssl dgst -sha1 -out temp_test.bin -sign temp_priv.pem temp_string.txt');
-RunOpenSSLCommand('openssl base64 -in temp_test.bin -out temp_test.b64');
-result := GetBase64TextFromFile('temp_test.b64');
-Deletefile('temp_string.txt');
-Deletefile('temp_priv.pem');
-DeleteFile('temp_test.bin');
-Deletefile('temp_test.b64');
-}
 End;
 
 // RETURNS THE BASE64 STRING FROM A FILE
+{
 function GetBase64TextFromFile(fileb64:string):string;
 var
   KeyFile: TextFile;
@@ -448,56 +299,17 @@ AssignFile(KeyFile,fileb64);
    end;
 Result := Resultado;
 end;
+}
 
 // VERIFY IF A SIGNED STRING IS VALID
 function VerifySignedString(StringToVerify,B64String,PublicKey:String):boolean;
 var
-  //FileToSign :Textfile;
-  //FilePublic : TextFile;
-  //FileB64 : Textfile;
   Signature, MessageAsBytes: TBytes;
 Begin
 MessageAsBytes := StrToByte(DecodeStringBase64(StringToVerify));
 Signature := StrToByte(DecodeStringBase64(B64String));
 Result := TSignerUtils.VerifySignature(Signature, MessageAsBytes,
       StrToByte(DecodeStringBase64(PublicKey)), TKeyType.SECP256K1);
-{
-//creates the file with the string to be verified
-AssignFile(FileToSign, 'temp_string.txt');
-rewrite(FileToSign);
-write(FileToSign,StringToVerify);
-CloseFile(FileToSign);
-//creates the file with the private key
-AssignFile(FilePublic, 'temp_pub.pem');
-rewrite(FilePublic);
-writeln(FilePublic,'-----BEGIN PUBLIC KEY-----');
-writeln(FilePublic,copy(PublicKey,1,64));
-writeln(FilePublic,copy(PublicKey,65,64));
-writeln(FilePublic,'-----END PUBLIC KEY-----');
-CloseFile(FilePublic);
-//creates the file containing the base64 data
-AssignFile(FileB64, 'temp_test.b64');
-rewrite(FileB64);
-writeln(FileB64,copy(B64String,1,64));
-writeln(FileB64,copy(B64String,65,64));
-CloseFile(FileB64);
-//get the binary file from base64
-RunOpenSSLCommand('openssl base64 -d -in temp_test.b64 -out temp_test.bin');
-if RunOpenSSLCommand('openssl dgst -sha1 -verify temp_pub.pem -signature temp_test.bin temp_string.txt') then
-   begin
-   result := true;
-   //ConsoleLinesAdd(LangLine(27));     //Signed Verification Ok
-   end
-else
-   begin
-   result := false;                     //Signed Verification FAILED
-   //ConsoleLinesAdd(LangLine(28));
-   end;
-Deletefile('temp_string.txt');
-Deletefile('temp_pub.pem');
-DeleteFile('temp_test.bin');
-Deletefile('temp_test.b64');
-}
 End;
 
 // Devuelve el hash para una trx

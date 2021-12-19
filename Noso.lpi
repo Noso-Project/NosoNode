@@ -15,12 +15,13 @@
         <DpiAware Value="True"/>
       </XPManifest>
       <Icon Value="0"/>
-      <Resources Count="5">
+      <Resources Count="6">
         <Resource_0 FileName="languages\Noso.en.po" Type="RCDATA" ResourceName="NOSO.EN"/>
         <Resource_1 FileName="languages\Noso.es.po" Type="RCDATA" ResourceName="NOSO.ES"/>
         <Resource_2 FileName="languages\Noso.pt.po" Type="RCDATA" ResourceName="NOSO.PT"/>
         <Resource_3 FileName="languages\Noso.de.po" Type="RCDATA" ResourceName="NOSO.DE"/>
         <Resource_4 FileName="languages/Noso.zh.po" Type="RCDATA" ResourceName="NOSO.ZH"/>
+        <Resource_5 FileName="languages\Noso.ro.po" Type="RCDATA" ResourceName="NOSO.RO"/>
       </Resources>
     </General>
     <i18n>
@@ -114,22 +115,22 @@
     </RunParams>
     <RequiredPackages Count="7">
       <Item1>
-        <PackageName Value="lazbarcodes"/>
+        <PackageName Value="indylaz"/>
       </Item1>
       <Item2>
-        <PackageName Value="dcpcrypt"/>
+        <PackageName Value="lazbarcodes"/>
       </Item2>
       <Item3>
-        <PackageName Value="CryptoLib4PascalPackage"/>
+        <PackageName Value="dcpcrypt"/>
       </Item3>
       <Item4>
-        <PackageName Value="SimpleBaseLib4PascalPackage"/>
+        <PackageName Value="CryptoLib4PascalPackage"/>
       </Item4>
       <Item5>
-        <PackageName Value="HashLib4PascalPackage"/>
+        <PackageName Value="SimpleBaseLib4PascalPackage"/>
       </Item5>
       <Item6>
-        <PackageName Value="indylaz"/>
+        <PackageName Value="HashLib4PascalPackage"/>
       </Item6>
       <Item7>
         <PackageName Value="LCL"/>

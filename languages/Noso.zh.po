@@ -950,3 +950,23 @@ msgstr ""
 "摘要：%s\n"
 "头文件：%s\n"
 
+#: translation.rs1501
+msgid "Invalid address"
+msgstr ""
+
+#: translation.rs1502
+msgid "You can not do it while pool is active."
+msgstr ""
+
+#: translation.rs1503
+msgid "Totals: %d connections, %d IPs"
+msgstr ""
+
+#: translation.rs1504
+msgid "Address do not exists in wallet."
+msgstr ""
+
+#: translation.rs1505
+msgid "Keys pasted to clipboard."
+msgstr ""
+

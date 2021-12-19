@@ -4,28 +4,28 @@ msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: \n"
 "PO-Revision-Date: \n"
-"Last-Translator: Fechi92 <fechi1712@gmail.com>\n"
+"Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: de\n"
 "X-Generator: Poedit 3.0\n"
+"Language: ro_RO\n"
 
 #: tform1.barcodeqr1.hint
 msgid "Click on image to close it"
-msgstr ""
+msgstr "Click pe imagine pentru a o inchide"
 
 #: tform1.bcopyaddr.hint
 msgid "Copy address to clipboard"
-msgstr "Adresse in Zwischenablage kopieren"
+msgstr "Copiază adresa în clipboard"
 
 #: tform1.bcustomaddr.hint
 msgid "Customize address"
-msgstr "Adresse anpassen"
+msgstr "Personalizează adresa"
 
 #: tform1.bdefaddr.hint
 msgid "Set address as Default"
-msgstr "Adresse als Standard festlegen"
+msgstr "Setați adresa ca implicită"
 
 #: tform1.bitbtnblocks.caption
 msgctxt "tform1.bitbtnblocks.caption"
@@ -35,13 +35,12 @@ msgstr "000000"
 #: tform1.bitbtnblocks.hint
 msgctxt "tform1.bitbtnblocks.hint"
 msgid "Last downloaded block"
-msgstr "Zuletzt heruntergeladener Block"
+msgstr "Ultimul bloc descărcat"
 
 #: tform1.bitbtndonate.caption
-#, fuzzy
 msgctxt "tform1.bitbtndonate.caption"
 msgid "Donate"
-msgstr "Spenden"
+msgstr "Donează"
 
 #: tform1.bitbtnpending.caption
 msgid "00"
@@ -49,38 +48,37 @@ msgstr "00"
 
 #: tform1.bitbtnpending.hint
 msgid "Network pending orders"
-msgstr "Ausstehende Aufträge im Netz"
+msgstr "Tranzacții în așteptare în rețea"
 
 #: tform1.bitbtnweb.caption
-#, fuzzy
 msgctxt "tform1.bitbtnweb.caption"
 msgid "Web"
 msgstr "Web"
 
 #: tform1.bnewaddr.hint
 msgid "Generate new address"
-msgstr "Neue Adresse generieren"
+msgstr "Generează o nouă adresă"
 
 #: tform1.bokcustom.hint
 msgctxt "tform1.bokcustom.hint"
 msgid "Confirm"
-msgstr "Bestätigen"
+msgstr "Confirmă"
 
 #: tform1.bqrcode.hint
 msgid "Show QR code"
-msgstr "QR-Code anzeigen"
+msgstr "Afișează codul QR"
 
 #: tform1.bsavenodeoptions.caption
 msgid "Save"
-msgstr "Speichern"
+msgstr "Salvează"
 
 #: tform1.butstartdoctor.caption
 msgid "Start"
-msgstr ""
+msgstr "Start"
 
 #: tform1.butstopdoctor.caption
 msgid "Stop"
-msgstr ""
+msgstr "Stop"
 
 #: tform1.caption
 msgid "Noso"
@@ -88,67 +86,67 @@ msgstr "Noso"
 
 #: tform1.cbblockexists.caption
 msgid "Block file"
-msgstr ""
+msgstr "Fișierul blocului"
 
 #: tform1.cbblockhash.caption
 msgid "Block hash"
-msgstr ""
+msgstr "Hash-ul blocului"
 
 #: tform1.cbsummaryhash.caption
 msgid "Summary hash"
-msgstr ""
+msgstr "Rezumat Hash"
 
 #: tform1.cb_autorpc.caption
 msgid "Active JSON-RPC server at launch"
-msgstr "Aktiver JSON-RPC-Server beim Start"
+msgstr "Server JSON-RPC activ la lansare"
 
 #: tform1.cb_rpcfilter.caption
 msgid "Accept only whitelist requests"
-msgstr "Nur Whitelist-Anfragen akzeptieren"
+msgstr "Acceptă numai cererile din lista albă"
 
 #: tform1.cb_rpc_on.caption
 msgid "Enable JSON-RPC server"
-msgstr "JSON-RPC-Server einschalten"
+msgstr "Activează serverul JSON-RPC"
 
 #: tform1.cb_wo_antifreeze.caption
 msgid "Anti freeze (s)"
-msgstr "Gegen einfrieren (s)"
+msgstr "Anti-blocare (i)"
 
 #: tform1.cb_wo_autoconnect.caption
 msgid "Auto connect at start"
-msgstr "Automatische Verbindung beim Start"
+msgstr "Conectare automată la pornire"
 
 #: tform1.cb_wo_multisend.caption
 msgid "Send coins only from default address"
-msgstr "Münzen nur von der Standardadresse senden"
+msgstr "Trimite monezi numai de la adresa implicită"
 
 #: tform1.cb_wo_totray.caption
 msgid "Minimize to tray"
-msgstr "In die Ablage minimieren"
+msgstr "Minimizează pe bară"
 
 #: tform1.checkbox1.caption
 msgid "Download blockchain"
-msgstr "Blockchain herunterladen"
+msgstr "Descarcă blockchain"
 
 #: tform1.checkbox2.caption
 msgid "Install automatically new official releases"
-msgstr "Neue offizielle Versionen automatisch installieren"
+msgstr "Instalează automat noi versiuni oficiale"
 
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
-msgstr "MasterNode ausführen"
+msgstr "Rulează MasterNode"
 
 #: tform1.checkbox7.caption
 msgid "Enable sound alerts"
-msgstr "Akustische Warnungen aktivieren"
+msgstr "Activeză alertele sonore"
 
 #: tform1.checkbox8.caption
 msgid "Coins filter"
-msgstr "Münzen filtern"
+msgstr "Filtru monezi"
 
 #: tform1.checkbox9.caption
 msgid "Use my default addresses"
-msgstr "Meine Standardadressen verwenden"
+msgstr "Utilizează adresele mele implicite"
 
 #: tform1.editscmont.text
 msgid "0.00000000"
@@ -156,66 +154,61 @@ msgstr "0.00000000"
 
 #: tform1.lababout.caption
 msgid "About message"
-msgstr "Über Nachricht"
+msgstr "Despre mesaj"
 
 #: tform1.label1.caption
 msgid "Post offer"
-msgstr "Angebot veröffentlichen"
+msgstr "Postează oferta"
 
 #: tform1.label10.caption
-#, fuzzy
 msgctxt "tform1.label10.caption"
 msgid "Funds address"
-msgstr "Guthaben Adresse"
+msgstr "Adresa fondurilor"
 
 #: tform1.label11.caption
-#, fuzzy
 msgctxt "tform1.label11.caption"
 msgid "Sign address"
-msgstr "Unterschrifts Adresse"
+msgstr "Semnează adresa"
 
 #: tform1.label12.caption
-#, fuzzy
 msgctxt "tform1.label12.caption"
 msgid "Port"
 msgstr "Port"
 
 #: tform1.label13.caption
-#, fuzzy
 msgctxt "tform1.label13.caption"
 msgid "Funds password"
-msgstr "Guthaben Passwort"
+msgstr "Parola fondurilor"
 
 #: tform1.label2.caption
 msgid "Minimum connections to work"
-msgstr "Minimale Verbindungen zum Arbeiten"
+msgstr "Conexiuni minime pentru a funcţiona"
 
 #: tform1.label3.caption
 msgid "Connect time out (ms)"
-msgstr "Zeitüberschreitung beim Verbinden (ms)"
+msgstr "Timpul a expirat pentru conectare (ms)"
 
 #: tform1.label4.caption
 msgid "Read time out (ms)"
-msgstr "Zeitüberschreitung beim Lesen (ms)"
+msgstr "Timpul a expirat pentru citire (ms)"
 
 #: tform1.label5.caption
 msgid "History orders showed"
-msgstr "Historische Aufträge zeigen"
+msgstr "Istoricul comenzilor afişat"
 
 #: tform1.label6.caption
 msgid "PoS addresses warning days"
-msgstr "PoS Adressen Warntage"
+msgstr "Zile până la avertizarea adreselor PoS"
 
 #: tform1.label7.caption
 msgid "Wallet language"
-msgstr "Sprache der Brieftasche"
+msgstr "Limbă portofel"
 
 #: tform1.label8.caption
 msgid "IP"
 msgstr "IP"
 
 #: tform1.label9.caption
-#, fuzzy
 msgctxt "tform1.label9.caption"
 msgid "Port"
 msgstr "Port"
@@ -227,42 +220,42 @@ msgstr "0 NOS"
 
 #: tform1.labeldoctor.caption
 msgid "Waiting"
-msgstr ""
+msgstr "În aşteptare"
 
 #: tform1.labelnobiexaverage.caption
 msgctxt "tform1.labelnobiexaverage.caption"
 msgid "Average: -.-"
-msgstr "Durchschnitt: -.-"
+msgstr "Medie: -.-"
 
 #: tform1.labelnobiexlast.caption
 msgctxt "tform1.labelnobiexlast.caption"
 msgid "Last: -.-"
-msgstr "Letzte: -.-"
+msgstr "Ultimul: -.-"
 
 #: tform1.labeltransactiondetails.caption
 msgid "Transaction details"
-msgstr "Einzelheiten zur Transaktion"
+msgstr "Detalii tranzacție"
 
 #: tform1.lsctop.caption
 msgid "Send coins"
-msgstr "Münzen versenden"
+msgstr "Trimite monezi"
 
 #: tform1.menuitem1.caption
 msgid "Network"
-msgstr "Netzwerk"
+msgstr "Reţea"
 
 #: tform1.menuitem10.caption
 msgid "Development"
-msgstr "Entwicklung"
+msgstr "Dezvoltare"
 
 #: tform1.menuitem11.caption
 msgid "View"
-msgstr "Ansicht"
+msgstr "Vizionare"
 
 #: tform1.menuitem12.caption
 msgctxt "tform1.menuitem12.caption"
 msgid "Console"
-msgstr "Konsole"
+msgstr "Consolă"
 
 #: tform1.menuitem13.caption
 msgctxt "tform1.menuitem13.caption"
@@ -272,11 +265,11 @@ msgstr "Log"
 #: tform1.menuitem14.caption
 msgctxt "tform1.menuitem14.caption"
 msgid "Monitor"
-msgstr "Überwachen"
+msgstr "Monitor"
 
 #: tform1.menuitem15.caption
 msgid "WebPage"
-msgstr "WebSeite"
+msgstr "WebPage"
 
 #: tform1.menuitem16.caption
 msgid "ConSlots"
@@ -289,55 +282,55 @@ msgstr "Pool"
 
 #: tform1.menuitem18.caption
 msgid "Language"
-msgstr "Sprache"
+msgstr "Limbă"
 
 #: tform1.menuitem19.caption
 msgid "Import"
-msgstr "Importieren"
+msgstr "Importă"
 
 #: tform1.menuitem2.caption
 msgid "Start Server"
-msgstr "Server starten"
+msgstr "Porneşte serverul"
 
 #: tform1.menuitem20.caption
 msgid "New file"
-msgstr "Neue Datei"
+msgstr "Fișier nou"
 
 #: tform1.menuitem21.caption
 msgid "Updates"
-msgstr "Aktualisierungen"
+msgstr "Actualizări"
 
 #: tform1.menuitem22.caption
 msgid "Messages"
-msgstr "Nachrichten"
+msgstr "Mesaje"
 
 #: tform1.menuitem23.caption
 msgid "CLear"
-msgstr "Löschen"
+msgstr "Goleşte"
 
 #: tform1.menuitem24.caption
 msgctxt "tform1.menuitem24.caption"
 msgid "Copy"
-msgstr "Kopieren"
+msgstr "Copiază"
 
 #: tform1.menuitem25.caption
 msgctxt "tform1.menuitem25.caption"
 msgid "Clear"
-msgstr "Löschen"
+msgstr "Goleşte"
 
 #: tform1.menuitem26.caption
 msgctxt "tform1.menuitem26.caption"
 msgid "Copy"
-msgstr "Kopieren"
+msgstr "Copiază"
 
 #: tform1.menuitem27.caption
 msgid "Paste"
-msgstr "Einfügen"
+msgstr "Lipeşte"
 
 #: tform1.menuitem3.caption
 msgctxt "tform1.menuitem3.caption"
 msgid "Connect"
-msgstr "Verbinden"
+msgstr "Conectare"
 
 #: tform1.menuitem4.caption
 msgctxt "tform1.menuitem4.caption"
@@ -346,54 +339,54 @@ msgstr "Miner"
 
 #: tform1.menuitem5.caption
 msgid "Import Wallet"
-msgstr "Brieftasche importieren"
+msgstr "Importă portofelul"
 
 #: tform1.menuitem6.caption
 msgid "Export Wallet"
-msgstr "Brieftasche exportieren"
+msgstr "Exportă portofelul"
 
 #: tform1.menuitem7.caption
 msgctxt "tform1.menuitem7.caption"
 msgid "About..."
-msgstr "Über..."
+msgstr "Despre..."
 
 #: tform1.menuitem8.caption
 msgid "Restart"
-msgstr "Neustart"
+msgstr "Restart"
 
 #: tform1.menuitem9.caption
 msgid "Quit"
-msgstr "Beenden"
+msgstr "Ieşire"
 
 #: tform1.sbscmax.hint
 msgid "Send all"
-msgstr "Alle senden"
+msgstr "Trimite tot"
 
 #: tform1.sbscpaste.hint
 msgid "Paste destination"
-msgstr "Ziel einfügen"
+msgstr "Lipeşte destinația"
 
 #: tform1.scbitcancel.caption
 msgid "Cancel"
-msgstr "Abbrechen"
+msgstr "Anulează"
 
 #: tform1.scbitclea.caption
 msgctxt "tform1.scbitclea.caption"
 msgid "Clear"
-msgstr "Löschen"
+msgstr "Goleşte"
 
 #: tform1.scbitconf.caption
 msgctxt "tform1.scbitconf.caption"
 msgid "Confirm"
-msgstr "Bestätigen"
+msgstr "Confirmă"
 
 #: tform1.scbitsend.caption
 msgid "Send"
-msgstr "Senden"
+msgstr "Trimite"
 
 #: tform1.speedbutton1.hint
 msgid "Copy Order ID"
-msgstr "Auftrags-ID kopieren"
+msgstr "Copiază ID-ul comenzii"
 
 #: tform1.staconlab.caption
 msgid "0"
@@ -401,19 +394,19 @@ msgstr "0"
 
 #: tform1.staconlab.hint
 msgid "Connected peers"
-msgstr "Verbundene Peers"
+msgstr "Peer-uri conectate"
 
 #: tform1.stapoolser.hint
 msgid "Pool server active"
-msgstr "Pool Server aktiv"
+msgstr "Server Pool activ"
 
 #: tform1.starpcimg.hint
 msgid "RPC server active"
-msgstr "RPC Server aktiv"
+msgstr "Server RPC activ"
 
 #: tform1.staserimg.hint
 msgid "Masternode active"
-msgstr "Masternode aktiv"
+msgstr "Masternode activ"
 
 #: tform1.statimelab.caption
 msgid "00-00-00 00:00:00 (0)"
@@ -421,20 +414,20 @@ msgstr "00-00-00 00:00:00 (0)"
 
 #: tform1.statimelab.hint
 msgid "Noso network time"
-msgstr "Noso Netzwerk-Zeit"
+msgstr "Ora de rețea Noso"
 
 #: tform1.tabaddresses.caption
 msgid "Addresses"
-msgstr "Adressen"
+msgstr "Adrese"
 
 #: tform1.tabconsole.caption
 msgctxt "tform1.tabconsole.caption"
 msgid "Console"
-msgstr "Konsole"
+msgstr "Consolă"
 
 #: tform1.tabdoctor.caption
 msgid "Doctor"
-msgstr ""
+msgstr "Doctor"
 
 #: tform1.tabexbuy.caption
 msgid "LTC"
@@ -446,7 +439,7 @@ msgstr "NoBiEx"
 
 #: tform1.tabhistory.caption
 msgid "History"
-msgstr "Verlauf"
+msgstr "Istoric"
 
 #: tform1.tabmainpool.caption
 msgctxt "tform1.tabmainpool.caption"
@@ -456,25 +449,25 @@ msgstr "Pool"
 #: tform1.tabmonitor.caption
 msgctxt "tform1.tabmonitor.caption"
 msgid "Monitor"
-msgstr "Überwachen"
+msgstr "Monitor"
 
 #: tform1.tabmonitormonitor.caption
 msgctxt "tform1.tabmonitormonitor.caption"
 msgid "Monitor"
-msgstr "Überwachen"
+msgstr "Monitor"
 
 #: tform1.tabnodeoptions.caption
 msgctxt "tform1.tabnodeoptions.caption"
 msgid "Node"
-msgstr "Knoten"
+msgstr "Nod"
 
 #: tform1.tabnodes.caption
 msgid "Nodes"
-msgstr "Knoten"
+msgstr "Noduri"
 
 #: tform1.taboptions.caption
 msgid "Options"
-msgstr "Optionen"
+msgstr "Opțiuni"
 
 #: tform1.tabpoollog.caption
 msgctxt "tform1.tabpoollog.caption"
@@ -483,24 +476,24 @@ msgstr "Log"
 
 #: tform1.tabpoolminers.caption
 msgid "Miners"
-msgstr "Miners"
+msgstr "Mineri"
 
 #: tform1.tabpoolpays.caption
 msgid "Pays"
-msgstr "Bezahlt"
+msgstr "Plaţi"
 
 #: tform1.tabpoolstats.caption
 msgid "Stats"
-msgstr "Statistiken"
+msgstr "Status"
 
 #: tform1.tabsheet1.caption
 msgctxt "tform1.tabsheet1.caption"
 msgid "Wallet"
-msgstr "Brieftasche"
+msgstr "Portofel"
 
 #: tform1.tabsheet10.caption
 msgid "Peers"
-msgstr "Peers"
+msgstr "Peer-uri"
 
 #: tform1.tabsheet3.caption
 msgid "RPC"
@@ -508,7 +501,7 @@ msgstr "RPC"
 
 #: tform1.tabsheet5.caption
 msgid "Trade"
-msgstr "Handel"
+msgstr "Trade"
 
 #: tform1.tabsheet6.caption
 msgctxt "tform1.tabsheet6.caption"
@@ -522,358 +515,357 @@ msgstr "Log"
 
 #: tform1.tabsheet8.caption
 msgid "Except"
-msgstr "Ausnahme"
+msgstr "Excepție"
 
 #: tform1.tabsheet9.caption
 msgctxt "tform1.tabsheet9.caption"
 msgid "About..."
-msgstr "Über..."
+msgstr "Despre..."
 
 #: tform1.tabwallet.caption
 msgctxt "tform1.tabwallet.caption"
 msgid "Wallet"
-msgstr "Brieftasche"
+msgstr "Portofel"
 
 #: translation.rs0001
 msgid "TimeOut reading from slot: %s"
-msgstr "Zeitüberschreitung beim Lesen vom Slot: %s"
+msgstr "Timpul a expirat pentru citire slot: %s"
 
 #: translation.rs0002
 msgid "Error Reading lines from slot: %s"
-msgstr "Fehler beim Lesen von Zeilen aus Slot: %s"
+msgstr "Eroare la citirea liniilor din slot: %s"
 
 #: translation.rs0003
 msgid "Receiving headers"
-msgstr "Empfangen von Kopfzeilen"
+msgstr "Primesc anteturile"
 
 #: translation.rs0004
 msgid "Error Receiving headers from %s (%s)"
-msgstr "Fehler beim Empfangen von Kopfzeilen von %s (%s)"
+msgstr "Eroare la primirea antetelor de la %s (%s)"
 
 #: translation.rs0005
 msgctxt "translation.rs0005"
 msgid "Headers file received: %s"
-msgstr "Kopfzeilendatei empfangen: %s"
+msgstr "Fișier de antet primit: %s"
 
 #: translation.rs0006
 msgid "Receiving blocks"
-msgstr "Empfang von Blöcken"
+msgstr "Primesc blocurile"
 
 #: translation.rs0007
 msgid "Error Receiving blocks from %s (%s)"
-msgstr "Fehler beim Empfang von Blöcken von %s (%s)"
+msgstr "Eroare la primirea blocurilor de la %s (%s)"
 
 #: translation.rs0008
 msgid "Error sending outgoing message: %s"
-msgstr "Fehler beim Senden einer ausgehenden Nachricht: %s"
+msgstr "Eroare la trimiterea mesajului: %s"
 
 #: translation.rs0009
 msgid "ERROR: Deleting OutGoingMessage-> %s"
-msgstr "FEHLER: Löschen der ausgehenden Nachricht-> %s"
+msgstr "EROARE: Se șterge OutGoingMessage-> %s"
 
 #: translation.rs0010
 msgid "Auto restart enabled"
-msgstr "Automatischer Neustart aktiviert"
+msgstr "Repornirea automată este activată"
 
 #: translation.rs0011
 msgid "BAT file created"
-msgstr "BAT-Datei erstellt"
+msgstr "Fișier BAT creat"
 
 #: translation.rs0012
 msgid "Crash info file created"
-msgstr "Absturzinfodatei erstellt"
+msgstr "Fișierul cu informații despre incident a fost creat"
 
 #: translation.rs0013
 msgid "Data restart file created"
-msgstr "Daten-Neustartdatei erstellt"
+msgstr "Fișierul cu datele de repornire a fost creat"
 
 #: translation.rs0014
 msgid "All forms closed"
-msgstr "Alle Formen geschlossen"
+msgstr "Toate formularele închise"
 
 #: translation.rs0015
 msgid "Outgoing connections closed"
-msgstr "Ausgehende Verbindungen geschlossen"
+msgstr "Conexiunile de ieșire închise"
 
 #: translation.rs0016
 msgid "Node server closed"
-msgstr "Knotenserver geschlossen"
+msgstr "Nodul de server închis"
 
 #: translation.rs0017
 msgid "Closing pool server..."
-msgstr "Pool Server schließen..."
+msgstr "Se închide serverul Pool..."
 
 #: translation.rs0018
 msgid "Pool server closed"
-msgstr "Pool Server geschlossen"
+msgstr "Serverul Pool închis"
 
 #: translation.rs0019
 msgid "Pool members file saved"
-msgstr "Datei der Poolmitglieder gespeichert"
+msgstr "Fișierul membrilor de Pool a fost salvat"
 
 #: translation.rs0020
 msgid "Noso launcher executed"
-msgstr "Noso Launcher ausgeführt"
+msgstr "Lansatorul Noso a fost executat"
 
 #: translation.rs0021
 msgid "Blocks received up to %s"
-msgstr "Empfangene Blöcke bis zu %s"
+msgstr "Blocuri primite până la %s"
 
 #: translation.rs0022
 msgid "✓ Data directory ok"
-msgstr "✓ Datenverzeichnis ok"
+msgstr "✓ Director de date Ok"
 
 #: translation.rs0023
 msgid "✓ GUI initialized"
-msgstr "✓ GUI initialisiert"
+msgstr "✓ GUI inițializat"
 
 #: translation.rs0024
 msgid "✓ My data updated"
-msgstr "✓ Meine Daten aktualisiert"
+msgstr "✓ Datele mele au fost actualizate"
 
 #: translation.rs0025
 msgid "✓ Miner configuration set"
-msgstr "✓ Miner-Konfiguration eingestellt"
+msgstr "✓ Set de configurare miner"
 
 #: translation.rs0026
 msgid "✓ %s languages available"
-msgstr "✓ %s Sprachen verfügbar"
+msgstr "✓ %s limbi disponibile"
 
 #: translation.rs0027
 msgid "Wallet %s%s"
-msgstr "Brieftasche %s%s"
+msgstr "Portofel %s%s"
 
 #: translation.rs0028
 msgid "✓ %s CPUs found"
-msgstr "✓ %s CPUs gefunden"
+msgstr "✓ %s CPU-uri găsite"
 
 #: translation.rs0029
 msgid "Noso session started"
-msgstr "Noso-Sitzung gestartet"
+msgstr "Sesiunea Noso a început"
 
 #: translation.rs0030
 msgid "Closing wallet"
-msgstr "Brieftasche schließen"
+msgstr "Se închide portofelul"
 
 #: translation.rs0031
 msgid "POOL: Error trying close a pool client connection (%s)"
-msgstr "POOL: Fehler beim Versuch, eine Pool-Client-Verbindung zu schließen (%s)"
+msgstr "POOL: Eroare la încercarea de a închide conexiunea de client de pool (%s)"
 
 #: translation.rs0032
 msgid "POOL: Error sending message to miner (%s)"
-msgstr "POOL: Fehler beim Senden der Nachricht an den Miner (%s)"
+msgstr "POOL: Eroare la trimiterea mesajului către miner (%s)"
 
 #: translation.rs0033
 msgid "POOL: Rejected not registered user"
-msgstr "POOL: Abgelehnter nicht registrierter Benutzer"
+msgstr "POOL: Utilizator neînregistrat respins"
 
 #: translation.rs0034
 msgid "Pool: Error registering a ping-> %s"
-msgstr "Pool: Fehler bei der Registrierung eines Pings-> %s"
+msgstr "Pool: Eroare la înregistrarea ping-ului -> %s"
 
 #: translation.rs0035
 msgid "Pool solution verified!"
-msgstr "Pool-Lösung bestätigt!"
+msgstr "Soluția Pool-ului verificată!"
 
 #: translation.rs0036
 msgid "Pool solution FAILED at step %s"
-msgstr "Pool-Lösung FEHLGESCHLAGEN bei Schritt %s"
+msgstr "Soluția Pool-ului a EŞUAT la pasul %s"
 
 #: translation.rs0037
 msgid "Pool: Error inside CSPoolStep-> %s"
-msgstr "Pool: Fehler in CSPoolSchritt-> %s"
+msgstr "Pool: Eroare în interiorul CSPoolStep -> %s"
 
 #: translation.rs0038
 msgid "POOL: Unexpected command from: %s -> %s"
-msgstr "POOL: Unerwarteter Befehl von: %s -> %s"
+msgstr "POOL: Comandă neașteptată de la: %s -> %s"
 
 #: translation.rs0039
 msgid "POOL: Status requested from %s"
-msgstr "POOL: Status angefordert von %s"
+msgstr "POOL: Status solicit de la %s"
 
 #: translation.rs0040
 msgid "Pool: closed incoming %s (%s)"
-msgstr "Pool: schließe eingehende %s (%s)"
+msgstr "Pool: Închidere in derulare %s (%s)"
 
 #: translation.rs0041
 msgid "Pool: Error inside MinerJoin-> %s"
-msgstr "Pool: Fehler innerhalb von MinerJoin-> %s"
+msgstr "Pool: Eroare în interiorul MinerJoin-> %s"
 
 #: translation.rs0042
 msgid "SERVER: Error trying close a server client connection (%s)"
-msgstr "SERVER: Fehler beim Schließen einer Server-Client-Verbindung (%s)"
+msgstr "SERVER: Eroare în încercarea de a închide o conexiune client server (%s)"
 
 #: translation.rs0043
 msgid "SERVER: Received a line from a client without and assigned slot: %s"
-msgstr "SERVER: Eine Zeile von einem Client ohne zugewiesenen Slot wurde empfangen: %s"
+msgstr "SERVER: Am primit o linie de la un client fără slot atribuit: %s"
 
 #: translation.rs0044
 msgid "SERVER: Timeout reading line from connection"
-msgstr "SERVER: Zeitüberschreitung beim Lesen der Zeile von der Verbindung"
+msgstr "SERVER: Timpul a expirat pentru citirea liniei din conexiune"
 
 #: translation.rs0045
 msgid "SERVER: Can not read line from connection %s (%s)"
-msgstr "SERVER: Kann Zeile von Verbindung nicht lesen %s (%s)"
+msgstr "SERVER: Nu se poate citi linia de la conexiunea %s (%s)"
 
 #: translation.rs0046
 msgid "SERVER: Server error receiving headers file (%s)"
-msgstr "SERVER: Serverfehler beim Empfang der Kopfzeilen-Datei (%s)"
+msgstr "SERVER: Eroare de server la primirea fișierului de anteturi (%s)"
 
 #: translation.rs0047
 msgctxt "translation.rs0047"
 msgid "Headers file received: %s"
-msgstr "Kopfzeilendatei empfangen: %s"
+msgstr "Fișier de anteturi primit: %s"
 
 #: translation.rs0048
 msgid "SERVER: Server error receiving block file (%s)"
-msgstr "SERVER: Serverfehler beim Empfang der Blockdatei (%s)"
+msgstr "SERVER: Eroare de server la primirea fișierului bloc (%s)"
 
 #: translation.rs0049
 msgid "SERVER: Error creating stream from headers: %s"
-msgstr "SERVER: Fehler beim Erstellen eines Datenstroms aus den Kopfzeilen: %s"
+msgstr "SERVER: Eroare la crearea fluxului din anteturi: %s"
 
 #: translation.rs0050
 msgid "Headers file sent to: %s"
-msgstr "Kopfzeilen-Datei gesendet an: %s"
+msgstr "Fișier de antet trimis la: %s"
 
 #: translation.rs0051
 msgid "SERVER: Error sending headers file (%s)"
-msgstr "SERVER: Fehler beim Senden der Kopfzeilen-Datei (%s)"
+msgstr "SERVER: Eroare la trimiterea fișierului de antete (%s)"
 
 #: translation.rs0052
 msgid "SERVER: BlockZip send to %s: %s"
-msgstr "SERVER: BlockZip sendet an %s: %s"
+msgstr "SERVER: BlockZip trimis la %s: %s"
 
 #: translation.rs0053
 msgid "SERVER: Error sending ZIP blocks file (%s)"
-msgstr "SERVER: Fehler beim Senden der ZIP-Blockdatei (%s)"
+msgstr "SERVER: Eroare la trimiterea fișierului cu blocuri ZIP (%s)"
 
 #: translation.rs0054
 msgid "SERVER: Error adding received line (%s)"
-msgstr "SERVER: Fehler beim Hinzufügen der empfangenen Zeile (%s)"
+msgstr "SERVER: Eroare la adăugarea liniei primite (%s)"
 
 #: translation.rs0055
 msgid "SERVER: Got unexpected line: %s"
-msgstr "SERVER: Unerwartete Zeile erhalten: %s"
+msgstr "SERVER: Am primit o linie neașteptată: %s"
 
 #: translation.rs0056
 msgid "SERVER: Timeout reading line from new connection"
-msgstr "SERVER: Zeitüberschreitung beim Lesen der Zeile einer neuen Verbindung"
+msgstr "SERVER: Timpul a expirat pentru citirea liniei de la noua conexiune"
 
 #: translation.rs0057
 msgid "SERVER: Can not read line from new connection (%s)"
-msgstr "SERVER: Kann Zeile von neuer Verbindung nicht lesen (%s)"
+msgstr "SERVER: Nu se poate citi linia de la noua conexiune (%s)"
 
 #: translation.rs0058
 msgid "SERVER: Invalid client -> %s"
-msgstr "SERVER: Ungültiger Client -> %s"
+msgstr "SERVER: Client invalid -> %s"
 
 #: translation.rs0059
 msgid "SERVER: Own connected"
-msgstr "SERVER: Eigene Verbindung"
+msgstr "SERVER: Conectare proprie"
 
 #: translation.rs0060
 msgid "SERVER: Duplicated connection -> %s"
-msgstr "SERVER: Doppelte Verbindung -> %s"
+msgstr "SERVER: Conexiune duplicat -> %s"
 
 #: translation.rs0061
 msgid "New Connection from: %s"
-msgstr "Neue Verbindung von: %s"
+msgstr "Conexiune nouă de la: %s"
 
 #: translation.rs0062
 msgid "SERVER: Closed unhandled incoming connection -> %s"
-msgstr "SERVER: Unbehandelte eingehende Verbindung geschlossen -> %s"
+msgstr "SERVER: Conexiune necontrolată de intrare închisă -> %s"
 
 #: translation.rs0063
 msgid "Next block required"
-msgstr "Nächster Block benötigt"
+msgstr "Următorul bloc este necesar"
 
 #: translation.rs0064
 msgid "My PoS addresses"
-msgstr "Meine PoS Adressen"
+msgstr "Adresele mele PoS"
 
 #: translation.rs0065
 msgid "My PoS earnings"
-msgstr "Meine PoS Einnahmen"
+msgstr "Recompensele mele PoS"
 
 #: translation.rs0066
 msgid "Rebuilding my transactions..."
-msgstr "Wiederaufbau meiner Transaktionen..."
+msgstr "Se reconstruieşte tranzacțiile mele..."
 
 #: translation.rs0067
 msgid "✓ My transactions rebuilded"
-msgstr "✓ Meine Transaktionen wurden wiederhergestellt"
+msgstr "✓ Tranzacțiile mele au fost reconstruite"
 
 #: translation.rs0068
 msgid "✓ My transactions grid updated"
-msgstr "✓ Mein Transaktionsgitter aktualisiert"
+msgstr "✓ Grila mea de tranzacții a fost actualizată"
 
 #: translation.rs0069
 msgid "✓ Launcher file deleted"
-msgstr "✓ Launcher Datei gelöscht"
+msgstr "✓ Fișierul de lansare a fost șters"
 
 #: translation.rs0070
 msgid "✓ Restart file deleted"
-msgstr "✓ Neustart Datei gelöscht"
+msgstr "✓ Fișierul de repornire a fost șters"
 
 #: translation.rs0071
 msgid "Checking last release available..."
-msgstr "Überprüfung der letzten verfügbaren Version..."
+msgstr "Verific ultima versiune disponibilă..."
 
 #: translation.rs0072
 msgid "✗ Failed connecting with project repo"
-msgstr "✗ Verbindung zum Projektarchiv fehlgeschlagen"
+msgstr "✗ Nu se stabili conexiunea la depozitul de proiect"
 
 #: translation.rs0073
 msgid "✓ Running last release version"
-msgstr "✓ Laufende letzte Release-Version"
+msgstr "✓ Rulează ultima versiune"
 
 #: translation.rs0074
 msgid "✗ New version available on project repo"
-msgstr "✗ Neue Version im Projekt-Repository verfügbar"
+msgstr "✗ Versiune nouă disponibilă în depozitul de proiect"
 
 #: translation.rs0075
 msgid "✓ Running a development version"
-msgstr "✓ Ausführen einer Entwicklungsversion"
+msgstr "✓ Rulează o versiune de dezvoltare"
 
 #: translation.rs0076
 msgid "Start server"
-msgstr "Server starten"
+msgstr "Porneşte serverul"
 
 #: translation.rs0077
 msgid "Stop server"
-msgstr "Server anhalten"
+msgstr "Opreşte serverul"
 
 #: translation.rs0078
-#, fuzzy
 msgctxt "translation.rs0078"
 msgid "Connect"
-msgstr "Verbinden"
+msgstr "Conectare"
 
 #: translation.rs0079
 msgid "Disconnect"
-msgstr "Trennen Sie die Verbindung"
+msgstr "Deconectat"
 
 #: translation.rs0500
 msgid "Noso Launcher"
-msgstr "Noso Launcher"
+msgstr "Lansator Noso"
 
 #: translation.rs0501
 msgid "Destination"
-msgstr "Ziel"
+msgstr "Destinaţie"
 
 #: translation.rs0502
 msgid "Amount"
-msgstr "Betrag"
+msgstr "Cantitate"
 
 #: translation.rs0503
 msgid "Reference"
-msgstr "Referenz"
+msgstr "Referinţă"
 
 #: translation.rs0504
 msgctxt "translation.rs0504"
 msgid "Balance"
-msgstr "Balance"
+msgstr "Balanţă"
 
 #: translation.rs0505
 msgid "Server"
@@ -881,55 +873,56 @@ msgstr "Server"
 
 #: translation.rs0506
 msgid "Connections"
-msgstr "Verbindungen"
+msgstr "Conexiuni"
 
 #: translation.rs0507
 msgid "Headers"
-msgstr "Kopfzeilen"
+msgstr "Anteturi"
 
 #: translation.rs0508
 msgid "Summary"
-msgstr "Zusammenfassung"
+msgstr "Rezumat"
 
 #: translation.rs0509
 msgid "LastBlock"
-msgstr "LetzterBlock"
+msgstr "Ultimul bloc"
 
 #: translation.rs0510
 msgid "Blocks"
-msgstr "Blöcke"
+msgstr "Blocuri"
 
 #: translation.rs0511
 msgid "Pending"
-msgstr "Ausstehend"
+msgstr "In aşteptare"
 
 #: translation.rs0512
 msgid "Invalid language: %s"
-msgstr "Ungültige Sprache: %s"
+msgstr "Limbă invalidă: %s"
 
 #: translation.rs0513
 msgid "Wallet restart needed"
-msgstr "Neustart der Brieftasche erforderlich"
+msgstr "Este necesară repornirea portofelului"
 
 #: translation.rs0514
 msgid "Address"
-msgstr "Adresse"
+msgstr "Adrese"
 
 #: translation.rs0515
-#, fuzzy
 msgctxt "translation.rs0515"
 msgid "Balance"
-msgstr "Balance"
+msgstr "Balanţă"
 
 #: translation.rs1000
 msgid "Processing block %d (%d %%)"
-msgstr ""
+msgstr "Procesez blocul %d (%d %%)"
 
 #: translation.rs1001
 msgid ""
 "----- ERROR ----\n"
 "Block: %d\n"
 msgstr ""
+"----- EROARE ----\n"
+"Bloc: %d\n"
 
 #: translation.rs1002
 msgid ""
@@ -937,10 +930,13 @@ msgid ""
 "File: %s\n"
 "Headers: %s\n"
 msgstr ""
+"Hash-ul blocului greșit\n"
+"Fişier: %s\n"
+"Anteturi: %s\n"
 
 #: translation.rs1003
 msgid "File not found: %s"
-msgstr ""
+msgstr "Fișierul nu a fost găsit: %s"
 
 #: translation.rs1004
 msgid ""
@@ -948,6 +944,9 @@ msgid ""
 "Summary: %s\n"
 "Headers: %s\n"
 msgstr ""
+"Rezumatul Hash-ului greșit\n"
+"Rezumat: %s\n"
+"Anteturi: %s\n"
 
 #: translation.rs1501
 msgid "Invalid address"
