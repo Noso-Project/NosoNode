@@ -215,7 +215,7 @@ var
   Clave:String;
 Begin
 result := false;
-if ((address[1] = 'N') and (length(address)>20)) then
+if ((length(address)>20) and (address[1] = 'N')) then
    begin
    OrigHash := Copy(Address,2,length(address)-3);
    if IsValid58(OrigHash) then

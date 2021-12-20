@@ -25,13 +25,15 @@ function GetPingString():string;
 procedure PTC_SendPending(Slot:int64);
 Procedure PTC_Newblock(Texto:String;connectionNumber:Integer);
 Procedure PTC_SendResumen(Slot:int64);
+Function ZipSumary():boolean;
+Function ZipHeaders():boolean;
 function CreateZipBlockfile(firstblock:integer):string;
 Procedure PTC_SendBlocks(Slot:integer;TextLine:String);
 Procedure INC_PTC_Custom(TextLine:String);
 Procedure PTC_Custom(TextLine:String);
 function ValidateTrfr(order:orderdata;Origen:String):Boolean;
 Procedure INC_PTC_Order(TextLine:String);
-Procedure PTC_Order(TextLine:String);
+Function PTC_Order(TextLine:String):String;
 Procedure PTC_AdminMSG(TextLine:String);
 function SavePoolFiles():boolean;
 Procedure PTC_NetReqs(textline:string);
@@ -501,6 +503,60 @@ SetCurrentJob('PTC_SendResumen',false);
 //ConsoleLinesAdd(LangLine(91));//'Headers file sent'
 End;
 
+// Zips the sumary file
+Function ZipSumary():boolean;
+var
+  MyZipFile: TZipper;
+  archivename: String;
+Begin
+result := false;
+MyZipFile := TZipper.Create;
+MyZipFile.FileName := ZipSumaryFileName;
+EnterCriticalSection(CSSumary);
+TRY
+{$IFDEF WINDOWS}
+archivename:= StringReplace(SumarioFilename,'\','/',[rfReplaceAll]);
+{$ENDIF}
+{$IFDEF LINUX}
+archivename:= SumarioFilename;
+{$ENDIF}
+archivename:= StringReplace(archivename,'NOSODATA','data',[rfReplaceAll]);
+MyZipFile.Entries.AddFileEntry(SumarioFilename, archivename);
+MyZipFile.ZipAllFiles;
+result := true;
+FINALLY
+MyZipFile.Free;
+END{Try};
+LeaveCriticalSection(CSSumary);
+End;
+
+// Zips the sumary file
+Function ZipHeaders():boolean;
+var
+  MyZipFile: TZipper;
+  archivename: String;
+Begin
+result := false;
+MyZipFile := TZipper.Create;
+MyZipFile.FileName := ZipHeadersFileName;
+EnterCriticalSection(CSHeadAccess);
+TRY
+{$IFDEF WINDOWS}
+archivename:= StringReplace(ResumenFilename,'\','/',[rfReplaceAll]);
+{$ENDIF}
+{$IFDEF LINUX}
+archivename:= ResumenFilename;
+{$ENDIF}
+archivename:= StringReplace(archivename,'NOSODATA','data',[rfReplaceAll]);
+MyZipFile.Entries.AddFileEntry(ResumenFilename, archivename);
+MyZipFile.ZipAllFiles;
+result := true;
+FINALLY
+MyZipFile.Free;
+END{Try};
+LeaveCriticalSection(CSHeadAccess);
+End;
+
 // Creates the zip block file
 function CreateZipBlockfile(firstblock:integer):string;
 var
@@ -644,7 +700,7 @@ AddCriptoOp(5,TextLine,'');
 StartCriptoThread();
 End;
 
-Procedure PTC_Order(TextLine:String);
+Function PTC_Order(TextLine:String):String;
 var
   NumTransfers : integer;
   TrxArray : Array of orderdata;
@@ -655,6 +711,7 @@ var
   TodoValido : boolean = true;
   Proceder : boolean = true;
 Begin
+Result := '';
 NumTransfers := StrToInt(Parameter(TextLine,5));
 Textbak := GetOpData(TextLine);
 SetLength(TrxArray,0);SetLength(SenderTrx,0);
@@ -695,6 +752,7 @@ if proceder then
       AddPendingTxs(TrxArray[cont]);
    OutgoingMsjsAdd(Textbak);
    U_DirPanel := true;
+   Result := 'ok';
    end;
 End;
 

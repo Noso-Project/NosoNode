@@ -100,7 +100,7 @@ function AppFileName():string;
 implementation
 
 Uses
-  mpParser, mpGUI, mpRed;
+  mpParser, mpGUI, mpRed, mpProtocol;
 
 // Complete file verification
 Procedure VerificarArchivos();
@@ -1156,6 +1156,7 @@ assignfile(FileSumario,SumarioFilename);
    end;
 CloseFile(FileSumario);
 LeaveCriticalSection(CSSumary);
+ZipSumary;
 SetCurrentJob('GuardarSumario',false);
 setmilitime('GuardarSumario',2);
 End;
@@ -2269,6 +2270,8 @@ PoolInfoFilename    := 'NOSODATA'+DirectorySeparator+'poolinfo.dat';
 PoolMembersFilename := 'NOSODATA'+DirectorySeparator+'poolmembers.dat';
 AdvOptionsFilename  := 'NOSODATA'+DirectorySeparator+'advopt.txt';
 PoolPaymentsFilename:= 'NOSODATA'+DirectorySeparator+'poolpays.txt';
+ZipSumaryFileName   := 'NOSODATA'+DirectorySeparator+'sumary.zip';
+ZipHeadersFileName  := 'NOSODATA'+DirectorySeparator+'blchhead.zip';
 End;
 
 // Try to delete a file safely
@@ -2299,8 +2302,8 @@ for cont := Length(NameFile) downto 1 do
      Result := Copy(NameFile, cont+1, Length(NameFile));
      Break;
    end;
-
 End;
+
 
 END. // END UNIT
 

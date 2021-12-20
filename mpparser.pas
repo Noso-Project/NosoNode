@@ -281,6 +281,8 @@ else if UpperCase(Command) = 'WEBWAL' then WebWallet()
 else if UpperCase(Command) = 'EXPKEYS' then ExportKeys(LineText)
 else if UpperCase(Command) = 'HANG' then HangWallet()
 else if UpperCase(Command) = 'CHECKUPDATES' then ConsoleLinesAdd(GetLastRelease)
+else if UpperCase(Command) = 'ZIPSUMARY' then ZipSumary()
+else if UpperCase(Command) = 'ZIPHEADERS' then ZipHeaders()
 
 // CONSULTING
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()

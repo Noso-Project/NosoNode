@@ -947,6 +947,8 @@ var
   PoolMembersFilename : string = '';
   AdvOptionsFilename : string = '';
   PoolPaymentsFilename : string = '';
+  ZipSumaryFileName : String = '';
+  ZipHeadersFileName : string = '';
   MontoIncoming : Int64 = 0;
   MontoOutgoing : Int64 = 0;
   U_Mytrxs: boolean = false;
@@ -2626,11 +2628,19 @@ if GoAhead then
       AContext.Connection.Disconnect();
       end
 
-   else if parameter(LLine,0) = 'GETSUMARY' then  //
+   else if parameter(LLine,0) = 'NSLORDER' then
       begin
-      EnterCriticalSection(CSSumary);
+      Acontext.Connection.IOHandler.WriteLn(PTC_Order(LLine));
+      AContext.Connection.Disconnect();
+      end
+
+   else if parameter(LLine,0) = 'GETZIPSUMARY' then  //
+      begin
+
          try
-         AFileStream := TFileStream.Create(SumarioFilename, fmOpenRead + fmShareDenyNone);
+         EnterCriticalSection(CSSumary);
+         AFileStream := TFileStream.Create(ZipSumaryFileName, fmOpenRead + fmShareDenyNone);
+         LeaveCriticalSection(CSSumary);
          GetFileOk := true;
          Except on E:Exception do
             begin
@@ -2643,6 +2653,7 @@ if GoAhead then
       if GetFileOk then
          begin
             try
+            Acontext.Connection.IOHandler.WriteLn('ZIPSUMARY');
             Acontext.connection.IOHandler.Write(AFileStream,0,true);
             Except on E:Exception do
                begin
@@ -2650,7 +2661,6 @@ if GoAhead then
             end;
          AFileStream.Free;
          end;
-      LeaveCriticalSection(CSSumary);
       AContext.Connection.Disconnect();
       end
 

@@ -9,4 +9,6 @@ Version 0.2.1Ka3
 - Fixed bug on restart when restart.txt is empty.
 - Fixed memory leaks from indylaz.
 - Added console command: expkeys.
+- Implemented GETZIPSUMARY on node server.
+- Implemented ZipSumary procedure.
 

@@ -1007,8 +1007,10 @@ End;
 
 Function GetNodeStatusString():string;
 Begin
+//NODESTATUS 1{TotalConections} 2{MyLastBlock} 3{Pendings} 4{Delta} 5{headers} 6{version} 7{UTCTime}
 result := IntToStr(GetTotalConexiones)+' '+IntToStr(MyLastBlock)+' '+IntToStr(Length(PendingTXs))+' '+
-          IntToStr(UTCTime.ToInt64-EngineLastUpdate)+' '+copy(myResumenHash,0,5)+' '+ProgramVersion+SubVersion;
+          IntToStr(UTCTime.ToInt64-EngineLastUpdate)+' '+copy(myResumenHash,0,5)+' '+
+          ProgramVersion+SubVersion+' '+UTCTime;
 End;
 
 Function IsAValidNode(IP:String):boolean;
