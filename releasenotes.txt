@@ -1,6 +1,7 @@
-Version 0.2.1Ka3
+Version 0.2.1Ka4
 
 - Romanian language included.
+- Bahasa Indonesia language included.
 - Default pool deepstep set to 2.
 - Added new console command: pooladdress.
 - Default pool maxmembers set to 300.
@@ -11,4 +12,7 @@ Version 0.2.1Ka3
 - Added console command: expkeys.
 - Implemented GETZIPSUMARY on node server.
 - Implemented ZipSumary procedure.
+- Implemented NSLORDER on node server.
+- Implemented NSLPEND on node server.
+
 

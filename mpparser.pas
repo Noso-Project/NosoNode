@@ -1660,7 +1660,7 @@ else
    begin
    currtime := UTCTime;
    ConsoleLinesAdd(direccion+' owner cert'+slinebreak+
-                    ListaDirecciones[DireccionEsMia(direccion)].PublicKey+':'+currtime+':'+GetStringSigned('I OWN THIS ADDRESS '+direccion+currtime,ListaDirecciones[DireccionEsMia(direccion)].PrivateKey));
+      ListaDirecciones[DireccionEsMia(direccion)].PublicKey+':'+currtime+':'+GetStringSigned('I OWN THIS ADDRESS '+direccion+currtime,ListaDirecciones[DireccionEsMia(direccion)].PrivateKey));
    end;
 End;
 

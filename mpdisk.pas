@@ -524,7 +524,7 @@ setmilitime('CreateADV',1);
    if saving then tolog('Options file saved');
    S_AdvOpt := false;
    Except on E:Exception do
-      toexclog ('Error creating AdvOpt file');
+      toexclog ('Error creating/saving AdvOpt file: '+E.Message);
    end;
    setmilitime('CreateADV',2);
 End;
@@ -613,6 +613,7 @@ CreateFileFromResource('Noso.pt','locale'+DirectorySeparator+'Noso.pt.po');
 CreateFileFromResource('Noso.zh','locale'+DirectorySeparator+'Noso.zh.po');
 CreateFileFromResource('Noso.de','locale'+DirectorySeparator+'Noso.de.po');
 CreateFileFromResource('Noso.ro','locale'+DirectorySeparator+'Noso.ro.po');
+CreateFileFromResource('Noso.id','locale'+DirectorySeparator+'Noso.id.po');
 End;
 
 Procedure CreateFileFromResource(resourcename,filename:string);

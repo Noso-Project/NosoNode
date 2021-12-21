@@ -32,6 +32,7 @@ function GetMyPosAddressesCount():integer;
 function ShowHashrate(hashrate:int64):string;
 function GetBlockHeaders(numberblock:integer):string;
 function ValidRPCHost(hoststr:string):boolean;
+function PendingRawInfo():String;
 
 
 implementation
@@ -487,6 +488,32 @@ whitelisted := StringReplace(RPCWhiteList,',',' ',[rfReplaceAll, rfIgnoreCase]);
    until thiswhitelist = '';
 End;
 
+// Returns the basic info of the pending orders
+function PendingRawInfo():String;
+var
+  CopyPendingTXs : Array of OrderData;
+  counter : integer;
+  ThisPending : string;
+Begin
+result := '';
+if Length(PendingTXs) > 0 then
+   begin
+   EnterCriticalSection(CSPending);
+   SetLength(CopyPendingTXs,0);
+   CopyPendingTXs := copy(PendingTXs,0,length(PendingTXs));
+   LeaveCriticalSection(CSPending);
+   for counter := 0 to Length(CopyPendingTXs)-1 do
+      begin
+      ThisPending:=CopyPendingTXs[counter].OrderType+','+
+                   CopyPendingTXs[counter].Address+','+
+                   CopyPendingTXs[counter].Receiver+','+
+                   CopyPendingTXs[counter].AmmountTrf.ToString+','+
+                   CopyPendingTXs[counter].AmmountFee.ToString;
+      result := result+ThisPending+' ';
+      end;
+   Trim(result);
+   end;
+End;
 
 
 END. // END UNIT

@@ -652,7 +652,7 @@ CONST
                             '185.239.239.184 '+
                             '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Ka3';
+  SubVersion = 'Ka4';
   OficialRelease = true;
   BuildDate = 'December 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -2634,6 +2634,12 @@ if GoAhead then
       AContext.Connection.Disconnect();
       end
 
+   else if parameter(LLine,0) = 'NSLPEND' then
+      begin
+      Acontext.Connection.IOHandler.WriteLn(PendingRawInfo);
+      AContext.Connection.Disconnect();
+      end
+
    else if parameter(LLine,0) = 'GETZIPSUMARY' then  //
       begin
 
@@ -2653,7 +2659,7 @@ if GoAhead then
       if GetFileOk then
          begin
             try
-            Acontext.Connection.IOHandler.WriteLn('ZIPSUMARY');
+            Acontext.Connection.IOHandler.WriteLn('ZIPSUMARY '+Copy(MySumarioHash,0,5));
             Acontext.connection.IOHandler.Write(AFileStream,0,true);
             Except on E:Exception do
                begin
@@ -3561,6 +3567,11 @@ if ComboBoxLang.Items[Index] ='ro' then
    ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Română');
    Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 65);
    end;
+if ComboBoxLang.Items[Index] ='id' then
+   begin
+   ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Bahasa Indonesia');
+   Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 66);
+   end;
 End;
 
 // Adjust data panel when resizing
@@ -3755,11 +3766,11 @@ Begin
 Intexto := Clipboard.AsText;
 If (parameter(InTexto,0)) ='<NOSOPAY>' then
    begin
-   form1.PageMain.ActivePage := form1.TabWallet;
-   PanelSend.Visible:=true;
-   EditSCDest.Text:='devteam_donations';
-   EditSCMont.Text:='1.00000000';
-   MemoSCCon.Text:='WebpageDonation';
+   form1.PageMain.ActivePage := form1.tabwallet;
+   form1.tabwalletmain.ActivePage:=form1.TabAddresses;
+   EditSCDest.Text:=parameter(InTexto,1);
+   EditSCMont.Text:=int2curr(StrToIntDef(parameter(InTexto,2),0));
+   MemoSCCon.Text:=parameter(InTexto,3);;
    form1.BringToFront;
    Clipboard.AsText := '';
    end;
