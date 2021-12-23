@@ -1,0 +1,970 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: uk_UA\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"X-Generator: Poedit 3.0.1\n"
+
+#: tform1.barcodeqr1.hint
+msgid "Click on image to close it"
+msgstr "Натисніть на зображення, щоб закрити його"
+
+#: tform1.bcopyaddr.hint
+msgid "Copy address to clipboard"
+msgstr "Скопіювати адресу в буфер обміну"
+
+#: tform1.bcustomaddr.hint
+msgid "Customize address"
+msgstr "Налаштуйте адресу"
+
+#: tform1.bdefaddr.hint
+msgid "Set address as Default"
+msgstr "Встановити адресу за замовчуванням"
+
+#: tform1.bitbtnblocks.caption
+msgctxt "tform1.bitbtnblocks.caption"
+msgid "000000"
+msgstr "000000"
+
+#: tform1.bitbtnblocks.hint
+msgctxt "tform1.bitbtnblocks.hint"
+msgid "Last downloaded block"
+msgstr "Останній завантажений блок"
+
+#: tform1.bitbtndonate.caption
+msgctxt "tform1.bitbtndonate.caption"
+msgid "Donate"
+msgstr "Пожертвувати"
+
+#: tform1.bitbtnpending.caption
+msgid "00"
+msgstr "00"
+
+#: tform1.bitbtnpending.hint
+msgid "Network pending orders"
+msgstr "Мережа відкладених транзакцiй"
+
+#: tform1.bitbtnweb.caption
+msgctxt "tform1.bitbtnweb.caption"
+msgid "Web"
+msgstr "Web"
+
+#: tform1.bnewaddr.hint
+msgid "Generate new address"
+msgstr "Згенерувати нову адресу"
+
+#: tform1.bokcustom.hint
+msgctxt "tform1.bokcustom.hint"
+msgid "Confirm"
+msgstr "Підтвердьте"
+
+#: tform1.bqrcode.hint
+msgid "Show QR code"
+msgstr "Показати QR-код"
+
+#: tform1.bsavenodeoptions.caption
+msgid "Save"
+msgstr "Зберегти"
+
+#: tform1.butstartdoctor.caption
+msgid "Start"
+msgstr "Почати"
+
+#: tform1.butstopdoctor.caption
+msgid "Stop"
+msgstr "Стоп"
+
+#: tform1.caption
+msgid "Noso"
+msgstr "Noso"
+
+#: tform1.cbblockexists.caption
+msgid "Block file"
+msgstr "Блок файл"
+
+#: tform1.cbblockhash.caption
+msgid "Block hash"
+msgstr "Блок хеш"
+
+#: tform1.cbsummaryhash.caption
+msgid "Summary hash"
+msgstr "Резюме хеш"
+
+#: tform1.cb_autorpc.caption
+msgid "Active JSON-RPC server at launch"
+msgstr "Активний сервер JSON-RPC під час запуску"
+
+#: tform1.cb_rpcfilter.caption
+msgid "Accept only whitelist requests"
+msgstr "Приймайте лише запити з білого списку"
+
+#: tform1.cb_rpc_on.caption
+msgid "Enable JSON-RPC server"
+msgstr "Увімкнути сервер JSON-RPC"
+
+#: tform1.cb_wo_antifreeze.caption
+msgid "Anti freeze (s)"
+msgstr "Антифриз (сек.)"
+
+#: tform1.cb_wo_autoconnect.caption
+msgid "Auto connect at start"
+msgstr "Автоматичне підключення при запуску"
+
+#: tform1.cb_wo_multisend.caption
+msgid "Send coins only from default address"
+msgstr "Надсилати монети лише з адреси за замовчуванням"
+
+#: tform1.cb_wo_totray.caption
+msgid "Minimize to tray"
+msgstr "Згорнути до кошика"
+
+#: tform1.checkbox1.caption
+msgid "Download blockchain"
+msgstr "Завантажувати блокчейни"
+
+#: tform1.checkbox2.caption
+msgid "Install automatically new official releases"
+msgstr "Автоматично встановлюйте нові офіційні випуски"
+
+#: tform1.checkbox4.caption
+msgid "Run MasterNode"
+msgstr "Запустити MasterNode"
+
+#: tform1.checkbox7.caption
+msgid "Enable sound alerts"
+msgstr "Увімкнути звукові сповіщення"
+
+#: tform1.checkbox8.caption
+msgid "Coins filter"
+msgstr "Фільтр для монет"
+
+#: tform1.checkbox9.caption
+msgid "Use my default addresses"
+msgstr "Використовувати мої адреси за замовчуванням"
+
+#: tform1.editscmont.text
+msgid "0.00000000"
+msgstr "0.00000000"
+
+#: tform1.lababout.caption
+msgid "About message"
+msgstr "Про повідомлення"
+
+#: tform1.label1.caption
+msgid "Post offer"
+msgstr "Опублікувати пропозицію"
+
+#: tform1.label10.caption
+msgctxt "tform1.label10.caption"
+msgid "Funds address"
+msgstr "Адреса коштів"
+
+#: tform1.label11.caption
+msgctxt "tform1.label11.caption"
+msgid "Sign address"
+msgstr "Підпишіть адресу"
+
+#: tform1.label12.caption
+msgctxt "tform1.label12.caption"
+msgid "Port"
+msgstr "Порт"
+
+#: tform1.label13.caption
+msgctxt "tform1.label13.caption"
+msgid "Funds password"
+msgstr "Пароль коштів"
+
+#: tform1.label2.caption
+msgid "Minimum connections to work"
+msgstr "Мінімум підключення до роботи"
+
+#: tform1.label3.caption
+msgid "Connect time out (ms)"
+msgstr "Час очікування підключення (мс)"
+
+#: tform1.label4.caption
+msgid "Read time out (ms)"
+msgstr "Час очікування читання (мс)"
+
+#: tform1.label5.caption
+msgid "History orders showed"
+msgstr "Показана історія транзакцй"
+
+#: tform1.label6.caption
+msgid "PoS addresses warning days"
+msgstr "PoS адреси днів попередження"
+
+#: tform1.label7.caption
+msgid "Wallet language"
+msgstr "Мова гаманця"
+
+#: tform1.label8.caption
+msgid "IP"
+msgstr "IP"
+
+#: tform1.label9.caption
+msgctxt "tform1.label9.caption"
+msgid "Port"
+msgstr "Порт"
+
+#: tform1.labelbigbalance.caption
+msgctxt "tform1.labelbigbalance.caption"
+msgid "0 NOS"
+msgstr "0 NOS"
+
+#: tform1.labeldoctor.caption
+msgid "Waiting"
+msgstr "Очікування"
+
+#: tform1.labelnobiexaverage.caption
+msgctxt "tform1.labelnobiexaverage.caption"
+msgid "Average: -.-"
+msgstr "Середній: -.-"
+
+#: tform1.labelnobiexlast.caption
+msgctxt "tform1.labelnobiexlast.caption"
+msgid "Last: -.-"
+msgstr "Останній: -.-"
+
+#: tform1.labeltransactiondetails.caption
+msgid "Transaction details"
+msgstr "Деталі транзакції"
+
+#: tform1.lsctop.caption
+msgid "Send coins"
+msgstr "Надсилати монети"
+
+#: tform1.menuitem1.caption
+msgid "Network"
+msgstr "Мережа"
+
+#: tform1.menuitem10.caption
+msgid "Development"
+msgstr "Розвиток"
+
+#: tform1.menuitem11.caption
+msgid "View"
+msgstr "Переглянути"
+
+#: tform1.menuitem12.caption
+msgctxt "tform1.menuitem12.caption"
+msgid "Console"
+msgstr "Консоль"
+
+#: tform1.menuitem13.caption
+msgctxt "tform1.menuitem13.caption"
+msgid "Log"
+msgstr "Журнал"
+
+#: tform1.menuitem14.caption
+msgctxt "tform1.menuitem14.caption"
+msgid "Monitor"
+msgstr "Монітор"
+
+#: tform1.menuitem15.caption
+msgid "WebPage"
+msgstr "Веб-сторінка"
+
+#: tform1.menuitem16.caption
+msgid "ConSlots"
+msgstr "КонСлоти"
+
+#: tform1.menuitem17.caption
+msgctxt "tform1.menuitem17.caption"
+msgid "Pool"
+msgstr "Пул"
+
+#: tform1.menuitem18.caption
+msgid "Language"
+msgstr "Мову"
+
+#: tform1.menuitem19.caption
+msgid "Import"
+msgstr "Імпорт"
+
+#: tform1.menuitem2.caption
+msgid "Start Server"
+msgstr "Запустити сервер"
+
+#: tform1.menuitem20.caption
+msgid "New file"
+msgstr "Новий файл"
+
+#: tform1.menuitem21.caption
+msgid "Updates"
+msgstr "Оновлення"
+
+#: tform1.menuitem22.caption
+msgid "Messages"
+msgstr "Повідомлення"
+
+#: tform1.menuitem23.caption
+msgid "CLear"
+msgstr "Очистити"
+
+#: tform1.menuitem24.caption
+msgctxt "tform1.menuitem24.caption"
+msgid "Copy"
+msgstr "Копіювати"
+
+#: tform1.menuitem25.caption
+msgctxt "tform1.menuitem25.caption"
+msgid "Clear"
+msgstr "Очистити"
+
+#: tform1.menuitem26.caption
+msgctxt "tform1.menuitem26.caption"
+msgid "Copy"
+msgstr "Копіювати"
+
+#: tform1.menuitem27.caption
+msgid "Paste"
+msgstr "Вставити"
+
+#: tform1.menuitem3.caption
+msgctxt "tform1.menuitem3.caption"
+msgid "Connect"
+msgstr "Підключити"
+
+#: tform1.menuitem4.caption
+msgctxt "tform1.menuitem4.caption"
+msgid "Miner"
+msgstr "Майнер"
+
+#: tform1.menuitem5.caption
+msgid "Import Wallet"
+msgstr "Імпорт Гаманця"
+
+#: tform1.menuitem6.caption
+msgid "Export Wallet"
+msgstr "Експорт Гаманця"
+
+#: tform1.menuitem7.caption
+msgctxt "tform1.menuitem7.caption"
+msgid "About..."
+msgstr "Про..."
+
+#: tform1.menuitem8.caption
+msgid "Restart"
+msgstr "Перезапустити"
+
+#: tform1.menuitem9.caption
+msgid "Quit"
+msgstr "Вийти"
+
+#: tform1.sbscmax.hint
+msgid "Send all"
+msgstr "Надіслати все"
+
+#: tform1.sbscpaste.hint
+msgid "Paste destination"
+msgstr "Вставити отримувача"
+
+#: tform1.scbitcancel.caption
+msgid "Cancel"
+msgstr "Скасувати"
+
+#: tform1.scbitclea.caption
+msgctxt "tform1.scbitclea.caption"
+msgid "Clear"
+msgstr "Очистити"
+
+#: tform1.scbitconf.caption
+msgctxt "tform1.scbitconf.caption"
+msgid "Confirm"
+msgstr "Підтвердити"
+
+#: tform1.scbitsend.caption
+msgid "Send"
+msgstr "Надіслати"
+
+#: tform1.speedbutton1.hint
+msgid "Copy Order ID"
+msgstr "Копіювати ID транзакції"
+
+#: tform1.staconlab.caption
+msgid "0"
+msgstr "0"
+
+#: tform1.staconlab.hint
+msgid "Connected peers"
+msgstr "Підключені однолітки"
+
+#: tform1.stapoolser.hint
+msgid "Pool server active"
+msgstr "Сервер пул активний"
+
+#: tform1.starpcimg.hint
+msgid "RPC server active"
+msgstr "Сервер RPC активний"
+
+#: tform1.staserimg.hint
+msgid "Masternode active"
+msgstr "MasterNode активний"
+
+#: tform1.statimelab.caption
+msgid "00-00-00 00:00:00 (0)"
+msgstr "00-00-00 00:00:00 (0)"
+
+#: tform1.statimelab.hint
+msgid "Noso network time"
+msgstr "Час мережі Noso"
+
+#: tform1.tabaddresses.caption
+msgid "Addresses"
+msgstr "Адреси"
+
+#: tform1.tabconsole.caption
+msgctxt "tform1.tabconsole.caption"
+msgid "Console"
+msgstr "Консоль"
+
+#: tform1.tabdoctor.caption
+msgid "Doctor"
+msgstr "Лікар"
+
+#: tform1.tabexbuy.caption
+msgid "LTC"
+msgstr "LTC"
+
+#: tform1.tabexchange.caption
+msgid "NoBiEx"
+msgstr "NoBiEx"
+
+#: tform1.tabhistory.caption
+msgid "History"
+msgstr "Історія"
+
+#: tform1.tabmainpool.caption
+msgctxt "tform1.tabmainpool.caption"
+msgid "Pool"
+msgstr "Пул"
+
+#: tform1.tabmonitor.caption
+msgctxt "tform1.tabmonitor.caption"
+msgid "Monitor"
+msgstr "Монітор"
+
+#: tform1.tabmonitormonitor.caption
+msgctxt "tform1.tabmonitormonitor.caption"
+msgid "Monitor"
+msgstr "Монітор"
+
+#: tform1.tabnodeoptions.caption
+msgctxt "tform1.tabnodeoptions.caption"
+msgid "Node"
+msgstr "Вузол"
+
+#: tform1.tabnodes.caption
+msgid "Nodes"
+msgstr "Вузли"
+
+#: tform1.taboptions.caption
+msgid "Options"
+msgstr "Параметри"
+
+#: tform1.tabpoollog.caption
+msgctxt "tform1.tabpoollog.caption"
+msgid "Log"
+msgstr "Журнал"
+
+#: tform1.tabpoolminers.caption
+msgid "Miners"
+msgstr "Майнери"
+
+#: tform1.tabpoolpays.caption
+msgid "Pays"
+msgstr "Платить"
+
+#: tform1.tabpoolstats.caption
+msgid "Stats"
+msgstr "Статистика"
+
+#: tform1.tabsheet1.caption
+msgctxt "tform1.tabsheet1.caption"
+msgid "Wallet"
+msgstr "Гаманець"
+
+#: tform1.tabsheet10.caption
+msgid "Peers"
+msgstr "Однолітки"
+
+#: tform1.tabsheet3.caption
+msgid "RPC"
+msgstr "RPC"
+
+#: tform1.tabsheet5.caption
+msgid "Trade"
+msgstr "Торгівля"
+
+#: tform1.tabsheet6.caption
+msgctxt "tform1.tabsheet6.caption"
+msgid "Miner"
+msgstr "Майнер"
+
+#: tform1.tabsheet7.caption
+msgctxt "tform1.tabsheet7.caption"
+msgid "Log"
+msgstr "Журнал"
+
+#: tform1.tabsheet8.caption
+msgid "Except"
+msgstr "Крім"
+
+#: tform1.tabsheet9.caption
+msgctxt "tform1.tabsheet9.caption"
+msgid "About..."
+msgstr "Про..."
+
+#: tform1.tabwallet.caption
+msgctxt "tform1.tabwallet.caption"
+msgid "Wallet"
+msgstr "Гаманець"
+
+#: translation.rs0001
+msgid "TimeOut reading from slot: %s"
+msgstr "Тайм-аут читання зі слота: %s"
+
+#: translation.rs0002
+msgid "Error Reading lines from slot: %s"
+msgstr "Помилка читання рядків із слота: %s"
+
+#: translation.rs0003
+msgid "Receiving headers"
+msgstr "Отримання заголовків"
+
+#: translation.rs0004
+msgid "Error Receiving headers from %s (%s)"
+msgstr "Помилка отримання заголовків від %s (%s)"
+
+#: translation.rs0005
+msgctxt "translation.rs0005"
+msgid "Headers file received: %s"
+msgstr "Отриманий файл заголовків: %s"
+
+#: translation.rs0006
+msgid "Receiving blocks"
+msgstr "Прийом блоків"
+
+#: translation.rs0007
+msgid "Error Receiving blocks from %s (%s)"
+msgstr "Помилка отримання блоків від %s (%s)"
+
+#: translation.rs0008
+msgid "Error sending outgoing message: %s"
+msgstr "Помилка надсилання вихідного повідомлення: %s"
+
+#: translation.rs0009
+msgid "ERROR: Deleting OutGoingMessage-> %s"
+msgstr "ПОМИЛКА: Видалення вихідного повідомлення-> %s"
+
+#: translation.rs0010
+msgid "Auto restart enabled"
+msgstr "Автоматичний перезапуск увімкнено"
+
+#: translation.rs0011
+msgid "BAT file created"
+msgstr "Створено файл BAT"
+
+#: translation.rs0012
+msgid "Crash info file created"
+msgstr "Створено файл інформації про аварійне завершення роботи"
+
+#: translation.rs0013
+msgid "Data restart file created"
+msgstr "Створено файл перезавантаження даних"
+
+#: translation.rs0014
+msgid "All forms closed"
+msgstr "Всі форми закриті"
+
+#: translation.rs0015
+msgid "Outgoing connections closed"
+msgstr "Вихідні з’єднання закриті"
+
+#: translation.rs0016
+msgid "Node server closed"
+msgstr "Сервер вузла закритий"
+
+#: translation.rs0017
+msgid "Closing pool server..."
+msgstr "Закриття сервера пулу..."
+
+#: translation.rs0018
+msgid "Pool server closed"
+msgstr "Сервер пулу закритий"
+
+#: translation.rs0019
+msgid "Pool members file saved"
+msgstr "Файл учасників пулу збережено"
+
+#: translation.rs0020
+msgid "Noso launcher executed"
+msgstr "Запуск Noso запущено"
+
+#: translation.rs0021
+msgid "Blocks received up to %s"
+msgstr "Отримано блоків до %s"
+
+#: translation.rs0022
+msgid "✓ Data directory ok"
+msgstr "✓ Каталог даних впорядку"
+
+#: translation.rs0023
+msgid "✓ GUI initialized"
+msgstr "✓GUI Ініціалізовано"
+
+#: translation.rs0024
+msgid "✓ My data updated"
+msgstr "✓ Дані оновлено"
+
+#: translation.rs0025
+msgid "✓ Miner configuration set"
+msgstr "✓ Набір конфігурації Майнера"
+
+#: translation.rs0026
+msgid "✓ %s languages available"
+msgstr "✓ Доступні мови: %s"
+
+#: translation.rs0027
+msgid "Wallet %s%s"
+msgstr "Гаманець %s%s"
+
+#: translation.rs0028
+msgid "✓ %s CPUs found"
+msgstr "✓ %s CPUs знайдено"
+
+#: translation.rs0029
+msgid "Noso session started"
+msgstr "Сесія Noso розпочалася"
+
+#: translation.rs0030
+msgid "Closing wallet"
+msgstr "Закриття гаманця"
+
+#: translation.rs0031
+msgid "POOL: Error trying close a pool client connection (%s)"
+msgstr "Пул: Помилка спроби закрити підключення клієнта пулу (%s)"
+
+#: translation.rs0032
+msgid "POOL: Error sending message to miner (%s)"
+msgstr "Пул: Помилка надсилання повідомлення майнеру (%s)"
+
+#: translation.rs0033
+msgid "POOL: Rejected not registered user"
+msgstr "Пул: Відхилений незареєстрований користувач"
+
+#: translation.rs0034
+msgid "Pool: Error registering a ping-> %s"
+msgstr "Пул: помилка реєстрації ping-> %s"
+
+#: translation.rs0035
+msgid "Pool solution verified!"
+msgstr "Рішення для пулу перевірено!"
+
+#: translation.rs0036
+msgid "Pool solution FAILED at step %s"
+msgstr "Рішення пулу НЕ ВІДОМЛЕННО на кроці %s"
+
+#: translation.rs0037
+msgid "Pool: Error inside CSPoolStep-> %s"
+msgstr "Пул: помилка всередині CSPoolStep-> %s"
+
+#: translation.rs0038
+msgid "POOL: Unexpected command from: %s -> %s"
+msgstr "Пул: Неочікувана команда від: %s -> %s"
+
+#: translation.rs0039
+msgid "POOL: Status requested from %s"
+msgstr "Пул: Статус запитується від %s"
+
+#: translation.rs0040
+msgid "Pool: closed incoming %s (%s)"
+msgstr "Пул: закритий вхідний %s (%s)"
+
+#: translation.rs0041
+msgid "Pool: Error inside MinerJoin-> %s"
+msgstr "Пул: помилка всередині MinerJoin-> %s"
+
+#: translation.rs0042
+msgid "SERVER: Error trying close a server client connection (%s)"
+msgstr "СЕРВЕР: Помилка спроби закрити клієнтське з'єднання сервера (%s)"
+
+#: translation.rs0043
+msgid "SERVER: Received a line from a client without and assigned slot: %s"
+msgstr "СЕРВЕР: Отримано лінію від клієнта без і призначений слот: %s"
+
+#: translation.rs0044
+msgid "SERVER: Timeout reading line from connection"
+msgstr "СЕРВЕР: Тайм-аут читання рядка з підключення"
+
+#: translation.rs0045
+msgid "SERVER: Can not read line from connection %s (%s)"
+msgstr "СЕРВЕР: Неможливо прочитати рядок із з'єднання %s (%s)"
+
+#: translation.rs0046
+msgid "SERVER: Server error receiving headers file (%s)"
+msgstr "СЕРВЕР: помилка сервера під час отримання файлу заголовків (%s)"
+
+#: translation.rs0047
+msgctxt "translation.rs0047"
+msgid "Headers file received: %s"
+msgstr "Отриманий файл заголовків: %s"
+
+#: translation.rs0048
+msgid "SERVER: Server error receiving block file (%s)"
+msgstr "СЕРВЕР: помилка сервера під час отримання файлу блоку (%s)"
+
+#: translation.rs0049
+msgid "SERVER: Error creating stream from headers: %s"
+msgstr "СЕРВЕР: Помилка створення потоку із заголовків: %s"
+
+#: translation.rs0050
+msgid "Headers file sent to: %s"
+msgstr "Файл заголовків надіслано до: %s"
+
+#: translation.rs0051
+msgid "SERVER: Error sending headers file (%s)"
+msgstr "СЕРВЕР: Помилка надсилання файлу заголовків (%s)"
+
+#: translation.rs0052
+msgid "SERVER: BlockZip send to %s: %s"
+msgstr "СЕРВЕР: BlockZip надіслати до %s: %s"
+
+#: translation.rs0053
+msgid "SERVER: Error sending ZIP blocks file (%s)"
+msgstr "СЕРВЕР: Помилка надсилання ZIP-файлу блоків (%s)"
+
+#: translation.rs0054
+msgid "SERVER: Error adding received line (%s)"
+msgstr "СЕРВЕР: Помилка додавання отриманого рядка (%s)"
+
+#: translation.rs0055
+msgid "SERVER: Got unexpected line: %s"
+msgstr "СЕРВЕР: Отримано неочікуваний рядок: %s"
+
+#: translation.rs0056
+msgid "SERVER: Timeout reading line from new connection"
+msgstr "СЕРВЕР: Тайм-аут читання рядка з нового з'єднання"
+
+#: translation.rs0057
+msgid "SERVER: Can not read line from new connection (%s)"
+msgstr "СЕРВЕР: Не вдається прочитати рядок з нового з'єднання (%s)"
+
+#: translation.rs0058
+msgid "SERVER: Invalid client -> %s"
+msgstr "СЕРВЕР: Недійсний клієнт -> %s"
+
+#: translation.rs0059
+msgid "SERVER: Own connected"
+msgstr "СЕРВЕР: Власний підключений"
+
+#: translation.rs0060
+msgid "SERVER: Duplicated connection -> %s"
+msgstr "СЕРВЕР: Дубльоване з'єднання -> %s"
+
+#: translation.rs0061
+msgid "New Connection from: %s"
+msgstr "Нове підключення від: %s"
+
+#: translation.rs0062
+msgid "SERVER: Closed unhandled incoming connection -> %s"
+msgstr "СЕРВЕР: закрите необроблене вхідне з'єднання -> %s"
+
+#: translation.rs0063
+msgid "Next block required"
+msgstr "Потрібен наступний блок"
+
+#: translation.rs0064
+msgid "My PoS addresses"
+msgstr "Мої адреси PoS"
+
+#: translation.rs0065
+msgid "My PoS earnings"
+msgstr "Мої заробітки на PoS"
+
+#: translation.rs0066
+msgid "Rebuilding my transactions..."
+msgstr "Відновлення моїх транзакцій..."
+
+#: translation.rs0067
+msgid "✓ My transactions rebuilded"
+msgstr "✓ Мої транзакції відновлено"
+
+#: translation.rs0068
+msgid "✓ My transactions grid updated"
+msgstr "✓ Моя сітка транзакцій оновлена"
+
+#: translation.rs0069
+msgid "✓ Launcher file deleted"
+msgstr "✓ Файл запуску видалено"
+
+#: translation.rs0070
+msgid "✓ Restart file deleted"
+msgstr "✓ Файл перезавантаження видалено"
+
+#: translation.rs0071
+msgid "Checking last release available..."
+msgstr "Перевірка останнього доступного випуску..."
+
+#: translation.rs0072
+msgid "✗ Failed connecting with project repo"
+msgstr "✗ Помилка підключення до репо проекту"
+
+#: translation.rs0073
+msgid "✓ Running last release version"
+msgstr "✓ Запуск останньої версії випуску"
+
+#: translation.rs0074
+msgid "✗ New version available on project repo"
+msgstr "✗ Нова версія доступна в репо проекту"
+
+#: translation.rs0075
+msgid "✓ Running a development version"
+msgstr "✓ Запуск версії для розробки"
+
+#: translation.rs0076
+msgid "Start server"
+msgstr "Запустити сервер"
+
+#: translation.rs0077
+msgid "Stop server"
+msgstr "Зупинити сервер"
+
+#: translation.rs0078
+msgctxt "translation.rs0078"
+msgid "Connect"
+msgstr "Підключіть"
+
+#: translation.rs0079
+msgid "Disconnect"
+msgstr "Від’єднати"
+
+#: translation.rs0500
+msgid "Noso Launcher"
+msgstr "Noso Лаунчер"
+
+#: translation.rs0501
+msgid "Destination"
+msgstr "Пункт призначення"
+
+#: translation.rs0502
+msgid "Amount"
+msgstr "Сума"
+
+#: translation.rs0503
+msgid "Reference"
+msgstr "Платник"
+
+#: translation.rs0504
+msgctxt "translation.rs0504"
+msgid "Balance"
+msgstr "Баланс"
+
+#: translation.rs0505
+msgid "Server"
+msgstr "Сервер"
+
+#: translation.rs0506
+msgid "Connections"
+msgstr "З'єднання"
+
+#: translation.rs0507
+msgid "Headers"
+msgstr "Заголовки"
+
+#: translation.rs0508
+msgid "Summary"
+msgstr "Summary"
+
+#: translation.rs0509
+msgid "LastBlock"
+msgstr "Останній блок"
+
+#: translation.rs0510
+msgid "Blocks"
+msgstr "Блоки"
+
+#: translation.rs0511
+msgid "Pending"
+msgstr "Очікується"
+
+#: translation.rs0512
+msgid "Invalid language: %s"
+msgstr "Недійсна мова: %s"
+
+#: translation.rs0513
+msgid "Wallet restart needed"
+msgstr "Потрібно перезавантажити гаманць"
+
+#: translation.rs0514
+msgid "Address"
+msgstr "Адреса"
+
+#: translation.rs0515
+msgctxt "translation.rs0515"
+msgid "Balance"
+msgstr "Баланс"
+
+#: translation.rs1000
+msgid "Processing block %d (%d %%)"
+msgstr "Блок обробки %d (%d %%)"
+
+#: translation.rs1001
+msgid ""
+"----- ERROR ----\n"
+"Block: %d\n"
+msgstr ""
+"----- ПОМИЛКА ----\n"
+"Блок: %d\n"
+
+#: translation.rs1002
+msgid ""
+"Wrong block hash\n"
+"File: %s\n"
+"Headers: %s\n"
+msgstr ""
+"Неправильний хеш блоку\n"
+"Файл: %s\n"
+"Заголовки: %s\n"
+
+#: translation.rs1003
+msgid "File not found: %s"
+msgstr "Файл не знайдено: %s"
+
+#: translation.rs1004
+msgid ""
+"Wrong summary hash\n"
+"Summary: %s\n"
+"Headers: %s\n"
+msgstr ""
+"Неправильний хеш підсумку\n"
+"Підсумок: %s\n"
+"Заголовки: %s\n"
+
+#: translation.rs1501
+msgid "Invalid address"
+msgstr "Недійсна адреса"
+
+#: translation.rs1502
+msgid "You can not do it while pool is active."
+msgstr "Ви не можете робити це, коли пул активний."
+
+#: translation.rs1503
+msgid "Totals: %d connections, %d IPs"
+msgstr "Усього: %d підключень, %d IP-адрес"
+
+#: translation.rs1504
+msgid "Address do not exists in wallet."
+msgstr "Адреса не існує в гаманці."
+
+#: translation.rs1505
+msgid "Keys pasted to clipboard."
+msgstr "Ключі вставлено в буфер обміну."
