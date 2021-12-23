@@ -102,11 +102,14 @@ if not errored then
          if not SetCustomAlias(OperationAddress,PendingTXs[contador].Receiver,Numero) then
             begin
             // CRITICAL ERROR: NO SE PUDO ASIGNAR EL ALIAS
+            end
+         else
+            begin
+            UpdateSumario(OperationAddress,Restar(PendingTXs[contador].AmmountFee),0,IntToStr(Numero));
+            PendingTXs[contador].Block:=numero;
+            PendingTXs[contador].Sender:=OperationAddress;
+            insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
             end;
-         UpdateSumario(OperationAddress,Restar(PendingTXs[contador].AmmountFee),0,IntToStr(Numero));
-         PendingTXs[contador].Block:=numero;
-         PendingTXs[contador].Sender:=OperationAddress;
-         insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
          end;
       if PendingTXs[contador].OrderType='TRFR' then
          begin

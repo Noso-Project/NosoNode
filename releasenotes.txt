@@ -1,5 +1,9 @@
 Version 0.2.1Ka4
 
+- Fixed protocol issue with aliasalreadyexists verification.
+
+Version 0.2.1Ka4
+
 - Romanian language included.
 - Bahasa Indonesia language included.
 - Default pool deepstep set to 2.

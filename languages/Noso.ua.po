@@ -968,3 +968,4 @@ msgstr "Адреса не існує в гаманці."
 #: translation.rs1505
 msgid "Keys pasted to clipboard."
 msgstr "Ключі вставлено в буфер обміну."
+

@@ -16,6 +16,7 @@ function TrxExistsInLastBlock(trfrhash:String):boolean;
 function AddPendingTxs(order:OrderData):boolean;
 Procedure VerifyIfPendingIsMine(order:orderdata);
 function AddressAlreadyCustomized(address:string):boolean;
+function AliasAlreadyExists(Addalias:string):boolean;
 function Restar(number:int64):int64;
 function AddressSumaryIndex(Address:string):integer;
 function GetFee(monto:int64):Int64;
@@ -221,6 +222,33 @@ if result = false then
    end;
 End;
 
+// verify if an alias is already registered
+function AliasAlreadyExists(Addalias:string):boolean;
+var
+  cont : integer;
+Begin
+Result := false;
+for cont := 0 to length(ListaSumario) -1 do
+   begin
+   if (ListaSumario[cont].custom = Addalias)  then
+      begin
+      result := true;
+      break;
+      end;
+   end;
+if not result then
+   begin
+   for cont := 0 to length(PendingTXs)-1 do
+      begin
+      if ((PendingTxs[cont].OrderType='CUSTOM') and (PendingTxs[cont].Receiver = Addalias)) then
+         begin
+         result := true;
+         break;
+         end;
+      end;
+   end;
+End;
+
 // Regresa el valor en negativo para las actualizaciones de saldo
 function Restar(number:int64):int64;
 Begin
@@ -228,7 +256,7 @@ if number > 0 then Result := number-(Number*2)
 else Result := number;
 End;
 
-// Devuelve el indice de la direccion en el sumario, o -1 si no existe
+// Devuelve el indice de la direccion o alias en el sumario, o -1 si no existe
 function AddressSumaryIndex(Address:string):integer;
 var
   cont : integer = 0;

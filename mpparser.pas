@@ -284,6 +284,7 @@ else if UpperCase(Command) = 'CHECKUPDATES' then ConsoleLinesAdd(GetLastRelease)
 else if UpperCase(Command) = 'ZIPSUMARY' then ZipSumary()
 else if UpperCase(Command) = 'ZIPHEADERS' then ZipHeaders()
 
+
 // CONSULTING
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()
 
@@ -603,15 +604,30 @@ var
   TotalCoins : int64 = 0;
   EmptyAddresses : int64 = 0;
   NegAdds : integer = 0;
+  ThisCustom : string;
+  CustomsAdds : string = '';
+  DuplicatedCustoms : string = ' ';
+  DuplicatedCount : integer = 0;
 Begin
 EnterCriticalSection(CSSumary);
 For contador := 0 to length(ListaSumario)-1 do
    begin
+   if ListaSumario[contador].custom ='' then ThisCustom := 'NULL'
+      else ThisCustom := ListaSumario[contador].custom;
    {
    ConsoleLinesAdd(ListaSumario[contador].Hash+' '+Int2Curr(ListaSumario[contador].Balance)+' '+
-      SLINEBREAK+ListaSumario[contador].custom+' '+
+      ThisCustom+' '+
       IntToStr(ListaSumario[contador].LastOP)+' '+IntToStr(ListaSumario[contador].Score));
+   EngineLastUpdate := UTCTime.ToInt64;
    }
+   // Custom adds verification
+   if ( (thiscustom <> 'NULL') and (AnsiContainsStr(CustomsAdds,' '+thiscustom+' ')) ) then
+      begin
+      DuplicatedCount +=1;
+      DuplicatedCustoms := DuplicatedCustoms+thiscustom+' ';
+      end
+   else CustomsAdds := CustomsAdds+thiscustom+' ';
+
    if ListaSumario[contador].Balance < 0 then NegAdds+=1;
    TotalCOins := totalCoins+ ListaSumario[contador].Balance;
    if ListaSumario[contador].Balance = 0 then EmptyAddresses +=1;
@@ -619,6 +635,11 @@ For contador := 0 to length(ListaSumario)-1 do
 ConsoleLinesAdd(IntToStr(Length(ListaSumario))+langline(51)); //addresses
 ConsoleLinesAdd(IntToStr(EmptyAddresses)+' empty.'); //addresses
 if NegAdds>0 then ConsoleLinesAdd('Possible issues: '+IntToStr(NegAdds));
+if DuplicatedCount>0 then
+   begin
+   ConsoleLinesAdd('Duplicated alias: '+DuplicatedCount.ToString);
+   ConsoleLinesAdd(DuplicatedCustoms);
+   end;
 ConsoleLinesAdd(Int2Curr(Totalcoins)+' '+CoinSimbol);
 LeaveCriticalSection(CSSumary);
 End;
@@ -961,7 +982,7 @@ if AddressAlreadyCustomized(Address) then
    ConsoleLinesAdd(LangLine(141)); //'Address already have a custom alias'
    procesar := false;
    end;
-if AddressSumaryIndex(addalias) >= 0 then
+if AliasAlreadyExists(addalias) then
    begin
    ConsoleLinesAdd('Alias already exists');
    procesar := false;

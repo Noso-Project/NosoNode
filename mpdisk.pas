@@ -1244,7 +1244,7 @@ for cont := 0 to length(ListaSumario)-1 do
       end;
    end;
 LeaveCriticalSection(CSSumary);
-if block > 10429 then
+if ((result=false) and (block > 10429)) then
    toexclog('Error assigning custom alias to address: '+Address+' -> '+addalias);
 End;
 

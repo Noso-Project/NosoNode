@@ -666,7 +666,7 @@ if TranxAlreadyPending(OrderInfo.TrfrID ) then Proceder:=false;
 if OrderInfo.TimeStamp < LastBlockData.TimeStart then Proceder:=false;
 if TrxExistsInLastBlock(OrderInfo.TrfrID) then Proceder:=false;
 if AddressAlreadyCustomized(Address) then Proceder:=false;
-If AddressSumaryIndex(OrderInfo.Receiver) >=0 then Proceder:=false;
+If AliasAlreadyExists(OrderInfo.Receiver) then Proceder:=false;
 if not VerifySignedString('Customize this '+Address+' '+OrderInfo.Receiver,OrderInfo.Signature,OrderInfo.Sender ) then Proceder:=false;
 if proceder then
    begin
