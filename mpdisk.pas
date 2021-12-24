@@ -168,7 +168,9 @@ if UserOptions.PoolInfo<> '' then
    end;
 OutText('✓ Pool info verified',false,1);
 MyLastBlock := GetMyLastUpdatedBlock;
+OutText('✓ My last block verified: '+MyLastBlock.ToString,false,1);
 BuildHeaderFile(MyLastBlock); // PROBABLY IT IS NOT NECESARY
+OutText('✓ Meaders file build',false,1);
 
 UpdateWalletFromSumario();
 OutText('✓ Wallet updated',false,1);
@@ -1591,18 +1593,24 @@ End;
 Procedure CargarMisTrx();
 var
   dato : MyTrxData;
+  firsToRead : integer;
+  counter : integer;
 Begin
 setmilitime('CargarMisTrx',1);
    try
    assignfile(FileMyTrx,MyTrxFilename);
    reset(FileMyTrx);
-   setlength(ListaMisTrx,0);
-   while not eof(FileMyTrx) do
+   setlength(ListaMisTrx,1);
+   seek (FileMyTrx,0);
+   Read(FileMyTrx,dato);
+   ListaMisTrx[0] := dato;
+   firsToRead := filesize(FileMyTrx)-ShowedOrders;
+   if firsToRead < 1 then firsToRead := 1;
+   for counter := firsToRead to filesize(FileMyTrx)-1 do
       begin
-      Dato := Default(MyTrxData);
-      setlength(ListaMisTrx,length(ListaMisTrx)+1);
-      read(FileMyTrx,dato);
-      ListaMisTrx[length(ListaMisTrx)-1] := dato;
+      seek (FileMyTrx,counter);
+      Read(FileMyTrx,dato);
+      Insert(dato,ListaMisTrx,length(ListaMisTrx));
       end;
    closefile(FileMyTrx);
    G_PoSPayouts := StrToInt64Def(parameter(ListaMisTrx[0].receiver,0),0);

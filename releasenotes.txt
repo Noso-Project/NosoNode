@@ -1,4 +1,11 @@
-Version 0.2.1Ka4
+Version 0.2.1Ka6
+
+- Implemented stop pool server variable.
+- Implemented secure close of pool server.
+- Implemented secure close of node server.
+- Fast load of recent wallet transactions.
+
+Version 0.2.1Ka5
 
 - Fixed protocol issue with aliasalreadyexists verification.
 

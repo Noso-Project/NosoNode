@@ -58,6 +58,7 @@ else
       Form1.PoolServer.Bindings.Clear;
       Form1.PoolServer.DefaultPort:=port;
       Form1.PoolServer.Active:=true;
+      G_KeepPoolOff := false;
       ToLog('Pool server enabled at port: '+IntToStr(port));   //Server ENABLED. Listening on port
       except on E : Exception do
          ToLog('Unable to start pool server: '+E.Message);       //Unable to start Server
@@ -65,17 +66,37 @@ else
    end;
 end;
 
-// Detiene el servidor del pool
+// Stops the pool server
 Procedure StopPoolServer();
+var
+  contador : integer;
+  Count : integer = 0;
 Begin
-   try
-   if Form1.PoolServer.Active then Form1.PoolServer.Active:=false;
-   Except on E:Exception do
+TRY
+G_KeepPoolOff := true;
+if Form1.PoolServer.Active then
+   begin
+   for contador := 0 to length(PoolServerConex)-1 do
       begin
-      ToLog('Unable to close pool server');
-      //Form1.PoolServer.Destroy;
+      if PoolServerConex[contador].ip <> '' then
+         begin
+         TRY
+         Count +=1;
+         PoolServerConex[contador].Context.Connection.IOHandler.InputBuffer.Clear;
+         PoolServerConex[contador].Context.Connection.Disconnect;
+         EXCEPT on E:Exception do
+            ToLog('Unable to close pool connection: '+E.Message);
+         END{Try};
+         end;
       end;
+   Form1.PoolServer.Active:=false;
+   ConsoleLinesAdd('Pool server stoped. '+count.ToString+' connections.');
    end;
+EXCEPT on E:Exception do
+   begin
+   ToLog('Unable to close pool server: '+E.Message);
+   end;
+END{Try};
 End;
 
 //** Returns an array with all the information for miners
@@ -538,7 +559,7 @@ if length(PoolServerConex) > 0 then
          Poolserverconex[contador]:=Default(PoolUserConnection);
             try
             Acontext.Connection.IOHandler.InputBuffer.Clear;
-            AContext.Connection.Disconnect;
+            AContext.Binding.CloseSocket();
             Except on E:Exception do
                begin
                ToExcLog(Format('Error closing pool connection (%s): %s',[IPcon,E.Message]));

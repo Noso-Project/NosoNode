@@ -652,7 +652,7 @@ CONST
                             '185.239.239.184 '+
                             '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Ka5';
+  SubVersion = 'Ka6';
   OficialRelease = true;
   BuildDate = 'December 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -816,6 +816,7 @@ var
   CurrentLanguage : String = '';
   CurrentJob : String = '';
   ForcedQuit : boolean = false;
+  G_KeepPoolOff : boolean = false;
   LanguageLines : integer = 0;
   NewLogLines : integer = 0;
   NewExclogLines : integer = 0;
@@ -1894,98 +1895,6 @@ else if ARequestInfo.Command = 'POST' then
    end;
 End;
 
-// DEPRECATED
-{
-procedure TForm1.RPCServerConnect(AContext: TIdContext);
-var
-  CloseConnection : boolean = false;
-  IpUser, Linea, password,comando : string;
-  direccion, orderid : string;
-  resultorder : orderdata; orderconfirmations : string;
-  TextToSend : String = '';
-  BlockSolTime, BlockSolNumber, BlockSolMiner, BlockSolution : String;
-  BlockVerification : integer;
-Begin
-IPUser := AContext.Connection.Socket.Binding.PeerIP;
-Linea := AContext.Connection.IOHandler.ReadLn('',ReadTimeOutTIme,-1,IndyTextEncoding_UTF8);
-password := parameter(linea,0);
-comando := parameter(linea,1);
-ConsoleLinesAdd('RPC Line: '+Linea);
-if password <> RPCPass then
-   begin
-   TextToSend := 'PASSFAILED';
-   CloseConnection := true;
-   end
-else
-   begin
-   if UpperCase(comando) = 'TEST' then
-      begin
-      TextToSend := 'TESTOK';
-      CloseConnection := true;
-      end;
-   if UpperCase(comando) = 'ADBAL' then
-      begin
-      direccion := parameter(linea,2);
-      TextToSend := Int2Curr(GetAddressBalance(direccion))+' '+
-         Int2Curr(GetAddressPendingPays(direccion))+' '+
-         Int2Curr(GetAddressBalance(direccion)-GetAddressPendingPays(direccion)) ;
-      CloseConnection := true;
-      end;
-   if UpperCase(comando) = 'ORDERID' then
-      begin
-      orderid := parameter(linea,2);
-      if orderid <> '' then resultorder := GetOrderDetails(orderid)
-      else resultorder := Default(orderdata);
-      if resultorder.AmmountTrf<=0 then Acontext.Connection.IOHandler.WriteLn('INVALID')
-      else
-         begin
-         if resultorder.Block = 0 then orderconfirmations := 'Pending'
-         else orderconfirmations := IntToStr(MyLastBlock-resultorder.Block);
-         TextToSend :=orderconfirmations+' '+TimestampToDate(IntToStr(resultorder.TimeStamp))+' '+
-            resultorder.reference+' '+resultorder.Receiver+' '+Int2curr(resultorder.AmmountTrf);
-         end;
-      CloseConnection := true;
-      end;
-   if UpperCase(comando) = 'POOLDATA' then
-      begin
-      TextToSend := 'POOLDATA '+IntToStr(MyLastBlock)+' '+IntToStr(LastBlockData.NxtBlkDiff)+' '+MyLastBlockHash;
-      if RPC_MinerReward > 0 then
-         begin
-         TextToSend := TextToSend+slinebreak+'REWARD '+IntToStr(RPC_MinerReward);
-         RPC_MinerReward := 0;
-         end;
-      end;
-   if UpperCase(comando) = 'POOLSOL' then
-      begin
-      BlockSolTime := UTCTime;
-      BlockSolNumber := parameter(linea, 3);
-      BlockSolMiner := parameter(linea, 4);
-      BlockSolution := parameter(linea, 5);
-      BlockSolution := StringReplace(BlockSolution,'_',' ',[rfReplaceAll, rfIgnoreCase]);
-      BlockVerification := VerifySolutionForBlock(LastBlockData.NxtBlkDiff, MyLastBlockHash,BlockSolMiner ,BlockSolution);
-      if BlockVerification = 0 then
-         begin
-         ConsoleLinesAdd('Pool solution verified');
-         OutgoingMsjsAdd(ProtocolLine(6)+BlockSolTime+' '+BlockSolNumber+' '+
-               BlockSolMiner+' '+StringReplace(BlockSolution,' ','_',[rfReplaceAll, rfIgnoreCase]));
-         ResetPoolMiningInfo();
-         TextToSend := 'BLOCKSOLOK '+BlockSolNumber;
-         RPC_MinerInfo := BlockSolMiner;
-         end;
-      end;
-   end;
-TRY
-   Acontext.Connection.IOHandler.WriteLn(TextToSend);
-   if CloseConnection then
-      begin
-      AContext.Connection.Disconnect;
-      Acontext.Connection.IOHandler.InputBuffer.Clear;
-      end;
-EXCEPT on E:Exception do ToLog('Error on RPC request:'+E.Message);
-END;
-End;
-}
-
 // *******************
 // *** POOL SERVER ***
 // *******************
@@ -2010,7 +1919,7 @@ Begin
    if closemsg <>'' then
       Acontext.Connection.IOHandler.WriteLn(closemsg);
    Acontext.Connection.IOHandler.InputBuffer.Clear;
-   AContext.Connection.Disconnect;
+   AContext.Binding.CloseSocket();
    Except on E:Exception do
       ToExcLog(format(rs0031,[E.Message]));
       //ToExcLog('POOL: Error trying close a pool client connection ('+E.Message+')');
@@ -2201,45 +2110,7 @@ else if Comando = 'STEP' then
    end
 else if Comando = 'PAYMENT' then
    Begin
-      {
-      try
-      if GetLastPagoPoolMember(UserDireccion)+PoolInfo.TipoPago<MyLastBlock then
-         begin
-         if memberbalance > 0 then
-            begin
-            SendFundsResult := SendFunds('sendto '+UserDireccion+' '+IntToStr(GetMaximunToSend(MemberBalance))+' POOLPAYMENT_'+PoolInfo.Name);
-            //ProcessLinesAdd('sendto '+UserDireccion+' '+IntToStr(GetMaximunToSend(MemberBalance))+' POOLPAYMENT_'+PoolInfo.Name);
-            if SendFundsResult <> '' then // payments is done
-               begin
-               ClearPoolUserBalance(UserDireccion);
-               Acontext.Connection.IOHandler.WriteLn('PAYMENTOK '+UTCTime+' POOLIP '+
-                  UserDireccion+' 2 '+IntToStr(MyLastBlock)+' '+int2curr(GetMaximunToSend(MemberBalance))+' '+
-                  SendFundsResult);
-               AddPoolPay(IntToStr(MyLastBlock+1)+' '+UserDireccion+' '+IntToStr(GetMaximunToSend(MemberBalance))+' '+
-                  SendFundsResult);
-               PoolMembersTotalDeuda := GetTotalPoolDeuda();
-               end
-            else                // PAYMENT SEND FUNDS FAIL
-               begin
-               Acontext.Connection.IOHandler.WriteLn('PAYMENTFAIL TRYAGAIN');
-               end;
-            end
-         else
-            begin
-            Acontext.Connection.IOHandler.WriteLn('PAYMENTEMPTY');
-            end;
-         end
-      else
-         begin
-         Acontext.Connection.IOHandler.WriteLn('PAYMENTFAIL');
-         end;
-      Except on E:Exception do
-         begin
-         TryClosePoolConnection(Acontext);
-         ToExclog(Format('Pool: Error Processing payment-> %s',[E.Message]));
-         end;
-      end;
-      }
+
    end
 else
    begin
@@ -2264,6 +2135,11 @@ if PoolClientsCount > GetPoolTotalActiveConex+3 then
   TryClosePoolConnection(AContext);
   exit;
   end;
+if G_KeepPoolOff then // The pool server is closed or closing
+   begin
+   TryClosePoolConnection(AContext,'CLOSINGPOOL');
+   exit;
+   end;
 EnterCriticalSection(CSMinerJoin);InsideMinerJoin := true;
 try
    Linea := AContext.Connection.IOHandler.ReadLn('',ReadTimeOutTIme,-1,IndyTextEncoding_UTF8);
@@ -2601,6 +2477,11 @@ var
 Begin
 GoAhead := true;
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
+if KeepServerOn = false then
+   begin
+   TryCloseServerConnection(AContext,'Closing NODE');
+   exit;
+   end;
 TRY
    LLine := AContext.Connection.IOHandler.ReadLn('',200,-1,IndyTextEncoding_UTF8);
    if AContext.Connection.IOHandler.ReadLnTimedout then

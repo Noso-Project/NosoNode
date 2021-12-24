@@ -148,9 +148,9 @@ procedure StopServer();
 var
   Contador: integer;
 Begin
-KeepServerOn := false;
 SetCurrentJob('StopServer',true);
-   try
+   TRY
+   KeepServerOn := false;
    for contador := 1 to MaxConecciones do
       begin
       if conexiones[contador].tipo='CLI' then CerrarSlot(contador);
@@ -158,11 +158,11 @@ SetCurrentJob('StopServer',true);
    Form1.Server.Active:=false;
    ConsoleLinesAdd(LangLine(16));             //Server stopped
    U_DataPanel := true;
-   Except on E:Exception do
+   EXCEPT on E:Exception do
       begin
 
       end;
-   end;
+   END{Try};
 SetCurrentJob('StopServer',false);
 end;
 
@@ -544,7 +544,7 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
    ResetMinerInfo();
    ResetPoolMiningInfo();
    if RPCAuto then  ProcessLinesAdd('RPCON');
-   if ((Miner_OwnsAPool) and (Miner_Active) and(not Form1.PoolServer.Active)) then // Activar el pool propio si se posee uno
+   if ((Miner_OwnsAPool) and (Miner_Active) and(not Form1.PoolServer.Active) and (G_KeepPoolOff = false)) then // Activar el pool propio si se posee uno
       begin
       StartPoolServer(Poolinfo.Port);
       if Form1.PoolServer.Active then ConsoleLinesAdd(PoolInfo.Name+' pool server is listening')
@@ -593,7 +593,7 @@ if MyConStatus = 3 then
       }
       end
    else SynchWarnings := 0;
-   if ((Miner_OwnsAPool) and (not Form1.PoolServer.Active)) then // Activar el pool propio si se posee uno
+   if ((Miner_OwnsAPool) and (not Form1.PoolServer.Active) and (G_KeepPoolOff = false)) then // Activar el pool propio si se posee uno
       begin
       if ( (Mylastblock+1 = StrToIntDef(parameter(Miner_RestartedSolution,0),-1)) and
          (StrToIntDef(parameter(Miner_RestartedSolution,1),-1)>0) ) then
