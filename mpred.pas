@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, forms, SysUtils, MasterPaskalForm, MPTime, IdContext, IdGlobal, mpGUI, mpDisk,
-  mpBlock, mpMiner, fileutil, graphics,  dialogs,poolmanage, strutils, mpcoin, fphttpclient,opensslsockets ;
+  mpBlock, mpMiner, fileutil, graphics,  dialogs,poolmanage, strutils, mpcoin, fphttpclient,
+  opensslsockets,translation ;
 
 function GetSlotFromIP(Ip:String):int64;
 function BotExists(IPUser:String):Boolean;
@@ -121,12 +122,16 @@ end;
 // Activa el servidor
 procedure StartServer();
 Begin
+if DireccionEsMia(MN_Sign)<0 then
+   begin
+   ConsoleLinesAdd(rs2000); //Sign address not valid
+   exit;
+   end;
 KeepServerOn := true;
 if Form1.Server.Active then
    begin
    ConsoleLinesAdd(LangLine(160)); //'Server Already active'
    end
-
 else
    begin
       try
@@ -565,6 +570,7 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
    end;
 if MyConStatus = 3 then
    begin
+   if ((RunExpelPoolInactives) and (not BuildingBlock)) then ExpelPoolInactives;
    SetCurrentJob('MyConStatus3',true);
    if StrToIntDef(NetPendingTrxs.Value,0)<length(PendingTXs) then
       begin

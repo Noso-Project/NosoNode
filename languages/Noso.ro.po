@@ -968,3 +968,7 @@ msgstr ""
 msgid "Keys pasted to clipboard."
 msgstr ""
 
+#: translation.rs2000
+msgid "Sign address not valid"
+msgstr ""
+

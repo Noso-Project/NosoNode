@@ -49,32 +49,41 @@ Procedure CargarBotData();
 Procedure UpdateBotData(IPUser:String);
 Procedure SaveBotData();
 
+// sumary
+Procedure UpdateWalletFromSumario();
+Procedure CreateSumario();
+Procedure CargarSumario();
+Procedure GuardarSumario(SaveCheckmark:boolean = false);
+Procedure UpdateSumario(Direccion:string;monto:Int64;score:integer;LastOpBlock:string);
+Procedure AddBlockToSumary(BlockNumber:integer;SaveAndUpdate:boolean = true);
+Procedure CompleteSumary();
+Procedure RebuildSumario(UntilBlock:integer);
+
+// My transactions
+Procedure CrearMistrx();
+Procedure CargarMisTrx();
+Procedure SaveMyTrxsLastUpdatedblock(Number:integer;PoSPayouts, PoSEarnings:int64);
+Procedure RebuildMyTrx(blocknumber:integer);
+Procedure SaveMyTrxsToDisk(Cantidad:integer);
+
+
+
 Procedure CrearNTPData();
 Procedure CargarNTPData();
 Procedure SaveUpdatedFiles();
 Procedure CrearWallet();
 Procedure CargarWallet(wallet:String);
 Procedure GuardarWallet();
-Procedure UpdateWalletFromSumario();
-Procedure CreateSumario();
-Procedure CargarSumario();
-Procedure GuardarSumario();
+
 function GetMyLastUpdatedBlock():int64;
-Procedure UpdateSumario(Direccion:string;monto:Int64;score:integer;LastOpBlock:string);
+
 function SetCustomAlias(Address,Addalias:String;block:integer):Boolean;
 procedure UnzipBlockFile(filename:String;delfile:boolean);
 Procedure CreateResumen();
 Procedure BuildHeaderFile(untilblock:integer);
-Procedure AddBlockToSumary(BlockNumber:integer;SaveAndUpdate:boolean = true);
-Procedure CompleteSumary();
-Procedure RebuildSumario(UntilBlock:integer);
 Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
 Procedure DelBlChHeadLast();
-Procedure CrearMistrx();
-Procedure CargarMisTrx();
-Procedure SaveMyTrxsLastUpdatedblock(Number:integer;PoSPayouts, PoSEarnings:int64);
-Procedure RebuildMyTrx(blocknumber:integer);
-Procedure SaveMyTrxsToDisk(Cantidad:integer);
+
 function NewMyTrx(aParam:Pointer):PtrInt;
 Procedure CrearBatFileForRestart();
 Procedure RestartNoso();
@@ -1135,9 +1144,10 @@ Begin
 End;
 
 // Save sumary to disk
-Procedure GuardarSumario();
+Procedure GuardarSumario(SaveCheckmark:boolean = false);
 var
   contador : integer = 0;
+  CurrentBlock : integer;
 Begin
 setmilitime('GuardarSumario',1);
 SetCurrentJob('GuardarSumario',true);
@@ -1160,6 +1170,14 @@ assignfile(FileSumario,SumarioFilename);
 CloseFile(FileSumario);
 LeaveCriticalSection(CSSumary);
 ZipSumary;
+if SaveCheckmark then
+   begin
+   CurrentBlock := Listasumario[contador].LastOP;
+   if not fileexists(MarksDirectory+CurrentBlock.ToString+'.psk') then
+      begin
+      copyfile(SumarioFilename,MarksDirectory+CurrentBlock.ToString+'.psk');
+      end;
+   end;
 SetCurrentJob('GuardarSumario',false);
 setmilitime('GuardarSumario',2);
 End;
@@ -1313,7 +1331,7 @@ while contador <= untilblock do
       Read(FileResumen,dato);
    If ((contador>0) and (BlockHeader.LastBlockHash <> LastHash)) then
       begin  // Que hacer si todo encaja pero el sumario no esta bien
-      RestoreBlockChain();
+      //RestoreBlockChain();
       end;
    CurrHash := HashMD5File(BlockDirectory+IntToStr(contador)+'.blk');
    if  CurrHash <> Dato.blockhash then
@@ -1329,25 +1347,6 @@ while contador <= untilblock do
       begin                                  // en el sumario asi que se procesan sus trxs
       newblocks := newblocks + 1;
       AddBlockToSumary(contador);
-      {UpdateSumario(BlockHeader.AccountMiner,BlockHeader.Reward+BlockHeader.MinerFee,0,IntToStr(contador));
-      // AQUI LEER LAS TRANSACCIONES Y PROCESARLAS
-      ArrayOrders := Default(BlockOrdersArray);
-      ArrayOrders := GetBlockTrxs(contador);
-      for cont := 0 to length(ArrayOrders)-1 do
-         begin
-         if ArrayOrders[cont].OrderType='CUSTOM' then
-            begin
-            UpdateSumario(ArrayOrders[cont].Sender,Restar(Customizationfee),0,IntToStr(contador));
-            setcustomalias(ArrayOrders[cont].Sender,ArrayOrders[cont].Receiver);
-            end;
-         if ArrayOrders[cont].OrderType='TRFR' then
-            begin
-            UpdateSumario(ArrayOrders[cont].Sender,Restar(ArrayOrders[cont].AmmountFee+ArrayOrders[cont].AmmountTrf),0,IntToStr(contador));
-            UpdateSumario(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,0,IntToStr(contador));
-            end;
-         end;
-      ListaSumario[0].LastOP:=contador;
-      GuardarSumario(); }
       end;
    // VErificar si el sumario hash no esta en blanco
    seek(FileResumen,contador);
@@ -1368,7 +1367,7 @@ while filesize(FileResumen)> Untilblock+1 do  // cabeceras presenta un numero an
    begin
    seek(FileResumen,Untilblock+1);
    truncate(fileResumen);
-   tolog ('Readjusted headers size');
+   toexclog ('Readjusted headers size');
    end;
 closefile(FileResumen);
 if newblocks>0 then
@@ -1490,6 +1489,7 @@ for contador := 1 to UntilBlock do
       EngineLastUpdate := UTCTime.ToInt64;
       application.ProcessMessages;
       end;
+
    BlockHeader := Default(BlockHeaderData);
    BlockHeader := LoadBlockDataHeader(contador);
    UpdateSumario(BlockHeader.AccountMiner,BlockHeader.Reward+BlockHeader.MinerFee,0,IntToStr(contador));
@@ -1604,13 +1604,17 @@ setmilitime('CargarMisTrx',1);
    seek (FileMyTrx,0);
    Read(FileMyTrx,dato);
    ListaMisTrx[0] := dato;
-   firsToRead := filesize(FileMyTrx)-ShowedOrders;
-   if firsToRead < 1 then firsToRead := 1;
-   for counter := firsToRead to filesize(FileMyTrx)-1 do
+   //firsToRead := filesize(FileMyTrx)-ShowedOrders;
+   //if firsToRead < 1 then firsToRead := 1;
+   firsToRead := 1;
+   if filesize(FileMyTrx) > 1 then
       begin
-      seek (FileMyTrx,counter);
-      Read(FileMyTrx,dato);
-      Insert(dato,ListaMisTrx,length(ListaMisTrx));
+      for counter := firsToRead to filesize(FileMyTrx)-1 do
+         begin
+         seek (FileMyTrx,counter);
+         Read(FileMyTrx,dato);
+         Insert(dato,ListaMisTrx,length(ListaMisTrx));
+         end;
       end;
    closefile(FileMyTrx);
    G_PoSPayouts := StrToInt64Def(parameter(ListaMisTrx[0].receiver,0),0);

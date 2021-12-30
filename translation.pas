@@ -117,6 +117,9 @@ resourcestring
   rs1503 = 'Totals: %d connections, %d IPs';
   rs1504 = 'Address do not exists in wallet.';
   rs1505 = 'Keys pasted to clipboard.';
+  //mpred
+  rs2000 = 'Sign address not valid';
+
 {
 ConsoleLinesadd(format(rs,[]));
 }

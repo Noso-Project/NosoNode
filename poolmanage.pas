@@ -679,10 +679,13 @@ Procedure ExpelPoolInactives();
 var
   counter : integer;
   expelled : integer = 0;
-  Mineraddress, SendFundsResult : string;
-  MemberBalance : Int64;
+  Mineraddress : string;
+  MemberBalance, Remaining : Int64;
   PaidMembers : integer = 0;
+  TotalPaid : int64 = 0;
+
 Begin
+RunExpelPoolInactives := false;
 Entercriticalsection(CSPoolMembers);
 if length(arraypoolmembers)>0 then
    begin
@@ -697,6 +700,7 @@ if length(arraypoolmembers)>0 then
             ( Mineraddress<>'')) then
             begin
             ProcessLinesAdd('POOLEXPEL '+arraypoolmembers[counter].Direccion+' YES');
+            TotalPaid := totalpaid + MemberBalance;
             expelled +=1;
             end;
          end;
@@ -706,6 +710,7 @@ if length(arraypoolmembers)>0 then
          if ((MemberBalance > 0) and (Mineraddress<>'')) then
             begin
             ProcessLinesAdd('sendto '+Mineraddress+' '+IntToStr(GetMaximunToSend(MemberBalance))+' POOLPAYMENT_'+PoolInfo.Name);
+            TotalPaid := TotalPaid + MemberBalance;
             ClearPoolUserBalance(Mineraddress);
             PaidMembers +=1;
             end;
@@ -713,8 +718,10 @@ if length(arraypoolmembers)>0 then
       end;
    end;
 Leavecriticalsection(CSPoolMembers);
-ConsoleLinesAdd('Pool expels  : '+IntToStr(expelled));
-ConsoleLinesAdd('Pool Payments: '+IntToStr(PaidMembers));
+ConsoleLinesAdd('Pool expels  : '+intToStr(expelled));
+ConsoleLinesAdd('Pool Payments: '+intToStr(PaidMembers));
+ConsoleLinesAdd('Total paid   : '+int2curr(Totalpaid));
+
 End;
 
 function PoolStatusString():String;

@@ -276,6 +276,18 @@ type
 
   BlockArraysPos = array of TArrayPos;
 
+  TMasterNode = Packed Record
+       SignAddress : string[40];
+       SignKey     : string[120];
+       FundAddress : string[40];
+       Ip          : string[40];
+       Port        : integer;
+       Block       : integer;
+       BlockHash   : string[32];
+       Signature   : string[120];
+       end;
+
+
   { TForm1 }
 
   TForm1 = class(TForm)
@@ -770,9 +782,7 @@ var
     S_PoolPays : boolean = false;
   ArrPoolPays : array of PoolPaymentData;
   StringAvailableUpdates : String = '';
-  //DataPanel : TStringGrid;
     U_DataPanel : boolean = true;
-  //LabelBigBalance : TLabel;
     U_PoSGrid : Boolean = true;
   // Network requests
   ArrayNetworkRequests : array of NetworkRequestData;
@@ -852,6 +862,8 @@ var
   MyPublicIP : String = '';
   LastBlockData : BlockHeaderData;
   UndonedBlocks : boolean = false;
+  RunExpelPoolInactives : boolean = false;
+  BuildingBlock : boolean = false;
 
   NetSumarioHash : NetworkData;
     SumaryRebuilded : boolean = false;
@@ -2021,6 +2033,7 @@ else if Comando = 'STEP' then
    StepBase := GetCharsFromDifficult(PoolMiner.Dificult, 0)-PoolStepsDeep; //Get the minimun steplength
    if StepLength<0 then StepLength := PoolMiner.DiffChars;
    StepValue := 16**(StepLength-Stepbase);
+   if StepValue > 16**PoolStepsDeep then StepValue := 16**PoolStepsDeep;
    Solucion := HashSha256String(SeedStep+PoolInfo.Direccion+HashStep);
    EnterCriticalSection(CSPoolStep);InsidePoolStep := true;
       try

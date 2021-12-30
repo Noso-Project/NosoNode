@@ -54,6 +54,7 @@ var
   PoSAddressess : array of TArrayPos;
   errored : boolean = false;
 Begin
+BuildingBlock := true;
 setmilitime('CrearNuevoBloque',1);
 SetCurrentJob('CrearNuevoBloque',true);
 if ((numero>0) and (Timestamp < lastblockdata.TimeEnd)) then
@@ -211,7 +212,7 @@ if not errored then
    MyResumenHash := HashMD5File(ResumenFilename);
    ResetMinerInfo();
    ResetPoolMiningInfo();
-   if ((Miner_OwnsAPool) and (PoolExpelBlocks>0)) then ExpelPoolInactives();
+   if ((Miner_OwnsAPool) and (PoolExpelBlocks>0)) then RunExpelPoolInactives:=true;
    if minero = PoolInfo.Direccion then
       begin
       ConsoleLinesAdd('Your pool solved the block '+inttoStr(numero));
@@ -234,6 +235,12 @@ if not errored then
       OutgoingMsjsAdd(ProtocolLine(ping));
       end;
    OutText(LangLine(89)+IntToStr(numero),true);  //'Block builded: '
+
+   {
+   if form1.Server.Active then
+      OutgoingMsjsAdd(ProtocolLine(10)); // Node report
+   }
+
    if Numero > 0 then RebuildMyTrx(Numero);
    CheckForMyPending;
    if DIreccionEsMia(Minero)>-1 then showglobo('Miner','Block found!');
@@ -241,6 +248,7 @@ if not errored then
    SetCurrentJob('CrearNuevoBloque',false);
    setmilitime('CrearNuevoBloque',2);
    end;
+BuildingBlock := false;
 End;
 
 // Devuelve cuantos caracteres compondran el targethash del siguiente bloque

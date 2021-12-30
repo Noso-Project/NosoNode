@@ -32,6 +32,7 @@ Procedure StartCriptoThread();
 Procedure DeleteCriptoOp();
 Function ProcessCriptoOP(aParam:Pointer):PtrInt;
 function Recursive256(incomingtext:string):string;
+Function GetMNSignature():string;
 // Big Maths
 function ClearLeadingCeros(numero:string):string;
 function BMAdicion(numero1,numero2:string):string;
@@ -233,6 +234,7 @@ var
   contador : integer = 0;
 Begin
 Result := -1;
+if direccion ='' then exit;
 for contador := 0 to length(Listadirecciones)-1 do
    begin
    if ((ListaDirecciones[contador].Hash = direccion) or (ListaDirecciones[contador].Custom = direccion )) then
@@ -274,32 +276,6 @@ Signature := TSignerUtils.SignMessage(MessageAsBytes, StrToByte(DecodeStringBase
       TKeyType.SECP256K1);
 Result := EncodeStringBase64(ByteToString(Signature));
 End;
-
-// RETURNS THE BASE64 STRING FROM A FILE
-{
-function GetBase64TextFromFile(fileb64:string):string;
-var
-  KeyFile: TextFile;
-  LineText, Resultado : String;
-Begin
-Resultado := '';
-AssignFile(KeyFile,fileb64);
-   Try
-   reset(Keyfile);
-   while not eof(KeyFile) do
-      begin
-      readln(KeyFile, LineText);
-      If AnsiContainsStr(LineText,'-----') = false then
-         Resultado := Resultado + LineText;
-      end;
-   Closefile(Keyfile);
-   except
-   on E: EInOutError do
-      ConsoleLinesAdd(LAngLine(25));         //Base64 file not found
-   end;
-Result := Resultado;
-end;
-}
 
 // VERIFY IF A SIGNED STRING IS VALID
 function VerifySignedString(StringToVerify,B64String,PublicKey:String):boolean;
@@ -446,6 +422,24 @@ for contador := 1 to 5 do
    end;
 result := HashSha256String(resultado);
 setmilitime('Recursive256',2);
+End;
+
+// Returns the signature for the masternode report
+Function GetMNSignature():string;
+var
+  TextToSign : string = '';
+  SignAddressIndex : integer;
+  PublicKey : string;
+Begin
+result := '';
+TextToSign := MN_IP+' '+MyLastBlock.ToString+' '+MyLastBlockHash;
+SignAddressIndex := DireccionEsMia(MN_Sign);
+if SignAddressIndex<0 then result := ''
+else
+   begin
+   PublicKey := ListaDirecciones[SignAddressIndex].PublicKey;
+   result := PublicKey+' '+GetStringSigned(TextToSign,ListaDirecciones[SignAddressIndex].PrivateKey);
+   end;
 End;
 
 // *****************************************************************************

@@ -969,3 +969,7 @@ msgstr "Адреса не існує в гаманці."
 msgid "Keys pasted to clipboard."
 msgstr "Ключі вставлено в буфер обміну."
 
+#: translation.rs2000
+msgid "Sign address not valid"
+msgstr ""
+

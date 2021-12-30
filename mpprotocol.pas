@@ -40,6 +40,9 @@ Procedure PTC_NetReqs(textline:string);
 function RequestAlreadyexists(reqhash:string):string;
 Procedure UpdateMyRequests(tipo:integer;timestamp:string;bloque:integer;hash,hashvalue:string);
 
+function GetMNfromText(LineText:String):TMasterNode;
+Procedure PTC_NodeReport(Linea : string);
+
 CONST
   Getnodes = 1;
   Nodes = 2;
@@ -50,6 +53,7 @@ CONST
   GetResumen = 7;
   LastBlock = 8;
   Custom = 9;
+  NodeReport = 10;
 
 implementation
 
@@ -147,6 +151,11 @@ if tipo = LastBlock then
    Resultado := '$LASTBLOCK '+IntToStr(mylastblock);
 if tipo = Custom then
    Resultado := '$CUSTOM ';
+if tipo = NodeReport then
+   begin
+   Resultado := '$REPORTNODE '+MN_IP+' '+MN_Port+' '+MN_Funds+' '+MN_Sign+' '+MyLastBlock.ToString+' '+
+      MyLastBlockHash+' '+GetMNSignature;
+   end;
 Resultado := Encabezado+Resultado;
 Result := resultado;
 End;
@@ -198,6 +207,7 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = 'ORDER' then INC_PTC_Order(SlotLines[contador][0])
       else if UpperCase(LineComando) = 'ADMINMSG' then PTC_AdminMSG(SlotLines[contador][0])
       else if UpperCase(LineComando) = 'NETREQ' then PTC_NetReqs(SlotLines[contador][0])
+      else if UpperCase(LineComando) = '$REPORTNODE' then PTC_NodeReport(SlotLines[contador][0])
       else
          Begin  // El comando recibido no se reconoce. Verificar protocolos posteriores.
          ConsoleLinesAdd(LangLine(23)+SlotLines[contador][0]+') '+intToStr(contador)); //Unknown command () in slot: (
@@ -958,6 +968,22 @@ if not ExistiaTipo then
    ArrayNetworkRequests[length(ArrayNetworkRequests)-1].hashreq:=hash;
    ArrayNetworkRequests[length(ArrayNetworkRequests)-1].hashvalue:=hashvalue;
    end;
+End;
+
+function GetMNfromText(LineText:String):TMasterNode;
+Begin
+
+End;
+
+Procedure PTC_NodeReport(Linea : string);
+var
+  ReportInfo : string = '';
+  StartPos   : integer;
+  ThisNode   : TMasterNode;
+Begin
+StartPos := Pos('$',linea);
+ReportInfo := copy (linea,StartPos+1,length(linea));
+ThisNode := GetMNfromText(ReportInfo);
 End;
 
 END. // END UNIT

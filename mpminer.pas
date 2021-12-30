@@ -14,6 +14,7 @@ function GetCharsFromDifficult(Dificult,step:integer):integer;
 function EjecutarMinero(aParam:Pointer):PtrInt;
 function IsValidStep(solucion,step:string):boolean;
 Procedure IncreaseHashSeed();
+Function IsValidASCII(TextLine:String):boolean;
 function VerifySolutionForBlock(Dificultad:integer; objetivo,Direccion, Solucion:string):integer;
 function TruncateBlockSolution(solucion:string;step:integer):string;
 
@@ -158,8 +159,12 @@ End;
 
 // Indica si un step ya ha sido añadido a la solucion
 function IsValidStep(solucion,step:string):boolean;
+var
+  counter : integer;
 Begin
 result := true;
+for counter := 1 to length(solucion) do
+   if ((Ord(solucion[counter])>126) or (Ord(solucion[counter])<32)) then result := false;
 if AnsiContainsStr(solucion,step) then result := false;
 End;
 
@@ -181,6 +186,19 @@ for contador := 9 downto 1 do
    end;
 End;
 
+Function IsValidASCII(TextLine:String):boolean;
+var
+  counter : integer;
+Begin
+result := true;
+for counter := 1 to length(TextLine) do
+   if ((Ord(TextLine[counter])>126) or (Ord(TextLine[counter])<32)) then
+      begin
+      result := false;
+      break;
+      end;
+End;
+
 // Verifica una solucion para un bloque
 function VerifySolutionForBlock(Dificultad:integer; objetivo,Direccion, Solucion:string):integer;
 var
@@ -200,6 +218,12 @@ for contador := 1 to Miner_Steps-1 do
    end;
 for contador := 0 to ListaSoluciones.Count-1 do
    Begin
+   if not IsValidASCII(ListaSoluciones[contador]) then
+      begin
+      OutText('Not valid ASCII chars on step: '+IntToStr(contador+1)+': '+ListaSoluciones[contador]);
+      result := contador+1;
+      break;
+      end;
    AllSolutions := StringReplace(AllSolutions,ListaSoluciones[contador],'',[]);
    if AnsiContainsStr(AllSolutions,ListaSoluciones[contador]) then
       begin

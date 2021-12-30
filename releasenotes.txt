@@ -1,9 +1,16 @@
+Version 0.2.1Ka7
+
+- Re-verification of IsValidASCII inside VerifySolutionForBlock.
+
 Version 0.2.1Ka6
 
 - Implemented stop pool server variable.
 - Implemented secure close of pool server.
 - Implemented secure close of node server.
-- Fast load of recent wallet transactions.
+- Improved ExpelPoolInactives execution.
+- Fixed maximum reward to a pool step.
+- Re-verification on Valid pool steps.
+- Added function IsValidASCII.
 
 Version 0.2.1Ka5
 
