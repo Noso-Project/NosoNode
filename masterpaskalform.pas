@@ -664,7 +664,7 @@ CONST
                             '185.239.239.184 '+
                             '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Ka6';
+  SubVersion = 'Ka7';
   OficialRelease = true;
   BuildDate = 'December 2021';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
