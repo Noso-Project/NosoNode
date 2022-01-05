@@ -12,8 +12,6 @@ Procedure CrearBloqueCero();
 Procedure CrearNuevoBloque(Numero,TimeStamp: Int64; TargetHash, Minero, Solucion:String);
 function GetDiffForNextBlock(UltimoBloque,Last20Average,lastblocktime,previous:integer):integer;
 function GetLast20Time(LastBlTime:integer):integer;
-Function GetPoSPercentage(block:integer):integer;
-Function GetMNsPercentage(block:integer):integer;
 function GetBlockReward(BlNumber:int64):Int64;
 Procedure GuardarBloque(NombreArchivo:string;Cabezera:BlockHeaderData;Ordenes:array of OrderData;
                         PosPay:Int64;PoSnumber:integer;PosAddresses:array of TArrayPos);
@@ -156,7 +154,7 @@ if not errored then
          end;
       LeaveCriticalSection(CSSumary);
       PoScount := length(PoSAddressess);
-      PosTotalReward := ((GetBlockReward(Numero)+MinerFee)*PoSPercentage) div 10000;
+      PosTotalReward := ((GetBlockReward(Numero)+MinerFee)*GetPoSPercentage(Numero)) div 10000;
       PosReward := PosTotalReward div PoScount;
       //Tolog('PoS stack    : '+Int2curr(PosRequired));
       //Tolog('PoS addresses: '+IntToStr(PoScount));
@@ -223,11 +221,7 @@ if not errored then
    copyfile (PoolMembersFilename,PoolMembersFilename+'.bak');
    setmilitime('BACKUPPoolMembers',2);
    LeaveCriticalSection(CSPoolMembers);
-   //processlines.Add('stoppoolserver');
-   if minero = RPC_MinerInfo then
-      begin
-      RPC_MinerReward := GetBlockReward(Numero)+MinerFee;
-      end;
+
    if Numero>0 then
       begin
       OutgoingMsjsAdd(ProtocolLine(6)+IntToStr(timeStamp)+' '+IntToStr(Numero)+
@@ -236,10 +230,10 @@ if not errored then
       end;
    OutText(LangLine(89)+IntToStr(numero),true);  //'Block builded: '
 
-   {
+   //{
    if form1.Server.Active then
       OutgoingMsjsAdd(ProtocolLine(10)); // Node report
-   }
+   //}
 
    if Numero > 0 then RebuildMyTrx(Numero);
    CheckForMyPending;
@@ -281,29 +275,6 @@ else
    Part1 := LastBlockData.TimeLast20 * 19 div 20;
    Part2 := LastBlTime div 20;
    result := Part1 + Part2;
-   end;
-End;
-
-//
-Function GetPoSPercentage(block:integer):integer;
-Begin
-result := 0;
-if ((block > 8424) and (block < 40000)) then result := PoSPercentage; // 1000
-if block >= 40000 then
-   begin
-   result := PoSPercentage + (((block-39000) div 1000) * 100);
-   if result > 2000 then result := 2000;
-   end;
-End;
-
-//
-Function GetMNsPercentage(block:integer):integer;
-Begin
-result := 0;
-if block >= 40000 then
-   begin
-   result := MNsPercentage + (((block-40000) div 4000) * 100); // MNsPercentage := 2000
-   if result > 6000 then result := 6000;
    end;
 End;
 

@@ -34,6 +34,10 @@ function ShowHashrate(hashrate:int64):string;
 function GetBlockHeaders(numberblock:integer):string;
 function ValidRPCHost(hoststr:string):boolean;
 function PendingRawInfo():String;
+Function GetPoSPercentage(block:integer):integer;
+Function GetMNsPercentage(block:integer):integer;
+// Masternodes
+function GetMNsHash():string;
 
 
 implementation
@@ -543,6 +547,46 @@ if Length(PendingTXs) > 0 then
    end;
 End;
 
+// Returns the PoS percentage for the specified block (0 to 10000)
+Function GetPoSPercentage(block:integer):integer;
+Begin
+result := 0;
+if ((block > 8424) and (block < 40000)) then result := PoSPercentage; // 1000
+if block >= 40000 then
+   begin
+   result := PoSPercentage + (((block-39000) div 1000) * 100);
+   if result > 2000 then result := 2000;
+   end;
+End;
+
+// Returns the MNs percentage for the specified block (0 to 10000)
+Function GetMNsPercentage(block:integer):integer;
+Begin
+result := 0;
+if block >= 40000 then
+   begin
+   result := MNsPercentage + (((block-40000) div 4000) * 100); // MNsPercentage := 2000
+   if result > 6000 then result := 6000;
+   end;
+End;
+
+// *****
+// MASTERNODES
+// *****
+
+function GetMNsHash():string;
+var
+  counter:integer;
+  Hashstr : string = '';
+Begin
+if Length(MNsArray) = 0 then result := HashMD5string('')
+else
+   begin
+   for counter := 0 to Length(MNsArray)-1 do
+      Hashstr := Hashstr+MNsArray[counter].Ip;
+   result := HashMD5string(Hashstr);
+   end;
+End;
 
 END. // END UNIT
 

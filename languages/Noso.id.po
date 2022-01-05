@@ -233,6 +233,10 @@ msgctxt "tform1.labelnobiexlast.caption"
 msgid "Last: -.-"
 msgstr "Terakhir: -.-"
 
+#: tform1.labelnodeshash.caption
+msgid "Hash: "
+msgstr ""
+
 #: tform1.labeltransactiondetails.caption
 msgid "Transaction details"
 msgstr "Detil transaksi"
@@ -388,6 +392,22 @@ msgstr "Kirim"
 #: tform1.speedbutton1.hint
 msgid "Copy Order ID"
 msgstr "Salin ID Pesanan"
+
+#: tform1.speedbutton2.caption
+msgid "A"
+msgstr ""
+
+#: tform1.speedbutton2.hint
+msgid "Show address"
+msgstr ""
+
+#: tform1.speedbutton3.caption
+msgid "K"
+msgstr ""
+
+#: tform1.speedbutton3.hint
+msgid "Show Keys"
+msgstr ""
 
 #: tform1.staconlab.caption
 msgid "0"

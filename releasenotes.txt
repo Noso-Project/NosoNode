@@ -1,3 +1,23 @@
+Version 0.2.1Kb4
+
+- QRcode for export keys.
+- Thread for masternodes processing.
+- Exception block on verify signed string.
+- Exception block added on signing funcion.
+- GetPos command added.
+- Added fund verification to masternodes reports.
+
+Version 0.2.1Ka9 to Kb3
+
+- Tests for report node.
+
+Version 0.2.1Ka8
+
+- Added pool solution memo.
+- Fixed LeaveCriticalSection on function ZipSumary.
+- MNsarray created.
+- ReportNode Implemented.
+
 Version 0.2.1Ka7
 
 - Re-verification of IsValidASCII inside VerifySolutionForBlock.

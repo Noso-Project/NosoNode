@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 1008
+  Left = 986
   Height = 560
-  Top = 87
+  Top = 158
   Width = 400
   Caption = 'Noso'
   ClientHeight = 540
@@ -318,10 +318,10 @@ object Form1: TForm1
     Height = 468
     Top = 38
     Width = 400
-    ActivePage = TabMonitor
+    ActivePage = TabWallet
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 6
+    TabIndex = 0
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
@@ -693,7 +693,7 @@ object Form1: TForm1
             TabOrder = 3
             Visible = False
             object BarcodeQR1: TBarcodeQR
-              Left = 24
+              Left = 40
               Height = 200
               Hint = 'Click on image to close it'
               Top = 8
@@ -717,6 +717,28 @@ object Form1: TForm1
               Font.Quality = fqDraft
               ParentFont = False
               TabOrder = 0
+            end
+            object SpeedButton2: TSpeedButton
+              Left = 1
+              Height = 22
+              Hint = 'Show address'
+              Top = 8
+              Width = 23
+              Caption = 'A'
+              OnClick = SpeedButton2Click
+              ShowHint = True
+              ParentShowHint = False
+            end
+            object SpeedButton3: TSpeedButton
+              Left = 1
+              Height = 22
+              Hint = 'Show Keys'
+              Top = 32
+              Width = 23
+              Caption = 'K'
+              OnClick = SpeedButton3Click
+              ShowHint = True
+              ParentShowHint = False
             end
           end
         end
@@ -1113,16 +1135,35 @@ object Form1: TForm1
             ParentColor = False
             TabOrder = 1
           end
+          object MemoPool: TMemo
+            Left = 184
+            Height = 184
+            Top = 8
+            Width = 136
+            Font.CharSet = ANSI_CHARSET
+            Font.Color = clBlack
+            Font.Height = -12
+            Font.Name = 'Consolas'
+            Font.Pitch = fpFixed
+            Font.Quality = fqDraft
+            Lines.Strings = (
+              '000000000AAAAAAAAA'
+            )
+            ParentFont = False
+            ReadOnly = True
+            TabOrder = 2
+          end
         end
         object TabPoolMiners: TTabSheet
           Caption = 'Miners'
-          ClientHeight = 447
-          ClientWidth = 386
+          ClientHeight = 412
+          ClientWidth = 384
           object SG_PoolMiners: TStringGrid
             Left = 0
-            Height = 400
+            Height = 412
             Top = 0
-            Width = 376
+            Width = 384
+            Align = alClient
             ColCount = 9
             DefaultColWidth = 30
             FixedCols = 0
@@ -2446,6 +2487,41 @@ object Form1: TForm1
         end
         object TabNodes: TTabSheet
           Caption = 'Nodes'
+          ClientHeight = 412
+          ClientWidth = 384
+          object GridNodes: TStringGrid
+            Left = 0
+            Height = 364
+            Top = 48
+            Width = 384
+            Align = alClient
+            FixedCols = 0
+            RowCount = 1
+            ScrollBars = ssVertical
+            TabOrder = 0
+            OnResize = GridNodesResize
+          end
+          object PanelNodesHeaders: TPanel
+            Left = 0
+            Height = 48
+            Top = 0
+            Width = 384
+            Align = alTop
+            BevelOuter = bvNone
+            BorderWidth = 1
+            BorderStyle = bsSingle
+            ClientHeight = 44
+            ClientWidth = 380
+            TabOrder = 1
+            object LabelNodesHash: TLabel
+              Left = 8
+              Height = 15
+              Top = 7
+              Width = 33
+              Caption = 'Hash: '
+              ParentColor = False
+            end
+          end
         end
         object TabDoctor: TTabSheet
           Caption = 'Doctor'
@@ -2880,8 +2956,8 @@ object Form1: TForm1
     end
   end
   object Imagenes: TImageList
-    Left = 328
-    Top = 272
+    Left = 8
+    Top = 240
     Bitmap = {
       4C69430000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
@@ -5032,8 +5108,8 @@ object Form1: TForm1
   end
   object MainMenu: TMainMenu
     Images = Imagenes
-    Left = 328
-    Top = 224
+    Left = 24
+    Top = 192
     object MenuItem1: TMenuItem
       Caption = 'Network'
       OnClick = CheckMMCaptions
@@ -5137,8 +5213,8 @@ object Form1: TForm1
     end
   end
   object ConsolePopUp2: TPopupMenu
-    Left = 328
-    Top = 168
+    Left = 24
+    Top = 128
     object MenuItem23: TMenuItem
       Caption = 'CLear'
       OnClick = ConsolePopUpClear
@@ -5149,8 +5225,8 @@ object Form1: TForm1
     end
   end
   object ConsoLinePopUp2: TPopupMenu
-    Left = 328
-    Top = 128
+    Left = 344
+    Top = 112
     object MenuItem25: TMenuItem
       Caption = 'Clear'
       OnClick = ConsoLinePopUpClear
@@ -5167,8 +5243,8 @@ object Form1: TForm1
   object Imgs32: TImageList
     Height = 32
     Width = 32
-    Left = 328
-    Top = 328
+    Left = 8
+    Top = 296
     Bitmap = {
       4C69070000002000000020000000000001000000010000000100000001000000
       0100000001000000010000000100000001000000010000000100000001000000

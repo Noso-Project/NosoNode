@@ -41,9 +41,13 @@ function RequestAlreadyexists(reqhash:string):string;
 Procedure UpdateMyRequests(tipo:integer;timestamp:string;bloque:integer;hash,hashvalue:string);
 
 function GetMNfromText(LineText:String):TMasterNode;
+function GetTextFromMN(node:TMasterNode):string;
+function NodeAlreadyadded(Node:TMasterNode):boolean;
 Procedure PTC_NodeReport(Linea : string);
+Procedure AddNodeReport(NodeInfo:TMasterNode);
 
 CONST
+  OnlyHeaders = 0;
   Getnodes = 1;
   Nodes = 2;
   Ping = 3;
@@ -131,8 +135,11 @@ Function ProtocolLine(tipo:integer):String;
 var
   Resultado : String = '';
   Encabezado : String = '';
+  TempStr    : string = '';
 Begin
 Encabezado := 'PSK '+IntToStr(protocolo)+' '+ProgramVersion+' '+UTCTime+' ';
+if tipo = OnlyHeaders then
+   resultado := '';
 if tipo = GetNodes then
    Resultado := '$GETNODES';
 if tipo = Nodes then
@@ -153,7 +160,8 @@ if tipo = Custom then
    Resultado := '$CUSTOM ';
 if tipo = NodeReport then
    begin
-   Resultado := '$REPORTNODE '+MN_IP+' '+MN_Port+' '+MN_Funds+' '+MN_Sign+' '+MyLastBlock.ToString+' '+
+   if MN_Funds = '' then TempStr := MN_Sign else TempStr := MN_Funds;
+   Resultado := '$REPORTNODE '+MN_IP+' '+MN_Port+' '+TempStr+' '+MN_Sign+' '+MyLastBlock.ToString+' '+
       MyLastBlockHash+' '+GetMNSignature;
    end;
 Resultado := Encabezado+Resultado;
@@ -536,8 +544,8 @@ MyZipFile.ZipAllFiles;
 result := true;
 FINALLY
 MyZipFile.Free;
-END{Try};
 LeaveCriticalSection(CSSumary);
+END{Try};
 End;
 
 // Zips the sumary file
@@ -971,8 +979,52 @@ if not ExistiaTipo then
 End;
 
 function GetMNfromText(LineText:String):TMasterNode;
+var
+  Resultado : TMasterNode;
 Begin
+Resultado.Ip := Parameter(linetext,1);
+Resultado.Port     := Parameter(linetext,2).ToInteger;
+Resultado.FundAddress     := Parameter(linetext,3);
+Resultado.SignAddress     := Parameter(linetext,4);
+Resultado.Block     := Parameter(linetext,5).ToInteger;
+Resultado.BlockHash     := Parameter(linetext,6);
+Resultado.Time     := Parameter(linetext,7);
+Resultado.PublicKey     := Parameter(linetext,8);
+Resultado.Signature     := Parameter(linetext,9);
+Resultado.ReportHash     := Parameter(linetext,10);
+result := resultado;
+End;
 
+function GetTextFromMN(node:TMasterNode):string;
+Begin
+result := Node.Ip+' '+
+          Node.port.ToString+' '+
+          Node.FundAddress+' '+
+          Node.SignAddress+' '+
+          Node.Block.ToString+' '+
+          Node.BlockHash+' '+
+          Node.Time+' '+
+          Node.PublicKey+' '+
+          Node.Signature+' '+
+          Node.ReportHash;
+End;
+
+function NodeAlreadyadded(Node:TMasterNode):boolean;
+var
+  counter : integer;
+Begin
+result := false;
+if length(MNsArray) > 0 then
+   begin
+   for counter := 0 to length(MNsArray)-1 do
+      begin
+      if MNsArray[counter].ReportHash = node.ReportHash then
+         begin
+         result := true;
+         break;
+         end;
+      end;
+   end;
 End;
 
 Procedure PTC_NodeReport(Linea : string);
@@ -984,6 +1036,73 @@ Begin
 StartPos := Pos('$',linea);
 ReportInfo := copy (linea,StartPos+1,length(linea));
 ThisNode := GetMNfromText(ReportInfo);
+if NodeVerified(ThisNode) then
+   begin
+   EnterCriticalSection(CSWaitingMNs);
+   Insert(ThisNode,WaitingMNs,length(WaitingMNs));
+   LeaveCriticalSection(CSWaitingMNs);
+   //AddNodeReport(ThisNode);
+   //OutgoingMsjsAdd(ProtocolLine(onlyheaders)+'$'+ReportInfo);
+   end;
+
+End;
+
+Procedure AddNodeReport(NodeInfo:TMasterNode);
+var
+  counter : integer;
+  NodeAdded : boolean =false;
+Begin
+EnterCriticalSection(CSMNsArray);
+if NodeAlreadyadded(NodeInfo) then
+   begin
+
+   end
+else
+   begin
+   if length(MNsArray) > 0 then
+      begin
+      for counter := 0 to length(MNsArray)-1 do
+         begin
+         if MNsArray[counter].Ip = NodeInfo.Ip then
+            begin
+            MNsArray[counter].Port := NodeInfo.Port;
+            MNsArray[counter].FundAddress := NodeInfo.FundAddress;
+            MNsArray[counter].SignAddress := NodeInfo.SignAddress;
+            MNsArray[counter].Block := NodeInfo.Block;
+            MNsArray[counter].BlockHash := NodeInfo.BlockHash;
+            MNsArray[counter].Time := NodeInfo.Time;
+            MNsArray[counter].PublicKey := NodeInfo.PublicKey;
+            MNsArray[counter].Signature := NodeInfo.Signature;
+            MNsArray[counter].ReportHash := NodeInfo.ReportHash;
+            NodeAdded := true;
+            end;
+         end;
+      end;
+   if not NodeAdded then
+      begin
+      if Length(MNsArray) = 0 then
+         begin
+         Insert(nodeinfo,MNsArray,0);
+         NodeAdded := true;
+         end
+      else
+         begin
+         for counter := 0 to length(MNsArray)-1 do
+            begin
+            if nodeinfo.Ip<MNsArray[counter].Ip then
+               begin
+               insert(nodeinfo,MNsArray,counter);
+               NodeAdded := true;
+               break;
+               end;
+            end;
+         end;
+      if not NodeAdded then insert(nodeinfo,MNsArray,Length(MNsArray));
+      end;
+   OutgoingMsjsAdd(ProtocolLine(onlyheaders)+'$REPORTNODE '+GetTextFromMN(nodeinfo));
+   U_MNsGrid := true;
+   end;
+LeaveCriticalSection(CSMNsArray);
 End;
 
 END. // END UNIT

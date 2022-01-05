@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, process, strutils, MD5, DCPsha256,
-  mpsignerutils, base64, HlpHashFactory, mpcoin;
+  mpsignerutils, base64, HlpHashFactory, mpcoin, mptime;
 
 function CreateNewAddress(): WalletData;
 {Procedure CreateKeysPair();}
@@ -33,6 +33,7 @@ Procedure DeleteCriptoOp();
 Function ProcessCriptoOP(aParam:Pointer):PtrInt;
 function Recursive256(incomingtext:string):string;
 Function GetMNSignature():string;
+function NodeVerified(ThisNode:TMasterNode):boolean;
 // Big Maths
 function ClearLeadingCeros(numero:string):string;
 function BMAdicion(numero1,numero2:string):string;
@@ -50,7 +51,7 @@ function BMDecTo58(numero:string):string;
 implementation
 
 uses
-  mpParser, mpGui, mpProtocol;
+  mpParser, mpGui, mpProtocol, mpdisk;
 
 // Crea una nueva direecion
 function CreateNewAddress():WalletData;
@@ -266,15 +267,23 @@ Process := TProcess.Create(nil);
    end;
 End;
 
-// Regresa la firma de la cadena especificada usando la clave privada
+// SIGNS A MESSAGE WITH THE GIVEN PRIVATE KEY
 function GetStringSigned(StringtoSign, PrivateKey:String):String;
 var
   Signature, MessageAsBytes: TBytes;
 Begin
+Result := '';
+TRY
 MessageAsBytes :=StrToByte(DecodeStringBase64(StringtoSign));
 Signature := TSignerUtils.SignMessage(MessageAsBytes, StrToByte(DecodeStringBase64(PrivateKey)),
       TKeyType.SECP256K1);
 Result := EncodeStringBase64(ByteToString(Signature));
+EXCEPT ON E:Exception do
+   begin
+   ToExcLog('ERROR Signing message');
+   Result := 'NULL'
+   end;
+END{Try};
 End;
 
 // VERIFY IF A SIGNED STRING IS VALID
@@ -282,10 +291,17 @@ function VerifySignedString(StringToVerify,B64String,PublicKey:String):boolean;
 var
   Signature, MessageAsBytes: TBytes;
 Begin
+result := false;
+TRY
 MessageAsBytes := StrToByte(DecodeStringBase64(StringToVerify));
 Signature := StrToByte(DecodeStringBase64(B64String));
 Result := TSignerUtils.VerifySignature(Signature, MessageAsBytes,
       StrToByte(DecodeStringBase64(PublicKey)), TKeyType.SECP256K1);
+EXCEPT ON E:Exception do
+   begin
+   ToExcLog('ERROR Verifying signature');
+   end;
+END{Try};
 End;
 
 // Devuelve el hash para una trx
@@ -421,6 +437,7 @@ for contador := 1 to 5 do
    resultado := resultado+ReOrderHash(Resultado);
    end;
 result := HashSha256String(resultado);
+//result := resultado;
 setmilitime('Recursive256',2);
 End;
 
@@ -430,16 +447,37 @@ var
   TextToSign : string = '';
   SignAddressIndex : integer;
   PublicKey : string;
+  CurrentTime : string;
+  ReportHash : string;
 Begin
 result := '';
-TextToSign := MN_IP+' '+MyLastBlock.ToString+' '+MyLastBlockHash;
+CurrentTime := UTCTime;
+TextToSign := CurrentTime+' '+MN_IP+' '+MyLastBlock.ToString+' '+MyLastBlockHash;
+ReportHash := HashMD5String(TextToSign);
 SignAddressIndex := DireccionEsMia(MN_Sign);
 if SignAddressIndex<0 then result := ''
 else
    begin
    PublicKey := ListaDirecciones[SignAddressIndex].PublicKey;
-   result := PublicKey+' '+GetStringSigned(TextToSign,ListaDirecciones[SignAddressIndex].PrivateKey);
+   result := CurrentTime+' '+PublicKey+' '+GetStringSigned(TextToSign,ListaDirecciones[SignAddressIndex].PrivateKey)+' '+ReportHash;
    end;
+End;
+
+function NodeVerified(ThisNode:TMasterNode):boolean;
+var
+  StringToSign : string;
+  PosRequired : int64;
+Begin
+result := false;
+StringToSign := Thisnode.Time+' '+Thisnode.Ip+' '+ThisNode.Block.ToString+' '+thisnode.BlockHash;
+if VerifySignedString(StringToSign,thisnode.Signature,thisnode.PublicKey) then
+   begin
+   PosRequired := (GetSupply(MyLastBlock+1)*PosStackCoins) div 10000;
+   if MyLastBlock+1 < MNBlockStart then PosRequired := 0;
+   if listasumario[AddressSumaryIndex(ThisNode.FundAddress)].Balance >= PosRequired then
+      result := true
+   end
+else ToExcLog('ERROR: Node not verified: '+Thisnode.Ip);
 End;
 
 // *****************************************************************************

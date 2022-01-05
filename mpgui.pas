@@ -438,6 +438,15 @@ for contador := 0 to length(ListaDirecciones)-1 do
    form1.Direccionespanel.Cells[0,contador+1] := ListaDirecciones[contador].Hash;
    form1.Direccionespanel.Cells[1,contador+1] := Int2Curr(ListaDirecciones[contador].Balance);
    end;
+
+// Nodes Grid
+form1.GridNodes.Cells[0,0] := 'IP';
+form1.GridNodes.Cells[1,0] := 'Port';
+form1.GridNodes.Cells[2,0] := 'Block';
+form1.GridNodes.Cells[3,0] := 'Hash';
+form1.GridNodes.Cells[4,0] := 'Time';
+
+
 NetSumarioHash.Value:='?';
 NetLastBlock.Value:='?';
 NetResumenHash.Value:='?';
@@ -546,6 +555,7 @@ if form1.PCPool.ActivePage = Form1.TabPoolStats then
       Form1.SG_PoolStats.Cells[1,9] := Int2Curr(PoolInfo.FeeEarned);
       Form1.SG_PoolStats.Cells[1,10] := '('+IntToStr(Lastblockdata.TimeLast20)+') '+TimeSinceStamp(LastblockData.TimeEnd);
       Form1.SG_PoolStats.Cells[1,11] := IntToStr(Length(Miner_PoolSharedStep));
+      form1.MemoPool.Text:=PoolMiner.Solucion;
       Except on E:Exception do
          begin
          ToExclog('Error showing pool stats data: '+E.Message);
@@ -613,6 +623,30 @@ else
    form1.DataPanel.Cells[3,2]:='['+IntToStr(Miner_Difficult)+'] '+copy(Miner_Target,1,Miner_DifChars);
    form1.DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
    form1.DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+TimeSinceStamp(LastblockData.TimeEnd);
+   end;
+
+// update nodes grid
+if ((U_MNsGrid) or (UTCTime.ToInt64>U_MNsGrid_Last+59)) then
+   begin
+   //{
+   form1.GridNodes.RowCount:=1;
+   if length(MNsArray) > 0 then
+      begin
+      for contador := 0 to length(MNsArray)-1 do
+         begin
+         form1.GridNodes.RowCount := form1.GridNodes.RowCount+1;
+         form1.GridNodes.Cells[0,1+contador] := MNsArray[contador].Ip;
+         form1.GridNodes.Cells[1,1+contador] := MNsArray[contador].port.ToString;
+         form1.GridNodes.Cells[2,1+contador] := MNsArray[contador].block.ToString;
+         form1.GridNodes.Cells[3,1+contador] := copy(MNsArray[contador].BlockHash,0,5);
+         form1.GridNodes.Cells[4,1+contador] := TimeSinceStamp(StrToInt64(MNsArray[contador].time));
+         end;
+      end;
+   //}
+   U_MNsGrid_Last := UTCTime.ToInt64;
+   MNsHash := GetMNsHash();
+   form1.LabelNodesHash.Caption:='Hash: '+MNsHash;
+   U_MNsGrid := false;
    end;
 
 if UserOptions.UsePool then form1.DataPanel.Cells[3,5]:=Int2curr(MyPoolData.balance)

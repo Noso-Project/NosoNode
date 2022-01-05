@@ -283,6 +283,7 @@ else if UpperCase(Command) = 'HANG' then HangWallet()
 else if UpperCase(Command) = 'CHECKUPDATES' then ConsoleLinesAdd(GetLastRelease)
 else if UpperCase(Command) = 'ZIPSUMARY' then ZipSumary()
 else if UpperCase(Command) = 'ZIPHEADERS' then ZipHeaders()
+else if UpperCase(Command) = 'GETPOS' then Consolelinesadd( GetPoSPercentage(StrToIntdef(Parameter(linetext,1),Mylastblock)).ToString )
 
 
 // CONSULTING

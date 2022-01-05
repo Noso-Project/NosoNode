@@ -28,6 +28,13 @@ type
     procedure Execute; override;
   end;
 
+  TUpdateMNs = class(TThread)
+    protected
+      procedure Execute; override;
+    public
+      Constructor Create(CreateSuspended : boolean);
+    end;
+
   Options = Packed Record
      language: integer;
      Port : integer;
@@ -278,13 +285,20 @@ type
 
   TMasterNode = Packed Record
        SignAddress : string[40];
-       SignKey     : string[120];
+       PublicKey   : string[120];
        FundAddress : string[40];
        Ip          : string[40];
        Port        : integer;
        Block       : integer;
        BlockHash   : string[32];
        Signature   : string[120];
+       Time        : string[15];
+       ReportHash  : string[32];
+       end;
+
+  TMNsBlock    = Packed Record
+       block : integer;
+       MNList : array of TMasterNode;
        end;
 
 
@@ -305,6 +319,7 @@ type
     CBBlockhash: TCheckBox;
     CBSummaryhash: TCheckBox;
     ComboBoxLang: TComboBox;
+    LabelNodesHash: TLabel;
     LabelDoctor: TLabel;
     LE_Rpc_Pass: TEdit;
     Label13: TLabel;
@@ -320,6 +335,7 @@ type
     LabeledEdit5: TEdit;
     Label1: TLabel;
     Label7: TLabel;
+    MemoPool: TMemo;
     MemoDoctor: TMemo;
     Panel10: TPanel;
     Panel11: TPanel;
@@ -331,12 +347,15 @@ type
     Panel17: TPanel;
     Panel18: TPanel;
     Panel19: TPanel;
+    PanelNodesHeaders: TPanel;
     PanelDoctor: TPanel;
     Panel7: TPanel;
     Panel8: TPanel;
     Panel9: TPanel;
     PanelQRImg: TPanel;
     PanelPostOffer: TPanel;
+    SpeedButton2: TSpeedButton;
+    SpeedButton3: TSpeedButton;
     SpinDoctor1: TSpinEdit;
     SpinDoctor2: TSpinEdit;
     StaRPCimg: TImage;
@@ -345,6 +364,7 @@ type
     StaPoolSer: TImage;
     Imgs32: TImageList;
     ImgRotor: TImage;
+    GridNodes: TStringGrid;
     TabDoctor: TTabSheet;
     TextQRcode: TStaticText;
     StaTimeLab: TLabel;
@@ -523,6 +543,7 @@ type
     procedure FormWindowStateChange(Sender: TObject);
     procedure GridMyTxsResize(Sender: TObject);
     procedure GridMyTxsSelection(Sender: TObject; aCol, aRow: Integer);
+    procedure GridNodesResize(Sender: TObject);
     procedure GridPoSResize(Sender: TObject);
     procedure LE_Rpc_PassEditingDone(Sender: TObject);
     Procedure LoadOptionsToPanel();
@@ -541,6 +562,8 @@ type
     function  ClientsCount : Integer ;
     procedure SE_WO_AntifreezeTimeChange(Sender: TObject);
     procedure GridExLTCResize(Sender: TObject);
+    procedure SpeedButton2Click(Sender: TObject);
+    procedure SpeedButton3Click(Sender: TObject);
     procedure TabHistoryShow(Sender: TObject);
     procedure TabNodeOptionsShow(Sender: TObject);
     procedure TabSheet9Resize(Sender: TObject);
@@ -653,7 +676,7 @@ CONST
   B36Alphabet : string = '0123456789abcdefghijklmnopqrstuvwxyz';
   ReservedWords : string = 'NULL,DELADDR';
   ValidProtocolCommands : string = '$PING$PONG$GETPENDING$NEWBL$GETRESUMEN$LASTBLOCK'+
-                                   '$CUSTOMORDERADMINMSGNETREQ';
+                                   '$CUSTOMORDERADMINMSGNETREQ$REPORTNODE';
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS POOLHASHRATE';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
   DefaultNodes : String = 'DefNodes '+
@@ -664,9 +687,9 @@ CONST
                             '185.239.239.184 '+
                             '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'Ka7';
+  SubVersion = 'Kb4';
   OficialRelease = true;
-  BuildDate = 'December 2021';
+  BuildDate = 'January 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   HasheableChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -695,6 +718,7 @@ CONST
   MNsPercentage = 2000;
   PosStackCoins = 20;               // PoS stack ammoount: supply*20 / PoSStack
   PoSBlockStart : integer = 8425;   // first block with PoSPayment
+  MNBlockStart  : integer = 40000;  // First block with MNpayments
   InitialBlockDiff = 60;            // Dificultad durante los 20 primeros bloques
   GenesysTimeStamp = 1615132800;    // 1615132800;
   FileFormatVer = 'NFF2';
@@ -740,6 +764,8 @@ var
 
   SendOutMsgsThread : TThreadSendOutMsjs;
     SendingMsgs : boolean = false;
+
+  ThreadMNs : TUpdateMNs;
 
   MaxOutgoingConnections : integer = 3;
   FirstShow : boolean = false;
@@ -864,6 +890,11 @@ var
   UndonedBlocks : boolean = false;
   RunExpelPoolInactives : boolean = false;
   BuildingBlock : boolean = false;
+  MNsArray   : array of TMasterNode;
+  WaitingMNs : array of TMasterNode;
+   U_MNsGrid : boolean = false;
+   U_MNsGrid_Last : int64 = 0;
+  MNsHash : string = '';
 
   NetSumarioHash : NetworkData;
     SumaryRebuilded : boolean = false;
@@ -936,6 +967,8 @@ var
   CSLogLines    : TRTLCriticalSection;
   CSExcLogLines : TRTLCriticalSection;
   CSPoolShares  : TRTLCriticalSection;
+  CSMNsArray    : TRTLCriticalSection;
+  CSWaitingMNs  : TRTLCriticalSection;
 
   // Cross OS variables
   OSFsep : string = '';
@@ -1107,6 +1140,30 @@ end;
 // *** THREADS ***
 // ***************
 
+constructor TUpdateMNs.Create(CreateSuspended : boolean);
+begin
+  inherited Create(CreateSuspended);
+end;
+
+// Process the Masternodes reports
+procedure TUpdateMNs.Execute;
+var
+  Node : TMasterNode;
+Begin
+While not terminated do
+   begin
+   if length(WaitingMNs) > 0 then
+      begin
+      EnterCriticalSection(CSWaitingMNs);
+      Node := WaitingMNs[0];
+      Delete(WaitingMNs,0,1);
+      LeaveCriticalSection(CSWaitingMNs);
+      AddNodeReport(Node);
+      end;
+   Sleep(10);
+   end;
+End;
+
 // Send the outgoing messages
 procedure TThreadSendOutMsjs.Execute;
 Var
@@ -1165,6 +1222,8 @@ InitCriticalSection(CSMinerJoin);
 InitCriticalSection(CSLogLines);
 InitCriticalSection(CSExcLogLines);
 InitCriticalSection(CSPoolShares);
+InitCriticalSection(CSMNsArray);
+InitCriticalSection(CSWaitingMNs);
 
 CreateFormInicio();
 CreateFormSlots();
@@ -1193,6 +1252,8 @@ DoneCriticalSection(CSMinerJoin);
 DoneCriticalSection(CSLogLines);
 DoneCriticalSection(CSExcLogLines);
 DoneCriticalSection(CSPoolShares);
+DoneCriticalSection(CSMNsArray);
+DoneCriticalSection(CSWaitingMNs);
 
 form1.Server.Free;
 form1.RPCServer.Free;
@@ -1406,7 +1467,11 @@ Setlength(MilitimeArray,0);
 Setlength(Miner_Thread,0);
 SetLength(ArrayNetworkRequests,0);
 SetLength(ArrPoolPays,0);
-
+Setlength(MNsArray,0);
+Setlength(WaitingMNs,0);
+   ThreadMNs := TUpdateMNs.Create(true);
+   ThreadMNs.FreeOnTerminate:=true;
+   ThreadMNs.Start;
 Tolog(rs0029); NewLogLines := NewLogLines-1; //'Noso session started'
 info(rs0029);  //'Noso session started'
 infopanel.BringToFront;
@@ -1482,6 +1547,23 @@ GenerateCode();
 form1.DireccionesPanel.Enabled:=false;
 form1.TextQRcode.caption := form1.Direccionespanel.Cells[0,form1.Direccionespanel.Row];
 form1.PanelQRImg.Visible:=true;
+end;
+
+// Show address on QRCode
+procedure TForm1.SpeedButton2Click(Sender: TObject);
+begin
+form1.BarcodeQR1.Text:=form1.Direccionespanel.Cells[0,form1.Direccionespanel.Row];
+form1.TextQRcode.caption := form1.Direccionespanel.Cells[0,form1.Direccionespanel.Row];
+end;
+
+// Show keys on QR code
+procedure TForm1.SpeedButton3Click(Sender: TObject);
+var
+  index : integer;
+begin
+form1.TextQRcode.caption := 'KEYS: '+form1.Direccionespanel.Cells[0,form1.Direccionespanel.Row];
+index := form1.Direccionespanel.Row-1;
+form1.BarcodeQR1.Text:=ListaDirecciones[index].PublicKey+' '+ListaDirecciones[index].PrivateKey;
 end;
 
 // Al minimizar verifica si hay que llevarlo a barra de tareas
@@ -3490,6 +3572,20 @@ form1.DireccionesPanel.ColWidths[0]:= thispercent(68,GridWidth);
 form1.DireccionesPanel.ColWidths[1]:= thispercent(32,GridWidth, true);
 end;
 
+// adjust grid nodes when resizing
+procedure TForm1.GridNodesResize(Sender: TObject);
+var
+  GridWidth : integer;
+begin
+GridWidth := form1.GridNodes.Width;
+form1.GridNodes.ColWidths[0]:= thispercent(36,GridWidth);
+form1.GridNodes.ColWidths[1]:= thispercent(16,GridWidth);
+form1.GridNodes.ColWidths[2]:= thispercent(16,GridWidth);
+form1.GridNodes.ColWidths[3]:= thispercent(16,GridWidth);
+form1.GridNodes.ColWidths[4]:= thispercent(16,GridWidth, true);
+
+end;
+
 // adjust LTC grid
 procedure TForm1.GridExLTCResize(Sender: TObject);
 var
@@ -3636,7 +3732,6 @@ if GridMyTxs.Row>0 then
    end;
 
 End;
-
 
 
 procedure TForm1.MemoRPCWhitelistEditingDone(Sender: TObject);
