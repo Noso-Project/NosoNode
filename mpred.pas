@@ -13,6 +13,7 @@ function GetSlotFromIP(Ip:String):int64;
 function BotExists(IPUser:String):Boolean;
 function NodeExists(IPUser,Port:String):integer;
 function SaveConection(tipo,ipuser:String;contextdata:TIdContext):integer;
+Procedure ForceServer();
 procedure StartServer();
 procedure StopServer();
 procedure CerrarSlot(Slot:integer);
@@ -119,12 +120,40 @@ result := slot;
 SetCurrentJob('SaveConection',false);
 end;
 
+Procedure ForceServer();
+Begin
+KeepServerOn := true;
+if Form1.Server.Active then
+   begin
+   ConsoleLinesAdd(LangLine(160)); //'Server Already active'
+   end
+else
+   begin
+      try
+      LastTryServerOn := StrToInt64(UTCTime);
+      Form1.Server.Bindings.Clear;
+      Form1.Server.DefaultPort:=UserOptions.Port;
+      Form1.Server.Active:=true;
+      ConsoleLinesAdd(LangLine(14)+IntToStr(UserOptions.Port));   //Server ENABLED. Listening on port
+      U_DataPanel := true;
+      except
+      on E : Exception do
+        ToLog(LangLine(15));       //Unable to start Server
+      end;
+   end;
+End;
+
 // Activa el servidor
 procedure StartServer();
 Begin
 if DireccionEsMia(MN_Sign)<0 then
    begin
    ConsoleLinesAdd(rs2000); //Sign address not valid
+   exit;
+   end;
+if MyConStatus < 3 then
+   begin
+   consolelinesadd(rs2001);
    exit;
    end;
 KeepServerOn := true;
@@ -146,7 +175,7 @@ else
         ToLog(LangLine(15));       //Unable to start Server
       end;
    end;
-end;
+End;
 
 // Apaga el servidor
 procedure StopServer();
@@ -294,7 +323,7 @@ if not errored then
       SaveConection('SER',Address,ConContext);
       ToLog(LangLine(30)+Address);          //Connected TO:
       UpdateNodeData(Address,Port);
-      CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address+' '+ProgramVersion);
+      CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address+' '+ProgramVersion+subversion);
       CanalCliente[Slot].IOHandler.WriteLn(ProtocolLine(3));   // Send PING
       Conexiones[slot].Thread := TThreadClientRead.Create(true, slot);
       Conexiones[slot].Thread.FreeOnTerminate:=true;

@@ -991,3 +991,7 @@ msgstr ""
 msgid "Sign address not valid"
 msgstr ""
 
+#: translation.rs2001
+msgid "Wallet not updated"
+msgstr ""
+

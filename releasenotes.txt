@@ -6,6 +6,13 @@ Version 0.2.1Kb4
 - Exception block added on signing funcion.
 - GetPos command added.
 - Added fund verification to masternodes reports.
+- Hiden start server menu option.
+- Included GetPoSPercentage(block)to block building.
+- Included server control with master nodes checkbox.
+- Implemented FORCESERVER command.
+- Added filter of MyConStatus to start server.
+- Verify version+subverison when block > 40000.
+- Changed version data string to [8].
 
 Version 0.2.1Ka9 to Kb3
 

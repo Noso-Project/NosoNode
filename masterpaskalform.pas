@@ -104,7 +104,7 @@ type
      SumarioHash : string[64];          // Hash del sumario de cuenta
      Pending: Integer;                  // Cantidad de operaciones pendientes
      Protocol : integer;                // Numero de protocolo usado
-     Version : string[6];
+     Version : string[8];
      ListeningPort : integer;
      offset : integer;                  // Segundos de diferencia a su tiempo
      ResumenHash : String[64];           //
@@ -1154,8 +1154,8 @@ While not terminated do
    begin
    if length(WaitingMNs) > 0 then
       begin
-      EnterCriticalSection(CSWaitingMNs);
       Node := WaitingMNs[0];
+      EnterCriticalSection(CSWaitingMNs);
       Delete(WaitingMNs,0,1);
       LeaveCriticalSection(CSWaitingMNs);
       AddNodeReport(Node);
@@ -1373,13 +1373,13 @@ if lastrelease <> '' then // Data retrieved
    if Parameter(lastrelease,0)+Parameter(lastrelease,1) = ProgramVersion+Subversion then
       begin
       gridinicio.RowCount:=gridinicio.RowCount-1;
-      OutText(rs0073,false,1);
+      OutText(rs0073,false,1);  //✓ Running last release version
       end
    else if Parameter(lastrelease,0)+Parameter(lastrelease,1) > ProgramVersion+Subversion then
       begin // new version available
       gridinicio.RowCount:=gridinicio.RowCount-1;
       OutText(rs0074,false,1);
-      ShowMessage(rs0074);
+      ShowMessage(rs0074);    //✗ New version available on project repo
       // If option is active, download the new release here
       end
    else
@@ -1919,7 +1919,7 @@ Form1.CloseTimer.OnTimer:= @form1.CloseTimerEnd;
 form1.SystrayIcon := TTrayIcon.Create(form1);
 form1.SystrayIcon.BalloonTimeout:=3000;
 form1.SystrayIcon.BalloonTitle:=CoinName+' Wallet';
-form1.SystrayIcon.Hint:=Coinname+' Ver. '+ProgramVersion;
+form1.SystrayIcon.Hint:=Coinname+' Ver. '+ProgramVersion+SubVersion;
 form1.SysTrayIcon.OnDblClick:=@form1.DoubleClickSysTray;
 form1.imagenes.GetIcon(48,form1.SystrayIcon.icon);
 
@@ -2377,7 +2377,7 @@ if slot = 0 then
   TryCloseServerConnection(AContext);
   GoAhead := false;
   end;
-   try
+   TRY
    LLine := AContext.Connection.IOHandler.ReadLn(IndyTextEncoding_UTF8);
    if AContext.Connection.IOHandler.ReadLnTimedout then
       begin
@@ -2386,14 +2386,14 @@ if slot = 0 then
       //ToExcLog('SERVER: Timeout reading line from connection');
       GoAhead := false;
       end;
-   Except on E:Exception do
+   EXCEPT on E:Exception do
       begin
       TryCloseServerConnection(AContext);
       ToExcLog(format(rs0045,[IPUser,E.Message]));
       //ToExcLog('SERVER: Can not read line from connection '+IPUser+'('+E.Message+')');
       GoAhead := false;
       end;
-   end;
+   END{Try};
 if GoAhead then
    begin
    conexiones[slot].IsBusy:=true;
@@ -2572,7 +2572,7 @@ var
 Begin
 GoAhead := true;
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
-if KeepServerOn = false then
+if KeepServerOn = false then // Reject any new connection if we are closing the server
    begin
    TryCloseServerConnection(AContext,'Closing NODE');
    exit;
@@ -2596,6 +2596,11 @@ EXCEPT on E:Exception do
 END{Try};
 MiIp := Parameter(LLine,1);
 Peerversion := Parameter(LLine,2);
+if ((length(Peerversion) < 6) and (Mylastblock >= 40000)) then
+   begin
+   TryCloseServerConnection(AContext,GetPTCEcn+'OLDVERSION');
+   GoAhead := false;
+   end;
 if GoAhead then
    begin
    if parameter(LLine,0) = 'NODESTATUS' then
@@ -2670,10 +2675,12 @@ if GoAhead then
       TryCloseServerConnection(AContext,GetPTCEcn+'DUPLICATED');
       UpdateBotData(IPUser);
       end
+   {
    else if Peerversion < ProgramVersion then
       begin
       TryCloseServerConnection(AContext,GetPTCEcn+'OLDVERSION');
       end
+   }
    else if SaveConection('CLI',IPUser,Acontext) = 0 then
       begin
       TryCloseServerConnection(AContext);
@@ -3635,6 +3642,8 @@ MN_Port:=LabeledEdit6.Text;
 MN_Funds:=LabeledEdit8.Text;
 MN_Sign:=LabeledEdit9.Text;
 S_AdvOpt := true;
+if not WO_AutoServer and form1.Server.Active then processlinesadd('serveroff');
+if WO_AutoServer and not form1.Server.Active then processlinesadd('serveron');
 info('Masternode options saved');
 end;
 

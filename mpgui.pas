@@ -149,7 +149,7 @@ Procedure CreateFormSlots();
 Begin
 FormSlots := TFormSlots.Createnew(form1);
 FormSlots.caption := coinname+' Slots Monitor';
-FormSlots.SetBounds(0, 0, 530, 410);
+FormSlots.SetBounds(0, 0, 570, 410);
 FormSlots.BorderStyle := bssingle;
 //FormSlots.Position:=poOwnerFormCenter;
 FormSlots.Top:=1;FormSlots.Left:=1;
@@ -158,7 +158,7 @@ FormSlots.ShowInTaskBar:=sTAlways;
 
 GridMSlots := TStringGrid.Create(FormSlots);GridMSlots.Parent:=FormSlots;
 GridMSlots.Font.Name:='consolas'; GridMSlots.Font.Size:=8;
-GridMSlots.Left:=1;GridMSlots.Top:=1;GridMSlots.Height:=408;GridMSlots.width:=528;
+GridMSlots.Left:=1;GridMSlots.Top:=1;GridMSlots.Height:=408;GridMSlots.width:=564;
 GridMSlots.FixedCols:=0;GridMSlots.FixedRows:=1;
 GridMSlots.rowcount := MaxConecciones+1;GridMSlots.ColCount:=15;
 GridMSlots.ScrollBars:=ssVertical;
@@ -167,7 +167,7 @@ GridMSlots.Options:= GridMSlots.Options-[goRangeSelect];
 GridMSlots.ColWidths[0]:= 20;GridMSlots.ColWidths[1]:= 80;GridMSlots.ColWidths[2]:= 25;
 GridMSlots.ColWidths[3]:= 20;GridMSlots.ColWidths[4]:= 48;GridMSlots.ColWidths[5]:= 40;
 GridMSlots.ColWidths[6]:= 40;GridMSlots.ColWidths[7]:= 25;GridMSlots.ColWidths[8]:= 25;
-GridMSlots.ColWidths[9]:= 35;GridMSlots.ColWidths[10]:= 30;GridMSlots.ColWidths[11]:= 25;
+GridMSlots.ColWidths[9]:= 70;GridMSlots.ColWidths[10]:= 30;GridMSlots.ColWidths[11]:= 25;
 GridMSlots.ColWidths[12]:= 40;GridMSlots.ColWidths[13]:= 25;;GridMSlots.ColWidths[14]:= 29;
 GridMSlots.Enabled := true;
 GridMSlots.Cells[0,0]:='N';GridMSlots.Cells[1,0]:='IP';GridMSlots.Cells[2,0]:='T';

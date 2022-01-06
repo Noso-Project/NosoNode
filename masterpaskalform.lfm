@@ -318,10 +318,10 @@ object Form1: TForm1
     Height = 468
     Top = 38
     Width = 400
-    ActivePage = TabWallet
+    ActivePage = tabOptions
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 0
+    TabIndex = 5
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
@@ -1189,9 +1189,9 @@ object Form1: TForm1
         Height = 440
         Top = 0
         Width = 392
-        ActivePage = TabSheet1
+        ActivePage = TabNodeOptions
         Align = alClient
-        TabIndex = 0
+        TabIndex = 1
         TabOrder = 0
         object TabSheet1: TTabSheet
           Caption = 'Wallet'
@@ -1548,14 +1548,14 @@ object Form1: TForm1
         end
         object TabNodeOptions: TTabSheet
           Caption = 'Node'
-          ClientHeight = 436
-          ClientWidth = 388
+          ClientHeight = 412
+          ClientWidth = 384
           OnShow = TabNodeOptionsShow
           object CheckBox4: TCheckBox
             Left = 8
-            Height = 23
+            Height = 19
             Top = 8
-            Width = 372
+            Width = 376
             Align = alTop
             BorderSpacing.Left = 8
             BorderSpacing.Top = 8
@@ -1564,20 +1564,20 @@ object Form1: TForm1
           end
           object Panel10: TPanel
             Left = 0
-            Height = 56
-            Top = 31
-            Width = 380
+            Height = 46
+            Top = 27
+            Width = 384
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 56
-            ClientWidth = 380
+            ClientHeight = 46
+            ClientWidth = 384
             TabOrder = 1
             object Label8: TLabel
               Left = 8
               Height = 15
               Top = 4
-              Width = 372
+              Width = 376
               Align = alTop
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
@@ -1586,9 +1586,9 @@ object Form1: TForm1
             end
             object LabeledEdit5: TEdit
               Left = 8
-              Height = 33
+              Height = 23
               Top = 23
-              Width = 352
+              Width = 356
               Align = alTop
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
@@ -1598,20 +1598,20 @@ object Form1: TForm1
           end
           object Panel11: TPanel
             Left = 0
-            Height = 56
-            Top = 87
-            Width = 380
+            Height = 46
+            Top = 73
+            Width = 384
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 56
-            ClientWidth = 380
+            ClientHeight = 46
+            ClientWidth = 384
             TabOrder = 2
             object Label9: TLabel
               Left = 8
               Height = 15
               Top = 4
-              Width = 372
+              Width = 376
               Align = alTop
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
@@ -1620,9 +1620,9 @@ object Form1: TForm1
             end
             object LabeledEdit6: TEdit
               Left = 8
-              Height = 33
+              Height = 23
               Top = 23
-              Width = 352
+              Width = 356
               Align = alTop
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
@@ -1632,20 +1632,20 @@ object Form1: TForm1
           end
           object Panel12: TPanel
             Left = 0
-            Height = 56
-            Top = 143
-            Width = 380
+            Height = 46
+            Top = 119
+            Width = 384
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 56
-            ClientWidth = 380
+            ClientHeight = 46
+            ClientWidth = 384
             TabOrder = 3
             object Label10: TLabel
               Left = 8
               Height = 15
               Top = 4
-              Width = 372
+              Width = 376
               Align = alTop
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
@@ -1654,9 +1654,9 @@ object Form1: TForm1
             end
             object LabeledEdit8: TEdit
               Left = 8
-              Height = 33
+              Height = 23
               Top = 23
-              Width = 352
+              Width = 356
               Align = alTop
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
@@ -1666,20 +1666,20 @@ object Form1: TForm1
           end
           object Panel13: TPanel
             Left = 0
-            Height = 56
-            Top = 199
-            Width = 380
+            Height = 46
+            Top = 165
+            Width = 384
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 56
-            ClientWidth = 380
+            ClientHeight = 46
+            ClientWidth = 384
             TabOrder = 4
             object Label11: TLabel
               Left = 8
               Height = 15
               Top = 4
-              Width = 372
+              Width = 376
               Align = alTop
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
@@ -1688,9 +1688,9 @@ object Form1: TForm1
             end
             object LabeledEdit9: TEdit
               Left = 8
-              Height = 33
+              Height = 23
               Top = 23
-              Width = 352
+              Width = 356
               Align = alTop
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
@@ -1701,13 +1701,13 @@ object Form1: TForm1
           object Panel14: TPanel
             Left = 0
             Height = 34
-            Top = 255
-            Width = 380
+            Top = 211
+            Width = 384
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
             ClientHeight = 34
-            ClientWidth = 380
+            ClientWidth = 384
             TabOrder = 5
             object BSaveNodeOptions: TBitBtn
               Left = 8
@@ -1726,13 +1726,13 @@ object Form1: TForm1
         end
         object TabSheet3: TTabSheet
           Caption = 'RPC'
-          ClientHeight = 436
-          ClientWidth = 388
+          ClientHeight = 412
+          ClientWidth = 384
           object CB_RPC_ON: TCheckBox
             Left = 8
-            Height = 23
+            Height = 19
             Top = 8
-            Width = 372
+            Width = 376
             Align = alTop
             BorderSpacing.Left = 8
             BorderSpacing.Top = 8
@@ -1742,9 +1742,9 @@ object Form1: TForm1
           end
           object CB_RPCFilter: TCheckBox
             Left = 8
-            Height = 23
-            Top = 174
-            Width = 372
+            Height = 19
+            Top = 146
+            Width = 376
             Align = alTop
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
@@ -1755,8 +1755,8 @@ object Form1: TForm1
           object MemoRPCWhitelist: TMemo
             Left = 8
             Height = 82
-            Top = 201
-            Width = 364
+            Top = 169
+            Width = 368
             Align = alTop
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
@@ -1766,9 +1766,9 @@ object Form1: TForm1
           end
           object CB_AUTORPC: TCheckBox
             Left = 8
-            Height = 23
-            Top = 35
-            Width = 372
+            Height = 19
+            Top = 31
+            Width = 376
             Align = alTop
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
@@ -1778,20 +1778,20 @@ object Form1: TForm1
           end
           object Panel15: TPanel
             Left = 0
-            Height = 56
-            Top = 58
-            Width = 380
+            Height = 46
+            Top = 50
+            Width = 384
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 56
-            ClientWidth = 380
+            ClientHeight = 46
+            ClientWidth = 384
             TabOrder = 4
             object Label12: TLabel
               Left = 8
               Height = 15
               Top = 4
-              Width = 372
+              Width = 376
               Align = alTop
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
@@ -1800,9 +1800,9 @@ object Form1: TForm1
             end
             object LE_Rpc_Port: TEdit
               Left = 8
-              Height = 33
+              Height = 23
               Top = 23
-              Width = 364
+              Width = 368
               Align = alTop
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
@@ -1812,20 +1812,20 @@ object Form1: TForm1
           end
           object Panel16: TPanel
             Left = 0
-            Height = 56
-            Top = 114
-            Width = 380
+            Height = 46
+            Top = 96
+            Width = 384
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 56
-            ClientWidth = 380
+            ClientHeight = 46
+            ClientWidth = 384
             TabOrder = 5
             object Label13: TLabel
               Left = 8
               Height = 15
               Top = 4
-              Width = 372
+              Width = 376
               Align = alTop
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
@@ -1834,9 +1834,9 @@ object Form1: TForm1
             end
             object LE_Rpc_Pass: TEdit
               Left = 8
-              Height = 33
+              Height = 23
               Top = 23
-              Width = 364
+              Width = 368
               Align = alTop
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
@@ -2956,8 +2956,8 @@ object Form1: TForm1
     end
   end
   object Imagenes: TImageList
-    Left = 8
-    Top = 240
+    Left = 72
+    Top = 440
     Bitmap = {
       4C69430000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
@@ -5108,14 +5108,15 @@ object Form1: TForm1
   end
   object MainMenu: TMainMenu
     Images = Imagenes
-    Left = 24
-    Top = 192
+    Left = 120
+    Top = 440
     object MenuItem1: TMenuItem
       Caption = 'Network'
       OnClick = CheckMMCaptions
       object MenuItem2: TMenuItem
         Caption = 'Start Server'
         ImageIndex = 27
+        Visible = False
         OnClick = MMServer
       end
       object MenuItem3: TMenuItem
@@ -5213,8 +5214,8 @@ object Form1: TForm1
     end
   end
   object ConsolePopUp2: TPopupMenu
-    Left = 24
-    Top = 128
+    Left = 168
+    Top = 440
     object MenuItem23: TMenuItem
       Caption = 'CLear'
       OnClick = ConsolePopUpClear
@@ -5225,8 +5226,8 @@ object Form1: TForm1
     end
   end
   object ConsoLinePopUp2: TPopupMenu
-    Left = 344
-    Top = 112
+    Left = 224
+    Top = 440
     object MenuItem25: TMenuItem
       Caption = 'Clear'
       OnClick = ConsoLinePopUpClear
@@ -5243,8 +5244,8 @@ object Form1: TForm1
   object Imgs32: TImageList
     Height = 32
     Width = 32
-    Left = 8
-    Top = 296
+    Left = 24
+    Top = 440
     Bitmap = {
       4C69070000002000000020000000000001000000010000000100000001000000
       0100000001000000010000000100000001000000010000000100000001000000

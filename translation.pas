@@ -119,6 +119,7 @@ resourcestring
   rs1505 = 'Keys pasted to clipboard.';
   //mpred
   rs2000 = 'Sign address not valid';
+  rs2001 = 'Wallet not updated';
 
 {
 ConsoleLinesadd(format(rs,[]));

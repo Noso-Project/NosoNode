@@ -67,7 +67,7 @@ uses
 // Devuelve el puro encabezado con espacio en blanco al final
 function GetPTCEcn():String;
 Begin
-result := 'PSK '+IntToStr(protocolo)+' '+ProgramVersion+' '+UTCTime+' ';
+result := 'PSK '+IntToStr(protocolo)+' '+ProgramVersion+subversion+' '+UTCTime+' ';
 End;
 
 // convierte los datos de la cadena en una order
@@ -137,7 +137,7 @@ var
   Encabezado : String = '';
   TempStr    : string = '';
 Begin
-Encabezado := 'PSK '+IntToStr(protocolo)+' '+ProgramVersion+' '+UTCTime+' ';
+Encabezado := 'PSK '+IntToStr(protocolo)+' '+ProgramVersion+subversion+' '+UTCTime+' ';
 if tipo = OnlyHeaders then
    resultado := '';
 if tipo = GetNodes then
