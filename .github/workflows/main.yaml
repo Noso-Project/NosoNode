@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         operating-system: [ubuntu-latest, windows-latest]
-        lazarus-versions: [2.0.12]
+        lazarus-versions: [stable, 2.0.12]
     steps:
     - uses: actions/cache@v2
       with:
@@ -29,7 +29,7 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-laz-
     - name: Install Lazarus
-      uses: gcarreno/setup-lazarus@v2.2.9
+      uses: gcarreno/setup-lazarus@v3.0.16
       with:
         lazarus-version: ${{ matrix.lazarus-versions }}
     - uses: actions/checkout@v2
