@@ -312,6 +312,7 @@ type
     BSaveNodeOptions: TBitBtn;
     BitBtnPending: TBitBtn;
     BitBtnBlocks: TBitBtn;
+    BTestNode: TBitBtn;
     ButStartDoctor: TButton;
     ButStopDoctor: TButton;
     CheckBox2: TCheckBox;
@@ -528,6 +529,7 @@ type
     procedure BitBtnWebClick(Sender: TObject);
     procedure BQRCodeClick(Sender: TObject);
     procedure BSaveNodeOptionsClick(Sender: TObject);
+    procedure BTestNodeClick(Sender: TObject);
     procedure ButStartDoctorClick(Sender: TObject);
     procedure ButStopDoctorClick(Sender: TObject);
     procedure CB_RPCFilterChange(Sender: TObject);
@@ -3646,6 +3648,65 @@ if not WO_AutoServer and form1.Server.Active then processlinesadd('serveroff');
 if WO_AutoServer and not form1.Server.Active then processlinesadd('serveron');
 info('Masternode options saved');
 end;
+
+// Test master node configuration
+procedure TForm1.BTestNodeClick(Sender: TObject);
+var
+  Client : TidTCPClient;
+  LineResult : String = '';
+  ServerActivated : boolean = false;
+Begin
+if DireccionEsMia(LabeledEdit9.Text) < 0 then
+   begin
+   info(rs0081); // Invalid sign address
+   exit;
+   end;
+if GetAddressBalance(LabeledEdit8.Text) < GetStackRequired(MylastBlock) then
+   begin
+   info(rs0082); // Funds address do not owns enough coins
+   exit;
+   end;
+if form1.Server.Active then
+   begin
+   info(rs0080);   //You can not test while server is active
+   exit;
+   end;
+if MyConStatus < 3 then
+   begin
+   info(rs0083);   //You can not test while server is active
+   exit;
+   end;
+TRY
+form1.Server.Active := true;
+ServerActivated := true;
+EXCEPT on E:Exception do
+   begin
+   info('Error activating server');
+   exit;
+   end;
+END;{Try}
+LineResult := '';
+Client := TidTCPClient.Create(nil);
+Client.Host:=LabeledEdit5.text;
+Client.Port:=StrToIntDef(LabeledEdit6.Text,8080);
+Client.ConnectTimeout:= 1000;
+Client.ReadTimeout:= 1000;
+
+TRY
+Client.Connect;
+Client.IOHandler.WriteLn('NODESTATUS');
+LineResult := Client.IOHandler.ReadLn(IndyTextEncoding_UTF8);
+EXCEPT on E:Exception do
+   begin
+
+   end;
+END;{Try}
+if LineResult <> '' then info('Test OK')
+else info ('TestFailed');
+if client.Connected then Client.Disconnect();
+if ServerActivated then form1.Server.Active := false;
+client.Free;
+End;
 
 // Execute new doctor
 procedure TForm1.ButStartDoctorClick(Sender: TObject);

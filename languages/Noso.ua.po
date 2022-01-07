@@ -73,6 +73,10 @@ msgstr "Показати QR-код"
 msgid "Save"
 msgstr "Зберегти"
 
+#: tform1.btestnode.caption
+msgid "Test"
+msgstr ""
+
 #: tform1.butstartdoctor.caption
 msgid "Start"
 msgstr "Почати"
@@ -866,6 +870,22 @@ msgstr "Підключіть"
 #: translation.rs0079
 msgid "Disconnect"
 msgstr "Від’єднати"
+
+#: translation.rs0080
+msgid "You can not test while server is active"
+msgstr ""
+
+#: translation.rs0081
+msgid "Invalid sign address"
+msgstr ""
+
+#: translation.rs0082
+msgid "Funds address do not owns enough coins"
+msgstr ""
+
+#: translation.rs0083
+msgid "You need update the wallet"
+msgstr ""
 
 #: translation.rs0500
 msgid "Noso Launcher"

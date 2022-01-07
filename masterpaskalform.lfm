@@ -1722,6 +1722,19 @@ object Form1: TForm1
               OnClick = BSaveNodeOptionsClick
               TabOrder = 0
             end
+            object BTestNode: TBitBtn
+              Left = 88
+              Height = 30
+              Top = 4
+              Width = 75
+              BorderSpacing.Left = 8
+              BorderSpacing.Top = 4
+              Caption = 'Test'
+              Images = Imagenes
+              ImageIndex = 22
+              OnClick = BTestNodeClick
+              TabOrder = 1
+            end
           end
         end
         object TabSheet3: TTabSheet

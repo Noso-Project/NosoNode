@@ -88,6 +88,10 @@ resourcestring
   rs0077 = 'Stop server';
   rs0078 = 'Connect';
   rs0079 = 'Disconnect';
+  rs0080 = 'You can not test while server is active';
+  rs0081 = 'Invalid sign address';
+  rs0082 = 'Funds address do not owns enough coins';
+  rs0083 = 'You need update the wallet';
   //mpGUI
   rs0500 = 'Noso Launcher';
   rs0501 = 'Destination';

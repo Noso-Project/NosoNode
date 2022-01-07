@@ -57,6 +57,7 @@
 {"hash":175061379,"name":"tform1.label10.caption","sourcebytes":[70,117,110,100,115,32,97,100,100,114,101,115,115],"value":"Funds address"},
 {"hash":36990147,"name":"tform1.label11.caption","sourcebytes":[83,105,103,110,32,97,100,100,114,101,115,115],"value":"Sign address"},
 {"hash":366789,"name":"tform1.bsavenodeoptions.caption","sourcebytes":[83,97,118,101],"value":"Save"},
+{"hash":371876,"name":"tform1.btestnode.caption","sourcebytes":[84,101,115,116],"value":"Test"},
 {"hash":22339,"name":"tform1.tabsheet3.caption","sourcebytes":[82,80,67],"value":"RPC"},
 {"hash":212689794,"name":"tform1.cb_rpc_on.caption","sourcebytes":[69,110,97,98,108,101,32,74,83,79,78,45,82,80,67,32,115,101,114,118,101,114],"value":"Enable JSON-RPC server"},
 {"hash":74795187,"name":"tform1.cb_rpcfilter.caption","sourcebytes":[65,99,99,101,112,116,32,111,110,108,121,32,119,104,105,116,101,108,105,115,116,32,114,101,113,117,101,115,116,115],"value":"Accept only whitelist requests"},

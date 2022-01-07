@@ -13,6 +13,8 @@ Version 0.2.1Kb4
 - Added filter of MyConStatus to start server.
 - Verify version+subverison when block > 40000.
 - Changed version data string to [8].
+- Added extra filter to function DireccionEsMia.
+- Implemented test for masternode options.
 
 Version 0.2.1Ka9 to Kb3
 

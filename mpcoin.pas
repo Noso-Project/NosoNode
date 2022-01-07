@@ -36,6 +36,7 @@ function ValidRPCHost(hoststr:string):boolean;
 function PendingRawInfo():String;
 Function GetPoSPercentage(block:integer):integer;
 Function GetMNsPercentage(block:integer):integer;
+Function GetStackRequired(block:integer):int64;
 // Masternodes
 function GetMNsHash():string;
 
@@ -568,6 +569,11 @@ if block >= 40000 then
    result := MNsPercentage + (((block-40000) div 4000) * 100); // MNsPercentage := 2000
    if result > 6000 then result := 6000;
    end;
+End;
+
+Function GetStackRequired(block:integer):int64;
+Begin
+result := (GetSupply(block)*PosStackCoins) div 10000;
 End;
 
 // *****

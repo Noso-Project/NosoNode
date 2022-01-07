@@ -235,7 +235,7 @@ var
   contador : integer = 0;
 Begin
 Result := -1;
-if direccion ='' then exit;
+if ((direccion ='') or (length(direccion)<5)) then exit;
 for contador := 0 to length(Listadirecciones)-1 do
    begin
    if ((ListaDirecciones[contador].Hash = direccion) or (ListaDirecciones[contador].Custom = direccion )) then

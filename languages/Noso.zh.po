@@ -74,6 +74,10 @@ msgstr "显示二维码"
 msgid "Save"
 msgstr "保存"
 
+#: tform1.btestnode.caption
+msgid "Test"
+msgstr ""
+
 #: tform1.butstartdoctor.caption
 msgid "Start"
 msgstr "开始"
@@ -867,6 +871,22 @@ msgstr "连接"
 #: translation.rs0079
 msgid "Disconnect"
 msgstr "断开"
+
+#: translation.rs0080
+msgid "You can not test while server is active"
+msgstr ""
+
+#: translation.rs0081
+msgid "Invalid sign address"
+msgstr ""
+
+#: translation.rs0082
+msgid "Funds address do not owns enough coins"
+msgstr ""
+
+#: translation.rs0083
+msgid "You need update the wallet"
+msgstr ""
 
 #: translation.rs0500
 msgid "Noso Launcher"

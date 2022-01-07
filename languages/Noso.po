@@ -62,6 +62,10 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
+#: tform1.btestnode.caption
+msgid "Test"
+msgstr ""
+
 #: tform1.butstartdoctor.caption
 msgid "Start"
 msgstr ""
@@ -854,6 +858,22 @@ msgstr ""
 
 #: translation.rs0079
 msgid "Disconnect"
+msgstr ""
+
+#: translation.rs0080
+msgid "You can not test while server is active"
+msgstr ""
+
+#: translation.rs0081
+msgid "Invalid sign address"
+msgstr ""
+
+#: translation.rs0082
+msgid "Funds address do not owns enough coins"
+msgstr ""
+
+#: translation.rs0083
+msgid "You need update the wallet"
 msgstr ""
 
 #: translation.rs0500
