@@ -1,3 +1,7 @@
+Version 0.2.1La1
+
+- Official release
+
 Version 0.2.1Kb4
 
 - QRcode for export keys.
@@ -5,6 +9,7 @@ Version 0.2.1Kb4
 - Exception block on verify signed string.
 - Exception block added on signing funcion.
 - GetPos command added.
+- GetMNs command added.
 - Added fund verification to masternodes reports.
 - Hiden start server menu option.
 - Included GetPoSPercentage(block)to block building.
@@ -15,6 +20,10 @@ Version 0.2.1Kb4
 - Changed version data string to [8].
 - Added extra filter to function DireccionEsMia.
 - Implemented test for masternode options.
+- Updated devnoso pool IP.
+- Eliminated nodes file.
+- Added Function IsDefaultNode.
+- Added advanced order filters to AddPendingTxs.
 
 Version 0.2.1Ka9 to Kb3
 

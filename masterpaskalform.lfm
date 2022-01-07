@@ -318,10 +318,10 @@ object Form1: TForm1
     Height = 468
     Top = 38
     Width = 400
-    ActivePage = tabOptions
+    ActivePage = TabWallet
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 5
+    TabIndex = 0
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
@@ -1189,9 +1189,9 @@ object Form1: TForm1
         Height = 440
         Top = 0
         Width = 392
-        ActivePage = TabNodeOptions
+        ActivePage = TabSheet1
         Align = alClient
-        TabIndex = 1
+        TabIndex = 0
         TabOrder = 0
         object TabSheet1: TTabSheet
           Caption = 'Wallet'
@@ -2406,9 +2406,9 @@ object Form1: TForm1
         Height = 440
         Top = 0
         Width = 392
-        ActivePage = TabNodes
+        ActivePage = TabSheet7
         Align = alClient
-        TabIndex = 4
+        TabIndex = 0
         TabOrder = 0
         object TabSheet7: TTabSheet
           Caption = 'Log'

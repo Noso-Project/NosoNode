@@ -138,6 +138,8 @@ var
 Begin
 setmilitime('AddPendingTxs',1);
 //if order.OrderType='FEE' then exit;
+if order.TimeStamp < LastBlockData.TimeStart then exit;
+if TrxExistsInLastBlock(order.TrfrID) then exit;
 if not TranxAlreadyPending(order.TrfrID) then
    begin
    EnterCriticalSection(CSPending);
@@ -564,9 +566,9 @@ End;
 Function GetMNsPercentage(block:integer):integer;
 Begin
 result := 0;
-if block >= 40000 then
+if block >= 41000 then
    begin
-   result := MNsPercentage + (((block-40000) div 4000) * 100); // MNsPercentage := 2000
+   result := MNsPercentage + (((block-41000) div 4000) * 100); // MNsPercentage := 2000
    if result > 6000 then result := 6000;
    end;
 End;

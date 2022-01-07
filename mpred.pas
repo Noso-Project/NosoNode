@@ -711,7 +711,7 @@ SetLength(ArrayConsenso,0);
 ConsensoValues := 0;
 for contador := 1 to MaxConecciones do
    Begin
-   if conexiones[contador].tipo<> '' then
+   if ( (conexiones[contador].tipo<> '') and (IsDefaultNode(conexiones[contador].ip)) ) then
       begin
       UpdateConsenso(conexiones[contador].Lastblock,contador);
       end;
@@ -728,7 +728,7 @@ SetLength(ArrayConsenso,0);
 ConsensoValues := 0;
 for contador := 1 to MaxConecciones do
    Begin
-   if conexiones[contador].tipo<> '' then
+   if ( (conexiones[contador].tipo<> '') and (IsDefaultNode(conexiones[contador].ip)) ) then
       begin
       UpdateConsenso(conexiones[contador].LastblockHash,contador);
       end;
@@ -745,7 +745,7 @@ SetLength(ArrayConsenso,0);
 ConsensoValues := 0;
 for contador := 1 to MaxConecciones do
    Begin
-   if conexiones[contador].tipo<> '' then
+   if ( (conexiones[contador].tipo<> '') and (IsDefaultNode(conexiones[contador].ip)) ) then
       begin
       UpdateConsenso(conexiones[contador].SumarioHash, contador);
       end;
@@ -762,7 +762,7 @@ SetLength(ArrayConsenso,0);
 ConsensoValues := 0;
 for contador := 1 to MaxConecciones do
    Begin
-   if conexiones[contador].tipo<> '' then
+   if ( (conexiones[contador].tipo<> '') and (IsDefaultNode(conexiones[contador].ip)) ) then
       begin
       UpdateConsenso(IntToStr(conexiones[contador].Pending), contador);
       end;
@@ -779,7 +779,7 @@ SetLength(ArrayConsenso,0);
 ConsensoValues := 0;
 for contador := 1 to MaxConecciones do
    Begin
-   if conexiones[contador].tipo<> '' then
+   if ( (conexiones[contador].tipo<> '') and (IsDefaultNode(conexiones[contador].ip)) ) then
       begin
       UpdateConsenso(conexiones[contador].ResumenHash, contador);
       end;
@@ -897,7 +897,7 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
         (MySumarioHash<>NetSumarioHash.Value) and (SumaryRebuilded)) then
    begin  // Blockchain status issue
-   //UndoneLastBlock(true,false);
+   UndoneLastBlock(true,false);
    //RestoreBlockChain();
    end;
 
@@ -909,7 +909,6 @@ if ((fileexists(PoolInfoFilename)) and (MyResumenhash <> NetResumenHash.Value) a
    ConsoleLinesAdd(LangLine(163)); //'Headers file requested'
    LastTimeRequestResumen := StrToInt64(UTCTime);
    end;
-
 SetCurrentJob('ActualizarseConLaRed',false);
 End;
 
@@ -1052,7 +1051,7 @@ Function IsAValidNode(IP:String):boolean;
 Begin
 if Pos(IP,DefaultNodes)>0 then result:=true
 else result := false;
-if IP = '109.230.238.119' then result := true;
+if IP = '107.172.30.204' then result := true;
 End;
 
 Function GetLastRelease():String;

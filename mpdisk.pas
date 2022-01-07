@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, MasterPaskalForm, Dialogs, Forms, mpTime, FileUtil, LCLType,
   lclintf, controls, mpCripto, mpBlock, Zipper, mpLang, mpcoin, poolmanage,
   {$IFDEF WINDOWS}Win32Proc, {$ENDIF}
-  mpminer, translation;
+  mpminer, translation, strutils;
 
 Procedure VerificarArchivos();
 
@@ -20,6 +20,7 @@ Procedure CargarNodeFile();
 Procedure VerifyCodedNodes();
 Procedure SaveNodeFile();
 Procedure FillNodeList();
+Function IsDefaultNode(IP:String):boolean;
 Procedure UpdateNodeData(IPUser:String;Port:string;LastTime:String='');
 // Except log file
 Procedure CreateExceptlog();
@@ -139,7 +140,8 @@ OutText('✓ Wallet file ok',false,1);
 if not Fileexists(BotDataFilename) then CrearBotData() else CargarBotData();
 OutText('✓ Bots file ok',false,1);
 
-CheckNodesFile();
+FillNodeList;
+//CheckNodesFile();
 OutText('✓ Nodes file ok',false,1);
 
 if not Fileexists(NTPDataFilename) then CrearNTPData() else CargarNTPData();
@@ -325,9 +327,31 @@ End;
 // Fills options node list
 Procedure FillNodeList();
 var
-  cont : integer;
+  counter : integer;
+  ThisNode : string = '';
+  continuar : boolean = true;
+  NodeToAdd : NodeData;
 Begin
+counter := 1;
+SetLength(ListaNodos,0);
+Repeat
+   ThisNode := parameter(DefaultNodes,counter);
+   if thisnode = '' then continuar := false
+   else
+      begin
+      NodeToAdd.ip:=ThisNode;
+      NodeToAdd.port:='8080';
+      NodeToAdd.LastConexion:=UTCTime;
+      Insert(NodeToAdd,Listanodos,Length(ListaNodos));
+      counter+=1;
+      end;
+until not continuar;
+End;
 
+Function IsDefaultNode(IP:String):boolean;
+Begin
+Result := false;
+if AnsiContainsStr(DefaultNodes,ip) then result := true;
 End;
 
 // Creates/updates a node
