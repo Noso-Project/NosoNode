@@ -125,7 +125,10 @@ End;
 // Al cerrar el formulario de inicio
 Procedure TFormInicio.closeFormInicio(Sender: TObject; var CanClose: boolean);
 Begin
-if G_launching then canclose := false
+if G_launching then
+  begin
+  CompleteInicio;
+  end
 else if RunningDoctor then canclose := false
 else
    begin
@@ -445,6 +448,7 @@ form1.GridNodes.Cells[1,0] := 'Port';
 form1.GridNodes.Cells[2,0] := 'Block';
 form1.GridNodes.Cells[3,0] := 'Hash';
 form1.GridNodes.Cells[4,0] := 'Time';
+form1.GridNodes.FocusRectVisible:=false;
 
 
 NetSumarioHash.Value:='?';

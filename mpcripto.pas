@@ -469,13 +469,15 @@ var
   PosRequired : int64;
 Begin
 result := false;
+if uppercase(ThisNode.Ip) = 'LOCALHOST' then exit;
+if GetAddressFromPublicKey(thisnode.PublicKey) <> thisnode.SignAddress then exit;
 StringToSign := Thisnode.Time+' '+Thisnode.Ip+' '+ThisNode.Block.ToString+' '+thisnode.BlockHash;
 if VerifySignedString(StringToSign,thisnode.Signature,thisnode.PublicKey) then
    begin
    PosRequired := (GetSupply(MyLastBlock+1)*PosStackCoins) div 10000;
    if MyLastBlock+1 < MNBlockStart then PosRequired := 0;
    if listasumario[AddressSumaryIndex(ThisNode.FundAddress)].Balance >= PosRequired then
-      result := true
+      result := true;
    end
 else ToExcLog('ERROR: Node not verified: '+Thisnode.Ip);
 End;

@@ -671,6 +671,7 @@ Procedure InicializarFormulario();
 Procedure CerrarPrograma();
 Procedure UpdateStatusBar();
 Procedure GenerateCode();
+Procedure CompleteInicio();
 
 CONST
   HexAlphabet : string = '0123456789ABCDEF';
@@ -689,7 +690,7 @@ CONST
                             '185.239.239.184 '+
                             '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'La1';
+  SubVersion = 'La2';
   OficialRelease = true;
   BuildDate = 'January 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -751,6 +752,7 @@ var
   WO_AntifreezeTime: integer = 10;
   WO_Language      : string = 'en';
     WO_LastPoUpdate: string = ProgramVersion+Subversion;
+  WO_CloseStart    : boolean = true;
   RPCFilter        : boolean = true;
   RPCWhitelist     : string = '127.0.0.1,localhost';
   RPCAuto          : boolean = false;
@@ -1387,7 +1389,7 @@ if lastrelease <> '' then // Data retrieved
    else
       begin
       gridinicio.RowCount:=gridinicio.RowCount-1;
-      OutText(rs0075,false,1);
+      OutText(rs0075,false,1);  // ✓ Running a development version
       end;
    end
 else // Error retrieving last release data
@@ -1453,13 +1455,42 @@ G_MiningCPUs := G_CpuCount;
 OutText(format(rs0028,[inttostr(G_CpuCount)]),false,1);
 StringAvailableUpdates := AvailableUpdates();
 Form1.Latido.Enabled:=true;
-G_Launching := false;
 OutText('Noso is ready',false,1);
-//if UserOptions.AutoServer then ProcessLinesAdd('SERVERON');
-//if UserOptions.AutoServer then KeepServerOn := true;
+if WO_CloseStart then
+   begin
+   G_Launching := false;
+   if WO_autoserver then KeepServerOn := true;
+   if WO_AutoConnect then ProcessLinesAdd('CONNECT');
+   FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
+   FirstShow := true;
+   Setlength(CriptoOpsTipo,0);
+   Setlength(CriptoOpsOper,0);
+   Setlength(CriptoOpsResu,0);
+   Setlength(MilitimeArray,0);
+   Setlength(Miner_Thread,0);
+   SetLength(ArrayNetworkRequests,0);
+   SetLength(ArrPoolPays,0);
+   Setlength(MNsArray,0);
+   Setlength(WaitingMNs,0);
+      ThreadMNs := TUpdateMNs.Create(true);
+      ThreadMNs.FreeOnTerminate:=true;
+      ThreadMNs.Start;
+   Tolog(rs0029); NewLogLines := NewLogLines-1; //'Noso session started'
+   info(rs0029);  //'Noso session started'
+   infopanel.BringToFront;
+   SetCurrentJob('Main',true);
+   forminicio.Visible:=false;
+   form1.Visible:=true;
+   Form1.RestartTimer.Enabled:=true;
+   end // CLOSE start form
+else FormInicio.BorderIcons:=FormInicio.BorderIcons-[biminimize]+[bisystemmenu];
+End;
+
+Procedure CompleteInicio();
+Begin
+G_Launching := false;
 if WO_autoserver then KeepServerOn := true;
 if WO_AutoConnect then ProcessLinesAdd('CONNECT');
-//if RPCAuto then  ProcessLinesAdd('RPCON');
 FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
 FirstShow := true;
 Setlength(CriptoOpsTipo,0);
@@ -1476,7 +1507,7 @@ Setlength(WaitingMNs,0);
    ThreadMNs.Start;
 Tolog(rs0029); NewLogLines := NewLogLines-1; //'Noso session started'
 info(rs0029);  //'Noso session started'
-infopanel.BringToFront;
+form1.infopanel.BringToFront;
 SetCurrentJob('Main',true);
 forminicio.Visible:=false;
 form1.Visible:=true;
@@ -2598,11 +2629,6 @@ EXCEPT on E:Exception do
 END{Try};
 MiIp := Parameter(LLine,1);
 Peerversion := Parameter(LLine,2);
-if ((length(Peerversion) < 6) and (Mylastblock >= 40000)) then
-   begin
-   TryCloseServerConnection(AContext,GetPTCEcn+'OLDVERSION');
-   GoAhead := false;
-   end;
 if GoAhead then
    begin
    if parameter(LLine,0) = 'NODESTATUS' then
@@ -2660,6 +2686,12 @@ if GoAhead then
       TryCloseServerConnection(AContext);
       UpdateBotData(IPUser);
       end
+
+   else if ((length(Peerversion) < 6) and (Mylastblock >= 40000)) then
+      begin
+      TryCloseServerConnection(AContext,GetPTCEcn+'OLDVERSION');
+      end
+
    else if IPUser = MyPublicIP then
       begin
       ToLog(rs0059);
@@ -2709,7 +2741,7 @@ var
   IPUser : string;
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
-CerrarSlot(GetSlotFromIP(IPUser));
+CerrarSlot(GetSlotFromContext(AContext));
 End;
 
 // Excepcion en el servidor
@@ -2718,7 +2750,7 @@ var
   IPUser : string;
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
-CerrarSlot(GetSlotFromIP(IPUser));
+CerrarSlot(GetSlotFromContext(AContext));
 ToExcLog(LangLine(6)+AException.Message);    //Server Excepcion:
 End;
 
@@ -3673,7 +3705,7 @@ if form1.Server.Active then
    end;
 if MyConStatus < 3 then
    begin
-   info(rs0083);   //You can not test while server is active
+   info(rs0083);   //You need update the wallet
    exit;
    end;
 TRY
@@ -3687,8 +3719,8 @@ EXCEPT on E:Exception do
 END;{Try}
 LineResult := '';
 Client := TidTCPClient.Create(nil);
-Client.Host:=LabeledEdit5.text;
-Client.Port:=StrToIntDef(LabeledEdit6.Text,8080);
+Client.Host:=trim(LabeledEdit5.text);
+Client.Port:=StrToIntDef(Trim(LabeledEdit6.Text),8080);
 Client.ConnectTimeout:= 1000;
 Client.ReadTimeout:= 1000;
 
@@ -3698,11 +3730,14 @@ Client.IOHandler.WriteLn('NODESTATUS');
 LineResult := Client.IOHandler.ReadLn(IndyTextEncoding_UTF8);
 EXCEPT on E:Exception do
    begin
-
+   info('Error in connection');
+   client.Free;
+   if ServerActivated then form1.Server.Active := false;
+   exit;
    end;
 END;{Try}
 if LineResult <> '' then info('Test OK')
-else info ('TestFailed');
+else info ('Test Failed');
 if client.Connected then Client.Disconnect();
 if ServerActivated then form1.Server.Active := false;
 client.Free;

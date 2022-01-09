@@ -10,6 +10,7 @@ uses
   opensslsockets,translation ;
 
 function GetSlotFromIP(Ip:String):int64;
+function GetSlotFromContext(Context:TidContext):int64;
 function BotExists(IPUser:String):Boolean;
 function NodeExists(IPUser,Port:String):integer;
 function SaveConection(tipo,ipuser:String;contextdata:TIdContext):integer;
@@ -59,6 +60,22 @@ Result := 0;
 for contador := 1 to MaxConecciones do
    begin
    if conexiones[contador].ip=ip then
+      begin
+      result := contador;
+      break;
+      end;
+   end;
+end;
+
+// RETURNS THE SLOT OF THE GIVEN CONTEXT
+function GetSlotFromContext(Context:TidContext):int64;
+var
+  contador : integer;
+Begin
+Result := 0;
+for contador := 1 to MaxConecciones do
+   begin
+   if conexiones[contador].context=Context then
       begin
       result := contador;
       break;
@@ -187,6 +204,7 @@ SetCurrentJob('StopServer',true);
    KeepServerOn := false;
    for contador := 1 to MaxConecciones do
       begin
+      info('Closing connection: '+conexiones[contador].ip);
       if conexiones[contador].tipo='CLI' then CerrarSlot(contador);
       end;
    Form1.Server.Active:=false;

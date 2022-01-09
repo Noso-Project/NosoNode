@@ -330,6 +330,7 @@ ARepartir := Cantidad;
 NumeroDePasos := GetPoolNumeroDePasos();
 PoolComision := (cantidad* PoolInfo.Porcentaje) div 10000;
 PoolInfo.FeeEarned:=PoolInfo.FeeEarned+PoolComision;
+
 ARepartir := ARepartir-PoolComision;
 RepartirShares := (ARepartir * PoolShare) div 100;
 ARepartir := ARepartir - RepartirShares;
@@ -717,6 +718,7 @@ if length(arraypoolmembers)>0 then
       end;
    end;
 Leavecriticalsection(CSPoolMembers);
+
 ConsoleLinesAdd('Pool expels  : '+intToStr(expelled));
 ConsoleLinesAdd('Pool Payments: '+intToStr(PaidMembers));
 ConsoleLinesAdd('Total paid   : '+int2curr(Totalpaid));
@@ -735,7 +737,8 @@ for counter := 0 to length(arraypoolmembers)-1 do
    if arraypoolmembers[counter].Direccion<>'' then
       begin
       resString := resString+arraypoolmembers[counter].Direccion+':'+IntToStr(arraypoolmembers[counter].Deuda)+':'+
-         IntToStr(MyLastBlock-(arraypoolmembers[counter].LastPago+PoolInfo.TipoPago))+' ';
+         IntToStr(MyLastBlock-(arraypoolmembers[counter].LastPago+PoolInfo.TipoPago))+
+         ':'+IntToStr(PoolServerConex[counter].Hashpower)+' ';
       miners +=1;
       end;
    end;

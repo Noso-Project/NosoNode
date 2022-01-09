@@ -451,7 +451,6 @@ if not TryStrToInt(NumeroBloque,BlockNumber) then
 if proceder then
 begin // proceder 1
 
-
 // Se recibe una solucion del siguiente bloque
 if ( (BlockNumber = LastBlockData.Number+1) and
      (VerifySolutionForBlock(lastblockdata.NxtBlkDiff,MyLastBlockHash,DireccionMinero,Solucion)=0))then
@@ -770,7 +769,7 @@ if proceder then
       AddPendingTxs(TrxArray[cont]);
    OutgoingMsjsAdd(Textbak);
    U_DirPanel := true;
-   Result := 'ok';
+   Result := Parameter(Textbak,7); // send order ID as result
    end;
 End;
 
@@ -1036,7 +1035,7 @@ Begin
 StartPos := Pos('$',linea);
 ReportInfo := copy (linea,StartPos+1,length(linea));
 ThisNode := GetMNfromText(ReportInfo);
-if NodeVerified(ThisNode) then
+if ( (NodeVerified(ThisNode)) and (IsValidASCII(ReportInfo)) ) then
    begin
    EnterCriticalSection(CSWaitingMNs);
    Insert(ThisNode,WaitingMNs,length(WaitingMNs));
