@@ -549,6 +549,7 @@ setmilitime('CreateADV',1);
    writeln(FileAdvOptions,'Autoserver '+BoolToStr(WO_AutoServer,true));
    writeln(FileAdvOptions,'PoUpdate '+(WO_LastPoUpdate));
    writeln(FileAdvOptions,'Closestart '+BoolToStr(WO_CloseStart,true));
+   writeln(FileAdvOptions,'Autoupdate '+BoolToStr(WO_AutoUpdate,true));
 
    writeln(FileAdvOptions,'MNIP '+(MN_IP));
    writeln(FileAdvOptions,'MNPort '+(MN_Port));
@@ -602,6 +603,7 @@ Begin
       if parameter(linea,0) ='Autoserver' then WO_AutoServer:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='PoUpdate' then WO_LastPoUpdate:=Parameter(linea,1);
       if parameter(linea,0) ='Closestart' then WO_CloseStart:=StrToBool(Parameter(linea,1));
+      if parameter(linea,0) ='Autoupdate' then WO_AutoUpdate:=StrToBool(Parameter(linea,1));
 
       if parameter(linea,0) ='MNIP' then MN_IP:=Parameter(linea,1);
       if parameter(linea,0) ='MNPort' then MN_Port:=Parameter(linea,1);

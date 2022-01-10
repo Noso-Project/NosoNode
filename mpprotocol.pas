@@ -1038,12 +1038,9 @@ ThisNode := GetMNfromText(ReportInfo);
 if ( (NodeVerified(ThisNode)) and (IsValidASCII(ReportInfo)) ) then
    begin
    EnterCriticalSection(CSWaitingMNs);
-   Insert(ThisNode,WaitingMNs,length(WaitingMNs));
+   //Insert(ThisNode,WaitingMNs,length(WaitingMNs));
    LeaveCriticalSection(CSWaitingMNs);
-   //AddNodeReport(ThisNode);
-   //OutgoingMsjsAdd(ProtocolLine(onlyheaders)+'$'+ReportInfo);
    end;
-
 End;
 
 Procedure AddNodeReport(NodeInfo:TMasterNode);

@@ -45,6 +45,7 @@ function GetOrderDetails(orderid:string):orderdata;
 Function GetNodeStatusString():string;
 Function IsAValidNode(IP:String):boolean;
 Function GetLastRelease():String;
+Function GetLastVerZipFile(filename:string):boolean;
 
 implementation
 
@@ -1089,6 +1090,11 @@ Except on E: Exception do
 end;//TRY
 Conector.Free;
 result := readedLine;
+End;
+
+Function GetLastVerZipFile(filename:string):boolean;
+Begin
+
 End;
 
 END. // END UNIT

@@ -1,3 +1,7 @@
+Version 0.2.1La3
+
+- Official release
+
 Version 0.2.1La2
 
 - ASCII verificator for node reports.
@@ -8,6 +12,10 @@ Version 0.2.1La2
 - OrderID sent as result of Function PTC_Order. (lite/mobile compatibility)
 - Fixed compatibility between lite/mobile and nosowallet.
 - Miner hashrate added to poolstatus.
+- Current block difficult added to poolstatus.
+- Nodes unban changed to every 6 hours.
+- Pool keeps restart file updated to save block steps.
+
 
 Version 0.2.1La1
 

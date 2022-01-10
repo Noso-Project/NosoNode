@@ -744,7 +744,7 @@ for counter := 0 to length(arraypoolmembers)-1 do
    end;
 Leavecriticalsection(CSPoolMembers);
 result:= 'STATUS '+IntToStr(PoolTotalHashRate)+' '+IntToStr(poolinfo.Porcentaje)+' '+
-   IntToStr(PoolShare)+' '+IntToStr(miners)+' '+resString;
+   IntToStr(PoolShare)+' '+IntToStr(PoolMiner.Dificult)+' '+IntToStr(miners)+' '+resString;
 End;
 
 function StepAlreadyAdded(stepstring:string):Boolean;
@@ -781,6 +781,7 @@ if ( (steps > 0) and  (steps < 10) ) then
       PoolMiner.Solucion := PoolMiner.Solucion+Parameter(Miner_RestartedSolution,2+counter)+' ';
       end;
    end;
+CrearRestartfile;
 End;
 
 END. // END UNIT

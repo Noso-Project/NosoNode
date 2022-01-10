@@ -690,7 +690,7 @@ CONST
                             '185.239.239.184 '+
                             '109.230.238.240';
   ProgramVersion = '0.2.1';
-  SubVersion = 'La2';
+  SubVersion = 'La3';
   OficialRelease = true;
   BuildDate = 'January 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -753,6 +753,7 @@ var
   WO_Language      : string = 'en';
     WO_LastPoUpdate: string = ProgramVersion+Subversion;
   WO_CloseStart    : boolean = true;
+  WO_AutoUpdate    : Boolean = true;
   RPCFilter        : boolean = true;
   RPCWhitelist     : string = '127.0.0.1,localhost';
   RPCAuto          : boolean = false;
@@ -1793,7 +1794,7 @@ if FormSlots.Visible then UpdateSlotsGrid();
 if FormPool.Visible then UpdatePoolForm();
 ConnectedRotor +=1; if ConnectedRotor>6 then ConnectedRotor := 0;
 UpdateStatusBar;
-if ( (StrToInt64(UTCTime) mod 86400=0) and (LastBotClear<>UTCTime) and (Form1.Server.Active) ) then ProcessLinesAdd('delbot all');
+if ( (StrToInt64(UTCTime) mod 21600=0) and (LastBotClear<>UTCTime) and (Form1.Server.Active) ) then ProcessLinesAdd('delbot all');
 Form1.Latido.Enabled:=true;
 end;
 
@@ -2179,6 +2180,7 @@ else if Comando = 'STEP' then
          insert(SeedStep+HashStep,Miner_PoolSharedStep,length(Miner_PoolSharedStep)+1);
          LeaveCriticalSection(CSPoolShares);
          PoolMiner.Solucion := PoolMiner.Solucion+SeedStep+HashStep+' ';
+         CrearRestartfile; // TEMP TEST
          PoolMiner.steps := PoolMiner.steps+1;
          PoolMiner.DiffChars:=GetCharsFromDifficult(PoolMiner.Dificult, PoolMiner.steps);
          if PoolMiner.steps = Miner_Steps then
