@@ -190,6 +190,7 @@ Function IsValidASCII(TextLine:String):boolean;
 var
   counter : integer;
 Begin
+setmilitime('IsValidASCII',1);
 result := true;
 for counter := 1 to length(TextLine) do
    if ((Ord(TextLine[counter])>126) or (Ord(TextLine[counter])<32)) then
@@ -197,6 +198,7 @@ for counter := 1 to length(TextLine) do
       result := false;
       break;
       end;
+setmilitime('IsValidASCII',2);
 End;
 
 // Verifica una solucion para un bloque

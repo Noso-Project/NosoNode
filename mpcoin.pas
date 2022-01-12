@@ -5,7 +5,7 @@ unit mpCoin;
 interface
 
 uses
-  Classes, SysUtils,MasterPaskalForm,mpgui,Clipbrd;
+  Classes, SysUtils,MasterPaskalForm,mpgui,Clipbrd, strutils;
 
 function GetAddressAvailable(address:string):int64;
 function GetAddressBalance(address:string):int64;
@@ -586,14 +586,37 @@ function GetMNsHash():string;
 var
   counter:integer;
   Hashstr : string = '';
+  validMN : integer = 0;
+  CopyArray : Array of Tmasternode;
 Begin
-if Length(MNsArray) = 0 then result := HashMD5string('')
+setmilitime('GetMNsHash',1);
+
+EnterCriticalSection(CSMNsArray);
+SetLength(CopyArray,0);
+CopyArray := copy(MNsArray,0,length(MNsArray));
+LeaveCriticalSection(CSMNsArray);
+
+if Length(CopyArray) = 0 then
+   begin
+   result := 'EMPTY';
+   myMNsCount := 0;
+   end
 else
    begin
-   for counter := 0 to Length(MNsArray)-1 do
-      Hashstr := Hashstr+MNsArray[counter].Ip;
-   result := HashMD5string(Hashstr);
+   for counter := 0 to Length(CopyArray)-1 do
+      begin
+      if ( (CopyArray[counter].Block=StrToIntDef(NetLastBlock.Value,0)) and
+         (CopyArray[counter].BlockHash=NetLastBlockHash.Value) and
+         (not AnsiContainsStr(Hashstr,CopyArray[counter].FundAddress)) ) then
+         begin
+         Hashstr := Hashstr+CopyArray[counter].FundAddress+' ';
+         validMN := validMN+1;
+         end;
+      end;
+   result := HashMD5string(Trim(Hashstr));
+   myMNsCount := ValidMN;
    end;
+setmilitime('GetMNsHash',2);
 End;
 
 END. // END UNIT

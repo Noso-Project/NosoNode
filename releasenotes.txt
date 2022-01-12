@@ -1,3 +1,16 @@
+Version 0.2.1La4
+
+- Added filter so nodes will not try to auto connect.
+- ActualizarseConLaRed() adjusted.
+- Master nodes subdomains filter.
+- Implemented MyMNsHash and MyMNsCount.
+- Seed node 23.94.21.83 added.
+- GetOrderDetails limited to last 4000 blocks.
+- Performance measurement to master nodes functions.
+- Node report verification moved into specifical thread.
+- Added MNs hash to node status.
+- Improved MNs hash generation.
+
 Version 0.2.1La3
 
 - Official release
@@ -15,7 +28,6 @@ Version 0.2.1La2
 - Current block difficult added to poolstatus.
 - Nodes unban changed to every 6 hours.
 - Pool keeps restart file updated to save block steps.
-
 
 Version 0.2.1La1
 

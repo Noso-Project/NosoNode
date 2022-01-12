@@ -122,6 +122,12 @@ msgstr "Anti freeze (s)"
 msgid "Auto connect at start"
 msgstr "启动时自动连接"
 
+#: tform1.cb_wo_autoupdate.caption
+#, fuzzy
+msgctxt "tform1.cb_wo_autoupdate.caption"
+msgid "Install automatically new official releases"
+msgstr "自动更新版本"
+
 #: tform1.cb_wo_multisend.caption
 msgid "Send coins only from default address"
 msgstr "仅从默认地址发送硬币"
@@ -133,10 +139,6 @@ msgstr "最小化"
 #: tform1.checkbox1.caption
 msgid "Download blockchain"
 msgstr "下载区块链"
-
-#: tform1.checkbox2.caption
-msgid "Install automatically new official releases"
-msgstr "自动更新版本"
 
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
@@ -953,6 +955,10 @@ msgstr "地址"
 msgctxt "translation.rs0515"
 msgid "Balance"
 msgstr "余额"
+
+#: translation.rs0516
+msgid "Masternodes: (%d) %s"
+msgstr ""
 
 #: translation.rs1000
 msgid "Processing block %d (%d %%)"

@@ -318,10 +318,10 @@ object Form1: TForm1
     Height = 468
     Top = 38
     Width = 400
-    ActivePage = tabOptions
+    ActivePage = TabConsole
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 5
+    TabIndex = 1
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
@@ -1485,7 +1485,7 @@ object Form1: TForm1
             State = cbChecked
             TabOrder = 2
           end
-          object CheckBox2: TCheckBox
+          object CB_WO_Autoupdate: TCheckBox
             Left = 8
             Height = 19
             Top = 262
@@ -1494,7 +1494,7 @@ object Form1: TForm1
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
             Caption = 'Install automatically new official releases'
-            Enabled = False
+            OnChange = CB_WO_AutoupdateChange
             TabOrder = 10
           end
           object Panel7: TPanel
@@ -6159,5 +6159,23 @@ object Form1: TForm1
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000
     }
+  end
+  object IdHTTPUpdate: TIdHTTP
+    OnWork = IdHTTPUpdateWork
+    OnWorkBegin = IdHTTPUpdateWorkBegin
+    ProxyParams.BasicAuthentication = False
+    ProxyParams.ProxyPort = 0
+    Request.ContentLength = -1
+    Request.ContentRangeEnd = -1
+    Request.ContentRangeStart = -1
+    Request.ContentRangeInstanceLength = -1
+    Request.Accept = 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+    Request.BasicAuthentication = False
+    Request.UserAgent = 'Mozilla/3.0 (compatible; Indy Library)'
+    Request.Ranges.Units = 'bytes'
+    Request.Ranges = <>
+    HTTPOptions = [hoForceEncodeParams]
+    Left = 296
+    Top = 442
   end
 end

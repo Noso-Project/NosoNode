@@ -121,6 +121,12 @@ msgstr "Anti beku"
 msgid "Auto connect at start"
 msgstr "Sambungkan otomatis saat mulai"
 
+#: tform1.cb_wo_autoupdate.caption
+#, fuzzy
+msgctxt "tform1.cb_wo_autoupdate.caption"
+msgid "Install automatically new official releases"
+msgstr "Pasang rilis resmi baru secara otomatis"
+
 #: tform1.cb_wo_multisend.caption
 msgid "Send coins only from default address"
 msgstr "Kirim koin hanya dari alamat bawaan"
@@ -132,10 +138,6 @@ msgstr "Minimalkan ke baki"
 #: tform1.checkbox1.caption
 msgid "Download blockchain"
 msgstr "Unduh blockchain"
-
-#: tform1.checkbox2.caption
-msgid "Install automatically new official releases"
-msgstr "Pasang rilis resmi baru secara otomatis"
 
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
@@ -953,6 +955,10 @@ msgstr "Alamat"
 msgctxt "translation.rs0515"
 msgid "Balance"
 msgstr "Saldo"
+
+#: translation.rs0516
+msgid "Masternodes: (%d) %s"
+msgstr ""
 
 #: translation.rs1000
 msgid "Processing block %d (%d %%)"

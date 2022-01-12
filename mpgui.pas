@@ -648,8 +648,7 @@ if ((U_MNsGrid) or (UTCTime.ToInt64>U_MNsGrid_Last+59)) then
       end;
    //}
    U_MNsGrid_Last := UTCTime.ToInt64;
-   MNsHash := GetMNsHash();
-   form1.LabelNodesHash.Caption:='Hash: '+MNsHash;
+   form1.LabelNodesHash.Caption:=format(rs0516,[MyMNsCount,MyMNsHash]);
    U_MNsGrid := false;
    end;
 

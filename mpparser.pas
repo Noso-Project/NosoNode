@@ -111,6 +111,8 @@ Procedure showgmts(LineText:string);
 // EXCHANGE
 Procedure PostOffer(LineText:String);
 
+Procedure DebugTest(linetext:string);
+
 implementation
 
 uses
@@ -288,6 +290,7 @@ else if UpperCase(Command) = 'GETPOS' then Consolelinesadd( GetPoSPercentage(Str
 else if UpperCase(Command) = 'GETMNS' then Consolelinesadd( GetMNsPercentage(StrToIntdef(Parameter(linetext,1),Mylastblock)).ToString )
 else if UpperCase(Command) = 'CLOSESTARTON' then WO_CloseStart := true
 else if UpperCase(Command) = 'CLOSESTARTOFF' then WO_CloseStart := false
+else if UpperCase(Command) = 'DEBUGTEST' then DebugTest(LineText)
 
 // CONSULTING
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()
@@ -2401,9 +2404,15 @@ else
 
 End;
 
-{
-post def max ltc 39000 LUUWwzfeQtJ4dc8A5xJVz3Zacray55f1WH 101
-}
+Procedure DebugTest(linetext:string);
+var
+  signature : string;
+Begin
+signature := GetStringSigned('hello','privkey');
+ConsoleLinesadd(signature);
+consolelinesadd('');
+consolelinesadd(BoolToStr(VerifySignedString('hello',signature,'hola')));
+End;
 
 END. // END UNIT
 

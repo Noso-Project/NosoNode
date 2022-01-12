@@ -1035,10 +1035,10 @@ Begin
 StartPos := Pos('$',linea);
 ReportInfo := copy (linea,StartPos+1,length(linea));
 ThisNode := GetMNfromText(ReportInfo);
-if ( (NodeVerified(ThisNode)) and (IsValidASCII(ReportInfo)) ) then
+if IsValidASCII(ReportInfo) then
    begin
    EnterCriticalSection(CSWaitingMNs);
-   //Insert(ThisNode,WaitingMNs,length(WaitingMNs));
+   Insert(ThisNode,WaitingMNs,length(WaitingMNs));
    LeaveCriticalSection(CSWaitingMNs);
    end;
 End;
@@ -1049,6 +1049,7 @@ var
   NodeAdded : boolean =false;
 Begin
 EnterCriticalSection(CSMNsArray);
+setmilitime('AddNodeReport',1);
 if NodeAlreadyadded(NodeInfo) then
    begin
 
@@ -1098,7 +1099,9 @@ else
    OutgoingMsjsAdd(ProtocolLine(onlyheaders)+'$REPORTNODE '+GetTextFromMN(nodeinfo));
    U_MNsGrid := true;
    end;
+setmilitime('AddNodeReport',2);
 LeaveCriticalSection(CSMNsArray);
+MyMNsHash := GetMNsHash();
 End;
 
 END. // END UNIT

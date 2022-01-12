@@ -9,7 +9,8 @@ uses
   Grids, ExtCtrls, Buttons, IdTCPServer, IdContext, IdGlobal, IdTCPClient,
   fileutil, Clipbrd, Menus, crt, formexplore, lclintf, ComCtrls, Spin,
   poolmanage, strutils, mpoptions, math, IdHTTPServer, IdCustomHTTPServer,
-  fpJSON, Types, DefaultTranslator, LCLTranslator, translation, ubarcodes;
+  IdHTTP, fpJSON, Types, DefaultTranslator, LCLTranslator, translation,
+  ubarcodes, IdComponent;
 
 type
 
@@ -315,11 +316,12 @@ type
     BTestNode: TBitBtn;
     ButStartDoctor: TButton;
     ButStopDoctor: TButton;
-    CheckBox2: TCheckBox;
+    CB_WO_Autoupdate: TCheckBox;
     CBBlockexists: TCheckBox;
     CBBlockhash: TCheckBox;
     CBSummaryhash: TCheckBox;
     ComboBoxLang: TComboBox;
+    IdHTTPUpdate: TIdHTTP;
     LabelNodesHash: TLabel;
     LabelDoctor: TLabel;
     LE_Rpc_Pass: TEdit;
@@ -533,6 +535,7 @@ type
     procedure ButStartDoctorClick(Sender: TObject);
     procedure ButStopDoctorClick(Sender: TObject);
     procedure CB_RPCFilterChange(Sender: TObject);
+    procedure CB_WO_AutoupdateChange(Sender: TObject);
     procedure ComboBoxLangChange(Sender: TObject);
     procedure ComboBoxLangDrawItem(Control: TWinControl; Index: Integer;
       ARect: TRect; State: TOwnerDrawState);
@@ -547,6 +550,10 @@ type
     procedure GridMyTxsSelection(Sender: TObject; aCol, aRow: Integer);
     procedure GridNodesResize(Sender: TObject);
     procedure GridPoSResize(Sender: TObject);
+    procedure IdHTTPUpdateWork(ASender: TObject; AWorkMode: TWorkMode;
+      AWorkCount: Int64);
+    procedure IdHTTPUpdateWorkBegin(ASender: TObject; AWorkMode: TWorkMode;
+      AWorkCountMax: Int64);
     procedure LE_Rpc_PassEditingDone(Sender: TObject);
     Procedure LoadOptionsToPanel();
     procedure FormShow(Sender: TObject);
@@ -688,9 +695,10 @@ CONST
                             '192.210.226.118 '+
                             '107.172.5.8 '+
                             '185.239.239.184 '+
-                            '109.230.238.240';
+                            '109.230.238.240 '+
+                            '23.94.21.83';
   ProgramVersion = '0.2.1';
-  SubVersion = 'La3';
+  SubVersion = 'La5';
   OficialRelease = true;
   BuildDate = 'January 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -754,6 +762,7 @@ var
     WO_LastPoUpdate: string = ProgramVersion+Subversion;
   WO_CloseStart    : boolean = true;
   WO_AutoUpdate    : Boolean = true;
+    UpdateFileSize : int64 = 0;
   RPCFilter        : boolean = true;
   RPCWhitelist     : string = '127.0.0.1,localhost';
   RPCAuto          : boolean = false;
@@ -891,6 +900,8 @@ var
   MyLastBlockHash : String = '';
   MyResumenHash : String = '';
   MyPublicIP : String = '';
+  MyMNsHash : String = '';
+  MyMNsCount : integer = 0;
   LastBlockData : BlockHeaderData;
   UndonedBlocks : boolean = false;
   RunExpelPoolInactives : boolean = false;
@@ -899,7 +910,7 @@ var
   WaitingMNs : array of TMasterNode;
    U_MNsGrid : boolean = false;
    U_MNsGrid_Last : int64 = 0;
-  MNsHash : string = '';
+
 
   NetSumarioHash : NetworkData;
     SumaryRebuilded : boolean = false;
@@ -1163,9 +1174,9 @@ While not terminated do
       EnterCriticalSection(CSWaitingMNs);
       Delete(WaitingMNs,0,1);
       LeaveCriticalSection(CSWaitingMNs);
-      AddNodeReport(Node);
+      if NodeVerified(node) then AddNodeReport(Node);
       end;
-   Sleep(10);
+   Sleep(1);
    end;
 End;
 
@@ -1383,9 +1394,12 @@ if lastrelease <> '' then // Data retrieved
    else if Parameter(lastrelease,0)+Parameter(lastrelease,1) > ProgramVersion+Subversion then
       begin // new version available
       gridinicio.RowCount:=gridinicio.RowCount-1;
-      OutText(rs0074,false,1);
-      ShowMessage(rs0074);    //✗ New version available on project repo
-      // If option is active, download the new release here
+      OutText(rs0074,false,1); //✗ New version available on project repo
+      if WO_AutoUpdate then
+         begin
+         GetLastVerZipFile('');
+         OutText('Last release downloaded',false,1);
+         end;
       end
    else
       begin
@@ -1529,6 +1543,8 @@ SE_WO_PosWarning.Value := WO_PosWarning;
 CB_WO_AntiFreeze.Checked:=WO_AntiFreeze;
 CB_WO_Multisend.Checked:=WO_Multisend;
 SE_WO_AntifreezeTime.value := WO_AntifreezeTime;
+CB_WO_Autoupdate.Checked := WO_AutoUpdate;
+
 // RPC
 LE_Rpc_Port.Text := IntToStr(RPCPort);
 LE_Rpc_Pass.Text := RPCPass;
@@ -3467,6 +3483,23 @@ if not G_Launching then
    end;
 end;
 
+procedure TForm1.CB_WO_AutoupdateChange(Sender: TObject);
+Begin
+if not G_Launching then
+   begin
+   if CB_WO_Autoupdate.Checked then
+      begin
+      WO_AutoUpdate := true;
+      end
+   else
+      begin
+      WO_AutoUpdate := false ;
+      end;
+   S_AdvOpt := true;
+   end;
+
+End;
+
 procedure TForm1.CB_WO_MultisendChange(Sender: TObject);
 begin
 if not G_Launching then
@@ -3781,6 +3814,24 @@ GridWidth := form1.GridPoS.Width;
 form1.GridPoS.ColWidths[0]:= thispercent(50,GridWidth);
 form1.GridPoS.ColWidths[1]:= thispercent(50,GridWidth);
 End;
+
+// Download the auto update process
+procedure TForm1.IdHTTPUpdateWork(ASender: TObject; AWorkMode: TWorkMode;
+  AWorkCount: Int64);
+var
+  Percent: Integer;
+begin
+Percent := 100*AWorkCount div UpdateFileSize;
+
+gridinicio.RowCount:=gridinicio.RowCount-1;
+OutText('Progress: '+IntToStr(percent)+' %',false,1);
+end;
+
+procedure TForm1.IdHTTPUpdateWorkBegin(ASender: TObject; AWorkMode: TWorkMode;
+  AWorkCountMax: Int64);
+begin
+UpdateFileSize := AWorkCountMax;
+end;
 
 // Adjust the trxdetails when a selection is done
 procedure TForm1.GridMyTxsSelection(Sender: TObject; aCol, aRow: Integer);

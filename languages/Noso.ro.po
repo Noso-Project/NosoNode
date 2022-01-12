@@ -120,6 +120,12 @@ msgstr "Anti-blocare (i)"
 msgid "Auto connect at start"
 msgstr "Conectare automată la pornire"
 
+#: tform1.cb_wo_autoupdate.caption
+#, fuzzy
+msgctxt "tform1.cb_wo_autoupdate.caption"
+msgid "Install automatically new official releases"
+msgstr "Instalează automat noi versiuni oficiale"
+
 #: tform1.cb_wo_multisend.caption
 msgid "Send coins only from default address"
 msgstr "Trimite monezi numai de la adresa implicită"
@@ -131,10 +137,6 @@ msgstr "Minimizează pe bară"
 #: tform1.checkbox1.caption
 msgid "Download blockchain"
 msgstr "Descarcă blockchain"
-
-#: tform1.checkbox2.caption
-msgid "Install automatically new official releases"
-msgstr "Instalează automat noi versiuni oficiale"
 
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
@@ -951,6 +953,10 @@ msgstr "Adrese"
 msgctxt "translation.rs0515"
 msgid "Balance"
 msgstr "Balanţă"
+
+#: translation.rs0516
+msgid "Masternodes: (%d) %s"
+msgstr ""
 
 #: translation.rs1000
 msgid "Processing block %d (%d %%)"

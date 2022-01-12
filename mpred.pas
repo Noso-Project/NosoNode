@@ -7,7 +7,7 @@ interface
 uses
   Classes, forms, SysUtils, MasterPaskalForm, MPTime, IdContext, IdGlobal, mpGUI, mpDisk,
   mpBlock, mpMiner, fileutil, graphics,  dialogs,poolmanage, strutils, mpcoin, fphttpclient,
-  opensslsockets,translation ;
+  opensslsockets,translation, IdHTTP, IdComponent, IdSSLOpenSSL  ;
 
 function GetSlotFromIP(Ip:String):int64;
 function GetSlotFromContext(Context:TidContext):int64;
@@ -274,7 +274,7 @@ if proceder then
    begin
    Repeat
    rannumber := random(length(ListaNodos));
-   if ((GetSlotFromIP(ListaNodos[rannumber].ip)=0) AND (GetFreeSlot()>0)) then
+   if ((GetSlotFromIP(ListaNodos[rannumber].ip)=0) AND (GetFreeSlot()>0) and (ListaNodos[rannumber].ip<>MN_Ip)) then
       begin
       ConnectClient(ListaNodos[rannumber].ip,ListaNodos[rannumber].port);
       intentado := true;
@@ -815,6 +815,7 @@ NetLastBlockHash := UpdateNetworkLastBlockHash;
 NetSumarioHash := UpdateNetworkSumario; // Busca el hash del sumario por consenso
 NetPendingTrxs := UpdateNetworkPendingTrxs;
 NetResumenHash := UpdateNetworkResumenHash;
+MyMNsHash := GetMNsHash();
 U_DataPanel := true;
 SetCurrentJob('UpdateNetworkData',false);
 // Si lastblock y sumario no estan actualizados solicitarlos
@@ -909,14 +910,17 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
    if ListaSumario[0].LastOP < mylastblock then CompleteSumary()
    else
       begin
-      RebuildSumario(MyLastBlock);
+      UndoneLastBlock(true,false);
+      //RebuildSumario(MyLastBlock);
       SumaryRebuilded:= true;
       end;
    end
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
         (MySumarioHash<>NetSumarioHash.Value) and (SumaryRebuilded)) then
    begin  // Blockchain status issue
-   UndoneLastBlock(true,false);
+   ConsoleLinesAdd('EXCEPTION BLOCKCHAIN');
+   RebuildSumario(MyLastBlock);
+   //UndoneLastBlock(true,false);
    //RestoreBlockChain();
    end;
 
@@ -1004,6 +1008,7 @@ var
   orderfound : boolean = false;
   resultorder : orderdata;
   ArrTrxs : BlockOrdersArray;
+  LastBlockToCheck : integer;
 Begin
 setmilitime('GetOrderDetails',1);
 resultorder := default(orderdata);
@@ -1028,7 +1033,9 @@ if length(PendingTxs)>0 then
 if orderfound then result := resultorder
 else
    begin
-   for counter := mylastblock downto 1 do
+   LastBlockToCheck := mylastblock-4000;
+   if LastBlockToCheck<1 then LastBlockToCheck := 1;
+   for counter := mylastblock downto LastBlockToCheck do
       begin
       ArrTrxs := GetBlockTrxs(counter);
       if length(ArrTrxs)>0 then
@@ -1063,7 +1070,7 @@ Begin
 //NODESTATUS 1{TotalConections} 2{MyLastBlock} 3{Pendings} 4{Delta} 5{headers} 6{version} 7{UTCTime}
 result := IntToStr(GetTotalConexiones)+' '+IntToStr(MyLastBlock)+' '+IntToStr(Length(PendingTXs))+' '+
           IntToStr(UTCTime.ToInt64-EngineLastUpdate)+' '+copy(myResumenHash,0,5)+' '+
-          ProgramVersion+SubVersion+' '+UTCTime;
+          ProgramVersion+SubVersion+' '+UTCTime+' '+copy(MyMnsHash,0,5);
 End;
 
 Function IsAValidNode(IP:String):boolean;
@@ -1093,8 +1100,29 @@ result := readedLine;
 End;
 
 Function GetLastVerZipFile(filename:string):boolean;
-Begin
+var
+  MS: TMemoryStream;
+  Int_SumarySize : int64;
+  IdSSLIOHandler: TIdSSLIOHandlerSocketOpenSSL;
 
+Begin
+IdSSLIOHandler:= TIdSSLIOHandlerSocketOpenSSL.Create;
+MS := TMemoryStream.Create;
+TRY
+   TRY
+   Form1.IdHTTPUpdate.HandleRedirects:=true;
+   Form1.IdHTTPUpdate.IOHandler:=IdSSLIOHandler;
+   Form1.IdHTTPUpdate.get('https://github.com/Noso-Project/NosoWallet/releases/download/v0.2.1La3/noso-v0.2.1La3-i386-win32.zip', MS);
+   MS.SaveToFile(UpdatesDirectory+'noso-v0.2.1La3-i386-win32.zip');
+   EXCEPT ON E:Exception do
+      begin
+      ConsoleLines.Add('Error downloading last release: '+E.Message);
+      end;
+   END{Try};
+FINALLY
+MS.Free;
+IdSSLIOHandler.Free;
+END{try};
 End;
 
 END. // END UNIT

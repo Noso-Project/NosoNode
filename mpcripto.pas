@@ -281,7 +281,6 @@ Result := EncodeStringBase64(ByteToString(Signature));
 EXCEPT ON E:Exception do
    begin
    ToExcLog('ERROR Signing message');
-   Result := 'NULL'
    end;
 END{Try};
 End;
@@ -450,6 +449,7 @@ var
   CurrentTime : string;
   ReportHash : string;
 Begin
+setmilitime('GetMNSignature',1);
 result := '';
 CurrentTime := UTCTime;
 TextToSign := CurrentTime+' '+MN_IP+' '+MyLastBlock.ToString+' '+MyLastBlockHash;
@@ -461,16 +461,27 @@ else
    PublicKey := ListaDirecciones[SignAddressIndex].PublicKey;
    result := CurrentTime+' '+PublicKey+' '+GetStringSigned(TextToSign,ListaDirecciones[SignAddressIndex].PrivateKey)+' '+ReportHash;
    end;
+setmilitime('GetMNSignature',2);
 End;
 
 function NodeVerified(ThisNode:TMasterNode):boolean;
 var
   StringToSign : string;
   PosRequired : int64;
+  FilterOn : boolean = false;
 Begin
+setmilitime('NodeVerified',1);
 result := false;
-if uppercase(ThisNode.Ip) = 'LOCALHOST' then exit;
-if GetAddressFromPublicKey(thisnode.PublicKey) <> thisnode.SignAddress then exit;
+if uppercase(ThisNode.Ip) = 'LOCALHOST' then FilterOn:= true;
+if not IsValidIP(ThisNode.Ip) then FilterOn:= true;
+if ( (ThisNode.FundAddress='') or (ThisNode.Ip='') or (ThisNode.PublicKey='') or (ThisNode.SignAddress='') or
+   (Thisnode.BlockHash='') or (thisnode.ReportHash='') or (thisnode.Signature='') or (thisnode.Time='')) then FilterOn:= true;
+if GetAddressFromPublicKey(thisnode.PublicKey) <> thisnode.SignAddress then FilterOn:= true;
+if FilterOn then
+   begin
+   setmilitime('NodeVerified',2);
+   exit;
+   end;
 StringToSign := Thisnode.Time+' '+Thisnode.Ip+' '+ThisNode.Block.ToString+' '+thisnode.BlockHash;
 if VerifySignedString(StringToSign,thisnode.Signature,thisnode.PublicKey) then
    begin
@@ -479,7 +490,8 @@ if VerifySignedString(StringToSign,thisnode.Signature,thisnode.PublicKey) then
    if listasumario[AddressSumaryIndex(ThisNode.FundAddress)].Balance >= PosRequired then
       result := true;
    end
-else ToExcLog('ERROR: Node not verified: '+Thisnode.Ip);
+else ToExcLog('ERROR: Node not verified: '+GetTextFromMN(ThisNode));
+setmilitime('NodeVerified',2);
 End;
 
 // *****************************************************************************

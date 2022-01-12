@@ -120,6 +120,12 @@ msgstr "Anti congelamento da aplicação (s)"
 msgid "Auto connect at start"
 msgstr "Conectar automaticamente no arranque"
 
+#: tform1.cb_wo_autoupdate.caption
+#, fuzzy
+msgctxt "tform1.cb_wo_autoupdate.caption"
+msgid "Install automatically new official releases"
+msgstr "Instalar lançamentos oficiais automaticamente"
+
 #: tform1.cb_wo_multisend.caption
 msgid "Send coins only from default address"
 msgstr "Enviar moedas somente do endereço por defeito"
@@ -131,10 +137,6 @@ msgstr "Minimizar para a barra"
 #: tform1.checkbox1.caption
 msgid "Download blockchain"
 msgstr "Baixar a cadeia de blocos"
-
-#: tform1.checkbox2.caption
-msgid "Install automatically new official releases"
-msgstr "Instalar lançamentos oficiais automaticamente"
 
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
@@ -951,6 +953,10 @@ msgstr "Endereço"
 msgctxt "translation.rs0515"
 msgid "Balance"
 msgstr "Saldo"
+
+#: translation.rs0516
+msgid "Masternodes: (%d) %s"
+msgstr ""
 
 #: translation.rs1000
 msgid "Processing block %d (%d %%)"
