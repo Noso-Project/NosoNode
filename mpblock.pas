@@ -241,6 +241,9 @@ if not errored then
    U_DataPanel := true;
    SetCurrentJob('CrearNuevoBloque',false);
    setmilitime('CrearNuevoBloque',2);
+   //EnterCriticalSection(CSMNsArray);
+   //SetLength(MNsArray,0); // It should clear the list here
+   //LeaveCriticalSection(CSMNsArray);
    end;
 BuildingBlock := false;
 End;

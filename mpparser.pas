@@ -146,14 +146,14 @@ end;
 
 // Adds a line to OutgoingMsjs thread safe
 procedure OutgoingMsjsAdd(const ALine: String);
-begin
-  EnterCriticalSection(CSOutgoingMsjs);
-  try
-    OutgoingMsjs.Add(ALine);
-  finally
-    LeaveCriticalSection(CSOutgoingMsjs);
-  end;
-end;
+Begin
+EnterCriticalSection(CSOutgoingMsjs);
+TRY
+OutgoingMsjs.Add(ALine);
+FINALLY
+LeaveCriticalSection(CSOutgoingMsjs);
+END{Try};
+End;
 
 // Procesa las lineas de la linea de comandos
 Procedure ProcesarLineas();
@@ -2108,10 +2108,23 @@ var
   incomingtrx : integer = 0; minedblocks : integer = 0;inccoins : int64 = 0;
   outgoingtrx : integer = 0; outcoins : int64 = 0;
   inbalance : int64;
+  ArrayPos    : BlockArraysPos;
+  PosReward   : int64;
+  PosCount    : integer;
+  CounterPos  : integer;
+  PosPAyments : integer = 0;
+  PoSEarnings : int64 = 0;
+  TransSL : TStringlist;
 Begin
+TransSL := TStringlist.Create;
 addtoshow := parameter(LineText,1);
 for counter := 1 to MyLastBlock do
    begin
+   if counter mod 10 = 0 then
+      begin
+      info('History :'+IntToStr(Counter));
+      application.ProcessMessages;
+      end;
    Header := LoadBlockDataHeader(counter);
    if Header.AccountMiner= addtoshow then // address is miner
      begin
@@ -2127,15 +2140,33 @@ for counter := 1 to MyLastBlock do
             begin
             incomingtrx += 1;
             inccoins := inccoins+ArrTrxs[contador2].AmmountTrf;
+            transSL.Add(IntToStr(Counter)+']]'+ArrTrxs[contador2].sender+'-->'+ArrTrxs[contador2].Receiver+' : '+Int2curr(ArrTrxs[contador2].AmmountTrf));
             end;
          if ArrTrxs[contador2].sender = addtoshow then // outgoing order
             begin
             outgoingtrx +=1;
             outcoins := outcoins + ArrTrxs[contador2].AmmountTrf + ArrTrxs[contador2].AmmountFee;
+            transSL.Add(IntToStr(Counter)+']]'+ArrTrxs[contador2].sender+'-->'+ArrTrxs[contador2].Receiver+' : '+Int2curr(ArrTrxs[contador2].AmmountTrf));
             end;
          end;
       end;
    SetLength(ArrTrxs,0);
+   if counter >= PoSBlockStart then
+      begin
+      ArrayPos := GetBlockPoSes(counter);
+      PosReward := StrToIntDef(Arraypos[length(Arraypos)-1].address,0);
+      SetLength(ArrayPos,length(ArrayPos)-1);
+      PosCount := length(ArrayPos);
+      for counterpos := 0 to PosCount-1 do
+         begin
+         if ArrayPos[counterPos].address = addtoshow then
+           begin
+           PosPAyments +=1;
+           PosEarnings := PosEarnings+PosReward;
+           end;
+         end;
+      SetLength(ArrayPos,0);
+      end;
    end;
 inbalance := GetAddressBalance(addtoshow);
 ConsoleLinesAdd('Last block : '+inttostr(MyLastBlock));
@@ -2144,11 +2175,21 @@ ConsoleLinesAdd('INCOMINGS');
 ConsoleLinesAdd('  Mined        : '+IntToStr(minedblocks));
 ConsoleLinesAdd('  Transactions : '+IntToStr(incomingtrx));
 ConsoleLinesAdd('  Coins        : '+Int2Curr(inccoins));
+ConsoleLinesAdd('  PoS Payments : '+IntToStr(PosPAyments));
+ConsoleLinesAdd('  PoS Earnings : '+Int2Curr(PosEarnings));
 ConsoleLinesAdd('OUTGOINGS');
 ConsoleLinesAdd('  Transactions : '+IntToStr(outgoingtrx));
 ConsoleLinesAdd('  Coins        : '+Int2Curr(outcoins));
-ConsoleLinesAdd('TOTAL  : '+Int2Curr(inccoins-outcoins));
+ConsoleLinesAdd('TOTAL  : '+Int2Curr(inccoins-outcoins+PoSearnings));
 ConsoleLinesAdd('SUMARY : '+Int2Curr(inbalance));
+ConsoleLinesAdd('');
+ConsoleLinesAdd('Transactions');
+While TransSL.Count >0 do
+   begin
+   ConsoleLinesAdd(TransSL[0]);
+   TransSL.Delete(0);
+   end;
+TransSL.Free;
 End;
 
 // Shows the total fees paid in the whole blockchain

@@ -110,6 +110,7 @@ resourcestring
   rs0514 = 'Address';
   rs0515 = 'Balance';
   rs0516 = 'Masternodes: (%d) %s';
+  rs0517 = '(%d)  %d/%s';
   //mpDisk
   rs1000 = 'Processing block %d (%d %%)';
   rs1001 = '----- ERROR ----'+Slinebreak+'Block: %d';

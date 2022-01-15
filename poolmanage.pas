@@ -700,6 +700,8 @@ if length(arraypoolmembers)>0 then
             ( Mineraddress<>'')) then
             begin
             ProcessLinesAdd('POOLEXPEL '+arraypoolmembers[counter].Direccion+' YES');
+            AddPoolPay(IntToStr(MyLastBlock+1)+' '+arraypoolmembers[counter].Direccion+' '+
+               IntToStr(GetMaximunToSend(MemberBalance))+' EXPELLED');
             TotalPaid := totalpaid + MemberBalance;
             expelled +=1;
             end;
@@ -711,6 +713,8 @@ if length(arraypoolmembers)>0 then
             begin
             ProcessLinesAdd('sendto '+Mineraddress+' '+IntToStr(GetMaximunToSend(MemberBalance))+' POOLPAYMENT_'+PoolInfo.Name);
             TotalPaid := TotalPaid + MemberBalance;
+            AddPoolPay(IntToStr(MyLastBlock+1)+' '+arraypoolmembers[counter].Direccion+' '+
+               IntToStr(GetMaximunToSend(MemberBalance))+' PAID');
             ClearPoolUserBalance(Mineraddress);
             PaidMembers +=1;
             end;

@@ -23,6 +23,7 @@ function GetNodeFromString(NodeDataString: string): NodeData;
 Procedure ProcessPing(LineaDeTexto: string; Slot: integer; Responder:boolean);
 function GetPingString():string;
 procedure PTC_SendPending(Slot:int64);
+Procedure PTC_SendMNs(Slot:int64);
 Procedure PTC_Newblock(Texto:String;connectionNumber:Integer);
 Procedure PTC_SendResumen(Slot:int64);
 Function ZipSumary():boolean;
@@ -58,6 +59,7 @@ CONST
   LastBlock = 8;
   Custom = 9;
   NodeReport = 10;
+  GetMNs = 11;
 
 implementation
 
@@ -164,6 +166,8 @@ if tipo = NodeReport then
    Resultado := '$REPORTNODE '+MN_IP+' '+MN_Port+' '+TempStr+' '+MN_Sign+' '+MyLastBlock.ToString+' '+
       MyLastBlockHash+' '+GetMNSignature;
    end;
+if tipo = GetMNs then
+   Resultado := '$GETMNS';
 Resultado := Encabezado+Resultado;
 Result := resultado;
 End;
@@ -208,6 +212,7 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = '$PING' then ProcessPing(SlotLines[contador][0],contador,true)
       else if UpperCase(LineComando) = '$PONG' then ProcessPing(SlotLines[contador][0],contador,false)
       else if UpperCase(LineComando) = '$GETPENDING' then PTC_SendPending(contador)
+      else if UpperCase(LineComando) = '$GETMNS' then PTC_SendMNs(contador)
       else if UpperCase(LineComando) = '$NEWBL' then PTC_NewBlock(SlotLines[contador][0], contador)
       else if UpperCase(LineComando) = '$GETRESUMEN' then PTC_SendResumen(contador)
       else if UpperCase(LineComando) = '$LASTBLOCK' then PTC_SendBlocks(contador,SlotLines[contador][0])
@@ -336,7 +341,7 @@ End;
 Procedure ProcessPing(LineaDeTexto: string; Slot: integer; Responder:boolean);
 var
   PProtocol, PVersion, PConexiones, PTime, PLastBlock, PLastBlockHash, PSumHash, PPending : string;
-  PResumenHash, PConStatus, PListenPort : String;
+  PResumenHash, PConStatus, PListenPort, PMNsHash, PMNsCount : String;
 Begin
 PProtocol      := Parameter(LineaDeTexto,1);
 PVersion       := Parameter(LineaDeTexto,2);
@@ -349,6 +354,8 @@ PPending       := Parameter(LineaDeTexto,9);
 PResumenHash   := Parameter(LineaDeTexto,10);
 PConStatus     := Parameter(LineaDeTexto,11);
 PListenPort    := Parameter(LineaDeTexto,12);
+PMNsHash       := Parameter(LineaDeTexto,13);
+PMNsCount      := Parameter(LineaDeTexto,14);
 conexiones[slot].Autentic:=true;
 conexiones[slot].Connections:=StrToIntDef(PConexiones,1);
 conexiones[slot].Version:=PVersion;
@@ -362,6 +369,8 @@ conexiones[slot].lastping:=UTCTime;
 conexiones[slot].ResumenHash:=PResumenHash;
 conexiones[slot].ConexStatus:=StrToIntDef(PConStatus,0);
 conexiones[slot].ListeningPort:=StrToIntDef(PListenPort,-1);
+conexiones[slot].MNsHash:=PMNsHash;
+conexiones[slot].MNsCount:=StrToIntDef(PMNsCount,0);
 if responder then PTC_SendLine(slot,ProtocolLine(4));
 if responder then G_TotalPings := G_TotalPings+1;
 End;
@@ -379,7 +388,9 @@ result :=IntToStr(GetTotalConexiones())+' '+
          IntToStr(LEngth(PendingTXs))+' '+
          MyResumenHash+' '+
          IntToStr(MyConStatus)+' '+
-         IntToStr(port);
+         IntToStr(port)+' '+
+         copy(MyMNsHash,0,5)+' '+
+         IntToStr(MyMNsCount);
 End;
 
 // Envia las TXs pendientes al slot indicado
@@ -422,6 +433,31 @@ if Length(PendingTXs) > 0 then
    SetLength(CopyPendingTXs,0);
    end;
 End;
+
+Procedure PTC_SendMNs(Slot:int64);
+var
+  contador : integer;
+  Encab : string;
+  Textline : String;
+  TextOrder : String;
+  CopyMNsArray : Array of TMasternode;
+Begin
+Encab := GetPTCEcn;
+TextOrder := encab+'$REPORTNODE ';
+if Length(MNsArray) > 0 then
+   begin
+   EnterCriticalSection(CSMNsArray);
+   SetLength(CopyMNsArray,0);
+   CopyMNsArray := copy(MNsArray,0,length(MNsArray));
+   LeaveCriticalSection(CSMNsArray);
+   for contador := 0 to Length(CopyMNsArray)-1 do
+      begin
+      Textline := GetTextFromMN(CopyMNsArray[contador]);
+      PTC_SendLine(slot,TextOrder+TextLine);
+      end;
+   end;
+End;
+
 
 // Se recibe un mensaje con una solucion para el bloque
 Procedure PTC_Newblock(Texto:String;connectionNumber:Integer);
@@ -1047,14 +1083,11 @@ Procedure AddNodeReport(NodeInfo:TMasterNode);
 var
   counter : integer;
   NodeAdded : boolean =false;
+  ValidNode : Boolean = true;
 Begin
 EnterCriticalSection(CSMNsArray);
 setmilitime('AddNodeReport',1);
-if NodeAlreadyadded(NodeInfo) then
-   begin
-
-   end
-else
+if not NodeAlreadyadded(NodeInfo) then
    begin
    if length(MNsArray) > 0 then
       begin
@@ -1062,16 +1095,24 @@ else
          begin
          if MNsArray[counter].Ip = NodeInfo.Ip then
             begin
-            MNsArray[counter].Port := NodeInfo.Port;
-            MNsArray[counter].FundAddress := NodeInfo.FundAddress;
-            MNsArray[counter].SignAddress := NodeInfo.SignAddress;
-            MNsArray[counter].Block := NodeInfo.Block;
-            MNsArray[counter].BlockHash := NodeInfo.BlockHash;
-            MNsArray[counter].Time := NodeInfo.Time;
-            MNsArray[counter].PublicKey := NodeInfo.PublicKey;
-            MNsArray[counter].Signature := NodeInfo.Signature;
-            MNsArray[counter].ReportHash := NodeInfo.ReportHash;
-            NodeAdded := true;
+            if NodeInfo.Block < MNsArray[counter].Block then
+               begin // Report of a lower block from same IP
+               NodeAdded := true;
+               ValidNode := false;
+               end
+            else
+               begin
+               MNsArray[counter].Port := NodeInfo.Port;
+               MNsArray[counter].FundAddress := NodeInfo.FundAddress;
+               MNsArray[counter].SignAddress := NodeInfo.SignAddress;
+               MNsArray[counter].Block := NodeInfo.Block;
+               MNsArray[counter].BlockHash := NodeInfo.BlockHash;
+               MNsArray[counter].Time := NodeInfo.Time;
+               MNsArray[counter].PublicKey := NodeInfo.PublicKey;
+               MNsArray[counter].Signature := NodeInfo.Signature;
+               MNsArray[counter].ReportHash := NodeInfo.ReportHash;
+               NodeAdded := true;
+               end;
             end;
          end;
       end;
@@ -1096,11 +1137,11 @@ else
          end;
       if not NodeAdded then insert(nodeinfo,MNsArray,Length(MNsArray));
       end;
-   OutgoingMsjsAdd(ProtocolLine(onlyheaders)+'$REPORTNODE '+GetTextFromMN(nodeinfo));
+   if ( (form1.Server.Active) and (ValidNode) ) then
+      OutgoingMsjsAdd(ProtocolLine(onlyheaders)+'$REPORTNODE '+GetTextFromMN(nodeinfo));
    U_MNsGrid := true;
    end;
-setmilitime('AddNodeReport',2);
-LeaveCriticalSection(CSMNsArray);
+
 MyMNsHash := GetMNsHash();
 End;
 

@@ -947,6 +947,10 @@ msgstr ""
 msgid "Masternodes: (%d) %s"
 msgstr ""
 
+#: translation.rs0517
+msgid "(%d)  %d/%s"
+msgstr ""
+
 #: translation.rs1000
 msgid "Processing block %d (%d %%)"
 msgstr ""

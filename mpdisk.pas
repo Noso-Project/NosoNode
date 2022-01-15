@@ -80,6 +80,7 @@ function GetMyLastUpdatedBlock():int64;
 
 function SetCustomAlias(Address,Addalias:String;block:integer):Boolean;
 procedure UnzipBlockFile(filename:String;delfile:boolean);
+Procedure UnZipUpdateFromRepo();
 Procedure CreateResumen();
 Procedure BuildHeaderFile(untilblock:integer);
 Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
@@ -484,7 +485,8 @@ Append(archivo);
 try
    while PoolPaysLines.Count>0 do
       begin
-      Writeln(archivo, PoolPaysLines[0]);
+      if StrToIntDef(parameter(PoolPaysLines[0],2),0)>0 then
+         Writeln(archivo, PoolPaysLines[0]);
       EnterCriticalSection(CSPoolPay);
       PoolPaysLines.Delete(0);
       LeaveCriticalSection(CSPoolPay);
@@ -1300,7 +1302,7 @@ End;
 procedure UnzipBlockFile(filename:String;delFile:boolean);
 var
   UnZipper: TUnZipper;
-begin
+Begin
    try
    UnZipper := TUnZipper.Create;
       try
@@ -1318,6 +1320,30 @@ begin
       end;
    end;
 end;
+
+Procedure UnZipUpdateFromRepo();
+var
+  UnZipper: TUnZipper;
+Begin
+TRY
+UnZipper := TUnZipper.Create;
+   TRY
+   UnZipper.FileName := 'NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator+'update.zip';
+   UnZipper.OutputPath := 'NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator;
+   UnZipper.Examine;
+   UnZipper.UnZipAllFiles;
+   OutText('File unzipped',false,1)
+   FINALLY
+   UnZipper.Free;
+   END{Try};
+//Trydeletefile(filename);
+EXCEPT on E:Exception do
+   begin
+   OutText ('Error unzipping update file',false,1);
+   OutText (E.Message,false,1);
+   end;
+END{Try};
+End;
 
 // Creates header file
 Procedure CreateResumen();

@@ -960,6 +960,10 @@ msgstr "余额"
 msgid "Masternodes: (%d) %s"
 msgstr ""
 
+#: translation.rs0517
+msgid "(%d)  %d/%s"
+msgstr ""
+
 #: translation.rs1000
 msgid "Processing block %d (%d %%)"
 msgstr "处理区块 %d (%d %%)"

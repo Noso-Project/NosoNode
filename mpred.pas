@@ -33,6 +33,8 @@ function UpdateNetworkLastBlockHash():NetworkData;
 function UpdateNetworkSumario():NetWorkData;
 function UpdateNetworkPendingTrxs():NetworkData;
 function UpdateNetworkResumenHash():NetworkData;
+function UpdateNetworkMNsHash():NetworkData;
+function UpdateNetworkMNsCount():NetworkData;
 Procedure UpdateNetworkData();
 Procedure UpdateMyData();
 Procedure CheckIncomingUpdateFile(version,hash, clavepublica, firma, namefile: string);
@@ -45,7 +47,8 @@ function GetOrderDetails(orderid:string):orderdata;
 Function GetNodeStatusString():string;
 Function IsAValidNode(IP:String):boolean;
 Function GetLastRelease():String;
-Function GetLastVerZipFile(filename:string):boolean;
+Function GetOS():string;
+Function GetLastVerZipFile(version,LocalOS:string):boolean;
 
 implementation
 
@@ -607,12 +610,21 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
       begin
       setlength(PendingTxs,0);
       end;
-   if ((StrToIntDef(NetPendingTrxs.Value,0)>length(PendingTXs)) and (LastTimePendingRequested+5<UTCTime.ToInt64)) then
+   if ((StrToIntDef(NetPendingTrxs.Value,0)>length(PendingTXs)) and (LastTimePendingRequested+5<UTCTime.ToInt64)
+      and (not CriptoThreadRunning) ) then
       begin
       PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));  // Get pending
       LastTimePendingRequested := UTCTime.ToInt64;
       ConsoleLinesAdd('Pending requested');
       end;
+   // Get MNS
+   if ((StrToIntDef(NetMNsCount.Value,0)>MyMNsCount) and (UTCTime.ToInt64>LastTimeMNsRequested+5) and (Length(WaitingMNs)=0)) then
+      begin
+      PTC_SendLine(NetMNsHash.Slot,ProtocolLine(11));  // Get MNs
+      LastTimeMNsRequested := UTCTime.ToInt64;
+      ConsoleLinesAdd('Master nodes requested');
+      end;
+
    OutgoingMsjsAdd(ProtocolLine(ping));
    Form1.imagenes.GetBitmap(0,form1.ConnectButton.Glyph);
    end;
@@ -631,6 +643,12 @@ if MyConStatus = 3 then
       LastTimePendingRequested := UTCTime.ToInt64;
       ConsoleLinesAdd('Pending requested');
       SetCurrentJob('RequestingPendings',false);
+      end;
+   if ((StrToIntDef(NetMNsCount.Value,0)>MyMNsCount) and (UTCTime.ToInt64>LastTimeMNsRequested+5) and (Length(WaitingMNs)=0)) then
+      begin
+      PTC_SendLine(NetMNsHash.Slot,ProtocolLine(11));  // Get MNs
+      LastTimeMNsRequested := UTCTime.ToInt64;
+      ConsoleLinesAdd('Master nodes requested');
       end;
    if ( (IntToStr(MyLastBlock) <> NetLastBlock.Value) or (MySumarioHash<>NetSumarioHash.Value) or
       (MyResumenhash <> NetResumenHash.Value) ) then // desincronizado
@@ -807,6 +825,40 @@ if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
 else result := Default(NetworkData);
 End;
 
+function UpdateNetworkMNsHash():NetworkData;
+var
+  contador : integer = 1;
+Begin
+SetLength(ArrayConsenso,0);
+ConsensoValues := 0;
+for contador := 1 to MaxConecciones do
+   Begin
+   if ( (conexiones[contador].tipo<> '') and (IsDefaultNode(conexiones[contador].ip)) ) then
+      begin
+      UpdateConsenso(conexiones[contador].MNsHash, contador);
+      end;
+   end;
+if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
+else result := Default(NetworkData);
+End;
+
+function UpdateNetworkMNsCount():NetworkData;
+var
+  contador : integer = 1;
+Begin
+SetLength(ArrayConsenso,0);
+ConsensoValues := 0;
+for contador := 1 to MaxConecciones do
+   Begin
+   if ( (conexiones[contador].tipo<> '') and (IsDefaultNode(conexiones[contador].ip)) ) then
+      begin
+      UpdateConsenso(IntToStr(conexiones[contador].MNsCount), contador);
+      end;
+   end;
+if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
+else result := Default(NetworkData);
+End;
+
 Procedure UpdateNetworkData();
 Begin
 SetCurrentJob('UpdateNetworkData',true);
@@ -815,7 +867,8 @@ NetLastBlockHash := UpdateNetworkLastBlockHash;
 NetSumarioHash := UpdateNetworkSumario; // Busca el hash del sumario por consenso
 NetPendingTrxs := UpdateNetworkPendingTrxs;
 NetResumenHash := UpdateNetworkResumenHash;
-MyMNsHash := GetMNsHash();
+NetMNsHash := UpdateNetworkMNsHash;
+NetMNsCount := UpdateNetworkMNsCOunt;
 U_DataPanel := true;
 SetCurrentJob('UpdateNetworkData',false);
 // Si lastblock y sumario no estan actualizados solicitarlos
@@ -1067,10 +1120,10 @@ End;
 
 Function GetNodeStatusString():string;
 Begin
-//NODESTATUS 1{TotalConections} 2{MyLastBlock} 3{Pendings} 4{Delta} 5{headers} 6{version} 7{UTCTime}
+//NODESTATUS 1{Peers} 2{LastBlock} 3{Pendings} 4{Delta} 5{headers} 6{version} 7{UTCTime} 8{MNsHash} 9{MNscount}
 result := IntToStr(GetTotalConexiones)+' '+IntToStr(MyLastBlock)+' '+IntToStr(Length(PendingTXs))+' '+
           IntToStr(UTCTime.ToInt64-EngineLastUpdate)+' '+copy(myResumenHash,0,5)+' '+
-          ProgramVersion+SubVersion+' '+UTCTime+' '+copy(MyMnsHash,0,5);
+          ProgramVersion+SubVersion+' '+UTCTime+' '+copy(MyMnsHash,0,5)+' '+IntTOStr(MyMNsCount);
 End;
 
 Function IsAValidNode(IP:String):boolean;
@@ -1099,21 +1152,50 @@ Conector.Free;
 result := readedLine;
 End;
 
-Function GetLastVerZipFile(filename:string):boolean;
+// Retrieves the OS for download the lastest version
+Function GetOS():string;
+
+  Function Is32Bit: Boolean;
+  Begin
+  Result:= SizeOf(Pointer) <= 4;
+  End;
+
+Begin
+{$IFDEF Linux}
+result := 'Linux';
+{$ENDIF}
+{$IFDEF WINDOWS}
+result := 'Windows';
+{$ENDIF}
+if Is32Bit then result := result+'32'
+else result := result+'64';
+End;
+
+Function GetLastVerZipFile(version,LocalOS:string):boolean;
 var
   MS: TMemoryStream;
   Int_SumarySize : int64;
   IdSSLIOHandler: TIdSSLIOHandlerSocketOpenSSL;
-
+  DownLink : String = '';
 Begin
+result := false;
+if localOS = 'Windows32' then
+   DownLink := 'https://github.com/Noso-Project/NosoWallet/releases/download/v'+version+'/noso-v'+version+'-i386-win32.zip';
+if localOS = 'Windows64' then
+   DownLink := 'https://github.com/Noso-Project/NosoWallet/releases/download/v'+version+'/noso-v'+version+'-x86_64-win64.zip';
+if localOS = 'Linux64' then
+   DownLink := 'https://github.com/Noso-Project/NosoWallet/releases/download/v'+version+'/noso-v'+'-x86_64-linux.tgz';
 IdSSLIOHandler:= TIdSSLIOHandlerSocketOpenSSL.Create;
+IdSSLIOHandler.SSLOptions.SSLVersions := [sslvTLSv1,sslvTLSv1_1,sslvTLSv1_2];
 MS := TMemoryStream.Create;
 TRY
    TRY
    Form1.IdHTTPUpdate.HandleRedirects:=true;
    Form1.IdHTTPUpdate.IOHandler:=IdSSLIOHandler;
-   Form1.IdHTTPUpdate.get('https://github.com/Noso-Project/NosoWallet/releases/download/v0.2.1La3/noso-v0.2.1La3-i386-win32.zip', MS);
-   MS.SaveToFile(UpdatesDirectory+'noso-v0.2.1La3-i386-win32.zip');
+   Form1.IdHTTPUpdate.get('https://github.com/Noso-Project/NosoWallet/releases/download/v0.2.1La5/noso-v0.2.1La5-i386-win32.zip',MS);
+   //Form1.IdHTTPUpdate.get(DownLink, MS);
+   MS.SaveToFile('NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator+'update.zip');
+   result := true;
    EXCEPT ON E:Exception do
       begin
       ConsoleLines.Add('Error downloading last release: '+E.Message);

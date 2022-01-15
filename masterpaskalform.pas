@@ -112,6 +112,8 @@ type
      ConexStatus : integer;
      IsBusy : Boolean;
      Thread : TThreadClientRead;
+     MNsHash : string[5];
+     MNsCount : Integer;
      end;
 
   WalletData = Packed Record
@@ -686,7 +688,7 @@ CONST
   B36Alphabet : string = '0123456789abcdefghijklmnopqrstuvwxyz';
   ReservedWords : string = 'NULL,DELADDR';
   ValidProtocolCommands : string = '$PING$PONG$GETPENDING$NEWBL$GETRESUMEN$LASTBLOCK'+
-                                   '$CUSTOMORDERADMINMSGNETREQ$REPORTNODE';
+                                   '$CUSTOMORDERADMINMSGNETREQ$REPORTNODE$GETMNS';
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS POOLHASHRATE';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
   DefaultNodes : String = 'DefNodes '+
@@ -698,14 +700,14 @@ CONST
                             '109.230.238.240 '+
                             '23.94.21.83';
   ProgramVersion = '0.2.1';
-  SubVersion = 'La5';
+  SubVersion = 'La7e';
   OficialRelease = true;
   BuildDate = 'January 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   HasheableChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
   DefaultServerPort = 8080;
-  MaxConecciones  = 50;
+  MaxConecciones  = 55;
   Protocolo = 1;
   Miner_Steps = 10;
   Pool_Max_Members = 1000;
@@ -921,7 +923,9 @@ var
   NetResumenHash : NetworkData;
     LastTimeRequestResumen : int64 = 0;
     LastTimePendingRequested : int64 = 0;
-
+  NetMNsHash     : NetworkData;
+  NetMNsCount    : NetworkData;
+    LastTimeMNsRequested   : int64 = 0;
   // Variables asociadas a mi conexion
   MyConStatus :  integer = 0;
   STATUS_Connected : boolean = false;
@@ -1170,11 +1174,12 @@ While not terminated do
    begin
    if length(WaitingMNs) > 0 then
       begin
-      Node := WaitingMNs[0];
       EnterCriticalSection(CSWaitingMNs);
+      Node := WaitingMNs[0];
       Delete(WaitingMNs,0,1);
       LeaveCriticalSection(CSWaitingMNs);
-      if NodeVerified(node) then AddNodeReport(Node);
+      if not NodeAlreadyAdded(node) then
+         if NodeVerified(node) then AddNodeReport(Node);
       end;
    Sleep(1);
    end;
@@ -1386,19 +1391,22 @@ OutText(rs0071,false,1); // Checking last release available...
 LastRelease := GetLastRelease;
 if lastrelease <> '' then // Data retrieved
    begin
-   if Parameter(lastrelease,0)+Parameter(lastrelease,1) = ProgramVersion+Subversion then
+   if Parameter(lastrelease,0) = ProgramVersion+Subversion then
       begin
       gridinicio.RowCount:=gridinicio.RowCount-1;
       OutText(rs0073,false,1);  //✓ Running last release version
       end
-   else if Parameter(lastrelease,0)+Parameter(lastrelease,1) > ProgramVersion+Subversion then
+   else if Parameter(lastrelease,0) > ProgramVersion+Subversion then
       begin // new version available
       gridinicio.RowCount:=gridinicio.RowCount-1;
       OutText(rs0074,false,1); //✗ New version available on project repo
       if WO_AutoUpdate then
          begin
-         GetLastVerZipFile('');
-         OutText('Last release downloaded',false,1);
+         if GetLastVerZipFile(Parameter(lastrelease,0),GetOS) then
+            begin
+            OutText('Last release downloaded',false,1);
+            UnZipUpdateFromRepo();
+            end;
          end;
       end
    else
@@ -3830,6 +3838,7 @@ end;
 procedure TForm1.IdHTTPUpdateWorkBegin(ASender: TObject; AWorkMode: TWorkMode;
   AWorkCountMax: Int64);
 begin
+OutText('Progress: 0 %',false,1);
 UpdateFileSize := AWorkCountMax;
 end;
 

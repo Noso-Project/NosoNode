@@ -1,3 +1,28 @@
+Version 0.2.1La6
+
+- Node verify first if a report already exists to better performance.
+- MNs hash added to ping/pong report.
+- MNs hash added to slots list.
+- MNs count added to ping/pong report.
+- MNs count added to slot list.
+- NetworkMNsHash consensus calculated.
+- NetworkMNsCount consensus calculated.
+- Fixed Pending request only when CriptoThreadRunning is false.
+- Slots grid updated each second instead each cycle.
+- Increased node max peers to 55.
+- Master nodes data includedd in NodeStatus.
+- Implemented double tracking system to pool pays.
+- Masternodes info show on data panel.
+- Masternodes download at connect.
+- Implemented update from repo.
+- Pool miner stats updates each second.
+- MNs array cleared after block construction.
+- History command improved.
+
+Version 0.2.1La5
+
+- Official release
+
 Version 0.2.1La4
 
 - Added filter so nodes will not try to auto connect.

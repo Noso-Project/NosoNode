@@ -477,6 +477,7 @@ if not IsValidIP(ThisNode.Ip) then FilterOn:= true;
 if ( (ThisNode.FundAddress='') or (ThisNode.Ip='') or (ThisNode.PublicKey='') or (ThisNode.SignAddress='') or
    (Thisnode.BlockHash='') or (thisnode.ReportHash='') or (thisnode.Signature='') or (thisnode.Time='')) then FilterOn:= true;
 if GetAddressFromPublicKey(thisnode.PublicKey) <> thisnode.SignAddress then FilterOn:= true;
+If Thisnode.Block <> MyLastBlock then FilterOn:= true;
 if FilterOn then
    begin
    setmilitime('NodeVerified',2);

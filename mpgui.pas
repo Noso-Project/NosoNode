@@ -67,6 +67,7 @@ var
 
   FormSlots : TFormSlots;
     GridMSlots : TStringgrid;
+    SlotsLastUpdate : int64 = 0;
   FormPool : TformPool;
     LabelPoolData : TLabel;
     GridPoolMembers : TStringgrid;
@@ -84,6 +85,8 @@ var
     PoolConexPopUP : TPopupMenu;
 
     IpToBan : String = '';
+
+  LastUpdatePoolTab : int64 = 0;
 
 implementation
 
@@ -152,7 +155,7 @@ Procedure CreateFormSlots();
 Begin
 FormSlots := TFormSlots.Createnew(form1);
 FormSlots.caption := coinname+' Slots Monitor';
-FormSlots.SetBounds(0, 0, 570, 410);
+FormSlots.SetBounds(0, 0, 635, 410);
 FormSlots.BorderStyle := bssingle;
 //FormSlots.Position:=poOwnerFormCenter;
 FormSlots.Top:=1;FormSlots.Left:=1;
@@ -161,9 +164,9 @@ FormSlots.ShowInTaskBar:=sTAlways;
 
 GridMSlots := TStringGrid.Create(FormSlots);GridMSlots.Parent:=FormSlots;
 GridMSlots.Font.Name:='consolas'; GridMSlots.Font.Size:=8;
-GridMSlots.Left:=1;GridMSlots.Top:=1;GridMSlots.Height:=408;GridMSlots.width:=564;
+GridMSlots.Left:=1;GridMSlots.Top:=1;GridMSlots.Height:=408;GridMSlots.width:=629;
 GridMSlots.FixedCols:=0;GridMSlots.FixedRows:=1;
-GridMSlots.rowcount := MaxConecciones+1;GridMSlots.ColCount:=15;
+GridMSlots.rowcount := MaxConecciones+1;GridMSlots.ColCount:=17;
 GridMSlots.ScrollBars:=ssVertical;
 GridMSlots.FocusRectVisible:=false;
 GridMSlots.Options:= GridMSlots.Options-[goRangeSelect];
@@ -171,13 +174,15 @@ GridMSlots.ColWidths[0]:= 20;GridMSlots.ColWidths[1]:= 80;GridMSlots.ColWidths[2
 GridMSlots.ColWidths[3]:= 20;GridMSlots.ColWidths[4]:= 48;GridMSlots.ColWidths[5]:= 40;
 GridMSlots.ColWidths[6]:= 40;GridMSlots.ColWidths[7]:= 25;GridMSlots.ColWidths[8]:= 25;
 GridMSlots.ColWidths[9]:= 70;GridMSlots.ColWidths[10]:= 30;GridMSlots.ColWidths[11]:= 25;
-GridMSlots.ColWidths[12]:= 40;GridMSlots.ColWidths[13]:= 25;;GridMSlots.ColWidths[14]:= 29;
+GridMSlots.ColWidths[12]:= 40;GridMSlots.ColWidths[13]:= 25;GridMSlots.ColWidths[14]:= 29;
+GridMSlots.ColWidths[15]:= 40;GridMSlots.ColWidths[16]:= 25;
 GridMSlots.Enabled := true;
 GridMSlots.Cells[0,0]:='N';GridMSlots.Cells[1,0]:='IP';GridMSlots.Cells[2,0]:='T';
 GridMSlots.Cells[3,0]:='Cx';GridMSlots.Cells[4,0]:='LBl';GridMSlots.Cells[5,0]:='LBlH';
 GridMSlots.Cells[6,0]:='SumH';GridMSlots.Cells[7,0]:='Pen';GridMSlots.Cells[8,0]:='Pro';
 GridMSlots.Cells[9,0]:='Ver';GridMSlots.Cells[10,0]:='LiP';GridMSlots.Cells[11,0]:='Off';
 GridMSlots.Cells[12,0]:='HeaH';GridMSlots.Cells[13,0]:='Sta';GridMSlots.Cells[14,0]:='Ping';
+GridMSlots.Cells[15,0]:='MNs';GridMSlots.Cells[16,0]:='#';
 GridMSlots.GridLineWidth := 1;
 GridMSlots.OnPrepareCanvas:= @FormSlots.GridMSlotsPrepareCanvas;
 End;
@@ -185,25 +190,33 @@ End;
 Procedure UpdateSlotsGrid();
 var
   contador : integer;
+  CurrentUTC : int64;
 Begin
 setmilitime('UpdateSlotsGrid',1);
-for contador := 1 to MaxConecciones do
+CurrentUTC := UTCTime.ToInt64;
+if CurrentUTC>SlotsLastUpdate then
    begin
-   GridMSlots.Cells[0,contador]:= inttostr(contador);
-   GridMSlots.Cells[1,contador]:= Conexiones[contador].ip;
-   GridMSlots.Cells[2,contador]:= Conexiones[contador].tipo;
-   GridMSlots.Cells[3,contador]:= IntToStr(Conexiones[contador].Connections);
-   GridMSlots.Cells[4,contador]:= Conexiones[contador].Lastblock;
-   GridMSlots.Cells[5,contador]:= copy(Conexiones[contador].LastblockHash,0,5);
-   GridMSlots.Cells[6,contador]:= copy(Conexiones[contador].SumarioHash,0,5);
-   GridMSlots.Cells[7,contador]:= IntToStr(Conexiones[contador].Pending);
-   GridMSlots.Cells[8,contador]:= IntToStr(Conexiones[contador].Protocol);
-   GridMSlots.Cells[9,contador]:= Conexiones[contador].Version;
-   GridMSlots.Cells[10,contador]:= IntToStr(Conexiones[contador].ListeningPort);
-   GridMSlots.Cells[11,contador]:= IntToStr(Conexiones[contador].offset);
-   GridMSlots.Cells[12,contador]:= copy(Conexiones[contador].ResumenHash,0,5);
-   GridMSlots.Cells[13,contador]:= IntToStr(Conexiones[contador].ConexStatus);
-   GridMSlots.Cells[14,contador]:= IntToStr(UTCTime.ToInt64-StrToInt64Def(Conexiones[contador].lastping,UTCTime.ToInt64));
+   for contador := 1 to MaxConecciones do
+      begin
+      GridMSlots.Cells[0,contador]:= inttostr(contador);
+      GridMSlots.Cells[1,contador]:= Conexiones[contador].ip;
+      GridMSlots.Cells[2,contador]:= Conexiones[contador].tipo;
+      GridMSlots.Cells[3,contador]:= IntToStr(Conexiones[contador].Connections);
+      GridMSlots.Cells[4,contador]:= Conexiones[contador].Lastblock;
+      GridMSlots.Cells[5,contador]:= copy(Conexiones[contador].LastblockHash,0,5);
+      GridMSlots.Cells[6,contador]:= copy(Conexiones[contador].SumarioHash,0,5);
+      GridMSlots.Cells[7,contador]:= IntToStr(Conexiones[contador].Pending);
+      GridMSlots.Cells[8,contador]:= IntToStr(Conexiones[contador].Protocol);
+      GridMSlots.Cells[9,contador]:= Conexiones[contador].Version;
+      GridMSlots.Cells[10,contador]:= IntToStr(Conexiones[contador].ListeningPort);
+      GridMSlots.Cells[11,contador]:= IntToStr(Conexiones[contador].offset);
+      GridMSlots.Cells[12,contador]:= copy(Conexiones[contador].ResumenHash,0,5);
+      GridMSlots.Cells[13,contador]:= IntToStr(Conexiones[contador].ConexStatus);
+      GridMSlots.Cells[14,contador]:= IntToStr(UTCTime.ToInt64-StrToInt64Def(Conexiones[contador].lastping,UTCTime.ToInt64));
+      GridMSlots.Cells[15,contador]:= Conexiones[contador].MNsHash;
+      GridMSlots.Cells[16,contador]:= IntToStr(Conexiones[contador].MNsCount);
+      end;
+   SlotsLastUpdate := CurrentUTC;
    end;
 setmilitime('UpdateSlotsGrid',2);
 End;
@@ -420,7 +433,8 @@ form1.DataPanel.Cells[2,2]:=LangLine(105);  //'Target'
 form1.DataPanel.Cells[2,3]:=LangLine(106);  //'Reward'
 form1.DataPanel.Cells[2,4]:=LangLine(107);  //'Block Time'
 form1.DataPanel.Cells[2,5]:='PoolBalance';  //'Pool Balance'
-form1.DataPanel.Cells[2,6]:='Net Time';     //'mainnet Time'
+form1.DataPanel.Cells[2,6]:='Masternodes';     //'mainnet Time'
+form1.DataPanel.Cells[2,7]:='MNs #';     //'Masternodes'
 
 form1.GridMyTxs.Cells[0,0]:=LangLine(108);    //'Block'
 form1.GridMyTxs.Cells[1,0]:=LangLine(109);    //'Time'
@@ -501,7 +515,7 @@ var
   contador : integer = 0;
 Begin
 // UPDATE POOL MINERS GRID
-if form1.PCPool.ActivePage = Form1.TabPoolMiners then
+if ( (form1.PCPool.ActivePage=Form1.TabPoolMiners) and (LastUpdatePoolTab<>UTCTime.ToInt64) ) then
    begin
    //EnterCriticalSection(CSPoolMembers);
    if length(ArrayPoolMembers) > 0 then
@@ -535,18 +549,19 @@ if form1.PCPool.ActivePage = Form1.TabPoolMiners then
          end;
          end;
       end;
+   LastUpdatePoolTab:=UTCTime.ToInt64;
    //LeaveCriticalSection(CSPoolMembers);
    end;
 
 // Update poolstats grid
-if form1.PCPool.ActivePage = Form1.TabPoolStats then
+if form1.PCPool.ActivePage=Form1.TabPoolStats then
    begin
    if form1.PoolServer.Active then
       begin
       if form1.PoolPanelBlink.Visible then form1.PoolPanelBlink.Visible := false
       else form1.PoolPanelBlink.Visible := true;
       end;
-      try
+      TRY
       Form1.SG_PoolStats.Cells[1,0] := booltostr(form1.PoolServer.Active,true);
       Form1.SG_PoolStats.Cells[1,1] := IntToStr(PoolMiner.Block);
       Form1.SG_PoolStats.Cells[1,2] := IntToStr(poolminer.Dificult);
@@ -560,11 +575,11 @@ if form1.PCPool.ActivePage = Form1.TabPoolStats then
       Form1.SG_PoolStats.Cells[1,10] := '('+IntToStr(Lastblockdata.TimeLast20)+') '+TimeSinceStamp(LastblockData.TimeEnd);
       Form1.SG_PoolStats.Cells[1,11] := IntToStr(Length(Miner_PoolSharedStep));
       form1.MemoPool.Text:=PoolMiner.Solucion;
-      Except on E:Exception do
+      EXCEPT on E:Exception do
          begin
          ToExclog('Error showing pool stats data: '+E.Message);
          end;
-      end;
+      END{Try};
    end;
 
 //Update Monitor Grid
@@ -659,9 +674,11 @@ else form1.DataPanel.Cells[3,5]:='No Pool';
 // verificar si los clientes siguen conectados
 setmilitime('UpdateGUITime',1);
 form1.DataPanel.Cells[1,2]:=IntToStr(GetTotalConexiones)+' ('+IntToStr(MyConStatus)+') ['+IntToStr(G_TotalPings)+']';
-form1.DataPanel.Cells[1,7]:= IntToStr(Length(PendingTXs))+'/'+NetPendingTrxs.Value+'('+IntToStr(NetPendingTrxs.Porcentaje)+')';
+form1.DataPanel.Cells[1,7]:= format(rs0517,[length(CriptoOpsTipo),Length(PendingTXs),NetPendingTrxs.Value]);
+//form1.DataPanel.Cells[1,7]:= IntToStr(Length(PendingTXs))+'/'+NetPendingTrxs.Value+'('+IntToStr(NetPendingTrxs.Porcentaje)+')';
 form1.DataPanel.Cells[1,0]:= Int2Curr(GetWalletBalance)+' '+CoinSimbol;
-form1.DataPanel.Cells[3,6]:= TimestampToDate(UTCTime);
+form1.DataPanel.Cells[3,6]:= Copy(MyMNsHash,0,5)+'/'+NetMNsHash.Value;
+form1.DataPanel.Cells[3,7]:= format(rs0517,[length(WaitingMNs),MyMNsCount,NetMNsCount.Value]);
 setmilitime('UpdateGUITime',2);
 
 if U_DirPanel then
