@@ -630,7 +630,7 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
    end;
 if MyConStatus = 3 then
    begin
-   if ((RunExpelPoolInactives) and (not BuildingBlock)) then ExpelPoolInactives;
+   //if ((RunExpelPoolInactives) and (not BuildingBlock)) then ExpelPoolInactives;
    SetCurrentJob('MyConStatus3',true);
    if StrToIntDef(NetPendingTrxs.Value,0)<length(PendingTXs) then
       begin

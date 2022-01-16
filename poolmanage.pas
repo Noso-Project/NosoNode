@@ -703,7 +703,7 @@ if length(arraypoolmembers)>0 then
             AddPoolPay(IntToStr(MyLastBlock+1)+' '+arraypoolmembers[counter].Direccion+' '+
                IntToStr(GetMaximunToSend(MemberBalance))+' EXPELLED');
             TotalPaid := totalpaid + MemberBalance;
-            expelled +=1;
+            if arraypoolmembers[counter].Deuda>0 then expelled +=1;
             end;
          end;
       // include auto pool payments
@@ -715,20 +715,21 @@ if length(arraypoolmembers)>0 then
             TotalPaid := TotalPaid + MemberBalance;
             AddPoolPay(IntToStr(MyLastBlock+1)+' '+arraypoolmembers[counter].Direccion+' '+
                IntToStr(GetMaximunToSend(MemberBalance))+' PAID');
+            if arraypoolmembers[counter].Deuda>0 then PaidMembers +=1;
             ClearPoolUserBalance(Mineraddress);
-            PaidMembers +=1;
             end;
          end;
       end;
    end;
-Leavecriticalsection(CSPoolMembers);
 
+Leavecriticalsection(CSPoolMembers);
 ConsoleLinesAdd('Pool expels  : '+intToStr(expelled));
 ConsoleLinesAdd('Pool Payments: '+intToStr(PaidMembers));
 ConsoleLinesAdd('Total paid   : '+int2curr(Totalpaid));
 
 End;
 
+//STATUS 1{PoolHashRate} 2{PoolFee} 3{PoolShare} 4{blockdiff} 5{Minercount} 6{arrayofminers address:balance:blockstillopay:hashpower}
 function PoolStatusString():String;
 var
   resString : string = '';

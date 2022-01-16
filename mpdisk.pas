@@ -87,7 +87,7 @@ Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
 Procedure DelBlChHeadLast();
 
 function NewMyTrx(aParam:Pointer):PtrInt;
-Procedure CrearBatFileForRestart();
+Procedure CrearBatFileForRestart(IncludeUpdate:boolean = false);
 Procedure RestartNoso();
 Procedure NewDoctor();
 Procedure RunDiagnostico(linea:string);
@@ -1852,26 +1852,30 @@ NewMyTrx := -1;
 End;
 
 // Creates a bat file for restart
-Procedure CrearBatFileForRestart();
+Procedure CrearBatFileForRestart(IncludeUpdate:boolean = false);
 var
   archivo : textfile;
 Begin
-try
-  Assignfile(archivo, 'nosolauncher.bat');
-  rewrite(archivo);
-  writeln(archivo,'echo Restarting Noso...');
-  writeln(archivo,'TIMEOUT 5');
-
-  writeln(archivo,'tasklist /FI "IMAGENAME eq '+AppFileName+'" 2>NUL | find /I /N "'+AppFileName+
-    '">NUL');
-  writeln(archivo,'if "%ERRORLEVEL%"=="0" taskkill /F /im '+AppFileName);
-
-  writeln(archivo,'start '+AppFileName);
-  Closefile(archivo);
-  Except on E:Exception do
-    tolog ('Error creating restart file');
-  end;
-end;
+TRY
+{$IFDEF WINDOWS}
+Assignfile(archivo, 'nosolauncher.bat');
+rewrite(archivo);
+writeln(archivo,'echo Restarting Noso...');
+writeln(archivo,'TIMEOUT 5');
+writeln(archivo,'tasklist /FI "IMAGENAME eq '+AppFileName+'" 2>NUL | find /I /N "'+AppFileName+'">NUL');
+writeln(archivo,'if "%ERRORLEVEL%"=="0" taskkill /F /im '+AppFileName);
+{if IncludeUpdate then
+   begin
+   delete noso.exe
+   copy /NOSODATA/UPDATE/Noso.exe /
+   end;}
+writeln(archivo,'start '+AppFileName);
+Closefile(archivo);
+EXCEPT on E:Exception do
+   tolog ('Error creating restart file: '+E.Message);
+END;
+{$ENDIF}
+End;
 
 // Prepares for restart
 Procedure RestartNoso();

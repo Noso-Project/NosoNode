@@ -327,12 +327,16 @@ End;
 Procedure AddCriptoOp(tipo:integer;proceso, resultado:string);
 Begin
 EnterCriticalSection(CSCriptoThread);
+TRY
 SetLength(CriptoOpsTipo,length(CriptoOpsTipo)+1);
 CriptoOpsTipo[length(CriptoOpsTipo)-1] := tipo;
 SetLength(CriptoOpsOper,length(CriptoOpsOper)+1);
 CriptoOpsOper[length(CriptoOpsOper)-1] := proceso;
 SetLength(CriptoOpsResu,length(CriptoOpsResu)+1);
 CriptoOpsResu[length(CriptoOpsResu)-1] := resultado;
+EXCEPT ON E:Exception do
+   ToExcLog('Error adding Operation to crypto thread:'+proceso);
+END{Try};
 LeaveCriticalSection(CSCriptoThread);
 End;
 
@@ -350,9 +354,18 @@ End;
 Procedure DeleteCriptoOp();
 Begin
 EnterCriticalSection(CSCriptoThread);
-Delete(CriptoOpsTipo,0,1);
-Delete(CriptoOpsOper,0,1);
-Delete(CriptoOpsResu,0,1);
+if Length(CriptoOpsTipo) > 0 then
+   begin
+   TRY
+   Delete(CriptoOpsTipo,0,1);
+   Delete(CriptoOpsOper,0,1);
+   Delete(CriptoOpsResu,0,1);
+   EXCEPT ON E:Exception do
+      begin
+      ToExcLog('Error remoing Operation from crypto thread:'+E.Message);
+      end;
+   END{Try};
+   end;
 LeaveCriticalSection(CSCriptoThread);
 End;
 

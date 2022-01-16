@@ -210,12 +210,12 @@ if not errored then
    MyResumenHash := HashMD5File(ResumenFilename);
    ResetMinerInfo();
    ResetPoolMiningInfo();
-   if ((Miner_OwnsAPool) and (PoolExpelBlocks>0)) then RunExpelPoolInactives:=true;
    if minero = PoolInfo.Direccion then
       begin
       ConsoleLinesAdd('Your pool solved the block '+inttoStr(numero));
       DistribuirEnPool(GetBlockReward(Numero)+MinerFee-PosTotalReward);
       end;
+   if ((Miner_OwnsAPool) and (PoolExpelBlocks>0)) then ExpelPoolInactives;
    EnterCriticalSection(CSPoolMembers);
    setmilitime('BACKUPPoolMembers',1);
    copyfile (PoolMembersFilename,PoolMembersFilename+'.bak');

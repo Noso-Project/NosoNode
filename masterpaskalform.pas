@@ -36,6 +36,13 @@ type
       Constructor Create(CreateSuspended : boolean);
     end;
 
+  TCryptoThread = class(TThread)
+    protected
+      procedure Execute; override;
+    public
+      Constructor Create(CreateSuspended : boolean);
+    end;
+
   Options = Packed Record
      language: integer;
      Port : integer;
@@ -700,7 +707,7 @@ CONST
                             '109.230.238.240 '+
                             '23.94.21.83';
   ProgramVersion = '0.2.1';
-  SubVersion = 'La7e';
+  SubVersion = 'La7f';
   OficialRelease = true;
   BuildDate = 'January 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -782,6 +789,7 @@ var
     SendingMsgs : boolean = false;
 
   ThreadMNs : TUpdateMNs;
+  CryptoThread : TCryptoThread;
 
   MaxOutgoingConnections : integer = 3;
   FirstShow : boolean = false;
@@ -1165,6 +1173,11 @@ begin
   inherited Create(CreateSuspended);
 end;
 
+constructor TCryptoThread.Create(CreateSuspended : boolean);
+begin
+  inherited Create(CreateSuspended);
+end;
+
 // Process the Masternodes reports
 procedure TUpdateMNs.Execute;
 var
@@ -1181,6 +1194,15 @@ While not terminated do
       if not NodeAlreadyAdded(node) then
          if NodeVerified(node) then AddNodeReport(Node);
       end;
+   Sleep(1);
+   end;
+End;
+
+procedure TCryptoThread.Execute;
+Begin
+While not terminated do
+   begin
+
    Sleep(1);
    end;
 End;
@@ -1498,6 +1520,9 @@ if WO_CloseStart then
       ThreadMNs := TUpdateMNs.Create(true);
       ThreadMNs.FreeOnTerminate:=true;
       ThreadMNs.Start;
+      CryptoThread := TCryptoThread.Create(true);
+      CryptoThread.FreeOnTerminate:=true;
+      CryptoThread.Start;
    Tolog(rs0029); NewLogLines := NewLogLines-1; //'Noso session started'
    info(rs0029);  //'Noso session started'
    infopanel.BringToFront;
@@ -1528,6 +1553,9 @@ Setlength(WaitingMNs,0);
    ThreadMNs := TUpdateMNs.Create(true);
    ThreadMNs.FreeOnTerminate:=true;
    ThreadMNs.Start;
+   CryptoThread := TCryptoThread.Create(true);
+   CryptoThread.FreeOnTerminate:=true;
+   CryptoThread.Start;
 Tolog(rs0029); NewLogLines := NewLogLines-1; //'Noso session started'
 info(rs0029);  //'Noso session started'
 form1.infopanel.BringToFront;

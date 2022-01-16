@@ -10,14 +10,15 @@ Version 0.2.1La6
 - Fixed Pending request only when CriptoThreadRunning is false.
 - Slots grid updated each second instead each cycle.
 - Increased node max peers to 55.
-- Master nodes data includedd in NodeStatus.
+- Masternodes data includedd in NodeStatus.
 - Implemented double tracking system to pool pays.
 - Masternodes info show on data panel.
 - Masternodes download at connect.
 - Implemented update from repo.
 - Pool miner stats updates each second.
-- MNs array cleared after block construction.
 - History command improved.
+- Added verificators to add and remove crypto operations to/from cryptothread.
+- Modified .bat file creation to include autoupdates. (win only)
 
 Version 0.2.1La5
 

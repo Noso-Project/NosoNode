@@ -2449,10 +2449,7 @@ Procedure DebugTest(linetext:string);
 var
   signature : string;
 Begin
-signature := GetStringSigned('hello','privkey');
-ConsoleLinesadd(signature);
-consolelinesadd('');
-consolelinesadd(BoolToStr(VerifySignedString('hello',signature,'hola')));
+consolelinesadd('CriptoThreadRunning value = '+BoolToStr(CriptoThreadRunning,true));
 End;
 
 END. // END UNIT
