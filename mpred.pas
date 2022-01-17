@@ -208,7 +208,7 @@ SetCurrentJob('StopServer',true);
    KeepServerOn := false;
    for contador := 1 to MaxConecciones do
       begin
-      info('Closing connection: '+conexiones[contador].ip);
+      info('Closing Node connection: '+conexiones[contador].ip);
       if conexiones[contador].tipo='CLI' then CerrarSlot(contador);
       end;
    Form1.Server.Active:=false;
@@ -231,6 +231,7 @@ setmilitime('CerrarSlot',1);
    if conexiones[Slot].tipo='CLI' then
       begin
       SlotLines[slot].Clear;
+      //Conexiones[Slot].context.Binding.CloseSocket;
       Conexiones[Slot].context.Connection.Disconnect;
       Conexiones[Slot].Thread.Free;
       end;
@@ -260,6 +261,7 @@ var
   rannumber : integer;
 begin
 SetCurrentJob('ConnectToServers',true);
+setmilitime('ConnectToServers',1);
 if Length(listanodos) = 0 then
    begin
    ConsoleLinesAdd(LangLine(161));  //'You need add some nodes first'
@@ -286,6 +288,7 @@ if proceder then
    until ((Intentado) or (intentos = 5));
    end;
 CONNECT_LastTime := UTCTime();
+setmilitime('ConnectToServers',2);
 SetCurrentJob('ConnectToServers',false);
 end;
 
@@ -372,13 +375,6 @@ Begin
 setmilitime('GetTotalConexiones',1);
 for contador := 1 to MaxConecciones do
    begin
-   {
-   if ((conexiones[contador].tipo='SER') and (not CanalCliente[contador].connected)) then
-      begin
-      ConsoleLinesAdd(LangLine(31)+conexiones[contador].ip);  //Conection lost to
-      cerrarslot(contador);
-      end;
-   }
    if conexiones[contador].tipo <> '' then resultado := resultado + 1;
    end;
 result := resultado;
@@ -520,6 +516,8 @@ var
   NumeroConexiones : integer = 0;
 Begin
 SetCurrentJob('VerifyConnectionStatus',true);
+setmilitime('VerifyConnectionStatus',1);
+TRY
 if ( (CONNECT_Try) and (StrToInt64(UTCTime)>StrToInt64Def(CONNECT_LastTime,StrToInt64(UTCTime))+5) ) then ConnectToServers;
 NumeroConexiones := GetTotalConexiones;
 if NumeroConexiones = 0 then  // Desconeectado
@@ -570,12 +568,13 @@ if MyConStatus > 0 then
       G_LastPing := StrToInt64(UTCTime);
       OutgoingMsjsAdd(ProtocolLine(ping));
       end;
-   if not SendingMsgs then // send the outgoing messages
+   if ( (not G_SendingMsgs) and (OutgoingMsjs.Count > 0) ) then // send the outgoing messages
       begin
-      sleep(10);
-      SendOutMsgsThread := TThreadSendOutMsjs.Create(true);
-      SendOutMsgsThread.FreeOnTerminate:=true;
-      SendOutMsgsThread.Start;
+      //sleep(10);
+      //G_SendingMsgs := true;
+      //SendOutMsgsThread := TThreadSendOutMsjs.Create(true);
+      //SendOutMsgsThread.FreeOnTerminate:=true;
+      //SendOutMsgsThread.Start;
       end;
    end;
 if ((NumeroConexiones>=MinConexToWork) and (MyConStatus<2) and (not STATUS_Connected)) then
@@ -636,7 +635,8 @@ if MyConStatus = 3 then
       begin
       //setlength(PendingTxs,0);
       end;
-   if ((StrToIntDef(NetPendingTrxs.Value,0)>length(PendingTXs)) and (LastTimePendingRequested+5<UTCTime.ToInt64)) then
+   if ((StrToIntDef(NetPendingTrxs.Value,0)>length(PendingTXs)) and (LastTimePendingRequested+5<UTCTime.ToInt64) and
+      (length(ArrayCriptoOp)=0) ) then
       begin
       SetCurrentJob('RequestingPendings',true);
       PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));  // Get pending
@@ -653,16 +653,7 @@ if MyConStatus = 3 then
    if ( (IntToStr(MyLastBlock) <> NetLastBlock.Value) or (MySumarioHash<>NetSumarioHash.Value) or
       (MyResumenhash <> NetResumenHash.Value) ) then // desincronizado
       Begin
-      {
-      SynchWarnings +=1;
-      if SynchWarnings = 50 then
-         begin
-         MyConStatus := 2;
-         UndoneLastBlock(true,false);
-         setlength(PendingTxs,0);
-         ConsoleLinesAdd('***WARNING SYNCHRONIZATION***');
-         end;
-      }
+
       end
    else SynchWarnings := 0;
    if ((Miner_OwnsAPool) and (not Form1.PoolServer.Active) and (G_KeepPoolOff = false)) then // Activar el pool propio si se posee uno
@@ -688,6 +679,12 @@ if MyConStatus = 3 then
       end;
    SetCurrentJob('MyConStatus3',false);
    end;
+EXCEPT ON E:Exception do
+   begin
+   ToExcLog(format(rs2002,[E.Message]));
+   end;
+END{Try};
+setmilitime('VerifyConnectionStatus',2);
 SetCurrentJob('VerifyConnectionStatus',false);
 End;
 
@@ -877,11 +874,13 @@ End;
 // Actualiza mi informacion para compoartirla en la red
 Procedure UpdateMyData();
 Begin
+SetCurrentJob('UpdateMyData',true);
 MySumarioHash := HashMD5File(SumarioFilename);
 MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
 LastBlockData := LoadBlockDataHeader(MyLastBlock);
 MyResumenHash := HashMD5File(ResumenFilename);
 U_PoSGrid := true;
+SetCurrentJob('UpdateMyData',false);
 End;
 
 // Verificar y que hacer con un archivo de Update

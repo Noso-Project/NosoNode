@@ -38,6 +38,7 @@ Function GetPoSPercentage(block:integer):integer;
 Function GetMNsPercentage(block:integer):integer;
 Function GetStackRequired(block:integer):int64;
 // Masternodes
+Function IsValidMNReport(Node:Tmasternode):Boolean;
 function GetMNsHash():string;
 
 
@@ -439,7 +440,7 @@ if mode = 1 then
    Resultado := resultado+'WalletVer: '+ProgramVersion+SubVersion+slinebreak;
    Resultado := resultado+'Minerhashcount: '+IntToStr(MINER_HashCounter)+slinebreak;
    Resultado := resultado+'Minerhashseed: '+MINER_HashSeed+slinebreak;
-   Resultado := resultado+'SendingMsgs: '+BoolToStr(SendingMsgs,true)+slinebreak;
+   Resultado := resultado+'SendingMsgs: '+BoolToStr(G_SendingMsgs,true)+slinebreak;
    Resultado := resultado+'Autorestarted: '+BoolToStr(AutoRestarted,true)+slinebreak;
    Resultado := resultado+'InsideMinerJoin: '+BoolToStr(InsideMinerJoin,true)+slinebreak;
    Resultado := resultado+'InsidePoolStep: '+BoolToStr(InsidePoolStep,true)+slinebreak;
@@ -582,6 +583,13 @@ End;
 // MASTERNODES
 // *****
 
+Function IsValidMNReport(Node:Tmasternode):Boolean;
+Begin
+result := false;
+if ( (node.Block = Mylastblock) and (node.BlockHash=MyLastBlockHash) ) then
+   result := true;
+End;
+
 function GetMNsHash():string;
 var
   counter:integer;
@@ -605,8 +613,7 @@ else
    begin
    for counter := 0 to Length(CopyArray)-1 do
       begin
-      if ( (CopyArray[counter].Block=StrToIntDef(NetLastBlock.Value,0)) and
-         (CopyArray[counter].BlockHash=NetLastBlockHash.Value) and
+      if ( (IsValidMNReport(CopyArray[counter])) and
          (not AnsiContainsStr(Hashstr,CopyArray[counter].FundAddress)) ) then
          begin
          Hashstr := Hashstr+CopyArray[counter].FundAddress+' ';

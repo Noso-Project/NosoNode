@@ -725,7 +725,7 @@ if proceder then
    begin
    OpData := GetOpData(TextLine); // Eliminar el encabezado
    AddPendingTxs(OrderInfo);
-   OutgoingMsjsAdd(GetPTCEcn+opdata);
+   if form1.Server.Active then OutgoingMsjsAdd(GetPTCEcn+opdata);
    end;
 End;
 
@@ -803,7 +803,7 @@ if proceder then
    Textbak := GetPTCEcn+'ORDER '+IntToStr(NumTransfers)+' '+Textbak;
    for cont := 0 to NumTransfers-1 do
       AddPendingTxs(TrxArray[cont]);
-   OutgoingMsjsAdd(Textbak);
+   if form1.Server.Active then OutgoingMsjsAdd(Textbak);
    U_DirPanel := true;
    Result := Parameter(Textbak,7); // send order ID as result
    end;
@@ -1074,7 +1074,7 @@ ThisNode := GetMNfromText(ReportInfo);
 if IsValidASCII(ReportInfo) then
    begin
    EnterCriticalSection(CSWaitingMNs);
-   Insert(ThisNode,WaitingMNs,length(WaitingMNs));
+   //Insert(ThisNode,WaitingMNs,length(WaitingMNs));
    LeaveCriticalSection(CSWaitingMNs);
    end;
 End;

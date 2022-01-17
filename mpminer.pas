@@ -91,6 +91,7 @@ End;
 // Resetea la informacion para uso del minero
 Procedure ResetMinerInfo();
 Begin
+try
 Miner_Waiting := -1;
 Miner_BlockToMine := LastBlockData.Number+1;
 Miner_Difficult := LastBlockData.NxtBlkDiff;
@@ -106,6 +107,8 @@ Miner_BlockFOund := False;
 Miner_Solution := '';
 Miner_SolutionVerified := false;
 Miner_PoolHashRate := 0;
+finally
+end;
 End;
 
 // Obtiene el nivel de dificultad de un bloque

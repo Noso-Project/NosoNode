@@ -432,7 +432,7 @@ form1.DataPanel.Cells[2,1]:=LangLine(104);  //'Hashing'
 form1.DataPanel.Cells[2,2]:=LangLine(105);  //'Target'
 form1.DataPanel.Cells[2,3]:=LangLine(106);  //'Reward'
 form1.DataPanel.Cells[2,4]:=LangLine(107);  //'Block Time'
-form1.DataPanel.Cells[2,5]:='PoolBalance';  //'Pool Balance'
+form1.DataPanel.Cells[2,5]:='Outgoing';  //'Pool Balance'
 form1.DataPanel.Cells[2,6]:='Masternodes';     //'mainnet Time'
 form1.DataPanel.Cells[2,7]:='MNs #';     //'Masternodes'
 
@@ -667,16 +667,14 @@ if ((U_MNsGrid) or (UTCTime.ToInt64>U_MNsGrid_Last+59)) then
    U_MNsGrid := false;
    end;
 
-if UserOptions.UsePool then form1.DataPanel.Cells[3,5]:=Int2curr(MyPoolData.balance)
-else form1.DataPanel.Cells[3,5]:='No Pool';
-
 // Esta se muestra siempre aparte ya que la funcion GetTotalConexiones es la que permite
 // verificar si los clientes siguen conectados
 setmilitime('UpdateGUITime',1);
 form1.DataPanel.Cells[1,2]:=IntToStr(GetTotalConexiones)+' ('+IntToStr(MyConStatus)+') ['+IntToStr(G_TotalPings)+']';
-form1.DataPanel.Cells[1,7]:= format(rs0517,[length(CriptoOpsTipo),Length(PendingTXs),NetPendingTrxs.Value]);
+form1.DataPanel.Cells[1,7]:= format(rs0517,[length(ArrayCriptoOp),Length(PendingTXs),NetPendingTrxs.Value]);
 //form1.DataPanel.Cells[1,7]:= IntToStr(Length(PendingTXs))+'/'+NetPendingTrxs.Value+'('+IntToStr(NetPendingTrxs.Porcentaje)+')';
 form1.DataPanel.Cells[1,0]:= Int2Curr(GetWalletBalance)+' '+CoinSimbol;
+form1.DataPanel.Cells[3,5]:=IntToStr(OutgoingMsjs.Count);
 form1.DataPanel.Cells[3,6]:= Copy(MyMNsHash,0,5)+'/'+NetMNsHash.Value;
 form1.DataPanel.Cells[3,7]:= format(rs0517,[length(WaitingMNs),MyMNsCount,NetMNsCount.Value]);
 setmilitime('UpdateGUITime',2);

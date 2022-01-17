@@ -26,8 +26,11 @@ type
    end;
 
   TThreadSendOutMsjs = class(TThread)
-    procedure Execute; override;
-  end;
+    protected
+      procedure Execute; override;
+    public
+      Constructor Create(CreateSuspended : boolean);
+    end;
 
   TUpdateMNs = class(TThread)
     protected
@@ -311,6 +314,12 @@ type
        MNList : array of TMasterNode;
        end;
 
+  TArrayCriptoOp = Packed record
+       tipo: integer;
+       data: string;
+       result: string;
+       end;
+
 
   { TForm1 }
 
@@ -347,6 +356,7 @@ type
     LabeledEdit5: TEdit;
     Label1: TLabel;
     Label7: TLabel;
+    MemoPoolLog: TMemo;
     MemoPool: TMemo;
     MemoDoctor: TMemo;
     Panel10: TPanel;
@@ -707,14 +717,14 @@ CONST
                             '109.230.238.240 '+
                             '23.94.21.83';
   ProgramVersion = '0.2.1';
-  SubVersion = 'La7f';
+  SubVersion = 'La7g';
   OficialRelease = true;
   BuildDate = 'January 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   HasheableChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
   DefaultServerPort = 8080;
-  MaxConecciones  = 55;
+  MaxConecciones  = 60;
   Protocolo = 1;
   Miner_Steps = 10;
   Pool_Max_Members = 1000;
@@ -786,7 +796,7 @@ var
   StopDoctor : boolean = false;
 
   SendOutMsgsThread : TThreadSendOutMsjs;
-    SendingMsgs : boolean = false;
+    G_SendingMsgs : boolean = false;
 
   ThreadMNs : TUpdateMNs;
   CryptoThread : TCryptoThread;
@@ -826,6 +836,8 @@ var
   ConsoleLines : TStringList;
   LogLines : TStringList;
     S_Log : boolean = false;
+  PoolLogLines : TStringList;
+    S_PoolLog : boolean = false;
   ExceptLines : TStringList;
     S_Exc : boolean = false;
   PoolPaysLines : TStringList;
@@ -974,10 +986,12 @@ var
   // Threads
   RebulidTrxThread : TThreadID;
   CriptoOPsThread : TThreadID;
-    CriptoOpsTipo : Array of integer;
-    CriptoOpsOper : Array of string;
-    CriptoOpsResu : Array of string;
+    //CriptoOpsTIPO : Array of integer;
+    //CriptoOpsOper : Array of string;
+    //CriptoOpsResu : Array of string;
     CriptoThreadRunning : boolean = false;
+
+  ArrayCriptoOp : array of TArrayCriptoOp;
 
   // Critical Sections
   CSProcessLines: TRTLCriticalSection;
@@ -993,6 +1007,7 @@ var
   CSPoolMembers : TRTLCriticalSection;
   CSMinerJoin   : TRTLCriticalSection; InsideMinerJoin:Boolean;
   CSLogLines    : TRTLCriticalSection;
+  CSPoolLog     : TRTLCriticalSection;
   CSExcLogLines : TRTLCriticalSection;
   CSPoolShares  : TRTLCriticalSection;
   CSMNsArray    : TRTLCriticalSection;
@@ -1017,6 +1032,7 @@ var
   MyTrxFilename : string = '';
   TranslationFilename : string = '';
   ErrorLogFilename : string = '';
+  PoolLogFilename  : String = '';
   PoolInfoFilename : string = '';
   PoolMembersFilename : string = '';
   AdvOptionsFilename : string = '';
@@ -1178,6 +1194,13 @@ begin
   inherited Create(CreateSuspended);
 end;
 
+constructor TThreadSendOutMsjs.Create(CreateSuspended : boolean);
+begin
+  inherited Create(CreateSuspended);
+end;
+
+
+
 // Process the Masternodes reports
 procedure TUpdateMNs.Execute;
 var
@@ -1199,10 +1222,64 @@ While not terminated do
 End;
 
 procedure TCryptoThread.Execute;
+var
+  NewAddrss : integer = 0;
+  PosRef : integer; cadena,claveprivada,firma, resultado:string;
 Begin
 While not terminated do
    begin
-
+   NewAddrss := 0;
+   if length(ArrayCriptoOp)>0 then
+      begin
+      if ArrayCriptoOp[0].tipo = 0 then // actualizar balance
+         begin
+         //MyCurrentBalance := GetWalletBalance();
+         end
+      else if ArrayCriptoOp[0].tipo = 1 then // Crear direccion
+         begin
+         SetLength(ListaDirecciones,Length(ListaDirecciones)+1);
+         ListaDirecciones[Length(ListaDirecciones)-1] := CreateNewAddress;
+         S_Wallet := true;
+         U_DirPanel := true;
+         NewAddrss := NewAddrss + 1;
+         end
+      else if ArrayCriptoOp[0].tipo = 2 then // customizar
+         begin
+         posRef := pos('$',ArrayCriptoOp[0].data);
+         cadena := copy(ArrayCriptoOp[0].data,1,posref-1);
+         claveprivada := copy (ArrayCriptoOp[0].data,posref+1,length(ArrayCriptoOp[0].data));
+         firma := GetStringSigned(cadena,claveprivada);
+         resultado := StringReplace(ArrayCriptoOp[0].result,'[[RESULT]]',firma,[rfReplaceAll, rfIgnoreCase]);
+         OutgoingMsjsAdd(resultado);
+         OutText('Customization sent',false,2);
+         end
+      else if ArrayCriptoOp[0].tipo = 3 then // enviar fondos
+         begin
+         TRY
+         Sendfunds(ArrayCriptoOp[0].data);
+         EXCEPT ON E:Exception do
+            ToExclog(format(rs2501,[E.Message]));
+         END{Try};
+         end
+      else if ArrayCriptoOp[0].tipo = 4 then // recibir customizacion
+         begin
+         TRY
+         PTC_Custom(ArrayCriptoOp[0].data);
+         EXCEPT ON E:Exception do
+            ToExclog(format(rs2502,[E.Message]));
+         END{Try};
+         end
+       else if ArrayCriptoOp[0].tipo = 5 then // recibir transferencia
+          begin
+          TRY
+          PTC_Order(ArrayCriptoOp[0].data);
+         EXCEPT ON E:Exception do
+            ToExclog(format(rs2503,[E.Message]));
+         END{Try};
+         end;
+      DeleteCriptoOp();
+      end;
+   if NewAddrss > 0 then OutText(IntToStr(NewAddrss)+' new addresses',false,2);
    Sleep(1);
    end;
 End;
@@ -1211,34 +1288,28 @@ End;
 procedure TThreadSendOutMsjs.Execute;
 Var
   Slot :integer = 1;
+  Linea : string;
 Begin
-SendingMsgs := true;
-While OutgoingMsjs.Count > 0 do
+While not terminated do
    begin
-   For Slot := 1 to MaxConecciones do
-      begin
-         try
-         if conexiones[Slot].tipo <> '' then PTC_SendLine(Slot,OutgoingMsjs[0]);
-         Except on E:Exception do
-             ToExclog(format(rs0008,[E.Message]));
-            //ToExclog('Error sending outgoing message: '+E.Message);
-         end;
-      end;
    if OutgoingMsjs.Count > 0 then
       begin
-      EnterCriticalSection(CSOutgoingMsjs);
-         try
-         OutgoingMsjs.Delete(0);
-         Except on E:Exception do
+      Linea := OutgoingMsjsGet();
+      if Linea <> '' then
+         begin
+         For Slot := 1 to MaxConecciones do
             begin
-            ToExcLog(format(rs0009,[E.Message]));
-            //ToExcLog('ERROR: Deleting OutGoingMessage-> '+E.Message);
+            TRY
+            if conexiones[Slot].tipo <> '' then PTC_SendLine(Slot,linea);
+            EXCEPT on E:Exception do
+                ToExclog(format(rs0008,[E.Message]));
+               //ToExclog('Error sending outgoing message: '+E.Message);
+            END{Try};
             end;
          end;
-      LeaveCriticalSection(CSOutgoingMsjs);
       end;
-   end;
-SendingMsgs := false;
+   Sleep(1);
+   End;
 End;
 
 
@@ -1263,6 +1334,7 @@ InitCriticalSection(CSCriptoThread);
 InitCriticalSection(CSPoolMembers);
 InitCriticalSection(CSMinerJoin);
 InitCriticalSection(CSLogLines);
+InitCriticalSection(CSPoolLog);
 InitCriticalSection(CSExcLogLines);
 InitCriticalSection(CSPoolShares);
 InitCriticalSection(CSMNsArray);
@@ -1293,6 +1365,7 @@ DoneCriticalSection(CSCriptoThread);
 DoneCriticalSection(CSPoolMembers);
 DoneCriticalSection(CSMinerJoin);
 DoneCriticalSection(CSLogLines);
+DoneCriticalSection(CSPoolLog);
 DoneCriticalSection(CSExcLogLines);
 DoneCriticalSection(CSPoolShares);
 DoneCriticalSection(CSMNsArray);
@@ -1451,6 +1524,7 @@ StringListLang := TStringlist.Create;
 DLSL := TStringlist.Create;
 IdiomasDisponibles := TStringlist.Create;
 LogLines := TStringlist.Create;
+PoolLogLines := TStringlist.Create;
 ExceptLines := TStringlist.Create;
 PoolPaysLines := TStringlist.Create;
 if not FileExists (LanguageFileName) then CrearIdiomaFile() else CargarIdioma(UserOptions.language);
@@ -1508,9 +1582,10 @@ if WO_CloseStart then
    if WO_AutoConnect then ProcessLinesAdd('CONNECT');
    FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
    FirstShow := true;
-   Setlength(CriptoOpsTipo,0);
-   Setlength(CriptoOpsOper,0);
-   Setlength(CriptoOpsResu,0);
+   SetLength(ArrayCriptoOp,0);
+   //Setlength(CriptoOpsTIPO,0);
+   //Setlength(CriptoOpsOper,0);
+   //Setlength(CriptoOpsResu,0);
    Setlength(MilitimeArray,0);
    Setlength(Miner_Thread,0);
    SetLength(ArrayNetworkRequests,0);
@@ -1523,6 +1598,9 @@ if WO_CloseStart then
       CryptoThread := TCryptoThread.Create(true);
       CryptoThread.FreeOnTerminate:=true;
       CryptoThread.Start;
+      SendOutMsgsThread := TThreadSendOutMsjs.Create(true);
+      SendOutMsgsThread.FreeOnTerminate:=true;
+      SendOutMsgsThread.Start;
    Tolog(rs0029); NewLogLines := NewLogLines-1; //'Noso session started'
    info(rs0029);  //'Noso session started'
    infopanel.BringToFront;
@@ -1541,9 +1619,10 @@ if WO_autoserver then KeepServerOn := true;
 if WO_AutoConnect then ProcessLinesAdd('CONNECT');
 FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
 FirstShow := true;
-Setlength(CriptoOpsTipo,0);
-Setlength(CriptoOpsOper,0);
-Setlength(CriptoOpsResu,0);
+SetLength(ArrayCriptoOp,0);
+//Setlength(CriptoOpsTIPO,0);
+//Setlength(CriptoOpsOper,0);
+//Setlength(CriptoOpsResu,0);
 Setlength(MilitimeArray,0);
 Setlength(Miner_Thread,0);
 SetLength(ArrayNetworkRequests,0);
@@ -1556,6 +1635,9 @@ Setlength(WaitingMNs,0);
    CryptoThread := TCryptoThread.Create(true);
    CryptoThread.FreeOnTerminate:=true;
    CryptoThread.Start;
+   SendOutMsgsThread := TThreadSendOutMsjs.Create(true);
+   SendOutMsgsThread.FreeOnTerminate:=true;
+   SendOutMsgsThread.Start;
 Tolog(rs0029); NewLogLines := NewLogLines-1; //'Noso session started'
 info(rs0029);  //'Noso session started'
 form1.infopanel.BringToFront;
@@ -1867,7 +1949,8 @@ StopPoolServer();
 if length(ArrayPoolMembers)>0 then GuardarPoolMembers();
 If Miner_IsOn then Miner_IsON := false;
 //KillAllMiningThreads;
-setlength(CriptoOpsTipo,0);
+Setlength(ArrayCriptoOp,0);
+//setlength(CriptoOpsTIPO,0);
 if RunDoctorBeforeClose then RunDiagnostico('rundiag fix');
 if RestartNosoAfterQuit then restartnoso();
 form1.Close;
@@ -1877,13 +1960,17 @@ ConsoleLines.Free;
 DLSL.Free;
 IdiomasDisponibles.Free;
 LogLines.Free;
+PoolLogLines.Free;
 ExceptLines.Free;
 ProcessLines.Free;
 OutgoingMsjs.Free;
 PoolPaysLines.free;
 for contador := 1 to maxconecciones do
    SlotLines[contador].Free;
-
+CryptoThread.Terminate;
+CryptoThread.WaitFor;
+ThreadMNs.Terminate;
+ThreadMNs.WaitFor;
 application.Terminate;
 End;
 
@@ -2098,10 +2185,10 @@ Begin
    try
    if closemsg <>'' then
       Acontext.Connection.IOHandler.WriteLn(closemsg);
-   Acontext.Connection.IOHandler.InputBuffer.Clear;
+   //Acontext.Connection.IOHandler.InputBuffer.Clear;
    AContext.Binding.CloseSocket();
    Except on E:Exception do
-      ToExcLog(format(rs0031,[E.Message]));
+      ToPoolLog(format(rs0031,[E.Message]));
       //ToExcLog('POOL: Error trying close a pool client connection ('+E.Message+')');
    end;
 End;
@@ -2112,7 +2199,7 @@ Begin
    try
    Acontext.Connection.IOHandler.WriteLn(message);
    Except on E:Exception do
-      ToExcLog(format(rs0032,[E.Message]));
+      ToPoolLog(format(rs0032,[E.Message]));
       //ToExcLog('POOL: Error sending message to miner ('+E.Message+')');
    end;
 End;
@@ -2155,15 +2242,22 @@ var
   BlockTime : string;
   SendFundsResult : string = '';
 Begin
+IPUser := AContext.Connection.Socket.Binding.PeerIP;
+UpdatePoolBot(IPUser);
 if GetPoolContextIndex(AContext)<0 then
    begin
    TryClosePoolConnection(AContext);
    //ConsoleLinesAdd('Pool: Rejected unasigned context connection');
    exit;
    end;
-IPUser := AContext.Connection.Socket.Binding.PeerIP;
 Linea := '';
 Linea := AContext.Connection.IOHandler.ReadLn('',ReadTimeOutTIme,-1,IndyTextEncoding_UTF8);
+if not IsValidASCII(Linea) then
+   begin
+   TryClosePoolConnection(AContext);
+   ToPoolLog(format(rs0084,[linea]));
+   exit;
+   end;
 Password := Parameter(Linea,0);
 if password <> Poolinfo.PassWord then exit;
 UserDireccion := Parameter(Linea,1);
@@ -2186,7 +2280,7 @@ if comando = 'PING' then
       Except on E:Exception do
          begin
          TryClosePoolConnection(Acontext);
-         ToExclog(format(rs0034,[E.Message]));
+         ToPoolLog(format(rs0034,[E.Message]));
          //ToExclog(Format('Pool: Error registerin a ping-> %s',[E.Message]));
          end;
       end;
@@ -2284,7 +2378,7 @@ else if Comando = 'STEP' then
       Except on E:Exception do
          begin
          TryClosePoolConnection(Acontext);
-         ToExcLog(Format(rs0037,[E.Message]));
+         ToPoolLog(Format(rs0037,[E.Message]));
          //ToExclog(Format('Pool: Error inside CSPoolStep-> %s',[E.Message]));
          end;
       end;
@@ -2297,7 +2391,7 @@ else if Comando = 'PAYMENT' then
 else
    begin
    TryClosePoolConnection(Acontext);
-   ToExcLog(Format(rs0038,[ipuser,linea]));
+   ToPoolLog(Format(rs0038,[ipuser,linea]));
    //ToExcLog('POOL: Unexpected command from: '+ipuser+'->'+Linea);
    end;
 End;
@@ -2323,7 +2417,7 @@ if G_KeepPoolOff then // The pool server is closed or closing
    exit;
    end;
 EnterCriticalSection(CSMinerJoin);InsideMinerJoin := true;
-try
+TRY
    Linea := AContext.Connection.IOHandler.ReadLn('',ReadTimeOutTIme,-1,IndyTextEncoding_UTF8);
    Password := Parameter(Linea,0);
    UserDireccion := Parameter(Linea,1);
@@ -2331,11 +2425,16 @@ try
    minerversion :=Parameter(Linea,3);
    if AContext.Connection.IOHandler.ReadLnTimedout then
       TryClosePoolConnection(AContext)
+   else if not isValidASCII(Linea) then
+      begin
+      TryClosePoolConnection(AContext);
+      ToPoolLog(format(rs0084,[linea]));
+      end
    else if BotExists(IPUser) then
       TryClosePoolConnection(AContext,'BANNED')
    else if password <> Poolinfo.PassWord then  // WRONG PASSWORD.
       TryClosePoolConnection(AContext,'PASSFAILED')
-   else if ( (not isvalidaddress(UserDireccion)) and (AddressSumaryIndex(UserDireccion)<0) ) then
+   else if ( (not IsValidHashAddress(UserDireccion)) and (AddressSumaryIndex(UserDireccion)<0) ) then
       TryClosePoolConnection(AContext,'INVALIDADDRESS')
    else if IsPoolMemberConnected(UserDireccion)>=0 then   // ALREADY CONNECTED
       TryClosePoolConnection(AContext,'ALREADYCONNECTED')
@@ -2366,30 +2465,20 @@ try
    else if Comando = 'STATUS' then
       begin
       TryClosePoolConnection(AContext,PoolStatusString);
-      ConsoleLinesAdd(Format(rs0039,[IPUser]));
-      //consolelinesadd('POOL: Status requested from '+IPUser);
-      end
-   else if Comando = 'ADDRESSBAL' then
-      // this is a deprected function user for the first web api
-      begin
-      {
-      UserDireccion := Parameter(Linea,3);
-      TryClosePoolConnection(AContext,'ADDRESSBAL '+UserDireccion+' '+IntToStr(GetAddressBalance(UserDireccion))+' '+
-      IntToStr(GetAddressIncomingpays(UserDireccion))+' '+
-      IntToStr(GetAddressPendingPays(UserDireccion))+' '+
-      IntToStr(GetAddressBalance(UserDireccion)-GetAddressPendingPays(UserDireccion)));
-      }
+      ToPoolLog(Format(rs0039,[IPUser])); //'POOL: Status requested from '+IPUser);
       end
    else
       begin
       TryClosePoolConnection(AContext,'INVALIDCOMMAND');
-      ToExclog(Format(rs0040,[IPUser,comando]));
+      ToPoolLog(Format(rs0040,[IPUser,comando]));
       //ToExclog(Format('Pool: closed incoming %s (%s)',[IPUser,comando]));
       end;
-Except on E:Exception do
-   ToExclog(Format(rs0041,[E.Message]));
-   //ToExclog(Format('Pool: Error inside MinerJoin-> %s',[E.Message]));
-end;
+EXCEPT on E:Exception do
+   begin
+   ToPoolLog(Format(rs0041,[IPUser,E.Message]));//ToExclog(Format('Pool: Error inside MinerJoin-> %s',[E.Message]));
+   TryClosePoolConnection(AContext,'INVALIDCOMMAND');
+   end
+END{Try};
 LeaveCriticalSection(CSMinerJoin);InsideMinerJoin := false;
 End;
 
@@ -2914,7 +3003,7 @@ var
   Address : string;
 Begin
 Address := DireccionesPanel.Cells[0,DireccionesPanel.Row];
-if not IsValidAddress(address) then info('Address already customized')
+if not IsValidHashAddress(address) then info('Address already customized')
 else if AddressAlreadyCustomized(address) then info('Address already customized')
 else if GetAddressBalance(Address)-GetAddressPendingPays(address)< Customizationfee then info('Insufficient funds')
 else
@@ -3028,7 +3117,7 @@ if EditSCDest.Text = '' then ImgSCDest.Picture.Clear
 else
    begin
    EditSCDest.Text :=StringReplace(EditSCDest.Text,' ','',[rfReplaceAll, rfIgnoreCase]);
-   if ((IsValidAddress(EditSCDest.Text)) or (AddressSumaryIndex(EditSCDest.Text)>=0)) then
+   if ((IsValidHashAddress(EditSCDest.Text)) or (AddressSumaryIndex(EditSCDest.Text)>=0)) then
      Form1.imagenes.GetBitmap(17,ImgSCDest.Picture.Bitmap)
    else Form1.imagenes.GetBitmap(14,ImgSCDest.Picture.Bitmap);
    end;
@@ -3121,7 +3210,7 @@ End;
 // enviar el dinero
 Procedure Tform1.SCBitSendOnClick(Sender:TObject);
 Begin
-if ( ( ((AddressSumaryIndex(EditSCDest.Text)>=0) or (IsValidAddress(EditSCDest.Text))) ) and
+if ( ( ((AddressSumaryIndex(EditSCDest.Text)>=0) or (IsValidHashAddress(EditSCDest.Text))) ) and
    (StrToInt64Def(StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase]),-1)>0) and
    (StrToInt64Def(StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase]),-1)<=GetMaximunToSend(GetWalletBalance)) ) then
    begin

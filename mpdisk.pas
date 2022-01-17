@@ -32,6 +32,7 @@ Procedure AddPoolPay(Texto:string);
 Procedure SavePoolPays();
 
 Procedure CreateLog();
+Procedure CreatePoolLog();
 Procedure CreateADV(saving:boolean);
 Procedure LoadADV();
 Function GetLanguage():string;
@@ -39,6 +40,8 @@ Procedure ExtractPoFiles();
 Procedure CreateFileFromResource(resourcename,filename:string);
 Procedure ToLog(Texto:string);
 Procedure SaveLog();
+Procedure ToPoolLog(Texto:string);
+Procedure SavePoolLog();
 Procedure CrearArchivoOpciones();
 Procedure CargarOpciones();
 Procedure GuardarOpciones();
@@ -135,6 +138,9 @@ UpdateRowHeigth();
 OutText('✓ Advanced options loaded',false,1);
 if not FileExists (ErrorLogFilename) then Createlog;
 OutText('✓ Log file ok',false,1);
+
+if not FileExists (PoolLogFilename) then CreatePoollog;
+OutText('✓ Pool Log file ok',false,1);
 
 if not FileExists (UserOptions.wallet) then CrearWallet() else CargarWallet(UserOptions.wallet);
 OutText('✓ Wallet file ok',false,1);
@@ -518,6 +524,20 @@ Begin
    end;
 End;
 
+// Creates pool log file
+Procedure CreatePoolLog();
+var
+  archivo : textfile;
+Begin
+   try
+   Assignfile(archivo, PoolLogFilename);
+   rewrite(archivo);
+   Closefile(archivo);
+   Except on E:Exception do
+      tolog ('Error creating the pool log file');
+   end;
+End;
+
 // Creates/Saves Advopt file
 Procedure CreateADV(saving:boolean);
 Begin
@@ -682,6 +702,20 @@ EnterCriticalSection(CSLoglines);
 LeaveCriticalSection(CSLoglines);
 End;
 
+Procedure ToPoolLog(Texto:string);
+Begin
+EnterCriticalSection(CSPoolLog);
+   try
+   PoolLogLines.Add(timetostr(now)+': '+texto);
+   S_PoolLog := true;
+   Except on E:Exception do
+      begin
+
+      end;
+   end;
+LeaveCriticalSection(CSPoolLog);
+End;
+
 // Save log files to disk
 Procedure SaveLog();
 var
@@ -712,6 +746,38 @@ if IOCode = 0 then
 else if IOCode = 5 then
    {$I-}Closefile(archivo){$I+};
 setmilitime('SaveLog',2);
+End;
+
+// Save Pool log files to disk
+Procedure SavePoolLog();
+var
+  archivo : textfile;
+  IOCode : integer;
+Begin
+setmilitime('SavePoolLog',1);
+Assignfile(archivo, PoolLogFilename);
+{$I-}Append(archivo);{$I+}
+IOCode := IOResult;
+if IOCode = 0 then
+   begin
+   EnterCriticalSection(CSPoolLog);
+      try
+      while PoolLogLines.Count>0 do
+         begin
+         Writeln(archivo,PoolLogLines[0]);
+         form1.MemoPoolLog.Lines.Add(PoolLogLines[0]);
+         PoolLogLines.Delete(0);
+         end;
+      S_PoolLog := false;
+      Except on E:Exception do
+         toExclog ('Error saving to the Pool log file: '+E.Message);
+      end;
+   Closefile(archivo);
+   LeaveCriticalSection(CSPoolLog);
+   end
+else if IOCode = 5 then
+   {$I-}Closefile(archivo){$I+};
+setmilitime('SavePoolLog',2);
 End;
 
 // Creates options file
@@ -1020,9 +1086,10 @@ if S_BotData then SaveBotData();
 //if S_NodeData then SaveNodeFile();
 if S_Options then GuardarOpciones();
 if S_Wallet then GuardarWallet();
-if S_Sumario then GuardarSumario();
+if ( (S_Sumario) and (not BuildingBlock) ) then GuardarSumario();
 if S_PoolMembers then GuardarPoolMembers();
 if S_Log then SaveLog;
+if S_PoolLog then SavePoolLog;
 if S_Exc then SaveExceptLog;
 if S_PoolPays then SavePoolPays;
 if S_PoolInfo then GuardarArchivoPoolInfo;
@@ -1591,19 +1658,19 @@ var
   Dato: ResumenData;
 Begin
 EnterCriticalSection(CSHeadAccess);
-   try
-   assignfile(FileResumen,ResumenFilename);
-   reset(FileResumen);
-   Dato := Default(ResumenData);
-   Dato.block:=Numero;
-   Dato.blockhash:=hash;
-   Dato.SumHash:=sumhash;
-   seek(fileResumen,filesize(fileResumen));
-   write(fileResumen,dato);
-   closefile(FileResumen);
-   Except on E:Exception do
-      tolog ('Error adding new register to headers');
-   end;
+TRY
+assignfile(FileResumen,ResumenFilename);
+reset(FileResumen);
+Dato := Default(ResumenData);
+Dato.block:=Numero;
+Dato.blockhash:=hash;
+Dato.SumHash:=sumhash;
+seek(fileResumen,filesize(fileResumen));
+write(fileResumen,dato);
+closefile(FileResumen);
+EXCEPT on E:Exception do
+   tolog ('Error adding new register to headers');
+END;
 LeaveCriticalSection(CSHeadAccess);
 End;
 
@@ -1721,6 +1788,7 @@ var
   PoSPayouts, PoSEarnings : int64;
   BlockPayouts, BlockEarnings : int64;
 Begin
+SetCurrentJob('RebuildMyTrx',true);
 Existentes := Length(ListaMisTrx);
 if ListaMisTrx[0].Block < blocknumber then
    begin
@@ -1818,6 +1886,7 @@ if ListaMisTrx[0].Block < blocknumber then
       end;
    SaveMyTrxsLastUpdatedblock(blocknumber, PoSPayouts, PoSEarnings);
    end;
+SetCurrentJob('RebuildMyTrx',false);
 End;
 
 // Save last user transactions to disk
@@ -1963,7 +2032,7 @@ StopServer();
 StopPoolServer();
 If Miner_IsOn then Miner_IsON := false;
 KillAllMiningThreads;
-setlength(CriptoOpsTipo,0);
+//setlength(CriptoOpsTIPO,0);
 RunningDoctor := true;
 if UpperCase(parameter(linea,1)) = 'FIX' then fixfiles := true;
 lastblock := GetMyLastUpdatedBlock;
@@ -2309,7 +2378,7 @@ StopServer();
 StopPoolServer();
 If Miner_IsOn then Miner_IsON := false;
 KillAllMiningThreads;
-setlength(CriptoOpsTipo,0);
+//setlength(CriptoOpsTIPO,0);
 deletefile(SumarioFilename);
 deletefile(SumarioFilename+'.bak');
 deletefile(ResumenFilename);
@@ -2337,6 +2406,7 @@ ResumenFilename     := 'NOSODATA'+DirectorySeparator+'blchhead.nos';
 MyTrxFilename       := 'NOSODATA'+DirectorySeparator+'mytrx.nos';
 TranslationFilename := 'NOSODATA'+DirectorySeparator+'English_empty.txt';
 ErrorLogFilename    := 'NOSODATA'+DirectorySeparator+'errorlog.txt';
+PoolLogFilename     := 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'poollog.txt';
 PoolInfoFilename    := 'NOSODATA'+DirectorySeparator+'poolinfo.dat';
 PoolMembersFilename := 'NOSODATA'+DirectorySeparator+'poolmembers.dat';
 AdvOptionsFilename  := 'NOSODATA'+DirectorySeparator+'advopt.txt';

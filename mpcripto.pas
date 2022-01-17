@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, process, strutils, MD5, DCPsha256,
-  mpsignerutils, base64, HlpHashFactory, mpcoin, mptime;
+  mpsignerutils, base64, HlpHashFactory, mpcoin, mptime, translation;
 
 function CreateNewAddress(): WalletData;
 {Procedure CreateKeysPair();}
@@ -18,7 +18,7 @@ function HashMD160String(StringToHash:string):String;
 Function HashMD5String(StringToHash:String):String;
 procedure NuevaDireccion(linetext:string);
 Function HashMD5File(FileToHash:String):String;
-function IsValidAddress(Address:String):boolean;
+function IsValidHashAddress(Address:String):boolean;
 function IsValid58(base58text:string):boolean;
 function DireccionEsMia(direccion:string):integer;
 Procedure RunExternalProgram(ProgramToRun:String);
@@ -62,9 +62,6 @@ var
   KeysPair: TKeyPair;
 Begin
 setmilitime('CreateNewAddress',1);
-{CreateKeysPair();
-PublicKey := GetPublicKeyFromPem();
-Privatekey := GetPrivateKeyFromPem();}
 KeysPair := TSignerUtils.GenerateECKeyPair(TKeyType.SECP256K1);
 Address := GetAddressFromPublicKey(KeysPair.PublicKey);
 MyData.Hash:=Address;
@@ -75,10 +72,6 @@ MyData.Balance:=0;
 MyData.Pending:=0;
 MyData.Score:=0;
 MyData.LastOP:= 0;
-{
-Deletefile('private.pem');
-Deletefile('public.pem');
-}
 Result := MyData;
 setmilitime('CreateNewAddress',2);
 End;
@@ -188,7 +181,12 @@ End;
 // Devuelve el hash MD5 de un archivo
 Function HashMD5File(FileToHash:String):String;
 Begin
+result := Uppercase('d41d8cd98f00b204e9800998ecf8427e');  // empty string
+TRY
 result := UpperCase(MD5Print(MD5File(FileToHash)));
+EXCEPT ON E:Exception do
+   ToExcLog('File not found for MD5 hash: '+filetohash);
+END;
 End;
 
 function IsValid58(base58text:string):boolean;
@@ -210,8 +208,8 @@ if length(base58text) > 0 then
 else result := false;
 End;
 
-// Checks if a string is a valid address
-function IsValidAddress(Address:String):boolean;
+// Checks if a string is a valid address hash
+function IsValidHashAddress(Address:String):boolean;
 var
   OrigHash : String;
   Clave:String;
@@ -244,7 +242,7 @@ for contador := 0 to length(Listadirecciones)-1 do
       break;
       end;
    end;
-if ( (not IsValidAddress(direccion)) and (AddressSumaryIndex(direccion)<0) ) then result := -1;
+if ( (not IsValidHashAddress(direccion)) and (AddressSumaryIndex(direccion)<0) ) then result := -1;
 End;
 
 // Ejecuta el autoupdater
@@ -325,15 +323,23 @@ End;
 
 // Añade una operacion a la espera de cripto
 Procedure AddCriptoOp(tipo:integer;proceso, resultado:string);
+var
+  NewOp: TArrayCriptoOp;
 Begin
+NewOp.tipo := tipo;
+NewOp.data:=proceso;
+NewOp.result:=resultado;
 EnterCriticalSection(CSCriptoThread);
 TRY
-SetLength(CriptoOpsTipo,length(CriptoOpsTipo)+1);
-CriptoOpsTipo[length(CriptoOpsTipo)-1] := tipo;
+Insert(NewOp,ArrayCriptoOp,length(ArrayCriptoOp));
+{
+SetLength(CriptoOpsTIPO,length(CriptoOpsTIPO)+1);
+CriptoOpsTIPO[length(CriptoOpsTIPO)-1] := tipo;
 SetLength(CriptoOpsOper,length(CriptoOpsOper)+1);
 CriptoOpsOper[length(CriptoOpsOper)-1] := proceso;
 SetLength(CriptoOpsResu,length(CriptoOpsResu)+1);
 CriptoOpsResu[length(CriptoOpsResu)-1] := resultado;
+}
 EXCEPT ON E:Exception do
    ToExcLog('Error adding Operation to crypto thread:'+proceso);
 END{Try};
@@ -341,28 +347,33 @@ LeaveCriticalSection(CSCriptoThread);
 End;
 
 // Indica que se pueden empezar a realizar las operaciones del cripto thread
-Procedure StartCriptoThread();
+Procedure StartCriptoThread(); // deprecated
 Begin
+{
 if not CriptoThreadRunning then
    begin
    CriptoThreadRunning := true;
    CriptoOPsThread := Beginthread(tthreadfunc(@ProcessCriptoOP));
    end;
+}
 End;
 
 // Elimina la operacion cripto
 Procedure DeleteCriptoOp();
 Begin
 EnterCriticalSection(CSCriptoThread);
-if Length(CriptoOpsTipo) > 0 then
+if Length(ArrayCriptoOp) > 0 then
    begin
+   Delete(ArrayCriptoOp,0,1);
    TRY
-   Delete(CriptoOpsTipo,0,1);
+   {
+   Delete(CriptoOpsTIPO,0,1);
    Delete(CriptoOpsOper,0,1);
    Delete(CriptoOpsResu,0,1);
+   }
    EXCEPT ON E:Exception do
       begin
-      ToExcLog('Error remoing Operation from crypto thread:'+E.Message);
+      ToExcLog('Error removing Operation from crypto thread:'+E.Message);
       end;
    END{Try};
    end;
@@ -377,11 +388,11 @@ var
 Begin
 Repeat
    begin
-   if CriptoOpsTipo[0] = 0 then // actualizar balance
+   if ArrayCriptoOp[0].tipo = 0 then // actualizar balance
       begin
-      MyCurrentBalance := GetWalletBalance();
+      //MyCurrentBalance := GetWalletBalance();
       end
-   else if CriptoOpsTipo[0] = 1 then // Crear direccion
+   else if ArrayCriptoOp[0].tipo = 1 then // Crear direccion
       begin
       SetLength(ListaDirecciones,Length(ListaDirecciones)+1);
       ListaDirecciones[Length(ListaDirecciones)-1] := CreateNewAddress;
@@ -389,31 +400,43 @@ Repeat
       U_DirPanel := true;
       NewAddrss := NewAddrss + 1;
       end
-   else if CriptoOpsTipo[0] = 2 then // customizar
+   else if ArrayCriptoOp[0].tipo = 2 then // customizar
       begin
-      posRef := pos('$',CriptoOpsOper[0]);
-      cadena := copy(CriptoOpsOper[0],1,posref-1);
-      claveprivada := copy (CriptoOpsOper[0],posref+1,length(CriptoOpsOper[0]));
+      posRef := pos('$',ArrayCriptoOp[0].data);
+      cadena := copy(ArrayCriptoOp[0].data,1,posref-1);
+      claveprivada := copy (ArrayCriptoOp[0].data,posref+1,length(ArrayCriptoOp[0].data));
       firma := GetStringSigned(cadena,claveprivada);
-      resultado := StringReplace(CriptoOpsResu[0],'[[RESULT]]',firma,[rfReplaceAll, rfIgnoreCase]);
+      resultado := StringReplace(ArrayCriptoOp[0].result,'[[RESULT]]',firma,[rfReplaceAll, rfIgnoreCase]);
       OutgoingMsjsAdd(resultado);
       OutText('Customization sent',false,2);
       end
-    else if CriptoOpsTipo[0] = 3 then // enviar fondos
+    else if ArrayCriptoOp[0].tipo = 3 then // enviar fondos
       begin
-      Sendfunds(CriptoOpsOper[0]);
+      TRY
+      Sendfunds(ArrayCriptoOp[0].data);
+      EXCEPT ON E:Exception do
+         ToExclog(format(rs2501,[E.Message]));
+      END{Try};
       end
-    else if CriptoOpsTipo[0] = 4 then // recibir customizacion
+    else if ArrayCriptoOp[0].tipo = 4 then // recibir customizacion
       begin
-      PTC_Custom(CriptoOpsOper[0]);
+      TRY
+      PTC_Custom(ArrayCriptoOp[0].data);
+      EXCEPT ON E:Exception do
+         ToExclog(format(rs2502,[E.Message]));
+      END{Try};
       end
-    else if CriptoOpsTipo[0] = 5 then // recibir transferencia
+    else if ArrayCriptoOp[0].tipo = 5 then // recibir transferencia
       begin
-      PTC_Order(CriptoOpsOper[0]);
+      TRY
+      PTC_Order(ArrayCriptoOp[0].data);
+      EXCEPT ON E:Exception do
+         ToExclog(format(rs2503,[E.Message]));
+      END{Try};
       end;
    DeleteCriptoOp();
    end;
-until length(CriptoOpsTipo) = 0;
+until length(ArrayCriptoOp) = 0;
 if NewAddrss > 0 then OutText(IntToStr(NewAddrss)+' new addresses',false,2);
 CriptoThreadRunning := false;
 ProcessCriptoOP := 0;

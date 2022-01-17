@@ -39,6 +39,7 @@ Procedure ExpelPoolInactives();
 function PoolStatusString():String;
 function StepAlreadyAdded(stepstring:string):Boolean;
 Procedure RestartPoolSolution();
+Procedure ShowPoolBots();
 
 implementation
 
@@ -82,15 +83,16 @@ if Form1.PoolServer.Active then
          begin
          TRY
          Count +=1;
+         info('Closing miner connection: '+PoolServerConex[contador].Address);
          PoolServerConex[contador].Context.Connection.IOHandler.InputBuffer.Clear;
-         PoolServerConex[contador].Context.Connection.Disconnect;
+         PoolServerConex[contador].Context.Binding.CloseSocket;
          EXCEPT on E:Exception do
             ToLog('Unable to close pool connection: '+E.Message);
          END{Try};
          end;
       end;
    Form1.PoolServer.Active:=false;
-   ConsoleLinesAdd('Pool server stoped. '+count.ToString+' connections.');
+   ConsoleLinesAdd('Pool server stoped. Close '+count.ToString+' connections.');
    end;
 EXCEPT on E:Exception do
    begin
@@ -265,6 +267,7 @@ End;
 
 Procedure ResetPoolMiningInfo();
 Begin
+try
 PoolMiner.Block:=LastBlockData.Number+1;
 PoolMiner.Solucion:='';
 PoolMiner.steps:=0;
@@ -272,6 +275,8 @@ PoolMiner.Dificult:=LastBlockData.NxtBlkDiff;
 PoolMiner.DiffChars:=GetCharsFromDifficult(PoolMiner.Dificult, PoolMiner.steps);
 PoolMiner.Target:=MyLastBlockHash;
 AdjustWrongSteps();
+finally
+end;
 EnterCriticalSection(CSPoolShares);
 SetLength(Miner_PoolSharedStep,0);
 LeaveCriticalSection(CSPoolShares);
@@ -373,9 +378,7 @@ if ((ARepartir>0) and (MinersConPos>0)) then
       end;
    ConsoleLinesAdd('POOL POP: '+IntToStr(MinersConPos)+' members, each= '+Int2Curr(PagoPorPOS));
    end;
-
 PoolMembersTotalDeuda := GetTotalPoolDeuda();
-S_PoolMembers := true;
 S_PoolInfo := true;
 End;
 
@@ -685,8 +688,11 @@ var
   TotalPaid : int64 = 0;
 
 Begin
+setmilitime('ExpelPoolInactives',1);
+SetCurrentJob('ExpelPoolInactives',true);
 RunExpelPoolInactives := false;
 Entercriticalsection(CSPoolMembers);
+TRY
 if length(arraypoolmembers)>0 then
    begin
    for counter := 0 to length(arraypoolmembers)-1 do
@@ -721,12 +727,16 @@ if length(arraypoolmembers)>0 then
          end;
       end;
    end;
-
+EXCEPT ON E:Exception do
+   ToExcLog('Error inside ExpelPoolInactives: '+E.Message);
+END{Try};
 Leavecriticalsection(CSPoolMembers);
+
 ConsoleLinesAdd('Pool expels  : '+intToStr(expelled));
 ConsoleLinesAdd('Pool Payments: '+intToStr(PaidMembers));
 ConsoleLinesAdd('Total paid   : '+int2curr(Totalpaid));
-
+setmilitime('ExpelPoolInactives',2);
+SetCurrentJob('ExpelPoolInactives',false);
 End;
 
 //STATUS 1{PoolHashRate} 2{PoolFee} 3{PoolShare} 4{blockdiff} 5{Minercount} 6{arrayofminers address:balance:blockstillopay:hashpower}
@@ -737,6 +747,7 @@ var
   miners : integer = 0;
 Begin
 Entercriticalsection(CSPoolMembers);
+TRY
 for counter := 0 to length(arraypoolmembers)-1 do
    begin
    if arraypoolmembers[counter].Direccion<>'' then
@@ -747,6 +758,11 @@ for counter := 0 to length(arraypoolmembers)-1 do
       miners +=1;
       end;
    end;
+EXCEPT ON E:Exception do
+   begin
+   ToExcLog('Error generating pool status string: '+E.Message);
+   end
+END{Try};
 Leavecriticalsection(CSPoolMembers);
 result:= 'STATUS '+IntToStr(PoolTotalHashRate)+' '+IntToStr(poolinfo.Porcentaje)+' '+
    IntToStr(PoolShare)+' '+IntToStr(PoolMiner.Dificult)+' '+IntToStr(miners)+' '+resString;
@@ -787,6 +803,18 @@ if ( (steps > 0) and  (steps < 10) ) then
       end;
    end;
 CrearRestartfile;
+End;
+
+Procedure ShowPoolBots();
+var
+  counter: integer;
+  vacios : integer;
+Begin
+for counter := 0 to length(ListaPoolBots)-1 do
+   begin
+   consolelinesadd(ListaPoolBots[counter].ip+'->'+IntToStr(ListaPoolBots[counter].count));
+   end;
+
 End;
 
 END. // END UNIT

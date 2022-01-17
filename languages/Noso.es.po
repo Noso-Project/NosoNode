@@ -722,7 +722,9 @@ msgid "Pool: closed incoming %s (%s)"
 msgstr "Pool: Cerrado entrante %s (%s)"
 
 #: translation.rs0041
-msgid "Pool: Error inside MinerJoin-> %s"
+#, fuzzy,badformat
+#| msgid "Pool: Error inside MinerJoin-> %s"
+msgid "Pool: Error inside MinerJoin (%s) -> %s"
 msgstr "Pool: Error dentro de  MinerJoin-> %s"
 
 #: translation.rs0042
@@ -895,6 +897,10 @@ msgstr ""
 msgid "You need update the wallet"
 msgstr ""
 
+#: translation.rs0084
+msgid "Not valid ASCII message received: %s"
+msgstr ""
+
 #: translation.rs0500
 msgid "Noso Launcher"
 msgstr "Lanzador Noso"
@@ -1023,5 +1029,33 @@ msgstr ""
 
 #: translation.rs2001
 msgid "Wallet not updated"
+msgstr ""
+
+#: translation.rs2002
+msgid ""
+"*****CRITICAL*****\n"
+"Error inside VerifyConnectionStatus: %s\n"
+"*****CRITICAL*****\n"
+msgstr ""
+
+#: translation.rs2501
+msgid ""
+"*****CRITICAL*****\n"
+"Error type 3 on crypto thread: %s\n"
+"*****CRITICAL*****\n"
+msgstr ""
+
+#: translation.rs2502
+msgid ""
+"*****CRITICAL*****\n"
+"Error type 4 on crypto thread: %s\n"
+"*****CRITICAL*****\n"
+msgstr ""
+
+#: translation.rs2503
+msgid ""
+"*****CRITICAL*****\n"
+"Error type 5 on crypto thread: %s\n"
+"*****CRITICAL*****\n"
 msgstr ""
 

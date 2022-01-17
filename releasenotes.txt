@@ -9,7 +9,7 @@ Version 0.2.1La6
 - NetworkMNsCount consensus calculated.
 - Fixed Pending request only when CriptoThreadRunning is false.
 - Slots grid updated each second instead each cycle.
-- Increased node max peers to 55.
+- Increased node max peers to 60.
 - Masternodes data includedd in NodeStatus.
 - Implemented double tracking system to pool pays.
 - Masternodes info show on data panel.
@@ -19,6 +19,13 @@ Version 0.2.1La6
 - History command improved.
 - Added verificators to add and remove crypto operations to/from cryptothread.
 - Modified .bat file creation to include autoupdates. (win only)
+- Try..except blocks inside crypto thread.
+- New Crypto operations array.
+- Pool log implemented.
+- New cripto thread engine implemented.
+- Send outgoings thread made permanent.
+- Do not re-sent received orders if node is not active.
+- Implemented function IsValidMNReport.
 
 Version 0.2.1La5
 

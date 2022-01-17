@@ -11,6 +11,7 @@ uses
 procedure ProcessLinesAdd(const ALine: String);
 procedure ConsoleLinesAdd(const ALine: String);
 procedure OutgoingMsjsAdd(const ALine: String);
+function OutgoingMsjsGet(): String;
 
 Procedure ProcesarLineas();
 function GetOpData(textLine:string):String;
@@ -153,6 +154,23 @@ OutgoingMsjs.Add(ALine);
 FINALLY
 LeaveCriticalSection(CSOutgoingMsjs);
 END{Try};
+End;
+
+// Gets a line from OutgoingMsjs thread safe
+function OutgoingMsjsGet(): String;
+var
+  Linea : String;
+Begin
+Linea := '';
+EnterCriticalSection(CSOutgoingMsjs);
+TRY
+Linea := OutgoingMsjs[0];
+OutgoingMsjs.Delete(0);
+EXCEPT ON E:Exception do
+   ToExcLog('Error extracting outgoing line: '+E.Message);
+END{Try};
+LeaveCriticalSection(CSOutgoingMsjs);
+result := linea;
 End;
 
 // Procesa las lineas de la linea de comandos
@@ -321,6 +339,8 @@ else if UpperCase(Command) = 'SAVEPOOLFILES' then SavePoolFiles()
 else if UpperCase(Command) = 'POOLPEERS' then ConsoleLinesAdd('Pool list: '+IntToStr(form1.PoolClientsCount))
 else if UpperCase(Command) = 'POOLRESET' then PoolInfo.FeeEarned := 0
 else if UpperCase(Command) = 'POOLIPPOWER' then PoolIPPower()
+else if UpperCase(Command) = 'POOLBOTS' then ShowPoolBots()
+else if UpperCase(Command) = 'POOLBOTSRESET' then setlength(ListaPoolBots,0)
 
 // P2P
 else if UpperCase(Command) = 'PEERS' then ConsoleLinesAdd('Server list: '+IntToStr(form1.ClientsCount)+'/'+IntToStr(GetIncomingConnections))
@@ -836,7 +856,7 @@ try
 reset(CarteraFile);
 seek(CarteraFile,0);
 Read(CarteraFile,DatoLeido);
-if not IsValidAddress(DatoLeido.Hash) then
+if not IsValidHashAddress(DatoLeido.Hash) then
    begin
    closefile(CarteraFile);
    ConsoleLinesAdd('The file is not a valid wallet');
@@ -846,7 +866,7 @@ for contador := 0 to filesize(CarteraFile)-1 do
    begin
    seek(CarteraFile,contador);
    Read(CarteraFile,DatoLeido);
-   if ((DireccionEsMia(DatoLeido.Hash) < 0) and (IsValidAddress(DatoLeido.Hash))) then
+   if ((DireccionEsMia(DatoLeido.Hash) < 0) and (IsValidHashAddress(DatoLeido.Hash))) then
       begin
       setlength(ListaDirecciones,Length(ListaDirecciones)+1);
       ListaDirecciones[length(ListaDirecciones)-1] := DatoLeido;
@@ -974,7 +994,7 @@ if ( (length(AddAlias)<5) or (length(AddAlias)>40) ) then
    OutText(LangLine(142),false,2); //'Alias must have between 5 and 40 chars'
    procesar := false;
    end;
-if IsValidAddress(addalias) then
+if IsValidHashAddress(addalias) then
    begin
    ConsoleLinesAdd(LangLine(143)); //'Alias can not be a valid address'
    procesar := false;
@@ -1062,7 +1082,7 @@ if ((Destination='') or (amount='')) then
    ConsoleLinesAdd(LAngLine(145)); //'Invalid parameters.'
    Procesar := false;
    end;
-if not IsValidAddress(Destination) then
+if not IsValidHashAddress(Destination) then
    begin
    AliasIndex:=AddressSumaryIndex(Destination);
    if AliasIndex<0 then
@@ -1410,10 +1430,7 @@ End;
 
 Procedure showCriptoThreadinfo();
 Begin
-ConsoleLinesAdd(Booltostr(CriptoThreadRunning,true)+' '+
-                 inttostr(length(CriptoOpstipo))+' '+
-                 inttostr(length(CriptoOpsoper))+' '+
-                 inttostr(length(CriptoOpsResu)));
+ConsoleLinesAdd(Booltostr(CriptoThreadRunning,true)+' '+intToStr(length(ArrayCriptoOp)));
 End;
 
 Procedure SetMiningCPUS(LineText:string);

@@ -49,7 +49,7 @@ resourcestring
   rs0038 = 'POOL: Unexpected command from: %s -> %s';
   rs0039 = 'POOL: Status requested from %s';
   rs0040 = 'Pool: closed incoming %s (%s)';
-  rs0041 = 'Pool: Error inside MinerJoin-> %s';
+  rs0041 = 'Pool: Error inside MinerJoin (%s) -> %s';
   rs0042 = 'SERVER: Error trying close a server client connection (%s)';
   rs0043 = 'SERVER: Received a line from a client without and assigned slot: %s';
   rs0044 = 'SERVER: Timeout reading line from connection';
@@ -92,6 +92,7 @@ resourcestring
   rs0081 = 'Invalid sign address';
   rs0082 = 'Funds address do not owns enough coins';
   rs0083 = 'You need update the wallet';
+  rs0084 = 'Not valid ASCII message received: %s';
   //mpGUI
   rs0500 = 'Noso Launcher';
   rs0501 = 'Destination';
@@ -126,7 +127,11 @@ resourcestring
   //mpred
   rs2000 = 'Sign address not valid';
   rs2001 = 'Wallet not updated';
-
+  rs2002 = '*****CRITICAL*****'+Slinebreak+'Error inside VerifyConnectionStatus: %s'+Slinebreak+'*****CRITICAL*****';
+  //mpcrypto
+  rs2501 = '*****CRITICAL*****'+Slinebreak+'Error type 3 on crypto thread: %s'+Slinebreak+'*****CRITICAL*****';
+  rs2502 = '*****CRITICAL*****'+Slinebreak+'Error type 4 on crypto thread: %s'+Slinebreak+'*****CRITICAL*****';
+  rs2503 = '*****CRITICAL*****'+Slinebreak+'Error type 5 on crypto thread: %s'+Slinebreak+'*****CRITICAL*****';
 {
 ConsoleLinesadd(format(rs,[]));
 }

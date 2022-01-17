@@ -13,8 +13,8 @@ Procedure CrearNuevoBloque(Numero,TimeStamp: Int64; TargetHash, Minero, Solucion
 function GetDiffForNextBlock(UltimoBloque,Last20Average,lastblocktime,previous:integer):integer;
 function GetLast20Time(LastBlTime:integer):integer;
 function GetBlockReward(BlNumber:int64):Int64;
-Procedure GuardarBloque(NombreArchivo:string;Cabezera:BlockHeaderData;Ordenes:array of OrderData;
-                        PosPay:Int64;PoSnumber:integer;PosAddresses:array of TArrayPos);
+Function GuardarBloque(NombreArchivo:string;Cabezera:BlockHeaderData;Ordenes:array of OrderData;
+                        PosPay:Int64;PoSnumber:integer;PosAddresses:array of TArrayPos):boolean;
 function LoadBlockDataHeader(BlockNumber:integer):BlockHeaderData;
 function GetBlockTrxs(BlockNumber:integer):BlockOrdersArray;
 Procedure UndoneLastBlock(ClearPendings,UndoPoolPayment:boolean);
@@ -75,12 +75,12 @@ if not errored then
    SetLength(ListaOrdenes,0);
    SetLength(IgnoredTrxs,0);
    // CREAR COPIA DEL SUMARIO
-   if fileexists(SumarioFilename+'.bak') then deletefile(SumarioFilename+'.bak');
+   trydeletefile(SumarioFilename+'.bak');
    copyfile(SumarioFilename,SumarioFilename+'.bak');
 
    // PROCESAR LAS TRANSACCIONES EN LISTAORDENES
    EnterCriticalSection(CSPending);
-   SetCurrentJob('NewBLOCK+PENDING',true);
+   SetCurrentJob('NewBLOCK_PENDING',true);
    for contador := 0 to length(pendingTXs)-1 do
       begin
       // Version 0.2.1Ga1 reverification starts
@@ -134,11 +134,11 @@ if not errored then
       end;
    end;
    SetLength(IgnoredTrxs,0);
-   SetCurrentJob('NewBLOCK+PENDING',false);
+   SetCurrentJob('NewBLOCK_PENDING',false);
    LeaveCriticalSection(CSPending);
 
    //PoS payment
-
+   SetCurrentJob('NewBLOCK_PoS',true);
    if numero >= PoSBlockStart then
       begin
       SetLength(PoSAddressess,0);
@@ -152,32 +152,28 @@ if not errored then
             PoSAddressess[length(PoSAddressess)-1].address:=listasumario[contador].Hash;
             end;
          end;
+      ListaSumario[0].LastOP:=numero;  // Actualizar el ultimo bloque añadido al sumario
       LeaveCriticalSection(CSSumary);
       PoScount := length(PoSAddressess);
       PosTotalReward := ((GetBlockReward(Numero)+MinerFee)*GetPoSPercentage(Numero)) div 10000;
       PosReward := PosTotalReward div PoScount;
-      //Tolog('PoS stack    : '+Int2curr(PosRequired));
-      //Tolog('PoS addresses: '+IntToStr(PoScount));
-      //Tolog('Block: '+IntToStr(numero)+' - PoS reward   : '+Int2curr(PosReward));
-      // Adjust the nosotoshi difference in TotalPoSReward
       PosTotalReward := PoSCount * PosReward;
       //pay POS
       for contador := 0 to length(PoSAddressess)-1 do
          UpdateSumario(PoSAddressess[contador].address,PosReward,0,IntToStr(Numero));
       end;
+   SetCurrentJob('NewBLOCK_PoS',false);
 
    // Pago del minero
    UpdateSumario(Minero,GetBlockReward(Numero)+MinerFee-PosTotalReward,0,IntToStr(numero));
    // Actualizar el ultimo bloque añadido al sumario
-   EnterCriticalSection(CSSumary);
-   ListaSumario[0].LastOP:=numero;
-   LeaveCriticalSection(CSSumary);
    // Guardar el sumario
    GuardarSumario();
    // Limpiar las pendientes
    for contador := 0 to length(ListaDirecciones)-1 do
       ListaDirecciones[contador].Pending:=0;
    // Definir la cabecera del bloque *****
+   SetCurrentJob('NewBLOCK_Headers',true);
    BlockHeader := Default(BlockHeaderData);
    BlockHeader.Number := Numero;
    BlockHeader.TimeStart:= StartBlockTime;
@@ -195,9 +191,11 @@ if not errored then
    BlockHeader.AccountMiner:=Minero;
    BlockHeader.MinerFee:=MinerFee;
    BlockHeader.Reward:=GetBlockReward(Numero);
+   SetCurrentJob('NewBLOCK_Headers',false);
    // Fin de la cabecera -----
    // Guardar bloque al disco
-   GuardarBloque(FileName,BlockHeader,ListaOrdenes,PosReward,PosCount,PoSAddressess);
+   if not GuardarBloque(FileName,BlockHeader,ListaOrdenes,PosReward,PosCount,PoSAddressess) then
+      ToExcLog('*****CRITICAL*****'+slinebreak+'Error building block: '+numero.ToString);
    SetLength(ListaOrdenes,0);
    SetLength(PoSAddressess,0);
    // Actualizar informacion
@@ -215,15 +213,19 @@ if not errored then
       ConsoleLinesAdd('Your pool solved the block '+inttoStr(numero));
       DistribuirEnPool(GetBlockReward(Numero)+MinerFee-PosTotalReward);
       end;
-   if ((Miner_OwnsAPool) and (PoolExpelBlocks>0)) then ExpelPoolInactives;
+   if ((Miner_OwnsAPool) and (PoolExpelBlocks>0)) then
+      begin
+      ExpelPoolInactives;
+      GuardarPoolMembers();
+      end;
    EnterCriticalSection(CSPoolMembers);
    setmilitime('BACKUPPoolMembers',1);
    copyfile (PoolMembersFilename,PoolMembersFilename+'.bak');
    setmilitime('BACKUPPoolMembers',2);
    LeaveCriticalSection(CSPoolMembers);
 
-   if Numero>0 then
-      begin
+   if ( (Numero>0) and (form1.Server.Active) ) then
+      begin  // Re-sent the block solution
       OutgoingMsjsAdd(ProtocolLine(6)+IntToStr(timeStamp)+' '+IntToStr(Numero)+
       ' '+Minero+' '+StringReplace(Solucion,' ','_',[rfReplaceAll, rfIgnoreCase]));
       OutgoingMsjsAdd(ProtocolLine(ping));
@@ -241,9 +243,6 @@ if not errored then
    U_DataPanel := true;
    SetCurrentJob('CrearNuevoBloque',false);
    setmilitime('CrearNuevoBloque',2);
-   //EnterCriticalSection(CSMNsArray);
-   //SetLength(MNsArray,0); // It should clear the list here
-   //LeaveCriticalSection(CSMNsArray);
    end;
 BuildingBlock := false;
 End;
@@ -296,18 +295,19 @@ else result := 0;
 End;
 
 // Guarda el archivo de bloque en disco
-Procedure GuardarBloque(NombreArchivo:string;Cabezera:BlockHeaderData;
-                        Ordenes:array of OrderData;PosPay:Int64;PoSnumber:integer;PosAddresses:array of TArrayPos);
+Function GuardarBloque(NombreArchivo:string;Cabezera:BlockHeaderData;
+                        Ordenes:array of OrderData;PosPay:Int64;PoSnumber:integer;PosAddresses:array of TArrayPos):boolean;
 var
   MemStr: TMemoryStream;
   NumeroOrdenes : int64;
   counter : integer;
 Begin
+result := true;
 SetCurrentJob('GuardarBloque',true);
 setmilitime('GuardarBloque',1);
 NumeroOrdenes := Cabezera.TrxTotales;
 MemStr := TMemoryStream.Create;
-   try
+   TRY
    MemStr.Write(Cabezera,Sizeof(Cabezera));
    for counter := 0 to NumeroOrdenes-1 do
       MemStr.Write(Ordenes[counter],Sizeof(Ordenes[Counter]));
@@ -319,9 +319,12 @@ MemStr := TMemoryStream.Create;
          MemStr.Write(PosAddresses[counter],Sizeof(PosAddresses[Counter]));
       end;
    MemStr.SaveToFile(NombreArchivo);
-   Except
-   On E :Exception do ConsoleLinesAdd(LangLine(20));           //Error saving block to disk
-   end;
+   EXCEPT On E :Exception do
+      begin
+      ConsoleLinesAdd(LangLine(20));           //Error saving block to disk
+      result := false;
+      end;
+   END{Try};
 MemStr.Free;
 setmilitime('GuardarBloque',2);
 SetCurrentJob('GuardarBloque',false);
@@ -337,20 +340,20 @@ Begin
 Header := Default(BlockHeaderData);
 ArchData := BlockDirectory+IntToStr(BlockNumber)+'.blk';
 MemStr := TMemoryStream.Create;
+TRY
    try
-      try
-      MemStr.LoadFromFile(ArchData);
-      MemStr.Position := 0;
-      MemStr.Read(Header, SizeOf(Header));
-      Except on E:Exception do
-         begin
-         ConsoleLinesAdd('Error loading Header from block '+IntToStr(BlockNumber)+':'+E.Message);
-         end;
+   MemStr.LoadFromFile(ArchData);
+   MemStr.Position := 0;
+   MemStr.Read(Header, SizeOf(Header));
+   Except on E:Exception do
+      begin
+      ConsoleLinesAdd('Error loading Header from block '+IntToStr(BlockNumber)+':'+E.Message);
       end;
-   finally
-   MemStr.Free;
    end;
+FINALLY
+MemStr.Free;
 Result := header;
+END{Try};
 End;
 
 // Devuelve las transacciones del bloque
