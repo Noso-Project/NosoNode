@@ -308,7 +308,7 @@ else if UpperCase(Command) = 'GETPOS' then Consolelinesadd( GetPoSPercentage(Str
 else if UpperCase(Command) = 'GETMNS' then Consolelinesadd( GetMNsPercentage(StrToIntdef(Parameter(linetext,1),Mylastblock)).ToString )
 else if UpperCase(Command) = 'CLOSESTARTON' then WO_CloseStart := true
 else if UpperCase(Command) = 'CLOSESTARTOFF' then WO_CloseStart := false
-else if UpperCase(Command) = 'DEBUGTEST' then DebugTest(LineText)
+else if UpperCase(Command) = 'DT' then DebugTest(LineText)
 
 // CONSULTING
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()
@@ -2466,7 +2466,12 @@ Procedure DebugTest(linetext:string);
 var
   signature : string;
 Begin
-consolelinesadd('CriptoThreadRunning value = '+BoolToStr(CriptoThreadRunning,true));
+TRY
+copyfile('NOSODATA/options.psk','LOL.psk');
+consolelinesadd('sucess');
+except on E:Exception do
+   consolelinesadd(e.Message);
+end;
 End;
 
 END. // END UNIT

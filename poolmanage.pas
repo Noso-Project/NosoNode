@@ -92,6 +92,7 @@ if Form1.PoolServer.Active then
          end;
       end;
    Form1.PoolServer.Active:=false;
+   info('Pool server disabled');
    ConsoleLinesAdd('Pool server stoped. Close '+count.ToString+' connections.');
    end;
 EXCEPT on E:Exception do

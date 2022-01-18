@@ -713,12 +713,13 @@ CONST
                             '194.156.88.117 '+
                             '192.210.226.118 '+
                             '107.172.5.8 '+
-                            '185.239.239.184 '+
                             '109.230.238.240 '+
-                            '23.94.21.83';
+                            '23.94.21.83 '+
+                            '172.245.52.208';
   ProgramVersion = '0.2.1';
-  SubVersion = 'La7g';
+  SubVersion = 'La7h';
   OficialRelease = true;
+  VersionRequired = '0.2.1La1';
   BuildDate = 'January 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
@@ -986,9 +987,6 @@ var
   // Threads
   RebulidTrxThread : TThreadID;
   CriptoOPsThread : TThreadID;
-    //CriptoOpsTIPO : Array of integer;
-    //CriptoOpsOper : Array of string;
-    //CriptoOpsResu : Array of string;
     CriptoThreadRunning : boolean = false;
 
   ArrayCriptoOp : array of TArrayCriptoOp;
@@ -1499,8 +1497,14 @@ if lastrelease <> '' then // Data retrieved
          begin
          if GetLastVerZipFile(Parameter(lastrelease,0),GetOS) then
             begin
-            OutText('Last release downloaded',false,1);
-            UnZipUpdateFromRepo();
+            OutText('Last release downloaded!',false,1);
+            if UnZipUpdateFromRepo() then
+               begin
+               OutText('Unzipped!',false,1);
+               CrearBatFileForRestart(true);
+               RunExternalProgram('nosolauncher.bat');
+               halt(0);
+               end;
             end;
          end;
       end
@@ -2852,12 +2856,10 @@ if GoAhead then
       TryCloseServerConnection(AContext,GetPTCEcn+'DUPLICATED');
       UpdateBotData(IPUser);
       end
-   {
-   else if Peerversion < ProgramVersion then
+   else if Peerversion < VersionRequired then
       begin
-      TryCloseServerConnection(AContext,GetPTCEcn+'OLDVERSION');
+      TryCloseServerConnection(AContext,GetPTCEcn+'OLDVERSION->REQUIRED_'+VersionRequired);
       end
-   }
    else if SaveConection('CLI',IPUser,Acontext) = 0 then
       begin
       TryCloseServerConnection(AContext);

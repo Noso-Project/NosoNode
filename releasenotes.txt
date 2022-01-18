@@ -26,6 +26,9 @@ Version 0.2.1La6
 - Send outgoings thread made permanent.
 - Do not re-sent received orders if node is not active.
 - Implemented function IsValidMNReport.
+- Implemented versionrequired CONST.
+- Added seednode 172.245.52.208
+- Removed seednode 185.239.239.184
 
 Version 0.2.1La5
 

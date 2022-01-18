@@ -83,7 +83,7 @@ function GetMyLastUpdatedBlock():int64;
 
 function SetCustomAlias(Address,Addalias:String;block:integer):Boolean;
 procedure UnzipBlockFile(filename:String;delfile:boolean);
-Procedure UnZipUpdateFromRepo();
+function UnZipUpdateFromRepo():boolean;
 Procedure CreateResumen();
 Procedure BuildHeaderFile(untilblock:integer);
 Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
@@ -1388,10 +1388,11 @@ Begin
    end;
 end;
 
-Procedure UnZipUpdateFromRepo();
+function UnZipUpdateFromRepo():boolean;
 var
   UnZipper: TUnZipper;
 Begin
+result := true;
 TRY
 UnZipper := TUnZipper.Create;
    TRY
@@ -1403,7 +1404,8 @@ UnZipper := TUnZipper.Create;
    FINALLY
    UnZipper.Free;
    END{Try};
-//Trydeletefile(filename);
+Trydeletefile('NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator+'update.zip');
+copyfile('NOSODATA/UPDATES/Noso.exe','nosonew.exe');
 EXCEPT on E:Exception do
    begin
    OutText ('Error unzipping update file',false,1);
@@ -1933,12 +1935,12 @@ writeln(archivo,'echo Restarting Noso...');
 writeln(archivo,'TIMEOUT 5');
 writeln(archivo,'tasklist /FI "IMAGENAME eq '+AppFileName+'" 2>NUL | find /I /N "'+AppFileName+'">NUL');
 writeln(archivo,'if "%ERRORLEVEL%"=="0" taskkill /F /im '+AppFileName);
-{if IncludeUpdate then
+if IncludeUpdate then
    begin
-   delete noso.exe
-   copy /NOSODATA/UPDATE/Noso.exe /
-   end;}
-writeln(archivo,'start '+AppFileName);
+   writeln('del noso.exe');
+   writeln('ren nosonew.exe noso.exe');
+   end;
+writeln(archivo,'start '+'noso.exe');
 Closefile(archivo);
 EXCEPT on E:Exception do
    tolog ('Error creating restart file: '+E.Message);
