@@ -1191,8 +1191,8 @@ TRY
    TRY
    Form1.IdHTTPUpdate.HandleRedirects:=true;
    Form1.IdHTTPUpdate.IOHandler:=IdSSLIOHandler;
-   Form1.IdHTTPUpdate.get('https://github.com/Noso-Project/NosoWallet/releases/download/v0.2.1La5/noso-v0.2.1La5-i386-win32.zip',MS);
-   //Form1.IdHTTPUpdate.get(DownLink, MS);
+   //Form1.IdHTTPUpdate.get('https://github.com/Noso-Project/NosoWallet/releases/download/v0.2.1La5/noso-v0.2.1La5-i386-win32.zip',MS);
+   Form1.IdHTTPUpdate.get(DownLink, MS);
    MS.SaveToFile('NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator+'update.zip');
    result := true;
    EXCEPT ON E:Exception do

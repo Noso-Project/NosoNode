@@ -1927,8 +1927,8 @@ Procedure CrearBatFileForRestart(IncludeUpdate:boolean = false);
 var
   archivo : textfile;
 Begin
-TRY
 {$IFDEF WINDOWS}
+TRY
 Assignfile(archivo, 'nosolauncher.bat');
 rewrite(archivo);
 writeln(archivo,'echo Restarting Noso...');
@@ -1937,10 +1937,11 @@ writeln(archivo,'tasklist /FI "IMAGENAME eq '+AppFileName+'" 2>NUL | find /I /N 
 writeln(archivo,'if "%ERRORLEVEL%"=="0" taskkill /F /im '+AppFileName);
 if IncludeUpdate then
    begin
-   writeln('del noso.exe');
-   writeln('ren nosonew.exe noso.exe');
-   end;
-writeln(archivo,'start '+'noso.exe');
+   writeln(archivo,'del noso.exe');
+   writeln(archivo,'ren nosonew.exe noso.exe');
+   writeln(archivo,'start noso.exe');
+   end
+else writeln(archivo,'start '+Appfilename);
 Closefile(archivo);
 EXCEPT on E:Exception do
    tolog ('Error creating restart file: '+E.Message);

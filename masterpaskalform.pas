@@ -717,7 +717,7 @@ CONST
                             '23.94.21.83 '+
                             '172.245.52.208';
   ProgramVersion = '0.2.1';
-  SubVersion = 'La7h';
+  SubVersion = 'La5h';
   OficialRelease = true;
   VersionRequired = '0.2.1La1';
   BuildDate = 'January 2022';
@@ -783,6 +783,7 @@ var
   WO_CloseStart    : boolean = true;
   WO_AutoUpdate    : Boolean = true;
     UpdateFileSize : int64 = 0;
+    FirstTimeUpChe : boolean = true;
   RPCFilter        : boolean = true;
   RPCWhitelist     : string = '127.0.0.1,localhost';
   RPCAuto          : boolean = false;
@@ -1486,13 +1487,14 @@ if lastrelease <> '' then // Data retrieved
    begin
    if Parameter(lastrelease,0) = ProgramVersion+Subversion then
       begin
-      gridinicio.RowCount:=gridinicio.RowCount-1;
+      //gridinicio.RowCount:=gridinicio.RowCount-1;
       OutText(rs0073,false,1);  //✓ Running last release version
       end
    else if Parameter(lastrelease,0) > ProgramVersion+Subversion then
       begin // new version available
-      gridinicio.RowCount:=gridinicio.RowCount-1;
+      //gridinicio.RowCount:=gridinicio.RowCount-1;
       OutText(rs0074,false,1); //✗ New version available on project repo
+      OutText(Parameter(lastrelease,0)+' > '+ProgramVersion+Subversion,false,1);
       if WO_AutoUpdate then
          begin
          if GetLastVerZipFile(Parameter(lastrelease,0),GetOS) then
@@ -1502,6 +1504,7 @@ if lastrelease <> '' then // Data retrieved
                begin
                OutText('Unzipped!',false,1);
                CrearBatFileForRestart(true);
+               sleep(3000);
                RunExternalProgram('nosolauncher.bat');
                halt(0);
                end;
@@ -3947,17 +3950,26 @@ procedure TForm1.IdHTTPUpdateWork(ASender: TObject; AWorkMode: TWorkMode;
   AWorkCount: Int64);
 var
   Percent: Integer;
-begin
+Begin
 Percent := 100*AWorkCount div UpdateFileSize;
 
-gridinicio.RowCount:=gridinicio.RowCount-1;
-OutText('Progress: '+IntToStr(percent)+' %',false,1);
-end;
+if FirstTimeUpChe then
+   begin
+   //OutText('',false,1);
+   FirstTimeUpChe := false;
+   end
+else
+   begin
+   gridinicio.RowCount:=gridinicio.RowCount-1;
+   OutText('Progress: '+IntToStr(percent)+' % / '+IntToStr(UpdateFileSize div 1024)+' Kb',false,1);
+   end;
+End;
 
 procedure TForm1.IdHTTPUpdateWorkBegin(ASender: TObject; AWorkMode: TWorkMode;
   AWorkCountMax: Int64);
 begin
-OutText('Progress: 0 %',false,1);
+//OutText('Size: '+IntToStr(AWorkCountMax div 1024)+' Kb',false,1);
+OutText('',false,1);
 UpdateFileSize := AWorkCountMax;
 end;
 
