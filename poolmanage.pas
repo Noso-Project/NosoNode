@@ -40,6 +40,7 @@ function PoolStatusString():String;
 function StepAlreadyAdded(stepstring:string):Boolean;
 Procedure RestartPoolSolution();
 Procedure ShowPoolBots();
+function KickPoolIP(IP:string):integer;
 
 implementation
 
@@ -336,6 +337,7 @@ ARepartir := Cantidad;
 NumeroDePasos := GetPoolNumeroDePasos();
 PoolComision := (cantidad* PoolInfo.Porcentaje) div 10000;
 PoolInfo.FeeEarned:=PoolInfo.FeeEarned+PoolComision;
+
 
 ARepartir := ARepartir-PoolComision;
 RepartirShares := (ARepartir * PoolShare) div 100;
@@ -815,7 +817,31 @@ for counter := 0 to length(ListaPoolBots)-1 do
    begin
    consolelinesadd(ListaPoolBots[counter].ip+'->'+IntToStr(ListaPoolBots[counter].count));
    end;
+End;
 
+function KickPoolIP(IP:string): integer;
+var
+  counter : integer;
+  thiscontext : TIdContext;
+Begin
+result := 0;
+for counter := 0 to length(PoolServerConex)-1 do
+   begin
+   if PoolServerConex[counter].Ip = Ip then
+     begin
+     thiscontext := PoolServerConex[counter].Context;
+        TRY
+        PoolServerConex[counter].Context.Connection.IOHandler.InputBuffer.Clear;
+        PoolServerConex[counter].Context.Connection.Disconnect;
+        result := result+1;
+        BorrarPoolServerConex(thiscontext);
+        EXCEPT ON E: Exception do
+           begin
+           ToPoolLog('Cant kick connection from: '+IP);
+           end;
+        end;
+     end;
+   end;
 End;
 
 END. // END UNIT

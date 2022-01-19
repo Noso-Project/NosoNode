@@ -88,8 +88,10 @@ type
 
   TPoolBot = Packed Record
      ip: string[15];
+     join : int64;
      Last : int64;
      count : integer;
+     notified : int64;
      end;
 
   NodeData = Packed Record
@@ -717,9 +719,17 @@ CONST
                             '23.94.21.83 '+
                             '172.245.52.208';
   ProgramVersion = '0.2.1';
-  SubVersion = 'La5h';
+  {$IFDEF WINDOWS}
+  RestartFileName = 'launcher.bat';
+  updateextension = 'zip';
+  {$ENDIF}
+  {$IFDEF LINUX}
+  RestartFileName = 'launcher.sh';
+  updateextension = 'tgz';
+  {$ENDIF}
+  SubVersion = 'La7j';
   OficialRelease = true;
-  VersionRequired = '0.2.1La1';
+  VersionRequired = '0.2.1La5';
   BuildDate = 'January 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
@@ -1468,7 +1478,7 @@ if ((UTCTime.ToInt64 > EngineLastUpdate+WO_AntiFreezeTime) and (WO_AntiFreeze)) 
    RunExternalProgram('nosolauncher.bat');
    info(rs0020); //'Noso launcher executed'
    delay(500);
-   form1.close;
+   Halt(0); //form1.close
    end
 else RestartTimer.Enabled:=true;
 End;
@@ -1504,8 +1514,7 @@ if lastrelease <> '' then // Data retrieved
                begin
                OutText('Unzipped!',false,1);
                CrearBatFileForRestart(true);
-               sleep(3000);
-               RunExternalProgram('nosolauncher.bat');
+               RunExternalProgram(RestartFilename);
                halt(0);
                end;
             end;
@@ -1564,9 +1573,9 @@ if useroptions.JustUpdated then
    S_Options := true;
    OutText('✓ Just updated to a new version',false,1);
    end;
-if fileexists('nosolauncher.bat') then
+if fileexists(RestartFileName) then
    begin
-   Deletefile('nosolauncher.bat');
+   Deletefile(RestartFileName);
    OutText(rs0069,false,1); // '✓ Launcher file deleted';
    end;
 if fileexists('restart.txt') then
@@ -2215,6 +2224,9 @@ Function TForm1.UpdatePoolBot(ipuser:string):integer;
 var
   counter: integer;
   modified : boolean = false;
+  averagerate : int64;
+  timeelapsed : integer;
+  kickeds : integer;
 Begin
 if length(ListaPoolBots) > 0 then
    begin
@@ -2224,7 +2236,25 @@ if length(ListaPoolBots) > 0 then
          begin
          ListaPoolBots[counter].count+=1;
          ListaPoolBots[counter].Last:=UTCTime.ToInt64;
+         timeelapsed := ListaPoolBots[counter].Last-ListaPoolBots[counter].join;
+         averagerate := ListaPoolBots[counter].count div timeelapsed;
+         if averagerate > 1000 then
+            begin
+            if UTCTime.ToInt64> ListaPoolBots[counter].notified+10 then
+               begin
+               ToPoolLog('IP '+ListaPoolBots[counter].ip+' Rate: '+IntToStr(averagerate));
+               ListaPoolBots[counter].notified := UTCTime.ToInt64;
+               end;
+            Kickeds := KickPoolIp(IpUser);
+            ToPoolLog('Kicked '+IntToStr(KickPoolIp(IpUser))+' connections');
+            if kickeds > 0 then
+               begin
+               ListaPoolBots[Length(ListaPoolBots)-1].join := UTCTime.ToInt64;
+               ListaPoolBots[counter].count := 0;
+               end;
+            end;
          modified := true;
+         break;
          end;
       end;
    end;
@@ -2234,6 +2264,7 @@ if not modified then
    ListaPoolBots[Length(ListaPoolBots)-1].ip:=IPUser;
    ListaPoolBots[Length(ListaPoolBots)-1].count:=1;
    ListaPoolBots[Length(ListaPoolBots)-1].Last:=UTCTime.ToInt64;
+   ListaPoolBots[Length(ListaPoolBots)-1].join:=UTCTime.ToInt64;
    end;
 End;
 
@@ -2250,7 +2281,7 @@ var
   SendFundsResult : string = '';
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
-UpdatePoolBot(IPUser);
+//UpdatePoolBot(IPUser);
 if GetPoolContextIndex(AContext)<0 then
    begin
    TryClosePoolConnection(AContext);

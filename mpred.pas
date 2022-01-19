@@ -1176,6 +1176,7 @@ var
   Int_SumarySize : int64;
   IdSSLIOHandler: TIdSSLIOHandlerSocketOpenSSL;
   DownLink : String = '';
+  extension : string;
 Begin
 result := false;
 if localOS = 'Windows32' then
@@ -1183,7 +1184,7 @@ if localOS = 'Windows32' then
 if localOS = 'Windows64' then
    DownLink := 'https://github.com/Noso-Project/NosoWallet/releases/download/v'+version+'/noso-v'+version+'-x86_64-win64.zip';
 if localOS = 'Linux64' then
-   DownLink := 'https://github.com/Noso-Project/NosoWallet/releases/download/v'+version+'/noso-v'+'-x86_64-linux.tgz';
+   DownLink := 'https://github.com/Noso-Project/NosoWallet/releases/download/v'+version+'/noso-v'+version+'-x86_64-linux.zip';
 IdSSLIOHandler:= TIdSSLIOHandlerSocketOpenSSL.Create;
 IdSSLIOHandler.SSLOptions.SSLVersions := [sslvTLSv1,sslvTLSv1_1,sslvTLSv1_2];
 MS := TMemoryStream.Create;
@@ -1191,7 +1192,6 @@ TRY
    TRY
    Form1.IdHTTPUpdate.HandleRedirects:=true;
    Form1.IdHTTPUpdate.IOHandler:=IdSSLIOHandler;
-   //Form1.IdHTTPUpdate.get('https://github.com/Noso-Project/NosoWallet/releases/download/v0.2.1La5/noso-v0.2.1La5-i386-win32.zip',MS);
    Form1.IdHTTPUpdate.get(DownLink, MS);
    MS.SaveToFile('NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator+'update.zip');
    result := true;

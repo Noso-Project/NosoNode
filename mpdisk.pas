@@ -1405,11 +1405,13 @@ UnZipper := TUnZipper.Create;
    UnZipper.Free;
    END{Try};
 Trydeletefile('NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator+'update.zip');
-copyfile('NOSODATA/UPDATES/Noso.exe','nosonew.exe');
+{$IFDEF WINDOWS}copyfile('NOSODATA/UPDATES/Noso.exe','nosonew');{$ENDIF}
+{$IFDEF LINUX}copyfile('NOSODATA/UPDATES/Noso','nosonew');{$ENDIF}
 EXCEPT on E:Exception do
    begin
    OutText ('Error unzipping update file',false,1);
    OutText (E.Message,false,1);
+   result := false;
    end;
 END{Try};
 End;
@@ -1928,9 +1930,9 @@ var
   archivo : textfile;
 Begin
 {$IFDEF WINDOWS}
-TRY
-Assignfile(archivo, 'nosolauncher.bat');
+Assignfile(archivo,RestartFilename);
 rewrite(archivo);
+TRY
 writeln(archivo,'echo Restarting Noso...');
 writeln(archivo,'TIMEOUT 5');
 writeln(archivo,'tasklist /FI "IMAGENAME eq '+AppFileName+'" 2>NUL | find /I /N "'+AppFileName+'">NUL');
@@ -1938,15 +1940,37 @@ writeln(archivo,'if "%ERRORLEVEL%"=="0" taskkill /F /im '+AppFileName);
 if IncludeUpdate then
    begin
    writeln(archivo,'del noso.exe');
-   writeln(archivo,'ren nosonew.exe noso.exe');
+   writeln(archivo,'ren nosonew noso.exe');
    writeln(archivo,'start noso.exe');
    end
 else writeln(archivo,'start '+Appfilename);
-Closefile(archivo);
+{$ENDIF}
+{$IFDEF Linux}
+writeln(archivo,'for x in 5 4 3 2 1; do');
+writeln(archivo,'echo -ne "Restarting in ${x}\r"');
+writeln(archivo,'sleep 1');
+writeln(archivo,'done');
+writeln(archivo,'PID=$(ps ux | grep -v grep | grep -i '+AppFileName+' | cut -d" " -f 2)');
+writeln(archivo,'if [ "${PID}" != "" ]; then');
+writeln(archivo,'echo Killing '+AppFileName);
+writeln(archivo,'kill ${PID}');
+writeln(archivo,'fi');
+if IncludeUpdate then
+   begin
+   writeln(archivo,'rm '+AppFileName);
+   writeln(archivo,'mv Nosonew Noso');
+   writeln(archivo,'chmod +x Noso');
+   writeln(archivo,'./Noso');
+   end
+else
+   begin
+   writeln(archivo,'./'+AppFileName);
+   end;
+{$ENDIF}
 EXCEPT on E:Exception do
    tolog ('Error creating restart file: '+E.Message);
-END;
-{$ENDIF}
+END{Try};
+Closefile(archivo);
 End;
 
 // Prepares for restart
