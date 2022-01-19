@@ -16,3 +16,4 @@ mpoptions.pas
 *.backup
 crashinfo.txt
 launcher.bat
+launcher.sh
