@@ -1965,7 +1965,7 @@ if IncludeUpdate then
 else
    begin
    writeln(archivo,'./'+AppFileName);
-   end;
+   end
 {$ENDIF}
 EXCEPT on E:Exception do
    tolog ('Error creating restart file: '+E.Message);
