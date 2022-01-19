@@ -1406,7 +1406,7 @@ UnZipper := TUnZipper.Create;
    END{Try};
 Trydeletefile('NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator+'update.zip');
 {$IFDEF WINDOWS}copyfile('NOSODATA/UPDATES/Noso.exe','nosonew');{$ENDIF}
-{$IFDEF LINUX}copyfile('NOSODATA/UPDATES/Noso','nosonew');{$ENDIF}
+{$IFDEF LINUX}copyfile('NOSODATA/UPDATES/Noso','Nosonew');{$ENDIF}
 EXCEPT on E:Exception do
    begin
    OutText ('Error unzipping update file',false,1);
@@ -1929,17 +1929,17 @@ Procedure CrearBatFileForRestart(IncludeUpdate:boolean = false);
 var
   archivo : textfile;
 Begin
-{$IFDEF WINDOWS}
 Assignfile(archivo,RestartFilename);
 rewrite(archivo);
 TRY
+{$IFDEF WINDOWS}
 writeln(archivo,'echo Restarting Noso...');
 writeln(archivo,'TIMEOUT 5');
 writeln(archivo,'tasklist /FI "IMAGENAME eq '+AppFileName+'" 2>NUL | find /I /N "'+AppFileName+'">NUL');
 writeln(archivo,'if "%ERRORLEVEL%"=="0" taskkill /F /im '+AppFileName);
 if IncludeUpdate then
    begin
-   writeln(archivo,'del noso.exe');
+   writeln(archivo,'del '+AppFileName);
    writeln(archivo,'ren nosonew noso.exe');
    writeln(archivo,'start noso.exe');
    end
@@ -1963,9 +1963,7 @@ if IncludeUpdate then
    writeln(archivo,'./Noso');
    end
 else
-   begin
    writeln(archivo,'./'+AppFileName);
-   end
 {$ENDIF}
 EXCEPT on E:Exception do
    tolog ('Error creating restart file: '+E.Message);
