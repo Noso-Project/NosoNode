@@ -731,7 +731,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'La7L';
+  SubVersion = 'La1L';
   OficialRelease = false;
   VersionRequired = '0.2.1La5';
   BuildDate = 'January 2022';
@@ -1496,7 +1496,7 @@ if lastrelease <> '' then // Data retrieved
                OutText('Unzipped!',false,1);
                CreateLauncherFile(true);
                RunExternalProgram(RestartFilename);
-               halt(0);
+               cerrarprograma();
                end;
             end;
          end;
@@ -1948,45 +1948,55 @@ if GoAhead then
    form1.Visible:=false;
    forminicio.Visible:=true;
    CloseLine(rs0030);  //   Closing wallet
-   delay(1000);
    CreateADV(false); // save advopt
-
-   delay(1000);
+   delay(100);
    if RestartNosoAfterQuit then CrearRestartfile();
    CloseAllforms();
    StopPoolServer();
    CerrarClientes();
    StopServer();
    CloseLine('Closed connections');
+   delay(100);
    if length(ArrayPoolMembers)>0 then GuardarPoolMembers();
    If Miner_IsOn then Miner_IsON := false;
    if RunDoctorBeforeClose then RunDiagnostico('rundiag fix');
    if RestartNosoAfterQuit then restartnoso();
-   StringListLang.Free;
-   ConsoleLines.Free;
-   DLSL.Free;
-   IdiomasDisponibles.Free;
-   LogLines.Free;
-   PoolLogLines.Free;
-   ExceptLines.Free;
-   ProcessLines.Free;
-   PoolPaysLines.free;
+   If Assigned(StringListLang) then StringListLang.Free;
+   If Assigned(ConsoleLines) then ConsoleLines.Free;
+   If Assigned(DLSL) then DLSL.Free;
+   If Assigned(IdiomasDisponibles) then IdiomasDisponibles.Free;
+   If Assigned(LogLines) then LogLines.Free;
+   If Assigned(PoolLogLines) then PoolLogLines.Free;
+   If Assigned(ExceptLines) then ExceptLines.Free;
+   If Assigned(ProcessLines) then ProcessLines.Free;
+   If Assigned(PoolPaysLines) then PoolPaysLines.Free;
+   If Assigned(OutgoingMsjs) then OutgoingMsjs.Free;
    CloseLine('Componnents freed');
+   delay(100);
    for contador := 1 to maxconecciones do
-      SlotLines[contador].Free;
+      If Assigned(SlotLines[contador]) then SlotLines[contador].Free;
    CloseLine('Client lines freed');
-   SendOutMsgsThread.Terminate;
-   SendOutMsgsThread.WaitFor;
-   OutgoingMsjs.Free;
-   CryptoThread.Terminate;
-   CryptoThread.WaitFor;
-   ThreadMNs.Terminate;
-   ThreadMNs.WaitFor;
+   delay(100);
+   If Assigned(SendOutMsgsThread) then
+      begin
+      SendOutMsgsThread.Terminate;
+      SendOutMsgsThread.WaitFor;
+      end;
+   If Assigned(CryptoThread) then
+      begin
+      CryptoThread.Terminate;
+      CryptoThread.WaitFor;
+      end;
+   If Assigned(CryptoThread) then
+      begin
+      ThreadMNs.Terminate;
+      ThreadMNs.WaitFor;
+      end;
    CloseLine('Terminated threads');
+   delay(100);
    form1.Close;
    application.Terminate;
    //Halt(0);
-   delay(1000);
    end;
 End;
 

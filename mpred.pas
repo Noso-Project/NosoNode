@@ -1178,6 +1178,7 @@ var
   IdSSLIOHandler: TIdSSLIOHandlerSocketOpenSSL;
   DownLink : String = '';
   extension : string;
+  Conector : TFPHttpClient;
 Begin
 result := false;
 if localOS = 'Windows32' then
@@ -1186,14 +1187,25 @@ if localOS = 'Windows64' then
    DownLink := 'https://github.com/Noso-Project/NosoWallet/releases/download/v'+version+'/noso-v'+version+'-x86_64-win64.zip';
 if localOS = 'Linux64' then
    DownLink := 'https://github.com/Noso-Project/NosoWallet/releases/download/v'+version+'/noso-v'+version+'-x86_64-linux.zip';
+
+// indy mode
 IdSSLIOHandler:= TIdSSLIOHandlerSocketOpenSSL.Create;
 IdSSLIOHandler.SSLOptions.SSLVersions := [sslvTLSv1,sslvTLSv1_1,sslvTLSv1_2];
 MS := TMemoryStream.Create;
+
+// TFPHttpClient mode
+Conector := TFPHttpClient.Create(nil);
+conector.ConnectTimeout:=1000;
+conector.IOTimeout:=1000;
+conector.AllowRedirect:=true;
+
+
 TRY
    TRY
-   Form1.IdHTTPUpdate.HandleRedirects:=true;
-   Form1.IdHTTPUpdate.IOHandler:=IdSSLIOHandler;
-   Form1.IdHTTPUpdate.get(DownLink, MS);
+   //Form1.IdHTTPUpdate.HandleRedirects:=true;
+   //Form1.IdHTTPUpdate.IOHandler:=IdSSLIOHandler;
+   //Form1.IdHTTPUpdate.get(DownLink, MS);
+   Conector.Get(DownLink,MS);
    MS.SaveToFile('NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator+'update.zip');
    result := true;
    EXCEPT ON E:Exception do
@@ -1204,6 +1216,7 @@ TRY
 FINALLY
 MS.Free;
 IdSSLIOHandler.Free;
+conector.free;
 END{try};
 End;
 

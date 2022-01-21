@@ -70,8 +70,6 @@ Procedure SaveMyTrxsLastUpdatedblock(Number:integer;PoSPayouts, PoSEarnings:int6
 Procedure RebuildMyTrx(blocknumber:integer);
 Procedure SaveMyTrxsToDisk(Cantidad:integer);
 
-
-
 Procedure CrearNTPData();
 Procedure CargarNTPData();
 Procedure SaveUpdatedFiles();
