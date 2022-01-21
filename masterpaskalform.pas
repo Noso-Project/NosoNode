@@ -731,7 +731,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'La1L';
+  SubVersion = 'La8';
   OficialRelease = false;
   VersionRequired = '0.2.1La5';
   BuildDate = 'January 2022';
@@ -1970,7 +1970,6 @@ if GoAhead then
    If Assigned(ExceptLines) then ExceptLines.Free;
    If Assigned(ProcessLines) then ProcessLines.Free;
    If Assigned(PoolPaysLines) then PoolPaysLines.Free;
-   If Assigned(OutgoingMsjs) then OutgoingMsjs.Free;
    CloseLine('Componnents freed');
    delay(100);
    for contador := 1 to maxconecciones do
@@ -1982,17 +1981,20 @@ if GoAhead then
       SendOutMsgsThread.Terminate;
       SendOutMsgsThread.WaitFor;
       end;
+   If Assigned(OutgoingMsjs) then OutgoingMsjs.Free;
+   CloseLine('Out thread closed');
    If Assigned(CryptoThread) then
       begin
       CryptoThread.Terminate;
       CryptoThread.WaitFor;
       end;
-   If Assigned(CryptoThread) then
+   CloseLine('Crypto thread closed');
+   If Assigned(ThreadMNs) then
       begin
       ThreadMNs.Terminate;
       ThreadMNs.WaitFor;
       end;
-   CloseLine('Terminated threads');
+   CloseLine('MNs thread closed');
    delay(100);
    form1.Close;
    application.Terminate;

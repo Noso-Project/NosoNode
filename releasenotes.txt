@@ -1,3 +1,13 @@
+Version 0.2.1La8
+
+- Official release
+
+Version 0.2.1La7
+
+- Perfect close. Removed close timer.
+- mpmn unit created.
+- Full autodownload from repo windows/linux.
+
 Version 0.2.1La6
 
 - Node verify first if a report already exists to better performance.
@@ -29,7 +39,6 @@ Version 0.2.1La6
 - Implemented versionrequired CONST.
 - Added seednode 172.245.52.208
 - Removed seednode 185.239.239.184
-- Exit on Validate orders when transfer already exists
 
 Version 0.2.1La5
 
