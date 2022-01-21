@@ -137,7 +137,7 @@
         <PackageName Value="LCL"/>
       </Item7>
     </RequiredPackages>
-    <Units Count="17">
+    <Units Count="18">
       <Unit0>
         <Filename Value="Noso.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -223,6 +223,11 @@
         <Filename Value="translation.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit16>
+      <Unit17>
+        <Filename Value="mpmn.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="mpMN"/>
+      </Unit17>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -250,7 +255,7 @@
     </Linking>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="11">
+    <Exceptions Count="12">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -284,6 +289,9 @@
       <Item11>
         <Name Value="EIdSocketError"/>
       </Item11>
+      <Item12>
+        <Name Value="ESocketError"/>
+      </Item12>
     </Exceptions>
   </Debugging>
 </CONFIG>

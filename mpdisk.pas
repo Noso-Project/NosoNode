@@ -90,7 +90,7 @@ Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
 Procedure DelBlChHeadLast();
 
 function NewMyTrx(aParam:Pointer):PtrInt;
-Procedure CrearBatFileForRestart(IncludeUpdate:boolean = false);
+Procedure CreateLauncherFile(IncludeUpdate:boolean = false);
 Procedure RestartNoso();
 Procedure NewDoctor();
 Procedure RunDiagnostico(linea:string);
@@ -691,14 +691,14 @@ End;
 Procedure ToLog(Texto:string);
 Begin
 EnterCriticalSection(CSLoglines);
-   try
-   LogLines.Add(timetostr(now)+': '+texto);
-   S_Log := true;
-   Except on E:Exception do
-      begin
+TRY
+LogLines.Add(timetostr(now)+': '+texto);
+S_Log := true;
+EXCEPT on E:Exception do
+   begin
 
-      end;
    end;
+END{Try};
 LeaveCriticalSection(CSLoglines);
 End;
 
@@ -1006,6 +1006,7 @@ Var
   contador : integer = 0;
 Begin
 setmilitime('SaveBotData',1);
+SetCurrentJob('SaveBotData',true);
    try
    assignfile (FileBotData,BotDataFilename);
    contador := 0;
@@ -1025,6 +1026,7 @@ setmilitime('SaveBotData',1);
    Except on E:Exception do
          tolog ('Error saving bots to file :'+E.Message);
    end;
+SetCurrentJob('SaveBotData',false);
 setmilitime('SaveBotData',2);
 End;
 
@@ -1082,8 +1084,8 @@ End;
 // Saves updates files to disk
 Procedure SaveUpdatedFiles();
 Begin
+SetCurrentJob('SaveUpdatedFiles',true);
 if S_BotData then SaveBotData();
-//if S_NodeData then SaveNodeFile();
 if S_Options then GuardarOpciones();
 if S_Wallet then GuardarWallet();
 if ( (S_Sumario) and (not BuildingBlock) ) then GuardarSumario();
@@ -1094,6 +1096,7 @@ if S_Exc then SaveExceptLog;
 if S_PoolPays then SavePoolPays;
 if S_PoolInfo then GuardarArchivoPoolInfo;
 if S_AdvOpt then CreateADV(true);
+SetCurrentJob('SaveUpdatedFiles',false);
 End;
 
 // Creates a new wallet
@@ -1925,7 +1928,7 @@ NewMyTrx := -1;
 End;
 
 // Creates a bat file for restart
-Procedure CrearBatFileForRestart(IncludeUpdate:boolean = false);
+Procedure CreateLauncherFile(IncludeUpdate:boolean = false);
 var
   archivo : textfile;
 Begin
@@ -1974,8 +1977,8 @@ End;
 // Prepares for restart
 Procedure RestartNoso();
 Begin
-CrearBatFileForRestart();
-RunExternalProgram('nosolauncher.bat');
+CreateLauncherFile();
+RunExternalProgram(RestartFilename);
 End;
 
 Procedure NewDoctor();
@@ -2272,7 +2275,7 @@ if SavedOk then S_PoolMembers := false;
 setmilitime('GuardarPoolMembers',2);
 End;
 
-// Creates and executes autolauncher.bat
+// Creates and executes autolauncher.bat  // DEPRECATED
 Procedure EjecutarAutoUpdate(version:string);
 var
   archivo : textfile;

@@ -311,9 +311,15 @@ type
        ReportHash  : string[32];
        end;
 
-  TMNsBlock    = Packed Record
-       block : integer;
-       MNList : array of TMasterNode;
+  TMNode = Packed Record
+       SignAddress : string[40];
+       PublicKey   : string[120];
+       FundAddress : string[40];
+       Ip          : string[15];
+       Port        : integer;
+       FirstBlock  : integer;
+       LastCheck   : integer;
+       verified    : boolean;
        end;
 
   TArrayCriptoOp = Packed record
@@ -432,7 +438,6 @@ type
     Latido : TTimer;
     InfoTimer : TTimer;
     InicioTimer : TTimer;
-    CloseTimer : TTimer;
     ConnectButton: TSpeedButton;
     MainMenu: TMainMenu;
     MemoSCCon: TMemo;
@@ -588,7 +593,6 @@ type
     Procedure GridMyTxsPrepareCanvas(sender: TObject; aCol, aRow: Integer;aState: TGridDrawState);
     Procedure LatidoEjecutar(Sender: TObject);
     Procedure InfoTimerEnd(Sender: TObject);
-    Procedure CloseTimerEnd(Sender: TObject);
     function  ClientsCount : Integer ;
     procedure SE_WO_AntifreezeTimeChange(Sender: TObject);
     procedure GridExLTCResize(Sender: TObject);
@@ -727,7 +731,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'La7j';
+  SubVersion = 'La7k';
   OficialRelease = true;
   VersionRequired = '0.2.1La5';
   BuildDate = 'January 2022';
@@ -839,6 +843,7 @@ var
   G_CloseRequested : boolean = false;
   G_LastPing  : int64;            // El segundo del ultimo ping
   G_TotalPings : Int64 = 0;
+  G_ClosingAPP : Boolean = false;
   Form1: TForm1;
   LastCommand : string = '';
   ProcessLines : TStringlist;
@@ -934,8 +939,13 @@ var
   MyLastBlockHash : String = '';
   MyResumenHash : String = '';
   MyPublicIP : String = '';
+
   MyMNsHash : String = '';
+
+
+  LastTimeReportMyMN : int64 = 0;
   MyMNsCount : integer = 0;
+
   LastBlockData : BlockHeaderData;
   UndonedBlocks : boolean = false;
   RunExpelPoolInactives : boolean = false;
@@ -944,6 +954,8 @@ var
   WaitingMNs : array of TMasterNode;
    U_MNsGrid : boolean = false;
    U_MNsGrid_Last : int64 = 0;
+
+  MNsList   : array of TMnode;
 
 
   NetSumarioHash : NetworkData;
@@ -1019,8 +1031,12 @@ var
   CSPoolLog     : TRTLCriticalSection;
   CSExcLogLines : TRTLCriticalSection;
   CSPoolShares  : TRTLCriticalSection;
+  CSClosingApp  : TRTLCriticalSection;
+  // old system
   CSMNsArray    : TRTLCriticalSection;
   CSWaitingMNs  : TRTLCriticalSection;
+  //new system
+  CSMNsList     : TRTLCriticalSection;
 
   // Cross OS variables
   OSFsep : string = '';
@@ -1208,8 +1224,6 @@ begin
   inherited Create(CreateSuspended);
 end;
 
-
-
 // Process the Masternodes reports
 procedure TUpdateMNs.Execute;
 var
@@ -1217,15 +1231,7 @@ var
 Begin
 While not terminated do
    begin
-   if length(WaitingMNs) > 0 then
-      begin
-      EnterCriticalSection(CSWaitingMNs);
-      Node := WaitingMNs[0];
-      Delete(WaitingMNs,0,1);
-      LeaveCriticalSection(CSWaitingMNs);
-      if not NodeAlreadyAdded(node) then
-         if NodeVerified(node) then AddNodeReport(Node);
-      end;
+
    Sleep(1);
    end;
 End;
@@ -1348,6 +1354,10 @@ InitCriticalSection(CSExcLogLines);
 InitCriticalSection(CSPoolShares);
 InitCriticalSection(CSMNsArray);
 InitCriticalSection(CSWaitingMNs);
+InitCriticalSection(CSMNsList);
+InitCriticalSection(CSClosingApp);
+
+
 
 CreateFormInicio();
 CreateFormSlots();
@@ -1379,6 +1389,9 @@ DoneCriticalSection(CSExcLogLines);
 DoneCriticalSection(CSPoolShares);
 DoneCriticalSection(CSMNsArray);
 DoneCriticalSection(CSWaitingMNs);
+DoneCriticalSection(CSMNsList);
+DoneCriticalSection(CSClosingApp);
+
 
 form1.Server.Free;
 form1.RPCServer.Free;
@@ -1440,45 +1453,13 @@ Begin
 RestartTimer.Enabled:=false;
 StaTimeLab.Caption:=TimestampToDate(UTCTime)+' ('+IntToStr(UTCTime.ToInt64-EngineLastUpdate)+')';
 //StaTimeLab.Update;
-if ((UTCTime.ToInt64 > EngineLastUpdate+WO_AntiFreezeTime) and (WO_AntiFreeze)) then
+if ( ((UTCTime.ToInt64 > EngineLastUpdate+WO_AntiFreezeTime) and (WO_AntiFreeze)) or (G_CloseRequested) ) then
    begin
-   info(rs0010); //'Auto restart enabled'
-   delay(100);
-   CrearBatFileForRestart();
-   info(rs0011); //'BAT file created'
-   delay(100);
-   AutoRestarted := true;
-   CrearCrashInfo();
-   info(rs0012); //'Crash info file created'
-   delay(100);
-   CrearRestartfile();
-   info(rs0013); //'Data restart file created'
-   delay(100);
-   CloseAllforms();
-   info(rs0014); //'All forms closed'
-   delay(100);
-   CerrarClientes();
-   info(rs0015); //'Outgoing connections closed'
-   //delay(100);
-   //StopServer();
-   //This line is for testing purposes
-   //form1.Server.Free;
-   info(rs0016); //'Node server closed'
-   delay(100);
-   info(rs0017); //'Closing pool server...'
-   StopPoolServer();
-   info(rs0018); //'Pool server closed'
-   delay(100);
-   if length(ArrayPoolMembers)>0 then
+   if 1=1 then
       begin
-      GuardarPoolMembers();
-      info(rs0019); //'Pool members file saved'
-      delay(100);
+      if not G_CloseRequested then RestartNosoAfterQuit := true;
+      cerrarprograma;
       end;
-   RunExternalProgram('nosolauncher.bat');
-   info(rs0020); //'Noso launcher executed'
-   delay(500);
-   Halt(0); //form1.close
    end
 else RestartTimer.Enabled:=true;
 End;
@@ -1513,7 +1494,7 @@ if lastrelease <> '' then // Data retrieved
             if UnZipUpdateFromRepo() then
                begin
                OutText('Unzipped!',false,1);
-               CrearBatFileForRestart(true);
+               CreateLauncherFile(true);
                RunExternalProgram(RestartFilename);
                halt(0);
                end;
@@ -1607,10 +1588,11 @@ if WO_CloseStart then
    SetLength(ArrayNetworkRequests,0);
    SetLength(ArrPoolPays,0);
    Setlength(MNsArray,0);
+   Setlength(MNsList,0);
    Setlength(WaitingMNs,0);
-      ThreadMNs := TUpdateMNs.Create(true);
-      ThreadMNs.FreeOnTerminate:=true;
-      ThreadMNs.Start;
+      //ThreadMNs := TUpdateMNs.Create(true);
+      //ThreadMNs.FreeOnTerminate:=true;
+      //ThreadMNs.Start;
       CryptoThread := TCryptoThread.Create(true);
       CryptoThread.FreeOnTerminate:=true;
       CryptoThread.Start;
@@ -1644,10 +1626,11 @@ Setlength(Miner_Thread,0);
 SetLength(ArrayNetworkRequests,0);
 SetLength(ArrPoolPays,0);
 Setlength(MNsArray,0);
+Setlength(MNsList,0);
 Setlength(WaitingMNs,0);
-   ThreadMNs := TUpdateMNs.Create(true);
-   ThreadMNs.FreeOnTerminate:=true;
-   ThreadMNs.Start;
+   //ThreadMNs := TUpdateMNs.Create(true);
+   //ThreadMNs.FreeOnTerminate:=true;
+   //ThreadMNs.Start;
    CryptoThread := TCryptoThread.Create(true);
    CryptoThread.FreeOnTerminate:=true;
    CryptoThread.Start;
@@ -1693,7 +1676,6 @@ End;
 procedure TForm1.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 begin
 G_CloseRequested := true;
-CloseTimer.Enabled:=true;
 canclose := false;
 end;
 
@@ -1772,11 +1754,6 @@ if Key=VK_RETURN then
    ConsoleLine.Text := '';
    LastCommand := LineText;
    if LineText <> '' then ProcessLinesAdd(LineText);
-   if Uppercase(Linetext) = 'EXIT' then
-     begin
-     CrearCrashInfo();
-     form1.close;
-     end;
    end;
 if Key=VK_F3 then
    Begin
@@ -1952,42 +1929,71 @@ end;
 Procedure CerrarPrograma();
 var
   contador: integer;
-Begin
-CreateADV(false); // save advopt
-Miner_IsOn := false;
-Miner_KillThreads := true;
-info(rs0030);  //   Closing wallet
-if RestartNosoAfterQuit then CrearRestartfile();
-CloseAllforms();
-CerrarClientes();
-StopServer();
-StopPoolServer();
-if length(ArrayPoolMembers)>0 then GuardarPoolMembers();
-If Miner_IsOn then Miner_IsON := false;
-//KillAllMiningThreads;
-Setlength(ArrayCriptoOp,0);
-//setlength(CriptoOpsTIPO,0);
-if RunDoctorBeforeClose then RunDiagnostico('rundiag fix');
-if RestartNosoAfterQuit then restartnoso();
-form1.Close;
+  GoAhead : boolean = false;
 
-StringListLang.Free;
-ConsoleLines.Free;
-DLSL.Free;
-IdiomasDisponibles.Free;
-LogLines.Free;
-PoolLogLines.Free;
-ExceptLines.Free;
-ProcessLines.Free;
-OutgoingMsjs.Free;
-PoolPaysLines.free;
-for contador := 1 to maxconecciones do
-   SlotLines[contador].Free;
-CryptoThread.Terminate;
-CryptoThread.WaitFor;
-ThreadMNs.Terminate;
-ThreadMNs.WaitFor;
-application.Terminate;
+  procedure CloseLine(texto:String);
+  Begin
+  if not OficialRelease then
+     begin
+     gridinicio.RowCount:=gridinicio.RowCount+1;
+     gridinicio.Cells[0,gridinicio.RowCount-1]:=Texto;
+     gridinicio.TopRow:=gridinicio.RowCount;
+     Application.ProcessMessages;
+     end;
+  End;
+
+Begin
+EnterCriticalSection(CSClosingApp);
+if not G_ClosingAPP then
+   begin
+   G_ClosingAPP := true;
+   GoAhead := true;
+   end;
+LeaveCriticalSection(CSClosingApp);
+if GoAhead then
+   begin
+   forminicio.Caption:='Closing';
+   gridinicio.RowCount := 0;
+   form1.Visible:=false;
+   forminicio.Visible:=true;
+   CreateADV(false); // save advopt
+   CloseLine(rs0030);  //   Closing wallet
+   if RestartNosoAfterQuit then CrearRestartfile();
+   CloseAllforms();
+   StopPoolServer();
+   CerrarClientes();
+   StopServer();
+   CloseLine('Closed connections');
+   if length(ArrayPoolMembers)>0 then GuardarPoolMembers();
+   If Miner_IsOn then Miner_IsON := false;
+   if RunDoctorBeforeClose then RunDiagnostico('rundiag fix');
+   if RestartNosoAfterQuit then restartnoso();
+   StringListLang.Free;
+   ConsoleLines.Free;
+   DLSL.Free;
+   IdiomasDisponibles.Free;
+   LogLines.Free;
+   PoolLogLines.Free;
+   ExceptLines.Free;
+   ProcessLines.Free;
+   PoolPaysLines.free;
+   CloseLine('Componnents freed');
+   for contador := 1 to maxconecciones do
+      SlotLines[contador].Free;
+   CloseLine('Client lines freed');
+   SendOutMsgsThread.Terminate;
+   SendOutMsgsThread.WaitFor;
+   OutgoingMsjs.Free;
+   CryptoThread.Terminate;
+   CryptoThread.WaitFor;
+   ThreadMNs.Terminate;
+   ThreadMNs.WaitFor;
+   CloseLine('Terminated threads');
+   form1.Close;
+   application.Terminate;
+   //Halt(0);
+   delay(1000);
+   end;
 End;
 
 // Run time creation of form components
@@ -2101,10 +2107,6 @@ Form1.InfoTimer:= TTimer.Create(Form1);
 Form1.InfoTimer.Enabled:=false;Form1.InfoTimer.Interval:=50;
 Form1.InfoTimer.OnTimer:= @form1.InfoTimerEnd;
 
-Form1.CloseTimer:= TTimer.Create(Form1);
-Form1.CloseTimer.Enabled:=false;Form1.CloseTimer.Interval:=20;
-Form1.CloseTimer.OnTimer:= @form1.CloseTimerEnd;
-
 form1.SystrayIcon := TTrayIcon.Create(form1);
 form1.SystrayIcon.BalloonTimeout:=3000;
 form1.SystrayIcon.BalloonTitle:=CoinName+' Wallet';
@@ -2201,7 +2203,7 @@ Begin
    try
    if closemsg <>'' then
       Acontext.Connection.IOHandler.WriteLn(closemsg);
-   //Acontext.Connection.IOHandler.InputBuffer.Clear;
+   Acontext.Connection.IOHandler.InputBuffer.Clear;
    AContext.Binding.CloseSocket();
    Except on E:Exception do
       ToPoolLog(format(rs0031,[E.Message]));
@@ -2290,20 +2292,21 @@ if GetPoolContextIndex(AContext)<0 then
    end;
 Linea := '';
 Linea := AContext.Connection.IOHandler.ReadLn('',ReadTimeOutTIme,-1,IndyTextEncoding_UTF8);
-if not IsValidASCII(Linea) then
+{
+if ( (linea <> '') and (not IsValidASCII(Linea)) ) then
    begin
    TryClosePoolConnection(AContext);
    ToPoolLog(format(rs0084,[linea]));
    exit;
    end;
+}
 Password := Parameter(Linea,0);
 if password <> Poolinfo.PassWord then exit;
 UserDireccion := Parameter(Linea,1);
 if IsPoolMemberConnected(UserDireccion)<0 then
    begin
    TryClosePoolConnection(AContext);
-   ConsoleLinesAdd(rs0033);
-   //ConsoleLinesAdd('Pool: Rejected not registered user');
+   ConsoleLinesAdd(rs0033);//ConsoleLinesAdd('Pool: Rejected not registered user');
    exit;
    end;
 Comando := Parameter(Linea,2);
@@ -2422,10 +2425,6 @@ else if Comando = 'STEP' then
       end;
    LeaveCriticalSection(CSPoolStep);InsidePoolStep := false;
    end
-else if Comando = 'PAYMENT' then
-   Begin
-
-   end
 else
    begin
    TryClosePoolConnection(Acontext);
@@ -2443,7 +2442,6 @@ var
   GoodJoin : boolean;
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
-UpdatePoolBot(IPUser);
 if PoolClientsCount > GetPoolTotalActiveConex+3 then
   begin
   TryClosePoolConnection(AContext);
@@ -2463,11 +2461,13 @@ TRY
    minerversion :=Parameter(Linea,3);
    if AContext.Connection.IOHandler.ReadLnTimedout then
       TryClosePoolConnection(AContext)
+   {
    else if not isValidASCII(Linea) then
       begin
       TryClosePoolConnection(AContext);
       ToPoolLog(format(rs0084,[linea]));
       end
+   }
    else if BotExists(IPUser) then
       TryClosePoolConnection(AContext,'BANNED')
    else if password <> Poolinfo.PassWord then  // WRONG PASSWORD.
@@ -3117,14 +3117,6 @@ if InfoPanelTime <= 0 then
   end;
 end;
 
-// EL timer para forzar el cierre de la aplicacion
-Procedure TForm1.CloseTimerEnd(Sender: TObject);
-Begin
-CloseTimer.Enabled:=false;
-ToLog('Quit : '+CurrentJob);
-cerrarprograma();
-end;
-
 // Procesa el hint a mostrar segun el control
 Procedure TForm1.CheckForHint(Sender:TObject);
 Begin
@@ -3382,7 +3374,6 @@ End;
 Procedure Tform1.MMQuit(Sender:TObject);
 Begin
 G_CloseRequested := true;
-CloseTimer.Enabled:=true;
 End;
 
 // menu principal cambiar idioma

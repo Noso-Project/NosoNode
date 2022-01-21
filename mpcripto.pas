@@ -338,14 +338,7 @@ NewOp.result:=resultado;
 EnterCriticalSection(CSCriptoThread);
 TRY
 Insert(NewOp,ArrayCriptoOp,length(ArrayCriptoOp));
-{
-SetLength(CriptoOpsTIPO,length(CriptoOpsTIPO)+1);
-CriptoOpsTIPO[length(CriptoOpsTIPO)-1] := tipo;
-SetLength(CriptoOpsOper,length(CriptoOpsOper)+1);
-CriptoOpsOper[length(CriptoOpsOper)-1] := proceso;
-SetLength(CriptoOpsResu,length(CriptoOpsResu)+1);
-CriptoOpsResu[length(CriptoOpsResu)-1] := resultado;
-}
+
 EXCEPT ON E:Exception do
    ToExcLog('Error adding Operation to crypto thread:'+proceso);
 END{Try};
@@ -355,13 +348,7 @@ End;
 // Indica que se pueden empezar a realizar las operaciones del cripto thread
 Procedure StartCriptoThread(); // deprecated
 Begin
-{
-if not CriptoThreadRunning then
-   begin
-   CriptoThreadRunning := true;
-   CriptoOPsThread := Beginthread(tthreadfunc(@ProcessCriptoOP));
-   end;
-}
+
 End;
 
 // Elimina la operacion cripto
@@ -370,13 +357,8 @@ Begin
 EnterCriticalSection(CSCriptoThread);
 if Length(ArrayCriptoOp) > 0 then
    begin
-   Delete(ArrayCriptoOp,0,1);
    TRY
-   {
-   Delete(CriptoOpsTIPO,0,1);
-   Delete(CriptoOpsOper,0,1);
-   Delete(CriptoOpsResu,0,1);
-   }
+   Delete(ArrayCriptoOp,0,1);
    EXCEPT ON E:Exception do
       begin
       ToExcLog('Error removing Operation from crypto thread:'+E.Message);

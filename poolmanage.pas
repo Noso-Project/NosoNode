@@ -338,7 +338,6 @@ NumeroDePasos := GetPoolNumeroDePasos();
 PoolComision := (cantidad* PoolInfo.Porcentaje) div 10000;
 PoolInfo.FeeEarned:=PoolInfo.FeeEarned+PoolComision;
 
-
 ARepartir := ARepartir-PoolComision;
 RepartirShares := (ARepartir * PoolShare) div 100;
 ARepartir := ARepartir - RepartirShares;
@@ -737,6 +736,7 @@ Leavecriticalsection(CSPoolMembers);
 
 ConsoleLinesAdd('Pool expels  : '+intToStr(expelled));
 ConsoleLinesAdd('Pool Payments: '+intToStr(PaidMembers));
+ToPoolLog(Format('Payments block %d : %d',[Mylastblock,expelled+paidmembers]));
 ConsoleLinesAdd('Total paid   : '+int2curr(Totalpaid));
 setmilitime('ExpelPoolInactives',2);
 SetCurrentJob('ExpelPoolInactives',false);
@@ -811,7 +811,6 @@ End;
 Procedure ShowPoolBots();
 var
   counter: integer;
-  vacios : integer;
 Begin
 for counter := 0 to length(ListaPoolBots)-1 do
    begin

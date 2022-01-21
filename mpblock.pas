@@ -232,10 +232,10 @@ if not errored then
       end;
    OutText(LangLine(89)+IntToStr(numero),true);  //'Block builded: '
 
-   //{
+   {
    if form1.Server.Active then
       OutgoingMsjsAdd(ProtocolLine(10)); // Node report
-   //}
+   }
 
    if Numero > 0 then RebuildMyTrx(Numero);
    CheckForMyPending;

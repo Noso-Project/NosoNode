@@ -773,7 +773,7 @@ for cont := 0 to NumTransfers-1 do
    SetLength(TrxArray,length(TrxArray)+1);SetLength(SenderTrx,length(SenderTrx)+1);
    TrxArray[cont] := default (orderdata);
    TrxArray[cont] := GetOrderFromString(Textbak);
-   if TranxAlreadyPending(TrxArray[cont].TrfrID) then Proceder := false;
+   if TranxAlreadyPending(TrxArray[cont].TrfrID) then Proceder := false;//Proceder := false;
    SenderTrx[cont] := GetAddressFromPublicKey(TrxArray[cont].Sender);
    if SenderTrx[cont] <> TrxArray[cont].Address then
       begin

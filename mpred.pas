@@ -7,7 +7,7 @@ interface
 uses
   Classes, forms, SysUtils, MasterPaskalForm, MPTime, IdContext, IdGlobal, mpGUI, mpDisk,
   mpBlock, mpMiner, fileutil, graphics,  dialogs,poolmanage, strutils, mpcoin, fphttpclient,
-  opensslsockets,translation, IdHTTP, IdComponent, IdSSLOpenSSL  ;
+  opensslsockets,translation, IdHTTP, IdComponent, IdSSLOpenSSL, mpmn  ;
 
 function GetSlotFromIP(Ip:String):int64;
 function GetSlotFromContext(Context:TidContext):int64;
@@ -203,6 +203,7 @@ procedure StopServer();
 var
   Contador: integer;
 Begin
+if not Form1.Server.Active then exit;
 SetCurrentJob('StopServer',true);
    TRY
    KeepServerOn := false;
@@ -223,15 +224,14 @@ SetCurrentJob('StopServer',false);
 end;
 
 // Cierra la conexion del slot especificado
-procedure CerrarSlot(Slot:integer);
-begin
+Procedure CerrarSlot(Slot:integer);
+Begin
 SetCurrentJob('CerrarSlot',true);
 setmilitime('CerrarSlot',1);
    try
    if conexiones[Slot].tipo='CLI' then
       begin
       SlotLines[slot].Clear;
-      //Conexiones[Slot].context.Binding.CloseSocket;
       Conexiones[Slot].context.Connection.Disconnect;
       Conexiones[Slot].Thread.Free;
       end;
@@ -249,7 +249,7 @@ setmilitime('CerrarSlot',1);
 Conexiones[Slot] := Default(conectiondata);
 setmilitime('CerrarSlot',1);
 SetCurrentJob('CerrarSlot',false);
-end;
+End;
 
 // Intenta conectar a los nodos
 Procedure ConnectToServers();
@@ -570,11 +570,7 @@ if MyConStatus > 0 then
       end;
    if ( (not G_SendingMsgs) and (OutgoingMsjs.Count > 0) ) then // send the outgoing messages
       begin
-      //sleep(10);
-      //G_SendingMsgs := true;
-      //SendOutMsgsThread := TThreadSendOutMsjs.Create(true);
-      //SendOutMsgsThread.FreeOnTerminate:=true;
-      //SendOutMsgsThread.Start;
+
       end;
    end;
 if ((NumeroConexiones>=MinConexToWork) and (MyConStatus<2) and (not STATUS_Connected)) then
@@ -644,6 +640,11 @@ if MyConStatus = 3 then
       ConsoleLinesAdd('Pending requested');
       SetCurrentJob('RequestingPendings',false);
       end;
+   if ( (StrToIntDef(NetMNsCount.Value,0) = length(MNsList)) and (not MyMNIsListed) and (UTCTime.ToInt64>LastTimeReportMyMN+5) ) then
+     begin
+     ReportMyMN;
+     LastTimeReportMyMN := UTCTime.ToInt64;
+     end;
    if ((StrToIntDef(NetMNsCount.Value,0)>MyMNsCount) and (UTCTime.ToInt64>LastTimeMNsRequested+5) and (Length(WaitingMNs)=0)) then
       begin
       PTC_SendLine(NetMNsHash.Slot,ProtocolLine(11));  // Get MNs
