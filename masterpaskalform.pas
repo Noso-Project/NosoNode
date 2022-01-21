@@ -731,8 +731,8 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'La7k';
-  OficialRelease = true;
+  SubVersion = 'La7L';
+  OficialRelease = false;
   VersionRequired = '0.2.1La5';
   BuildDate = 'January 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -1580,9 +1580,6 @@ if WO_CloseStart then
    FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
    FirstShow := true;
    SetLength(ArrayCriptoOp,0);
-   //Setlength(CriptoOpsTIPO,0);
-   //Setlength(CriptoOpsOper,0);
-   //Setlength(CriptoOpsResu,0);
    Setlength(MilitimeArray,0);
    Setlength(Miner_Thread,0);
    SetLength(ArrayNetworkRequests,0);
@@ -1590,9 +1587,9 @@ if WO_CloseStart then
    Setlength(MNsArray,0);
    Setlength(MNsList,0);
    Setlength(WaitingMNs,0);
-      //ThreadMNs := TUpdateMNs.Create(true);
-      //ThreadMNs.FreeOnTerminate:=true;
-      //ThreadMNs.Start;
+      ThreadMNs := TUpdateMNs.Create(true);
+      ThreadMNs.FreeOnTerminate:=true;
+      ThreadMNs.Start;
       CryptoThread := TCryptoThread.Create(true);
       CryptoThread.FreeOnTerminate:=true;
       CryptoThread.Start;
@@ -1618,9 +1615,6 @@ if WO_AutoConnect then ProcessLinesAdd('CONNECT');
 FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
 FirstShow := true;
 SetLength(ArrayCriptoOp,0);
-//Setlength(CriptoOpsTIPO,0);
-//Setlength(CriptoOpsOper,0);
-//Setlength(CriptoOpsResu,0);
 Setlength(MilitimeArray,0);
 Setlength(Miner_Thread,0);
 SetLength(ArrayNetworkRequests,0);
@@ -1628,9 +1622,9 @@ SetLength(ArrPoolPays,0);
 Setlength(MNsArray,0);
 Setlength(MNsList,0);
 Setlength(WaitingMNs,0);
-   //ThreadMNs := TUpdateMNs.Create(true);
-   //ThreadMNs.FreeOnTerminate:=true;
-   //ThreadMNs.Start;
+   ThreadMNs := TUpdateMNs.Create(true);
+   ThreadMNs.FreeOnTerminate:=true;
+   ThreadMNs.Start;
    CryptoThread := TCryptoThread.Create(true);
    CryptoThread.FreeOnTerminate:=true;
    CryptoThread.Start;
@@ -1933,13 +1927,10 @@ var
 
   procedure CloseLine(texto:String);
   Begin
-  if not OficialRelease then
-     begin
-     gridinicio.RowCount:=gridinicio.RowCount+1;
-     gridinicio.Cells[0,gridinicio.RowCount-1]:=Texto;
-     gridinicio.TopRow:=gridinicio.RowCount;
-     Application.ProcessMessages;
-     end;
+  gridinicio.RowCount:=gridinicio.RowCount+1;
+  gridinicio.Cells[0,gridinicio.RowCount-1]:=Texto;
+  gridinicio.TopRow:=gridinicio.RowCount;
+  Application.ProcessMessages;
   End;
 
 Begin
@@ -1956,8 +1947,11 @@ if GoAhead then
    gridinicio.RowCount := 0;
    form1.Visible:=false;
    forminicio.Visible:=true;
-   CreateADV(false); // save advopt
    CloseLine(rs0030);  //   Closing wallet
+   delay(1000);
+   CreateADV(false); // save advopt
+
+   delay(1000);
    if RestartNosoAfterQuit then CrearRestartfile();
    CloseAllforms();
    StopPoolServer();
