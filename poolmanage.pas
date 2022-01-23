@@ -717,6 +717,7 @@ if length(arraypoolmembers)>0 then
 EXCEPT ON E:Exception do
    ToExcLog('Error inside ExpelPoolInactives: '+E.Message);
 END{Try};
+
 Leavecriticalsection(CSPoolMembers);
 
 ConsoleLinesAdd('Pool expels  : '+intToStr(expelled));

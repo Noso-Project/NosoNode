@@ -2039,8 +2039,8 @@ if GoAhead then
    sleep(100);
    if RestartNosoAfterQuit then restartnoso();
    form1.Close;
-   application.Terminate;
-   //Halt(0);
+   //application.Terminate;
+   Halt(0);
    end;
 End;
 
