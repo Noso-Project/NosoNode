@@ -233,7 +233,7 @@ setmilitime('CerrarSlot',1);
       begin
       SlotLines[slot].Clear;
       Conexiones[Slot].context.Connection.Disconnect;
-      Conexiones[Slot].Thread.Free;
+      Conexiones[Slot].Thread.free;
       end;
    if conexiones[Slot].tipo='SER' then
       begin
@@ -395,7 +395,7 @@ SetCurrentJob('CerrarClientes',true);
       end;
    Except on E:Exception do
       begin
-
+      ToExcLog('Error closing client');
       end;
    end;
 SetCurrentJob('CerrarClientes',false);
@@ -522,6 +522,9 @@ if ( (CONNECT_Try) and (StrToInt64(UTCTime)>StrToInt64Def(CONNECT_LastTime,StrTo
 NumeroConexiones := GetTotalConexiones;
 if NumeroConexiones = 0 then  // Desconeectado
    begin
+   EnterCriticalSection(CSCriptoThread);
+   SetLength(ArrayCriptoOp,0);
+   LeaveCriticalSection(CSCriptoThread);
    MyConStatus := 0;
    if Form1.Server.Active then
       begin
@@ -1175,7 +1178,7 @@ Function GetLastVerZipFile(version,LocalOS:string):boolean;
 var
   MS: TMemoryStream;
   Int_SumarySize : int64;
-  IdSSLIOHandler: TIdSSLIOHandlerSocketOpenSSL;
+  //IdSSLIOHandler: TIdSSLIOHandlerSocketOpenSSL;
   DownLink : String = '';
   extension : string;
   Conector : TFPHttpClient;
@@ -1189,8 +1192,8 @@ if localOS = 'Linux64' then
    DownLink := 'https://github.com/Noso-Project/NosoWallet/releases/download/v'+version+'/noso-v'+version+'-x86_64-linux.zip';
 
 // indy mode
-IdSSLIOHandler:= TIdSSLIOHandlerSocketOpenSSL.Create;
-IdSSLIOHandler.SSLOptions.SSLVersions := [sslvTLSv1,sslvTLSv1_1,sslvTLSv1_2];
+//IdSSLIOHandler:= TIdSSLIOHandlerSocketOpenSSL.Create;
+//IdSSLIOHandler.SSLOptions.SSLVersions := [sslvTLSv1,sslvTLSv1_1,sslvTLSv1_2];
 MS := TMemoryStream.Create;
 
 // TFPHttpClient mode
@@ -1215,7 +1218,7 @@ TRY
    END{Try};
 FINALLY
 MS.Free;
-IdSSLIOHandler.Free;
+//IdSSLIOHandler.Free;
 conector.free;
 END{try};
 End;

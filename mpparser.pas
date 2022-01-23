@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, mpCripto, mpTime, mpblock, mpcoin,
-  dialogs, fileutil, forms, idglobal, poolmanage, strutils, mpRPC, DateUtils, Clipbrd,translation;
+  dialogs, fileutil, forms, idglobal, poolmanage, strutils, mpRPC, DateUtils, Clipbrd,translation,
+  idContext;
 
 procedure ProcessLinesAdd(const ALine: String);
 procedure ConsoleLinesAdd(const ALine: String);
@@ -2351,7 +2352,7 @@ else
   for contador := 1 to numero do
      begin
      Monto := Random(50)+1;
-     Processlines.Add('SENDTO gcarreno-main '+IntToStr(Monto));
+     ProcesslinesAdd('SENDTO devteam_donations '+IntToStr(Monto));
      end;
   end;
 End;
@@ -2464,14 +2465,35 @@ End;
 
 Procedure DebugTest(linetext:string);
 var
-  signature : string;
+  counter,count2 : integer;
+  ThisContext : TidContext;
+  ThisIP     : string;
+  matches : integer = 0;
+  Myarray : array of integer;
+  FinalS : string = '';
 Begin
-TRY
-copyfile('NOSODATA/options.psk','LOL.psk');
-consolelinesadd('sucess');
-except on E:Exception do
-   consolelinesadd(e.Message);
-end;
+if length(Poolserverconex)>0 then
+   begin
+   setlength(myarray,length(Poolserverconex));
+   for counter := 0 to length(Poolserverconex)-2 do
+      begin
+      ThisContext := Poolserverconex[counter].Context;
+      ThisIP := Poolserverconex[counter].Ip;
+      for count2 := counter+1 to length(Poolserverconex)-1 do
+         begin
+         if ((thiscontext = Poolserverconex[count2].Context) and (ThisIP = Poolserverconex[count2].Ip)) then
+            begin
+            matches := matches+1;
+            myarray[counter] := myarray[counter]+1;
+            end;
+         end;
+      end;
+   consolelinesadd(format('Found %d matches.',[matches]));
+   for counter := 0 to length(Poolserverconex)-1 do
+      finals := finals+IntToStr(MyArray[counter])+' ';
+   consolelinesadd(Finals);
+   end
+else consolelinesadd('No pool server connections');
 End;
 
 END. // END UNIT

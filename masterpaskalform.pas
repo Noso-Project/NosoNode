@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, LCLType,
   Grids, ExtCtrls, Buttons, IdTCPServer, IdContext, IdGlobal, IdTCPClient,
-  fileutil, Clipbrd, Menus, crt, formexplore, lclintf, ComCtrls, Spin,
+  fileutil, Clipbrd, Menus, formexplore, lclintf, ComCtrls, Spin,
   poolmanage, strutils, mpoptions, math, IdHTTPServer, IdCustomHTTPServer,
   IdHTTP, fpJSON, Types, DefaultTranslator, LCLTranslator, translation,
   ubarcodes, IdComponent;
@@ -731,9 +731,9 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'La8';
+  SubVersion = 'Lb1';
   OficialRelease = false;
-  VersionRequired = '0.2.1La5';
+  VersionRequired = '0.2.1Lb1';
   BuildDate = 'January 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
@@ -743,7 +743,7 @@ CONST
   Protocolo = 1;
   Miner_Steps = 10;
   Pool_Max_Members = 1000;
-  DefaultDonation = 50;
+  DefaultDonation = 10;
   // Custom values for coin
   SecondsPerBlock = 600;            // 10 minutes
   PremineAmount = 1030390730000;    // 1030390730000;
@@ -977,6 +977,7 @@ var
   // Variables asociadas al minero
   MyPoolData : PoolData;
     PoolMiner : PoolMinerData;
+  PoolMinerBlockFound : boolean = false;
   Miner_OwnsAPool : Boolean = false;
     LastTryStartPoolServer : int64;
     LastTryConnectPoolcanal : Int64;
@@ -1092,7 +1093,7 @@ var
   TruncateLine : string = '';
 begin
 repeat
-delay(200);
+sleep(200);
 continuar := true;
 if CanalCliente[FSlot].IOHandler.InputBufferIsEmpty then
    begin
@@ -1922,7 +1923,7 @@ end;
 //procesa el cierre de la aplicacion
 Procedure CerrarPrograma();
 var
-  contador: integer;
+  counter: integer;
   GoAhead : boolean = false;
 
   procedure CloseLine(texto:String);
@@ -1943,24 +1944,28 @@ if not G_ClosingAPP then
 LeaveCriticalSection(CSClosingApp);
 if GoAhead then
    begin
+   Form1.Latido.Enabled:=false; // Stopped the latido
+   form1.RestartTimer.Enabled:=false;
+   form1.RestartTimer.Enabled:=false;
    forminicio.Caption:='Closing';
    gridinicio.RowCount := 0;
    form1.Visible:=false;
    forminicio.Visible:=true;
    CloseLine(rs0030);  //   Closing wallet
    CreateADV(false); // save advopt
-   delay(100);
+   sleep(100);
    if RestartNosoAfterQuit then CrearRestartfile();
    CloseAllforms();
-   StopPoolServer();
+   CloseLine('Forms closed');
+   if form1.PoolServer.Active then StopPoolServer();
+   CloseLine('Pool server stopped');
    CerrarClientes();
-   StopServer();
-   CloseLine('Closed connections');
-   delay(100);
+   CloseLine('Peer connections closed');
+   if form1.Server.Active then StopServer();
+   CloseLine('Node server stopped');
+   sleep(100);
    if length(ArrayPoolMembers)>0 then GuardarPoolMembers();
    If Miner_IsOn then Miner_IsON := false;
-   if RunDoctorBeforeClose then RunDiagnostico('rundiag fix');
-   if RestartNosoAfterQuit then restartnoso();
    If Assigned(StringListLang) then StringListLang.Free;
    If Assigned(ConsoleLines) then ConsoleLines.Free;
    If Assigned(DLSL) then DLSL.Free;
@@ -1971,31 +1976,68 @@ if GoAhead then
    If Assigned(ProcessLines) then ProcessLines.Free;
    If Assigned(PoolPaysLines) then PoolPaysLines.Free;
    CloseLine('Componnents freed');
-   delay(100);
-   for contador := 1 to maxconecciones do
-      If Assigned(SlotLines[contador]) then SlotLines[contador].Free;
+   sleep(100);
+   for counter := 1 to maxconecciones do
+      If Assigned(SlotLines[counter]) then SlotLines[counter].Free;
    CloseLine('Client lines freed');
-   delay(100);
+   sleep(100);
+   EnterCriticalSection(CSOutgoingMsjs);
+   OutgoingMsjs.clear;
+   LeaveCriticalSection(CSOutgoingMsjs);
+   TRY
    If Assigned(SendOutMsgsThread) then
       begin
       SendOutMsgsThread.Terminate;
-      SendOutMsgsThread.WaitFor;
+      for counter := 1 to 10 do
+         begin
+         if ( (Assigned(SendOutMsgsThread)) and (not SendOutMsgsThread.Terminated) ) then sleep(1000)
+         else break;
+         end;
       end;
+
+   if ((Assigned(SendOutMsgsThread)) and (not SendOutMsgsThread.Terminated)) then CloseLine('Out thread NOT CLOSED')
+   else CloseLine('Out thread closed properly');
+   EXCEPT ON E: EXCEPTION DO
+      CloseLine('Error closing Out thread');
+   END{Try};
+   sleep(100);
    If Assigned(OutgoingMsjs) then OutgoingMsjs.Free;
-   CloseLine('Out thread closed');
+   EnterCriticalSection(CSCriptoThread);
+   SetLength(ArrayCriptoOp,0);
+   LeaveCriticalSection(CSCriptoThread);
+   TRY
    If Assigned(CryptoThread) then
       begin
       CryptoThread.Terminate;
-      CryptoThread.WaitFor;
+      for counter := 1 to 10 do
+         begin
+         if ( (Assigned(CryptoThread)) and (not CryptoThread.Terminated) ) then sleep(1000)
+         else break;
+         end;
       end;
-   CloseLine('Crypto thread closed');
+   if ((Assigned(CryptoThread)) and (not CryptoThread.Terminated)) then CloseLine('Crypto thread NOT CLOSED')
+   else CloseLine('Crypto thread closed properly');
+   EXCEPT ON E: EXCEPTION DO
+      CloseLine('Error closing crypto thread');
+   END{Try};
+   sleep(100);
+   TRY
    If Assigned(ThreadMNs) then
       begin
       ThreadMNs.Terminate;
-      ThreadMNs.WaitFor;
+      for counter := 1 to 10 do
+         begin
+         if ( (Assigned(ThreadMNs)) and (not ThreadMNs.Terminated) ) then sleep(1000)
+         else break;
+         end;
       end;
-   CloseLine('MNs thread closed');
-   delay(100);
+   if ((Assigned(ThreadMNs)) and (not ThreadMNs.Terminated)) then CloseLine('Nodes thread NOT CLOSED')
+   else CloseLine('Nodes thread closed properly');
+   EXCEPT ON E: EXCEPTION DO
+      CloseLine('Error closing Nodes thread');
+   END{Try};
+   sleep(100);
+   if RestartNosoAfterQuit then restartnoso();
    form1.Close;
    application.Terminate;
    //Halt(0);
@@ -2210,10 +2252,10 @@ Begin
    if closemsg <>'' then
       Acontext.Connection.IOHandler.WriteLn(closemsg);
    Acontext.Connection.IOHandler.InputBuffer.Clear;
-   AContext.Binding.CloseSocket();
+   AContext.Binding.CloseSocket;
+   AContext.Connection.IOHandler.DiscardAll(); // ?? is valid
    Except on E:Exception do
-      ToPoolLog(format(rs0031,[E.Message]));
-      //ToExcLog('POOL: Error trying close a pool client connection ('+E.Message+')');
+      ToPoolLog(format(rs0031,[E.Message]));//'POOL: Error trying close a pool client connection ('+E.Message+')');
    end;
 End;
 
@@ -2286,26 +2328,45 @@ var
   PoolSolutionStep : integer = 0;
   StepLength, StepValue, StepBase : integer;
   BlockTime : string;
-  SendFundsResult : string = '';
+  ReadCycles : integer = 0;
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
 //UpdatePoolBot(IPUser);
 if GetPoolContextIndex(AContext)<0 then
    begin
-   TryClosePoolConnection(AContext);
-   //ConsoleLinesAdd('Pool: Rejected unasigned context connection');
+   TryClosePoolConnection(AContext); //ConsoleLinesAdd('Pool: Rejected unasigned context connection');
    exit;
    end;
 Linea := '';
-Linea := AContext.Connection.IOHandler.ReadLn('',ReadTimeOutTIme,-1,IndyTextEncoding_UTF8);
-{
-if ( (linea <> '') and (not IsValidASCII(Linea)) ) then
-   begin
-   TryClosePoolConnection(AContext);
-   ToPoolLog(format(rs0084,[linea]));
-   exit;
-   end;
-}
+AContext.Connection.IOHandler.CheckForDataOnSource(100); //new line
+if not AContext.Connection.IOHandler.InputBufferIsEmpty then //new line
+   begin //
+   TRY
+   REPEAT
+   ReadCycles := ReadCycles+1;
+   Linea := AContext.Connection.IOHandler.ReadLn('',ReadTimeOutTIme,-1,IndyTextEncoding_UTF8);
+   UNTIL AContext.Connection.IOHandler.InputBufferIsEmpty;
+   if ReadCycles>1 then
+      begin
+      ToPoolLog(Format('----- Readed %d lines from %s -----',[ReadCycles,IPUser]))
+      end;
+   if AContext.Connection.IOHandler.ReadLnTimedout then
+      begin
+      TryClosePoolConnection(AContext);
+      ToPoolLog('POOL: Timedout from '+IpUser);
+      exit;
+      end;
+   EXCEPT On E:Exception do
+      begin
+      TryClosePoolConnection(AContext);
+      ToPoolLog(format('POOL: Exception from %s: %s',[IpUser,E.Message]));
+      exit;
+      end;
+   END{Try};
+   end
+else exit;
+if PoolMinerBlockFound then exit;
+
 Password := Parameter(Linea,0);
 if password <> Poolinfo.PassWord then exit;
 UserDireccion := Parameter(Linea,1);
@@ -2332,6 +2393,10 @@ if comando = 'PING' then
          end;
       end;
    end
+else if Comando = 'PAYMENT' then
+   begin
+
+   end
 else if Comando = 'STEP' then
    begin
    PoolServerConex[IsPoolMemberConnected(UserDireccion)].LastPing:=UTCTime.ToInt64;
@@ -2345,6 +2410,8 @@ else if Comando = 'STEP' then
    if StepValue > 16**PoolStepsDeep then StepValue := 16**PoolStepsDeep;
    Solucion := HashSha256String(SeedStep+PoolInfo.Direccion+HashStep);
    EnterCriticalSection(CSPoolStep);InsidePoolStep := true;
+   if not PoolMinerBlockFound then
+      begin
       try
       if ((StepLength>=StepBase) and (StepLength<PoolMiner.DiffChars) and
          (PoolMiner.steps<10) and (bloqueStep=PoolMiner.Block) ) then
@@ -2355,7 +2422,6 @@ else if Comando = 'STEP' then
             begin
             AcreditarPoolStep(UserDireccion, StepValue);
             TryMessageToMiner(Acontext,'STEPOK '+IntToStr(StepValue));
-            //Acontext.Connection.IOHandler.WriteLn('STEPOK '+IntToStr(StepValue));
             EnterCriticalSection(CSPoolShares);
             insert(SeedStep+HashStep,Miner_PoolSharedStep,length(Miner_PoolSharedStep)+1);
             LeaveCriticalSection(CSPoolShares);
@@ -2365,7 +2431,7 @@ else if Comando = 'STEP' then
           (GetPoolMemberBalance(UserDireccion)>-1) and (bloqueStep=PoolMiner.Block) and
           (IsValidStep(PoolMiner.Solucion,SeedStep+HashStep)) and (PoolMiner.steps<10) and
           (not StepAlreadyAdded(SeedStep+HashStep)) ) then
-         begin
+         begin   // IT IS A COMPLETE STEP
          AcreditarPoolStep(UserDireccion, StepValue);
          TryMessageToMiner(Acontext,'STEPOK '+IntToStr(StepValue));
          //Acontext.Connection.IOHandler.WriteLn('STEPOK '+IntToStr(StepValue));
@@ -2377,16 +2443,16 @@ else if Comando = 'STEP' then
          PoolMiner.steps := PoolMiner.steps+1;
          PoolMiner.DiffChars:=GetCharsFromDifficult(PoolMiner.Dificult, PoolMiner.steps);
          if PoolMiner.steps = Miner_Steps then
-            begin
+            begin           // BLOCK FOUND
             SetLength(PoolMiner.Solucion,length(PoolMiner.Solucion)-1);
             PoolSolutionStep := VerifySolutionForBlock(PoolMiner.Dificult, PoolMiner.Target,PoolInfo.Direccion , PoolMiner.Solucion);
             if PoolSolutionStep=0 then
                Begin
                BlockTime := UTCTime;
-               consolelinesAdd(rs0035);
-               //consolelinesAdd('Pool solution verified!');
+               consolelinesAdd(rs0035); // Block coolution verified!
                OutgoingMsjsAdd(ProtocolLine(6)+BlockTime+' '+IntToStr(PoolMiner.Block)+' '+
                   PoolInfo.Direccion+' '+StringReplace(PoolMiner.Solucion,' ','_',[rfReplaceAll, rfIgnoreCase]));
+               PoolMinerBlockFound := true;
                //ResetPoolMiningInfo();
                //SendNetworkRequests(blocktime,PoolInfo.Direccion,PoolMiner.Block);
                end
@@ -2429,6 +2495,7 @@ else if Comando = 'STEP' then
          //ToExclog(Format('Pool: Error inside CSPoolStep-> %s',[E.Message]));
          end;
       end;
+      end;
    LeaveCriticalSection(CSPoolStep);InsidePoolStep := false;
    end
 else
@@ -2453,27 +2520,43 @@ if PoolClientsCount > GetPoolTotalActiveConex+3 then
   TryClosePoolConnection(AContext);
   exit;
   end;
-if G_KeepPoolOff then // The pool server is closed or closing
+if ((G_KeepPoolOff or PoolMinerBlockFound)) then // The pool server is closed or closing
    begin
    TryClosePoolConnection(AContext,'CLOSINGPOOL');
    exit;
    end;
+Linea := '';
+AContext.Connection.IOHandler.CheckForDataOnSource(100); //new line
+if not AContext.Connection.IOHandler.InputBufferIsEmpty then //new line
+   begin //
+   TRY
+   Linea := AContext.Connection.IOHandler.ReadLn('',ReadTimeOutTIme,-1,IndyTextEncoding_UTF8);
+   if AContext.Connection.IOHandler.ReadLnTimedout then
+      begin
+      TryClosePoolConnection(AContext);
+      ToPoolLog('POOL: Conex Timedout from '+IpUser);
+      exit;
+      end;
+   EXCEPT On E:Exception do
+       begin
+      TryClosePoolConnection(AContext);
+      ToPoolLog(format('POOL: Conex Exception from %s: %s',[IpUser,E.Message]));
+      exit;
+      end;
+   END{Try};
+   end
+else exit;
 EnterCriticalSection(CSMinerJoin);InsideMinerJoin := true;
 TRY
-   Linea := AContext.Connection.IOHandler.ReadLn('',ReadTimeOutTIme,-1,IndyTextEncoding_UTF8);
    Password := Parameter(Linea,0);
    UserDireccion := Parameter(Linea,1);
    comando :=Parameter(Linea,2);
    minerversion :=Parameter(Linea,3);
    if AContext.Connection.IOHandler.ReadLnTimedout then
-      TryClosePoolConnection(AContext)
-   {
-   else if not isValidASCII(Linea) then
       begin
       TryClosePoolConnection(AContext);
-      ToPoolLog(format(rs0084,[linea]));
+      ToPoolLog(Format('TIMEOUT connection from %s',[IPUser]));
       end
-   }
    else if BotExists(IPUser) then
       TryClosePoolConnection(AContext,'BANNED')
    else if password <> Poolinfo.PassWord then  // WRONG PASSWORD.
@@ -2482,6 +2565,10 @@ TRY
       TryClosePoolConnection(AContext,'INVALIDADDRESS')
    else if IsPoolMemberConnected(UserDireccion)>=0 then   // ALREADY CONNECTED
       TryClosePoolConnection(AContext,'ALREADYCONNECTED')
+   else if Comando = 'PAYMENT' then
+      begin
+
+      end
    else if Comando = 'JOIN' then
       begin
       JoinPrefijo := PoolAddNewMember(UserDireccion);
@@ -2528,16 +2615,12 @@ End;
 
 // A miner disconnects from pool server
 procedure TForm1.PoolServerDisConnect(AContext: TIdContext);
-var
-  IPUser : string;
 Begin
 BorrarPoolServerConex(AContext);
 End;
 
 // Exception on pool server
 procedure TForm1.PoolServerException(AContext: TIdContext;AException: Exception);
-var
-  IPUser : string;
 Begin
 BorrarPoolServerConex(AContext);
 End;
@@ -2586,7 +2669,9 @@ var
   BlockZipName: string = '';
   GetFileOk : boolean = false;
   GoAhead : boolean;
+  NextLines : array of string;
 Begin
+SetLength(NextLines,0);
 GoAhead := true;
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
 slot := GetSlotFromIP(IPUser);
@@ -2597,8 +2682,13 @@ if slot = 0 then
   TryCloseServerConnection(AContext);
   GoAhead := false;
   end;
+AContext.Connection.IOHandler.CheckForDataOnSource(100); //new line
+if not AContext.Connection.IOHandler.InputBufferIsEmpty then
+   begin//new line
+   REPEAT
    TRY
    LLine := AContext.Connection.IOHandler.ReadLn(IndyTextEncoding_UTF8);
+   insert(LLine,Nextlines,length(Nextlines));
    if AContext.Connection.IOHandler.ReadLnTimedout then
       begin
       TryCloseServerConnection(AContext);
@@ -2614,8 +2704,20 @@ if slot = 0 then
       GoAhead := false;
       end;
    END{Try};
+   UNTIL AContext.Connection.IOHandler.InputBufferIsEmpty;
+   end
+else goahead := false;
+if ( (length(nextlines)>50) and (not IsDefaultNode(IPUser)) ) then
+   begin
+   TryCloseServerConnection(AContext);
+   UpdateBotData(IPUser);
+   goahead := false;
+   end;
 if GoAhead then
    begin
+   while length(NextLines)>0 do
+   begin // length nextlines > 0
+   LLine := NextLines[0];
    conexiones[slot].IsBusy:=true;
    if GetCommand(LLine) = 'UPDATE' then
       begin
@@ -2776,6 +2878,8 @@ if GoAhead then
       //ToExcLog('SERVER: Got unexpected line: '+LLine);
       end;
    conexiones[slot].IsBusy:=false;
+   delete(Nextlines,0,1);
+   end; // END WHILE
    end;
 End;
 
@@ -2922,19 +3026,13 @@ End;
 
 // Un cliente se desconecta del servidor
 procedure TForm1.IdTCPServer1Disconnect(AContext: TIdContext);
-var
-  IPUser : string;
 Begin
-IPUser := AContext.Connection.Socket.Binding.PeerIP;
 CerrarSlot(GetSlotFromContext(AContext));
 End;
 
 // Excepcion en el servidor
 procedure TForm1.IdTCPServer1Exception(AContext: TIdContext;AException: Exception);
-var
-  IPUser : string;
 Begin
-IPUser := AContext.Connection.Socket.Binding.PeerIP;
 CerrarSlot(GetSlotFromContext(AContext));
 ToExcLog(LangLine(6)+AException.Message);    //Server Excepcion:
 End;
@@ -3906,7 +4004,7 @@ form1.Server.Active := true;
 ServerActivated := true;
 EXCEPT on E:Exception do
    begin
-   info('Error activating server');
+   info('Error activating server: '+E.Message);
    exit;
    end;
 END;{Try}

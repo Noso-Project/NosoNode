@@ -1,3 +1,12 @@
+Version 0.2.1Lb1
+
+- Official release
+
+Version 0.2.1La9
+
+- URGENT anti injection system implemented.
+- Closing app protocol improved.
+
 Version 0.2.1La8
 
 - Official release

@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, mpTime, graphics, strutils, forms, controls, grids,stdctrls,
-  crt,ExtCtrls, buttons, editbtn , menus, Clipbrd, IdContext, LCLTranslator;
+  ExtCtrls, buttons, editbtn , menus, Clipbrd, IdContext, LCLTranslator;
 
 type
   TFormInicio = class(Tform)
@@ -481,7 +481,7 @@ if canal = 1 then  // Salida al grid de inicio
    gridinicio.Cells[0,gridinicio.RowCount-1]:=Texto;
    gridinicio.TopRow:=gridinicio.RowCount;
    Application.ProcessMessages;
-   Delay(1);
+   sleep(1);
    end;
 if canal = 2 then // A consola y label info
    begin

@@ -9,7 +9,6 @@ uses
   mpsignerutils, base64, HlpHashFactory, mpcoin, mptime, translation;
 
 function CreateNewAddress(): WalletData;
-{Procedure CreateKeysPair();}
 Function GetPublicKeyFromPem():String;
 Function GetPrivateKeyFromPem():String;
 function GetAddressFromPublicKey(PubKey:String):String;
@@ -23,9 +22,9 @@ function IsValid58(base58text:string):boolean;
 function DireccionEsMia(direccion:string):integer;
 Procedure RunExternalProgram(ProgramToRun:String);
 function GetStringSigned(StringtoSign, PrivateKey:String):String;
-{function GetBase64TextFromFile(fileb64:string):string;}
 function VerifySignedString(StringToVerify,B64String,PublicKey:String):boolean;
 function GetTransferHash(TextLine:string):String;
+Function GetTrfrHashText(Order:OrderData):String;
 function GetOrderHash(TextLine:string):String;
 Procedure AddCriptoOp(tipo:integer;proceso, resultado:string);
 Procedure StartCriptoThread();
@@ -307,7 +306,7 @@ EXCEPT ON E:Exception do
 END{Try};
 End;
 
-// Devuelve el hash para una trx
+// Returns a transfer gasg
 function GetTransferHash(TextLine:string):String;
 var
   Resultado : String = '';
@@ -318,6 +317,11 @@ Resultado := BMHexTo58(Resultado,58);
 sumatoria := BMB58resumen(Resultado);
 clave := BMDecTo58(sumatoria);
 Result := 'tR'+Resultado+clave;
+End;
+
+Function GetTrfrHashText(Order:OrderData):String;
+Begin
+Result := '';
 End;
 
 // Devuelve el hash de una orden

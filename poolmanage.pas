@@ -25,7 +25,6 @@ Procedure AcreditarPoolStep(direccion:string; value:integer);
 function GetLastPagoPoolMember(direccion:string):integer;
 Procedure ClearPoolUserBalance(direccion:string);
 Procedure PoolUndoneLastPayment();
-function GetPoolConexFreeSlot():integer;
 function SavePoolServerConnection(Ip,Prefijo,UserAddress,minerver:String;contexto:TIdContext):boolean;
 function GetPoolTotalActiveConex ():integer;
 function GetPoolContextIndex(AContext: TIdContext):integer;
@@ -41,6 +40,7 @@ function StepAlreadyAdded(stepstring:string):Boolean;
 Procedure RestartPoolSolution();
 Procedure ShowPoolBots();
 function KickPoolIP(IP:string):integer;
+Function ContextAlreadyExists(ThisContext:TidCOntext): boolean;
 
 implementation
 
@@ -80,15 +80,14 @@ if Form1.PoolServer.Active then
    begin
    for contador := 0 to length(PoolServerConex)-1 do
       begin
-      if PoolServerConex[contador].ip <> '' then
+      if PoolServerConex[contador].context.Connection.Connected then
          begin
          TRY
          Count +=1;
-         info('Closing miner connection: '+PoolServerConex[contador].Address);
-         PoolServerConex[contador].Context.Connection.IOHandler.InputBuffer.Clear;
-         PoolServerConex[contador].Context.Binding.CloseSocket;
+         info('Closing miner connection: '+PoolServerConex[contador].ip);
+         form1.TryClosePoolConnection(PoolServerConex[contador].Context);
          EXCEPT on E:Exception do
-            ToLog('Unable to close pool connection: '+E.Message);
+            ToPoolLog('Unable to close pool connection: '+E.Message);
          END{Try};
          end;
       end;
@@ -98,7 +97,7 @@ if Form1.PoolServer.Active then
    end;
 EXCEPT on E:Exception do
    begin
-   ToLog('Unable to close pool server: '+E.Message);
+   ToExcLog('Unable to close pool server: '+E.Message);
    end;
 END{Try};
 End;
@@ -269,7 +268,7 @@ End;
 
 Procedure ResetPoolMiningInfo();
 Begin
-try
+TRY
 PoolMiner.Block:=LastBlockData.Number+1;
 PoolMiner.Solucion:='';
 PoolMiner.steps:=0;
@@ -277,13 +276,17 @@ PoolMiner.Dificult:=LastBlockData.NxtBlkDiff;
 PoolMiner.DiffChars:=GetCharsFromDifficult(PoolMiner.Dificult, PoolMiner.steps);
 PoolMiner.Target:=MyLastBlockHash;
 AdjustWrongSteps();
-finally
-end;
+PoolMinerBlockFound := false;
+EXCEPT ON E:Exception do
+   begin
+   ToPoolLog('Error reseting pool minning info');
+   end;
+END;{Try}
 EnterCriticalSection(CSPoolShares);
 SetLength(Miner_PoolSharedStep,0);
 LeaveCriticalSection(CSPoolShares);
 ProcessLinesAdd('SENDPOOLSTEPS 0');
-end;
+End;
 
 function GetPoolNumeroDePasos():integer;
 var
@@ -466,20 +469,6 @@ ConsoleLinesAdd('Discounted last payment to pool members : '+Int2curr(totalmenos
 PoolMembersTotalDeuda := GetTotalPoolDeuda();
 End;
 
-// Probably deprecated
-function GetPoolConexFreeSlot():integer;
-var
-  cont: integer;
-begin
-result := -1;
-for cont := 0 to length(PoolServerConex)-1 do
-   if PoolServerConex[cont].Address = '' then
-      begin
-      result := cont;
-      break;
-      end;
-end;
-
 function GetPoolSlotFromPrefjo(prefijo:string):Integer;
 var
   counter : integer;
@@ -552,7 +541,6 @@ End;
 Procedure BorrarPoolServerConex(AContext: TIdContext);
 var
   contador : integer = 0;
-  IPcon : string;
 Begin
 if length(PoolServerConex) > 0 then
    begin
@@ -560,16 +548,10 @@ if length(PoolServerConex) > 0 then
       begin
       if Poolserverconex[contador].Context=AContext then
          begin
-         IPcon := Poolserverconex[contador].Ip;
+         if PoolServerConex[contador].Context.Connection.Connected then
+            form1.TryClosePoolConnection(PoolServerConex[contador].Context);
+
          Poolserverconex[contador]:=Default(PoolUserConnection);
-            try
-            Acontext.Connection.IOHandler.InputBuffer.Clear;
-            AContext.Binding.CloseSocket();
-            Except on E:Exception do
-               begin
-               ToExcLog(Format('Error closing pool connection (%s): %s',[IPcon,E.Message]));
-               end;
-            end;
          U_PoolConexGrid := true;
          break
          end;
@@ -593,7 +575,7 @@ if length(PoolServerConex)>0 then
          end;
       except on E:Exception do
          begin
-         tolog('Error sending pool steps, slot '+IntToStr(contador));
+         toPoollog('Error sending pool steps, slot '+IntToStr(contador));
          end;
       end;
       end;
@@ -612,19 +594,21 @@ if ( (Miner_OwnsAPool) and (length(PoolServerConex)>0) ) then
    begin
    for contador := 0 to length(PoolServerConex)-1 do
       begin
-      try
+      TRY
       memberaddress := PoolServerConex[contador].Address;
       if memberaddress <> '' then
          begin
          PoolTotalHashRate := PoolTotalHashRate+PoolServerConex[contador].Hashpower;
          if ((PoolServerConex[contador].LastPing+15<StrToInt64Def(UTCTime,0)) or (PoolServerConex[contador].LastPing<0) ) then
+            begin
             BorrarPoolServerConex(PoolServerConex[contador].Context);
+            end;
          end;
-      except on E:Exception do
+      EXCEPT on E:Exception do
          begin
-         tolog('Error verifyng pool conex: '+IntToStr(contador));
+         toPoollog('Error verifyng pool conex: '+IntToStr(contador));
          end;
-      end;
+      END{Try};
       end;
    end;
 End;
@@ -729,6 +713,7 @@ if length(arraypoolmembers)>0 then
          end;
       end;
    end;
+
 EXCEPT ON E:Exception do
    ToExcLog('Error inside ExpelPoolInactives: '+E.Message);
 END{Try};
@@ -736,7 +721,7 @@ Leavecriticalsection(CSPoolMembers);
 
 ConsoleLinesAdd('Pool expels  : '+intToStr(expelled));
 ConsoleLinesAdd('Pool Payments: '+intToStr(PaidMembers));
-ToPoolLog(Format('Payments block %d : %d',[Mylastblock,expelled+paidmembers]));
+ToPoolLog(Format('Payments block %d : (%d) %s NOSO',[Mylastblock,expelled+paidmembers,int2curr(Totalpaid)]));
 ConsoleLinesAdd('Total paid   : '+int2curr(Totalpaid));
 setmilitime('ExpelPoolInactives',2);
 SetCurrentJob('ExpelPoolInactives',false);
@@ -840,6 +825,22 @@ for counter := 0 to length(PoolServerConex)-1 do
            end;
         end;
      end;
+   end;
+End;
+
+Function ContextAlreadyExists(ThisContext:TidCOntext): boolean;
+var
+  counter : integer;
+Begin
+result := false;
+if length(Poolserverconex)>0 then
+   begin
+   for counter := 0 to length(Poolserverconex)-2 do
+      if thiscontext = Poolserverconex[counter].Context then
+         begin
+         result := true;
+         break;
+         end;
    end;
 End;
 

@@ -185,8 +185,8 @@ if UserOptions.PoolInfo<> '' then
 OutText('✓ Pool info verified',false,1);
 MyLastBlock := GetMyLastUpdatedBlock;
 OutText('✓ My last block verified: '+MyLastBlock.ToString,false,1);
-BuildHeaderFile(MyLastBlock); // PROBABLY IT IS NOT NECESARY
-OutText('✓ Meaders file build',false,1);
+//BuildHeaderFile(MyLastBlock); // PROBABLY IT IS NOT NECESARY
+//OutText('✓ Headers file build',false,1);
 
 UpdateWalletFromSumario();
 OutText('✓ Wallet updated',false,1);
@@ -1615,7 +1615,6 @@ for contador := 1 to UntilBlock do
       EngineLastUpdate := UTCTime.ToInt64;
       application.ProcessMessages;
       end;
-
    BlockHeader := Default(BlockHeaderData);
    BlockHeader := LoadBlockDataHeader(contador);
    UpdateSumario(BlockHeader.AccountMiner,BlockHeader.Reward+BlockHeader.MinerFee,0,IntToStr(contador));
@@ -1967,7 +1966,7 @@ else
    writeln(archivo,'./'+AppFileName);
 {$ENDIF}
 EXCEPT on E:Exception do
-   tolog ('Error creating restart file: '+E.Message);
+   if not G_ClosingAPP then tolog ('Error creating restart file: '+E.Message);
 END{Try};
 Closefile(archivo);
 End;

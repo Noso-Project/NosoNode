@@ -207,7 +207,6 @@ if not errored then
    AddBlchHead(Numero,MyLastBlockHash,MySumarioHash);
    MyResumenHash := HashMD5File(ResumenFilename);
    ResetMinerInfo();
-   ResetPoolMiningInfo();
    if minero = PoolInfo.Direccion then
       begin
       ConsoleLinesAdd('Your pool solved the block '+inttoStr(numero));
@@ -217,6 +216,7 @@ if not errored then
       begin
       ExpelPoolInactives;
       GuardarPoolMembers();
+      ResetPoolMiningInfo();
       end;
    EnterCriticalSection(CSPoolMembers);
    setmilitime('BACKUPPoolMembers',1);

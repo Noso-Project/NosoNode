@@ -5,7 +5,7 @@ unit mpMiner;
 interface
 
 uses
-  Classes,SysUtils, MasterPaskalForm, mpCripto, StrUtils, mpTime, dialogs, crt, poolmanage;
+  Classes,SysUtils, MasterPaskalForm, mpCripto, StrUtils, mpTime, dialogs, poolmanage;
 
 Procedure VerifyMiner();
 Procedure KillAllMiningThreads();
@@ -83,7 +83,7 @@ for counter := 0 to Length(Miner_Thread)-1 do
       end;
    end;
 Miner_KillThreads := true;
-Delay(200);
+sleep(200);
 Miner_KillThreads := false;
 SetLength(Miner_Thread,0);
 End;

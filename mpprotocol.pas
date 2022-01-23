@@ -30,10 +30,10 @@ Function ZipSumary():boolean;
 Function ZipHeaders():boolean;
 function CreateZipBlockfile(firstblock:integer):string;
 Procedure PTC_SendBlocks(Slot:integer;TextLine:String);
-Procedure INC_PTC_Custom(TextLine:String);
+Procedure INC_PTC_Custom(TextLine:String;connection:integer);
 Procedure PTC_Custom(TextLine:String);
 function ValidateTrfr(order:orderdata;Origen:String):Boolean;
-Procedure INC_PTC_Order(TextLine:String);
+Procedure INC_PTC_Order(TextLine:String;connection:integer);
 Function PTC_Order(TextLine:String):String;
 Procedure PTC_AdminMSG(TextLine:String);
 function SavePoolFiles():boolean;
@@ -184,6 +184,13 @@ Begin
 SetCurrentJob('ParseProtocolLines',true);
 for contador := 1 to MaxConecciones do
    begin
+   if ( (SlotLines[contador].Count > 50) and (not IsDefaultNode(Conexiones[contador].ip)) ) then
+      begin
+      Consolelinesadd('POSSIBLE ATTACK FROM: '+Conexiones[contador].ip);
+      UpdateBotData(conexiones[contador].ip);
+      CerrarSlot(contador);
+      continue;
+      end;
    While SlotLines[contador].Count > 0 do
       begin
       UsedProtocol := StrToIntDef(Parameter(SlotLines[contador][0],1),1);
@@ -216,8 +223,8 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = '$NEWBL' then PTC_NewBlock(SlotLines[contador][0], contador)
       else if UpperCase(LineComando) = '$GETRESUMEN' then PTC_SendResumen(contador)
       else if UpperCase(LineComando) = '$LASTBLOCK' then PTC_SendBlocks(contador,SlotLines[contador][0])
-      else if UpperCase(LineComando) = '$CUSTOM' then INC_PTC_Custom(GetOpData(SlotLines[contador][0]))
-      else if UpperCase(LineComando) = 'ORDER' then INC_PTC_Order(SlotLines[contador][0])
+      else if UpperCase(LineComando) = '$CUSTOM' then INC_PTC_Custom(GetOpData(SlotLines[contador][0]),contador)
+      else if UpperCase(LineComando) = 'ORDER' then INC_PTC_Order(SlotLines[contador][0], contador)
       else if UpperCase(LineComando) = 'ADMINMSG' then PTC_AdminMSG(SlotLines[contador][0])
       else if UpperCase(LineComando) = 'NETREQ' then PTC_NetReqs(SlotLines[contador][0])
       else if UpperCase(LineComando) = '$REPORTNODE' then PTC_NodeReport(SlotLines[contador][0])
@@ -695,8 +702,9 @@ deletefile(ZipFileName);
 SetCurrentJob('PTC_SendBlocks',false);
 End;
 
-Procedure INC_PTC_Custom(TextLine:String);
+Procedure INC_PTC_Custom(TextLine:String;connection:integer);
 Begin
+//Consolelinesadd('Received from: '+Conexiones[connection].ip);
 AddCriptoOp(4,TextLine,'');
 StartCriptoThread();
 End;
@@ -747,8 +755,9 @@ if not VerifySignedString(IntToStr(order.TimeStamp)+origen+order.Receiver+IntToS
    result:=false;
 End;
 
-Procedure INC_PTC_Order(TextLine:String);
+Procedure INC_PTC_Order(TextLine:String;connection:integer);
 Begin
+//Consolelinesadd('Received from: '+Conexiones[connection].ip);
 AddCriptoOp(5,TextLine,'');
 StartCriptoThread();
 End;
