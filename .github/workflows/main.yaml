@@ -5,6 +5,7 @@ on:
   push:
     paths-ignore:
     - "README.md"
+    - "lastrelease.txt"
     branches:
       - "*"
     tags:
