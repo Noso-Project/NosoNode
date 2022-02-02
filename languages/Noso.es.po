@@ -98,6 +98,10 @@ msgstr ""
 msgid "Block hash"
 msgstr ""
 
+#: tform1.cbpool_restart.caption
+msgid "Restart after mine block"
+msgstr ""
+
 #: tform1.cbsummaryhash.caption
 msgid "Summary hash"
 msgstr ""
@@ -105,6 +109,10 @@ msgstr ""
 #: tform1.cb_autorpc.caption
 msgid "Active JSON-RPC server at launch"
 msgstr "Activar servidor JSON-RPC al inicio"
+
+#: tform1.cb_poollbs.caption
+msgid "Long blocks split"
+msgstr ""
 
 #: tform1.cb_rpcfilter.caption
 msgid "Accept only whitelist requests"

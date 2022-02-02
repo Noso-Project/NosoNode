@@ -81,6 +81,7 @@ if not errored then
    // PROCESAR LAS TRANSACCIONES EN LISTAORDENES
    EnterCriticalSection(CSPending);
    SetCurrentJob('NewBLOCK_PENDING',true);
+   setmilitime('NewBLOCK_PENDING',1);
    for contador := 0 to length(pendingTXs)-1 do
       begin
       // Version 0.2.1Ga1 reverification starts
@@ -134,11 +135,13 @@ if not errored then
       end;
    end;
    SetLength(IgnoredTrxs,0);
+   setmilitime('NewBLOCK_PENDING',2);
    SetCurrentJob('NewBLOCK_PENDING',false);
    LeaveCriticalSection(CSPending);
 
    //PoS payment
    SetCurrentJob('NewBLOCK_PoS',true);
+   setmilitime('NewBLOCK_PoS',1);
    if numero >= PoSBlockStart then
       begin
       SetLength(PoSAddressess,0);
@@ -162,13 +165,20 @@ if not errored then
       for contador := 0 to length(PoSAddressess)-1 do
          UpdateSumario(PoSAddressess[contador].address,PosReward,0,IntToStr(Numero));
       end;
+   setmilitime('NewBLOCK_PoS',2);
    SetCurrentJob('NewBLOCK_PoS',false);
+
+   EnterCriticalSection(CSIdsProcessed);
+   Setlength(ArrayOrderIDsProcessed,0);
+   LeaveCriticalSection(CSIdsProcessed);
 
    // Pago del minero
    UpdateSumario(Minero,GetBlockReward(Numero)+MinerFee-PosTotalReward,0,IntToStr(numero));
    // Actualizar el ultimo bloque añadido al sumario
    // Guardar el sumario
+   setmilitime('NewBLOCK_SaveSum',1);
    GuardarSumario();
+   setmilitime('NewBLOCK_SaveSum',2);
    // Limpiar las pendientes
    for contador := 0 to length(ListaDirecciones)-1 do
       ListaDirecciones[contador].Pending:=0;
@@ -212,17 +222,17 @@ if not errored then
       ConsoleLinesAdd('Your pool solved the block '+inttoStr(numero));
       DistribuirEnPool(GetBlockReward(Numero)+MinerFee-PosTotalReward);
       end;
-   if ((Miner_OwnsAPool) and (PoolExpelBlocks>0)) then
-      begin
-      ExpelPoolInactives;
-      GuardarPoolMembers();
-      ResetPoolMiningInfo();
-      end;
-   EnterCriticalSection(CSPoolMembers);
-   setmilitime('BACKUPPoolMembers',1);
-   copyfile (PoolMembersFilename,PoolMembersFilename+'.bak');
-   setmilitime('BACKUPPoolMembers',2);
-   LeaveCriticalSection(CSPoolMembers);
+   if Miner_OwnsAPool then ResetPoolMiningInfo();
+   //if ((Miner_OwnsAPool) and (PoolExpelBlocks>0)) then
+     // begin
+      //GuardarPoolMembers();
+      //ResetPoolMiningInfo();
+      //end;
+   //EnterCriticalSection(CSPoolMembers);
+   //setmilitime('BACKUPPoolMembers',1);
+   //copyfile (PoolMembersFilename,PoolMembersFilename+'.bak');
+   //setmilitime('BACKUPPoolMembers',2);
+   //LeaveCriticalSection(CSPoolMembers);
 
    if ( (Numero>0) and (form1.Server.Active) ) then
       begin  // Re-sent the block solution
@@ -237,7 +247,7 @@ if not errored then
       OutgoingMsjsAdd(ProtocolLine(10)); // Node report
    }
 
-   if Numero > 0 then RebuildMyTrx(Numero);
+   if ((Numero > 0) and (not Miner_OwnsAPool)) then RebuildMyTrx(Numero);
    CheckForMyPending;
    if DIreccionEsMia(Minero)>-1 then showglobo('Miner','Block found!');
    U_DataPanel := true;
@@ -245,6 +255,7 @@ if not errored then
    setmilitime('CrearNuevoBloque',2);
    end;
 BuildingBlock := false;
+if Miner_OwnsAPool then Run_Expel_PoolInactives := true;
 End;
 
 // Devuelve cuantos caracteres compondran el targethash del siguiente bloque

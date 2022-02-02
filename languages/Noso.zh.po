@@ -98,6 +98,10 @@ msgstr "区块文件"
 msgid "Block hash"
 msgstr "区块哈希"
 
+#: tform1.cbpool_restart.caption
+msgid "Restart after mine block"
+msgstr ""
+
 #: tform1.cbsummaryhash.caption
 msgid "Summary hash"
 msgstr "摘要哈希"
@@ -105,6 +109,10 @@ msgstr "摘要哈希"
 #: tform1.cb_autorpc.caption
 msgid "Active JSON-RPC server at launch"
 msgstr "运行 JSON-RPC 服务器"
+
+#: tform1.cb_poollbs.caption
+msgid "Long blocks split"
+msgstr ""
 
 #: tform1.cb_rpcfilter.caption
 msgid "Accept only whitelist requests"

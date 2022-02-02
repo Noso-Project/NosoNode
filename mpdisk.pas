@@ -14,14 +14,8 @@ Procedure VerificarArchivos();
 
 // *** New files system
 // Nodes file
-Procedure CheckNodesFile();
-Procedure CrearNodeFile();
-Procedure CargarNodeFile();
-Procedure VerifyCodedNodes();
-Procedure SaveNodeFile();
 Procedure FillNodeList();
-Function IsDefaultNode(IP:String):boolean;
-Procedure UpdateNodeData(IPUser:String;Port:string;LastTime:String='');
+Function IsSeedNode(IP:String):boolean;
 // Except log file
 Procedure CreateExceptlog();
 Procedure ToExcLog(Texto:string);
@@ -31,6 +25,7 @@ Procedure CreatePoolPayfile();
 Procedure AddPoolPay(Texto:string);
 Procedure SavePoolPays();
 
+Procedure CreateTextFile(FileName:String);
 Procedure CreateLog();
 Procedure CreatePoolLog();
 Procedure CreateADV(saving:boolean);
@@ -87,7 +82,6 @@ Procedure BuildHeaderFile(untilblock:integer);
 Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
 Procedure DelBlChHeadLast();
 
-function NewMyTrx(aParam:Pointer):PtrInt;
 Procedure CreateLauncherFile(IncludeUpdate:boolean = false);
 Procedure RestartNoso();
 Procedure NewDoctor();
@@ -107,6 +101,7 @@ function OSVersion: string;
 Procedure RestoreBlockChain();
 Procedure InitCrossValues();
 function TryDeleteFile(filename:string):boolean;
+function TryCopyFile(Source, destination:string):boolean;
 function AppFileName():string;
 
 implementation
@@ -145,9 +140,7 @@ OutText('✓ Wallet file ok',false,1);
 if not Fileexists(BotDataFilename) then CrearBotData() else CargarBotData();
 OutText('✓ Bots file ok',false,1);
 
-FillNodeList;
-//CheckNodesFile();
-OutText('✓ Nodes file ok',false,1);
+FillNodeList;  // Fills the hardcoded seed nodes list
 
 if not Fileexists(NTPDataFilename) then CrearNTPData() else CargarNTPData();
 OutText('✓ NTP servers file ok',false,1);
@@ -198,139 +191,8 @@ End;
 
 // *** NODE FILE ***
 
-// Check procedure at launch
-Procedure CheckNodesFile();
-var
-  leido : NodeData;
-Begin
-if not Fileexists(NodeDataFilename) then
-   begin
-   CrearNodeFile();
-   end
-else
-   begin
-   assignfile (FileNodeData,NodeDataFilename);
-   Reset(FileNodeData);
-   seek(FileNodeData,0);
-   read (FileNodeData, Leido);
-   closefile(FileNodeData);
-   if leido.ip <> FileFormatVer then // this is to update old node files
-      begin
-      CrearNodeFile();
-      end;
-   end;
-CargarNodeFile();
-End;
-
-// Creates node file
-Procedure CrearNodeFile();
-var
-  nodoinicial : nodedata;
-  continuar : boolean = true;
-  contador : integer = 1;
-  NodoStr : String;
-Begin
-   try
-   assignfile(FileNodeData,NodeDataFilename);
-   rewrite(FileNodeData);
-   NodoInicial := Default(nodedata);
-   NodoInicial.ip:= FileFormatVer;
-   write(FileNodeData,nodoinicial);
-   Repeat
-     begin
-     NodoStr := Parameter(DefaultNodes,contador);
-     if NodoStr = '' then continuar := false
-     else
-        begin
-        NodoInicial := Default(nodedata);
-        NodoInicial.ip:=NodoStr;
-        NodoInicial.port:='8080';
-        NodoInicial.LastConexion:=UTCTime;
-        write(FileNodeData,nodoinicial);
-        contador := contador+1;
-        end;
-     end;
-   until not continuar ;
-   closefile(FileNodeData);
-   SetLength(ListaNodos,0);
-   Except on E:Exception do
-         tolog ('Error creating node file');
-   end;
-End;
-
-// Load nodes from disk
-Procedure CargarNodeFile();
-Var
-  Leido : NodeData;
-  contador: integer = 0;
-Begin
-   try
-   assignfile (FileNodeData,NodeDataFilename);
-   contador := 1;
-   reset (FileNodeData);
-   SetLength(ListaNodos,0);
-   SetLength(ListaNodos, filesize(FileNodeData)-1);
-   while contador < (filesize(FileNodeData)) do
-      begin
-      seek (FileNodeData, contador);
-      read (FileNodeData, Leido);
-      ListaNodos[contador-1] := Leido;
-      contador := contador + 1;
-      end;
-   closefile(FileNodeData);
-   Except on E:Exception do
-         tolog ('Error loading node data');
-   end;
-VerifyCodedNodes();
-End;
-
-// Verify if all coded nodes are in the nodes files
-Procedure VerifyCodedNodes();
-var
-  continuar : boolean = true;
-  contador : integer = 1;
-  NodoStr : String;
-Begin
-Repeat
-   begin
-   NodoStr := Parameter(DefaultNodes,contador);
-   if NodoStr = '' then continuar := false
-   else UpdateNodeData(NodoStr,'8080',UTCTime);
-   contador := contador+1;
-  end;
-until not continuar;
-End;
-
-// Saves nodes to disk
-Procedure SaveNodeFile();
-Var
-  contador : integer = 0;
-Begin
-setmilitime('SaveNodeFile',1);
-   try
-   assignfile (FileNodeData,NodeDataFilename);
-   contador := 0;
-   reset (FileNodeData);
-   seek (FileNodeData, contador+1);
-   if length(ListaNodos)>0 then
-      begin
-      for contador := 0 to length(ListaNodos)-1 do
-         begin
-         seek (FileNodeData, contador+1);
-         write (FileNodeData, ListaNodos[contador]);
-         end;
-      end;
-   truncate(FileNodeData);
-   closefile(FileNodeData);
-   S_NodeData := false;
-   Except on E:Exception do
-      tolog ('Error saving nodes to disk');
-   end;
-setmilitime('SaveNodeFile',2);
-End;
-
-// Fills options node list
-Procedure FillNodeList();
+// Fills hardcoded seed nodes list
+Procedure FillNodeList(); // 0.2.1Lb2 revisited
 var
   counter : integer;
   ThisNode : string = '';
@@ -353,38 +215,11 @@ Repeat
 until not continuar;
 End;
 
-Function IsDefaultNode(IP:String):boolean;
+// If the specified IP a seed node
+Function IsSeedNode(IP:String):boolean;
 Begin
 Result := false;
 if AnsiContainsStr(DefaultNodes,ip) then result := true;
-End;
-
-// Creates/updates a node
-Procedure UpdateNodeData(IPUser:String;Port:string;LastTime:string='');
-var
-  contador : integer = 0;
-  Existe : boolean = false;
-Begin
-S_NodeData := true;
-if LastTime = '' then LastTime := UTCTime;
-for contador := 0 to length(ListaNodos)-1 do
-   begin
-   if (ListaNodos[Contador].ip = IPUser)and (ListaNodos[Contador].port = port) then
-      begin
-      ListaNodos[Contador].LastConexion:=LastTime;
-      S_NodeData := true;
-      Existe := true;
-      end;
-   end;
-if not Existe then
-   begin
-   SetLength(ListaNodos,Length(ListaNodos)+1);
-   ListaNodos[Length(ListaNodos)-1].ip:=IPUser;
-   ListaNodos[Length(ListaNodos)-1].port:=port;
-   ListaNodos[Length(ListaNodos)-1].LastConexion:=LastTime;
-   FillNodeList();
-   S_NodeData := true;
-   end;
 End;
 
 // *** EXCEPTLOG FILE ***
@@ -453,15 +288,15 @@ End;
 // Creates pool pays file
 Procedure CreatePoolPayfile();
 var
-  archivo : textfile;
+  archivo : file of PoolPaymentData;
 Begin
-   try
-   Assignfile(archivo, PoolPaymentsFilename);
-   rewrite(archivo);
-   Closefile(archivo);
-   Except on E:Exception do
-   tolog ('Error creating pool payments file');
-   end;
+TRY
+Assignfile(archivo, PoolPaymentsFilename);
+rewrite(archivo);
+Closefile(archivo);
+EXCEPT on E:Exception do
+   toexclog ('Error creating pool payments file');
+END;
 End;
 
 // Add Except log line
@@ -507,6 +342,21 @@ End;
 
 
 // *****************************************************************************
+
+// creates the specified text file
+Procedure CreateTextFile(FileName:String);
+var
+  archivo : textfile;
+Begin
+   try
+   Assignfile(archivo, FileName);
+   rewrite(archivo);
+   Closefile(archivo);
+   Except on E:Exception do
+      toExclog ('Error creating text file: '+filename);
+   end;
+End;
+
 
 // Creates log file
 Procedure CreateLog();
@@ -577,6 +427,11 @@ setmilitime('CreateADV',1);
    if MN_Sign = '' then MN_Sign := ListaDirecciones[0].Hash;
    writeln(FileAdvOptions,'MNSign '+(MN_Sign));
 
+   writeln(FileAdvOptions,'PoolRestart '+BoolToStr(POOL_MineRestart,true));
+   writeln(FileAdvOptions,'PoolLBS '+BoolToStr(POOL_LBS,true));
+
+
+
    Closefile(FileAdvOptions);
    if saving then tolog('Options file saved');
    S_AdvOpt := false;
@@ -630,6 +485,10 @@ Begin
       if parameter(linea,0) ='MNFunds' then MN_Funds:=Parameter(linea,1);
       if parameter(linea,0) ='MNSign' then MN_Sign:=Parameter(linea,1);
 
+      if parameter(linea,0) ='PoolRestart' then POOL_MineRestart:=StrToBool(Parameter(linea,1));
+      if parameter(linea,0) ='PoolLBS' then POOL_LBS:=StrToBool(Parameter(linea,1));
+
+
       end;
    Closefile(FileAdvOptions);
    Except on E:Exception do
@@ -673,6 +532,7 @@ CreateFileFromResource('Noso.zh','locale'+DirectorySeparator+'Noso.zh.po');
 CreateFileFromResource('Noso.de','locale'+DirectorySeparator+'Noso.de.po');
 CreateFileFromResource('Noso.ro','locale'+DirectorySeparator+'Noso.ro.po');
 CreateFileFromResource('Noso.id','locale'+DirectorySeparator+'Noso.id.po');
+CreateFileFromResource('Noso.ru','locale'+DirectorySeparator+'Noso.ru.po');
 End;
 
 Procedure CreateFileFromResource(resourcename,filename:string);
@@ -980,7 +840,7 @@ var
   contador : integer = 0;
   updated : boolean = false;
 Begin
-if IsAValidNode(IPUser) then exit;
+if IsSafeIP(IPUser) then exit;
 for contador := 0 to length(ListadoBots)-1 do
    begin
    if ListadoBots[Contador].ip = IPUser then
@@ -1091,7 +951,7 @@ if S_PoolMembers then GuardarPoolMembers();
 if S_Log then SaveLog;
 if S_PoolLog then SavePoolLog;
 if S_Exc then SaveExceptLog;
-if S_PoolPays then SavePoolPays;
+//if S_PoolPays then SavePoolPays;
 if S_PoolInfo then GuardarArchivoPoolInfo;
 if S_AdvOpt then CreateADV(true);
 SetCurrentJob('SaveUpdatedFiles',false);
@@ -1757,23 +1617,25 @@ Procedure SaveMyTrxsLastUpdatedblock(Number:integer;PoSPayouts, PoSEarnings:int6
 var
   FirstTrx : MyTrxData;
 Begin
-   try
-   FirstTrx := Default(MyTrxData);
-   FirstTrx.block:=Number;
-   FirstTrx.receiver := IntToStr(PoSPayouts)+' '+IntToStr(PoSEarnings);
-   assignfile (FileMyTrx,MyTrxFilename);
-   reset(FileMyTrx);
-   seek(FileMyTrx,0);
-   write(FileMyTrx,FirstTrx);
-   Closefile(FileMyTrx);
-   G_PoSPayouts  := PoSPayouts;
-   G_PoSEarnings := PoSEarnings;
-   ListaMisTrx[0].receiver := IntToStr(PoSPayouts)+' '+IntToStr(PoSEarnings);
-   if G_PoSPayouts > 0 then
-      ToLog(Format('Total PoS : %d : %s',[G_PoSPayouts,Int2curr(G_PoSEarnings)]));
-   Except on E:Exception do
-      toExclog ('Error setting last block checked for my trx');
-   end;
+SetCurrentJob('SaveMyTrxsLastUpdatedblock',true);
+TRY
+FirstTrx := Default(MyTrxData);
+FirstTrx.block:=Number;
+FirstTrx.receiver := IntToStr(PoSPayouts)+' '+IntToStr(PoSEarnings);
+assignfile (FileMyTrx,MyTrxFilename);
+reset(FileMyTrx);
+seek(FileMyTrx,0);
+write(FileMyTrx,FirstTrx);
+Closefile(FileMyTrx);
+G_PoSPayouts  := PoSPayouts;
+G_PoSEarnings := PoSEarnings;
+ListaMisTrx[0].receiver := IntToStr(PoSPayouts)+' '+IntToStr(PoSEarnings);
+if G_PoSPayouts > 0 then
+   ToLog(Format('Total PoS : %d : %s',[G_PoSPayouts,Int2curr(G_PoSEarnings)]));
+EXCEPT on E:Exception do
+   toExclog ('Error setting last block checked for my trx');
+END;{Try}
+SetCurrentJob('SaveMyTrxsLastUpdatedblock',false);
 End;
 
 // Rebuilds user transactions  file up to specified block
@@ -1784,7 +1646,6 @@ var
   Header : BlockHeaderData;
   NewTrx : MyTrxData;
   ArrTrxs : BlockOrdersArray;
-
   ArrayPos    : BlockArraysPos;
   PosReward   : int64;
   PosCount    : integer;
@@ -1796,6 +1657,7 @@ SetCurrentJob('RebuildMyTrx',true);
 Existentes := Length(ListaMisTrx);
 if ListaMisTrx[0].Block < blocknumber then
    begin
+   TRY
    PoSPayouts := StrToInt64Def(parameter(ListaMisTrx[0].receiver,0),0);
    PoSEarnings := StrToInt64Def(parameter(ListaMisTrx[0].receiver,1),0);
    for contador := ListaMisTrx[0].Block+1 to blocknumber do
@@ -1811,7 +1673,8 @@ if ListaMisTrx[0].Block < blocknumber then
          gridinicio.RowCount:=gridinicio.RowCount-1;
          OutText(Format('Rebuilding my Trxs: %d',[contador]),false,1);
          end;
-      BlockPayouts := 0; BlockEarnings := 0;
+      BlockPayouts := 0;
+      BlockEarnings := 0;
       Header := LoadBlockDataHeader(contador);
       if DireccionEsMia(Header.AccountMiner)>=0 then // user is miner
          begin
@@ -1889,6 +1752,9 @@ if ListaMisTrx[0].Block < blocknumber then
       U_Mytrxs := true;
       end;
    SaveMyTrxsLastUpdatedblock(blocknumber, PoSPayouts, PoSEarnings);
+   EXCEPT ON E:Exception do
+      ToExcLog('*****CRITICAL***** Error in RebuildMyTrx: '+E.Message);
+   END;{Try}
    end;
 SetCurrentJob('RebuildMyTrx',false);
 End;
@@ -1899,29 +1765,21 @@ var
   contador : integer;
 Begin
 setmilitime('SaveMyTrxsToDisk',1);
-   try
-   assignfile (FileMyTrx,MyTrxFilename);
-   reset(FileMyTrx);
-   for contador := cantidad to length(ListaMisTrx)-1 do
-      begin
-      seek(FileMyTrx,contador);
-      write(FileMyTrx,ListaMisTrx[contador]);
-      end;
-   Closefile(FileMyTrx);
-   Except on E:Exception do
-      tolog ('Error saving my trx to disk');
+SetCurrentJob('SaveMyTrxsToDisk',true);
+TRY
+assignfile (FileMyTrx,MyTrxFilename);
+reset(FileMyTrx);
+for contador := cantidad to length(ListaMisTrx)-1 do
+   begin
+   seek(FileMyTrx,contador);
+   write(FileMyTrx,ListaMisTrx[contador]);
    end;
+Closefile(FileMyTrx);
+EXCEPT on E:Exception do
+   toExclog ('Error saving my trx to disk');
+END;{Try}
+SetCurrentJob('SaveMyTrxsToDisk',false);
 setmilitime('SaveMyTrxsToDisk',2);
-End;
-
-// Non blocking rebuilding user transactions
-Function NewMyTrx(aParam:Pointer):PtrInt;
-Begin
-CrearMistrx();
-CargarMisTrx();
-RebuildMyTrx(MyLastBlock);
-ConsoleLinesAdd('My transactions rebuilded');
-NewMyTrx := -1;
 End;
 
 // Creates a bat file for restart
@@ -2435,7 +2293,7 @@ PoolLogFilename     := 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'
 PoolInfoFilename    := 'NOSODATA'+DirectorySeparator+'poolinfo.dat';
 PoolMembersFilename := 'NOSODATA'+DirectorySeparator+'poolmembers.dat';
 AdvOptionsFilename  := 'NOSODATA'+DirectorySeparator+'advopt.txt';
-PoolPaymentsFilename:= 'NOSODATA'+DirectorySeparator+'poolpays.txt';
+PoolPaymentsFilename:= 'NOSODATA'+DirectorySeparator+'poolpays.psk';
 ZipSumaryFileName   := 'NOSODATA'+DirectorySeparator+'sumary.zip';
 ZipHeadersFileName  := 'NOSODATA'+DirectorySeparator+'blchhead.zip';
 End;
@@ -2452,6 +2310,21 @@ result := true;
       ToExcLog('Error deleting file ('+filename+') :'+E.Message);
       end;
    end;
+End;
+
+// Trys to coyy a file safely
+function TryCopyFile(Source, destination:string):boolean;
+Begin
+result := true;
+   try
+   copyfile (source,destination);
+   Except on E:Exception do
+      begin
+      result := false;
+      ToExcLog('Error copying file ('+Source+') :'+E.Message);
+      end;
+   end;
+
 End;
 
 // Returns the name of the app file without path

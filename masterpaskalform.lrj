@@ -33,6 +33,8 @@
 {"hash":5506242,"name":"tform1.tabsheet6.caption","sourcebytes":[77,105,110,101,114],"value":"Miner"},
 {"hash":357980,"name":"tform1.tabmainpool.caption","sourcebytes":[80,111,111,108],"value":"Pool"},
 {"hash":5941427,"name":"tform1.tabpoolstats.caption","sourcebytes":[83,116,97,116,115],"value":"Stats"},
+{"hash":130473211,"name":"tform1.cbpool_restart.caption","sourcebytes":[82,101,115,116,97,114,116,32,97,102,116,101,114,32,109,105,110,101,32,98,108,111,99,107],"value":"Restart after mine block"},
+{"hash":60321204,"name":"tform1.cb_poollbs.caption","sourcebytes":[76,111,110,103,32,98,108,111,99,107,115,32,115,112,108,105,116],"value":"Long blocks split"},
 {"hash":88099987,"name":"tform1.tabpoolminers.caption","sourcebytes":[77,105,110,101,114,115],"value":"Miners"},
 {"hash":21335,"name":"tform1.tabpoollog.caption","sourcebytes":[76,111,103],"value":"Log"},
 {"hash":354563,"name":"tform1.tabpoolpays.caption","sourcebytes":[80,97,121,115],"value":"Pays"},

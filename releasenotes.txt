@@ -1,6 +1,19 @@
+Version 0.2.1Lb2
+
+- Fixing pool payment system.
+- Do not add to crypto array transactions already pending.
+- Command "addnode" deprecated.
+- Command "delnode" deprecated.
+- Protocol "$NODES" deprecated.
+- Implemented ThSa GetPendingCount.
+- Implemented ThSa ClearAllPending.
+- Undone server info catch system.
+- Improved client close procedure.
+- Added Russian language.
+
 Version 0.2.1Lb1
 
-- Official release
+- Official release.
 
 Version 0.2.1La9
 
@@ -108,7 +121,7 @@ Version 0.2.1Kb4
 - Implemented test for masternode options.
 - Updated devnoso pool IP.
 - Eliminated nodes file.
-- Added Function IsDefaultNode.
+- Added Function IsSeedNode.
 - Added advanced order filters to AddPendingTxs.
 
 Version 0.2.1Ka9 to Kb3
@@ -131,7 +144,6 @@ Version 0.2.1Ka6
 - Implemented stop pool server variable.
 - Implemented secure close of pool server.
 - Implemented secure close of node server.
-- Improved ExpelPoolInactives execution.
 - Fixed maximum reward to a pool step.
 - Re-verification on Valid pool steps.
 - Added function IsValidASCII.

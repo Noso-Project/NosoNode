@@ -19,9 +19,7 @@ function GetOpData(textLine:string):String;
 Procedure ParseCommandLine(LineText:string);
 Function GetCommand(LineText:String):String;
 Function Parameter(LineText:String;ParamNumber:int64):String;
-Procedure Addnode(linea:String);
 Procedure ShowNodes();
-Procedure DeleteNode(Texto:string);
 Procedure ShowBots();
 Procedure ShowSlots();
 Procedure ShowUserOptions();
@@ -53,7 +51,7 @@ Procedure ShowBlockInfo(numberblock:integer);
 Procedure showmd160(linetext:string);
 Procedure CustomizeAddress(linetext:string);
 Procedure Parse_SendFunds(LineText:string);
-function SendFunds(LineText:string):string;
+function SendFunds(LineText:string;showOutput:boolean=true):string;
 Procedure ShowHalvings();
 Procedure GroupCoins(linetext:string);
 Procedure CreateTraslationFile();
@@ -217,9 +215,7 @@ else if UpperCase(Command) = 'VER' then ConsoleLinesAdd(ProgramVersion+SubVersio
 else if UpperCase(Command) = 'SERVERON' then StartServer()
 else if UpperCase(Command) = 'SERVEROFF' then StopServer()
 else if UpperCase(Command) = 'FORCESERVER' then ForceServer()
-else if UpperCase(Command) = 'ADDNODE' then AddNode(linetext)
 else if UpperCase(Command) = 'NODES' then ShowNodes()
-else if UpperCase(Command) = 'DELNODE' then DeleteNode(linetext)
 else if UpperCase(Command) = 'BOTS' then ShowBots()
 else if UpperCase(Command) = 'SLOTS' then ShowSlots()
 else if UpperCase(Command) = 'CONNECT' then ConnectToServers()
@@ -334,10 +330,8 @@ else if UpperCase(Command) = 'POOLPAYINTERVAL' then ChangePoolPayrate(LineText)
 else if UpperCase(Command) = 'POOLEXPEL' then PoolExpelMember(LineText)
 else if UpperCase(Command) = 'POOLEXPELBLOCK' then SetPoolExpelBlocks(LineText)
 else if UpperCase(Command) = 'POOLSHARE' then SetPoolShare(LineText)
-else if UpperCase(Command) = 'SENDPOOLSTEPS' then SendPoolStepsInfo(StrToInt(Parameter(LineText,1)))
-else if UpperCase(Command) = 'POOLHASHRATE' then SendPoolHashRateRequest()
 else if UpperCase(Command) = 'SAVEPOOLFILES' then SavePoolFiles()
-else if UpperCase(Command) = 'POOLPEERS' then ConsoleLinesAdd('Pool list: '+IntToStr(form1.PoolClientsCount))
+else if UpperCase(Command) = 'POOLPEERS' then ConsoleLinesAdd('Pool list: '+form1.PoolClientsCount.ToString+'/'+GetPoolTotalActiveConex.ToString)
 else if UpperCase(Command) = 'POOLRESET' then PoolInfo.FeeEarned := 0
 else if UpperCase(Command) = 'POOLIPPOWER' then PoolIPPower()
 else if UpperCase(Command) = 'POOLBOTS' then ShowPoolBots()
@@ -431,32 +425,6 @@ if temp = ' ' then temp := '';
 Result := Temp;
 End;
 
-// Añade un nodo
-Procedure Addnode(linea:String);
-var
-  ip : String = '';
-  port : String = '';
-Begin
-ip := Parameter(Linea,1);
-if not isvalidip(IP) then
-  begin
-  OutText('Invalid node',false,2);
-  exit;
-  end;
-Port := Parameter(Linea,2);
-if ((port = '') or (StrToIntDef(port,-1)<0)) then port := '8080';
-if NodeExists(Ip,Port)<0 then
-   begin
-   UpdateNodeData(Ip,port);
-   ConsoleLinesAdd(LangLine(41));      //Node added.
-   end
-else
-   begin
-   UpdateNodeData(Ip,port); // actualizar la ultima conexion valida
-   ConsoleLinesAdd(LangLine(42)); //Node already exists.
-   end
-End;
-
 // muestra los nodos
 Procedure ShowNodes();
 var
@@ -465,33 +433,6 @@ Begin
 for contador := 0 to length(ListaNodos) - 1 do
    ConsoleLinesAdd(IntToStr(contador)+'- '+Listanodos[contador].ip+':'+Listanodos[contador].port+
    ' '+TimeSinceStamp(CadToNum(Listanodos[contador].LastConexion,0,'STI fails on shownodes')));
-End;
-
-// Elimina el nodo indicado por su numero
-Procedure DeleteNode(Texto:string);
-var
-  numero : integer = 0;
-  contador : integer = 0;
-Begin
-numero := StrToIntDef(Parameter(Texto,1),-1);
-if ((numero<0) or (numero>length(ListaNodos)-1)) then
-   begin
-   ConsoleLinesAdd(LangLine(43)); //Invalid node index.
-   exit;
-   end
-else
-   begin
-   for contador := numero to length(listanodos)-2 do
-      begin
-      listanodos[contador].ip:=listanodos[contador+1].ip;
-      listanodos[contador].port:=listanodos[contador+1].port;
-      listanodos[contador].LastConexion:=listanodos[contador+1].LastConexion;
-      end;
-   setlength(listanodos,length(listanodos)-1);
-   S_NodeData := True;
-   ConsoleLinesAdd(LangLine(44)+IntToStr(numero));  //Node deleted :
-   FillNodeList();
-   end;
 End;
 
 // muestra los Bots
@@ -636,6 +577,8 @@ var
   CustomsAdds : string = '';
   DuplicatedCustoms : string = ' ';
   DuplicatedCount : integer = 0;
+  BiggerAmmount : int64 = 0;
+  BiggerAddress : string = '';
 Begin
 EnterCriticalSection(CSSumary);
 For contador := 0 to length(ListaSumario)-1 do
@@ -659,16 +602,23 @@ For contador := 0 to length(ListaSumario)-1 do
    if ListaSumario[contador].Balance < 0 then NegAdds+=1;
    TotalCOins := totalCoins+ ListaSumario[contador].Balance;
    if ListaSumario[contador].Balance = 0 then EmptyAddresses +=1;
+   if ListaSumario[contador].Balance > BiggerAmmount then
+      begin
+      BiggerAmmount := ListaSumario[contador].Balance;
+      BiggerAddress := ListaSumario[contador].Hash;
+      end;
    end;
 ConsoleLinesAdd(IntToStr(Length(ListaSumario))+langline(51)); //addresses
 ConsoleLinesAdd(IntToStr(EmptyAddresses)+' empty.'); //addresses
 if NegAdds>0 then ConsoleLinesAdd('Possible issues: '+IntToStr(NegAdds));
-if DuplicatedCount>0 then
+if DuplicatedCount>2 then
    begin
    ConsoleLinesAdd('Duplicated alias: '+DuplicatedCount.ToString);
    ConsoleLinesAdd(DuplicatedCustoms);
    end;
 ConsoleLinesAdd(Int2Curr(Totalcoins)+' '+CoinSimbol);
+ConsoleLinesAdd('Bigger : '+BiggerAddress);
+ConsoleLinesAdd('Balance: '+Int2curr(BiggerAmmount));
 LeaveCriticalSection(CSSumary);
 End;
 
@@ -1056,7 +1006,7 @@ StartCriptoThread();
 End;
 
 // Ejecuta una orden de transferencia
-function SendFunds(LineText:string):string;
+function SendFunds(LineText:string;showOutput:boolean=true):string;
 var
   Destination, amount, reference : string;
   monto, comision : int64;
@@ -1080,7 +1030,7 @@ amount       := Parameter(Linetext,2);
 reference    := Parameter(Linetext,3);
 if ((Destination='') or (amount='')) then
    begin
-   ConsoleLinesAdd(LAngLine(145)); //'Invalid parameters.'
+   if showOutput then ConsoleLinesAdd(LAngLine(145)); //'Invalid parameters.'
    Procesar := false;
    end;
 if not IsValidHashAddress(Destination) then
@@ -1088,7 +1038,7 @@ if not IsValidHashAddress(Destination) then
    AliasIndex:=AddressSumaryIndex(Destination);
    if AliasIndex<0 then
       begin
-      ConsoleLinesAdd(LangLine(146)); //'Invalid destination.'
+      if showOutput then ConsoleLinesAdd(LangLine(146)); //'Invalid destination.'
       Procesar := false;
       end
    else Destination := ListaSumario[aliasIndex].Hash;
@@ -1097,7 +1047,7 @@ monto := StrToInt64Def(amount,-1);
 if reference = '' then reference := 'null';
 if monto<=0 then
    begin
-   ConsoleLinesAdd(LangLine(147)); //'Invalid ammount.'
+   if showOutput then ConsoleLinesAdd(LangLine(147)); //'Invalid ammount.'
    Procesar := false;
    end;
 if procesar then
@@ -1110,7 +1060,7 @@ if procesar then
    else CoinsAvailable := GetWalletBalance;
    if Restante > CoinsAvailable then
       begin
-      ConsoleLinesAdd(LAngLine(148)+Int2curr(Monto+comision));//'Insufficient funds. Needed: '
+      if showOutput then ConsoleLinesAdd(LAngLine(148)+Int2curr(Monto+comision));//'Insufficient funds. Needed: '
       Procesar := false;
       end;
    end;
@@ -1143,23 +1093,10 @@ if procesar then
       ArrayTrfrs[contador].OrderLines:=trxLinea;
       end;
    ResultOrderID := GetOrderHash(IntToStr(trxLinea)+OrderHashString);
-   ConsoleLinesAdd('Send to: '+Destination+slinebreak+
+   if showOutput then ConsoleLinesAdd('Send to: '+Destination+slinebreak+
                     'Send '+Int2Curr(montoToShow)+' fee '+Int2Curr(comisionToShow)+slinebreak+
                     'Order ID: '+ResultOrderID);
    result := ResultOrderID;
-
-   // Save pool payments to pool log
-   if reference = 'POOLPAYMENT_'+PoolInfo.Name then
-      begin
-      AddPoolPay(IntToStr(MyLastBlock+1)+' '+Destination+' '+IntToStr(montoToShow)+' '+
-                  ResultOrderID);
-      PoolMembersTotalDeuda := GetTotalPoolDeuda();
-      end;
-   if reference = 'EXPEL_POOLPAYMENT_'+PoolInfo.Name then
-      begin
-      AddPoolPay(IntToStr(MyLastBlock+1)+' '+Destination+' '+IntToStr(montoToShow)+' '+
-                  ResultOrderID);
-      end;
 
    OrderString := GetPTCEcn+'ORDER '+IntToStr(trxLinea)+' $';
    for contador := 0 to length(ArrayTrfrs)-1 do
@@ -1172,7 +1109,7 @@ if procesar then
    end // End procesar
 else
    begin
-   ConsoleLinesAdd('Syntax: sendto {destination} {ammount} {reference}');
+   if showOutput then ConsoleLinesAdd('Syntax: sendto {destination} {ammount} {reference}');
    end;
 End;
 
@@ -2221,6 +2158,11 @@ for counter := 1 to MyLastBlock do
    begin
    Header := LoadBlockDataHeader(counter);
    totalcoins := totalcoins+ header.MinerFee;
+   if counter mod 1000 = 0 then
+     Begin
+     info('TOTAL FEES '+counter.ToString);
+     application.ProcessMessages;
+     end;
    end;
 ConsoleLinesAdd('Blockchain total fees: '+Int2curr(totalcoins));
 ConsoleLinesAdd('Block average        : '+Int2curr(totalcoins div MyLastBlock));
@@ -2299,14 +2241,24 @@ var
   counter : integer;
   Header : BlockHeaderData;
   highDiff : integer = 0;
+  highblock : integer = 0;
 Begin
 for counter := 1 to MyLastBlock do
    begin
    Header := LoadBlockDataHeader(counter);
-   consolelinesAdd(inttostr(counter)+','+IntToStr(Header.Difficult));
-   if Header.Difficult > HighDiff then HighDiff := Header.Difficult;
+   if counter mod 100 = 0 then
+      begin
+      info ('Difftory '+counter.ToString);
+      application.ProcessMessages;
+      end;
+   //consolelinesAdd(inttostr(counter)+','+IntToStr(Header.Difficult));
+   if Header.Difficult > HighDiff then
+      begin
+      HighDiff := Header.Difficult;
+      highblock := counter;
+      end;
    end;
-ConsoleLinesAdd('Highest ever: '+IntToStr(HighDiff));
+ConsoleLinesAdd('Highest ever: '+IntToStr(HighDiff)+' on block '+highblock.ToString);
 End;
 
 function ShowPrivKey(linea:String;ToConsole:boolean = false):String;
@@ -2352,7 +2304,7 @@ else
   for contador := 1 to numero do
      begin
      Monto := Random(50)+1;
-     ProcesslinesAdd('SENDTO devteam_donations '+IntToStr(Monto));
+     ProcesslinesAdd('SENDTO devteam_donations '+IntToStr(Monto)+' '+contador.ToString);
      end;
   end;
 End;
@@ -2466,34 +2418,14 @@ End;
 Procedure DebugTest(linetext:string);
 var
   counter,count2 : integer;
-  ThisContext : TidContext;
-  ThisIP     : string;
-  matches : integer = 0;
-  Myarray : array of integer;
-  FinalS : string = '';
 Begin
-if length(Poolserverconex)>0 then
+count2 := 0;
+for counter := 0 to -1 do
    begin
-   setlength(myarray,length(Poolserverconex));
-   for counter := 0 to length(Poolserverconex)-2 do
-      begin
-      ThisContext := Poolserverconex[counter].Context;
-      ThisIP := Poolserverconex[counter].Ip;
-      for count2 := counter+1 to length(Poolserverconex)-1 do
-         begin
-         if ((thiscontext = Poolserverconex[count2].Context) and (ThisIP = Poolserverconex[count2].Ip)) then
-            begin
-            matches := matches+1;
-            myarray[counter] := myarray[counter]+1;
-            end;
-         end;
-      end;
-   consolelinesadd(format('Found %d matches.',[matches]));
-   for counter := 0 to length(Poolserverconex)-1 do
-      finals := finals+IntToStr(MyArray[counter])+' ';
-   consolelinesadd(Finals);
-   end
-else consolelinesadd('No pool server connections');
+   consolelinesadd(counter.ToString);
+   count2 :=+1;
+   end;
+consolelinesadd('runned times: '+count2.ToString);
 End;
 
 END. // END UNIT

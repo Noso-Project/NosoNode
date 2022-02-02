@@ -23,7 +23,6 @@ function GetFee(monto:int64):Int64;
 Function SendFundsFromAddress(Origen, Destino:String; monto, comision:int64; reference,
   ordertime:String;linea:integer):OrderData;
 Procedure CheckForMyPending();
-function HaveAddressAnyPending(Address:string):boolean;
 function GetMaximunToSend(monto:int64):int64;
 function cadtonum(cadena:string;pordefecto:int64;erroroutput:string):int64;
 Function IsValidIP(IpString:String):boolean;
@@ -34,6 +33,8 @@ function ShowHashrate(hashrate:int64):string;
 function GetBlockHeaders(numberblock:integer):string;
 function ValidRPCHost(hoststr:string):boolean;
 function PendingRawInfo():String;
+Function GetPendingCount():integer;
+Procedure ClearAllPending();
 Function GetPoSPercentage(block:integer):integer;
 Function GetMNsPercentage(block:integer):integer;
 Function GetStackRequired(block:integer):int64;
@@ -72,12 +73,20 @@ End;
 function GetAddressPendingPays(Address:string):int64;
 var
   cont : integer;
+  CopyPendings : array of orderdata;
 Begin
 Result := 0;
-for cont := 0 to length(PendingTXs)-1 do
+if GetPendingCount>0 then
    begin
-   if address = PendingTXS[cont].address then
-      result := result+PendingTXS[cont].AmmountFee+PendingTXS[cont].AmmountTrf;
+   EnterCriticalSection(CSPending);
+   SetLength(CopyPendings,0);
+   CopyPendings := copy(PendingTxs,0,length(PendingTxs));
+   LeaveCriticalSection(CSPending);
+   for cont := 0 to length(CopyPendings)-1 do
+      begin
+      if address = CopyPendings[cont].address then
+         result := result+CopyPendings[cont].AmmountFee+CopyPendings[cont].AmmountTrf;
+      end;
    end;
 End;
 
@@ -85,12 +94,20 @@ End;
 function GetAddressIncomingpays(Address:string):int64;
 var
   cont : integer;
+  CopyPendings : array of orderdata;
 Begin
-Result := 0;
-for cont := 0 to length(PendingTXs)-1 do
+result := 0;
+if GetPendingCount>0 then
    begin
-   if address = PendingTXS[cont].receiver then
-      result := result+PendingTXS[cont].AmmountTrf;
+   EnterCriticalSection(CSPending);
+   SetLength(CopyPendings,0);
+   CopyPendings := copy(PendingTxs,0,length(PendingTxs));
+   LeaveCriticalSection(CSPending);
+   for cont := 0 to length(CopyPendings)-1 do
+      begin
+      if address = PendingTXS[cont].receiver then
+         result := result+PendingTXS[cont].AmmountTrf;
+      end;
    end;
 End;
 
@@ -100,7 +117,7 @@ var
   cont : integer;
 Begin
 Result := false;
-for cont := 0 to length(PendingTXs)-1 do
+for cont := 0 to GetPendingCount-1 do
    begin
    if TrxHash = PendingTXS[cont].TrfrID then
       begin
@@ -219,7 +236,7 @@ for cont := 0 to length(ListaSumario) -1 do
    end;
 if result = false then
    begin
-   for cont := 0 to length(PendingTXs)-1 do
+   for cont := 0 to GetPendingCount-1 do
       begin
       if ((PendingTxs[cont].Address=address) and (PendingTxs[cont].OrderType = 'CUSTOM')) then
          begin
@@ -246,7 +263,7 @@ for cont := 0 to length(ListaSumario) -1 do
    end;
 if not result then
    begin
-   for cont := 0 to length(PendingTXs)-1 do
+   for cont := 0 to GetPendingCount-1 do
       begin
       if ((PendingTxs[cont].OrderType='CUSTOM') and (PendingTxs[cont].Receiver = Addalias)) then
          begin
@@ -332,14 +349,14 @@ var
 Begin
 MontoIncoming := 0;
 MontoOutgoing := 0;
-if length(PendingTxs) = 0 then
+if GetPendingCount = 0 then
    begin
    form1.ImageInc.Visible:=false;
    form1.ImageOut.Visible:=false;
    end
 else
    begin
-   for counter := 0 to length(PendingTXs)-1 do
+   for counter := 0 to GetPendingCount-1 do
       begin
       DireccionEnvia := PendingTxs[counter].Address;
       if DireccionEsMia(DireccionEnvia)>=0 then
@@ -355,20 +372,6 @@ else
    if MontoIncoming>0 then form1.ImageInc.Visible := true else form1.ImageInc.Visible:= false;
    if MontoOutgoing>0 then form1.ImageOut.Visible := true else form1.ImageOut.Visible:= false;
    U_DirPanel := true;
-   end;
-End;
-
-// Verifica si la direccion posee transacciones pendientes
-function HaveAddressAnyPending(Address:string):boolean;
-var
-  cont : integer;
-Begin
-result := false;
-for cont := 0 to length(PendingTXs)-1 do
-   begin
-   if ((GetAddressFromPublicKey(PendingTXs[cont].Sender)=address) or
-      (GetAddressFromPublicKey(PendingTXs[cont].Receiver)=address)) then
-      result := true;
    end;
 End;
 
@@ -549,6 +552,22 @@ if Length(PendingTXs) > 0 then
       end;
    Trim(result);
    end;
+End;
+
+// Returns the length of the pending transactions array safely
+Function GetPendingCount():integer;
+Begin
+EnterCriticalSection(CSPending);
+result := Length(PendingTXs);
+LeaveCriticalSection(CSPending);
+End;
+
+// Clear the pending transactions array safely
+Procedure ClearAllPending();
+Begin
+EnterCriticalSection(CSPending);
+SetLength(PendingTXs,0);
+LeaveCriticalSection(CSPending);
 End;
 
 // Returns the PoS percentage for the specified block (0 to 10000)

@@ -384,7 +384,7 @@ if Miner_OwnsAPool then
                            ' DiffChars: '+IntToStr(Poolminer.DiffChars)+' Steps: '+IntToStr(PoolMiner.steps)+
                            ' Earned: '+Int2Curr(PoolInfo.FeeEarned)+' '+booltostr(form1.PoolServer.Active,true);
    LabelPoolMiner2.Caption:='Members: '+IntToStr(length(ArrayPoolMembers))+' Total Debt: '+Int2Curr(PoolMembersTotalDeuda)+
-                                      ' Connected: '+IntToStr(GetPoolTotalActiveConex)+'/'+IntToStr(form1.PoolClientsCount)+' Hashrate: '+
+                                      ' Connected: '+ActiveConex.ToString+'/0 Hashrate: '+   //PoolClientsCount
                                       IntToStr(PoolTotalHashRate);
    //LeaveCriticalSection(CSPoolMembers);
    if (ActiveConex>0)  then
@@ -568,7 +568,7 @@ if form1.PCPool.ActivePage=Form1.TabPoolStats then
       Form1.SG_PoolStats.Cells[1,3] := IntToStr(Poolminer.DiffChars);
       Form1.SG_PoolStats.Cells[1,4] := IntToStr(PoolMiner.steps);
       Form1.SG_PoolStats.Cells[1,5] := IntToStr(length(ArrayPoolMembers));
-      Form1.SG_PoolStats.Cells[1,6] := IntToStr(GetPoolTotalActiveConex)+'/'+IntToStr(form1.PoolClientsCount);
+      Form1.SG_PoolStats.Cells[1,6] := IntToStr(GetPoolTotalActiveConex)+'/0'; //PoolClientsCount
       Form1.SG_PoolStats.Cells[1,7] := Int2Curr(PoolMembersTotalDeuda);
       Form1.SG_PoolStats.Cells[1,8] := ShowHashrate(PoolTotalHashRate);
       Form1.SG_PoolStats.Cells[1,9] := Int2Curr(PoolInfo.FeeEarned);
@@ -671,8 +671,7 @@ if ((U_MNsGrid) or (UTCTime.ToInt64>U_MNsGrid_Last+59)) then
 // verificar si los clientes siguen conectados
 setmilitime('UpdateGUITime',1);
 form1.DataPanel.Cells[1,2]:=IntToStr(GetTotalConexiones)+' ('+IntToStr(MyConStatus)+') ['+IntToStr(G_TotalPings)+']';
-form1.DataPanel.Cells[1,7]:= format(rs0517,[length(ArrayCriptoOp),Length(PendingTXs),NetPendingTrxs.Value]);
-//form1.DataPanel.Cells[1,7]:= IntToStr(Length(PendingTXs))+'/'+NetPendingTrxs.Value+'('+IntToStr(NetPendingTrxs.Porcentaje)+')';
+form1.DataPanel.Cells[1,7]:= format(rs0517,[length(ArrayCriptoOp),GetPendingCount,NetPendingTrxs.Value]);
 form1.DataPanel.Cells[1,0]:= Int2Curr(GetWalletBalance)+' '+CoinSimbol;
 form1.DataPanel.Cells[3,5]:=IntToStr(OutgoingMsjs.Count);
 form1.DataPanel.Cells[3,6]:= Copy(MyMNsHash,0,5)+'/'+NetMNsHash.Value;
@@ -927,6 +926,8 @@ if tipo= 2 then
          if MilitimeArray[count].duration<MilitimeArray[count].Minimo then
             MilitimeArray[count].Minimo := MilitimeArray[count].duration;
          addnew := false;
+         if MilitimeArray[count].duration>1000 then
+            ToExcLog('Performance: Process '+name+' last '+IntToStr(MilitimeArray[count].duration));
          break;
          end;
       end;

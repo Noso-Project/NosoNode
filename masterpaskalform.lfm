@@ -4,7 +4,7 @@ object Form1: TForm1
   Top = 158
   Width = 400
   Caption = 'Noso'
-  ClientHeight = 560
+  ClientHeight = 540
   ClientWidth = 400
   Constraints.MinHeight = 560
   Constraints.MinWidth = 400
@@ -16,6 +16,7 @@ object Form1: TForm1
   OnShow = FormShow
   OnWindowStateChange = FormWindowStateChange
   Position = poDesktopCenter
+  LCLVersion = '2.0.10.0'
   object InfoPanel: TPanel
     Left = 32
     Height = 40
@@ -314,10 +315,10 @@ object Form1: TForm1
     AnchorSideTop.Control = TopPanel
     AnchorSideBottom.Control = StatusPanel
     Left = 0
-    Height = 488
+    Height = 468
     Top = 38
     Width = 400
-    ActivePage = TabMonitor
+    ActivePage = TabMainPool
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
     Font.CharSet = ANSI_CHARSET
@@ -326,30 +327,30 @@ object Form1: TForm1
     Font.Pitch = fpVariable
     Font.Quality = fqDraft
     ParentFont = False
-    TabIndex = 6
+    TabIndex = 4
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
-      ClientHeight = 459
-      ClientWidth = 390
+      ClientHeight = 440
+      ClientWidth = 392
       object TabWalletMain: TPageControl
         Left = 0
-        Height = 459
+        Height = 440
         Top = 0
-        Width = 390
+        Width = 392
         ActivePage = TabAddresses
         Align = alClient
         TabIndex = 0
         TabOrder = 0
         object TabAddresses: TTabSheet
           Caption = 'Addresses'
-          ClientHeight = 430
-          ClientWidth = 380
+          ClientHeight = 412
+          ClientWidth = 384
           object DireccionesPanel: TStringGrid
             Left = 0
-            Height = 295
+            Height = 277
             Top = 0
-            Width = 380
+            Width = 384
             Align = alClient
             ColCount = 2
             FixedCols = 0
@@ -368,12 +369,12 @@ object Form1: TForm1
           object PanelSend: TPanel
             Left = 0
             Height = 135
-            Top = 295
-            Width = 380
+            Top = 277
+            Width = 384
             Align = alBottom
             BevelColor = clBlack
             ClientHeight = 135
-            ClientWidth = 380
+            ClientWidth = 384
             Font.CharSet = ANSI_CHARSET
             Font.Height = -19
             Font.Name = 'Consolas'
@@ -383,9 +384,9 @@ object Form1: TForm1
             TabOrder = 1
             object LSCTop: TLabel
               Left = 152
-              Height = 21
+              Height = 22
               Top = 2
-              Width = 110
+              Width = 100
               Caption = 'Send coins'
               Font.CharSet = ANSI_CHARSET
               Font.Height = -19
@@ -688,8 +689,8 @@ object Form1: TForm1
             Top = 8
             Width = 250
             BorderStyle = bsSingle
-            ClientHeight = 248
-            ClientWidth = 248
+            ClientHeight = 246
+            ClientWidth = 246
             TabOrder = 3
             Visible = False
             object BarcodeQR1: TBarcodeQR
@@ -705,8 +706,8 @@ object Form1: TForm1
             object TextQRcode: TStaticText
               Left = 1
               Height = 30
-              Top = 217
-              Width = 246
+              Top = 215
+              Width = 244
               Align = alBottom
               Alignment = taCenter
               Font.CharSet = ANSI_CHARSET
@@ -744,14 +745,14 @@ object Form1: TForm1
         end
         object TabHistory: TTabSheet
           Caption = 'History'
-          ClientHeight = 430
-          ClientWidth = 380
+          ClientHeight = 412
+          ClientWidth = 384
           OnShow = TabHistoryShow
           object GridMyTxs: TStringGrid
             Left = 0
-            Height = 208
+            Height = 190
             Top = 0
-            Width = 380
+            Width = 384
             Align = alClient
             ColCount = 11
             FixedCols = 0
@@ -771,12 +772,12 @@ object Form1: TForm1
           object PanelTrxDetails: TPanel
             Left = 0
             Height = 150
-            Top = 280
-            Width = 380
+            Top = 262
+            Width = 384
             Align = alBottom
             BevelColor = clBlack
             ClientHeight = 150
-            ClientWidth = 380
+            ClientWidth = 384
             Font.CharSet = ANSI_CHARSET
             Font.Height = -19
             Font.Name = 'Consolas'
@@ -787,9 +788,9 @@ object Form1: TForm1
             OnContextPopup = DisablePopUpMenu
             object MemoTrxDetails: TMemo
               Left = 1
-              Height = 119
-              Top = 30
-              Width = 378
+              Height = 118
+              Top = 31
+              Width = 382
               Align = alClient
               BorderStyle = bsNone
               Font.CharSet = ANSI_CHARSET
@@ -804,20 +805,20 @@ object Form1: TForm1
             end
             object Panel8: TPanel
               Left = 1
-              Height = 29
+              Height = 30
               Top = 1
-              Width = 378
+              Width = 382
               Align = alTop
               AutoSize = True
               BevelOuter = bvNone
-              ClientHeight = 29
-              ClientWidth = 378
+              ClientHeight = 30
+              ClientWidth = 382
               TabOrder = 1
               object LAbelTransactionDetails: TLabel
                 Left = 8
-                Height = 21
+                Height = 22
                 Top = 4
-                Width = 209
+                Width = 190
                 Align = alLeft
                 BorderSpacing.Left = 8
                 BorderSpacing.Top = 4
@@ -826,8 +827,8 @@ object Form1: TForm1
                 ParentColor = False
               end
               object SpeedButton1: TSpeedButton
-                Left = 225
-                Height = 21
+                Left = 206
+                Height = 22
                 Hint = 'Copy Order ID'
                 Top = 4
                 Width = 20
@@ -847,18 +848,18 @@ object Form1: TForm1
           object PanelPoSMNs: TPanel
             Left = 0
             Height = 72
-            Top = 208
-            Width = 380
+            Top = 190
+            Width = 384
             Align = alBottom
             BevelColor = clBlack
             ClientHeight = 72
-            ClientWidth = 380
+            ClientWidth = 384
             TabOrder = 2
             object GridPoS: TStringGrid
               Left = 1
               Height = 70
               Top = 1
-              Width = 378
+              Width = 382
               Align = alClient
               ColCount = 2
               Enabled = False
@@ -880,13 +881,13 @@ object Form1: TForm1
     end
     object TabConsole: TTabSheet
       Caption = 'Console'
-      ClientHeight = 459
-      ClientWidth = 390
+      ClientHeight = 440
+      ClientWidth = 392
       object MemoConsola: TMemo
         Left = 0
-        Height = 248
+        Height = 238
         Top = 0
-        Width = 390
+        Width = 392
         Align = alClient
         Color = clBlack
         Font.CharSet = ANSI_CHARSET
@@ -907,9 +908,9 @@ object Form1: TForm1
         AnchorSideTop.Control = MemoConsola
         AnchorSideBottom.Control = DataPanel
         Left = 0
-        Height = 31
-        Top = 248
-        Width = 390
+        Height = 22
+        Top = 238
+        Width = 392
         Align = alBottom
         Color = clBlack
         Font.CharSet = ANSI_CHARSET
@@ -927,8 +928,8 @@ object Form1: TForm1
       object DataPanel: TStringGrid
         Left = 0
         Height = 180
-        Top = 279
-        Width = 390
+        Top = 260
+        Width = 392
         Align = alBottom
         ColCount = 4
         Enabled = False
@@ -943,26 +944,26 @@ object Form1: TForm1
     end
     object TabExchange: TTabSheet
       Caption = 'NoBiEx'
-      ClientHeight = 459
-      ClientWidth = 390
+      ClientHeight = 440
+      ClientWidth = 392
       object PageControl2: TPageControl
         Left = 0
-        Height = 275
+        Height = 256
         Top = 0
-        Width = 390
+        Width = 392
         ActivePage = tabExBuy
         Align = alClient
         TabIndex = 0
         TabOrder = 0
         object tabExBuy: TTabSheet
           Caption = 'LTC'
-          ClientHeight = 246
-          ClientWidth = 380
+          ClientHeight = 228
+          ClientWidth = 384
           object GridExLTC: TStringGrid
             Left = 0
-            Height = 246
+            Height = 228
             Top = 0
-            Width = 380
+            Width = 384
             Align = alClient
             ColCount = 3
             DefaultColWidth = 118
@@ -990,11 +991,11 @@ object Form1: TForm1
       object PanelNobiex: TPanel
         Left = 0
         Height = 34
-        Top = 275
-        Width = 390
+        Top = 256
+        Width = 392
         Align = alBottom
         ClientHeight = 34
-        ClientWidth = 390
+        ClientWidth = 392
         Color = clLime
         ParentColor = False
         TabOrder = 1
@@ -1002,7 +1003,7 @@ object Form1: TForm1
           Left = 1
           Height = 32
           Top = 1
-          Width = 69
+          Width = 62
           Align = alLeft
           Caption = 'Average: -.-'
           Layout = tlCenter
@@ -1010,10 +1011,10 @@ object Form1: TForm1
         end
         object LabelNobiexLast: TLabel
           AnchorSideLeft.Control = LabelNobiexAverage
-          Left = 70
+          Left = 63
           Height = 32
           Top = 1
-          Width = 45
+          Width = 40
           Align = alLeft
           Alignment = taCenter
           Anchors = [akLeft]
@@ -1026,17 +1027,17 @@ object Form1: TForm1
         AnchorSideBottom.Control = LabelNobiexAverage
         Left = 0
         Height = 150
-        Top = 309
-        Width = 390
+        Top = 290
+        Width = 392
         Align = alBottom
         ClientHeight = 150
-        ClientWidth = 390
+        ClientWidth = 392
         TabOrder = 2
         object Label1: TLabel
           Left = 4
           Height = 15
           Top = 8
-          Width = 80
+          Width = 70
           Caption = 'Post offer'
           Font.CharSet = ANSI_CHARSET
           Font.Height = -13
@@ -1054,8 +1055,8 @@ object Form1: TForm1
     end
     object TabMainPool: TTabSheet
       Caption = 'Pool'
-      ClientHeight = 459
-      ClientWidth = 390
+      ClientHeight = 440
+      ClientWidth = 392
       TabVisible = False
       object PCPool: TPageControl
         Left = 0
@@ -1068,8 +1069,8 @@ object Form1: TForm1
         TabOrder = 0
         object TabPoolStats: TTabSheet
           Caption = 'Stats'
-          ClientHeight = 436
-          ClientWidth = 388
+          ClientHeight = 412
+          ClientWidth = 384
           object SG_PoolStats: TStringGrid
             Left = 0
             Height = 268
@@ -1141,12 +1142,27 @@ object Form1: TForm1
             Font.Name = 'Consolas'
             Font.Pitch = fpFixed
             Font.Quality = fqDraft
-            Lines.Strings = (
-              '000000000AAAAAAAAA'
-            )
             ParentFont = False
             ReadOnly = True
             TabOrder = 2
+          end
+          object CBPool_Restart: TCheckBox
+            Left = 184
+            Height = 19
+            Top = 200
+            Width = 145
+            Caption = 'Restart after mine block'
+            OnChange = CBPool_RestartChange
+            TabOrder = 3
+          end
+          object CB_PoolLBS: TCheckBox
+            Left = 184
+            Height = 19
+            Top = 224
+            Width = 109
+            Caption = 'Long blocks split'
+            OnChange = CB_PoolLBSChange
+            TabOrder = 4
           end
         end
         object TabPoolMiners: TTabSheet
@@ -1191,13 +1207,23 @@ object Form1: TForm1
         end
         object TabPoolPays: TTabSheet
           Caption = 'Pays'
+          ClientHeight = 412
+          ClientWidth = 384
+          object StringGrid1: TStringGrid
+            Left = 0
+            Height = 412
+            Top = 0
+            Width = 384
+            Align = alClient
+            TabOrder = 0
+          end
         end
       end
     end
     object tabOptions: TTabSheet
       Caption = 'Options'
-      ClientHeight = 459
-      ClientWidth = 390
+      ClientHeight = 440
+      ClientWidth = 392
       object PageControl1: TPageControl
         Left = 0
         Height = 440
@@ -1209,8 +1235,8 @@ object Form1: TForm1
         TabOrder = 0
         object TabSheet1: TTabSheet
           Caption = 'Wallet'
-          ClientHeight = 436
-          ClientWidth = 388
+          ClientHeight = 412
+          ClientWidth = 384
           object CB_WO_AutoConnect: TCheckBox
             Left = 8
             Height = 19
@@ -1243,8 +1269,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 23
-            ClientWidth = 380
+            ClientHeight = 27
+            ClientWidth = 384
             TabOrder = 4
             object SE_WO_MinPeers: TSpinEdit
               AnchorSideTop.Control = Label2
@@ -1282,8 +1308,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 23
-            ClientWidth = 380
+            ClientHeight = 27
+            ClientWidth = 384
             TabOrder = 5
             object SE_WO_CTOT: TSpinEdit
               AnchorSideTop.Control = Label3
@@ -1321,8 +1347,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 23
-            ClientWidth = 380
+            ClientHeight = 27
+            ClientWidth = 384
             TabOrder = 6
             object SE_WO_RTOT: TSpinEdit
               AnchorSideTop.Control = Label4
@@ -1361,8 +1387,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 23
-            ClientWidth = 380
+            ClientHeight = 27
+            ClientWidth = 384
             TabOrder = 7
             object SE_WO_ShowOrders: TSpinEdit
               AnchorSideTop.Control = Label5
@@ -1401,8 +1427,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 23
-            ClientWidth = 380
+            ClientHeight = 27
+            ClientWidth = 384
             TabOrder = 8
             object SE_WO_PosWarning: TSpinEdit
               AnchorSideTop.Control = Label6
@@ -1441,8 +1467,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 23
-            ClientWidth = 380
+            ClientHeight = 27
+            ClientWidth = 384
             TabOrder = 9
             object CB_WO_AntiFreeze: TCheckBox
               AnchorSideTop.Control = SE_WO_AntifreezeTime
@@ -1519,8 +1545,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 24
-            ClientWidth = 380
+            ClientHeight = 28
+            ClientWidth = 384
             TabOrder = 11
             object Label7: TLabel
               AnchorSideRight.Control = ComboBoxLang
@@ -1552,6 +1578,7 @@ object Form1: TForm1
                 'zh'
                 'ro'
                 'id'
+                'ru'
               )
               OnChange = ComboBoxLangChange
               OnDrawItem = ComboBoxLangDrawItem
@@ -1562,8 +1589,8 @@ object Form1: TForm1
         end
         object TabNodeOptions: TTabSheet
           Caption = 'Node'
-          ClientHeight = 436
-          ClientWidth = 388
+          ClientHeight = 412
+          ClientWidth = 384
           OnShow = TabNodeOptionsShow
           object CheckBox4: TCheckBox
             Left = 8
@@ -1584,8 +1611,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 42
-            ClientWidth = 380
+            ClientHeight = 46
+            ClientWidth = 384
             TabOrder = 1
             object Label8: TLabel
               Left = 8
@@ -1618,8 +1645,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 42
-            ClientWidth = 380
+            ClientHeight = 46
+            ClientWidth = 384
             TabOrder = 2
             object Label9: TLabel
               Left = 8
@@ -1652,8 +1679,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 42
-            ClientWidth = 380
+            ClientHeight = 46
+            ClientWidth = 384
             TabOrder = 3
             object Label10: TLabel
               Left = 8
@@ -1686,8 +1713,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 42
-            ClientWidth = 380
+            ClientHeight = 46
+            ClientWidth = 384
             TabOrder = 4
             object Label11: TLabel
               Left = 8
@@ -1720,8 +1747,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 30
-            ClientWidth = 380
+            ClientHeight = 34
+            ClientWidth = 384
             TabOrder = 5
             object BSaveNodeOptions: TBitBtn
               Left = 8
@@ -1753,8 +1780,8 @@ object Form1: TForm1
         end
         object TabSheet3: TTabSheet
           Caption = 'RPC'
-          ClientHeight = 436
-          ClientWidth = 388
+          ClientHeight = 412
+          ClientWidth = 384
           object CB_RPC_ON: TCheckBox
             Left = 8
             Height = 19
@@ -1789,6 +1816,7 @@ object Form1: TForm1
             BorderSpacing.Top = 4
             BorderSpacing.Right = 8
             OnEditingDone = MemoRPCWhitelistEditingDone
+            OnExit = MemoRPCWhitelistEditingDone
             TabOrder = 2
           end
           object CB_AUTORPC: TCheckBox
@@ -1811,8 +1839,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 42
-            ClientWidth = 380
+            ClientHeight = 46
+            ClientWidth = 384
             TabOrder = 4
             object Label12: TLabel
               Left = 8
@@ -1845,8 +1873,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 42
-            ClientWidth = 380
+            ClientHeight = 46
+            ClientWidth = 384
             TabOrder = 5
             object Label13: TLabel
               Left = 8
@@ -1967,8 +1995,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 96
-            ClientWidth = 380
+            ClientHeight = 100
+            ClientWidth = 384
             TabOrder = 0
             object ImageOptionsAbout: TImage
               Left = 0
@@ -2256,8 +2284,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 36
-            ClientWidth = 380
+            ClientHeight = 40
+            ClientWidth = 384
             TabOrder = 1
             object BitBtnWeb: TBitBtn
               Left = 0
@@ -2356,8 +2384,8 @@ object Form1: TForm1
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 36
-            ClientWidth = 380
+            ClientHeight = 40
+            ClientWidth = 384
             TabOrder = 2
             object BitBtnDonate: TBitBtn
               Left = 0
@@ -2413,27 +2441,27 @@ object Form1: TForm1
     end
     object TabMonitor: TTabSheet
       Caption = 'Monitor'
-      ClientHeight = 459
-      ClientWidth = 390
+      ClientHeight = 440
+      ClientWidth = 392
       object PCMonitor: TPageControl
         Left = 0
-        Height = 459
+        Height = 440
         Top = 0
-        Width = 390
-        ActivePage = TabDoctor
+        Width = 392
+        ActivePage = TabSheet7
         Align = alClient
-        TabIndex = 5
+        TabIndex = 0
         TabOrder = 0
         object TabSheet7: TTabSheet
           Caption = 'Log'
-          ClientHeight = 430
-          ClientWidth = 380
+          ClientHeight = 412
+          ClientWidth = 384
           ParentShowHint = False
           object MemoLog: TMemo
             Left = 0
-            Height = 430
+            Height = 412
             Top = 0
-            Width = 380
+            Width = 384
             Align = alClient
             Color = clBlack
             Font.CharSet = ANSI_CHARSET
@@ -2537,8 +2565,8 @@ object Form1: TForm1
             BevelOuter = bvNone
             BorderWidth = 1
             BorderStyle = bsSingle
-            ClientHeight = 46
-            ClientWidth = 378
+            ClientHeight = 44
+            ClientWidth = 376
             TabOrder = 1
             object LabelNodesHash: TLabel
               Left = 8
@@ -2552,52 +2580,52 @@ object Form1: TForm1
         end
         object TabDoctor: TTabSheet
           Caption = 'Doctor'
-          ClientHeight = 430
-          ClientWidth = 380
+          ClientHeight = 412
+          ClientWidth = 384
           TabVisible = False
           object PanelDoctor: TPanel
             Left = 0
             Height = 106
             Top = 0
-            Width = 380
+            Width = 384
             Align = alTop
             BevelOuter = bvNone
             BorderWidth = 1
             BorderStyle = bsSingle
-            ClientHeight = 104
-            ClientWidth = 378
+            ClientHeight = 102
+            ClientWidth = 380
             Color = clBtnHighlight
             ParentColor = False
             TabOrder = 0
             object CBBlockexists: TCheckBox
               Left = 8
-              Height = 23
+              Height = 19
               Top = 8
-              Width = 80
+              Width = 68
               Caption = 'Block file'
               TabOrder = 0
             end
             object CBBlockhash: TCheckBox
               Left = 8
-              Height = 23
+              Height = 19
               Top = 32
-              Width = 91
+              Width = 77
               Caption = 'Block hash'
               TabOrder = 1
             end
             object CBSummaryhash: TCheckBox
               Left = 8
-              Height = 23
+              Height = 19
               Top = 56
-              Width = 118
+              Width = 99
               Caption = 'Summary hash'
               TabOrder = 2
             end
             object LabelDoctor: TLabel
               Left = 8
-              Height = 13
+              Height = 15
               Top = 80
-              Width = 45
+              Width = 41
               Caption = 'Waiting'
               ParentColor = False
             end
@@ -2622,7 +2650,7 @@ object Form1: TForm1
             end
             object SpinDoctor1: TSpinEdit
               Left = 296
-              Height = 31
+              Height = 23
               Top = 8
               Width = 74
               MaxValue = 100000
@@ -2632,7 +2660,7 @@ object Form1: TForm1
             end
             object SpinDoctor2: TSpinEdit
               Left = 296
-              Height = 31
+              Height = 23
               Top = 36
               Width = 74
               MaxValue = 100000
@@ -2643,9 +2671,9 @@ object Form1: TForm1
           end
           object MemoDoctor: TMemo
             Left = 0
-            Height = 324
+            Height = 306
             Top = 106
-            Width = 380
+            Width = 384
             Align = alClient
             Color = clBlack
             Font.CharSet = ANSI_CHARSET
@@ -2666,7 +2694,7 @@ object Form1: TForm1
   object StatusPanel: TPanel
     Left = 0
     Height = 34
-    Top = 526
+    Top = 506
     Width = 400
     Align = alBottom
     AutoSize = True
@@ -2683,11 +2711,11 @@ object Form1: TForm1
     ParentFont = False
     TabOrder = 1
     object StaTimeLab: TLabel
-      Left = 252
+      Left = 273
       Height = 32
       Hint = 'Noso network time'
       Top = 1
-      Width = 147
+      Width = 126
       Align = alRight
       Alignment = taCenter
       BorderSpacing.Left = 4
@@ -2706,7 +2734,7 @@ object Form1: TForm1
       Transparent = False
     end
     object StaPoolSer: TImage
-      Left = 216
+      Left = 237
       Height = 32
       Hint = 'Pool server active'
       Top = 1
@@ -2806,7 +2834,7 @@ object Form1: TForm1
       }
     end
     object BitBtnPending: TBitBtn
-      Left = 75
+      Left = 92
       Height = 32
       Hint = 'Network pending orders'
       Top = 1
@@ -2847,11 +2875,11 @@ object Form1: TForm1
       Transparent = False
     end
     object BitBtnBlocks: TBitBtn
-      Left = 134
+      Left = 151
       Height = 32
       Hint = 'Last downloaded block'
       Top = 1
-      Width = 78
+      Width = 82
       Align = alRight
       AutoSize = True
       BorderSpacing.Left = 4
@@ -2937,10 +2965,10 @@ object Form1: TForm1
     ParentColor = False
     TabOrder = 2
     object LabelBigBalance: TLabel
-      Left = 326
-      Height = 27
+      Left = 331
+      Height = 28
       Top = 2
-      Width = 70
+      Width = 65
       Alignment = taRightJustify
       Anchors = [akTop, akRight]
       Caption = '0 NOS'
@@ -2992,7 +3020,7 @@ object Form1: TForm1
     Left = 72
     Top = 440
     Bitmap = {
-      4C69430000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      4C69440000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
@@ -5136,7 +5164,39 @@ object Form1: TForm1
       204021201F4021201F4021201F4021201F4021201F4021201F40212120401E1E
       1D401A1B1A3F141613400C0C0C19000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000
+      0000000000000000000000000000000000000000000100000001000000010000
+      0002000000020000000200000002000000020000000200000002000000020000
+      0001000000010000000100000000787878077F7F7F117F7F7F12808080128080
+      8013808080138080801380808013808080138080801380808013808080138080
+      80127F7F7F127F7F7F1177777705D3D3D3CEF7F7F7FFF7F7F7FFF7F7F7FFF7F7
+      F7FFF7F7F7FFF7F7F7FFF7F7F7FFF7F7F7FFF7F7F7FFF7F7F7FFF7F7F7FFF7F7
+      F7FFF7F7F7FFF7F7F7FFC3C3C3A7D1D1D1DFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+      FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+      FFFFFFFFFFFFFFFFFFFFAFAFAFB9D2D2D2DFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+      FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+      FFFFFFFFFFFFFFFFFFFFAFAFAFB9D1CDCDDFFDF9F9FEFDF9F9FEFDF9F9FEFDF9
+      F9FEFDF9F9FEFDF9F9FEFDF9F9FEFDF9F9FEFDF9F9FEFDF9F9FEFDF9F9FEFDF9
+      F9FEFDF9F9FEFDF9F9FEAFABABB9D10909DFFE1212FEFE1515FEFE1717FEFE18
+      18FEFE1717FEFE1414FEFE1313FEFE1212FEFE1212FEFE1212FEFE1212FEFE11
+      11FEFE0F0FFEFE0C0CFEAF0707B9D20808DFFF1010FFFF1313FFFF1313FFFF12
+      12FFFF1212FFFF1212FFFF1212FFFF1212FFFF1212FFFF1212FFFF1111FFFF10
+      10FFFF0E0EFFFF0B0BFFB00606B9D20808DFFF0E0EFFFF1010FFFF1111FFFF12
+      12FFFF1212FFFF1212FFFF1212FFFF1212FFFF1212FFFF1212FFFF1111FFFF10
+      10FFFF0E0EFFFF0B0BFFB00606B9D10707DFFE0C0CFEFE0F0FFEFE1110FEFE11
+      11FEFE1212FEFE1212FEFE1212FEFE1212FEFE1212FEFE1212FEFE1111FEFE10
+      10FEFE0E0EFEFE0B0BFEAE0607B90D11CDDE1318F8FE161AF8FE171CF8FE181C
+      F8FE181DF8FE181DF8FE181DF8FE181DF8FE181DF8FE181CF8FE181CF8FE171C
+      F8FE151AF8FE1317F8FE0C0FABB90E28D4DF1333FFFF1535FFFF1737FFFF1737
+      FFFF1737FFFF1737FFFF1837FFFF1837FFFF1737FFFF1737FFFF1737FFFF1737
+      FFFF1535FFFF1333FFFF0C23B2B91244D5DF1955FFFF1B57FFFF1C58FFFF1C58
+      FFFF1C58FFFF1C58FFFF1C58FFFF1C58FFFF1C58FFFF1C58FFFF1C58FFFF1C57
+      FFFF1B56FFFF1955FFFF103DB4B9175CC9D71F77FCFF2078FCFF2178FCFF2178
+      FCFF2178FCFF2178FCFF2178FCFF2178FCFF2178FCFF2178FCFF2178FCFF2178
+      FCFF2077FCFF1E77FCFF1450A9B213161A2A171D23422A3036432E343A432F35
+      3C442F353C442F353C442F353C442F353C442F353C442F353C442F353C442D33
+      3A43282E3443151B214213161A20000000000404040108080801090909010909
+      0901090909010909090109090901090909010909090109090901090909010909
+      0901080808010303030100000000
     }
   end
   object MainMenu: TMainMenu

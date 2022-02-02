@@ -18,7 +18,6 @@ function IsValidProtocol(line:String):Boolean;
 Procedure PTC_Getnodes(Slot:integer);
 function GetNodesString():string;
 Procedure PTC_SendLine(Slot:int64;Message:String);
-Procedure PTC_SaveNodes(LineText:String);
 function GetNodeFromString(NodeDataString: string): NodeData;
 Procedure ProcessPing(LineaDeTexto: string; Slot: integer; Responder:boolean);
 function GetPingString():string;
@@ -33,6 +32,7 @@ Procedure PTC_SendBlocks(Slot:integer;TextLine:String);
 Procedure INC_PTC_Custom(TextLine:String;connection:integer);
 Procedure PTC_Custom(TextLine:String);
 function ValidateTrfr(order:orderdata;Origen:String):Boolean;
+Function IsOrderIDAlreadyProcessed(OrderText:string):Boolean;
 Procedure INC_PTC_Order(TextLine:String;connection:integer);
 Function PTC_Order(TextLine:String):String;
 Procedure PTC_AdminMSG(TextLine:String);
@@ -184,7 +184,7 @@ Begin
 SetCurrentJob('ParseProtocolLines',true);
 for contador := 1 to MaxConecciones do
    begin
-   if ( (SlotLines[contador].Count > 50) and (not IsDefaultNode(Conexiones[contador].ip)) ) then
+   if ( (SlotLines[contador].Count > 50) and (not IsSeedNode(Conexiones[contador].ip)) ) then
       begin
       Consolelinesadd('POSSIBLE ATTACK FROM: '+Conexiones[contador].ip);
       UpdateBotData(conexiones[contador].ip);
@@ -215,7 +215,6 @@ for contador := 1 to MaxConecciones do
          CerrarSlot(contador);
          end
       else if UpperCase(LineComando) = '$GETNODES' then PTC_Getnodes(contador)
-      else if UpperCase(LineComando) = '$NODES' then PTC_SaveNodes(SlotLines[contador][0])
       else if UpperCase(LineComando) = '$PING' then ProcessPing(SlotLines[contador][0],contador,true)
       else if UpperCase(LineComando) = '$PONG' then ProcessPing(SlotLines[contador][0],contador,false)
       else if UpperCase(LineComando) = '$GETPENDING' then PTC_SendPending(contador)
@@ -303,36 +302,6 @@ if slot <= length(conexiones)-1 then
 else ToExcLog('Invalid PTC_SendLine slot: '+IntToStr(slot));
 end;
 
-// Guarda los nodos recibidos desde otro usuario
-Procedure PTC_SaveNodes(LineText:String);
-var
-  NodosList : TStringList;
-  Contador : integer = 5;
-  MoreParam : boolean = true;
-  ThisParam : String = '';
-  ThisNode : NodeData;
-Begin
-ConsoleLinesAdd('Get nodes: deprecated');
-{
-NodosList := TStringList.Create;
-while MoreParam do
-   begin
-   ThisParam := Parameter(LineText,contador);
-   if thisparam = '' then MoreParam := false
-   else NodosList.Add(ThisParam);
-   contador := contador+1;
-   end;
-for contador := 0 to NodosList.Count-1 do
-   Begin
-   ThisParam := StringReplace(NodosList[contador],':',' ', [rfReplaceAll, rfIgnoreCase]);
-   ThisNode := GetNodeFromString(ThisParam);
-   If NodeExists(ThisNode.ip,ThisNode.port)<0 then
-      UpdateNodeData(ThisNode.ip,ThisNode.port,ThisNode.LastConexion);
-   end;
-NodosList.Free;
-}
-End;
-
 // Devuelve la info de un nodo a partir de una cadena pre-tratada
 function GetNodeFromString(NodeDataString: string): NodeData;
 var
@@ -392,7 +361,7 @@ result :=IntToStr(GetTotalConexiones())+' '+
          IntToStr(MyLastBlock)+' '+
          MyLastBlockHash+' '+
          MySumarioHash+' '+
-         IntToStr(LEngth(PendingTXs))+' '+
+         GetPendingCount.ToString+' '+
          MyResumenHash+' '+
          IntToStr(MyConStatus)+' '+
          IntToStr(port)+' '+
@@ -411,7 +380,7 @@ var
 Begin
 Encab := GetPTCEcn;
 TextOrder := encab+'ORDER ';
-if Length(PendingTXs) > 0 then
+if GetPendingCount > 0 then
    begin
    EnterCriticalSection(CSPending);
    SetLength(CopyPendingTXs,0);
@@ -493,7 +462,6 @@ if not TryStrToInt(NumeroBloque,BlockNumber) then
    end;
 if proceder then
 begin // proceder 1
-
 // Se recibe una solucion del siguiente bloque
 if ( (BlockNumber = LastBlockData.Number+1) and
      (VerifySolutionForBlock(lastblockdata.NxtBlkDiff,MyLastBlockHash,DireccionMinero,Solucion)=0))then
@@ -755,10 +723,36 @@ if not VerifySignedString(IntToStr(order.TimeStamp)+origen+order.Receiver+IntToS
    result:=false;
 End;
 
-Procedure INC_PTC_Order(TextLine:String;connection:integer);
+Function IsOrderIDAlreadyProcessed(OrderText:string):Boolean;
+var
+  OrderID : string;
+  counter : integer;
 Begin
-//Consolelinesadd('Received from: '+Conexiones[connection].ip);
-AddCriptoOp(5,TextLine,'');
+result := false;
+OrderId := parameter(OrderText,7);
+EnterCriticalSection(CSIdsProcessed);
+if length(ArrayOrderIDsProcessed) > 0 then
+   begin
+   for counter := 0 to length(ArrayOrderIDsProcessed)-1 do
+      begin
+      if ArrayOrderIDsProcessed[counter] = OrderID then
+         begin
+         result := true;
+         break
+         end;
+      end;
+   end;
+if result = false then Insert(OrderID,ArrayOrderIDsProcessed,length(ArrayOrderIDsProcessed));
+LeaveCriticalSection(CSIdsProcessed);
+End;
+
+Procedure INC_PTC_Order(TextLine:String;connection:integer);
+var
+  numtransfers : integer;
+  TrxID : string;
+Begin
+if not IsOrderIDAlreadyProcessed(TextLine) then
+   AddCriptoOp(5,TextLine,'');
 StartCriptoThread();
 End;
 
@@ -1095,7 +1089,6 @@ var
   ValidNode : Boolean = true;
 Begin
 EnterCriticalSection(CSMNsArray);
-setmilitime('AddNodeReport',1);
 if not NodeAlreadyadded(NodeInfo) then
    begin
    if length(MNsArray) > 0 then

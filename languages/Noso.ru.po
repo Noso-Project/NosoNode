@@ -96,6 +96,10 @@ msgstr "Заблокировать файл"
 msgid "Block hash"
 msgstr "Блочный хэш"
 
+#: tform1.cbpool_restart.caption
+msgid "Restart after mine block"
+msgstr ""
+
 #: tform1.cbsummaryhash.caption
 msgid "Summary hash"
 msgstr "Сводный хэш"
@@ -103,6 +107,10 @@ msgstr "Сводный хэш"
 #: tform1.cb_autorpc.caption
 msgid "Active JSON-RPC server at launch"
 msgstr "Включить сервер JSON-RPC при запуске"
+
+#: tform1.cb_poollbs.caption
+msgid "Long blocks split"
+msgstr ""
 
 #: tform1.cb_rpcfilter.caption
 msgid "Accept only whitelist requests"

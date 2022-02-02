@@ -15,7 +15,7 @@
         <DpiAware Value="True"/>
       </XPManifest>
       <Icon Value="0"/>
-      <Resources Count="7">
+      <Resources Count="8">
         <Resource_0 FileName="languages\Noso.en.po" Type="RCDATA" ResourceName="NOSO.EN"/>
         <Resource_1 FileName="languages\Noso.es.po" Type="RCDATA" ResourceName="NOSO.ES"/>
         <Resource_2 FileName="languages\Noso.pt.po" Type="RCDATA" ResourceName="NOSO.PT"/>
@@ -23,6 +23,7 @@
         <Resource_4 FileName="languages/Noso.zh.po" Type="RCDATA" ResourceName="NOSO.ZH"/>
         <Resource_5 FileName="languages\Noso.ro.po" Type="RCDATA" ResourceName="NOSO.RO"/>
         <Resource_6 FileName="languages\Noso.id.po" Type="RCDATA" ResourceName="NOSO.ID"/>
+        <Resource_7 FileName="languages\Noso.ru.po" Type="RCDATA" ResourceName="NOSO.RU"/>
       </Resources>
     </General>
     <i18n>
@@ -85,9 +86,6 @@
           </SearchPaths>
           <CodeGeneration>
             <SmartLinkUnit Value="True"/>
-            <Optimizations>
-              <OptimizationLevel Value="3"/>
-            </Optimizations>
             <SmallerCode Value="True"/>
           </CodeGeneration>
           <Linking>

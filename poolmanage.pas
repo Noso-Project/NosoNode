@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, IdContext, IdGlobal, fileutil;
 
 procedure StartPoolServer(port:integer);
-Procedure StopPoolServer();
+Function StopPoolServer():boolean;
 function PoolDataString(member:string):String;
 function GetPoolEmptySlot():integer;
 function GetMemberPrefijo(poolslot:integer):string;
@@ -16,6 +16,7 @@ function PoolAddNewMember(direccion:string):string;
 Procedure LoadMyPoolData();
 Procedure SaveMyPoolData();
 function GetPoolMemberBalance(direccion:string):int64;
+Procedure SetMinerUpdate(Rvalue:boolean;number:integer);
 Procedure ResetPoolMiningInfo();
 Procedure AdjustWrongSteps();
 function GetPoolNumeroDePasos():integer;
@@ -29,18 +30,18 @@ function SavePoolServerConnection(Ip,Prefijo,UserAddress,minerver:String;context
 function GetPoolTotalActiveConex ():integer;
 function GetPoolContextIndex(AContext: TIdContext):integer;
 Procedure BorrarPoolServerConex(AContext: TIdContext);
-Procedure SendPoolStepsInfo(steps:integer);
-Procedure SendPoolHashRateRequest();
+Procedure CalculatePoolHashrate();
 function GetPoolMemberPosition(member:String):integer;
 function IsPoolMemberConnected(address:string):integer;
-function GetPoolSlotFromContext(context:TIdContext):integer;
-Procedure ExpelPoolInactives();
+Function NewSavePoolPayment(DataLine:string):boolean;
+Function GetMinerHashrate(slot:integer):int64;
 function PoolStatusString():String;
 function StepAlreadyAdded(stepstring:string):Boolean;
 Procedure RestartPoolSolution();
 Procedure ShowPoolBots();
 function KickPoolIP(IP:string):integer;
-Function ContextAlreadyExists(ThisContext:TidCOntext): boolean;
+Procedure UpdateMinerPing(index:integer;Hashpower:int64 = -1);
+Function IsMinerPinedOut(index:integer):boolean;
 
 implementation
 
@@ -57,6 +58,7 @@ if Form1.PoolServer.Active then
 else
    begin
       try
+      Form1.PoolServer.MaxConnections:=PoolInfo.MaxMembers;
       Form1.PoolServer.Bindings.Clear;
       Form1.PoolServer.DefaultPort:=port;
       Form1.PoolServer.Active:=true;
@@ -68,49 +70,60 @@ else
    end;
 end;
 
-// Stops the pool server
-Procedure StopPoolServer();
+function StopPoolServer():boolean; // ThSa verified!
 var
   contador : integer;
   Count : integer = 0;
 Begin
-TRY
+setmilitime('StopPoolServer',1);
 G_KeepPoolOff := true;
+result := true;
+TRY
 if Form1.PoolServer.Active then
    begin
    for contador := 0 to length(PoolServerConex)-1 do
       begin
-      if PoolServerConex[contador].context.Connection.Connected then
+      {
+      EnterCriticalSection(CSMinersConex);
+      if PoolServerConex[contador].ip <> '' then
          begin
          TRY
          Count +=1;
-         info('Closing miner connection: '+PoolServerConex[contador].ip);
-         form1.TryClosePoolConnection(PoolServerConex[contador].Context);
+         info('Pool server closing slot :'+inttostr(contador));
+         PoolServerConex[contador].Context.Connection.IOHandler.InputBuffer.Clear;
+         PoolServerConex[contador].Context.Connection.Disconnect;
+         Poolserverconex[contador]:=Default(PoolUserConnection);
          EXCEPT on E:Exception do
-            ToPoolLog('Unable to close pool connection: '+E.Message);
+            ToLog('Unable to close pool connection: '+E.Message);
          END{Try};
          end;
+      LeaveCriticalSection(CSMinersConex);
+      }
       end;
    Form1.PoolServer.Active:=false;
-   info('Pool server disabled');
-   ConsoleLinesAdd('Pool server stoped. Close '+count.ToString+' connections.');
+   ConsoleLinesAdd('Pool server stoped. '+count.ToString+' connections.');
    end;
 EXCEPT on E:Exception do
    begin
-   ToExcLog('Unable to close pool server: '+E.Message);
+   ToPoolLog('Unable to close pool server: '+E.Message);
+   Result := false;
    end;
 END{Try};
+setmilitime('StopPoolServer',2);
 End;
 
 //** Returns an array with all the information for miners
-function PoolDataString(member:string):String;
+function PoolDataString(member:string):String;  // ThSa verified!
 var
   MemberBalance : Int64;
+  lastpago : integer;
   BlocksTillPayment : integer;
   allinfotext : string;
 Begin
 MemberBalance := GetPoolMemberBalance(member);
-BlocksTillPayment := MyLastBlock-(GetLastPagoPoolMember(member)+PoolInfo.TipoPago);
+lastpago := GetLastPagoPoolMember(member);
+EnterCriticalSection(CSPoolMiner);
+BlocksTillPayment := MyLastBlock-(lastpago+PoolInfo.TipoPago);
 allinfotext :=IntToStr(PoolMiner.Block)+' '+         // block target
               PoolMiner.Target+' '+                  // string target
               IntToStr(PoolMiner.DiffChars)+' '+     // target chars
@@ -120,11 +133,12 @@ allinfotext :=IntToStr(PoolMiner.Block)+' '+         // block target
               IntToStr(BlocksTillPayment)+' '+       // block payment
               IntToStr(PoolTotalHashRate)+' '+
               IntToStr(PoolStepsDeep);           // Pool Hash Rate
+LeaveCriticalSection(CSPoolMiner);
 Result := 'PoolData '+allinfotext;
 End;
 
 //** returns an empty slot in the pool
-function GetPoolEmptySlot():integer;
+function GetPoolEmptySlot():integer; // ThSa verified!
 var
   contador : integer;
 Begin
@@ -157,22 +171,23 @@ result := HasheableChars[firstchar+1]+HasheableChars[secondchar+1]+'0000000';
 End;
 
 //** Returns the prefix for a new connection or empty if pool is full
-function PoolAddNewMember(direccion:string):string;
+function PoolAddNewMember(direccion:string):string;  // ThSa verified!
 var
   PoolSlot : integer;
+  CurrPos : integer;
 Begin
 SetCurrentJob('PoolAddNewMember',true);
 PoolSlot := GetPoolEmptySlot;
+CurrPos := GetPoolMemberPosition(direccion);
+EnterCriticalSection(CSPoolMembers);
+setmilitime('PoolAddNewMember',1);
 result := '';
-if ( (length(ArrayPoolMembers)>0) and (GetPoolMemberPosition(direccion)>=0) ) then
+if ( (length(ArrayPoolMembers)>0) and (CurrPos>=0) ) then
    begin
-   result := ArrayPoolMembers[GetPoolMemberPosition(direccion)].Prefijo;
-   //SetCurrentJob('PoolAddNewMember',false);
-   //LeaveCriticalSection(CSPoolMembers);
+   result := ArrayPoolMembers[CurrPos].Prefijo;
    end
 else if ( (length(ArrayPoolMembers)>0) and (PoolSlot >= 0) ) then
    begin
-   EnterCriticalSection(CSPoolMembers);
    ArrayPoolMembers[PoolSlot].Direccion:=direccion;
    ArrayPoolMembers[PoolSlot].Prefijo:=GetMemberPrefijo(PoolSlot);
    ArrayPoolMembers[PoolSlot].Deuda:=0;
@@ -181,15 +196,12 @@ else if ( (length(ArrayPoolMembers)>0) and (PoolSlot >= 0) ) then
    ArrayPoolMembers[PoolSlot].TotalGanado:=0;
    ArrayPoolMembers[PoolSlot].LastSolucion:=0;
    ArrayPoolMembers[PoolSlot].LastEarned:=0;
-   LeaveCriticalSection(CSPoolMembers);
    S_PoolMembers := true;
    result := ArrayPoolMembers[PoolSlot].Prefijo;
-   //SetCurrentJob('PoolAddNewMember',false);
-   //LeaveCriticalSection(CSPoolMembers);
    end;
+{
 if length(ArrayPoolMembers) < PoolInfo.MaxMembers then
    begin
-   EnterCriticalSection(CSPoolMembers);
    SetLength(ArrayPoolMembers,length(ArrayPoolMembers)+1);
    ArrayPoolMembers[length(ArrayPoolMembers)-1].Direccion:=direccion;
    ArrayPoolMembers[length(ArrayPoolMembers)-1].Prefijo:=GetMemberPrefijo(length(ArrayPoolMembers)-1);
@@ -199,10 +211,12 @@ if length(ArrayPoolMembers) < PoolInfo.MaxMembers then
    ArrayPoolMembers[length(ArrayPoolMembers)-1].TotalGanado:=0;
    ArrayPoolMembers[length(ArrayPoolMembers)-1].LastSolucion:=0;
    ArrayPoolMembers[length(ArrayPoolMembers)-1].LastEarned:=0;
-   LeaveCriticalSection(CSPoolMembers);
    S_PoolMembers := true;
    result := ArrayPoolMembers[length(ArrayPoolMembers)-1].Prefijo;
    end;
+}
+LeaveCriticalSection(CSPoolMembers);
+setmilitime('PoolAddNewMember',2);
 SetCurrentJob('PoolAddNewMember',false);
 End;
 
@@ -232,11 +246,11 @@ UserOptions.PoolInfo:=MyPoolData.Direccion+' '+
 S_Options := true;
 End;
 
-function GetPoolMemberBalance(direccion:string):int64;
+function GetPoolMemberBalance(direccion:string):int64; // ThSa verified!
 var
   contador : integer;
 Begin
-result :=-1;
+result :=0;
 Entercriticalsection(CSPoolMembers);
 if length(ArrayPoolMembers)>0 then
    begin
@@ -252,10 +266,11 @@ if length(ArrayPoolMembers)>0 then
 Leavecriticalsection(CSPoolMembers);
 End;
 
-Procedure AdjustWrongSteps();
+Procedure AdjustWrongSteps();  // ThSa verified!
 var
   counter : integer;
 Begin
+EnterCriticalSection(CSMinersConex);
 for counter := 0 to length(PoolServerConex)-1 do
    begin
    if PoolServerConex[counter].Address <> '' then
@@ -264,11 +279,31 @@ for counter := 0 to length(PoolServerConex)-1 do
       if PoolServerConex[counter].WrongSteps<0 then PoolServerConex[counter].WrongSteps := 0;
       end;
    end;
+LeaveCriticalSection(CSMinersConex);
+End;
+
+Procedure SetMinerUpdate(Rvalue:boolean;number:integer); // ThSa verified!
+var
+  counter : integer;
+Begin
+if number = -1 then
+   Begin
+   EnterCriticalSection(CSMinersConex);
+   for counter := 0 to length(PoolServerConex)-1 do
+      PoolServerConex[counter].SendSteps:=Rvalue;
+   LeaveCriticalSection(CSMinersConex);
+   end
+else
+   begin
+   EnterCriticalSection(CSMinersConex);
+   PoolServerConex[number].SendSteps:=Rvalue;
+   LeaveCriticalSection(CSMinersConex);
+   end;
 End;
 
 Procedure ResetPoolMiningInfo();
 Begin
-TRY
+EnterCriticalSection(CSPoolMiner);
 PoolMiner.Block:=LastBlockData.Number+1;
 PoolMiner.Solucion:='';
 PoolMiner.steps:=0;
@@ -277,18 +312,26 @@ PoolMiner.DiffChars:=GetCharsFromDifficult(PoolMiner.Dificult, PoolMiner.steps);
 PoolMiner.Target:=MyLastBlockHash;
 AdjustWrongSteps();
 PoolMinerBlockFound := false;
-EXCEPT ON E:Exception do
-   begin
-   ToPoolLog('Error reseting pool minning info');
-   end;
-END;{Try}
-EnterCriticalSection(CSPoolShares);
 SetLength(Miner_PoolSharedStep,0);
-LeaveCriticalSection(CSPoolShares);
-ProcessLinesAdd('SENDPOOLSTEPS 0');
+LeaveCriticalSection(CSPoolMiner);
+SetMinerUpdate(true,-1);
 End;
 
-function GetPoolNumeroDePasos():integer;
+Function GetPoolMinningInfo():PoolMinerData;
+Begin
+EnterCriticalSection(CSPoolMiner);
+result := PoolMiner;
+LeaveCriticalSection(CSPoolMiner);
+End;
+
+Procedure SetPoolMinningInfo(NewData:PoolMinerData);
+Begin
+EnterCriticalSection(CSPoolMiner);
+PoolMiner := NewData;
+LeaveCriticalSection(CSPoolMiner);
+End;
+
+function GetPoolNumeroDePasos():integer; // ThSa verified!
 var
   contador : integer;
 Begin
@@ -302,40 +345,29 @@ if length(arraypoolmembers)>0 then
 Leavecriticalsection(CSPoolMembers);
 End;
 
-Function GetTotalPoolDeuda():Int64;
+Function GetTotalPoolDeuda():Int64;   // ThSa verified!
 var
   contador : integer;
-  resultado : int64 = 0;
 Begin
-//Entercriticalsection(CSPoolMembers);
+Result := 0;
+Entercriticalsection(CSPoolMembers);
 if length(arraypoolmembers)>0 then
    begin
    for contador := 0 to length(arraypoolmembers)-1 do
-      resultado := resultado + arraypoolmembers[contador].Deuda;
+      Result := Result + arraypoolmembers[contador].Deuda;
    end;
-//Leavecriticalsection(CSPoolMembers);
-result := resultado;
+Leavecriticalsection(CSPoolMembers);
 End;
 
-Procedure DistribuirEnPool(cantidad:int64);
+Procedure DistribuirEnPool(cantidad:int64);   // ThSa verified!
 var
   numerodepasos: integer;
   PoolComision : int64;
   ARepartir, PagoPorStep, PagoPorPOS, MinersConPos: int64;
   contador : integer;
   RepartirShares : int64;
-
-  function GetValidMinersForShare():integer;
-  var
-    count : integer;
-  Begin
-  result := 0;
-  for count := 0 to length(arraypoolmembers)-1 do
-     if ( (IsPoolMemberConnected(arraypoolmembers[count].Direccion)>=0) and
-        (arraypoolmembers[count].LastSolucion+10000>=PoolMiner.Block) ) then result +=1;
-  End;
-
 Begin
+setmilitime('DistribuirEnPool',1);
 ARepartir := Cantidad;
 NumeroDePasos := GetPoolNumeroDePasos();
 PoolComision := (cantidad* PoolInfo.Porcentaje) div 10000;
@@ -343,7 +375,6 @@ PoolInfo.FeeEarned:=PoolInfo.FeeEarned+PoolComision;
 
 ARepartir := ARepartir-PoolComision;
 RepartirShares := (ARepartir * PoolShare) div 100;
-ARepartir := ARepartir - RepartirShares;
 PagoPorStep := RepartirShares div NumeroDePasos;
 // DISTRIBUTE SHARES
 for contador := 0 to length(arraypoolmembers)-1 do
@@ -365,32 +396,17 @@ for contador := 0 to length(arraypoolmembers)-1 do
    Leavecriticalsection(CSPoolMembers);
    end;
 ConsoleLinesAdd('Pool Shares   : '+IntToStr(NumeroDePasos));
-ConsoleLinesAdd('Pay per Share : '+IntToStr(PagoPorStep));
-// DISTRIBUTE PART
-MinersConPos := GetValidMinersForShare;
-if ((ARepartir>0) and (MinersConPos>0)) then
-   begin
-   PagoPorPOS := ARepartir div MinersConPos;
-   for contador := 0 to length(arraypoolmembers)-1 do
-      begin
-      if ( (IsPoolMemberConnected(arraypoolmembers[contador].Direccion)>=0) and
-        (arraypoolmembers[contador].LastSolucion+10000>=PoolMiner.Block) ) then
-         begin
-         arraypoolmembers[contador].Deuda:=arraypoolmembers[contador].Deuda+PagoPorPOS;
-         arraypoolmembers[contador].TotalGanado:=arraypoolmembers[contador].TotalGanado+PagoPorPOS;
-         arraypoolmembers[contador].LastEarned:=arraypoolmembers[contador].LastEarned+PagoPorPOS;
-         end;
-      end;
-   ConsoleLinesAdd('POOL POP: '+IntToStr(MinersConPos)+' members, each= '+Int2Curr(PagoPorPOS));
-   end;
+ConsoleLinesAdd('Pay per Share : '+Int2Curr(PagoPorStep));
 PoolMembersTotalDeuda := GetTotalPoolDeuda();
 S_PoolInfo := true;
+setmilitime('DistribuirEnPool',2);
 End;
 
-Procedure AcreditarPoolStep(direccion:string; value:integer);
+Procedure AcreditarPoolStep(direccion:string; value:integer); // ThSa verified!
 var
   contador : integer;
 Begin
+Entercriticalsection(CSPoolMembers);
 if length(arraypoolmembers)>0 then
    begin
    for contador := 0 to length(arraypoolmembers)-1 do
@@ -403,16 +419,18 @@ if length(arraypoolmembers)>0 then
          end;
       end;
    end;
-//S_PoolMembers := true;
+Leavecriticalsection(CSPoolMembers);
 End;
 
-function GetLastPagoPoolMember(direccion:string):integer;
+function GetLastPagoPoolMember(direccion:string):integer;   // ThSa verified!
 var
   contador : integer;
 Begin
 result :=-1;
+entercriticalsection(CSPoolMembers);
 if length(ArrayPoolMembers)>0 then
    begin
+
    for contador := 0 to length(ArrayPoolMembers)-1 do
       begin
       if arraypoolmembers[contador].Direccion = direccion then
@@ -422,9 +440,10 @@ if length(ArrayPoolMembers)>0 then
          end;
       end;
    end;
+Leavecriticalsection(CSPoolMembers);
 End;
 
-Procedure ClearPoolUserBalance(direccion:string);
+Procedure ClearPoolUserBalance(direccion:string);  // ThSa verified!
 var
   contador : integer;
 Begin
@@ -447,7 +466,7 @@ S_PoolInfo := true;
 PoolMembersTotalDeuda := GetTotalPoolDeuda();
 End;
 
-Procedure PoolUndoneLastPayment();
+Procedure PoolUndoneLastPayment();  // ThSa verified!
 var
   contador : integer;
   totalmenos : int64 = 0;
@@ -469,11 +488,12 @@ ConsoleLinesAdd('Discounted last payment to pool members : '+Int2curr(totalmenos
 PoolMembersTotalDeuda := GetTotalPoolDeuda();
 End;
 
-function GetPoolSlotFromPrefjo(prefijo:string):Integer;
+function GetPoolSlotFromPrefjo(prefijo:string):Integer;   // ThSa verified!
 var
   counter : integer;
 Begin
 result := -1;
+Entercriticalsection(CSPoolMembers);
 for counter := 0 to length(arraypoolmembers)-1 do
    begin
    if arraypoolmembers[counter].Prefijo = prefijo then
@@ -482,15 +502,17 @@ for counter := 0 to length(arraypoolmembers)-1 do
       break;
       end;
    end;
+Leavecriticalsection(CSPoolMembers);
 End;
 
-function SavePoolServerConnection(Ip,Prefijo,UserAddress,minerver:String;contexto:TIdContext): boolean;
+function SavePoolServerConnection(Ip,Prefijo,UserAddress,minerver:String;contexto:TIdContext): boolean; // ThSa verified!
 var
   newdato : PoolUserConnection;
   slot: integer;
 Begin
 result := false;
 slot := GetPoolSlotFromPrefjo(Prefijo);
+EnterCriticalSection(CSMinersConex);
 if slot >= 0 then
    begin
    NewDato := Default(PoolUserConnection);
@@ -504,27 +526,29 @@ if slot >= 0 then
    result := true;
    U_PoolConexGrid := true;
    end;
+LeaveCriticalSection(CSMinersConex);
 End;
 
-function GetPoolTotalActiveConex ():integer;
+function GetPoolTotalActiveConex ():integer;  // ThSa verified!
 var
   cont:integer;
-  resultado : integer = 0;
 Begin
 result := 0;
+EnterCriticalSection(CSMinersConex);
 if length(PoolServerConex) > 0 then
    begin
    for cont := 0 to length(PoolServerConex)-1 do
-      if PoolServerConex[cont].Address<>'' then resultado := resultado + 1;
+      if PoolServerConex[cont].Address<>'' then result := result + 1;
    end;
-result := resultado;
+LeaveCriticalSection(CSMinersConex);
 End;
 
-function GetPoolContextIndex(AContext: TIdContext):integer;
+function GetPoolContextIndex(AContext: TIdContext):integer;  // ThSa verified!
 var
   contador : integer = 0;
 Begin
 result := -1;
+EnterCriticalSection(CSMinersConex);
 if length(PoolServerConex) > 0 then
    begin
    for contador := 0 to length(PoolServerConex)-1 do
@@ -536,54 +560,42 @@ if length(PoolServerConex) > 0 then
          end;
       end;
    end;
+LeaveCriticalSection(CSMinersConex);
 End;
 
-Procedure BorrarPoolServerConex(AContext: TIdContext);
+Procedure BorrarPoolServerConex(AContext: TIdContext); // ThSa verified!
 var
   contador : integer = 0;
 Begin
+if G_ClosingAPP then exit;
+setmilitime('BorrarPoolServerConex',1);
+EnterCriticalSection(CSMinersConex);
 if length(PoolServerConex) > 0 then
    begin
    for contador := 0 to length(PoolServerConex)-1 do
       begin
       if Poolserverconex[contador].Context=AContext then
          begin
-         if PoolServerConex[contador].Context.Connection.Connected then
-            form1.TryClosePoolConnection(PoolServerConex[contador].Context);
-
+         if AContext.Connection.Connected then
+            TRY
+            AContext.Connection.Disconnect;
+            EXCEPT ON E:Exception do
+               begin
+               ToPoolLog('Error trying to RECLOSE pool member:'+E.Message);
+               end;
+            END;{Try}
          Poolserverconex[contador]:=Default(PoolUserConnection);
          U_PoolConexGrid := true;
          break
          end;
       end;
    end;
-End;
-
-Procedure SendPoolStepsInfo(steps:integer);
-var
-  contador : integer;
-Begin
-if length(PoolServerConex)>0 then
-   begin
-   for contador := 0 to length(PoolServerConex)-1 do
-      begin
-      try
-      if PoolServerConex[contador].Address<>'' then
-         begin
-         PoolServerConex[contador].context.Connection.IOHandler.WriteLn('POOLSTEPS '+
-            PoolDataString(PoolServerConex[contador].Address));
-         end;
-      except on E:Exception do
-         begin
-         toPoollog('Error sending pool steps, slot '+IntToStr(contador));
-         end;
-      end;
-      end;
-   end;
+LeaveCriticalSection(CSMinersConex);
+setmilitime('BorrarPoolServerConex',2);
 End;
 
 // VERIFY THE POOL CONECTIONS AND REFRESH POOL TOTAL HASHRATE
-Procedure SendPoolHashRateRequest();
+Procedure CalculatePoolHashrate();
 var
   contador : integer;
   memberaddress : string;
@@ -595,30 +607,22 @@ if ( (Miner_OwnsAPool) and (length(PoolServerConex)>0) ) then
    for contador := 0 to length(PoolServerConex)-1 do
       begin
       TRY
-      memberaddress := PoolServerConex[contador].Address;
-      if memberaddress <> '' then
-         begin
-         PoolTotalHashRate := PoolTotalHashRate+PoolServerConex[contador].Hashpower;
-         if ((PoolServerConex[contador].LastPing+15<StrToInt64Def(UTCTime,0)) or (PoolServerConex[contador].LastPing<0) ) then
-            begin
-            BorrarPoolServerConex(PoolServerConex[contador].Context);
-            end;
-         end;
+      PoolTotalHashRate := PoolTotalHashRate + GetMinerHashrate(contador);
       EXCEPT on E:Exception do
-         begin
-         toPoollog('Error verifyng pool conex: '+IntToStr(contador));
-         end;
+         toPoollog('Error calculating pool hashrate: '+E.Message);
       END{Try};
       end;
    end;
+if ( (POOL_LBS) and (poolminer.steps<=8) and (G_TotalPings>500) ) then
+   ProcessLinesAdd('Restart');
 End;
 
-function GetPoolMemberPosition(member:String):integer;
+function GetPoolMemberPosition(member:String):integer;   // ThSa verified!
 var
   contador : integer;
 Begin
 result := -1;
-//Entercriticalsection(CSPoolMembers);
+Entercriticalsection(CSPoolMembers);
 if length(ArrayPoolMembers)>0 then
    begin
    for contador := 0 to length(ArrayPoolMembers)-1 do
@@ -630,14 +634,15 @@ if length(ArrayPoolMembers)>0 then
          end;
       end;
    end;
-//Leavecriticalsection(CSPoolMembers);
+Leavecriticalsection(CSPoolMembers);
 End;
 
-function IsPoolMemberConnected(address:string):integer;
+function IsPoolMemberConnected(address:string):integer;  // ThSa verified!
 var
   counter : integer;
 Begin
 result := -1;
+EnterCriticalSection(CSMinersConex);
 if length(PoolServerConex)>0 then
    begin
    for counter := 0 to length(PoolServerConex)-1 do
@@ -647,89 +652,51 @@ if length(PoolServerConex)>0 then
          break;
          end;
    end;
+LeaveCriticalSection(CSMinersConex);
 End;
 
-// Especifica la posicion de una conexion en el array
-function GetPoolSlotFromContext(context:TIdContext):integer;
+Function NewSavePoolPayment(DataLine:string):boolean;  // ThSa verified!
 var
-  counter : integer;
+  archivo : file of PoolPaymentData;
+  ThisPay : PoolPaymentData;
 Begin
-result := -1;
-if length(PoolServerConex)>0 then
+result:= true;
+ThisPay := Default(PoolPaymentData);
+ThisPay.block:=StrToIntDef(Parameter(DataLine,0),0);
+Thispay.address:=Parameter(DataLine,1);
+Thispay.amount:=StrToIntDef(Parameter(DataLine,2),0);
+Thispay.Order:=Parameter(DataLine,3);
+Assignfile(archivo, PoolPaymentsFilename);
+{$I-}
+reset(archivo);
+{$I+}
+If IOResult = 0 then// File is open
    begin
-   for counter := 0 to length(PoolServerConex)-1 do
-      if PoolServerConex[counter].Context=context then
-         result := counter;
-   end;
-End;
-
-// Expel inactives and send payments
-Procedure ExpelPoolInactives();
-var
-  counter : integer;
-  expelled : integer = 0;
-  Mineraddress : string;
-  MemberBalance, Remaining : Int64;
-  PaidMembers : integer = 0;
-  TotalPaid : int64 = 0;
-
-Begin
-setmilitime('ExpelPoolInactives',1);
-SetCurrentJob('ExpelPoolInactives',true);
-RunExpelPoolInactives := false;
-Entercriticalsection(CSPoolMembers);
-TRY
-if length(arraypoolmembers)>0 then
-   begin
-   for counter := 0 to length(arraypoolmembers)-1 do
+   TRY
+   seek(archivo,filesize(archivo));
+   write(archivo,Thispay);
+   insert(Thispay,ArrPoolPays,length(ArrPoolPays));
+   EXCEPT ON E:Exception do
       begin
-      Mineraddress := arraypoolmembers[counter].Direccion;
-      if Mineraddress <> '' then MemberBalance := GetPoolMemberBalance(Mineraddress)
-      else MemberBalance := 0;
-      if arraypoolmembers[counter].LastSolucion+PoolExpelBlocks<PoolMiner.Block then
-         begin
-         if ( (IsPoolMemberConnected(arraypoolmembers[counter].Direccion)<0) and
-            ( Mineraddress<>'')) then
-            begin
-            ProcessLinesAdd('POOLEXPEL '+arraypoolmembers[counter].Direccion+' YES');
-            AddPoolPay(IntToStr(MyLastBlock+1)+' '+arraypoolmembers[counter].Direccion+' '+
-               IntToStr(GetMaximunToSend(MemberBalance))+' EXPELLED');
-            TotalPaid := totalpaid + MemberBalance;
-            if arraypoolmembers[counter].Deuda>0 then expelled +=1;
-            end;
-         end;
-      // include auto pool payments
-      if GetLastPagoPoolMember(Mineraddress)+PoolInfo.TipoPago<MyLastBlock then
-         begin
-         if ((MemberBalance > 0) and (Mineraddress<>'')) then
-            begin
-            ProcessLinesAdd('sendto '+Mineraddress+' '+IntToStr(GetMaximunToSend(MemberBalance))+' POOLPAYMENT_'+PoolInfo.Name);
-            TotalPaid := TotalPaid + MemberBalance;
-            AddPoolPay(IntToStr(MyLastBlock+1)+' '+arraypoolmembers[counter].Direccion+' '+
-               IntToStr(GetMaximunToSend(MemberBalance))+' PAID');
-            if arraypoolmembers[counter].Deuda>0 then PaidMembers +=1;
-            ClearPoolUserBalance(Mineraddress);
-            end;
-         end;
+      result := false;
+      Consolelinesadd('ERROR SAVING POOLPAYS FILE');
       end;
-   end;
+   END;{Try}
+   Closefile(archivo);
+   end
+else result := false;
+End;
 
-EXCEPT ON E:Exception do
-   ToExcLog('Error inside ExpelPoolInactives: '+E.Message);
-END{Try};
-
-Leavecriticalsection(CSPoolMembers);
-
-ConsoleLinesAdd('Pool expels  : '+intToStr(expelled));
-ConsoleLinesAdd('Pool Payments: '+intToStr(PaidMembers));
-ToPoolLog(Format('Payments block %d : (%d) %s NOSO',[Mylastblock,expelled+paidmembers,int2curr(Totalpaid)]));
-ConsoleLinesAdd('Total paid   : '+int2curr(Totalpaid));
-setmilitime('ExpelPoolInactives',2);
-SetCurrentJob('ExpelPoolInactives',false);
+Function GetMinerHashrate(slot:integer):int64;   // ThSa verified!
+Begin
+result := 0;
+EnterCriticalSection(CSMinersConex);
+result := PoolServerConex[slot].Hashpower;
+LeaveCriticalSection(CSMinersConex);
 End;
 
 //STATUS 1{PoolHashRate} 2{PoolFee} 3{PoolShare} 4{blockdiff} 5{Minercount} 6{arrayofminers address:balance:blockstillopay:hashpower}
-function PoolStatusString():String;
+function PoolStatusString():String;          // ThSa verified!
 var
   resString : string = '';
   counter : integer;
@@ -743,7 +710,7 @@ for counter := 0 to length(arraypoolmembers)-1 do
       begin
       resString := resString+arraypoolmembers[counter].Direccion+':'+IntToStr(arraypoolmembers[counter].Deuda)+':'+
          IntToStr(MyLastBlock-(arraypoolmembers[counter].LastPago+PoolInfo.TipoPago))+
-         ':'+IntToStr(PoolServerConex[counter].Hashpower)+' ';
+         ':'+GetMinerHashrate(counter).ToString+' ';
       miners +=1;
       end;
    end;
@@ -757,12 +724,12 @@ result:= 'STATUS '+IntToStr(PoolTotalHashRate)+' '+IntToStr(poolinfo.Porcentaje)
    IntToStr(PoolShare)+' '+IntToStr(PoolMiner.Dificult)+' '+IntToStr(miners)+' '+resString;
 End;
 
-function StepAlreadyAdded(stepstring:string):Boolean;
+function StepAlreadyAdded(stepstring:string):Boolean;   // ThSa verified!
 var
   counter : integer;
 Begin
 result := false;
-EnterCriticalSection(CSPoolShares);
+EnterCriticalSection(CSPoolMiner);
 if length(Miner_PoolSharedStep) > 0 then
    begin
    for counter := 0 to length(Miner_PoolSharedStep)-1 do
@@ -774,7 +741,7 @@ if length(Miner_PoolSharedStep) > 0 then
          end;
       end;
    end;
-LeaveCriticalSection(CSPoolShares);
+LeaveCriticalSection(CSPoolMiner);
 end;
 
 Procedure RestartPoolSolution();
@@ -796,12 +763,14 @@ End;
 
 Procedure ShowPoolBots();
 var
-  counter: integer;
+  counter: integer = 0;
 Begin
+{
 for counter := 0 to length(ListaPoolBots)-1 do
    begin
    consolelinesadd(ListaPoolBots[counter].ip+'->'+IntToStr(ListaPoolBots[counter].count));
    end;
+}
 End;
 
 function KickPoolIP(IP:string): integer;
@@ -829,20 +798,25 @@ for counter := 0 to length(PoolServerConex)-1 do
    end;
 End;
 
-Function ContextAlreadyExists(ThisContext:TidCOntext): boolean;
+// ***** New ThSa functions
+
+Procedure UpdateMinerPing(index:integer;Hashpower:int64 = -1);
+Begin
+EnterCriticalSection(CSMinersConex);
+PoolServerConex[index].LastPing:=UTCTime.ToInt64;
+if hashpower > -1 then PoolServerConex[index].Hashpower:=Hashpower;
+LeaveCriticalSection(CSMinersConex);
+End;
+
+Function IsMinerPinedOut(index:integer):boolean;
 var
-  counter : integer;
+  LastPing : int64;
 Begin
 result := false;
-if length(Poolserverconex)>0 then
-   begin
-   for counter := 0 to length(Poolserverconex)-2 do
-      if thiscontext = Poolserverconex[counter].Context then
-         begin
-         result := true;
-         break;
-         end;
-   end;
+EnterCriticalSection(CSMinersConex);
+LastPing := PoolServerConex[index].LastPing;
+LeaveCriticalSection(CSMinersConex);
+if LastPing+15<UTCTime.ToInt64 then result := true;
 End;
 
 END. // END UNIT
