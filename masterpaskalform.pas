@@ -16,7 +16,15 @@ type
 
    { TThreadClientRead }
 
-   TThreadClientRead = class(TThread)
+  TNodeConnectionInfo = class(TObject)
+  private
+    FTimeLast: Int64;
+  public
+    constructor Create;
+    property TimeLast: int64 read FTimeLast write FTimeLast;
+  end;
+
+  TThreadClientRead = class(TThread)
    private
      FSlot: Integer;
    protected
@@ -748,7 +756,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Lb2c';
+  SubVersion = 'Lb3';
   OficialRelease = false;
   VersionRequired = '0.2.1Lb1';
   BuildDate = 'January 2022';
@@ -1105,6 +1113,11 @@ Uses
   mpRPC;
 
 {$R *.lfm}
+
+constructor TNodeConnectionInfo.Create;
+Begin
+FTimeLast:= 0;
+End;
 
 { TThreadClientRead }
 
@@ -2515,9 +2528,17 @@ var
   ReadCycles : integer = 0;
   ConexID : integer;
   PoolReq : PoolMinerData;
+  nci: TNodeConnectionInfo;
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
 ConexID := GetPoolContextIndex(AContext);
+nci:= TNodeConnectionInfo(AContext.Data);
+if UTCTime.ToInt64 >nci.TimeLast+15 then
+   begin
+   TryClosePoolConnection(AContext);
+   ToPoolLog('Pinned out new system');
+   exit;
+   end;
 if IsMinerPinedOut(ConexID) then
    begin
    TryClosePoolConnection(AContext);
@@ -2585,6 +2606,8 @@ if comando = 'PING' then
    TRY
    TryMessageToMiner(AContext,'PONG '+PoolDataString(UserDireccion));
    UpdateMinerPing(ConexID,StrToIntDef(Parameter(linea,3),0));
+   nci:= TNodeConnectionInfo(AContext.Data);
+   nci.TimeLast:=UTCTime.ToInt64;
    //PoolServerConex[IsPoolMemberConnected(UserDireccion)].Hashpower:=StrToIntDef(Parameter(linea,3),0);
    //PoolServerConex[IsPoolMemberConnected(UserDireccion)].LastPing:=StrToInt64Def(UTCTime,0);
    EXCEPT on E:Exception do
@@ -2601,6 +2624,9 @@ else if Comando = 'PAYMENT' then
 else if Comando = 'STEP' then
    begin
    UpdateMinerPing(ConexID);
+   nci:= TNodeConnectionInfo(AContext.Data);
+   nci.TimeLast:=UTCTime.ToInt64;
+   AContext.Data := nci;
    //PoolServerConex[IsPoolMemberConnected(UserDireccion)].LastPing:=UTCTime.ToInt64;
    bloqueStep := StrToIntDef(parameter(linea,3),0);
    SeedStep := parameter(linea,4);
@@ -2720,6 +2746,7 @@ var
   UserDireccion : string = '';
   WasHandled : boolean = false;
   GoodJoin : boolean;
+  nci: TNodeConnectionInfo;
 Begin
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
 if G_KeepPoolOff then // The pool server is closed or closing
@@ -2785,6 +2812,12 @@ TRY
             begin
             TryClosePoolConnection(AContext);
             BorrarPoolServerConex(Acontext);
+            end
+         else
+            begin
+            nci:= TNodeConnectionInfo.Create;
+            nci.TimeLast:= UTCTime.ToInt64;
+            AContext.Data := nci;
             end;
          end
       else
@@ -2815,6 +2848,7 @@ End;
 // A miner disconnects from pool server
 procedure TForm1.PoolServerDisConnect(AContext: TIdContext);
 Begin
+//TNodeConnectionInfo(AContext.Data).Free;
 BorrarPoolServerConex(AContext);
 End;
 

@@ -306,6 +306,13 @@ else if UpperCase(Command) = 'GETMNS' then Consolelinesadd( GetMNsPercentage(Str
 else if UpperCase(Command) = 'CLOSESTARTON' then WO_CloseStart := true
 else if UpperCase(Command) = 'CLOSESTARTOFF' then WO_CloseStart := false
 else if UpperCase(Command) = 'DT' then DebugTest(LineText)
+else if UpperCase(Command) = 'BASE58SUM' then consolelinesadd(BMB58resumen(parameter(linetext,1)))
+else if UpperCase(Command) = 'DECTO58' then consolelinesadd(BMDecTo58(parameter(linetext,1)))
+else if UpperCase(Command) = 'HEXTO58' then consolelinesadd(BMHexTo58(parameter(linetext,1),58))
+else if UpperCase(Command) = '58TODEC' then consolelinesadd(BM58ToDec(parameter(linetext,1)))
+else if UpperCase(Command) = 'DECTOHEX' then consolelinesadd(BMDectoHex(parameter(linetext,1)))
+
+
 
 // CONSULTING
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()
@@ -1643,7 +1650,7 @@ else
    begin
    currtime := UTCTime;
    ConsoleLinesAdd(direccion+' owner cert'+slinebreak+
-      ListaDirecciones[DireccionEsMia(direccion)].PublicKey+':'+currtime+':'+GetStringSigned('I OWN THIS ADDRESS '+direccion+currtime,ListaDirecciones[DireccionEsMia(direccion)].PrivateKey));
+      EncodeCertificate(ListaDirecciones[DireccionEsMia(direccion)].PublicKey+':'+currtime+':'+GetStringSigned('I OWN THIS ADDRESS '+direccion+currtime,ListaDirecciones[DireccionEsMia(direccion)].PrivateKey)));
    end;
 End;
 
@@ -1652,6 +1659,7 @@ var
   data, pubkey, direc,firmtime,firma : string;
 Begin
 data := parameter(LineText,1);
+data := DecodeCertificate(Data);
 data := StringReplace(data,':',' ',[rfReplaceAll, rfIgnoreCase]);
 pubkey := Parameter(data,0);
 firmtime := Parameter(data,1);

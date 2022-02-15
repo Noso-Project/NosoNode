@@ -10,6 +10,7 @@ Version 0.2.1Lb2
 - Undone server info catch system.
 - Improved client close procedure.
 - Added Russian language.
+- New certificate method.
 
 Version 0.2.1Lb1
 

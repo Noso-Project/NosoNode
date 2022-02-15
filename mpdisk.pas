@@ -1076,7 +1076,7 @@ Begin
    // for cases when rebuilding sumary
    if FileExists(BlockDirectory+'0.blk') then UpdateSumario(ADMINHash,PremineAmount,0,'0');
    Except on E:Exception do
-      tolog ('Error creating sumary file');
+      tolog ('Error creating summary file');
    end;
 End;
 
@@ -1097,7 +1097,7 @@ Begin
       end;
    CloseFile(FileSumario);
    EXCEPT on E:Exception do
-      tolog ('Error loading sumary from file');
+      tolog ('Error loading summary from file');
    END;
 End;
 
@@ -1123,7 +1123,7 @@ assignfile(FileSumario,SumarioFilename);
    S_Sumario := false;
    U_DataPanel := true;
    Except on E:Exception do
-      tolog ('Error saving sumary file');
+      tolog ('Error saving summary file');
    end;
 CloseFile(FileSumario);
 LeaveCriticalSection(CSSumary);

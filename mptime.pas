@@ -123,7 +123,7 @@ else if diferencia div 3600 < 1 then result := IntToStr(diferencia div 60)+'m'
 else if diferencia div 86400 < 1 then result := IntToStr(diferencia div 3600)+'h'
 else if diferencia div 2592000 < 1 then result := IntToStr(diferencia div 86400)+'d'
 else if diferencia div 31536000 < 1 then result := IntToStr(diferencia div 2592000)+'M'
-else result := IntToStr(diferencia div 31536000)+' Y'
+else result := IntToStr(diferencia div 31536000)+' Y';
 end;
 
 END. // END UNIT

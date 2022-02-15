@@ -41,9 +41,13 @@ Function BMMultiplicar(Numero1,Numero2:string):string;
 Function BMDividir(Numero1,Numero2:string):DivResult;
 Function BMExponente(Numero1,Numero2:string):string;
 function BMHexToDec(numerohex:string):string;
+Function BM58ToDec(number58:string):String;
 function BMHexTo58(numerohex:string;alphabetnumber:integer):string;
 function BMB58resumen(numero58:string):string;
 function BMDecTo58(numero:string):string;
+function BMDecToHex(numero:string):string;
+Function EncodeCertificate(certificate:string):string;
+Function DecodeCertificate(certificate:string):string;
 
 
 
@@ -523,6 +527,66 @@ else ToExcLog('ERROR: Node not verified: '+GetTextFromMN(ThisNode));
 setmilitime('NodeVerified',2);
 End;
 
+Function EncodeCertificate(certificate:string):string;
+
+   Function SplitCertificate(TextData:String):String;
+   var
+     InpuntLength, Tramos, counter: integer;
+     ThisTramo, This58 : string;
+   Begin
+   result :='';
+   //ConsolelinesAdd('Original HEX Certificate : '+certificate);
+   InpuntLength := length(TextData);
+   if InpuntLength < 100 then exit;
+   Tramos := InpuntLength div 32;
+   if InpuntLength mod 32 > 0 then tramos := tramos+1;
+   for counter := 0 to tramos-1 do
+      begin
+      ThisTramo := '1'+Copy(TextData,1+(counter*32),32);
+      This58 := BMHexTo58(ThisTramo,58);
+      //ConsolelinesAdd('Tramo '+IntToStr(counter+1)+': '+ThisTramo+' '+This58);
+      Result := Result+This58+'0';
+      end;
+   End;
+
+Begin
+Certificate := UPPERCASE(XorEncode(HashSha256String('noso'),certificate));
+//Tolog('Certificate encoded: '+Certificate);
+result := SplitCertificate(certificate);
+End;
+
+Function DecodeCertificate(certificate:string):string;
+
+   Function UnSplitCertificate(TextData:String):String;
+   var
+     counter:integer;
+     Tramo : integer = 1;
+     Thistramo :string = '';
+     ToDec, ToHex : string;
+   Begin
+   result := '';
+   for counter := 1 to length(TextData) do
+      begin
+      if TextData[counter]<>'0' then Thistramo := thistramo+TextData[counter]
+      else
+         begin
+         ToDec := BM58Todec(Thistramo);
+         ToHex := BMDecToHex(ToDec);
+         Delete(ToHex,1,1);
+         //Consolelinesadd('Tramo '+IntToStr(Tramo)+': '+ThisTramo+' '+ToHex);
+         Result := result+ToHex;
+         ThisTramo := ''; Tramo := tramo+1;
+         end;
+      end;
+   //Consolelinesadd('Certificate UnSplitted: '+result);
+   End;
+
+Begin
+Certificate := UnSplitCertificate(certificate);
+result := XorDecode(HashSha256String('noso'), Certificate);
+//Consolelinesadd('Certificate Decoded: '+result);
+End;
+
 // *****************************************************************************
 // ***************************FUNCTIONS OF BIGMATHS*****************************
 // *****************************************************************************
@@ -705,6 +769,32 @@ for counter := 1 to long do
 result := resultado;
 End;
 
+Function BM58ToDec(number58:string):String;
+var
+  long,counter : integer;
+  Resultado : string = '0';
+  DecValues : array of integer;
+  ExpValues : array of string;
+  MultipliValues : array of string;
+Begin
+Long := length(number58);
+setlength(DecValues,0);
+setlength(ExpValues,0);
+setlength(MultipliValues,0);
+setlength(DecValues,Long);
+setlength(ExpValues,Long);
+setlength(MultipliValues,Long);
+for counter := 1 to Long do
+   DecValues[counter-1] := Pos(number58[counter],B58Alphabet)-1;
+for counter := 1 to long do
+   ExpValues[counter-1] := BMExponente('58',IntToStr(long-counter));
+for counter := 1 to Long do
+   MultipliValues[counter-1] := BMMultiplicar(ExpValues[counter-1],IntToStr(DecValues[counter-1]));
+for counter := 1 to long do
+   Resultado := BMAdicion(resultado,MultipliValues[counter-1]);
+result := resultado;
+End;
+
 // Hex a base 58
 function BMHexTo58(numerohex:string;alphabetnumber:integer):string;
 var
@@ -774,6 +864,33 @@ if StrToInt(decimalValue) >= 58 then
    resultado := B58Alphabet[restante+1]+resultado;
    end;
 if StrToInt(decimalvalue) > 0 then resultado := B58Alphabet[StrToInt(decimalvalue)+1]+resultado;
+result := resultado;
+End;
+
+// CONVERTS A DECIMAL VALUE TO A HEX STRING
+function BMDecToHex(numero:string):string;
+var
+  decimalvalue : string;
+  restante : integer;
+  ResultadoDiv : DivResult;
+  Resultado : string = '';
+Begin
+decimalvalue := numero;
+while length(decimalvalue) >= 2 do
+   begin
+   ResultadoDiv := BMDividir(decimalvalue,'16');
+   DecimalValue := Resultadodiv.cociente;
+   restante := StrToInt(ResultadoDiv.residuo);
+   resultado := HexAlphabet[restante+1]+resultado;
+   end;
+if StrToInt(decimalValue) >= 16 then
+   begin
+   ResultadoDiv := BMDividir(decimalvalue,'16');
+   DecimalValue := Resultadodiv.cociente;
+   restante := StrToInt(ResultadoDiv.residuo);
+   resultado := HexAlphabet[restante+1]+resultado;
+   end;
+if StrToInt(decimalvalue) > 0 then resultado := HexAlphabet[StrToInt(decimalvalue)+1]+resultado;
 result := resultado;
 End;
 

@@ -150,8 +150,8 @@ DLSL.Add('Do you want visit the OpenSSL oficial webpage?');
 DLSL.Add('Rebuilding until block ');
 DLSL.Add('Rebuild block: ');
 DLSL.Add(' added to headers');
-DLSL.Add('Rebuilding sumary block: ');             //130
-DLSL.Add('Sumary rebuilded.');
+DLSL.Add('Rebuilding summary block: ');             //130
+DLSL.Add('Summary rebuilded.');
 DLSL.Add('Miner solution invalid?');
 DLSL.Add('Failed block verification step: ');
 DLSL.Add('The file is not a valid wallet');
