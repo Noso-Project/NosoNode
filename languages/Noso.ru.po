@@ -976,6 +976,14 @@ msgstr "Мастерноды: (%d) %s"
 msgid "(%d)  %d/%s"
 msgstr ""
 
+#: translation.rs0518
+msgid "Next Miner"
+msgstr ""
+
+#: translation.rs0519
+msgid "Best Hash"
+msgstr ""
+
 #: translation.rs1000
 msgid "Processing block %d (%d %%)"
 msgstr "Обрабатывается блок %d (%d %%)"

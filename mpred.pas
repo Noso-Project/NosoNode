@@ -888,8 +888,8 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
    //RestoreBlockChain();
    end;
 
-// Update headers for pool automatically
-if ((fileexists(PoolInfoFilename)) and (MyResumenhash <> NetResumenHash.Value) and (NLBV=mylastblock)
+// Update headers
+if ((MyResumenhash <> NetResumenHash.Value) and (NLBV=mylastblock) and (MyLastBlockHash=NetLastBlockHash.value)
    and (MySumarioHash=NetSumarioHash.Value)) then
    begin
    PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
@@ -1039,9 +1039,11 @@ End;
 Function GetNodeStatusString():string;
 Begin
 //NODESTATUS 1{Peers} 2{LastBlock} 3{Pendings} 4{Delta} 5{headers} 6{version} 7{UTCTime} 8{MNsHash} 9{MNscount}
+//           10{LasBlockHash} 11{BestHashDiff} 12{LastBlockTimeEnd}
 result := IntToStr(GetTotalConexiones)+' '+IntToStr(MyLastBlock)+' '+GetPendingCount.ToString+' '+
           IntToStr(UTCTime.ToInt64-EngineLastUpdate)+' '+copy(myResumenHash,0,5)+' '+
-          ProgramVersion+SubVersion+' '+UTCTime+' '+copy(MyMnsHash,0,5)+' '+IntTOStr(MyMNsCount);
+          ProgramVersion+SubVersion+' '+UTCTime+' '+copy(MyMnsHash,0,5)+' '+IntTOStr(MyMNsCount)+' '+
+          MyLastBlockHash+' '+NMS_Diff+' '+IntToStr(LastBlockData.TimeEnd);
 End;
 
 Function IsSafeIP(IP:String):boolean;

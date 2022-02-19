@@ -40,6 +40,7 @@ function SavePoolFiles():boolean;
 Procedure PTC_NetReqs(textline:string);
 function RequestAlreadyexists(reqhash:string):string;
 Procedure UpdateMyRequests(tipo:integer;timestamp:string;bloque:integer;hash,hashvalue:string);
+Function PTC_BestHash(Linea:string):String;
 
 function GetMNfromText(LineText:String):TMasterNode;
 function GetTextFromMN(node:TMasterNode):string;
@@ -60,6 +61,7 @@ CONST
   Custom = 9;
   NodeReport = 10;
   GetMNs = 11;
+  BestHash = 12;
 
 implementation
 
@@ -168,6 +170,9 @@ if tipo = NodeReport then
    end;
 if tipo = GetMNs then
    Resultado := '$GETMNS';
+if tipo = BestHash then
+   Resultado := '$BESTHASH';
+
 Resultado := Encabezado+Resultado;
 Result := resultado;
 End;
@@ -227,6 +232,7 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = 'ADMINMSG' then PTC_AdminMSG(SlotLines[contador][0])
       else if UpperCase(LineComando) = 'NETREQ' then PTC_NetReqs(SlotLines[contador][0])
       else if UpperCase(LineComando) = '$REPORTNODE' then PTC_NodeReport(SlotLines[contador][0])
+      else if UpperCase(LineComando) = '$BESTHASH' then PTC_BestHash(SlotLines[contador][0])
       else
          Begin  // El comando recibido no se reconoce. Verificar protocolos posteriores.
          ConsoleLinesAdd(LangLine(23)+SlotLines[contador][0]+') '+intToStr(contador)); //Unknown command () in slot: (
@@ -380,6 +386,9 @@ var
 Begin
 Encab := GetPTCEcn;
 TextOrder := encab+'ORDER ';
+// Send the current best hash
+PTC_SendLine(slot,GetPTCEcn+'$BESTHASH '+NMS_Miner+' '+NMS_Hash+' '+(MyLastBlock+1).ToString+' '+(LastBlockData.TimeEnd+10).ToString);
+
 if GetPendingCount > 0 then
    begin
    EnterCriticalSection(CSPending);
@@ -1062,6 +1071,39 @@ if length(MNsArray) > 0 then
          break;
          end;
       end;
+   end;
+End;
+
+Function PTC_BestHash(Linea:string):String;
+var
+  miner,hash,diff,block : string;
+  ResultHash : string;
+  TimeStamp : string;
+  Exitcode : integer = 0;
+Begin
+Result:= 'False '+NMS_Diff;
+Miner := Parameter(Linea,5);
+Hash  := Parameter(Linea,6);
+block  := Parameter(Linea,7);
+TimeStamp  := Parameter(Linea,8);
+If StrToIntDef(Block,0)<>LastBlockData.Number+1 then exitcode := 1;
+if StrToInt64Def(TimeStamp,LastBlockData.TimeEnd)>LastBlockData.TimeEnd+585 then exitcode:=2;
+if not IsValidHashAddress(Miner) then exitcode:=3;
+if Hash+Miner = NMS_Hash+NMS_Miner then exitcode:=4;
+if exitcode>0 then
+   begin
+   Result := Result+' '+Exitcode.ToString;
+   exit;
+   end;
+ResultHash := NosoHash(Hash+Miner);
+Diff := CheckHashDiff(MyLastBlockHash,ResultHash);
+if Diff<NMS_Diff then // Better hash
+   begin
+   NMS_Diff := Diff;
+   NMS_Hash := Hash;
+   NMS_Miner := Miner;
+   OutgoingMsjsAdd(GetPTCEcn+'$BESTHASH '+Miner+' '+Hash+' '+block+' '+TimeStamp);
+   Result:='True '+Diff+' '+ResultHash;
    end;
 End;
 

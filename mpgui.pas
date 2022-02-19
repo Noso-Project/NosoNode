@@ -427,8 +427,8 @@ form1.DataPanel.Cells[0,5]:=rs0509;  //Lastblock
 form1.DataPanel.Cells[0,6]:=rs0510;  //'Blocks'
 form1.DataPanel.Cells[0,7]:=rs0511;  //'Pending'
 
-form1.DataPanel.Cells[2,0]:=LangLine(103);  //'Miner'
-form1.DataPanel.Cells[2,1]:=LangLine(104);  //'Hashing'
+form1.DataPanel.Cells[2,0]:=rs0518;  //'Next Miner'
+form1.DataPanel.Cells[2,1]:=rs0519;  //'Hashing'
 form1.DataPanel.Cells[2,2]:=LangLine(105);  //'Target'
 form1.DataPanel.Cells[2,3]:=LangLine(106);  //'Reward'
 form1.DataPanel.Cells[2,4]:=LangLine(107);  //'Block Time'
@@ -629,16 +629,16 @@ if (Miner_IsOn) then
    if MINER_HashCounter > Miner_UltimoRecuento then Miner_EsteIntervalo := MINER_HashCounter-Miner_UltimoRecuento
    else Miner_EsteIntervalo := MINER_HashCounter+900000000-Miner_UltimoRecuento;
    Miner_UltimoRecuento := MINER_HashCounter;
-   form1.DataPanel.Cells[3,0]:=BoolToStr(Miner_IsOn,true)+'('+IntToStr(Miner_DifChars)+') '+IntToStr(Miner_FoundedSteps)+'/'+IntToStr(Miner_Steps);
-   form1.DataPanel.Cells[3,1]:=IntToStr(G_MiningCPUs)+' CPU   '+IntToStr(Miner_EsteIntervalo*5 div 1000) +' k/s';
+   form1.DataPanel.Cells[3,0]:=Copy(NMS_Miner,1,10)+'...';
+   form1.DataPanel.Cells[3,1]:=Copy(NMS_Diff,1,10);
    form1.DataPanel.Cells[3,2]:='['+IntToStr(Miner_Difficult)+'] '+copy(Miner_Target,1,Miner_DifChars);
    form1.DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
    form1.DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+TimeSinceStamp(LastblockData.TimeEnd)
    end
 else
    begin
-   form1.DataPanel.Cells[3,0]:=BoolToStr(Miner_IsOn,true)+'('+IntToStr(Miner_DifChars)+') '+IntToStr(Miner_FoundedSteps)+'/'+IntToStr(Miner_Steps);
-   form1.DataPanel.Cells[3,1]:=LangLine(119); //'Not minning'
+   form1.DataPanel.Cells[3,0]:=Copy(NMS_Miner,1,10)+'...';
+   form1.DataPanel.Cells[3,1]:=Copy(NMS_Diff,1,10);
    form1.DataPanel.Cells[3,2]:='['+IntToStr(Miner_Difficult)+'] '+copy(Miner_Target,1,Miner_DifChars);
    form1.DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
    form1.DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+TimeSinceStamp(LastblockData.TimeEnd);

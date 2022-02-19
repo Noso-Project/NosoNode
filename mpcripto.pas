@@ -33,6 +33,10 @@ Function ProcessCriptoOP(aParam:Pointer):PtrInt;
 function Recursive256(incomingtext:string):string;
 Function GetMNSignature():string;
 function NodeVerified(ThisNode:TMasterNode):boolean;
+Function EncodeCertificate(certificate:string):string;
+Function DecodeCertificate(certificate:string):string;
+Function NosoHash(source:string):string;
+Function CheckHashDiff(Target,ThisHash:String):string;
 // Big Maths
 function ClearLeadingCeros(numero:string):string;
 function BMAdicion(numero1,numero2:string):string;
@@ -46,8 +50,7 @@ function BMHexTo58(numerohex:string;alphabetnumber:integer):string;
 function BMB58resumen(numero58:string):string;
 function BMDecTo58(numero:string):string;
 function BMDecToHex(numero:string):string;
-Function EncodeCertificate(certificate:string):string;
-Function DecodeCertificate(certificate:string):string;
+
 
 
 
@@ -535,7 +538,6 @@ Function EncodeCertificate(certificate:string):string;
      ThisTramo, This58 : string;
    Begin
    result :='';
-   //ConsolelinesAdd('Original HEX Certificate : '+certificate);
    InpuntLength := length(TextData);
    if InpuntLength < 100 then exit;
    Tramos := InpuntLength div 32;
@@ -544,14 +546,12 @@ Function EncodeCertificate(certificate:string):string;
       begin
       ThisTramo := '1'+Copy(TextData,1+(counter*32),32);
       This58 := BMHexTo58(ThisTramo,58);
-      //ConsolelinesAdd('Tramo '+IntToStr(counter+1)+': '+ThisTramo+' '+This58);
       Result := Result+This58+'0';
       end;
    End;
 
 Begin
 Certificate := UPPERCASE(XorEncode(HashSha256String('noso'),certificate));
-//Tolog('Certificate encoded: '+Certificate);
 result := SplitCertificate(certificate);
 End;
 
@@ -573,18 +573,101 @@ Function DecodeCertificate(certificate:string):string;
          ToDec := BM58Todec(Thistramo);
          ToHex := BMDecToHex(ToDec);
          Delete(ToHex,1,1);
-         //Consolelinesadd('Tramo '+IntToStr(Tramo)+': '+ThisTramo+' '+ToHex);
          Result := result+ToHex;
          ThisTramo := ''; Tramo := tramo+1;
          end;
       end;
-   //Consolelinesadd('Certificate UnSplitted: '+result);
    End;
 
 Begin
 Certificate := UnSplitCertificate(certificate);
 result := XorDecode(HashSha256String('noso'), Certificate);
-//Consolelinesadd('Certificate Decoded: '+result);
+End;
+
+Function NosoHash(source:string):string;
+var
+  counter : integer;
+  FirstChange : array[1..128] of string;
+  finalHASH : string;
+  ThisSum : integer;
+  charA,charB,charC,charD, CharE, CharF, CharG, CharH:integer;
+  Filler : string = '%)+/5;=CGIOSYaegk';
+
+  Function GetClean(number:integer):integer;
+  Begin
+  result := number;
+  if result > 126 then
+     begin
+     repeat
+       result := result-95;
+     until result <= 126;
+     end;
+  End;
+
+  function RebuildHash(incoming : string):string;
+  var
+    counter : integer;
+    resultado2 : string = '';
+    chara,charb, charf : integer;
+  Begin
+  for counter := 1 to length(incoming) do
+     begin
+     chara := Ord(incoming[counter]);
+       if counter < Length(incoming) then charb := Ord(incoming[counter+1])
+       else charb := Ord(incoming[1]);
+     charf := chara+charb; CharF := GetClean(CharF);
+     resultado2 := resultado2+chr(charf);
+     end;
+  result := resultado2
+  End;
+
+Begin
+result := '';
+for counter := 1 to length(source) do
+   if ((Ord(source[counter])>126) or (Ord(source[counter])<33)) then
+      begin
+      source := '';
+      break
+      end;
+if length(source)>63 then source := '';
+repeat source := source+filler;
+until length(source) >= 128;
+source := copy(source,0,128);
+FirstChange[1] := RebuildHash(source);
+for counter := 2 to 128 do FirstChange[counter]:= RebuildHash(firstchange[counter-1]);
+finalHASH := FirstChange[128];
+for counter := 0 to 31 do
+   begin
+   charA := Ord(finalHASH[(counter*4)+1]);
+   charB := Ord(finalHASH[(counter*4)+2]);
+   charC := Ord(finalHASH[(counter*4)+3]);
+   charD := Ord(finalHASH[(counter*4)+4]);
+   thisSum := CharA+charB+charC+charD;
+   ThisSum := GetClean(ThisSum);
+   Thissum := ThisSum mod 16;
+   result := result+IntToHex(ThisSum,1);
+   end;
+Result := HashMD5String(Result);
+End;
+
+Function CheckHashDiff(Target,ThisHash:String):string;
+var
+   ThisChar : string = '';
+   counter : integer;
+   ValA, ValB, Diference : Integer;
+   ResChar : String;
+   Resultado : String = '';
+Begin
+result := 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF';
+for counter := 1 to 32 do
+   begin
+   ValA := Hex2Dec(ThisHash[counter]);
+   ValB := Hex2Dec(Target[counter]);
+   Diference := Abs(ValA - ValB);
+   ResChar := UPPERCASE(IntToHex(Diference,1));
+   Resultado := Resultado+ResChar
+   end;
+Result := Resultado;
 End;
 
 // *****************************************************************************

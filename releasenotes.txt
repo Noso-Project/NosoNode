@@ -1,3 +1,7 @@
+Version 0.2.1Lb3
+
+- New minning system.
+
 Version 0.2.1Lb2
 
 - Fixing pool payment system.

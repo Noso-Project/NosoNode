@@ -736,7 +736,7 @@ CONST
   B36Alphabet : string = '0123456789abcdefghijklmnopqrstuvwxyz';
   ReservedWords : string = 'NULL,DELADDR';
   ValidProtocolCommands : string = '$PING$PONG$GETPENDING$NEWBL$GETRESUMEN$LASTBLOCK'+
-                                   '$CUSTOMORDERADMINMSGNETREQ$REPORTNODE$GETMNS';
+                                   '$CUSTOMORDERADMINMSGNETREQ$REPORTNODE$GETMNS$BESTHASH';
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
   DefaultNodes : String = 'DefNodes '+
@@ -756,7 +756,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Lb3';
+  SubVersion = 'Lb3d';
   OficialRelease = false;
   VersionRequired = '0.2.1Lb1';
   BuildDate = 'January 2022';
@@ -1037,6 +1037,11 @@ var
   RPC_MinerInfo : String = '';
   RPC_MinerReward : int64 = 0;
   Miner_RestartedSolution : string = '';
+
+  // New minning system
+  NMS_Diff : string = 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF';
+  NMS_Hash : String = '';
+  NMS_Miner : String = '';
 
   // Threads
   RebulidTrxThread : TThreadID;
@@ -1610,7 +1615,7 @@ Begin
 // Check last release
 ConsoleLines := TStringlist.Create;
 OutText(rs0071,false,1); // Checking last release available...
-LastRelease := GetLastRelease;
+if WO_AutoUpdate then LastRelease := GetLastRelease;
 if lastrelease <> '' then // Data retrieved
    begin
    if Parameter(lastrelease,0) = ProgramVersion+Subversion then
@@ -3146,6 +3151,12 @@ if GoAhead then
    else if parameter(LLine,0) = 'NSLORDER' then
       begin
       Acontext.Connection.IOHandler.WriteLn(PTC_Order(LLine));
+      AContext.Connection.Disconnect();
+      end
+
+   else if parameter(LLine,0) = 'BESTHASH' then
+      begin
+      Acontext.Connection.IOHandler.WriteLn(PTC_BestHash(LLine));
       AContext.Connection.Disconnect();
       end
 

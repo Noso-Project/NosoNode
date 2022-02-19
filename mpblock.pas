@@ -206,6 +206,11 @@ if not errored then
    // Guardar bloque al disco
    if not GuardarBloque(FileName,BlockHeader,ListaOrdenes,PosReward,PosCount,PoSAddressess) then
       ToExcLog('*****CRITICAL*****'+slinebreak+'Error building block: '+numero.ToString);
+
+   NMS_Diff := 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF';
+   NMS_Hash := '';
+   NMS_Miner := '';
+
    SetLength(ListaOrdenes,0);
    SetLength(PoSAddressess,0);
    // Actualizar informacion
