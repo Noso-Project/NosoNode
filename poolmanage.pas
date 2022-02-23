@@ -71,9 +71,6 @@ else
 end;
 
 function StopPoolServer():boolean; // ThSa verified!
-var
-  contador : integer;
-  Count : integer = 0;
 Begin
 setmilitime('StopPoolServer',1);
 G_KeepPoolOff := true;
@@ -81,27 +78,8 @@ result := true;
 TRY
 if Form1.PoolServer.Active then
    begin
-   for contador := 0 to length(PoolServerConex)-1 do
-      begin
-      {
-      EnterCriticalSection(CSMinersConex);
-      if PoolServerConex[contador].ip <> '' then
-         begin
-         TRY
-         Count +=1;
-         info('Pool server closing slot :'+inttostr(contador));
-         PoolServerConex[contador].Context.Connection.IOHandler.InputBuffer.Clear;
-         PoolServerConex[contador].Context.Connection.Disconnect;
-         Poolserverconex[contador]:=Default(PoolUserConnection);
-         EXCEPT on E:Exception do
-            ToLog('Unable to close pool connection: '+E.Message);
-         END{Try};
-         end;
-      LeaveCriticalSection(CSMinersConex);
-      }
-      end;
    Form1.PoolServer.Active:=false;
-   ConsoleLinesAdd('Pool server stoped. '+count.ToString+' connections.');
+   ConsoleLinesAdd('Pool server stoped.');
    end;
 EXCEPT on E:Exception do
    begin
@@ -199,22 +177,6 @@ else if ( (length(ArrayPoolMembers)>0) and (PoolSlot >= 0) ) then
    S_PoolMembers := true;
    result := ArrayPoolMembers[PoolSlot].Prefijo;
    end;
-{
-if length(ArrayPoolMembers) < PoolInfo.MaxMembers then
-   begin
-   SetLength(ArrayPoolMembers,length(ArrayPoolMembers)+1);
-   ArrayPoolMembers[length(ArrayPoolMembers)-1].Direccion:=direccion;
-   ArrayPoolMembers[length(ArrayPoolMembers)-1].Prefijo:=GetMemberPrefijo(length(ArrayPoolMembers)-1);
-   ArrayPoolMembers[length(ArrayPoolMembers)-1].Deuda:=0;
-   ArrayPoolMembers[length(ArrayPoolMembers)-1].Soluciones:=0;
-   ArrayPoolMembers[length(ArrayPoolMembers)-1].LastPago:=MyLastBlock;
-   ArrayPoolMembers[length(ArrayPoolMembers)-1].TotalGanado:=0;
-   ArrayPoolMembers[length(ArrayPoolMembers)-1].LastSolucion:=0;
-   ArrayPoolMembers[length(ArrayPoolMembers)-1].LastEarned:=0;
-   S_PoolMembers := true;
-   result := ArrayPoolMembers[length(ArrayPoolMembers)-1].Prefijo;
-   end;
-}
 LeaveCriticalSection(CSPoolMembers);
 setmilitime('PoolAddNewMember',2);
 SetCurrentJob('PoolAddNewMember',false);
@@ -372,7 +334,6 @@ ARepartir := Cantidad;
 NumeroDePasos := GetPoolNumeroDePasos();
 PoolComision := (cantidad* PoolInfo.Porcentaje) div 10000;
 PoolInfo.FeeEarned:=PoolInfo.FeeEarned+PoolComision;
-
 ARepartir := ARepartir-PoolComision;
 RepartirShares := (ARepartir * PoolShare) div 100;
 PagoPorStep := RepartirShares div NumeroDePasos;

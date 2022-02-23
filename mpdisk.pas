@@ -946,7 +946,7 @@ SetCurrentJob('SaveUpdatedFiles',true);
 if S_BotData then SaveBotData();
 if S_Options then GuardarOpciones();
 if S_Wallet then GuardarWallet();
-if ( (S_Sumario) and (not BuildingBlock) ) then GuardarSumario();
+if ( (S_Sumario) and (BuildingBlock=0) ) then GuardarSumario();
 if S_PoolMembers then GuardarPoolMembers();
 if S_Log then SaveLog;
 if S_PoolLog then SavePoolLog;

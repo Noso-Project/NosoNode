@@ -1104,6 +1104,10 @@ if Diff<NMS_Diff then // Better hash
    NMS_Miner := Miner;
    OutgoingMsjsAdd(GetPTCEcn+'$BESTHASH '+Miner+' '+Hash+' '+block+' '+TimeStamp);
    Result:='True '+Diff+' '+ResultHash;
+   end
+else
+   begin
+   Result := Result+' 5';
    end;
 End;
 

@@ -756,10 +756,10 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Lb3d';
+  SubVersion = 'Lb3e';
   OficialRelease = false;
   VersionRequired = '0.2.1Lb1';
-  BuildDate = 'January 2022';
+  BuildDate = 'Febraury 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   HasheableChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -979,7 +979,7 @@ var
   LastBlockData : BlockHeaderData;
   UndonedBlocks : boolean = false;
   Run_Expel_PoolInactives : boolean = false;
-  BuildingBlock : boolean = false;
+  BuildingBlock : integer = 0;
   MNsArray   : array of TMasterNode;
   WaitingMNs : array of TMasterNode;
    U_MNsGrid : boolean = false;
@@ -988,6 +988,7 @@ var
   MNsList   : array of TMnode;
 
 
+  Last_ActualizarseConLaRed : int64 = 0;
   NetSumarioHash : NetworkData;
     SumaryRebuilded : boolean = false;
   NetLastBlock : NetworkData;
@@ -1115,7 +1116,7 @@ implementation
 
 Uses
   mpgui, mpdisk, mpParser, mpRed, mpTime, mpProtocol, mpMiner, mpcripto, mpcoin,
-  mpRPC;
+  mpRPC,mpblock;
 
 {$R *.lfm}
 
@@ -3156,10 +3157,10 @@ if GoAhead then
 
    else if parameter(LLine,0) = 'BESTHASH' then
       begin
-      Acontext.Connection.IOHandler.WriteLn(PTC_BestHash(LLine));
+      if BlockAge>585 then Acontext.Connection.IOHandler.WriteLn('False '+NMS_Diff+' 6')
+      else Acontext.Connection.IOHandler.WriteLn(PTC_BestHash(LLine));
       AContext.Connection.Disconnect();
       end
-
    else if parameter(LLine,0) = 'NSLPEND' then
       begin
       Acontext.Connection.IOHandler.WriteLn(PendingRawInfo);

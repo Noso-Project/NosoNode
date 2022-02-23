@@ -9,8 +9,6 @@ uses
   mpsignerutils, base64, HlpHashFactory, mpcoin, mptime, translation;
 
 function CreateNewAddress(): WalletData;
-Function GetPublicKeyFromPem():String;
-Function GetPrivateKeyFromPem():String;
 function GetAddressFromPublicKey(PubKey:String):String;
 function HashSha256String(StringToHash:string):string;
 function HashMD160String(StringToHash:string):String;
@@ -81,56 +79,6 @@ MyData.LastOP:= 0;
 Result := MyData;
 setmilitime('CreateNewAddress',2);
 End;
-
-// RETURNS THE PUBLIC KEY WHEN CREATED
-Function GetPublicKeyFromPem():String;
-var
-  KeyFile: TextFile;
-  LineText, Resultado : String;
-Begin
-Resultado := '';
-AssignFile(KeyFile,'public.pem');
-   Try
-   reset(Keyfile);
-   while not eof(KeyFile) do
-      begin
-      readln(KeyFile, LineText);
-      If AnsiContainsStr(LineText,'-----') = false then
-         Resultado := Resultado + LineText;
-      end;
-   Closefile(Keyfile);
-   except
-   on E: EInOutError do
-      ConsoleLinesAdd(LangLine(26));     //Public key file not found
-   end;
-if Resultado <>'' then Result := Resultado
-else result := 'Err';
-end;
-
-// RETURNS THE PRIVATE KEY WHEN CREATED
-Function GetPrivateKeyFromPem():String;
-var
-  KeyFile: TextFile;
-  LineText, Resultado : String;
-Begin
-Resultado := '';
-AssignFile(KeyFile,'private.pem');
-   Try
-   reset(Keyfile);
-   while not eof(KeyFile) do
-      begin
-      readln(KeyFile, LineText);
-      If AnsiContainsStr(LineText,'-----') = false then
-         Resultado := Resultado + LineText;
-      end;
-   Closefile(Keyfile);
-   except
-   on E: EInOutError do
-      ConsoleLinesAdd(LangLine(26));     //Public key file not found
-   end;
-if Resultado <>'' then Result := Resultado
-else result := 'Err';
-end;
 
 // RETURNS AN ADDRESS FROM A PUBLIC LEY
 function GetAddressFromPublicKey(PubKey:String):String;

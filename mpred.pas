@@ -492,7 +492,7 @@ if ((NumeroConexiones>=MinConexToWork) and (MyConStatus<2) and (not STATUS_Conne
 if STATUS_Connected then
    begin
    UpdateNetworkData();
-   ActualizarseConLaRed();
+   if Last_ActualizarseConLaRed+4<UTCTime.ToInt64 then ActualizarseConLaRed();
    end;
 if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLastBlock.Value)
      and (MySumarioHash=NetSumarioHash.Value) and(MyResumenhash = NetResumenHash.Value)) then
@@ -529,7 +529,6 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
       LastTimeMNsRequested := UTCTime.ToInt64;
       ConsoleLinesAdd('Master nodes requested');
       end;
-
    OutgoingMsjsAdd(ProtocolLine(ping));
    Form1.imagenes.GetBitmap(0,form1.ConnectButton.Glyph);
    end;
@@ -847,7 +846,8 @@ Procedure ActualizarseConLaRed();
 var
   NLBV : integer = 0; // network last block value
 Begin
-if BuildingBlock then exit;
+Last_ActualizarseConLaRed := UTCTime.ToInt64;
+if BuildingBlock>0 then exit;
 SetCurrentJob('ActualizarseConLaRed',true);
 NLBV := StrToIntDef(NetLastBlock.Value,0);
 if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // solicitar cabeceras de bloque

@@ -633,7 +633,7 @@ if (Miner_IsOn) then
    form1.DataPanel.Cells[3,1]:=Copy(NMS_Diff,1,10);
    form1.DataPanel.Cells[3,2]:='['+IntToStr(Miner_Difficult)+'] '+copy(Miner_Target,1,Miner_DifChars);
    form1.DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
-   form1.DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+TimeSinceStamp(LastblockData.TimeEnd)
+   form1.DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+BlockAge.ToString;
    end
 else
    begin
@@ -641,7 +641,7 @@ else
    form1.DataPanel.Cells[3,1]:=Copy(NMS_Diff,1,10);
    form1.DataPanel.Cells[3,2]:='['+IntToStr(Miner_Difficult)+'] '+copy(Miner_Target,1,Miner_DifChars);
    form1.DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
-   form1.DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+TimeSinceStamp(LastblockData.TimeEnd);
+   form1.DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+BlockAge.ToString;
    end;
 
 // update nodes grid

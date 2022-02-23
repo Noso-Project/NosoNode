@@ -20,6 +20,7 @@ function GetBlockTrxs(BlockNumber:integer):BlockOrdersArray;
 Procedure UndoneLastBlock(ClearPendings,UndoPoolPayment:boolean);
 Function GetBlockPoSes(BlockNumber:integer): BlockArraysPos;
 function GetBlockWork(solucion:string):int64;
+Function BlockAge():integer;
 
 implementation
 
@@ -52,7 +53,7 @@ var
   PoSAddressess : array of TArrayPos;
   errored : boolean = false;
 Begin
-BuildingBlock := true;
+BuildingBlock := Numero;
 setmilitime('CrearNuevoBloque',1);
 SetCurrentJob('CrearNuevoBloque',true);
 if ((numero>0) and (Timestamp < lastblockdata.TimeEnd)) then
@@ -228,16 +229,6 @@ if not errored then
       DistribuirEnPool(GetBlockReward(Numero)+MinerFee-PosTotalReward);
       end;
    if Miner_OwnsAPool then ResetPoolMiningInfo();
-   //if ((Miner_OwnsAPool) and (PoolExpelBlocks>0)) then
-     // begin
-      //GuardarPoolMembers();
-      //ResetPoolMiningInfo();
-      //end;
-   //EnterCriticalSection(CSPoolMembers);
-   //setmilitime('BACKUPPoolMembers',1);
-   //copyfile (PoolMembersFilename,PoolMembersFilename+'.bak');
-   //setmilitime('BACKUPPoolMembers',2);
-   //LeaveCriticalSection(CSPoolMembers);
 
    if ( (Numero>0) and (form1.Server.Active) ) then
       begin  // Re-sent the block solution
@@ -247,11 +238,6 @@ if not errored then
       end;
    OutText(LangLine(89)+IntToStr(numero),true);  //'Block builded: '
 
-   {
-   if form1.Server.Active then
-      OutgoingMsjsAdd(ProtocolLine(10)); // Node report
-   }
-
    if ((Numero > 0) and (not Miner_OwnsAPool)) then RebuildMyTrx(Numero);
    CheckForMyPending;
    if DIreccionEsMia(Minero)>-1 then showglobo('Miner','Block found!');
@@ -259,7 +245,7 @@ if not errored then
    SetCurrentJob('CrearNuevoBloque',false);
    setmilitime('CrearNuevoBloque',2);
    end;
-BuildingBlock := false;
+BuildingBlock := 0;
 if Miner_OwnsAPool then Run_Expel_PoolInactives := true;
 End;
 
@@ -495,6 +481,10 @@ for contador := 0 to Miner_Steps-1 do
    end;
 End;
 
+Function BlockAge():integer;
+Begin
+Result := UTCtime.ToInt64-LastBlockData.TimeEnd+1;
+End;
 
 END. // END UNIT
 
