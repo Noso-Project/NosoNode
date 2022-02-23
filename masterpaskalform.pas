@@ -344,6 +344,12 @@ type
        result: string;
        end;
 
+  TNMSData = Packed Record
+       Diff : string;
+       Hash : String;
+       Miner: String;
+       end;
+
 
   { TForm1 }
 
@@ -747,7 +753,7 @@ CONST
                             '109.230.238.240 '+
                             '23.94.21.83 '+
                             '172.245.52.208';
-  ProgramVersion = '0.2.1';
+  ProgramVersion = '0.3.0';
   {$IFDEF WINDOWS}
   RestartFileName = 'launcher.bat';
   updateextension = 'zip';
@@ -756,16 +762,16 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Lb3e';
+  SubVersion = 'Aa4';
   OficialRelease = false;
-  VersionRequired = '0.2.1Lb1';
+  VersionRequired = '0.3.0Aa1';
   BuildDate = 'Febraury 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   HasheableChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
   DefaultServerPort = 8080;
   MaxConecciones  = 60;
-  Protocolo = 1;
+  Protocolo = 2;
   Miner_Steps = 10;
   Pool_Max_Members = 1000;
   DefaultDonation = 10;
@@ -1039,10 +1045,8 @@ var
   RPC_MinerReward : int64 = 0;
   Miner_RestartedSolution : string = '';
 
-  // New minning system
-  NMS_Diff : string = 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF';
-  NMS_Hash : String = '';
-  NMS_Miner : String = '';
+  NMSData : TNMSData;
+  BuildNMSBlock : int64 = 0;
 
   // Threads
   RebulidTrxThread : TThreadID;
@@ -1069,7 +1073,8 @@ var
   CSExcLogLines : TRTLCriticalSection;
   CSPoolMiner  : TRTLCriticalSection;
   CSClosingApp  : TRTLCriticalSection;
-  CSMinersConex: TRTLCriticalSection;
+  CSMinersConex : TRTLCriticalSection;
+  CSNMSData     : TRTLCriticalSection;
   // old system
   CSMNsArray    : TRTLCriticalSection;
   CSWaitingMNs  : TRTLCriticalSection;
@@ -1492,6 +1497,7 @@ InitCriticalSection(CSWaitingMNs);
 InitCriticalSection(CSMNsList);
 InitCriticalSection(CSClosingApp);
 InitCriticalSection(CSMinersConex);
+InitCriticalSection(CSNMSData);
 InitCriticalSection(CSIdsProcessed);
 
 CreateFormInicio();
@@ -1527,6 +1533,7 @@ DoneCriticalSection(CSWaitingMNs);
 DoneCriticalSection(CSMNsList);
 DoneCriticalSection(CSClosingApp);
 DoneCriticalSection(CSMinersConex);
+DoneCriticalSection(CSNMSData);
 DoneCriticalSection(CSIdsProcessed);
 
 
@@ -1589,6 +1596,14 @@ End;
 // Auto restarts the app from hangs
 Procedure TForm1.RestartTimerEjecutar(Sender: TObject);
 Begin
+If Protocolo > 0 then
+   begin
+   If ((BlockAge<590) and (GetNMSData.Miner<> '')) then
+      begin
+      if BuildNMSBlock = 0 then BuildNMSBlock := NextBlockTimeStamp;
+      end
+   else BuildNMSBlock := 0;
+   end;
 RestartTimer.Enabled:=false;
 StaTimeLab.Caption:=TimestampToDate(UTCTime)+' ('+IntToStr(UTCTime.ToInt64-EngineLastUpdate)+')';
 //StaTimeLab.Update;
@@ -2040,6 +2055,8 @@ Begin
 if EngineLastUpdate <> UTCtime.ToInt64 then EngineLastUpdate := UTCtime.ToInt64;
 Form1.Latido.Enabled:=false;
 CheckClipboardForPays();
+if ( (UTCTime.ToInt64 >= BuildNMSBlock) and (BuildNMSBlock>0) and (GetNMSData.Miner<>'') and (Protocolo=2) ) then
+   CrearNuevoBloque(MyLastBlock+1,BuildNMSBlock,MyLastBlockHash,GetNMSData.Miner,GetNMSData.Hash);
 setmilitime('ActualizarGUI',1);
 ActualizarGUI();
 setmilitime('ActualizarGUI',2);
@@ -3157,7 +3174,7 @@ if GoAhead then
 
    else if parameter(LLine,0) = 'BESTHASH' then
       begin
-      if BlockAge>585 then Acontext.Connection.IOHandler.WriteLn('False '+NMS_Diff+' 6')
+      if BlockAge>585 then Acontext.Connection.IOHandler.WriteLn('False '+GetNMSData.Diff+' 6')
       else Acontext.Connection.IOHandler.WriteLn(PTC_BestHash(LLine));
       AContext.Connection.Disconnect();
       end
@@ -3378,7 +3395,6 @@ else
    DireccionesPanel.Enabled:=false;
    PanelCustom.Visible := true;
    PanelCustom.BringToFront;
-
    EditCustom.SetFocus;
    end;
 End;

@@ -432,7 +432,7 @@ form1.DataPanel.Cells[2,1]:=rs0519;  //'Hashing'
 form1.DataPanel.Cells[2,2]:=LangLine(105);  //'Target'
 form1.DataPanel.Cells[2,3]:=LangLine(106);  //'Reward'
 form1.DataPanel.Cells[2,4]:=LangLine(107);  //'Block Time'
-form1.DataPanel.Cells[2,5]:='Outgoing';  //'Pool Balance'
+form1.DataPanel.Cells[2,5]:='Next in';  //'Pool Balance'
 form1.DataPanel.Cells[2,6]:='Masternodes';     //'mainnet Time'
 form1.DataPanel.Cells[2,7]:='MNs #';     //'Masternodes'
 
@@ -626,6 +626,7 @@ if U_PoSGrid then
 
 if (Miner_IsOn) then
    Begin
+   { Deprecated
    if MINER_HashCounter > Miner_UltimoRecuento then Miner_EsteIntervalo := MINER_HashCounter-Miner_UltimoRecuento
    else Miner_EsteIntervalo := MINER_HashCounter+900000000-Miner_UltimoRecuento;
    Miner_UltimoRecuento := MINER_HashCounter;
@@ -634,11 +635,12 @@ if (Miner_IsOn) then
    form1.DataPanel.Cells[3,2]:='['+IntToStr(Miner_Difficult)+'] '+copy(Miner_Target,1,Miner_DifChars);
    form1.DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
    form1.DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+BlockAge.ToString;
+   }
    end
 else
    begin
-   form1.DataPanel.Cells[3,0]:=Copy(NMS_Miner,1,10)+'...';
-   form1.DataPanel.Cells[3,1]:=Copy(NMS_Diff,1,10);
+   form1.DataPanel.Cells[3,0]:=Copy(GetNMSData.Miner,1,10)+'...';
+   form1.DataPanel.Cells[3,1]:=Copy(GetNMSData.Diff,1,10);
    form1.DataPanel.Cells[3,2]:='['+IntToStr(Miner_Difficult)+'] '+copy(Miner_Target,1,Miner_DifChars);
    form1.DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
    form1.DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+BlockAge.ToString;
@@ -673,7 +675,7 @@ setmilitime('UpdateGUITime',1);
 form1.DataPanel.Cells[1,2]:=IntToStr(GetTotalConexiones)+' ('+IntToStr(MyConStatus)+') ['+IntToStr(G_TotalPings)+']';
 form1.DataPanel.Cells[1,7]:= format(rs0517,[length(ArrayCriptoOp),GetPendingCount,NetPendingTrxs.Value]);
 form1.DataPanel.Cells[1,0]:= Int2Curr(GetWalletBalance)+' '+CoinSimbol;
-form1.DataPanel.Cells[3,5]:=IntToStr(OutgoingMsjs.Count);
+form1.DataPanel.Cells[3,5]:= RemainingTillNextBlock;//IntToStr(OutgoingMsjs.Count);
 form1.DataPanel.Cells[3,6]:= Copy(MyMNsHash,0,5)+'/'+NetMNsHash.Value;
 form1.DataPanel.Cells[3,7]:= format(rs0517,[length(WaitingMNs),MyMNsCount,NetMNsCount.Value]);
 setmilitime('UpdateGUITime',2);

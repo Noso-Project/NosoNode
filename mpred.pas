@@ -497,6 +497,7 @@ if STATUS_Connected then
 if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLastBlock.Value)
      and (MySumarioHash=NetSumarioHash.Value) and(MyResumenhash = NetResumenHash.Value)) then
    begin
+   SetNMSData('','','');
    MyConStatus := 3;
    U_Mytrxs := true;
    SumaryRebuilded:= false;
@@ -515,8 +516,8 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
       begin
       setlength(PendingTxs,0);
       end;
-   if ((StrToIntDef(NetPendingTrxs.Value,0)>GetPendingCount) and (LastTimePendingRequested+5<UTCTime.ToInt64)
-      and (not CriptoThreadRunning) ) then
+   if 1=1 {((StrToIntDef(NetPendingTrxs.Value,0)>GetPendingCount) and (LastTimePendingRequested+5<UTCTime.ToInt64)
+      and (not CriptoThreadRunning) )} then
       begin
       PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));  // Get pending
       LastTimePendingRequested := UTCTime.ToInt64;
@@ -848,10 +849,12 @@ var
 Begin
 Last_ActualizarseConLaRed := UTCTime.ToInt64;
 if BuildingBlock>0 then exit;
+if ((BlockAge <10) or (blockAge>595)) then exit;
 SetCurrentJob('ActualizarseConLaRed',true);
 NLBV := StrToIntDef(NetLastBlock.Value,0);
 if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // solicitar cabeceras de bloque
    begin
+   ClearAllPending;
    if ((LastTimeRequestResumen+5 < StrToInt64(UTCTime)) and (not DownloadHeaders)) then
       begin
       PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
@@ -861,6 +864,7 @@ if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // sol
    end
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  // solicitar hasta 100 bloques
    begin
+   ClearAllPending;
    if ((LastTimeRequestBlock+5<StrToInt64(UTCTime))and (not DownLoadBlocks)) then
       begin
       PTC_SendLine(NetResumenHash.Slot,ProtocolLine(8)); // lastblock
@@ -892,6 +896,7 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
 if ((MyResumenhash <> NetResumenHash.Value) and (NLBV=mylastblock) and (MyLastBlockHash=NetLastBlockHash.value)
    and (MySumarioHash=NetSumarioHash.Value)) then
    begin
+   ClearAllPending;
    PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
    ConsoleLinesAdd(LangLine(163)); //'Headers file requested'
    LastTimeRequestResumen := StrToInt64(UTCTime);
@@ -1043,7 +1048,7 @@ Begin
 result := IntToStr(GetTotalConexiones)+' '+IntToStr(MyLastBlock)+' '+GetPendingCount.ToString+' '+
           IntToStr(UTCTime.ToInt64-EngineLastUpdate)+' '+copy(myResumenHash,0,5)+' '+
           ProgramVersion+SubVersion+' '+UTCTime+' '+copy(MyMnsHash,0,5)+' '+IntTOStr(MyMNsCount)+' '+
-          MyLastBlockHash+' '+NMS_Diff+' '+IntToStr(LastBlockData.TimeEnd);
+          MyLastBlockHash+' '+GetNMSData.Diff+' '+IntToStr(LastBlockData.TimeEnd);
 End;
 
 Function IsSafeIP(IP:String):boolean;

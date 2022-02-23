@@ -48,6 +48,9 @@ function NodeAlreadyadded(Node:TMasterNode):boolean;
 Procedure PTC_NodeReport(Linea : string);
 Procedure AddNodeReport(NodeInfo:TMasterNode);
 
+Procedure SetNMSData(diff,hash,miner:string);
+Function GetNMSData():TNMSData;
+
 CONST
   OnlyHeaders = 0;
   Getnodes = 1;
@@ -387,7 +390,7 @@ Begin
 Encab := GetPTCEcn;
 TextOrder := encab+'ORDER ';
 // Send the current best hash
-PTC_SendLine(slot,GetPTCEcn+'$BESTHASH '+NMS_Miner+' '+NMS_Hash+' '+(MyLastBlock+1).ToString+' '+(LastBlockData.TimeEnd+10).ToString);
+PTC_SendLine(slot,GetPTCEcn+'$BESTHASH '+GetNMSData.Miner+' '+GetNMSData.Hash+' '+(MyLastBlock+1).ToString+' '+(LastBlockData.TimeEnd+10).ToString);
 
 if GetPendingCount > 0 then
    begin
@@ -454,6 +457,7 @@ var
   BlockNumber : integer;
   Proceder : boolean = true;
 Begin
+if Protocolo=2 then exit;
 TimeStamp       := Parameter (Texto,5);
 NumeroBloque    := Parameter (Texto,6);
 DireccionMinero := Parameter (Texto,7);
@@ -1081,15 +1085,16 @@ var
   TimeStamp : string;
   Exitcode : integer = 0;
 Begin
-Result:= 'False '+NMS_Diff;
+Result:= 'False '+GetNMSData.Diff;
 Miner := Parameter(Linea,5);
 Hash  := Parameter(Linea,6);
 block  := Parameter(Linea,7);
 TimeStamp  := Parameter(Linea,8);
 If StrToIntDef(Block,0)<>LastBlockData.Number+1 then exitcode := 1;
-if StrToInt64Def(TimeStamp,LastBlockData.TimeEnd)>LastBlockData.TimeEnd+585 then exitcode:=2;
+if (StrToInt64Def(TimeStamp,0)) mod 600 > 585 then exitcode:=2;
 if not IsValidHashAddress(Miner) then exitcode:=3;
-if Hash+Miner = NMS_Hash+NMS_Miner then exitcode:=4;
+if Hash+Miner = GetNMSData.Hash+GetNMSData.Miner then exitcode:=4;
+if ((length(hash)<18) or (length(hash)>33)) then exitcode:=7;
 if exitcode>0 then
    begin
    Result := Result+' '+Exitcode.ToString;
@@ -1097,11 +1102,9 @@ if exitcode>0 then
    end;
 ResultHash := NosoHash(Hash+Miner);
 Diff := CheckHashDiff(MyLastBlockHash,ResultHash);
-if Diff<NMS_Diff then // Better hash
+if Diff<GetNMSData.Diff then // Better hash
    begin
-   NMS_Diff := Diff;
-   NMS_Hash := Hash;
-   NMS_Miner := Miner;
+   SetNMSData(Diff,hash,miner);
    OutgoingMsjsAdd(GetPTCEcn+'$BESTHASH '+Miner+' '+Hash+' '+block+' '+TimeStamp);
    Result:='True '+Diff+' '+ResultHash;
    end
@@ -1189,8 +1192,24 @@ if not NodeAlreadyadded(NodeInfo) then
       OutgoingMsjsAdd(ProtocolLine(onlyheaders)+'$REPORTNODE '+GetTextFromMN(nodeinfo));
    U_MNsGrid := true;
    end;
-
 MyMNsHash := GetMNsHash();
+End;
+
+Procedure SetNMSData(diff,hash,miner:string);
+Begin
+EnterCriticalSection(CSNMSData);
+if diff = '' then diff := 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF';
+NMSData.Diff:= Diff;
+NMSData.Hash:=Hash;
+NMSData.Miner:=Miner;
+LeaveCriticalSection(CSNMSData);
+End;
+
+Function GetNMSData():TNMSData;
+Begin
+EnterCriticalSection(CSNMSData);
+Result := NMSData;
+LeaveCriticalSection(CSNMSData);
 End;
 
 END. // END UNIT

@@ -10,6 +10,7 @@ uses
 
 Procedure CrearBloqueCero();
 Procedure CrearNuevoBloque(Numero,TimeStamp: Int64; TargetHash, Minero, Solucion:String);
+Function GetZeroHeadersCount(bestdiff:String):integer;
 function GetDiffForNextBlock(UltimoBloque,Last20Average,lastblocktime,previous:integer):integer;
 function GetLast20Time(LastBlTime:integer):integer;
 function GetBlockReward(BlNumber:int64):Int64;
@@ -21,6 +22,8 @@ Procedure UndoneLastBlock(ClearPendings,UndoPoolPayment:boolean);
 Function GetBlockPoSes(BlockNumber:integer): BlockArraysPos;
 function GetBlockWork(solucion:string):int64;
 Function BlockAge():integer;
+Function NextBlockTimeStamp():Int64;
+Function RemainingTillNextBlock():String;
 
 implementation
 
@@ -195,7 +198,8 @@ if not errored then
    if numero = 0 then BlockHeader.Difficult:= InitialBlockDiff
    else BlockHeader.Difficult:= LastBlockData.NxtBlkDiff;
    BlockHeader.TargetHash:=TargetHash;
-   BlockHeader.Solution:= Solucion;
+   //if protocolo = 1 then BlockHeader.Solution:= Solucion
+   BlockHeader.Solution:= Solucion+' '+GetNMSData.Diff;
    if numero = 0 then BlockHeader.LastBlockHash:='NOSO GENESYS BLOCK'
    else BlockHeader.LastBlockHash:=MyLastBlockHash;
    BlockHeader.NxtBlkDiff:=GetDiffForNextBlock(numero,BlockHeader.TimeLast20,BlockHeader.TimeTotal,BlockHeader.Difficult);
@@ -208,9 +212,8 @@ if not errored then
    if not GuardarBloque(FileName,BlockHeader,ListaOrdenes,PosReward,PosCount,PoSAddressess) then
       ToExcLog('*****CRITICAL*****'+slinebreak+'Error building block: '+numero.ToString);
 
-   NMS_Diff := 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF';
-   NMS_Hash := '';
-   NMS_Miner := '';
+   SetNMSData('','','');
+   BuildNMSBlock := 0;
 
    SetLength(ListaOrdenes,0);
    SetLength(PoSAddressess,0);
@@ -247,6 +250,17 @@ if not errored then
    end;
 BuildingBlock := 0;
 if Miner_OwnsAPool then Run_Expel_PoolInactives := true;
+End;
+
+// Returns the number of heading zeros in the best hash diff
+Function GetZeroHeadersCount(bestdiff:String):integer;
+var
+  counter:integer = 0;
+Begin
+repeat
+  counter := counter+1;
+until bestdiff[counter]<> '0';
+result := counter-1;
 End;
 
 // Devuelve cuantos caracteres compondran el targethash del siguiente bloque
@@ -483,7 +497,23 @@ End;
 
 Function BlockAge():integer;
 Begin
-Result := UTCtime.ToInt64-LastBlockData.TimeEnd+1;
+Result := (UTCtime.ToInt64-LastBlockData.TimeEnd+1) mod 600;
+End;
+
+Function NextBlockTimeStamp():Int64;
+var
+  currTime : int64;
+  Remains : int64;
+Begin
+CurrTime := UTCTime.ToInt64;
+Remains := 600-(CurrTime mod 600);
+Result := CurrTime+Remains;
+End;
+
+Function RemainingTillNextBlock():String;
+Begin
+if BuildNMSBlock = 0 then Result := 'Unknown'
+else result := IntToStr(BuildNMSBlock-UTCTime.ToInt64);
 End;
 
 END. // END UNIT
