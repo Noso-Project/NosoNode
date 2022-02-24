@@ -459,7 +459,6 @@ if NumeroConexiones = 0 then  // Desconeectado
       NetPendingTrxs.Value:='';
       U_Datapanel:= true;
       ClearAllPending; //THREADSAFE
-      StopPoolServer;
       Form1.imagenes.GetBitmap(2,form1.ConnectButton.Glyph);
       end;
    // Resetear todos los valores
@@ -508,7 +507,6 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
    if RPCAuto then  ProcessLinesAdd('RPCON');
    if ((Miner_OwnsAPool) and (Miner_Active) and(not Form1.PoolServer.Active) and (G_KeepPoolOff = false)) then // Activar el pool propio si se posee uno
       begin
-      StartPoolServer(Poolinfo.Port);
       if Form1.PoolServer.Active then ConsoleLinesAdd(PoolInfo.Name+' pool server is listening')
       else ConsoleLinesAdd('Unable to start pool server');
       end;
@@ -577,13 +575,6 @@ if MyConStatus = 3 then
          RestartPoolSolution();
          end;
       Miner_RestartedSolution := '';
-      if LastTryStartPoolServer+5 < StrToInt64(UTCTIME) then
-         begin
-         StartPoolServer(Poolinfo.Port);
-         LastTryStartPoolServer := StrToInt64(UTCTIME);
-         if Form1.PoolServer.Active then ConsoleLinesAdd(PoolInfo.Name+' pool server is listening')
-         else ConsoleLinesAdd('Unable to start pool server');
-         end;
       end;
    if ((Miner_OwnsAPool) and (Form1.PoolServer.Active) and (LastPoolHashRequest+5<StrToInt64(UTCTime))) then
       begin

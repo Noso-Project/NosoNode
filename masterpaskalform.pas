@@ -1016,8 +1016,6 @@ var
     PoolMiner : PoolMinerData;
   PoolMinerBlockFound : boolean = false;
   Miner_OwnsAPool : Boolean = false;
-    LastTryStartPoolServer : int64;
-    LastTryConnectPoolcanal : Int64;
     LastPoolHashRequest : int64;
     PoolSolutionFails : integer;
   Miner_PoolHashRate : Int64 = 0;
@@ -2135,12 +2133,6 @@ if GoAhead then
    CloseAllforms();
    CloseLine('Forms closed');
    sleep(100);
-   if form1.PoolServer.Active then
-      begin
-      if StopPoolServer() then CloseLine('Pool server stopped')
-      else CloseLine('Fail closing Pool server');
-      sleep(100);
-      end;
    CerrarClientes();
    CloseLine('Peer connections closed');
    sleep(100);

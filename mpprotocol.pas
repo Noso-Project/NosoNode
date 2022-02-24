@@ -36,7 +36,6 @@ Function IsOrderIDAlreadyProcessed(OrderText:string):Boolean;
 Procedure INC_PTC_Order(TextLine:String;connection:integer);
 Function PTC_Order(TextLine:String):String;
 Procedure PTC_AdminMSG(TextLine:String);
-function SavePoolFiles():boolean;
 Procedure PTC_NetReqs(textline:string);
 function RequestAlreadyexists(reqhash:string):string;
 Procedure UpdateMyRequests(tipo:integer;timestamp:string;bloque:integer;hash,hashvalue:string);
@@ -862,27 +861,6 @@ if not errored then
    form1.MemoLog.Visible:=true;
    OutgoingMsjsAdd(TextLine);
    end;
-End;
-
-// Save the pool files to a zip file
-function SavePoolFiles():boolean;
-var
-  MyZipFile: TZipper;
-Begin
-result := true;
-try
-   MyZipFile := TZipper.Create;
-   MyZipFile.FileName := 'NOSODATA'+DirectorySeparator+'PoolFiles.zip';
-   MyZipFile.Entries.AddFileEntry(PoolInfoFilename);
-   MyZipFile.Entries.AddFileEntry(PoolMembersFilename);
-   MyZipFile.ZipAllFiles;
-   MyZipFile.Free;
-Except on E:Exception do
-   begin
-   tolog('Error saving pool files');
-   result := false;
-   end;
-end;
 End;
 
 Procedure PTC_NetReqs(textline:string);

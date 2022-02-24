@@ -6,9 +6,7 @@ Version 0.3.0Aa5
 - ** BlockHeader.NextBlkDiff is now PoS addresses paid.
 - ** Blockheader.reward is now PoW payment.
 - Command "sumary" improved.
-- Command "createpool" deprecated.
-- Command "showpoolinfo" deprecated.
-- Command "deletepool" deprecated.
+- All pool relative commands deprecated.
 
 Up to Version 0.3.0Aa4
 

@@ -40,8 +40,6 @@ Procedure ShowWallet();
 Procedure EnviarUpdate(LineText:string);
 Procedure AutoUpdateON();
 Procedure AutoUpdateOFF();
-Procedure UsePoolOn();
-Procedure UsePoolOff();
 Procedure ImportarWallet(LineText:string);
 Procedure ExportarWallet(LineText:string);
 Procedure ShowBlchHead();
@@ -64,21 +62,11 @@ Procedure showCriptoThreadinfo();
 Procedure SetMiningCPUS(LineText:string);
 Procedure Parse_RestartNoso();
 Procedure ShowNetworkDataInfo();
-Procedure JoinPool(LineText:string);
-Procedure PoolIPPower();
 Procedure GetOwnerHash(LineText:string);
 Procedure CheckOwnerHash(LineText:string);
 function AvailableUpdates():string;
 Procedure RunUpdate(linea:string);
 Procedure ShowAdvOpt();
-Procedure SetPoolAddress(LineText:string);
-Procedure ChangePoolPassword(LineText:string);
-Procedure ChangePoolFee(LineText:string);
-Procedure ChangePoolMembers(LineText:string);
-Procedure ChangePoolPayrate(LineText:string);
-Procedure PoolExpelMember(LineText:string);
-Procedure SetPoolExpelBlocks(LineText:string);
-Procedure SetPoolShare(LineText:string);
 Procedure SendAdminMessage(linetext:string);
 Procedure SetReadTimeOutTIme(LineText:string);
 Procedure SetConnectTimeOutTIme(LineText:string);
@@ -320,26 +308,6 @@ else if UpperCase(Command) = 'NETHASHRATE' then consolelinesadd('Average Mainnet
 // 0.2.1 DEBUG
 else if UpperCase(Command) = 'BLOCKPOS' then ShowBlockPos(LineText)
 else if UpperCase(Command) = 'POSSTACK' then showPosrequired(linetext)
-
-// POOL RELATED COMMANDS
-else if UpperCase(Command) = 'STARTPOOLSERVER' then StartPoolServer(poolinfo.Port)
-else if UpperCase(Command) = 'STOPPOOLSERVER' then StopPoolServer()
-else if UpperCase(Command) = 'USEPOOLON' then UsePoolOn()
-else if UpperCase(Command) = 'USEPOOLOFF' then UsePoolOff()
-else if UpperCase(Command) = 'POOLADDRESS' then SetPoolAddress(LineText)
-else if UpperCase(Command) = 'POOLPASS' then ChangePoolPassword(LineText)
-else if UpperCase(Command) = 'POOLFEE' then ChangePoolFee(LineText)
-else if UpperCase(Command) = 'POOLMEMBERS' then ChangePoolMembers(LineText)
-else if UpperCase(Command) = 'POOLPAYINTERVAL' then ChangePoolPayrate(LineText)
-else if UpperCase(Command) = 'POOLEXPEL' then PoolExpelMember(LineText)
-else if UpperCase(Command) = 'POOLEXPELBLOCK' then SetPoolExpelBlocks(LineText)
-else if UpperCase(Command) = 'POOLSHARE' then SetPoolShare(LineText)
-else if UpperCase(Command) = 'SAVEPOOLFILES' then SavePoolFiles()
-else if UpperCase(Command) = 'POOLPEERS' then ConsoleLinesAdd('Pool list: '+form1.PoolClientsCount.ToString+'/'+GetPoolTotalActiveConex.ToString)
-else if UpperCase(Command) = 'POOLRESET' then PoolInfo.FeeEarned := 0
-else if UpperCase(Command) = 'POOLIPPOWER' then PoolIPPower()
-else if UpperCase(Command) = 'POOLBOTS' then ShowPoolBots()
-else if UpperCase(Command) = 'POOLBOTSRESET' then setlength(ListaPoolBots,0)
 
 // P2P
 else if UpperCase(Command) = 'PEERS' then ConsoleLinesAdd('Server list: '+IntToStr(form1.ClientsCount)+'/'+IntToStr(GetIncomingConnections))
@@ -754,23 +722,6 @@ Begin
 UserOptions.Auto_Updater := false;
 S_Options := true;
 ConsoleLinesAdd(LangLine(58)+LangLine(49));     //autoupdate //inactive
-End;
-
-Procedure UsePoolOn();
-Begin
-if UserOptions.PoolInfo<>'' then
-   begin
-   UserOptions.UsePool := true;
-   S_Options := true;
-   ConsoleLinesAdd('Mine for pool is now '+LangLine(48));     //autoupdate //active
-   end;
-End;
-
-Procedure UsePoolOff();
-Begin
-UserOptions.UsePool := false;
-S_Options := true;
-ConsoleLinesAdd('Mine for pool is now '+LangLine(49));     //autoupdate //inactive
 End;
 
 Procedure ExportarWallet(LineText:string);
@@ -1422,109 +1373,6 @@ ConsoleLinesAdd('Percent: '+IntToStr(NetLastBlock.porcentaje));
 ConsoleLinesAdd('Slot: '+IntToStr(NetLastBlock.slot));
 End;
 
-// Try to join a pool
-Procedure JoinPool(LineText:string);
-var
-  Ip,direccion,password : string;
-  Port : integer;
-  parametrosok : boolean = true;
-Begin
-ConsoleLinesAdd('Deprecated since 0.2.0J');
-ConsoleLinesAdd('Use NosoMiner to mine in a pool');
-{
-if UserOptions.poolinfo = '' then
-   begin
-   ip := Parameter(linetext,1);
-   port := StrToIntDef(Parameter(linetext,2),0);
-   direccion := Parameter(linetext,3);
-   if UpperCase(direccion) = 'DEFAULT' then direccion := Listadirecciones[0].Hash;
-   password := Parameter(linetext,4);
-   //if not IsValidIP(ip) then parametrosok := false;
-   if ((port<1) or (port>65535)) then Parametrosok := false;
-   if DireccionEsMia(direccion)<0 then Parametrosok := false;
-   if parametrosok then
-      begin
-      //ConnectPoolClient(ip,port,password,direccion);
-      //SendPoolMessage(password+' '+direccion+' JOIN '+ip+' '+IntToStr(port));
-      ConsoleLinesAdd('Join pool request sent');
-      end
-   else ConsoleLinesAdd('Join Pool: Invalid parameters'+slinebreak+'joinpool {ip} {port} {address} {password}');
-   end
-else ConsoleLinesAdd('You already are in a pool');
-}
-End;
-
-Procedure PoolIPPower();
-type
-  IPData = Packed Record
-     ip: string[15];
-     count : integer;
-     Power : int64;
-     end;
-var
-  ArrIPs : Array of IPData;
-  ArrOrdered : Array of IPData;
-  SlotsArray :array of PoolUserConnection;
-  counter, count2 : integer;
-  IPPosition : integer;
-  AlreadyOrdered : boolean = false;
-
-  function IPAlready(ThisData:PoolUserConnection):integer;
-  var
-    cont : integer;
-  Begin
-  if ThisData.ip <> '' then
-     begin
-     for cont := 0 to length(ArrIPs)-1 do
-        begin
-        if Thisdata.IP = ArrIPs[cont].ip then
-           begin
-           ArrIPs[cont].count+=1;
-           ArrIPs[cont].Power:=ArrIPs[cont].Power+Thisdata.Hashpower;
-           exit;
-           end;
-        end;
-     Setlength(ArrIPs,length(ArrIPs)+1);
-     ArrIPs[length(ArrIPs)-1].ip:=Thisdata.Ip;
-     ArrIPs[length(ArrIPs)-1].count+=1;
-     ArrIPs[length(ArrIPs)-1].Power:=ArrIPs[length(ArrIPs)-1].Power+Thisdata.Hashpower;
-     end;
-  end;
-
-Begin
-setlength(ArrIPs,0);
-setlength(ArrOrdered,0);
-setlength(SlotsArray,0);
-SlotsArray := copy(PoolServerConex,0,length(PoolServerConex));
-for counter := 0 to length(SlotsArray)-1 do
-   IPAlready(SlotsArray[counter]);
-for counter := 0 to length(ArrIPs)-1 do
-   begin
-   AlreadyOrdered := false;
-   if length(ArrOrdered) = 0 then
-      begin
-      insert(ArrIPs[0],ArrOrdered,0);
-      AlreadyOrdered := true;
-      end
-   else
-      begin
-      for count2 := 0 to length(ArrOrdered)-1 do
-         begin
-         if ((ArrIPs[counter].Power>ArrOrdered[count2].Power) and (not AlreadyOrdered))then
-            begin
-            insert(ArrIPs[counter],ArrOrdered,count2);
-            AlreadyOrdered := true;
-            end;
-         end;
-      if not AlreadyOrdered then insert(ArrIPs[counter],ArrOrdered,length(ArrOrdered));
-      end;
-   end;
-for counter := 0 to length(ArrOrdered)-1 do
-   consolelines.Add(ArrOrdered[counter].ip+'-> '+ShowHashRate(ArrOrdered[counter].Power)+' ('+
-   IntToStr(ArrOrdered[counter].count)+')');
-consolelinesAdd(format(rs1503,[length(SlotsArray),length(ArrIPs)]));
-End;
-
 Procedure GetOwnerHash(LineText:string);
 var
   direccion, currtime : string;
@@ -1601,220 +1449,6 @@ End;
 Procedure ShowAdvOpt();
 Begin
 ConsoleLinesAdd('AutoConnect: '+booltostr(WO_Autoconnect,true));
-End;
-
-Procedure SetPoolAddress(LineText:string);
-var
-  NewAddress : String = '';
-  errored : boolean = false;
-Begin
-if not Miner_OwnsAPool then
-   begin
-   ConsoleLinesAdd('You do not own a pool');
-   errored := true;
-   end;
-NewAddress := Parameter(LineText,1);
-If DireccionEsMia(NewAddress)<0 then
-   begin
-   ConsoleLinesAdd(rs1501);
-   errored := true;
-   end;
-if not errored then
-   begin
-   if Miner_OwnsAPool then // si posse el pool, cambiar ambas
-      begin
-      PoolInfo.Direccion:=NewAddress;
-      S_PoolInfo:=true;
-      end;
-   MyPoolData.Direccion:= NewAddress;
-   SaveMyPoolData;
-   end;
-End;
-
-Procedure ChangePoolPassword(LineText:string);
-var
-  oldpass, newpass : string;
-  errored : boolean = false;
-Begin
-if not Miner_OwnsAPool then
-   begin
-   ConsoleLinesAdd('You do not own a pool');
-   errored := true;
-   end;
-oldpass := Parameter(LineText,1);
-newpass := Parameter(LineText,2);
-if length(newpass) > 10 then setlength(newpass,10);
-if oldpass <> MyPoolData.Password then
-   begin
-   ConsoleLinesAdd('Invalid password');
-   errored := true;
-   end;
-if not errored then
-   begin
-   if Miner_OwnsAPool then // si posse el pool, cambiar ambas
-     begin
-     PoolInfo.PassWord:=newpass;
-     S_PoolInfo:=true;
-     end;
-   MyPoolData.Password:= newpass;
-   SaveMyPoolData;
-   end;
-End;
-
-Procedure ChangePoolFee(LineText:string);
-var
-  newfee : integer;
-Begin
-newfee := StrToIntDef(Parameter(linetext,1),-1);
-if (not Miner_OwnsAPool) then
-   begin
-   ConsoleLinesAdd('You do not own a pool');
-   end
-else
-   begin
-   if ((newfee<0) or (newfee>10000)) then
-      begin
-      ConsoleLinesAdd('Invalid pool fee');
-      end
-   else
-      begin
-      poolinfo.Porcentaje:=newfee;
-      S_PoolInfo:=true;
-      EdBuFee.Caption:='Fee: '+IntToStr(poolinfo.Porcentaje);
-      consolelinesadd('Newpool fee: '+IntToStr(newfee));
-      end;
-   end;
-End;
-
-Procedure ChangePoolMembers(LineText:string);
-var
-  newmembers: integer;
-Begin
-newmembers := StrToIntDef(Parameter(linetext,1),-1);
-if (not Miner_OwnsAPool) then
-   begin
-   ConsoleLinesAdd('You do not own a pool');
-   end
-else if form1.PoolServer.Active then
-   begin
-   ConsoleLinesAdd(rs1502);
-   end
-else
-   begin
-   if newmembers>Pool_Max_Members then
-   //if ( (newmembers<length(arraypoolmembers)) or (newmembers>Pool_Max_Members) ) then
-      begin
-      ConsoleLinesAdd('Invalid number of members');
-      end
-   else
-      begin
-      poolinfo.MaxMembers:=newmembers;
-      EnterCriticalSection(CSPoolMembers);
-      Setlength(ArrayPoolMembers,newmembers);
-      LeaveCriticalSection(CSPoolMembers);
-      GuardarPoolMembers(true);
-      S_PoolInfo:=true;
-      EdMaxMem.Caption:='Members: '+IntToStr(poolinfo.MaxMembers);
-      ConsoleLinesAdd('New pool max members= '+IntToStr(newmembers));
-      end;
-   end;
-End;
-
-Procedure ChangePoolPayrate(LineText:string);
-var
-  newpayrate: integer;
-  errored : boolean = false;
-Begin
-newpayrate := StrToIntDef(Parameter(linetext,1),-1);
-if (not Miner_OwnsAPool) then
-   begin
-   ConsoleLinesAdd('Only pool admin can change pay interval');
-   errored := true;
-   end;
-if ( (newpayrate<1) or (newpayrate>1008) ) then
-   begin
-   ConsoleLinesAdd('Invalid number for pay interval');
-   errored := true;
-   end;
-if not errored then
-   begin
-   poolinfo.TipoPago:=newpayrate;
-   S_PoolInfo:=true;
-   EdPayRate.Caption:='Pay: '+IntToStr(poolinfo.TipoPago);
-   end;
-End;
-
-// Expels a pool member
-Procedure PoolExpelMember(LineText:string);
-var
-  member: string;
-  MemberPosition : integer;
-  MemberBalance : Int64;
-  paybalance : string;
-  errored : boolean = false;
-Begin
-member := Parameter(linetext,1);
-paybalance := Uppercase(Parameter(linetext,2));
-if Paybalance <> 'YES' then paybalance := 'NO';
-MemberPosition := GetPoolMemberPosition(member);
-if (not Miner_OwnsAPool) then
-   begin
-   ConsoleLinesAdd('Only pool admin can expel members');
-   errored := true;
-   end;
-if (MemberPosition<0) then
-   begin
-   ConsoleLinesAdd('User do not exists in the pool');
-   errored := true;
-   end;
-if not errored then
-   begin
-   MemberBalance := GetPoolMemberBalance(member);
-   if ( (MemberBalance>0) and (paybalance='YES') ) then // Enviar pago si posee saldo
-      begin
-      ProcessLinesAdd('sendto '+member+' '+IntToStr(GetMaximunToSend(MemberBalance))+' EXPEL_POOLPAYMENT_'+PoolInfo.Name);
-      ClearPoolUserBalance(member);
-      tolog('Pool expel payment sent: '+int2curr(GetMaximunToSend(MemberBalance)));
-      PoolMembersTotalDeuda := GetTotalPoolDeuda();
-      end;
-   EnterCriticalSection(CSPoolMembers);
-   arraypoolmembers[MemberPosition] := Default(PoolMembersData);
-   LeaveCriticalSection(CSPoolMembers);
-   S_PoolMembers := true;
-   Tolog('POOLEXPEL: '+member+SLINEBREAK+'BALANCE: '+int2curr(MemberBalance)+' PAID: '+paybalance);
-   end;
-End;
-
-Procedure SetPoolExpelBlocks(LineText:string);
-var
-  value: integer;
-Begin
-value := StrToIntDef(Parameter(linetext,1),-1);
-if value >= 0 then
-  begin
-  if value = PoolExpelBlocks then ConsoleLinesAdd('Value already is '+IntToStr(value))
-  else
-     begin
-     PoolExpelBlocks := value;
-     ConsoleLinesAdd('PoolExpelBlocks set to '+IntToStr(PoolExpelBlocks));
-     EdPooExp.Caption:='Expel: '+IntToStr(PoolExpelBlocks);
-     end;
-  end
-else ConsoleLinesAdd('Invalid value');
-End;
-
-Procedure SetPoolShare(LineText:string);
-var
-  value: integer;
-Begin
-value := StrToIntDef(Parameter(linetext,1),-1);
-if ((value >= 0) and (value<=100)) then
-  begin
-  PoolShare := value;
-  ConsoleLinesAdd('PoolShare set to '+IntToStr(PoolShare));
-  EdShares.Caption:='Shares: '+IntToStr(PoolShare)+'%';
-  end
-else ConsoleLinesAdd('Invalid value');
 End;
 
 Procedure SendAdminMessage(linetext:string);

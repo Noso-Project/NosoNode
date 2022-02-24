@@ -7,8 +7,6 @@ interface
 uses
   Classes, SysUtils, IdContext, IdGlobal, fileutil;
 
-procedure StartPoolServer(port:integer);
-Function StopPoolServer():boolean;
 function PoolDataString(member:string):String;
 function GetPoolEmptySlot():integer;
 function GetMemberPrefijo(poolslot:integer):string;
@@ -38,7 +36,6 @@ Function GetMinerHashrate(slot:integer):int64;
 function PoolStatusString():String;
 function StepAlreadyAdded(stepstring:string):Boolean;
 Procedure RestartPoolSolution();
-Procedure ShowPoolBots();
 function KickPoolIP(IP:string):integer;
 Procedure UpdateMinerPing(index:integer;Hashpower:int64 = -1);
 Function IsMinerPinedOut(index:integer):boolean;
@@ -47,48 +44,6 @@ implementation
 
 uses
   MasterPaskalForm, mpparser, mpminer, mpdisk, mptime, mpGUI, mpCoin;
-
-// Activa el servidor del pool
-procedure StartPoolServer(port:integer);
-Begin
-if Form1.PoolServer.Active then
-   begin
-   ToLog('Pool server already active'); //'Server Already active'
-   end
-else
-   begin
-      try
-      Form1.PoolServer.MaxConnections:=PoolInfo.MaxMembers;
-      Form1.PoolServer.Bindings.Clear;
-      Form1.PoolServer.DefaultPort:=port;
-      Form1.PoolServer.Active:=true;
-      G_KeepPoolOff := false;
-      ToLog('Pool server enabled at port: '+IntToStr(port));   //Server ENABLED. Listening on port
-      except on E : Exception do
-         ToLog('Unable to start pool server: '+E.Message);       //Unable to start Server
-      end;
-   end;
-end;
-
-function StopPoolServer():boolean; // ThSa verified!
-Begin
-setmilitime('StopPoolServer',1);
-G_KeepPoolOff := true;
-result := true;
-TRY
-if Form1.PoolServer.Active then
-   begin
-   Form1.PoolServer.Active:=false;
-   ConsoleLinesAdd('Pool server stoped.');
-   end;
-EXCEPT on E:Exception do
-   begin
-   ToPoolLog('Unable to close pool server: '+E.Message);
-   Result := false;
-   end;
-END{Try};
-setmilitime('StopPoolServer',2);
-End;
 
 //** Returns an array with all the information for miners
 function PoolDataString(member:string):String;  // ThSa verified!
@@ -720,18 +675,6 @@ if ( (steps > 0) and  (steps < 10) ) then
       end;
    end;
 CrearRestartfile;
-End;
-
-Procedure ShowPoolBots();
-var
-  counter: integer = 0;
-Begin
-{
-for counter := 0 to length(ListaPoolBots)-1 do
-   begin
-   consolelinesadd(ListaPoolBots[counter].ip+'->'+IntToStr(ListaPoolBots[counter].count));
-   end;
-}
 End;
 
 function KickPoolIP(IP:string): integer;
