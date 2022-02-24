@@ -10,7 +10,7 @@ uses
 
 Procedure CrearBloqueCero();
 Procedure CrearNuevoBloque(Numero,TimeStamp: Int64; TargetHash, Minero, Solucion:String);
-Function GetZeroHeadersCount(bestdiff:String):integer;
+Function GetDiffHashrate(bestdiff:String):integer;
 function GetDiffForNextBlock(UltimoBloque,Last20Average,lastblocktime,previous:integer):integer;
 function GetLast20Time(LastBlTime:integer):integer;
 function GetBlockReward(BlNumber:int64):Int64;
@@ -252,15 +252,22 @@ BuildingBlock := 0;
 if Miner_OwnsAPool then Run_Expel_PoolInactives := true;
 End;
 
-// Returns the number of heading zeros in the best hash diff
-Function GetZeroHeadersCount(bestdiff:String):integer;
+Function GetDiffHashrate(bestdiff:String):integer;
 var
-  counter:integer = 0;
+  counter, number:integer;
 Begin
 repeat
   counter := counter+1;
 until bestdiff[counter]<> '0';
-result := counter-1;
+number := counter-1;
+if number<5 then result := 0
+else if number = 5 then result := 2
+else if number = 6 then result := 29
+else if number = 7 then result := 467
+else if number = 8 then result := 7469
+else if number = 9 then result := 119512
+else if number = 10 then result := 1912194
+else if number > 10 then result := 30595106
 End;
 
 // Devuelve cuantos caracteres compondran el targethash del siguiente bloque

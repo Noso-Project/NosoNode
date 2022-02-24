@@ -64,10 +64,7 @@ Procedure showCriptoThreadinfo();
 Procedure SetMiningCPUS(LineText:string);
 Procedure Parse_RestartNoso();
 Procedure ShowNetworkDataInfo();
-Procedure CreatePool(LineText:string);
-Procedure ShowPoolInfo();
 Procedure JoinPool(LineText:string);
-Procedure Deletepool(LineText:string);
 Procedure PoolIPPower();
 Procedure GetOwnerHash(LineText:string);
 Procedure CheckOwnerHash(LineText:string);
@@ -102,6 +99,7 @@ Procedure ExportKeys(linea:string);
 
 // CONSULTING
 Procedure ShowDiftory();
+Function MainNetHashrate():integer;
 
 // 0.2.1 DEBUG
 Procedure ShowBlockPos(LineText:string);
@@ -316,15 +314,14 @@ else if UpperCase(Command) = 'DECTOHEX' then consolelinesadd(BMDectoHex(paramete
 
 // CONSULTING
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()
+else if UpperCase(Command) = 'NETHASHRATE' then consolelinesadd('Average Mainnet hashate: '+MainnetHashRate.ToString+' KH/s')
+
 
 // 0.2.1 DEBUG
 else if UpperCase(Command) = 'BLOCKPOS' then ShowBlockPos(LineText)
 else if UpperCase(Command) = 'POSSTACK' then showPosrequired(linetext)
 
 // POOL RELATED COMMANDS
-else if UpperCase(Command) = 'CREATEPOOL' then CreatePool(LineText)
-else if UpperCase(Command) = 'POOLINFO' then ShowPoolInfo()
-else if UpperCase(Command) = 'DELPOOL' then DeletePool(LineText)
 else if UpperCase(Command) = 'STARTPOOLSERVER' then StartPoolServer(poolinfo.Port)
 else if UpperCase(Command) = 'STOPPOOLSERVER' then StopPoolServer()
 else if UpperCase(Command) = 'USEPOOLON' then UsePoolOn()
@@ -586,6 +583,7 @@ var
   DuplicatedCount : integer = 0;
   BiggerAmmount : int64 = 0;
   BiggerAddress : string = '';
+  AsExpected : string = '';
 Begin
 EnterCriticalSection(CSSumary);
 For contador := 0 to length(ListaSumario)-1 do
@@ -623,7 +621,9 @@ if DuplicatedCount>2 then
    ConsoleLinesAdd('Duplicated alias: '+DuplicatedCount.ToString);
    ConsoleLinesAdd(DuplicatedCustoms);
    end;
-ConsoleLinesAdd(Int2Curr(Totalcoins)+' '+CoinSimbol);
+if TotalCoins = GetSupply(MyLastBlock) then AsExpected := '✓'
+else AsExpected := '✗';
+ConsoleLinesAdd(Int2Curr(Totalcoins)+' '+CoinSimbol+' '+AsExpected);
 ConsoleLinesAdd('Bigger : '+BiggerAddress);
 ConsoleLinesAdd('Balance: '+Int2curr(BiggerAmmount));
 LeaveCriticalSection(CSSumary);
@@ -1422,74 +1422,6 @@ ConsoleLinesAdd('Percent: '+IntToStr(NetLastBlock.porcentaje));
 ConsoleLinesAdd('Slot: '+IntToStr(NetLastBlock.slot));
 End;
 
-Procedure ShowPoolInfo();
-var
-  dato : PoolInfoData;
-Begin
-if fileexists(PoolInfoFilename) then
-   begin
-   Dato := GetPoolInfoFromDisk();
-   ConsoleLinesAdd('My Pool Info: ');
-   ConsoleLinesAdd('Name: '+dato.Name);
-   ConsoleLinesAdd('Address: '+dato.Direccion);
-   ConsoleLinesAdd('Fee: '+IntToStr(dato.Porcentaje)+'/10000');
-   ConsoleLinesAdd('MaxMembers: '+IntToStr(dato.MaxMembers));
-   ConsoleLinesAdd('Members: '+IntToStr(length(ArrayPoolMembers)));
-   ConsoleLinesAdd('Port: '+IntToStr(dato.Port));
-   ConsoleLinesAdd('PayRatio: '+IntToStr(dato.TipoPago));
-   ConsoleLinesAdd('Listening: '+BoolToStr(form1.PoolServer.Active,true));
-   end
-else ConsoleLinesAdd('You do not own a pool.');
-End;
-
-// Crea un pool de mineria
-Procedure CreatePool(LineText:string);
-var
-  nombre:string;
-  direccionminado: string;
-  porcentaje: integer;
-  maxmembers : integer;
-  port:integer;
-  TipoPago : integer;
-  Password : string;
-  Parametrosok : integer = 0;
-  MiPrefijo : string;
-Begin
-if fileexists(PoolInfoFilename) then
-  begin
-  ConsoleLinesAdd('You already owns a minning pool');
-  end
-else
-   begin
-   nombre := Parameter(linetext,1);
-   port := StrToIntDef(Parameter(linetext,2),8082);
-   Password := Parameter(linetext,3);
-   direccionminado := Listadirecciones[0].Hash;
-   porcentaje := 100;
-   maxmembers := Pool_Max_Members;
-   TipoPago := 100;
-   if ( (Length(nombre)<3) or (length(nombre)>15) ) then Parametrosok := 1;
-   if ((port<1) or (port>65535)) then Parametrosok := 2;
-   if port = UserOptions.Port then Parametrosok := 3;
-   if ( (length(Password)<1) or (length(Password)>10) ) then Parametrosok := 4;
-   if parametrosok = 0 then
-      begin
-      CrearArchivoPoolInfo(nombre,direccionminado,porcentaje,maxmembers,port,tipopago,password);
-      CrearArchivoPoolMembers();
-      ConsoleLinesAdd('Mining pool created');
-      MiPrefijo := PoolAddNewMember(direccionminado);
-      useroptions.PoolInfo:=direccionminado+' '+MiPrefijo+' '+'localhost '+IntToStr(port)+' '+
-         direccionminado+' '+nombre+' '+password;
-      UserOptions.UsePool := true;
-      GuardarOpciones;
-      RestartNosoAfterQuit := true;
-      CerrarPrograma();
-      end
-   else
-      ConsoleLinesAdd('CreatePool: Invalid parameters'+slinebreak+'createpool {name} {port} {password}');
-   end;
-End;
-
 // Try to join a pool
 Procedure JoinPool(LineText:string);
 var
@@ -1520,50 +1452,6 @@ if UserOptions.poolinfo = '' then
    end
 else ConsoleLinesAdd('You already are in a pool');
 }
-End;
-
-Procedure DeletePool(LineText:string);
-var
-  confirmation : String;
-  confirmed : boolean = false;
-  saving : string;
-  savefiles: boolean = true;
-Begin
-confirmation := parameter (linetext,1);
-if UpperCase(confirmation)= 'YES' then confirmed := true;
-saving := UpperCase(parameter(linetext,2));
-if saving = 'NOSAVE' then savefiles := false;
-if confirmed then
-   begin
-   if savefiles then
-      begin
-      SavePoolFiles();
-      end;
-   if fileexists(PoolInfoFilename) then
-      begin
-      deletefile(PoolInfoFilename);
-      ConsoleLinesAdd('Own pool deleted');
-      deletefile(PoolMembersFilename);
-      if form1.PoolServer.Active then form1.PoolServer.Active := false;
-      setlength(arraypoolmembers,0);
-      Miner_OwnsAPool := false;
-      end
-   else ConsoleLinesAdd('You do no owns a pool data');
-   if useroptions.PoolInfo<>'' then
-      begin
-      useroptions.PoolInfo:='';
-      ConsoleLinesAdd('Pool connection data deleted');
-      S_Options := true;
-      end
-   else ConsoleLinesAdd('You are not a pool member');
-   UserOptions.UsePool := false;
-   S_Options := true;
-   if formpool.Visible then formpool.Visible:=false;
-   end
-else
-   begin
-   ConsoleLinesAdd('delpool {yes} [NOSAVE]');
-   end;
 End;
 
 Procedure PoolIPPower();
@@ -2267,6 +2155,35 @@ for counter := 1 to MyLastBlock do
       end;
    end;
 ConsoleLinesAdd('Highest ever: '+IntToStr(HighDiff)+' on block '+highblock.ToString);
+End;
+
+Function MainNetHashrate():integer;
+var
+  counter : integer;
+  TotalRate : integer = 0;
+  Header : BlockHeaderData;
+  ThisBlockDiff : string;
+  ThisBlockValue : integer;
+  Better : integer = 0;
+  worst  : integer = 999999999;
+  TotalBlocksCalculated : integer = 100;
+  ResultStr : string = '';
+Begin
+For counter:= MyLastblock downto Mylastblock-(TotalBlocksCalculated-1) do
+   begin
+   Header := LoadBlockDataHeader(counter);
+   ThisBlockDiff := Parameter(Header.Solution,1);
+   ThisBlockValue := GetDiffHashrate(ThisBlockDiff);
+   TotalRate := TotalRate+ThisBlockValue;
+   if ThisBlockValue>Better then Better := ThisBlockValue;
+   if ThisBlockValue<Worst then Worst := ThisBlockValue;
+   ResultStr := ResultStr+Format('[%d]-',[ThisBlockValue]);
+   end;
+//ConsoleLinesAdd('Best  : '+Better.ToString);
+//ConsoleLinesAdd('Worst : '+worst.ToString);
+//ConsoleLinesAdd(ResultStr);
+TotalRate := TotalRate - Better - Worst;
+Result := TotalRate div (TotalBlocksCalculated-2);
 End;
 
 function ShowPrivKey(linea:String;ToConsole:boolean = false):String;

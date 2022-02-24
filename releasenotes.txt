@@ -1,3 +1,19 @@
+Version 0.3.0Aa5
+
+- Nethashrate function&command implemented.
+- Datapanel: target deprecated.
+- ** BlockHeader.difficult is now PoS payment ammount.
+- ** BlockHeader.NextBlkDiff is now PoS addresses paid.
+- ** Blockheader.reward is now PoW payment.
+- Command "sumary" improved.
+- Command "createpool" deprecated.
+- Command "showpoolinfo" deprecated.
+- Command "deletepool" deprecated.
+
+Up to Version 0.3.0Aa4
+
+- Protocol 2 mining system implemented.
+
 Version 0.2.1Lb3
 
 - New minning system.

@@ -641,7 +641,7 @@ else
    begin
    form1.DataPanel.Cells[3,0]:=Copy(GetNMSData.Miner,1,10)+'...';
    form1.DataPanel.Cells[3,1]:=Copy(GetNMSData.Diff,1,10);
-   form1.DataPanel.Cells[3,2]:='['+IntToStr(Miner_Difficult)+'] '+copy(Miner_Target,1,Miner_DifChars);
+   form1.DataPanel.Cells[3,2]:='';
    form1.DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
    form1.DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+BlockAge.ToString;
    end;

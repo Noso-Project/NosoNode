@@ -1044,11 +1044,11 @@ End;
 Function GetNodeStatusString():string;
 Begin
 //NODESTATUS 1{Peers} 2{LastBlock} 3{Pendings} 4{Delta} 5{headers} 6{version} 7{UTCTime} 8{MNsHash} 9{MNscount}
-//           10{LasBlockHash} 11{BestHashDiff} 12{LastBlockTimeEnd}
+//           10{LasBlockHash} 11{BestHashDiff} 12{LastBlockTimeEnd} 13{LBMiner}
 result := IntToStr(GetTotalConexiones)+' '+IntToStr(MyLastBlock)+' '+GetPendingCount.ToString+' '+
           IntToStr(UTCTime.ToInt64-EngineLastUpdate)+' '+copy(myResumenHash,0,5)+' '+
           ProgramVersion+SubVersion+' '+UTCTime+' '+copy(MyMnsHash,0,5)+' '+IntTOStr(MyMNsCount)+' '+
-          MyLastBlockHash+' '+GetNMSData.Diff+' '+IntToStr(LastBlockData.TimeEnd);
+          MyLastBlockHash+' '+GetNMSData.Diff+' '+IntToStr(LastBlockData.TimeEnd)+' '+LastBlockData.AccountMiner;
 End;
 
 Function IsSafeIP(IP:String):boolean;

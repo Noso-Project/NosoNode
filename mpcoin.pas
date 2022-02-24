@@ -505,7 +505,6 @@ if fileexists(BlockDirectory+IntToStr(numberblock)+'.blk') then
                     Header.TimeLast20,Header.TrxTotales,Header.Difficult,Header.TargetHash,
                     Header.Solution,Header.LastBlockHash,Header.NxtBlkDiff,Header.AccountMiner,
                     Header.MinerFee,Header.Reward,blockhash]));
-
    end
 End;
 
