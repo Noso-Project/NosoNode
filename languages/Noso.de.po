@@ -269,33 +269,9 @@ msgstr "Münzen versenden"
 msgid "Network"
 msgstr "Netzwerk"
 
-#: tform1.menuitem10.caption
-msgid "Development"
-msgstr "Entwicklung"
-
-#: tform1.menuitem18.caption
-msgid "Language"
-msgstr "Sprache"
-
-#: tform1.menuitem19.caption
-msgid "Import"
-msgstr "Importieren"
-
 #: tform1.menuitem2.caption
 msgid "Start Server"
 msgstr "Server starten"
-
-#: tform1.menuitem20.caption
-msgid "New file"
-msgstr "Neue Datei"
-
-#: tform1.menuitem21.caption
-msgid "Updates"
-msgstr "Aktualisierungen"
-
-#: tform1.menuitem22.caption
-msgid "Messages"
-msgstr "Nachrichten"
 
 #: tform1.menuitem23.caption
 msgid "CLear"

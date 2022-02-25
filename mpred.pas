@@ -36,7 +36,6 @@ function UpdateNetworkMNsHash():NetworkData;
 function UpdateNetworkMNsCount():NetworkData;
 Procedure UpdateNetworkData();
 Procedure UpdateMyData();
-Procedure CheckIncomingUpdateFile(version,hash, clavepublica, firma, namefile: string);
 Procedure ActualizarseConLaRed();
 Procedure AddNewBot(linea:string);
 function GetOutGoingConnections():integer;
@@ -783,54 +782,6 @@ LastBlockData := LoadBlockDataHeader(MyLastBlock);
 MyResumenHash := HashMD5File(ResumenFilename);
 U_PoSGrid := true;
 SetCurrentJob('UpdateMyData',false);
-End;
-
-// Verificar y que hacer con un archivo de Update
-Procedure CheckIncomingUpdateFile(version,hash, clavepublica, firma, namefile: string);
-var
-  Proceder : boolean = true;
-Begin
-if GetAddressFromPublicKey(clavepublica) <> Adminhash then Proceder := false;
-if not VerifySignedString(version+' '+hash,firma,clavepublica) then Proceder := false;
-if HashMD5File(namefile) <> hash then Proceder := false;
-if version <= ProgramVersion then
-   begin
-   ConsoleLinesAdd(LangLine(38)); //Update file received is obsolete
-   trydeletefile(namefile);
-   Proceder := false;
-   end;
-if fileexists(UpdatesDirectory+namefile) then
-   begin
-   ConsoleLinesAdd('Update file already exists');
-   trydeletefile(namefile);
-   Proceder := false;
-   end;
-if not proceder then
-   begin
-   ConsoleLinesAdd(LangLine(37));      //Update file received is wrong
-   trydeletefile(namefile);
-   end
-else
-   begin
-   UnzipBlockFile(namefile,false);
-   copyfile(namefile,UpdatesDirectory+namefile);
-   deletefile(namefile);
-   EnviarUpdate('sendupdate '+Version+' '+clavepublica+' '+hash+' '+firma);
-   if UserOptions.Auto_Updater then
-         begin
-         useroptions.JustUpdated:=true;
-         GuardarOpciones();
-         CrearRestartfile();
-         EjecutarAutoUpdate(version);
-         form1.close;
-         end
-   else
-      begin
-      // que hacer si la opcion autopupdate no esta activada
-      deletefile('noso'+version+'.exe');
-      if not AnsiContainsStr(StringAvailableUpdates,version) then StringAvailableUpdates := StringAvailableUpdates+' '+version;
-      end;
-   end;
 End;
 
 // Solicitar los archivos necesarios para actualizarse con la red

@@ -264,33 +264,9 @@ msgstr "发送硬币"
 msgid "Network"
 msgstr "菜单"
 
-#: tform1.menuitem10.caption
-msgid "Development"
-msgstr "进展"
-
-#: tform1.menuitem18.caption
-msgid "Language"
-msgstr "语言"
-
-#: tform1.menuitem19.caption
-msgid "Import"
-msgstr "导入"
-
 #: tform1.menuitem2.caption
 msgid "Start Server"
 msgstr "启动服务器"
-
-#: tform1.menuitem20.caption
-msgid "New file"
-msgstr "新文件"
-
-#: tform1.menuitem21.caption
-msgid "Updates"
-msgstr "更新"
-
-#: tform1.menuitem22.caption
-msgid "Messages"
-msgstr "留言"
 
 #: tform1.menuitem23.caption
 msgid "CLear"

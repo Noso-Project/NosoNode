@@ -263,33 +263,9 @@ msgstr "Kirim koin"
 msgid "Network"
 msgstr "Jaringan"
 
-#: tform1.menuitem10.caption
-msgid "Development"
-msgstr "Pengembang"
-
-#: tform1.menuitem18.caption
-msgid "Language"
-msgstr "Bahasa"
-
-#: tform1.menuitem19.caption
-msgid "Import"
-msgstr "Impor"
-
 #: tform1.menuitem2.caption
 msgid "Start Server"
 msgstr "Mulai Server"
-
-#: tform1.menuitem20.caption
-msgid "New file"
-msgstr "Berkas baru"
-
-#: tform1.menuitem21.caption
-msgid "Updates"
-msgstr "Pembaruan"
-
-#: tform1.menuitem22.caption
-msgid "Messages"
-msgstr "Pesan"
 
 #: tform1.menuitem23.caption
 msgid "CLear"

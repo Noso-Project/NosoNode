@@ -2874,6 +2874,7 @@ object Form1: TForm1
       ParentShowHint = False
       ShowHint = True
       Transparent = False
+      OnDblClick = StaConLabDblClick
     end
     object BitBtnBlocks: TBitBtn
       Left = 151
@@ -5211,7 +5212,6 @@ object Form1: TForm1
         Caption = 'Start Server'
         ImageIndex = 27
         Visible = False
-        OnClick = MMServer
       end
       object MenuItem3: TMenuItem
         Caption = 'Connect'
@@ -5222,7 +5222,6 @@ object Form1: TForm1
         Caption = 'Miner'
         ImageIndex = 4
         Visible = False
-        OnClick = MMMiner
       end
       object MenuItem5: TMenuItem
         Caption = 'Import Wallet'
@@ -5248,26 +5247,6 @@ object Form1: TForm1
         Caption = 'Quit'
         ImageIndex = 18
         OnClick = MMQuit
-      end
-    end
-    object MenuItem10: TMenuItem
-      Caption = 'Development'
-      Visible = False
-      OnClick = CheckMMCaptions
-      object MenuItem18: TMenuItem
-        Caption = 'Language'
-      end
-      object MenuItem19: TMenuItem
-        Caption = 'Import'
-      end
-      object MenuItem20: TMenuItem
-        Caption = 'New file'
-      end
-      object MenuItem21: TMenuItem
-        Caption = 'Updates'
-      end
-      object MenuItem22: TMenuItem
-        Caption = 'Messages'
       end
     end
   end

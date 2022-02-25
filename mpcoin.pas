@@ -438,7 +438,6 @@ if mode = 1 then
    Resultado := resultado+'MinerActive: '+BoolToStr(Miner_Active,true)+slinebreak;
    Resultado := resultado+'MinerIsOn: '+BoolToStr(Miner_IsON,true)+slinebreak;
    Resultado := resultado+'CPUs: '+IntToStr(G_CpuCount)+slinebreak;
-   Resultado := resultado+'MinerThreads: '+IntToStr(Length(Miner_Thread)) +slinebreak;
    Resultado := resultado+'OS: '+OSVersion +slinebreak;
    Resultado := resultado+'WalletVer: '+ProgramVersion+SubVersion+slinebreak;
    Resultado := resultado+'Minerhashcount: '+IntToStr(MINER_HashCounter)+slinebreak;

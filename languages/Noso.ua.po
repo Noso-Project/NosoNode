@@ -263,33 +263,9 @@ msgstr "Надсилати монети"
 msgid "Network"
 msgstr "Мережа"
 
-#: tform1.menuitem10.caption
-msgid "Development"
-msgstr "Розвиток"
-
-#: tform1.menuitem18.caption
-msgid "Language"
-msgstr "Мову"
-
-#: tform1.menuitem19.caption
-msgid "Import"
-msgstr "Імпорт"
-
 #: tform1.menuitem2.caption
 msgid "Start Server"
 msgstr "Запустити сервер"
-
-#: tform1.menuitem20.caption
-msgid "New file"
-msgstr "Новий файл"
-
-#: tform1.menuitem21.caption
-msgid "Updates"
-msgstr "Оновлення"
-
-#: tform1.menuitem22.caption
-msgid "Messages"
-msgstr "Повідомлення"
 
 #: tform1.menuitem23.caption
 msgid "CLear"

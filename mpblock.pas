@@ -225,14 +225,6 @@ if not errored then
    // Actualizar el arvhivo de cabeceras
    AddBlchHead(Numero,MyLastBlockHash,MySumarioHash);
    MyResumenHash := HashMD5File(ResumenFilename);
-   ResetMinerInfo();
-   if minero = PoolInfo.Direccion then
-      begin
-      ConsoleLinesAdd('Your pool solved the block '+inttoStr(numero));
-      DistribuirEnPool(GetBlockReward(Numero)+MinerFee-PosTotalReward);
-      end;
-   if Miner_OwnsAPool then ResetPoolMiningInfo();
-
    if ( (Numero>0) and (form1.Server.Active) ) then
       begin  // Re-sent the block solution
       OutgoingMsjsAdd(ProtocolLine(6)+IntToStr(timeStamp)+' '+IntToStr(Numero)+
@@ -249,7 +241,6 @@ if not errored then
    setmilitime('CrearNuevoBloque',2);
    end;
 BuildingBlock := 0;
-if Miner_OwnsAPool then Run_Expel_PoolInactives := true;
 End;
 
 Function GetDiffHashrate(bestdiff:String):integer;

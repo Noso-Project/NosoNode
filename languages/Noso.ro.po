@@ -262,33 +262,9 @@ msgstr "Trimite monezi"
 msgid "Network"
 msgstr "Reţea"
 
-#: tform1.menuitem10.caption
-msgid "Development"
-msgstr "Dezvoltare"
-
-#: tform1.menuitem18.caption
-msgid "Language"
-msgstr "Limbă"
-
-#: tform1.menuitem19.caption
-msgid "Import"
-msgstr "Importă"
-
 #: tform1.menuitem2.caption
 msgid "Start Server"
 msgstr "Porneşte serverul"
-
-#: tform1.menuitem20.caption
-msgid "New file"
-msgstr "Fișier nou"
-
-#: tform1.menuitem21.caption
-msgid "Updates"
-msgstr "Actualizări"
-
-#: tform1.menuitem22.caption
-msgid "Messages"
-msgstr "Mesaje"
 
 #: tform1.menuitem23.caption
 msgid "CLear"

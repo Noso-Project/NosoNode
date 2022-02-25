@@ -54,13 +54,6 @@ type
       Constructor Create(CreateSuspended : boolean);
     end;
 
-  TPoolPaymentThread = class(TThread)
-    protected
-      procedure Execute; override;
-    public
-      Constructor Create(CreateSuspended : boolean);
-    end;
-
   Options = Packed Record
      language: integer;
      Port : integer;
@@ -462,13 +455,7 @@ type
     MemoConsola: TMemo;
     DataPanel: TStringGrid;
     MenuItem1: TMenuItem;
-    MenuItem10: TMenuItem;
-    MenuItem18: TMenuItem;
-    MenuItem19: TMenuItem;
     MenuItem2: TMenuItem;
-    MenuItem20: TMenuItem;
-    MenuItem21: TMenuItem;
-    MenuItem22: TMenuItem;
     MenuItem23: TMenuItem;
     MenuItem24: TMenuItem;
     MenuItem25: TMenuItem;
@@ -610,6 +597,7 @@ type
     procedure GridExLTCResize(Sender: TObject);
     procedure SpeedButton2Click(Sender: TObject);
     procedure SpeedButton3Click(Sender: TObject);
+    procedure StaConLabDblClick(Sender: TObject);
     procedure TabHistoryShow(Sender: TObject);
     procedure TabNodeOptionsShow(Sender: TObject);
     procedure TabSheet9Resize(Sender: TObject);
@@ -658,9 +646,7 @@ type
 
     // MAIN MENU
     Procedure CheckMMCaptions(Sender:TObject);
-    Procedure MMServer(Sender:TObject);
     Procedure MMConnect(Sender:TObject);
-    Procedure MMMiner(Sender:TObject);
     Procedure MMImpWallet(Sender:TObject);
     Procedure MMExpWallet(Sender:TObject);
     Procedure MMQuit(Sender:TObject);
@@ -831,7 +817,6 @@ var
 
   ThreadMNs : TUpdateMNs;
   CryptoThread : TCryptoThread;
-  PoolPaysThread : TPoolPaymentThread;
 
   MaxOutgoingConnections : integer = 3;
   FirstShow : boolean = false;
@@ -965,7 +950,6 @@ var
 
   LastBlockData : BlockHeaderData;
   UndonedBlocks : boolean = false;
-  Run_Expel_PoolInactives : boolean = false;
   BuildingBlock : integer = 0;
   MNsArray   : array of TMasterNode;
   WaitingMNs : array of TMasterNode;
@@ -1104,6 +1088,7 @@ Uses
 
 {$R *.lfm}
 
+// Identify the pool miners connections
 constructor TNodeConnectionInfo.Create;
 Begin
 FTimeLast:= 0;
@@ -1252,11 +1237,6 @@ begin
   inherited Create(CreateSuspended);
 end;
 
-constructor TPoolPaymentThread.Create(CreateSuspended : boolean);
-begin
-  inherited Create(CreateSuspended);
-end;
-
 // Process the Masternodes reports
 procedure TUpdateMNs.Execute;
 var
@@ -1360,91 +1340,6 @@ While not terminated do
       end;
    Sleep(1);
    End;
-End;
-
-procedure TPoolPaymentThread.Execute;
-var
-  counter : integer; // aux
-  PaymentOrder : string; // orderID of the requested payment
-  Mineraddress : string; // active miner address
-  MemberBalance : int64; // balance of the active miner
-  expelled : integer = 0; // number of expelled miners
-  PaidMembers : integer = 0; // number or regular paid members
-  TotalPaid : int64 = 0; // Total ammount paid on this cycle
-  PaysNotSaved : integer = 0; // Pays that were not stored on file
-  Remaining : int64;
-Begin
-while not terminated do
-   begin
-   //consolelinesadd('POOLTHREAD');
-   if Run_Expel_PoolInactives then
-      begin
-      PaidMembers := 0;
-      expelled := 0;
-      TotalPaid := 0;
-      Run_Expel_PoolInactives := false;
-      setmilitime('PoolPaymentThread',1);
-      sleep(5000);
-      consolelinesadd('Starting pool payments thread');
-      if length(arraypoolmembers)>0 then // verify that the arraycontains something
-         begin
-         for counter := 0 to length(arraypoolmembers)-1 do
-            begin
-            PaymentOrder := '';
-            Mineraddress := arraypoolmembers[counter].Direccion;
-            if Mineraddress = '' then continue;
-            MemberBalance := GetPoolMemberBalance(Mineraddress);
-            // EXPEL MEMBER
-            if (arraypoolmembers[counter].LastSolucion+PoolExpelBlocks<PoolMiner.Block) and
-               (IsPoolMemberConnected(Mineraddress)<0) then
-               begin
-               if MemberBalance > 0 then
-                  PaymentOrder := SendFunds('sendto '+Mineraddress+' '+IntToStr(GetMaximunToSend(MemberBalance))+' EXPEL_POOLPAYMENT_'+PoolInfo.Name,false);
-               if paymentorder <> '' then // Payment order generated a valid Orderhash
-                  begin
-                  NewSavePoolPayment(IntToStr(MyLastBlock+1)+' '+Mineraddress+' '+IntToStr(GetMaximunToSend(MemberBalance))+' '+PaymentOrder);
-                  end;
-               if MemberBalance>0 then expelled +=1;
-               TotalPaid := totalpaid + MemberBalance;
-               Entercriticalsection(CSPoolMembers);
-               arraypoolmembers[counter] := Default(PoolMembersData);
-               Leavecriticalsection(CSPoolMembers);
-               end
-            // REGULAR PAYMENTS
-            else if ( (GetLastPagoPoolMember(Mineraddress)+PoolInfo.TipoPago<MyLastBlock) and (MemberBalance>0) ) then
-               begin
-               PaymentOrder := SendFunds('sendto '+Mineraddress+' '+IntToStr(GetMaximunToSend(MemberBalance))+' POOLPAYMENT_'+PoolInfo.Name,false);
-               if PaymentOrder<> '' then  // Payment order generated a valid Orderhash
-                  begin
-                  if not NewSavePoolPayment(IntToStr(MyLastBlock+1)+' '+Mineraddress+' '+IntToStr(GetMaximunToSend(MemberBalance))+' '+PaymentOrder) then
-                     begin  // payment was not sucessfully stored on file
-
-                     end;
-                  if MemberBalance>0 then PaidMembers +=1;
-                  TotalPaid := TotalPaid + MemberBalance;
-                  ClearPoolUserBalance(Mineraddress);
-                  end;
-               end;
-            end;
-         end; // End of the big loop
-      PoolMembersTotalDeuda := GetTotalPoolDeuda();
-      ConsoleLinesAdd('Pool expels  : '+intToStr(expelled));
-      ConsoleLinesAdd('Pool Payments: '+intToStr(PaidMembers));
-      ToPoolLog(Format('Payments block %d : (%d) %s NOSO',[Mylastblock,expelled+paidmembers,int2curr(Totalpaid)]));
-      ConsoleLinesAdd('Total paid   : '+int2curr(Totalpaid));
-      GuardarPoolMembers();
-      EnterCriticalSection(CSPoolMembers);
-      TryCopyFile(PoolMembersFilename,PoolMembersFilename+'.bak');
-      LeaveCriticalSection(CSPoolMembers);
-      setmilitime('PoolPaymentThread',2);
-      if POOL_MineRestart then
-         begin
-         sleep(5000);
-         processlinesadd('restart');
-         end;
-      end;
-   sleep(1000)
-   end;
 End;
 
 //***********************
@@ -1728,12 +1623,6 @@ if WO_CloseStart then
       CryptoThread := TCryptoThread.Create(true);
       CryptoThread.FreeOnTerminate:=true;
       CryptoThread.Start;
-      if fileexists(PoolInfoFilename) then
-         begin
-         PoolPaysThread := TPoolPaymentThread.Create(true);
-         PoolPaysThread.FreeOnTerminate:=true;
-         PoolPaysThread.Start;
-         end;
       SendOutMsgsThread := TThreadSendOutMsjs.Create(true);
       SendOutMsgsThread.FreeOnTerminate:=true;
       SendOutMsgsThread.Start;
@@ -1772,12 +1661,6 @@ Setlength(WaitingMNs,0);
    SendOutMsgsThread := TThreadSendOutMsjs.Create(true);
    SendOutMsgsThread.FreeOnTerminate:=true;
    SendOutMsgsThread.Start;
-   if fileexists(PoolInfoFilename) then
-      begin
-      PoolPaysThread := TPoolPaymentThread.Create(true);
-      PoolPaysThread.FreeOnTerminate:=true;
-      PoolPaysThread.Start;
-      end;
 Tolog(rs0029); NewLogLines := NewLogLines-1; //'Noso session started'
 info(rs0029);  //'Noso session started'
 form1.infopanel.BringToFront;
@@ -1875,6 +1758,12 @@ begin
 form1.TextQRcode.caption := 'KEYS: '+form1.Direccionespanel.Cells[0,form1.Direccionespanel.Row];
 index := form1.Direccionespanel.Row-1;
 form1.BarcodeQR1.Text:=ListaDirecciones[index].PublicKey+' '+ListaDirecciones[index].PrivateKey;
+end;
+
+// Double click open conexions slots form
+procedure TForm1.StaConLabDblClick(Sender: TObject);
+begin
+formslots.Visible:=true;
 end;
 
 // Al minimizar verifica si hay que llevarlo a barra de tareas
@@ -2881,32 +2770,7 @@ if slot = 0 then
 if GoAhead then
    begin
    conexiones[slot].IsBusy:=true;
-   if GetCommand(LLine) = 'UPDATE' then
-      begin
-      UpdateVersion := Parameter(LLine,1);
-      UpdateHash := Parameter(LLine,2);
-      UpdateClavePublica := Parameter(LLine,3);
-      UpdateFirma := Parameter(LLine,4);
-      UpdateZipName := 'nosoupdate'+UpdateVersion+'.zip';
-      if FileExists(UpdateZipName) then DeleteFile(UpdateZipName);
-      AFileStream := TFileStream.Create(UpdateZipName, fmCreate);
-         try
-            try
-            AContext.Connection.IOHandler.ReadStream(AFileStream);
-            GetFileOk := true;
-            except on E:Exception do
-               begin
-               ToExcLog('SERVER: Server error receiving update file ('+E.Message+')');
-               TryCloseServerConnection(AContext);
-               end;
-            end;
-         finally
-         AFileStream.Free;
-         end;
-      if GetFileOk then
-         CheckIncomingUpdateFile(UpdateVersion,UpdateHash,UpdateClavePublica,UpdateFirma,UpdateZipName);
-      end
-   else if GetCommand(LLine) = 'RESUMENFILE' then
+   if GetCommand(LLine) = 'RESUMENFILE' then
       begin
       EnterCriticalSection(CSHeadAccess);
       AFileStream := TFileStream.Create(ResumenFilename, fmCreate);
@@ -3577,35 +3441,6 @@ if Form1.Server.Active then form1.MainMenu.Items[0].Items[0].Caption:=rs0077
 else form1.MainMenu.Items[0].Items[0].Caption:=rs0076;
 if CONNECT_Try then form1.MainMenu.Items[0].Items[1].Caption:=rs0079
 else form1.MainMenu.Items[0].Items[1].Caption:=rs0078;
-if Miner_Active then form1.MainMenu.Items[0].Items[2].Caption:='Stop mining'
-else form1.MainMenu.Items[0].Items[2].Caption:='Mine';
-form1.MainMenu.Items[1].Items[0].Clear;
-form1.MainMenu.Items[1].Items[3].Clear;
-if length(StringAvailableUpdates) > 0 then
-   begin
-   contador := 0;
-   repeat
-      version := parameter(StringAvailableUpdates,contador);
-      if version <> '' then
-         begin
-         MenuItem := TMenuItem.Create(MainMenu);MenuItem.Caption:=version;MenuItem.OnClick:=@Form1.MMRunUpdate;
-         MainMenu.items[1].Items[3].Add(MenuItem);
-         end;
-      contador +=1;
-   until version = '' ;
-   end
-else MainMenu.items[1].Items[3].Enabled:=false;
-if NewLogLines>0 then MainMenu.Items[2].Items[1].Caption:='View Log ('+IntToStr(NewLogLines)+')'
-else MainMenu.Items[2].Items[1].Caption:='View Log';
-//if fileexists(PoolInfoFilename) then MainMenu.Items[2].Items[5].Visible:=true
-//else MainMenu.Items[2].Items[5].Visible:=false;
-End;
-
-// menu principal servidor
-Procedure Tform1.MMServer(Sender:TObject);
-Begin
-if Form1.Server.Active then ProcessLinesAdd('serveroff')
-else ProcessLinesAdd('serveron');
 End;
 
 // menu principal conexion
@@ -3613,13 +3448,6 @@ Procedure Tform1.MMConnect(Sender:TObject);
 Begin
 if CONNECT_Try then ProcessLinesAdd('disconnect')
 else ProcessLinesAdd('connect');
-End;
-
-// menu principal minero
-Procedure Tform1.MMMiner(Sender:TObject);
-Begin
-if Miner_Active then ProcessLinesAdd('mineroff')
-else ProcessLinesAdd('mineron');
 End;
 
 // menu principal importar cartera

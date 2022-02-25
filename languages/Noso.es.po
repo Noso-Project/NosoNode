@@ -269,33 +269,9 @@ msgstr "Enviar fondos"
 msgid "Network"
 msgstr "Red"
 
-#: tform1.menuitem10.caption
-msgid "Development"
-msgstr "Desarrollo"
-
-#: tform1.menuitem18.caption
-msgid "Language"
-msgstr "Idioma"
-
-#: tform1.menuitem19.caption
-msgid "Import"
-msgstr "Importar"
-
 #: tform1.menuitem2.caption
 msgid "Start Server"
 msgstr "Iniciar servidor"
-
-#: tform1.menuitem20.caption
-msgid "New file"
-msgstr "Nuevo archivo"
-
-#: tform1.menuitem21.caption
-msgid "Updates"
-msgstr "Actualizaciones"
-
-#: tform1.menuitem22.caption
-msgid "Messages"
-msgstr "Mensajes"
 
 #: tform1.menuitem23.caption
 msgid "CLear"
