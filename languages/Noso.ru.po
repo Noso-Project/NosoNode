@@ -265,38 +265,6 @@ msgstr "Сеть"
 msgid "Development"
 msgstr "Разработка"
 
-#: tform1.menuitem11.caption
-msgid "View"
-msgstr "Просмотр"
-
-#: tform1.menuitem12.caption
-msgctxt "tform1.menuitem12.caption"
-msgid "Console"
-msgstr "Консоль"
-
-#: tform1.menuitem13.caption
-msgctxt "tform1.menuitem13.caption"
-msgid "Log"
-msgstr "Журнал"
-
-#: tform1.menuitem14.caption
-msgctxt "tform1.menuitem14.caption"
-msgid "Monitor"
-msgstr "Монитор"
-
-#: tform1.menuitem15.caption
-msgid "WebPage"
-msgstr "Веб-страница"
-
-#: tform1.menuitem16.caption
-msgid "ConSlots"
-msgstr "Список подключений"
-
-#: tform1.menuitem17.caption
-msgctxt "tform1.menuitem17.caption"
-msgid "Pool"
-msgstr "Pool"
-
 #: tform1.menuitem18.caption
 msgid "Language"
 msgstr "Язык"

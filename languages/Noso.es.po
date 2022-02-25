@@ -273,38 +273,6 @@ msgstr "Red"
 msgid "Development"
 msgstr "Desarrollo"
 
-#: tform1.menuitem11.caption
-msgid "View"
-msgstr "Ver"
-
-#: tform1.menuitem12.caption
-msgctxt "tform1.menuitem12.caption"
-msgid "Console"
-msgstr "Consola"
-
-#: tform1.menuitem13.caption
-msgctxt "tform1.menuitem13.caption"
-msgid "Log"
-msgstr "Historial"
-
-#: tform1.menuitem14.caption
-msgctxt "tform1.menuitem14.caption"
-msgid "Monitor"
-msgstr "Monitor"
-
-#: tform1.menuitem15.caption
-msgid "WebPage"
-msgstr "Pagina Web"
-
-#: tform1.menuitem16.caption
-msgid "ConSlots"
-msgstr "Conexiones"
-
-#: tform1.menuitem17.caption
-msgctxt "tform1.menuitem17.caption"
-msgid "Pool"
-msgstr "Pool"
-
 #: tform1.menuitem18.caption
 msgid "Language"
 msgstr "Idioma"

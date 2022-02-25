@@ -163,7 +163,6 @@ if fileexists(PoolInfoFilename) then
       PoolServerConex[contador] := Default(PoolUserConnection);
       ArrayPoolMembers[contador] := Default(PoolMembersData)
       end;
-   GridPoolConex.RowCount:=PoolInfo.MaxMembers+1;
    form1.SG_PoolMiners.RowCount:=PoolInfo.MaxMembers+1;
    ConsoleLinesAdd('PoolMaxMembers:'+inttostr(length(PoolServerConex)));
    Miner_OwnsAPool := true;

@@ -5270,42 +5270,6 @@ object Form1: TForm1
         Caption = 'Messages'
       end
     end
-    object MenuItem11: TMenuItem
-      Caption = 'View'
-      RightJustify = True
-      OnClick = CheckMMCaptions
-      object MenuItem12: TMenuItem
-        Caption = 'Console'
-        ImageIndex = 25
-        Visible = False
-        OnClick = MMVerConsola
-      end
-      object MenuItem13: TMenuItem
-        Caption = 'Log'
-        ImageIndex = 42
-        Visible = False
-      end
-      object MenuItem14: TMenuItem
-        Caption = 'Monitor'
-        ImageIndex = 44
-        Visible = False
-      end
-      object MenuItem15: TMenuItem
-        Caption = 'WebPage'
-        ImageIndex = 47
-        OnClick = MMVerWeb
-      end
-      object MenuItem16: TMenuItem
-        Caption = 'ConSlots'
-        ImageIndex = 29
-        OnClick = MMVerSlots
-      end
-      object MenuItem17: TMenuItem
-        Caption = 'Pool'
-        ImageIndex = 4
-        OnClick = MMVerPool
-      end
-    end
   end
   object ConsolePopUp2: TPopupMenu
     Left = 168

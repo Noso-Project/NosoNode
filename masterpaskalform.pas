@@ -101,14 +101,6 @@ type
      LastRefused : string[17];
      end;
 
-  TPoolBot = Packed Record
-     ip: string[15];
-     join : int64;
-     Last : int64;
-     count : integer;
-     notified : int64;
-     end;
-
   NodeData = Packed Record
      ip: string[15];
      port: string[8];
@@ -471,13 +463,6 @@ type
     DataPanel: TStringGrid;
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
-    MenuItem11: TMenuItem;
-    MenuItem12: TMenuItem;
-    MenuItem13: TMenuItem;
-    MenuItem14: TMenuItem;
-    MenuItem15: TMenuItem;
-    MenuItem16: TMenuItem;
-    MenuItem17: TMenuItem;
     MenuItem18: TMenuItem;
     MenuItem19: TMenuItem;
     MenuItem2: TMenuItem;
@@ -661,7 +646,6 @@ type
     // Pool
     Procedure TryClosePoolConnection(AContext: TIdContext; closemsg:string='');
     Function TryMessageToMiner(AContext: TIdContext;message:string): boolean;
-    Function UpdatePoolBot(ipuser:string):integer;
     function PoolClientsCount : Integer ;
     Procedure CheckOutPool(AContext: TIdContext; ThisID:Integer);
     procedure PoolServerConnect(AContext: TIdContext);
@@ -685,10 +669,8 @@ type
     Procedure MMRunUpdate(Sender:TObject);
     Procedure MMImpLang(Sender:TObject);
     Procedure MMNewLang(Sender:TObject);
-    Procedure MMVerConsola(Sender:TObject);
     Procedure MMVerWeb(Sender:TObject);
     Procedure MMVerSlots(Sender:TObject);
-    Procedure MMVerPool(Sender:TObject);
 
     // CONSOLE POPUP
     Procedure CheckConsolePopUp(Sender: TObject;MousePos: TPoint;var Handled: Boolean);
@@ -952,7 +934,6 @@ var
   PoolClientContext : TIdContext;
   ListadoBots :  array of BotData;
   ListaNodos : array of NodeData;
-  ListaPoolBots : array of TPoolBot;
   ListaNTP : array of NTPData;
   ListaMisTrx : Array of MyTrxData;
   ListaDirecciones : array of walletData; // Wallet addresses
@@ -1500,8 +1481,6 @@ InitCriticalSection(CSIdsProcessed);
 
 CreateFormInicio();
 CreateFormSlots();
-CreateFormPool();
-Setlength(ListaPoolBots,0);
 SetLength(ArrayOrderIDsProcessed,0);
 end;
 
@@ -2086,7 +2065,6 @@ if G_CloseRequested then CerrarPrograma();
 if form1.SystrayIcon.Visible then
    form1.SystrayIcon.Hint:=Coinname+' Ver. '+ProgramVersion+SubVersion+SLINEBREAK+LabelBigBalance.Caption;
 if FormSlots.Visible then UpdateSlotsGrid();
-if FormPool.Visible then UpdatePoolForm();
 ConnectedRotor +=1; if ConnectedRotor>6 then ConnectedRotor := 0;
 UpdateStatusBar;
 if ( (StrToInt64(UTCTime) mod 21600=0) and (LastBotClear<>UTCTime) and (Form1.Server.Active) ) then ProcessLinesAdd('delbot all');
@@ -2471,54 +2449,6 @@ EXCEPT on E:Exception do
    end;
 END;{Try}
 //PoolServer.Contexts.UnlockList;
-End;
-
-Function TForm1.UpdatePoolBot(ipuser:string):integer;
-var
-  counter: integer;
-  modified : boolean = false;
-  averagerate : int64;
-  timeelapsed : integer;
-  kickeds : integer;
-Begin
-if length(ListaPoolBots) > 0 then
-   begin
-   for counter := 0 to length(ListaPoolBots)-1 do
-      begin
-      if ListaPoolBots[counter].ip = ipuser then
-         begin
-         ListaPoolBots[counter].count+=1;
-         ListaPoolBots[counter].Last:=UTCTime.ToInt64;
-         timeelapsed := ListaPoolBots[counter].Last-ListaPoolBots[counter].join;
-         averagerate := ListaPoolBots[counter].count div timeelapsed;
-         if averagerate > 1000 then
-            begin
-            if UTCTime.ToInt64> ListaPoolBots[counter].notified+10 then
-               begin
-               ToPoolLog('IP '+ListaPoolBots[counter].ip+' Rate: '+IntToStr(averagerate));
-               ListaPoolBots[counter].notified := UTCTime.ToInt64;
-               end;
-            Kickeds := KickPoolIp(IpUser);
-            ToPoolLog('Kicked '+IntToStr(KickPoolIp(IpUser))+' connections');
-            if kickeds > 0 then
-               begin
-               ListaPoolBots[Length(ListaPoolBots)-1].join := UTCTime.ToInt64;
-               ListaPoolBots[counter].count := 0;
-               end;
-            end;
-         modified := true;
-         break;
-         end;
-      end;
-   end;
-if not modified then
-   begin
-   SetLength(ListaPoolBots,Length(ListaPoolBots)+1);
-   ListaPoolBots[Length(ListaPoolBots)-1].ip:=IPUser;
-   ListaPoolBots[Length(ListaPoolBots)-1].count:=1;
-   ListaPoolBots[Length(ListaPoolBots)-1].Last:=UTCTime.ToInt64;
-   ListaPoolBots[Length(ListaPoolBots)-1].join:=UTCTime.ToInt64;
-   end;
 End;
 
 Procedure TForm1.CheckOutPool(AContext: TIdContext; ThisID:Integer);
@@ -3641,6 +3571,7 @@ Procedure Tform1.CheckMMCaptions(Sender:TObject);
 var
   contador: integer;
   version : string;
+  MenuItem : TMenuItem;
 Begin
 if Form1.Server.Active then form1.MainMenu.Items[0].Items[0].Caption:=rs0077
 else form1.MainMenu.Items[0].Items[0].Caption:=rs0076;
@@ -3745,36 +3676,6 @@ Begin
 CreateTraslationFile();
 End;
 
-// Menu principal ver consola
-Procedure Tform1.MMVerConsola(Sender:TObject);
-Begin
-if memoconsola.Visible then
-   begin
-   Memoconsola.Visible:=false;
-   ConsoleLine.Visible:=false;
-   DataPanel.Visible:=false;
-   PanelTrxDetails.Visible:=false;
-   DireccionesPanel.Visible:=true;
-   GridMyTxs.Visible:=true;
-   MainMenu.Items[2].Items[0].Caption:='Console';
-   Form1.imagenes.GetBitmap(25,MainMenu.Items[2].Items[0].bitmap);
-   end
-else
-   begin
-   Memoconsola.Visible:=true;
-   memoconsola.SelStart := Length(memoconsola.Lines.Text)-1;
-   ConsoleLine.Visible:=true;
-   DataPanel.Visible:=true;
-   DireccionesPanel.Visible:=false;
-   PanelSend.Visible:=false;
-   GridMyTxs.Visible:=false;
-   PanelTrxDetails.Visible:=false;
-   ConsoleLine.SetFocus;
-   MainMenu.Items[2].Items[0].Caption:='Wallet';
-   Form1.imagenes.GetBitmap(30,MainMenu.Items[2].Items[0].bitmap);
-   end;
-End;
-
 // Abrir pagina web
 Procedure TForm1.MMVerWeb(Sender:TObject);
 Begin
@@ -3785,29 +3686,6 @@ End;
 Procedure TForm1.MMVerSlots(Sender:TObject);
 Begin
 FormSlots.Visible:=true;
-End;
-
-// Abrir form pool
-Procedure TForm1.MMVerPool(Sender:TObject);
-Begin
-UpdatePoolForm();
-if fileexists(PoolInfoFilename) then
-  begin
-  formpool.Height:= 400;
-  formpool.Width := 560;
-  end
-else
-   begin
-   formpool.Height:= 60;
-   formpool.Width := 430;
-   end;
-formpool.Caption:='Mining pool: '+MyPoolData.Name;
-EdBuFee.Caption:='Fee: '+IntToStr(poolinfo.Porcentaje);
-EdMaxMem.Caption:='Members: '+IntToStr(poolinfo.MaxMembers);
-EdPayRate.Caption:='Pay: '+IntToStr(poolinfo.TipoPago);
-EdPooExp.Caption:='Expel: '+IntToStr(PoolExpelBlocks);
-EdShares.Caption:='Shares: '+IntToStr(PoolShare)+'%';
-FormPool.Visible:=true;
 End;
 
 //******************************************************************************

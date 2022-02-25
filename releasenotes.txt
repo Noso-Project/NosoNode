@@ -7,6 +7,8 @@ Version 0.3.0Aa5
 - ** Blockheader.reward is now PoW payment.
 - Command "sumary" improved.
 - All pool relative commands deprecated.
+- Updated mainmenu.
+- Removed Form pool
 
 Up to Version 0.3.0Aa4
 

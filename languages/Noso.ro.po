@@ -266,38 +266,6 @@ msgstr "Reţea"
 msgid "Development"
 msgstr "Dezvoltare"
 
-#: tform1.menuitem11.caption
-msgid "View"
-msgstr "Vizionare"
-
-#: tform1.menuitem12.caption
-msgctxt "tform1.menuitem12.caption"
-msgid "Console"
-msgstr "Consolă"
-
-#: tform1.menuitem13.caption
-msgctxt "tform1.menuitem13.caption"
-msgid "Log"
-msgstr "Log"
-
-#: tform1.menuitem14.caption
-msgctxt "tform1.menuitem14.caption"
-msgid "Monitor"
-msgstr "Monitor"
-
-#: tform1.menuitem15.caption
-msgid "WebPage"
-msgstr "WebPage"
-
-#: tform1.menuitem16.caption
-msgid "ConSlots"
-msgstr "ConSlots"
-
-#: tform1.menuitem17.caption
-msgctxt "tform1.menuitem17.caption"
-msgid "Pool"
-msgstr "Pool"
-
 #: tform1.menuitem18.caption
 msgid "Language"
 msgstr "Limbă"
