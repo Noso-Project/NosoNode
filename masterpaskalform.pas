@@ -730,7 +730,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa5';
+  SubVersion = 'Aa51';
   OficialRelease = false;
   VersionRequired = '0.3.0Aa1';
   BuildDate = 'Febraury 2022';
@@ -949,7 +949,6 @@ var
   MyMNsCount : integer = 0;
 
   LastBlockData : BlockHeaderData;
-  UndonedBlocks : boolean = false;
   BuildingBlock : integer = 0;
   MNsArray   : array of TMasterNode;
   WaitingMNs : array of TMasterNode;
@@ -1104,8 +1103,8 @@ var
   Continuar : boolean = true;
   TruncateLine : string = '';
 begin
-repeat
-sleep(200);
+REPEAT
+sleep(1);
 continuar := true;
 if CanalCliente[FSlot].IOHandler.InputBufferIsEmpty then
    begin
@@ -1119,7 +1118,7 @@ if Continuar then
       begin
       Conexiones[fSlot].IsBusy:=true;
       Conexiones[fSlot].lastping:=UTCTime;
-         try
+         TRY
          CanalCliente[FSlot].ReadTimeout:=ReadTimeOutTIme;
          LLine := CanalCliente[FSlot].IOHandler.ReadLn(IndyTextEncoding_UTF8);
          if CanalCliente[FSlot].IOHandler.ReadLnTimedout then
@@ -1130,21 +1129,20 @@ if Continuar then
             Conexiones[fSlot].IsBusy:=false;
             continue;
             end;
-         Except on E:Exception do
+         EXCEPT on E:Exception do
             begin
             ToExcLog(Format(rs0002,[IntToStr(Fslot)+slinebreak+E.Message]));
             //tolog ('Error Reading lines from slot: '+IntToStr(Fslot)+slinebreak+E.Message);
             Conexiones[fSlot].IsBusy:=false;
             continue;
             end;
-         end;
+         END; {TRY}
       if continuar then
          begin
          if GetCommand(LLine) = 'RESUMENFILE' then
             begin
             EnterCriticalSection(CSHeadAccess);
-            ConsoleLinesadd(rs0003);
-            //ConsoleLinesadd('Receiving headers');
+            ToLog(rs0003); //'Receiving headers'
             DownloadHeaders := true;
                try
                AFileStream := TFileStream.Create(ResumenFilename, fmCreate);
@@ -1164,15 +1162,13 @@ if Continuar then
                DownloadHeaders := false;
                LeaveCriticalSection(CSHeadAccess);
                end;
-            consolelinesAdd(format(rs0005,[copy(HashMD5File(ResumenFilename),1,5)]));
-            //consolelinesAdd(LAngLine(74)+': '+copy(HashMD5File(ResumenFilename),1,5)); //'Headers file received'
+            consolelinesAdd(format(rs0005,[copy(HashMD5File(ResumenFilename),1,5)])); //'Headers file received'
             LastTimeRequestResumen := 0;
             UpdateMyData();
             end
          else if LLine = 'BLOCKZIP' then
             begin
-            ConsoleLinesadd(rs0006);
-            //ConsoleLinesadd('Receiving blocks');
+            ToLog(rs0006); //'Receiving blocks'
             BlockZipName := BlockDirectory+'blocks.zip';
             if FileExists(BlockZipName) then DeleteFile(BlockZipName);
             AFileStream := TFileStream.Create(BlockZipName, fmCreate);
@@ -1192,9 +1188,7 @@ if Continuar then
                end;
             UnzipBlockFile(BlockDirectory+'blocks.zip',true);
             MyLastBlock := GetMyLastUpdatedBlock();
-            ConsoleLinesadd(format(rs0021,[IntToStr(MyLastBlock)]));
-            //consolelinesadd('Blocks received up to '+IntToStr(MyLastBlock));
-            //BuildHeaderFile(MyLastBlock);
+            ConsoleLinesadd(format(rs0021,[IntToStr(MyLastBlock)])); //'Blocks received up to '+IntToStr(MyLastBlock));
             ResetMinerInfo();
             LastTimeRequestBlock := 0;
             DownLoadBlocks := false;
@@ -1207,7 +1201,7 @@ if Continuar then
       Conexiones[fSlot].IsBusy:=false;
       end;
    end;
-until ((terminated) or (not CanalCliente[FSlot].Connected));
+UNTIL ((terminated) or (not CanalCliente[FSlot].Connected));
 End;
 
 constructor TThreadClientRead.Create(const CreatePaused: Boolean; const ConexSlot:Integer);

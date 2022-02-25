@@ -23,7 +23,6 @@ Procedure ProcessPing(LineaDeTexto: string; Slot: integer; Responder:boolean);
 function GetPingString():string;
 procedure PTC_SendPending(Slot:int64);
 Procedure PTC_SendMNs(Slot:int64);
-Procedure PTC_Newblock(Texto:String;connectionNumber:Integer);
 Procedure PTC_SendResumen(Slot:int64);
 Function ZipSumary():boolean;
 Function ZipHeaders():boolean;
@@ -57,7 +56,6 @@ CONST
   Ping = 3;
   Pong = 4;
   GetPending = 5;
-  NewBlock = 6;
   GetResumen = 7;
   LastBlock = 8;
   Custom = 9;
@@ -156,8 +154,6 @@ if tipo = Pong then
    Resultado := '$PONG '+GetPingString;
 if tipo = GetPending then
    Resultado := '$GETPENDING';
-if tipo = NewBlock then
-   Resultado := '$NEWBL ';
 if tipo = GetResumen then
    Resultado := '$GETRESUMEN';
 if tipo = LastBlock then
@@ -226,7 +222,6 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = '$PONG' then ProcessPing(SlotLines[contador][0],contador,false)
       else if UpperCase(LineComando) = '$GETPENDING' then PTC_SendPending(contador)
       else if UpperCase(LineComando) = '$GETMNS' then PTC_SendMNs(contador)
-      else if UpperCase(LineComando) = '$NEWBL' then PTC_NewBlock(SlotLines[contador][0], contador)
       else if UpperCase(LineComando) = '$GETRESUMEN' then PTC_SendResumen(contador)
       else if UpperCase(LineComando) = '$LASTBLOCK' then PTC_SendBlocks(contador,SlotLines[contador][0])
       else if UpperCase(LineComando) = '$CUSTOM' then INC_PTC_Custom(GetOpData(SlotLines[contador][0]),contador)
@@ -443,66 +438,6 @@ if Length(MNsArray) > 0 then
       PTC_SendLine(slot,TextOrder+TextLine);
       end;
    end;
-End;
-
-
-// Se recibe un mensaje con una solucion para el bloque
-Procedure PTC_Newblock(Texto:String;connectionNumber:Integer);
-var
-  TimeStamp       : string = '';
-  NumeroBloque    : string = '';
-  DireccionMinero : string = '';
-  Solucion        : string = '';
-  BlockNumber : integer;
-  Proceder : boolean = true;
-Begin
-if Protocolo=2 then exit;
-TimeStamp       := Parameter (Texto,5);
-NumeroBloque    := Parameter (Texto,6);
-DireccionMinero := Parameter (Texto,7);
-Solucion        := Parameter (Texto,8);
-solucion        := StringReplace(Solucion,'_',' ',[rfReplaceAll, rfIgnoreCase]);
-if MyConStatus < 3 then
-   begin
-   OutgoingMsjsAdd(Texto);
-   Proceder := false;
-   end;
-if not TryStrToInt(NumeroBloque,BlockNumber) then
-   begin
-   ToExcLog('ERROR CONVERTING RECEIVED BLOCK NUMBER');
-   Proceder := false;
-   end;
-if proceder then
-begin // proceder 1
-// Se recibe una solucion del siguiente bloque
-if ( (BlockNumber = LastBlockData.Number+1) and
-     (VerifySolutionForBlock(lastblockdata.NxtBlkDiff,MyLastBlockHash,DireccionMinero,Solucion)=0))then
-   begin
-   ConsoleLinesAdd(LangLine(21)+NumeroBloque); //Solution for block received and verified:
-   CrearNuevoBloque(BlockNumber,StrToInt64(TimeStamp),Miner_Target,DireccionMinero,Solucion);
-   Consolelinesadd('Received from: '+Conexiones[connectionNumber].ip);
-   end
-// se recibe una solucion distinta del ultimo bloque pero mas antigua
-else if ( (BlockNumber = LastBlockData.Number) and
-   (StrToInt64(timestamp)<LastBlockData.TimeEnd) and
-   (VerifySolutionForBlock(lastblockdata.Difficult,LastBlockData.TargetHash,DireccionMinero,Solucion)=0)
-   and (StrToInt64(timestamp)+15 > StrToInt64(UTCTime)) ) then
-      begin
-      UndoneLastBlock(false,true);
-      CrearNuevoBloque(BlockNumber,StrToInt64(TimeStamp),Miner_Target,DireccionMinero,Solucion);
-      end
-// solucion distinta del ultimo con el mismo timestamp se elige la mas corta
-else if ( (BlockNumber = LastBlockData.Number) and
-   (StrToInt64(timestamp)=LastBlockData.TimeEnd) and
-   (VerifySolutionForBlock(lastblockdata.Difficult,LastBlockData.TargetHash,DireccionMinero,Solucion)=0) and
-   (StrToInt64(timestamp)+15 > StrToInt64(UTCTime)) and
-   (DireccionMinero<>LastBlockData.AccountMiner) and
-   (Solucion<LastBlockData.Solution) ) then
-      begin
-      UndoneLastBlock(false,true);
-      CrearNuevoBloque(BlockNumber,StrToInt64(TimeStamp),Miner_Target,DireccionMinero,Solucion);
-      end;
-end; // proceder 1
 End;
 
 // Send headers file to peer

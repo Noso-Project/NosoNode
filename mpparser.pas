@@ -42,7 +42,7 @@ Procedure AutoUpdateON();
 Procedure AutoUpdateOFF();
 Procedure ImportarWallet(LineText:string);
 Procedure ExportarWallet(LineText:string);
-Procedure ShowBlchHead();
+Procedure ShowBlchHead(number:integer);
 Procedure SetDefaultAddress(linetext:string);
 Procedure ParseShowBlockInfo(LineText:string);
 Procedure ShowBlockInfo(numberblock:integer);
@@ -227,12 +227,12 @@ else if UpperCase(Command) = 'SHOWWALLET' then ShowWallet()
 else if UpperCase(Command) = 'SENDUPDATE' then EnviarUpdate(LineText)
 else if UpperCase(Command) = 'IMPWALLET' then ImportarWallet(LineText)
 else if UpperCase(Command) = 'EXPWALLET' then ExportarWallet(LineText)
-else if UpperCase(Command) = 'RESUMEN' then ShowBlchHead()
+else if UpperCase(Command) = 'RESUMEN' then ShowBlchHead(StrToIntDef(Parameter(Linetext,1),MyLastBlock))
 else if UpperCase(Command) = 'SETDEFAULT' then SetDefaultAddress(LineText)
 else if UpperCase(Command) = 'LBINFO' then ShowBlockInfo(MyLastBlock)
 else if UpperCase(Command) = 'TIMESTAMP' then ConsoleLinesAdd(UTCTime)
 else if UpperCase(Command) = 'MD160' then showmd160(LineText)
-else if UpperCase(Command) = 'UNDONEBLOCK' then UndoneLastBlock(true,false)  // to be removed
+else if UpperCase(Command) = 'UNDOBLOCK' then UndoneLastBlock()  // to be removed
 else if UpperCase(Command) = 'CUSTOMIZE' then CustomizeAddress(LineText)
 else if UpperCase(Command) = 'SENDTO' then Parse_SendFunds(LineText)
 else if UpperCase(Command) = 'HALVING' then ShowHalvings()
@@ -302,7 +302,7 @@ else if UpperCase(Command) = 'DECTOHEX' then consolelinesadd(BMDectoHex(paramete
 
 // CONSULTING
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()
-else if UpperCase(Command) = 'NETHASHRATE' then consolelinesadd('Average Mainnet hashate: '+MainnetHashRate.ToString+' KH/s')
+else if UpperCase(Command) = 'NETHASHRATE' then consolelinesadd('Average Mainnet hashrate: '+MainnetHashRate.ToString+' KH/s')
 
 
 // 0.2.1 DEBUG
@@ -795,22 +795,32 @@ if nuevos > 0 then
 else ConsoleLinesAdd(LangLine(136));  //'No new addreses found.'
 End;
 
-Procedure ShowBlchHead();
+Procedure ShowBlchHead(number:integer);
 var
   Dato: ResumenData;
-  Registros : integer = 0;
+  Found : boolean = false;
+  StartBlock : integer = 0;
 Begin
-ConsoleLinesAdd('Block hash - Sumary hash');
+EnterCriticalSection(CSHeadAccess);
+StartBlock := number - 10;
+If StartBlock < 0 then StartBlock := 0;
+TRY
 assignfile(FileResumen,ResumenFilename);
 reset(FileResumen);
-Registros := filesize(FileResumen);
-while not eof (fileresumen) do
-   begin
+Seek(FileResumen,StartBlock);
+   REPEAT
    read(fileresumen, dato);
-   ConsoleLinesAdd(IntToStr(dato.block)+' '+copy(dato.blockhash,1,5)+' '+copy(dato.SumHash,1,5));
-   end;
+   if Dato.block= number then
+      begin
+      ConsoleLinesAdd(IntToStr(dato.block)+' '+copy(dato.blockhash,1,5)+' '+copy(dato.SumHash,1,5));
+      Found := true;
+      end;
+   UNTIL ((Found) or (eof(FileResumen)) );
 closefile(FileResumen);
-ConsoleLinesAdd(IntToStr(Registros)+' registers');
+EXCEPT ON E:Exception do
+   ConsoleLinesAdd('Error: '+E.Message)
+END;{TRY}
+LeaveCriticalSection(CSHeadAccess);
 End;
 
 // Cambiar la primera direccion de la wallet
@@ -1977,14 +1987,17 @@ End;
 Procedure DebugTest(linetext:string);
 var
   counter,count2 : integer;
+  header : BlockHeaderData;
 Begin
 count2 := 0;
-for counter := 0 to -1 do
+For counter := 1 to MyLastBlock do
    begin
-   consolelinesadd(counter.ToString);
-   count2 :=+1;
+   info(counter.ToString);
+   application.ProcessMessages;
+   header := LoadBlockDataHeader(counter);
+   if header.TargetHash <> header.LastBlockHash then count2 := count2+1;
    end;
-consolelinesadd('runned times: '+count2.ToString);
+ConsoleLinesAdd(count2.ToString)
 End;
 
 END. // END UNIT

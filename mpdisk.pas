@@ -80,7 +80,7 @@ function UnZipUpdateFromRepo():boolean;
 Procedure CreateResumen();
 Procedure BuildHeaderFile(untilblock:integer);
 Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
-Procedure DelBlChHeadLast();
+Function DelBlChHeadLast(Block:integer): boolean;
 
 Procedure CreateLauncherFile(IncludeUpdate:boolean = false);
 Procedure RestartNoso();
@@ -177,7 +177,6 @@ if UserOptions.PoolInfo<> '' then
 OutText('✓ Pool info verified',false,1);
 MyLastBlock := GetMyLastUpdatedBlock;
 OutText('✓ My last block verified: '+MyLastBlock.ToString,false,1);
-//BuildHeaderFile(MyLastBlock); // PROBABLY IT IS NOT NECESARY
 //OutText('✓ Headers file build',false,1);
 
 UpdateWalletFromSumario();
@@ -1538,18 +1537,18 @@ LeaveCriticalSection(CSHeadAccess);
 End;
 
 // Deletes last header from headers file
-Procedure DelBlChHeadLast();
+Function DelBlChHeadLast(Block:integer): boolean;
 Begin
 EnterCriticalSection(CSHeadAccess);
-   try
+   TRY
    assignfile(FileResumen,ResumenFilename);
    reset(FileResumen);
    seek(fileResumen,filesize(fileResumen)-1);
    truncate(fileResumen);
    closefile(FileResumen);
-   Except on E:Exception do
+   EXCEPT on E:Exception do
       tolog ('Error deleting last record from headers');
-   end;
+   END;{TRY}
 LeaveCriticalSection(CSHeadAccess);
 End;
 
@@ -1659,8 +1658,10 @@ if ListaMisTrx[0].Block < blocknumber then
    TRY
    PoSPayouts := StrToInt64Def(parameter(ListaMisTrx[0].receiver,0),0);
    PoSEarnings := StrToInt64Def(parameter(ListaMisTrx[0].receiver,1),0);
+   NewTrx := Default(MyTrxData);
    for contador := ListaMisTrx[0].Block+1 to blocknumber do
       begin
+      NewTrx := Default(MyTrxData);
       if Not G_Launching then
          begin
          info(Format('Rebuilding my Trxs: %d',[contador]));
@@ -1677,7 +1678,6 @@ if ListaMisTrx[0].Block < blocknumber then
       Header := LoadBlockDataHeader(contador);
       if DireccionEsMia(Header.AccountMiner)>=0 then // user is miner
          begin
-         NewTrx := Default(MyTrxData);
          NewTrx.block:=contador;
          NewTrx.time :=header.TimeEnd;
          NewTrx.tipo :='MINE';
@@ -1686,7 +1686,6 @@ if ListaMisTrx[0].Block < blocknumber then
          NewTrx.trfrID  :='';
          NewTrx.OrderID :='';
          NewTrx.reference:='';
-         insert(NewTrx,ListaMisTrx,length(ListaMisTrx));
          end;
       ArrTrxs := GetBlockTrxs(contador);
       if length(ArrTrxs)>0 then
@@ -1740,8 +1739,10 @@ if ListaMisTrx[0].Block < blocknumber then
             end;
          if BlockPayouts > 0 then
             ToLog(Format('PoS : %d -> %d : %s',[contador,BlockPayouts,Int2curr(BlockEarnings)]));
+         if NewTrx.tipo ='MINE' then NewTrx.monto :=NewTrx.monto-(PosReward*PosCount);
          SetLength(ArrayPos,0);
          end;
+      if NewTrx.tipo ='MINE' then insert(NewTrx,ListaMisTrx,length(ListaMisTrx));
       end;
    ListaMisTrx[0].block:=blocknumber;
    ListaMisTrx[0].receiver:=IntToStr(PoSPayouts)+' '+IntToStr(PoSEarnings);
@@ -2313,15 +2314,14 @@ End;
 function TryCopyFile(Source, destination:string):boolean;
 Begin
 result := true;
-   try
+   TRY
    copyfile (source,destination);
-   Except on E:Exception do
+   EXCEPT on E:Exception do
       begin
       result := false;
       ToExcLog('Error copying file ('+Source+') :'+E.Message);
       end;
-   end;
-
+   END; {TRY}
 End;
 
 // Returns the name of the app file without path

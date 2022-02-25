@@ -8,7 +8,11 @@ Version 0.3.0Aa5
 - Command "sumary" improved.
 - All pool relative commands deprecated.
 - Updated mainmenu.
-- Removed Form pool
+- Removed Form pool.
+- Protocol "$NEWBL" deprecated.
+- Improved function "ShowBlchHead".
+- Improved network synchronization.
+- Fixed "MINE" ammount on user transaction history.
 
 Up to Version 0.3.0Aa4
 

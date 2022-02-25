@@ -18,9 +18,8 @@ Function GuardarBloque(NombreArchivo:string;Cabezera:BlockHeaderData;Ordenes:arr
                         PosPay:Int64;PoSnumber:integer;PosAddresses:array of TArrayPos):boolean;
 function LoadBlockDataHeader(BlockNumber:integer):BlockHeaderData;
 function GetBlockTrxs(BlockNumber:integer):BlockOrdersArray;
-Procedure UndoneLastBlock(ClearPendings,UndoPoolPayment:boolean);
+Procedure UndoneLastBlock();
 Function GetBlockPoSes(BlockNumber:integer): BlockArraysPos;
-function GetBlockWork(solucion:string):int64;
 Function BlockAge():integer;
 Function NextBlockTimeStamp():Int64;
 Function RemainingTillNextBlock():String;
@@ -226,14 +225,12 @@ if not errored then
    AddBlchHead(Numero,MyLastBlockHash,MySumarioHash);
    MyResumenHash := HashMD5File(ResumenFilename);
    if ( (Numero>0) and (form1.Server.Active) ) then
-      begin  // Re-sent the block solution
-      OutgoingMsjsAdd(ProtocolLine(6)+IntToStr(timeStamp)+' '+IntToStr(Numero)+
-      ' '+Minero+' '+StringReplace(Solucion,' ','_',[rfReplaceAll, rfIgnoreCase]));
+      begin
       OutgoingMsjsAdd(ProtocolLine(ping));
       end;
    OutText(LangLine(89)+IntToStr(numero),true);  //'Block builded: '
 
-   if ((Numero > 0) and (not Miner_OwnsAPool)) then RebuildMyTrx(Numero);
+   if Numero > 0 then RebuildMyTrx(Numero);
    CheckForMyPending;
    if DIreccionEsMia(Minero)>-1 then showglobo('Miner','Block found!');
    U_DataPanel := true;
@@ -434,34 +431,19 @@ Result := resultado;
 end;
 
 // Deshacer el ultimo bloque
-Procedure UndoneLastBlock(ClearPendings,UndoPoolPayment:boolean);
+Procedure UndoneLastBlock();
 var
   blocknumber : integer;
-  ArrayOrders : BlockOrdersArray;
-  cont : integer;
 Begin
 blocknumber:= MyLastBlock;
 // recuperar el sumario
-if fileexists(SumarioFilename) then deletefile(SumarioFilename);
-copyfile(SumarioFilename+'.bak',SumarioFilename);
+Trydeletefile(SumarioFilename);
+Trycopyfile(SumarioFilename+'.bak',SumarioFilename);
 CargarSumario();
 // Actualizar la cartera
 UpdateWalletFromSumario();
 // actualizar el archivo de cabeceras
-DelBlChHeadLast();
-// Recuperar transacciones
-ArrayOrders := Default(BlockOrdersArray);
-ArrayOrders := GetBlockTrxs(MyLastBlock);
-if not ClearPendings then
-   begin
-   for cont := 0 to length(ArrayOrders)-1 do
-      addpendingtxs(ArrayOrders[cont]);
-   end;
-SetLength(ArrayOrders,0);
-if LastBlockData.AccountMiner = PoolInfo.Direccion then // El bloque deshecho fue minado por mi pool
-   begin
-   if UndoPoolPayment then PoolUndoneLastPayment();
-   end;
+DelBlChHeadLast(blocknumber);
 // Borrar archivo del ultimo bloque
 trydeletefile(BlockDirectory +IntToStr(MyLastBlock)+'.blk');
 // Actualizar mi informacion
@@ -469,28 +451,11 @@ MyLastBlock := GetMyLastUpdatedBlock;
 MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
 LastBlockData := LoadBlockDataHeader(MyLastBlock);
 MyResumenHash := HashMD5File(ResumenFilename);
-ResetMinerInfo();
 ConsoleLinesAdd('****************************');
 ConsoleLinesAdd(LAngLine(90)+IntToStr(blocknumber)); //'Block undone: '
 ConsoleLinesAdd('****************************');
 Tolog('Block Undone: '+IntToStr(blocknumber));
-UndonedBlocks := true;
 U_DataPanel := true;
-End;
-
-// devuelve la suma de los valores de la solucion de un bloque (eliminar?)
-function GetBlockWork(solucion:string):int64;
-var
-  contador : integer;
-  paso: string;
-Begin
-result := 0;
-for contador := 0 to Miner_Steps-1 do
-   begin
-   paso := Parameter(solucion,contador);
-   paso := copy(paso,10,9);
-   result := result + CadToNum(paso,0,'**CRITICAL: Error reading value of block solution.');
-   end;
 End;
 
 Function BlockAge():integer;

@@ -234,6 +234,7 @@ if conexiones[Slot].tipo='CLI' then
    begin
    SlotLines[slot].Clear;
    Conexiones[Slot].context.Connection.Disconnect;
+   Sleep(10);
    //Conexiones[Slot].Thread.terminate; // free ? WaitFor??
    Conexiones[Slot] := Default(conectiondata);
    end;
@@ -476,10 +477,6 @@ if MyConStatus > 0 then
       G_LastPing := StrToInt64(UTCTime);
       OutgoingMsjsAdd(ProtocolLine(ping));
       end;
-   if ( (not G_SendingMsgs) and (OutgoingMsjs.Count > 0) ) then // send the outgoing messages
-      begin
-
-      end;
    end;
 if ((NumeroConexiones>=MinConexToWork) and (MyConStatus<2) and (not STATUS_Connected)) then
    begin
@@ -500,7 +497,6 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
    U_Mytrxs := true;
    SumaryRebuilded:= false;
    ConsoleLinesAdd(LangLine(36));   //Updated!
-   UndonedBlocks := false;
    ResetMinerInfo();
    ResetPoolMiningInfo();
    if RPCAuto then  ProcessLinesAdd('RPCON');
@@ -784,12 +780,12 @@ U_PoSGrid := true;
 SetCurrentJob('UpdateMyData',false);
 End;
 
-// Solicitar los archivos necesarios para actualizarse con la red
+// Request necessary files/info to update
 Procedure ActualizarseConLaRed();
 var
   NLBV : integer = 0; // network last block value
+  ActionTaked : boolean = false;
 Begin
-Last_ActualizarseConLaRed := UTCTime.ToInt64;
 if BuildingBlock>0 then exit;
 if ((BlockAge <10) or (blockAge>595)) then exit;
 SetCurrentJob('ActualizarseConLaRed',true);
@@ -802,6 +798,7 @@ if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // sol
       PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
       ConsoleLinesAdd(LangLine(163)); //'Headers file requested'
       LastTimeRequestResumen := StrToInt64(UTCTime);
+      ActionTaked := true;
       end;
    end
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  // solicitar hasta 100 bloques
@@ -812,37 +809,39 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  /
       PTC_SendLine(NetResumenHash.Slot,ProtocolLine(8)); // lastblock
       ConsoleLinesAdd(LangLine(164)+IntToStr(mylastblock)); //'LastBlock requested from block '
       LastTimeRequestBlock := StrToInt64(UTCTime);
+      ActionTaked := true;
       end;
    end
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
-        (MySumarioHash<>NetSumarioHash.Value) and (not SumaryRebuilded)) then
+        (MySumarioHash<>NetSumarioHash.Value) and (ListaSumario[0].LastOP < mylastblock)) then
    begin  // complete or rebuild sumary
-   if ListaSumario[0].LastOP < mylastblock then CompleteSumary()
-   else
-      begin
-      UndoneLastBlock(true,false);
-      //RebuildSumario(MyLastBlock);
-      SumaryRebuilded:= true;
-      end;
+   CompleteSumary();
+   ActionTaked := true;
    end
+// Blockchain status issues starts here
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
-        (MySumarioHash<>NetSumarioHash.Value) and (SumaryRebuilded)) then
-   begin  // Blockchain status issue
-   ConsoleLinesAdd('EXCEPTION BLOCKCHAIN');
-   RebuildSumario(MyLastBlock);
-   //UndoneLastBlock(true,false);
-   //RestoreBlockChain();
-   end;
-
+        (MySumarioHash<>NetSumarioHash.Value) and (ListaSumario[0].LastOP = mylastblock)) then
+   begin
+   UndoneLastBlock();
+   ActionTaked := true;
+   end
+else if ( (mylastblock = NLBV) and ( (MyResumenhash <> NetResumenHash.Value) or
+   (MyLastBlockHash<>NetLastBlockHash.value) ) ) then
+   begin
+   UndoneLastBlock();
+   ActionTaked := true;
+   end
 // Update headers
-if ((MyResumenhash <> NetResumenHash.Value) and (NLBV=mylastblock) and (MyLastBlockHash=NetLastBlockHash.value)
+else if ((MyResumenhash <> NetResumenHash.Value) and (NLBV=mylastblock) and (MyLastBlockHash=NetLastBlockHash.value)
    and (MySumarioHash=NetSumarioHash.Value)) then
    begin
    ClearAllPending;
    PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
    ConsoleLinesAdd(LangLine(163)); //'Headers file requested'
    LastTimeRequestResumen := StrToInt64(UTCTime);
+   ActionTaked := true;
    end;
+if not ActionTaked then Last_ActualizarseConLaRed := UTCTime.ToInt64;
 SetCurrentJob('ActualizarseConLaRed',false);
 End;
 
