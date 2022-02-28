@@ -243,19 +243,17 @@ End;
 Function GetDiffHashrate(bestdiff:String):integer;
 var
   counter, number:integer;
+
 Begin
 repeat
   counter := counter+1;
 until bestdiff[counter]<> '0';
-number := counter-1;
-if number<5 then result := 0
-else if number = 5 then result := 2
-else if number = 6 then result := 29
-else if number = 7 then result := 467
-else if number = 8 then result := 7469
-else if number = 9 then result := 119512
-else if number = 10 then result := 1912194
-else if number > 10 then result := 30595106
+Result := (Counter-1)*100;
+if bestdiff[counter]='1' then Result := Result+50;
+if bestdiff[counter]='2' then Result := Result+25;
+if bestdiff[counter]='3' then Result := Result+12;
+if bestdiff[counter]='4' then Result := Result+6;
+if bestdiff[counter]='5' then Result := Result+3;
 End;
 
 // Devuelve cuantos caracteres compondran el targethash del siguiente bloque
@@ -436,6 +434,7 @@ var
   blocknumber : integer;
 Begin
 blocknumber:= MyLastBlock;
+if BlockNumber = 0 then exit;
 // recuperar el sumario
 Trydeletefile(SumarioFilename);
 Trycopyfile(SumarioFilename+'.bak',SumarioFilename);

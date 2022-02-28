@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, mpCripto, mpTime, mpblock, mpcoin,
   dialogs, fileutil, forms, idglobal, poolmanage, strutils, mpRPC, DateUtils, Clipbrd,translation,
-  idContext;
+  idContext, math;
 
 procedure ProcessLinesAdd(const ALine: String);
 procedure ConsoleLinesAdd(const ALine: String);
@@ -87,7 +87,7 @@ Procedure ExportKeys(linea:string);
 
 // CONSULTING
 Procedure ShowDiftory();
-Function MainNetHashrate():integer;
+Function MainNetHashrate():string;
 
 // 0.2.1 DEBUG
 Procedure ShowBlockPos(LineText:string);
@@ -302,7 +302,7 @@ else if UpperCase(Command) = 'DECTOHEX' then consolelinesadd(BMDectoHex(paramete
 
 // CONSULTING
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()
-else if UpperCase(Command) = 'NETHASHRATE' then consolelinesadd('Average Mainnet hashrate: '+MainnetHashRate.ToString+' KH/s')
+else if UpperCase(Command) = 'NETRATE' then consolelinesadd('Average Mainnet hashrate: '+MainnetHashRate+' KH/s')
 
 
 // 0.2.1 DEBUG
@@ -1801,15 +1801,13 @@ for counter := 1 to MyLastBlock do
 ConsoleLinesAdd('Highest ever: '+IntToStr(HighDiff)+' on block '+highblock.ToString);
 End;
 
-Function MainNetHashrate():integer;
+Function MainNetHashrate():string;
 var
   counter : integer;
-  TotalRate : integer = 0;
+  TotalRate : double = 0;
   Header : BlockHeaderData;
   ThisBlockDiff : string;
   ThisBlockValue : integer;
-  Better : integer = 0;
-  worst  : integer = 999999999;
   TotalBlocksCalculated : integer = 100;
   ResultStr : string = '';
 Begin
@@ -1818,16 +1816,14 @@ For counter:= MyLastblock downto Mylastblock-(TotalBlocksCalculated-1) do
    Header := LoadBlockDataHeader(counter);
    ThisBlockDiff := Parameter(Header.Solution,1);
    ThisBlockValue := GetDiffHashrate(ThisBlockDiff);
-   TotalRate := TotalRate+ThisBlockValue;
-   if ThisBlockValue>Better then Better := ThisBlockValue;
-   if ThisBlockValue<Worst then Worst := ThisBlockValue;
+   TotalRate := TotalRate+(ThisBlockValue/100);
    ResultStr := ResultStr+Format('[%d]-',[ThisBlockValue]);
    end;
-//ConsoleLinesAdd('Best  : '+Better.ToString);
-//ConsoleLinesAdd('Worst : '+worst.ToString);
 //ConsoleLinesAdd(ResultStr);
-TotalRate := TotalRate - Better - Worst;
-Result := TotalRate div (TotalBlocksCalculated-2);
+TotalRate := TotalRate/TotalBlocksCalculated;
+TotalRate := Power(16,TotalRate);
+TotalRate := TotalRate/(575*1024);
+Result := FormatFloat('0.00',TotalRate);
 End;
 
 function ShowPrivKey(linea:String;ToConsole:boolean = false):String;
