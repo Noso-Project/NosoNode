@@ -495,7 +495,6 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
    SetNMSData('','','');
    MyConStatus := 3;
    U_Mytrxs := true;
-   SumaryRebuilded:= false;
    ConsoleLinesAdd(LangLine(36));   //Updated!
    ResetMinerInfo();
    ResetPoolMiningInfo();
@@ -547,34 +546,6 @@ if MyConStatus = 3 then
      ReportMyMN;
      LastTimeReportMyMN := UTCTime.ToInt64;
      end;
-   {
-   if ((StrToIntDef(NetMNsCount.Value,0)>MyMNsCount) and (UTCTime.ToInt64>LastTimeMNsRequested+5) and (Length(WaitingMNs)=0)) then
-      begin
-      PTC_SendLine(NetMNsHash.Slot,ProtocolLine(11));  // Get MNs
-      LastTimeMNsRequested := UTCTime.ToInt64;
-      ConsoleLinesAdd('Master nodes requested');
-      end;
-   }
-   if ( (IntToStr(MyLastBlock) <> NetLastBlock.Value) or (MySumarioHash<>NetSumarioHash.Value) or
-      (MyResumenhash <> NetResumenHash.Value) ) then // desincronizado
-      Begin
-
-      end
-   else SynchWarnings := 0;
-   if ((Miner_OwnsAPool) and (not Form1.PoolServer.Active) and (G_KeepPoolOff = false)) then // Activar el pool propio si se posee uno
-      begin
-      if ( (Mylastblock+1 = StrToIntDef(parameter(Miner_RestartedSolution,0),-1)) and
-         (StrToIntDef(parameter(Miner_RestartedSolution,1),-1)>0) ) then
-         begin
-         // REstart pool solution
-         RestartPoolSolution();
-         end;
-      Miner_RestartedSolution := '';
-      end;
-   if ((Miner_OwnsAPool) and (Form1.PoolServer.Active) and (LastPoolHashRequest+5<StrToInt64(UTCTime))) then
-      begin
-      CalculatePoolHashrate;
-      end;
    SetCurrentJob('MyConStatus3',false);
    end;
 EXCEPT ON E:Exception do

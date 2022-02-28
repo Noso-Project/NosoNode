@@ -435,6 +435,11 @@ var
 Begin
 blocknumber:= MyLastBlock;
 if BlockNumber = 0 then exit;
+if Form1.Server.Active then
+   begin
+   Form1.Server.Active := false;
+   MyConStatus := 2;
+   end;
 // recuperar el sumario
 Trydeletefile(SumarioFilename);
 Trycopyfile(SumarioFilename+'.bak',SumarioFilename);
