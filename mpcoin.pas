@@ -596,9 +596,9 @@ Begin
 result := (GetSupply(block)*PosStackCoins) div 10000;
 End;
 
-// *****
+// ***********
 // MASTERNODES
-// *****
+// ***********
 
 Function IsValidMNReport(Node:Tmasternode):Boolean;
 Begin

@@ -1819,7 +1819,7 @@ For counter:= MyLastblock downto Mylastblock-(TotalBlocksCalculated-1) do
    TotalRate := TotalRate+(ThisBlockValue/100);
    ResultStr := ResultStr+Format('[%d]-',[ThisBlockValue]);
    end;
-//ConsoleLinesAdd(ResultStr);
+ConsoleLinesAdd(ResultStr);
 TotalRate := TotalRate/TotalBlocksCalculated;
 TotalRate := Power(16,TotalRate);
 TotalRate := TotalRate/(575*1024);

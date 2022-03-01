@@ -550,7 +550,7 @@ if MyConStatus = 3 then
    end;
 EXCEPT ON E:Exception do
    begin
-   ToExcLog(format(rs2002,[E.Message]));
+   ToExcLog(format(rs2002,[E.Message])+' '+CurrentJob);
    end;
 END{Try};
 SetCurrentJob('VerifyConnectionStatus',false);
