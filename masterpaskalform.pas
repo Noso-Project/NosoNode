@@ -1145,10 +1145,10 @@ if Continuar then
          begin
          if GetCommand(LLine) = 'RESUMENFILE' then
             begin
+            DownloadHeaders := true;
             EnterCriticalSection(CSHeadAccess);
             ToLog(rs0003); //'Receiving headers'
             ConsoleLinesAdd(rs0003); //'Receiving headers'
-            DownloadHeaders := true;
             TRY
             AFileStream := TFileStream.Create(ResumenFilename, fmCreate);
             Errored := False;
@@ -1175,8 +1175,8 @@ if Continuar then
                END; {TRY}
                end;
             if Assigned(AFileStream) then AFileStream.Free;
-            DownloadHeaders := false;
             LeaveCriticalSection(CSHeadAccess);
+            DownloadHeaders := false;
             if not errored and downloaded then
                begin
                consolelinesAdd(format(rs0005,[copy(HashMD5File(ResumenFilename),1,5)])); //'Headers file received'
