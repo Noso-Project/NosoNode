@@ -732,7 +732,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa54';
+  SubVersion = 'Aa55';
   OficialRelease = false;
   VersionRequired = '0.3.0Aa1';
   BuildDate = 'Febraury 2022';
@@ -1159,7 +1159,7 @@ if Continuar then
             END; {TRY}
             if not errored then
                begin
-               CanalCliente[FSlot].ReadTimeout:=0;
+               CanalCliente[FSlot].ReadTimeout:=10000;
                downloaded := false;
                TRY
                CanalCliente[FSlot].IOHandler.ReadStream(AFileStream);
