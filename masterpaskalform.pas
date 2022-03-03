@@ -1176,13 +1176,13 @@ if Continuar then
                end;
             if Assigned(AFileStream) then AFileStream.Free;
             LeaveCriticalSection(CSHeadAccess);
-            DownloadHeaders := false;
             if not errored and downloaded then
                begin
                consolelinesAdd(format(rs0005,[copy(HashMD5File(ResumenFilename),1,5)])); //'Headers file received'
                LastTimeRequestResumen := 0;
                UpdateMyData();
                end;
+            DownloadHeaders := false;
             end
          else if LLine = 'BLOCKZIP' then
             begin
