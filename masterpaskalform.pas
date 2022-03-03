@@ -1105,6 +1105,7 @@ var
   BlockZipName : string = '';
   Continuar : boolean = true;
   TruncateLine : string = '';
+  Errored, downloaded : Boolean;
 begin
 REPEAT
 sleep(1);
@@ -1146,28 +1147,42 @@ if Continuar then
             begin
             EnterCriticalSection(CSHeadAccess);
             ToLog(rs0003); //'Receiving headers'
+            ConsoleLinesAdd(rs0003); //'Receiving headers'
             DownloadHeaders := true;
-               try
-               AFileStream := TFileStream.Create(ResumenFilename, fmCreate);
-               CanalCliente[FSlot].ReadTimeout:=0;
-                  try
-                  CanalCliente[FSlot].IOHandler.ReadStream(AFileStream);
-                  Except on E:Exception do
-                     begin
-                     toExcLog(format(rs0004,[conexiones[fSlot].ip,E.Message]));
-                     //toExcLog(format('Error Receiving headers from %s (%s)',[conexiones[fSlot].ip,E.Message]));
-                     consolelinesadd(format(rs0004,[conexiones[fSlot].ip,E.Message]));
-                     //consolelinesadd(format('Error Receiving headers from %s (%s)',[conexiones[fSlot].ip,E.Message]));
-                     end;
-                  end;
-               finally
-               AFileStream.Free;
-               DownloadHeaders := false;
-               LeaveCriticalSection(CSHeadAccess);
+            TRY
+            AFileStream := TFileStream.Create(ResumenFilename, fmCreate);
+            Errored := False;
+            EXCEPT ON E:Exception do
+               begin
+               Errored := true;
                end;
-            consolelinesAdd(format(rs0005,[copy(HashMD5File(ResumenFilename),1,5)])); //'Headers file received'
-            LastTimeRequestResumen := 0;
-            UpdateMyData();
+            END; {TRY}
+            if not errored then
+               begin
+               CanalCliente[FSlot].ReadTimeout:=0;
+               downloaded := false;
+               TRY
+               CanalCliente[FSlot].IOHandler.ReadStream(AFileStream);
+               downloaded := true;
+               EXCEPT on E:Exception do
+                  begin
+                  downloaded := false;
+                  toExcLog(format(rs0004,[conexiones[fSlot].ip,E.Message]));
+                  //toExcLog(format('Error Receiving headers from %s (%s)',[conexiones[fSlot].ip,E.Message]));
+                  consolelinesadd(format(rs0004,[conexiones[fSlot].ip,E.Message]));
+                  //consolelinesadd(format('Error Receiving headers from %s (%s)',[conexiones[fSlot].ip,E.Message]));
+                  end;
+               END; {TRY}
+               end;
+            if Assigned(AFileStream) then AFileStream.Free;
+            DownloadHeaders := false;
+            LeaveCriticalSection(CSHeadAccess);
+            if not errored and downloaded then
+               begin
+               consolelinesAdd(format(rs0005,[copy(HashMD5File(ResumenFilename),1,5)])); //'Headers file received'
+               LastTimeRequestResumen := 0;
+               UpdateMyData();
+               end;
             end
          else if LLine = 'BLOCKZIP' then
             begin
@@ -2852,6 +2867,7 @@ if GoAhead then
                begin
                Form1.TryCloseServerConnection(Conexiones[Slot].context);
                ToExcLog(Format(rs0051,[E.Message]));
+               ConsoleLinesAdd(Format(rs0051,[E.Message]));
                //ToExcLog('SERVER: Error sending headers file ('+E.Message+')');
                end;
             end;
