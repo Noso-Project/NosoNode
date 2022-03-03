@@ -321,7 +321,7 @@ End;
 Procedure ProcessPing(LineaDeTexto: string; Slot: integer; Responder:boolean);
 var
   PProtocol, PVersion, PConexiones, PTime, PLastBlock, PLastBlockHash, PSumHash, PPending : string;
-  PResumenHash, PConStatus, PListenPort, PMNsHash, PMNsCount : String;
+  PResumenHash, PConStatus, PListenPort, PMNsHash, PMNsCount, BestHashDiff : String;
 Begin
 PProtocol      := Parameter(LineaDeTexto,1);
 PVersion       := Parameter(LineaDeTexto,2);
@@ -336,21 +336,23 @@ PConStatus     := Parameter(LineaDeTexto,11);
 PListenPort    := Parameter(LineaDeTexto,12);
 PMNsHash       := Parameter(LineaDeTexto,13);
 PMNsCount      := Parameter(LineaDeTexto,14);
-conexiones[slot].Autentic:=true;
-conexiones[slot].Connections:=StrToIntDef(PConexiones,1);
-conexiones[slot].Version:=PVersion;
-conexiones[slot].Lastblock:=PLastBlock;
+BestHashDiff   := Parameter(LineaDeTexto,15);
+conexiones[slot].Autentic     :=true;
+conexiones[slot].Connections  :=StrToIntDef(PConexiones,1);
+conexiones[slot].Version      :=PVersion;
+conexiones[slot].Lastblock    :=PLastBlock;
 conexiones[slot].LastblockHash:=PLastBlockHash;
-conexiones[slot].SumarioHash:=PSumHash;
-conexiones[slot].Pending:=StrToIntDef(PPending,0);
-conexiones[slot].Protocol:=StrToIntDef(PProtocol,0);
-conexiones[slot].offset:=StrToInt64(PTime)-StrToInt64(UTCTime);
-conexiones[slot].lastping:=UTCTime;
-conexiones[slot].ResumenHash:=PResumenHash;
-conexiones[slot].ConexStatus:=StrToIntDef(PConStatus,0);
+conexiones[slot].SumarioHash  :=PSumHash;
+conexiones[slot].Pending      :=StrToIntDef(PPending,0);
+conexiones[slot].Protocol     :=StrToIntDef(PProtocol,0);
+conexiones[slot].offset       :=StrToInt64(PTime)-StrToInt64(UTCTime);
+conexiones[slot].lastping     :=UTCTime;
+conexiones[slot].ResumenHash  :=PResumenHash;
+conexiones[slot].ConexStatus  :=StrToIntDef(PConStatus,0);
 conexiones[slot].ListeningPort:=StrToIntDef(PListenPort,-1);
-conexiones[slot].MNsHash:=PMNsHash;
-conexiones[slot].MNsCount:=StrToIntDef(PMNsCount,0);
+conexiones[slot].MNsHash      :=PMNsHash;
+conexiones[slot].MNsCount     :=StrToIntDef(PMNsCount,0);
+conexiones[slot].BestHashDiff := BestHashDiff;
 if responder then PTC_SendLine(slot,ProtocolLine(4));
 if responder then G_TotalPings := G_TotalPings+1;
 End;
@@ -370,7 +372,8 @@ result :=IntToStr(GetTotalConexiones())+' '+
          IntToStr(MyConStatus)+' '+
          IntToStr(port)+' '+
          copy(MyMNsHash,0,5)+' '+
-         IntToStr(MyMNsCount);
+         IntToStr(MyMNsCount)+' '+
+         GetNMSData.Diff;
 End;
 
 // Envia las TXs pendientes al slot indicado

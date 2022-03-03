@@ -118,7 +118,7 @@ Procedure CreateFormSlots();
 Begin
 FormSlots := TFormSlots.Createnew(form1);
 FormSlots.caption := coinname+' Slots Monitor';
-FormSlots.SetBounds(0, 0, 635, 410);
+FormSlots.SetBounds(0, 0, 715, 410);
 FormSlots.BorderStyle := bssingle;
 //FormSlots.Position:=poOwnerFormCenter;
 FormSlots.Top:=1;FormSlots.Left:=1;
@@ -127,9 +127,9 @@ FormSlots.ShowInTaskBar:=sTAlways;
 
 GridMSlots := TStringGrid.Create(FormSlots);GridMSlots.Parent:=FormSlots;
 GridMSlots.Font.Name:='consolas'; GridMSlots.Font.Size:=8;
-GridMSlots.Left:=1;GridMSlots.Top:=1;GridMSlots.Height:=408;GridMSlots.width:=629;
+GridMSlots.Left:=1;GridMSlots.Top:=1;GridMSlots.Height:=408;GridMSlots.width:=709;
 GridMSlots.FixedCols:=0;GridMSlots.FixedRows:=1;
-GridMSlots.rowcount := MaxConecciones+1;GridMSlots.ColCount:=17;
+GridMSlots.rowcount := MaxConecciones+1;GridMSlots.ColCount:=18;
 GridMSlots.ScrollBars:=ssVertical;
 GridMSlots.FocusRectVisible:=false;
 GridMSlots.Options:= GridMSlots.Options-[goRangeSelect];
@@ -138,14 +138,14 @@ GridMSlots.ColWidths[3]:= 20;GridMSlots.ColWidths[4]:= 48;GridMSlots.ColWidths[5
 GridMSlots.ColWidths[6]:= 40;GridMSlots.ColWidths[7]:= 25;GridMSlots.ColWidths[8]:= 25;
 GridMSlots.ColWidths[9]:= 70;GridMSlots.ColWidths[10]:= 30;GridMSlots.ColWidths[11]:= 25;
 GridMSlots.ColWidths[12]:= 40;GridMSlots.ColWidths[13]:= 25;GridMSlots.ColWidths[14]:= 29;
-GridMSlots.ColWidths[15]:= 40;GridMSlots.ColWidths[16]:= 25;
+GridMSlots.ColWidths[15]:= 40;GridMSlots.ColWidths[16]:= 25;GridMSlots.ColWidths[17]:= 80;
 GridMSlots.Enabled := true;
 GridMSlots.Cells[0,0]:='N';GridMSlots.Cells[1,0]:='IP';GridMSlots.Cells[2,0]:='T';
 GridMSlots.Cells[3,0]:='Cx';GridMSlots.Cells[4,0]:='LBl';GridMSlots.Cells[5,0]:='LBlH';
 GridMSlots.Cells[6,0]:='SumH';GridMSlots.Cells[7,0]:='Pen';GridMSlots.Cells[8,0]:='Pro';
 GridMSlots.Cells[9,0]:='Ver';GridMSlots.Cells[10,0]:='LiP';GridMSlots.Cells[11,0]:='Off';
 GridMSlots.Cells[12,0]:='HeaH';GridMSlots.Cells[13,0]:='Sta';GridMSlots.Cells[14,0]:='Ping';
-GridMSlots.Cells[15,0]:='MNs';GridMSlots.Cells[16,0]:='#';
+GridMSlots.Cells[15,0]:='MNs';GridMSlots.Cells[16,0]:='#';GridMSlots.Cells[17,0]:='Besthash';
 GridMSlots.GridLineWidth := 1;
 GridMSlots.OnPrepareCanvas:= @FormSlots.GridMSlotsPrepareCanvas;
 End;
@@ -178,6 +178,7 @@ if CurrentUTC>SlotsLastUpdate then
       GridMSlots.Cells[14,contador]:= IntToStr(UTCTime.ToInt64-StrToInt64Def(Conexiones[contador].lastping,UTCTime.ToInt64));
       GridMSlots.Cells[15,contador]:= Conexiones[contador].MNsHash;
       GridMSlots.Cells[16,contador]:= IntToStr(Conexiones[contador].MNsCount);
+      GridMSlots.Cells[17,contador]:= Conexiones[contador].BestHashDiff;
       end;
    SlotsLastUpdate := CurrentUTC;
    end;
@@ -359,16 +360,7 @@ if U_PoSGrid then
 
 if (Miner_IsOn) then
    Begin
-   { Deprecated
-   if MINER_HashCounter > Miner_UltimoRecuento then Miner_EsteIntervalo := MINER_HashCounter-Miner_UltimoRecuento
-   else Miner_EsteIntervalo := MINER_HashCounter+900000000-Miner_UltimoRecuento;
-   Miner_UltimoRecuento := MINER_HashCounter;
-   form1.DataPanel.Cells[3,0]:=Copy(NMS_Miner,1,10)+'...';
-   form1.DataPanel.Cells[3,1]:=Copy(NMS_Diff,1,10);
-   form1.DataPanel.Cells[3,2]:='['+IntToStr(Miner_Difficult)+'] '+copy(Miner_Target,1,Miner_DifChars);
-   form1.DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
-   form1.DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+BlockAge.ToString;
-   }
+
    end
 else
    begin

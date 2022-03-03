@@ -13,6 +13,9 @@ Version 0.3.0Aa5
 - Improved function "ShowBlchHead".
 - Improved network synchronization.
 - Fixed "MINE" ammount on user transaction history.
+- Added MyConStatus=3 filter to build new blocks
+- Implemented besthash tracking and update.
+- Developed IsAllSynced function.
 
 Up to Version 0.3.0Aa4
 

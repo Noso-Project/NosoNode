@@ -34,7 +34,9 @@ function UpdateNetworkPendingTrxs():NetworkData;
 function UpdateNetworkResumenHash():NetworkData;
 function UpdateNetworkMNsHash():NetworkData;
 function UpdateNetworkMNsCount():NetworkData;
+function UpdateNetworkBestHash():NetworkData;
 Procedure UpdateNetworkData();
+Function IsAllSynced():Boolean;
 Procedure UpdateMyData();
 Procedure ActualizarseConLaRed();
 Procedure AddNewBot(linea:string);
@@ -487,6 +489,14 @@ if ((NumeroConexiones>=MinConexToWork) and (MyConStatus<2) and (not STATUS_Conne
 if STATUS_Connected then
    begin
    UpdateNetworkData();
+   { To be implemented on next release
+   if GetNMSData.Diff<>NetBestHash.Value  then
+      begin
+      SetNMSData('','','');
+      PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));
+      ConsolelinesAdd('Requesting besthash');
+      end;
+   }
    if Last_ActualizarseConLaRed+4<UTCTime.ToInt64 then ActualizarseConLaRed();
    end;
 if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLastBlock.Value)
@@ -724,6 +734,23 @@ if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
 else result := Default(NetworkData);
 End;
 
+function UpdateNetworkBestHash():NetworkData;
+var
+  contador : integer = 1;
+Begin
+SetLength(ArrayConsenso,0);
+ConsensoValues := 0;
+for contador := 1 to MaxConecciones do
+   Begin
+   if ( (conexiones[contador].tipo<> '') and (IsSeedNode(conexiones[contador].ip)) ) then
+      begin
+      UpdateConsenso(conexiones[contador].BestHashDiff, contador);
+      end;
+   end;
+if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
+else result := Default(NetworkData);
+End;
+
 Procedure UpdateNetworkData();
 Begin
 SetCurrentJob('UpdateNetworkData',true);
@@ -734,9 +761,20 @@ NetPendingTrxs := UpdateNetworkPendingTrxs;
 NetResumenHash := UpdateNetworkResumenHash;
 NetMNsHash := UpdateNetworkMNsHash;
 NetMNsCount := UpdateNetworkMNsCOunt;
+NetBestHash := UpdateNetworkBestHash;
 U_DataPanel := true;
 SetCurrentJob('UpdateNetworkData',false);
-// Si lastblock y sumario no estan actualizados solicitarlos
+End;
+
+Function IsAllSynced():Boolean;
+Begin
+result := true;
+if MyLastBlock <> StrToIntDef(NetLastBlock.Value,0) then result := false;
+if MyLastBlockHash <> NetLastBlockHash.Value then result := false;
+if MySumarioHash <> NetSumarioHash.Value then result := false;
+if MyResumenHash <> NetResumenHash.Value then result := false;
+if GetPendingCount <> StrToIntDef(NetPendingTrxs.Value,0) then result := false;
+//if NetBestHash.Value <> GetNMSData.Diff then result := false;
 End;
 
 // Actualiza mi informacion para compoartirla en la red
@@ -755,7 +793,6 @@ End;
 Procedure ActualizarseConLaRed();
 var
   NLBV : integer = 0; // network last block value
-  ActionTaked : boolean = false;
 Begin
 if BuildingBlock>0 then exit;
 if ((BlockAge <10) or (blockAge>595)) then exit;
@@ -769,7 +806,6 @@ if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // sol
       PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
       ConsoleLinesAdd(LangLine(163)); //'Headers file requested'
       LastTimeRequestResumen := StrToInt64(UTCTime);
-      ActionTaked := true;
       end;
    end
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  // solicitar hasta 100 bloques
@@ -780,27 +816,23 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  /
       PTC_SendLine(NetResumenHash.Slot,ProtocolLine(8)); // lastblock
       ConsoleLinesAdd(LangLine(164)+IntToStr(mylastblock)); //'LastBlock requested from block '
       LastTimeRequestBlock := StrToInt64(UTCTime);
-      ActionTaked := true;
       end;
    end
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
         (MySumarioHash<>NetSumarioHash.Value) and (ListaSumario[0].LastOP < mylastblock)) then
    begin  // complete or rebuild sumary
    CompleteSumary();
-   ActionTaked := true;
    end
 // Blockchain status issues starts here
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
         (MySumarioHash<>NetSumarioHash.Value) and (ListaSumario[0].LastOP = mylastblock)) then
    begin
    UndoneLastBlock();
-   ActionTaked := true;
    end
 else if ( (mylastblock = NLBV) and ( (MyResumenhash <> NetResumenHash.Value) or
    (MyLastBlockHash<>NetLastBlockHash.value) ) ) then
    begin
    UndoneLastBlock();
-   ActionTaked := true;
    end
 // Update headers
 else if ((MyResumenhash <> NetResumenHash.Value) and (NLBV=mylastblock) and (MyLastBlockHash=NetLastBlockHash.value)
@@ -810,9 +842,8 @@ else if ((MyResumenhash <> NetResumenHash.Value) and (NLBV=mylastblock) and (MyL
    PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
    ConsoleLinesAdd(LangLine(163)); //'Headers file requested'
    LastTimeRequestResumen := StrToInt64(UTCTime);
-   ActionTaked := true;
    end;
-if not ActionTaked then Last_ActualizarseConLaRed := UTCTime.ToInt64;
+if IsAllSynced then Last_ActualizarseConLaRed := Last_ActualizarseConLaRed+5;
 SetCurrentJob('ActualizarseConLaRed',false);
 End;
 

@@ -435,10 +435,12 @@ var
 Begin
 blocknumber:= MyLastBlock;
 if BlockNumber = 0 then exit;
-if Form1.Server.Active then
+if MyConStatus = 3 then
    begin
-   Form1.Server.Active := false;
+   if Form1.Server.Active then Form1.Server.Active := false;
    MyConStatus := 2;
+   SetNMSData('','','');
+   ClearAllPending;
    end;
 // recuperar el sumario
 Trydeletefile(SumarioFilename);

@@ -126,6 +126,7 @@ type
      Thread : TThreadClientRead;
      MNsHash : string[5];
      MNsCount : Integer;
+     BestHashDiff : string[32];
      end;
 
   WalletData = Packed Record
@@ -720,7 +721,8 @@ CONST
                             '107.172.5.8 '+
                             '109.230.238.240 '+
                             '23.94.21.83 '+
-                            '172.245.52.208';
+                            '172.245.52.208 '+
+                            '107.175.59.177';
   ProgramVersion = '0.3.0';
   {$IFDEF WINDOWS}
   RestartFileName = 'launcher.bat';
@@ -730,7 +732,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa53';
+  SubVersion = 'Aa54';
   OficialRelease = false;
   VersionRequired = '0.3.0Aa1';
   BuildDate = 'Febraury 2022';
@@ -970,6 +972,7 @@ var
     LastTimePendingRequested : int64 = 0;
   NetMNsHash     : NetworkData;
   NetMNsCount    : NetworkData;
+  NetBestHash    : NetworkData;
     LastTimeMNsRequested   : int64 = 0;
   // Variables asociadas a mi conexion
   MyConStatus :  integer = 0;
@@ -1915,7 +1918,7 @@ Begin
 if EngineLastUpdate <> UTCtime.ToInt64 then EngineLastUpdate := UTCtime.ToInt64;
 Form1.Latido.Enabled:=false;
 CheckClipboardForPays();
-if ( (UTCTime.ToInt64 >= BuildNMSBlock) and (BuildNMSBlock>0) and (GetNMSData.Miner<>'') and (Protocolo=2) ) then
+if ( (UTCTime.ToInt64 >= BuildNMSBlock) and (BuildNMSBlock>0) and (GetNMSData.Miner<>'') and (MyConStatus=3) ) then
    CrearNuevoBloque(MyLastBlock+1,BuildNMSBlock,MyLastBlockHash,GetNMSData.Miner,GetNMSData.Hash);
 setmilitime('ActualizarGUI',1);
 ActualizarGUI();
