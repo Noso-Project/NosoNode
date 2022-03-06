@@ -509,11 +509,6 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
    ResetMinerInfo();
    ResetPoolMiningInfo();
    if RPCAuto then  ProcessLinesAdd('RPCON');
-   if ((Miner_OwnsAPool) and (Miner_Active) and(not Form1.PoolServer.Active) and (G_KeepPoolOff = false)) then // Activar el pool propio si se posee uno
-      begin
-      if Form1.PoolServer.Active then ConsoleLinesAdd(PoolInfo.Name+' pool server is listening')
-      else ConsoleLinesAdd('Unable to start pool server');
-      end;
    if StrToIntDef(NetPendingTrxs.Value,0)<GetPendingCount then
       begin
       setlength(PendingTxs,0);
@@ -526,34 +521,27 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
       ConsoleLinesAdd('Pending requested to '+conexiones[NetPendingTrxs.Slot].ip);
       end;
    // Get MNS
-   if ((StrToIntDef(NetMNsCount.Value,0)>MyMNsCount) and (UTCTime.ToInt64>LastTimeMNsRequested+5) and (Length(WaitingMNs)=0)) then
-      begin
-      PTC_SendLine(NetMNsHash.Slot,ProtocolLine(11));  // Get MNs
-      LastTimeMNsRequested := UTCTime.ToInt64;
-      ConsoleLinesAdd('Master nodes requested');
-      end;
+   PTC_SendLine(NetMNsHash.Slot,ProtocolLine(11));  // Get MNs
+   LastTimeMNsRequested := UTCTime.ToInt64;
+   ConsoleLinesAdd('Master nodes requested');
+
    OutgoingMsjsAdd(ProtocolLine(ping));
    Form1.imagenes.GetBitmap(0,form1.ConnectButton.Glyph);
    end;
 if MyConStatus = 3 then
    begin
    SetCurrentJob('MyConStatus3',true);
-   if StrToIntDef(NetPendingTrxs.Value,0)<GetPendingCount then
-      begin
-      //setlength(PendingTxs,0);
-      end;
    if ((StrToIntDef(NetPendingTrxs.Value,0)>GetPendingCount) and (LastTimePendingRequested+5<UTCTime.ToInt64) and
       (length(ArrayCriptoOp)=0) ) then
       begin
-      SetCurrentJob('RequestingPendings',true);
       PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));  // Get pending
       LastTimePendingRequested := UTCTime.ToInt64;
-      ConsoleLinesAdd('Pending requested');
-      SetCurrentJob('RequestingPendings',false);
+      ConsoleLinesAdd('Pending requested to '+conexiones[NetPendingTrxs.Slot].ip);
       end;
-   if ( (StrToIntDef(NetMNsCount.Value,0) = length(MNsList)) and (not MyMNIsListed) and (UTCTime.ToInt64>LastTimeReportMyMN+5) ) then
+   if ( (not MyMNIsListed) and (Form1.Server.Active) and (UTCTime.ToInt64>LastTimeReportMyMN+5) ) then
      begin
-     ReportMyMN;
+     OutGoingMsjsAdd(ProtocolLine(MNReport));
+     ConsoleLinesAdd('My Masternode reported');
      LastTimeReportMyMN := UTCTime.ToInt64;
      end;
    SetCurrentJob('MyConStatus3',false);
@@ -774,6 +762,7 @@ if MyLastBlockHash <> NetLastBlockHash.Value then result := false;
 if MySumarioHash <> NetSumarioHash.Value then result := false;
 if MyResumenHash <> NetResumenHash.Value then result := false;
 if GetPendingCount <> StrToIntDef(NetPendingTrxs.Value,0) then result := false;
+if GetMNsListLength <> StrToIntDef(NetMNsCount.Value,0) then result := false;
 //if NetBestHash.Value <> GetNMSData.Diff then result := false;
 End;
 
@@ -785,6 +774,7 @@ MySumarioHash := HashMD5File(SumarioFilename);
 MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
 LastBlockData := LoadBlockDataHeader(MyLastBlock);
 MyResumenHash := HashMD5File(ResumenFilename);
+MyMNsHash     := HashMD5File(MasterNodesFilename);
 U_PoSGrid := true;
 SetCurrentJob('UpdateMyData',false);
 End;
@@ -842,6 +832,12 @@ else if ((MyResumenhash <> NetResumenHash.Value) and (NLBV=mylastblock) and (MyL
    PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
    ConsoleLinesAdd(LangLine(163)); //'Headers file requested'
    LastTimeRequestResumen := StrToInt64(UTCTime);
+   end
+else if ( (StrToInt(NetMNsCount.Value)>GetMNsListLength) and (LastTimeMNsRequested+5<UTCTime.ToInt64) ) then
+   begin
+   PTC_SendLine(NetMNsCount.Slot,ProtocolLine(11));  // Get MNs
+   LastTimeMNsRequested := UTCTime.ToInt64;
+   ConsoleLinesAdd('Master nodes requested');
    end;
 if IsAllSynced then Last_ActualizarseConLaRed := Last_ActualizarseConLaRed+5;
 SetCurrentJob('ActualizarseConLaRed',false);
@@ -988,10 +984,11 @@ Function GetNodeStatusString():string;
 Begin
 //NODESTATUS 1{Peers} 2{LastBlock} 3{Pendings} 4{Delta} 5{headers} 6{version} 7{UTCTime} 8{MNsHash} 9{MNscount}
 //           10{LasBlockHash} 11{BestHashDiff} 12{LastBlockTimeEnd} 13{LBMiner}
-result := IntToStr(GetTotalConexiones)+' '+IntToStr(MyLastBlock)+' '+GetPendingCount.ToString+' '+
-          IntToStr(UTCTime.ToInt64-EngineLastUpdate)+' '+copy(myResumenHash,0,5)+' '+
-          ProgramVersion+SubVersion+' '+UTCTime+' '+copy(MyMnsHash,0,5)+' '+IntTOStr(MyMNsCount)+' '+
-          MyLastBlockHash+' '+GetNMSData.Diff+' '+IntToStr(LastBlockData.TimeEnd)+' '+LastBlockData.AccountMiner;
+result := {1}IntToStr(GetTotalConexiones)+' '+{2}IntToStr(MyLastBlock)+' '+{3}GetPendingCount.ToString+' '+
+          {4}IntToStr(UTCTime.ToInt64-EngineLastUpdate)+' '+{5}copy(myResumenHash,0,5)+' '+
+          {6}ProgramVersion+SubVersion+' '+{7}UTCTime+' '+{8}copy(MyMnsHash,0,5)+' '+{9}GetMNsListLength.ToString+' '+
+          {10}MyLastBlockHash+' '+{11}GetNMSData.Diff+' '+{12}IntToStr(LastBlockData.TimeEnd)+' '+
+          {13}LastBlockData.AccountMiner;
 End;
 
 Function IsSafeIP(IP:String):boolean;

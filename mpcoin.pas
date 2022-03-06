@@ -616,10 +616,10 @@ var
 Begin
 setmilitime('GetMNsHash',1);
 
-EnterCriticalSection(CSMNsArray);
+//EnterCriticalSection(CSMNsArray);
 SetLength(CopyArray,0);
 CopyArray := copy(MNsArray,0,length(MNsArray));
-LeaveCriticalSection(CSMNsArray);
+//LeaveCriticalSection(CSMNsArray);
 
 if Length(CopyArray) = 0 then
    begin

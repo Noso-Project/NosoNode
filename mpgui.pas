@@ -54,7 +54,7 @@ var
 implementation
 
 Uses
-  mpParser, mpDisk, mpRed, mpProtocol,mpcoin, mpblock, formexplore, poolmanage, translation;
+  mpParser, mpDisk, mpRed, mpProtocol,mpcoin, mpblock, formexplore, poolmanage, translation, mpMN;
 
 // Returns the X percentage of a specified number
 function ThisPercent(percent, thiswidth : integer;RestarBarra : boolean = false):integer;
@@ -230,11 +230,11 @@ for contador := 0 to length(ListaDirecciones)-1 do
    end;
 
 // Nodes Grid
-form1.GridNodes.Cells[0,0] := 'IP';
-form1.GridNodes.Cells[1,0] := 'Port';
-form1.GridNodes.Cells[2,0] := 'Block';
-form1.GridNodes.Cells[3,0] := 'Hash';
-form1.GridNodes.Cells[4,0] := 'Time';
+form1.GridNodes.Cells[0,0] := 'Node';
+form1.GridNodes.Cells[1,0] := 'First';
+form1.GridNodes.Cells[2,0] := 'Last';
+form1.GridNodes.Cells[3,0] := 'Total';
+form1.GridNodes.Cells[4,0] := 'Conf';
 form1.GridNodes.FocusRectVisible:=false;
 
 
@@ -358,39 +358,33 @@ if U_PoSGrid then
    U_PoSGrid := false;
    End;
 
-if (Miner_IsOn) then
-   Begin
+form1.DataPanel.Cells[3,0]:=Copy(GetNMSData.Miner,1,10)+'...';
+form1.DataPanel.Cells[3,1]:=Copy(GetNMSData.Diff,1,10);
+form1.DataPanel.Cells[3,2]:='';
+form1.DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
+form1.DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+BlockAge.ToString;
 
-   end
-else
-   begin
-   form1.DataPanel.Cells[3,0]:=Copy(GetNMSData.Miner,1,10)+'...';
-   form1.DataPanel.Cells[3,1]:=Copy(GetNMSData.Diff,1,10);
-   form1.DataPanel.Cells[3,2]:='';
-   form1.DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
-   form1.DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+BlockAge.ToString;
-   end;
 
 // update nodes grid
 if ((U_MNsGrid) or (UTCTime.ToInt64>U_MNsGrid_Last+59)) then
    begin
    //{
    form1.GridNodes.RowCount:=1;
-   if length(MNsArray) > 0 then
+   if GetMNsListLength > 0 then
       begin
-      for contador := 0 to length(MNsArray)-1 do
+      for contador := 0 to length(MNsList)-1 do
          begin
          form1.GridNodes.RowCount := form1.GridNodes.RowCount+1;
-         form1.GridNodes.Cells[0,1+contador] := MNsArray[contador].Ip;
-         form1.GridNodes.Cells[1,1+contador] := MNsArray[contador].port.ToString;
-         form1.GridNodes.Cells[2,1+contador] := MNsArray[contador].block.ToString;
-         form1.GridNodes.Cells[3,1+contador] := copy(MNsArray[contador].BlockHash,0,5);
-         form1.GridNodes.Cells[4,1+contador] := TimeSinceStamp(StrToInt64(MNsArray[contador].time));
+         form1.GridNodes.Cells[0,1+contador] := MNsList[contador].Ip+':'+IntToStr(MNsList[contador].Port);
+         form1.GridNodes.Cells[1,1+contador] := MNsList[contador].First.ToString;
+         form1.GridNodes.Cells[2,1+contador] := MNsList[contador].Last.ToString;
+         form1.GridNodes.Cells[3,1+contador] := MNsList[contador].Total.ToString;
+         form1.GridNodes.Cells[4,1+contador] := MNsList[contador].Validations.ToString; ;
          end;
       end;
    //}
    U_MNsGrid_Last := UTCTime.ToInt64;
-   form1.LabelNodesHash.Caption:=format(rs0516,[MyMNsCount,MyMNsHash]);
+   //form1.LabelNodesHash.Caption:=format(rs0516,[MyMNsCount,MyMNsHash]);
    U_MNsGrid := false;
    end;
 
@@ -402,7 +396,7 @@ form1.DataPanel.Cells[1,7]:= format(rs0517,[length(ArrayCriptoOp),GetPendingCoun
 form1.DataPanel.Cells[1,0]:= Int2Curr(GetWalletBalance)+' '+CoinSimbol;
 form1.DataPanel.Cells[3,5]:= RemainingTillNextBlock;//IntToStr(OutgoingMsjs.Count);
 form1.DataPanel.Cells[3,6]:= Copy(MyMNsHash,0,5)+'/'+NetMNsHash.Value;
-form1.DataPanel.Cells[3,7]:= format(rs0517,[length(WaitingMNs),MyMNsCount,NetMNsCount.Value]);
+form1.DataPanel.Cells[3,7]:= format(rs0517,[length(WaitingMNs),GetMNsListLength,NetMNsCount.Value]);
 setmilitime('UpdateGUITime',2);
 
 if U_DirPanel then

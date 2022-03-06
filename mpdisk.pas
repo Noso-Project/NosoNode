@@ -28,6 +28,7 @@ Procedure SavePoolPays();
 Procedure CreateTextFile(FileName:String);
 Procedure CreateLog();
 Procedure CreatePoolLog();
+Procedure CreateMasterNodesFile();
 Procedure CreateADV(saving:boolean);
 Procedure LoadADV();
 Function GetLanguage():string;
@@ -134,6 +135,9 @@ OutText('✓ Log file ok',false,1);
 
 if not FileExists (PoolLogFilename) then CreatePoollog;
 OutText('✓ Pool Log file ok',false,1);
+
+if not FileExists(MasterNodesFilename) then CreateMasterNodesFile;
+OutText('✓ Masternodes file ok',false,1);
 
 if not FileExists (UserOptions.wallet) then CrearWallet() else CargarWallet(UserOptions.wallet);
 OutText('✓ Wallet file ok',false,1);
@@ -377,6 +381,19 @@ var
 Begin
    try
    Assignfile(archivo, PoolLogFilename);
+   rewrite(archivo);
+   Closefile(archivo);
+   Except on E:Exception do
+      tolog ('Error creating the pool log file');
+   end;
+End;
+
+Procedure CreateMasterNodesFile();
+var
+  archivo : textfile;
+Begin
+   try
+   Assignfile(archivo, MAsternodesfilename);
    rewrite(archivo);
    Closefile(archivo);
    Except on E:Exception do
@@ -2291,6 +2308,7 @@ PoolLogFilename     := 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'
 PoolInfoFilename    := 'NOSODATA'+DirectorySeparator+'poolinfo.dat';
 PoolMembersFilename := 'NOSODATA'+DirectorySeparator+'poolmembers.dat';
 AdvOptionsFilename  := 'NOSODATA'+DirectorySeparator+'advopt.txt';
+MasterNodesFilename := 'NOSODATA'+DirectorySeparator+'masternodes.txt';
 PoolPaymentsFilename:= 'NOSODATA'+DirectorySeparator+'poolpays.psk';
 ZipSumaryFileName   := 'NOSODATA'+DirectorySeparator+'sumary.zip';
 ZipHeadersFileName  := 'NOSODATA'+DirectorySeparator+'blchhead.zip';

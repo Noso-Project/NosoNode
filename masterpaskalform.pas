@@ -314,14 +314,15 @@ type
        end;
 
   TMNode = Packed Record
-       SignAddress : string[40];
-       PublicKey   : string[120];
-       FundAddress : string[40];
-       Ip          : string[15];
-       Port        : integer;
-       FirstBlock  : integer;
-       LastCheck   : integer;
-       verified    : boolean;
+       Ip           : string[15];
+       Port         : integer;
+       Sign         : string[40];
+       Fund         : string[40];
+       First        : integer;
+       Last         : integer;
+       Total        : integer;
+       Validations  : integer;
+       Hash         : String[32];
        end;
 
   TArrayCriptoOp = Packed record
@@ -711,7 +712,7 @@ CONST
   B36Alphabet : string = '0123456789abcdefghijklmnopqrstuvwxyz';
   ReservedWords : string = 'NULL,DELADDR';
   ValidProtocolCommands : string = '$PING$PONG$GETPENDING$NEWBL$GETRESUMEN$LASTBLOCK'+
-                                   '$CUSTOMORDERADMINMSGNETREQ$REPORTNODE$GETMNS$BESTHASH';
+                                   '$CUSTOMORDERADMINMSGNETREQ$REPORTNODE$GETMNS$BESTHASH$MNREPO';
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
   DefaultNodes : String = 'DefNodes '+
@@ -732,7 +733,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa55';
+  SubVersion = 'Aa68';
   OficialRelease = false;
   VersionRequired = '0.3.0Aa1';
   BuildDate = 'Febraury 2022';
@@ -1070,6 +1071,7 @@ var
   PoolInfoFilename : string = '';
   PoolMembersFilename : string = '';
   AdvOptionsFilename : string = '';
+  MasterNodesFilename: string = '';
   PoolPaymentsFilename : string = '';
   ZipSumaryFileName : String = '';
   ZipHeadersFileName : string = '';

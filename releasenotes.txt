@@ -1,3 +1,7 @@
+Version 0.3.0Aa6
+
+- MNs reports creation and propagation.
+
 Version 0.3.0Aa5
 
 - Nethashrate function&command implemented.
@@ -16,6 +20,7 @@ Version 0.3.0Aa5
 - Added MyConStatus=3 filter to build new blocks
 - Implemented besthash tracking and update.
 - Developed IsAllSynced function.
+- Download headers protocol improved.
 
 Up to Version 0.3.0Aa4
 

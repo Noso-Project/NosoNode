@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils,MasterPaskalForm, mpCripto, mpMiner, fileutil, mpcoin, dialogs,poolmanage,
-  mptime;
+  mptime, mpMN;
 
 Procedure CrearBloqueCero();
 Procedure CrearNuevoBloque(Numero,TimeStamp: Int64; TargetHash, Minero, Solucion:String);
@@ -23,6 +23,7 @@ Function GetBlockPoSes(BlockNumber:integer): BlockArraysPos;
 Function BlockAge():integer;
 Function NextBlockTimeStamp():Int64;
 Function RemainingTillNextBlock():String;
+Function IsBlockOpen():boolean;
 
 implementation
 
@@ -171,6 +172,9 @@ if not errored then
    setmilitime('NewBLOCK_PoS',2);
    SetCurrentJob('NewBLOCK_PoS',false);
 
+   // Masternodes processing
+   CleanMasterNodes(MyLastBlock);
+
    EnterCriticalSection(CSIdsProcessed);
    Setlength(ArrayOrderIDsProcessed,0);
    LeaveCriticalSection(CSIdsProcessed);
@@ -243,7 +247,6 @@ End;
 Function GetDiffHashrate(bestdiff:String):integer;
 var
   counter, number:integer;
-
 Begin
 repeat
   counter := counter+1;
@@ -483,6 +486,12 @@ Function RemainingTillNextBlock():String;
 Begin
 if BuildNMSBlock = 0 then Result := 'Unknown'
 else result := IntToStr(BuildNMSBlock-UTCTime.ToInt64);
+End;
+
+Function IsBlockOpen():boolean;
+Begin
+result := true;
+if ( (BlockAge<10) or (BlockAge>585) ) then result := false;
 End;
 
 END. // END UNIT
