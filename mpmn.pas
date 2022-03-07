@@ -18,13 +18,13 @@ Type
         constructor Create(const CreatePaused: Boolean; const ConexSlot:Integer);
       end;
 
-Procedure RunMNVerification();
+Function RunMNVerification():String;
 Function GetMNCheckFromString(Linea:String):TMNCheck;
 
 Function GetMNsChecksCount():integer;
 Procedure ClearMNsChecks();
 Function MnsCheckExists(Ip:String):Boolean;
-Procedure AddMNCheck(Data:TMNCheck);
+Procedure AddMNCheck(ThisData:TMNCheck);
 Procedure PTC_MNCheck(Linea:String);
 Function GetStringFromMNCheck(Data:TMNCheck): String;
 Procedure PTC_SendChecks(Slot:integer);
@@ -125,7 +125,7 @@ Dec(OpenVerificators);
 LeaveCriticalSection(DecVerThreads);
 End;
 
-Procedure RunMNVerification();
+function RunMNVerification():String;
 var
   counter : integer;
   ThisThread : TThreadMNVerificator;
@@ -141,6 +141,7 @@ var
   End;
 
 Begin
+Result := '';
 CurrSynctus := GetSyncTus;
 VerifiedNodes := '';
 setlength(MNsListCopy,0);
@@ -149,7 +150,7 @@ MNsListCopy := copy(MNsList,0,length(MNsList));
 LeaveCriticalSection(CSMNsArray);
 for counter := 0 to length(MNsListCopy)-1 do
    begin
-   if (( MNsListCopy[counter].ip <> MN_Ip) and (IsValidIp(MNsListCopy[counter].ip)) and (MNsListCopy[counter].First<>MyLastBlock)) then
+   if (( MNsListCopy[counter].ip <> MN_Ip) and (IsValidIp(MNsListCopy[counter].ip)) ) then
       begin
       Inc(Launched);
       ThisThread := TThreadMNVerificator.Create(true,counter);
@@ -166,6 +167,7 @@ until ( (NoVerificators= 0) or (WaitCycles = 100) );
 DataLine := MN_IP+' '+MyLastBlock.ToString+' '+MN_Sign+' '+ListaDirecciones[DireccionEsMia(MN_Sign)].PublicKey+' '+
             VerifiedNodes+' '+GetStringSigned(VerifiedNodes,ListaDirecciones[DireccionEsMia(MN_Sign)].PrivateKey);
 OutGoingMsjsAdd(ProtocolLine(MNCheck)+DataLine);
+Result := VerifiedNodes;
 End;
 
 Function GetMNCheckFromString(Linea:String):TMNCheck;
@@ -209,10 +211,10 @@ For counter := 0 to length(ArrMNChecks)-1 do
 LeaveCriticalSection(CSMNsChecks);
 End;
 
-Procedure AddMNCheck(Data:TMNCheck);
+Procedure AddMNCheck(ThisData:TMNCheck);
 Begin
 EnterCriticalSection(CSMNsChecks);
-Insert(Data,ArrMNChecks,Length(ArrMNChecks));
+Insert(ThisData,ArrMNChecks,Length(ArrMNChecks));
 LeaveCriticalSection(CSMNsChecks);
 End;
 
@@ -235,6 +237,7 @@ if not VerifySignedString(CheckData.ValidNodes,CheckData.Signature,CheckData.Pub
 if ErrorCode = 0 then
    begin
    AddMNCheck(CheckData);
+   ToLog(CheckData.ValidNodes);
    outGOingMsjsAdd(GetPTCEcn+ReportInfo);
    ConsoleLinesAdd('Check received from '+CheckData.ValidatorIP);
    ToLog('Good check : (('+Linea+'))');
@@ -529,7 +532,7 @@ var
      begin
      if MNsList[Counter2].Ip = IP then
         begin
-        MNsList[Counter2].Validations:=MNsList[Counter2].Validations+1;
+        Inc(MNsList[Counter2].Validations);
         Break;
         end;
      end;
@@ -540,7 +543,9 @@ EnterCriticalSection(CSMNsArray);
 EnterCriticalSection(CSMNsChecks);
 for counter := 0 to length(ArrMNChecks)-1 do
    begin
-   NodesString := StringReplace(ArrMNChecks[counter].ValidNodes,':',' ',[rfReplaceAll]);
+   NodesString := ArrMNChecks[counter].ValidNodes;
+   NodesString := StringReplace(NodesString,':',' ',[rfReplaceAll]);
+   ConsoleLinesAdd(NodesString);
    IPIndex := 0;
    REPEAT
       begin
@@ -553,7 +558,6 @@ for counter := 0 to length(ArrMNChecks)-1 do
       end;
    UNTIL ThisIP = '';
    end;
-
 LeaveCriticalSection(CSMNsChecks);
 LeaveCriticalSection(CSMNsArray);
 End;
