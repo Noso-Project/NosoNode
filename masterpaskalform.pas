@@ -127,6 +127,7 @@ type
      MNsHash : string[5];
      MNsCount : Integer;
      BestHashDiff : string[32];
+     MNChecksCount : integer;
      end;
 
   WalletData = Packed Record
@@ -720,7 +721,7 @@ CONST
   B58Alphabet : string = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
   B36Alphabet : string = '0123456789abcdefghijklmnopqrstuvwxyz';
   ReservedWords : string = 'NULL,DELADDR';
-  ValidProtocolCommands : string = '$PING$PONG$GETPENDING$NEWBL$GETRESUMEN$LASTBLOCK'+
+  ValidProtocolCommands : string = '$PING$PONG$GETPENDING$NEWBL$GETRESUMEN$LASTBLOCK$GETCHECKS'+
                                    '$CUSTOMORDERADMINMSGNETREQ$REPORTNODE$GETMNS$BESTHASH$MNREPO$MNCHECK';
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
@@ -742,7 +743,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa70';
+  SubVersion = 'Aa72';
   OficialRelease = false;
   VersionRequired = '0.3.0Aa1';
   BuildDate = 'March 2022';
@@ -985,6 +986,8 @@ var
   NetMNsCount    : NetworkData;
   NetBestHash    : NetworkData;
     LastTimeMNsRequested   : int64 = 0;
+  NetMNsChecks   : NetworkData;
+    LastTimeChecksRequested : int64 = 0;
   // Variables asociadas a mi conexion
   MyConStatus :  integer = 0;
   STATUS_Connected : boolean = false;
@@ -1274,7 +1277,7 @@ While not terminated do
       begin
       if ( (IsValidator(MN_Ip)) and (BlockAge>120) and (Not MNVerificationDone) ) then
          begin
-         //RunMNVerification();
+         RunMNVerification();
          end;
       end;
    Sleep(1);

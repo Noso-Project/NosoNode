@@ -63,6 +63,7 @@ CONST
   BestHash = 12;
   MNReport =13;
   MNCheck = 14;
+  GetChecks = 15;
 
 implementation
 
@@ -174,6 +175,8 @@ if tipo = MNReport then
    Resultado := '$MNREPO '+GetMNReportString;
 if tipo = MNCheck then
    Resultado := '$MNCHECK ';
+if Tipo = GetChecks then
+   Resultado := '$GETCHECKS';
 Resultado := Encabezado+Resultado;
 Result := resultado;
 End;
@@ -236,6 +239,8 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = '$MNREPO' then CheckMNRepo(SlotLines[contador][0])
       else if UpperCase(LineComando) = '$BESTHASH' then PTC_BestHash(SlotLines[contador][0])
       else if UpperCase(LineComando) = '$MNCHECK' then PTC_MNCheck(SlotLines[contador][0])
+      else if UpperCase(LineComando) = '$GETCHECKS' then PTC_SendChecks(contador)
+
       else
          Begin  // El comando recibido no se reconoce. Verificar protocolos posteriores.
          ConsoleLinesAdd(LangLine(23)+SlotLines[contador][0]+') '+intToStr(contador)); //Unknown command () in slot: (
@@ -326,7 +331,7 @@ End;
 Procedure ProcessPing(LineaDeTexto: string; Slot: integer; Responder:boolean);
 var
   PProtocol, PVersion, PConexiones, PTime, PLastBlock, PLastBlockHash, PSumHash, PPending : string;
-  PResumenHash, PConStatus, PListenPort, PMNsHash, PMNsCount, BestHashDiff : String;
+  PResumenHash, PConStatus, PListenPort, PMNsHash, PMNsCount, BestHashDiff, MnsCheckCount : String;
 Begin
 PProtocol      := Parameter(LineaDeTexto,1);
 PVersion       := Parameter(LineaDeTexto,2);
@@ -342,6 +347,7 @@ PListenPort    := Parameter(LineaDeTexto,12);
 PMNsHash       := Parameter(LineaDeTexto,13);
 PMNsCount      := Parameter(LineaDeTexto,14);
 BestHashDiff   := Parameter(LineaDeTexto,15);
+MnsCheckCount  := Parameter(LineaDeTexto,16);
 conexiones[slot].Autentic     :=true;
 conexiones[slot].Connections  :=StrToIntDef(PConexiones,1);
 conexiones[slot].Version      :=PVersion;
@@ -358,6 +364,7 @@ conexiones[slot].ListeningPort:=StrToIntDef(PListenPort,-1);
 conexiones[slot].MNsHash      :=PMNsHash;
 conexiones[slot].MNsCount     :=StrToIntDef(PMNsCount,0);
 conexiones[slot].BestHashDiff := BestHashDiff;
+conexiones[slot].MNChecksCount:=StrToIntDef(MnsCheckCount,0);
 if responder then PTC_SendLine(slot,ProtocolLine(4));
 if responder then G_TotalPings := G_TotalPings+1;
 End;
@@ -378,7 +385,8 @@ result :=IntToStr(GetTotalConexiones())+' '+
          IntToStr(port)+' '+
          copy(MyMNsHash,0,5)+' '+
          IntToStr(GetMNsListLength)+' '+
-         GetNMSData.Diff;
+         GetNMSData.Diff+' '+
+         GetMNsChecksCount.ToString;
 End;
 
 // Envia las TXs pendientes al slot indicado

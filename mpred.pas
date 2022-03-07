@@ -35,6 +35,7 @@ function UpdateNetworkResumenHash():NetworkData;
 function UpdateNetworkMNsHash():NetworkData;
 function UpdateNetworkMNsCount():NetworkData;
 function UpdateNetworkBestHash():NetworkData;
+function UpdateNetworkMNsChecks():NetworkData;
 Procedure UpdateNetworkData();
 Function IsAllSynced():Boolean;
 Procedure UpdateMyData();
@@ -740,6 +741,23 @@ if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
 else result := Default(NetworkData);
 End;
 
+function UpdateNetworkMNsChecks():NetworkData;
+var
+  contador : integer = 1;
+Begin
+SetLength(ArrayConsenso,0);
+ConsensoValues := 0;
+for contador := 1 to MaxConecciones do
+   Begin
+   if ( (conexiones[contador].tipo<> '') and (IsSeedNode(conexiones[contador].ip)) ) then
+      begin
+      UpdateConsenso(IntToStr(conexiones[contador].MNChecksCount), contador);
+      end;
+   end;
+if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
+else result := Default(NetworkData);
+End;
+
 Procedure UpdateNetworkData();
 Begin
 SetCurrentJob('UpdateNetworkData',true);
@@ -751,6 +769,7 @@ NetResumenHash := UpdateNetworkResumenHash;
 NetMNsHash := UpdateNetworkMNsHash;
 NetMNsCount := UpdateNetworkMNsCOunt;
 NetBestHash := UpdateNetworkBestHash;
+NetMNsChecks := UpdateNetworkMNsChecks;
 U_DataPanel := true;
 SetCurrentJob('UpdateNetworkData',false);
 End;
@@ -765,6 +784,7 @@ if MyResumenHash <> NetResumenHash.Value then result := false;
 if GetPendingCount <> StrToIntDef(NetPendingTrxs.Value,0) then result := false;
 if GetMNsListLength <> StrToIntDef(NetMNsCount.Value,0) then result := false;
 //if NetBestHash.Value <> GetNMSData.Diff then result := false;
+//if GetMNsChecksCount <> StrToIntDef(NetMNsChecks,0) then result := false;
 End;
 
 // Actualiza mi informacion para compoartirla en la red
@@ -836,9 +856,15 @@ else if ((MyResumenhash <> NetResumenHash.Value) and (NLBV=mylastblock) and (MyL
    end
 else if ( (StrToInt(NetMNsCount.Value)>GetMNsListLength) and (LastTimeMNsRequested+5<UTCTime.ToInt64) ) then
    begin
-   PTC_SendLine(NetMNsCount.Slot,ProtocolLine(11));  // Get MNs
+   PTC_SendLine(NetMNsCount.Slot,ProtocolLine(11));  // Get MNsList
    LastTimeMNsRequested := UTCTime.ToInt64;
    ConsoleLinesAdd('Master nodes requested');
+   end
+else if ((StrToIntDef(NetMNsChecks.Value,0)>GetMNsChecksCount) and (LastTimeChecksRequested+5<UTCTime.ToInt64)) then
+   begin
+   PTC_SendLine(NetMNsChecks.Slot,ProtocolLine(GetChecks));  // Get MNsList
+   LastTimeChecksRequested := UTCTime.ToInt64;
+   ConsoleLinesAdd('Checks requested');
    end;
 if IsAllSynced then Last_ActualizarseConLaRed := Last_ActualizarseConLaRed+5;
 SetCurrentJob('ActualizarseConLaRed',false);
@@ -984,12 +1010,12 @@ End;
 Function GetNodeStatusString():string;
 Begin
 //NODESTATUS 1{Peers} 2{LastBlock} 3{Pendings} 4{Delta} 5{headers} 6{version} 7{UTCTime} 8{MNsHash} 9{MNscount}
-//           10{LasBlockHash} 11{BestHashDiff} 12{LastBlockTimeEnd} 13{LBMiner}
+//           10{LasBlockHash} 11{BestHashDiff} 12{LastBlockTimeEnd} 13{LBMiner} 14{ChecksCount}
 result := {1}IntToStr(GetTotalConexiones)+' '+{2}IntToStr(MyLastBlock)+' '+{3}GetPendingCount.ToString+' '+
           {4}IntToStr(UTCTime.ToInt64-EngineLastUpdate)+' '+{5}copy(myResumenHash,0,5)+' '+
           {6}ProgramVersion+SubVersion+' '+{7}UTCTime+' '+{8}copy(MyMnsHash,0,5)+' '+{9}GetMNsListLength.ToString+' '+
           {10}MyLastBlockHash+' '+{11}GetNMSData.Diff+' '+{12}IntToStr(LastBlockData.TimeEnd)+' '+
-          {13}LastBlockData.AccountMiner;
+          {13}LastBlockData.AccountMiner+' '+{14}GetMNsChecksCount.ToString;
 End;
 
 Function IsSafeIP(IP:String):boolean;

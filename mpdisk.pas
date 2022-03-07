@@ -397,7 +397,7 @@ Begin
    rewrite(archivo);
    Closefile(archivo);
    Except on E:Exception do
-      tolog ('Error creating the pool log file');
+      tolog ('Error creating the masternodes file');
    end;
 End;
 

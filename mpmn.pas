@@ -20,7 +20,16 @@ Type
 
 Procedure RunMNVerification();
 Function GetMNCheckFromString(Linea:String):TMNCheck;
+
+Function GetMNsChecksCount():integer;
+Procedure ClearMNsChecks();
+Function MnsCheckExists(Ip:String):Boolean;
+Procedure AddMNCheck(Data:TMNCheck);
 Procedure PTC_MNCheck(Linea:String);
+Function GetStringFromMNCheck(Data:TMNCheck): String;
+Procedure PTC_SendChecks(Slot:integer);
+
+
 Function MNVerificationDone():Boolean;
 Function ValidatorsCount():Integer;
 Function IsValidator(Ip:String):boolean;
@@ -35,12 +44,15 @@ Procedure SendMNsList(Slot:Integer);
 Procedure CleanMasterNodes(BlockNumber:Integer);
 Function GetVerificationMNLine():String;
 
+Procedure SaveMNsFile();
+
 var
   OpenVerificators : integer;
   MNsListCopy : array of TMnode;
   CurrSynctus : string;
   VerifiedNodes : String;
   CSVerNodes    : TRTLCriticalSection;
+  CSMNsChecks   : TRTLCriticalSection;
   DecVerThreads : TRTLCriticalSection;
 
 implementation
@@ -157,16 +169,100 @@ ConsoleLinesAdd(ProtocolLine(MNCheck)+DataLine);
 End;
 
 Function GetMNCheckFromString(Linea:String):TMNCheck;
-var
-  IP,Address,Pubkey,nodeslist,signature: string;
-  Block:integer;
 Begin
+Result.ValidatorIP    :=Parameter(Linea,5);
+Result.Block          :=StrToIntDef(Parameter(Linea,6),0);
+Result.SignAddress    :=Parameter(Linea,7);
+Result.PubKey         :=Parameter(Linea,8);
+Result.ValidNodes     :=Parameter(Linea,9);
+Result.Signature      :=Parameter(Linea,10);
+End;
 
+Function GetMNsChecksCount():integer;
+Begin
+EnterCriticalSection(CSMNsChecks);
+result := Length(ArrMNChecks);
+LeaveCriticalSection(CSMNsChecks);
+End;
+
+Procedure ClearMNsChecks();
+Begin
+EnterCriticalSection(CSMNsChecks);
+SetLength(ArrMNChecks,0);
+LeaveCriticalSection(CSMNsChecks);
+End;
+
+Function MnsCheckExists(Ip:String):Boolean;
+var
+  Counter : integer;
+Begin
+result := false;
+EnterCriticalSection(CSMNsChecks);
+For counter := 0 to length(ArrMNChecks)-1 do
+   begin
+   if ArrMNChecks[counter].ValidatorIP = IP then
+      begin
+      result := true;
+      break;
+      end;
+   end;
+LeaveCriticalSection(CSMNsChecks);
+End;
+
+Procedure AddMNCheck(Data:TMNCheck);
+Begin
+EnterCriticalSection(CSMNsChecks);
+Insert(Data,ArrMNChecks,Length(ArrMNChecks));
+LeaveCriticalSection(CSMNsChecks);
 End;
 
 Procedure PTC_MNCheck(Linea:String);
+//ArrMNChecks
+var
+  CheckData : TMNCheck;
+  StartPos : integer;
+  ReportInfo : String;
 Begin
+StartPos := Pos('$',Linea);
+ReportInfo := copy (Linea,StartPos,length(Linea));
+CheckData := GetMNCheckFromString(Linea);
+if MnsCheckExists(CheckData.ValidatorIP) then exit;
+if ( (IsValidator(CheckData.ValidatorIP)) and (CheckData.Block=MyLastBlock) and
+   (GetAddressFromPublicKey(CheckData.PubKey)=CheckData.SignAddress) and
+   (VerifySignedString(CheckData.ValidNodes,CheckData.Signature,CheckData.PubKey)) ) then
+   begin
+   CheckData.ValidNodes := StringReplace(VerifiedNodes,':',' ',[rfReplaceAll]);
+   AddMNCheck(CheckData);
+   outGOingMsjsAdd(GetPTCEcn+ReportInfo);
+   ConsoleLinesAdd('Check received from '+CheckData.ValidatorIP);
+   end
+else consolelinesadd('Wrong check from '+CheckData.ValidatorIP);
+End;
 
+{MN_IP+' '+MyLastBlock.ToString+' '+MN_Sign+' '+ListaDirecciones[DireccionEsMia(MN_Sign)].PublicKey+' '+
+            VerifiedNodes+' '+GetStringSigned(VerifiedNodes,ListaDirecciones[DireccionEsMia(MN_Sign)].PrivateKey); }
+
+Function GetStringFromMNCheck(Data:TMNCheck): String;
+Begin
+result := Data.ValidatorIP+' '+IntToStr(Data.Block)+' '+Data.SignAddress+' '+Data.PubKey+' '+
+          StringReplace(Data.ValidNodes,' ',':',[rfReplaceAll])+' '+Data.Signature;
+End;
+
+Procedure PTC_SendChecks(Slot:integer);
+var
+  Counter : integer;
+  Texto : string;
+Begin
+if GetMNsChecksCount>0 then
+   begin
+   EnterCriticalSection(CSMNsChecks);
+   for counter := 0 to length(ArrMNChecks)-1 do
+      begin
+      Texto := GetPTCEcn+'$MNCHECK '+GetStringFromMNCheck(ArrMNChecks[counter]);
+      PTC_SendLine(slot,Texto);
+      end;
+   LeaveCriticalSection(CSMNsChecks);
+   end;
 End;
 
 Function MNVerificationDone():Boolean;
@@ -372,14 +468,36 @@ if IsAllSynced then Result := 'True '+GetSyncTus
 else Result := 'False';
 End;
 
+Procedure SaveMNsFile();
+var
+  archivo : textfile;
+  Counter : integer;
+Begin
+EnterCriticalSection(CSMNsArray);
+   TRY
+   Assignfile(archivo, MAsternodesfilename);
+   rewrite(archivo);
+   For counter := 0 to length(MNsList)-1 do
+      begin
+      WriteLn(archivo,MNsList[counter].Fund);
+      end;
+   Closefile(archivo);
+   EXCEPT on E:Exception do
+      tolog ('Error creating the pool log file');
+   END {TRY};
+LEaveCriticalSection(CSMNsArray);
+End;
+
 Initialization
 InitCriticalSection(CSVerNodes);
 InitCriticalSection(DecVerThreads);
+InitCriticalSection(CSMNsChecks);
 
 
 Finalization
 DoneCriticalSection(CSVerNodes);
 DoneCriticalSection(DecVerThreads);
+DoneCriticalSection(CSMNsChecks);
 
 END. // End UNIT
 

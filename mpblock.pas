@@ -174,7 +174,11 @@ if not errored then
 
    // Masternodes processing
    CleanMasterNodes(MyLastBlock);
+   SaveMNsFile();
+   ClearMNsChecks();
 
+
+   // Reset Order hashes received
    EnterCriticalSection(CSIdsProcessed);
    Setlength(ArrayOrderIDsProcessed,0);
    LeaveCriticalSection(CSIdsProcessed);
@@ -225,6 +229,7 @@ if not errored then
    MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
    LastBlockData := LoadBlockDataHeader(MyLastBlock);
    MySumarioHash := HashMD5File(SumarioFilename);
+   MyMNsHash     := HashMD5File(MasterNodesFilename);
    // Actualizar el arvhivo de cabeceras
    AddBlchHead(Numero,MyLastBlockHash,MySumarioHash);
    MyResumenHash := HashMD5File(ResumenFilename);
