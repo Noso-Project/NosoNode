@@ -743,7 +743,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa78';
+  SubVersion = 'Aa79';
   OficialRelease = false;
   VersionRequired = '0.3.0Aa1';
   BuildDate = 'March 2022';
@@ -1276,14 +1276,14 @@ While not terminated do
    begin
    if UTCTime.ToInt64 mod 10 = 0 then
       begin
-      if ( (IsValidator(MN_Ip)) and (BlockAge>120) and (Not MNVerificationDone) and
-         (IsBlockOpen) and (LastRunMNVerification<>UTCTime.ToInt64) and (MyConStatus = 3) ) then
+      if ( (IsValidator(MN_Ip)) and (BlockAge>500) and (Not MNVerificationDone) and
+         (BlockAge<575) and (LastRunMNVerification<>UTCTime.ToInt64) and (MyConStatus = 3) ) then
          begin
          LastRunMNVerification := UTCTime.ToInt64;
          RunMNVerification();
          end;
       end;
-   Sleep(500);
+   Sleep(1000);
    end;
 End;
 

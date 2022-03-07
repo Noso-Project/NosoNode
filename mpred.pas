@@ -540,7 +540,8 @@ if MyConStatus = 3 then
       LastTimePendingRequested := UTCTime.ToInt64;
       ConsoleLinesAdd('Pending requested to '+conexiones[NetPendingTrxs.Slot].ip);
       end;
-   if ( (not MyMNIsListed) and (Form1.Server.Active) and (UTCTime.ToInt64>LastTimeReportMyMN+5) ) then
+   if ( (not MyMNIsListed) and (Form1.Server.Active) and (UTCTime.ToInt64>LastTimeReportMyMN+5)
+        and (BlockAge>10) and (BlockAge<495) ) then
      begin
      OutGoingMsjsAdd(ProtocolLine(MNReport));
      ConsoleLinesAdd('My Masternode reported');

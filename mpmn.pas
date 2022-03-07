@@ -37,6 +37,7 @@ Function GetMNReportString():String;
 Function GetStringFromMN(Node:TMNode):String;
 Function GetMNsListLength():Integer;
 function MyMNIsListed():boolean;
+Procedure ClearMNsList();
 Function GetMNodeFromString(const StringData:String; out ToMNode:TMNode):Boolean;
 Function IsLegitNewNode(ThisNode:TMNode):Boolean;
 Procedure CheckMNRepo(LineText:String);
@@ -320,6 +321,13 @@ Result := Length(MNsList);
 LeaveCriticalSection(CSMNsArray);
 End;
 
+Procedure ClearMNsList();
+Begin
+EnterCriticalSection(CSMNsArray);
+SetLength(MNsList,0);
+LeaveCriticalSection(CSMNsArray);
+End;
+
 function MyMNIsListed():boolean;
 var
   counter : integer;
@@ -497,7 +505,7 @@ EnterCriticalSection(CSMNsArray);
    rewrite(archivo);
    For counter := 0 to length(MNsList)-1 do
       begin
-      WriteLn(archivo,MNsList[counter].Fund+' '+IntToStr(MNsList[counter].Last)+' '+IntToStr(MNsList[counter].Total));
+      WriteLn(archivo,MNsList[counter].Fund+' '+IntToStr(MNsList[counter].Validations));
       end;
    Closefile(archivo);
    EXCEPT on E:Exception do

@@ -174,9 +174,10 @@ if not errored then
 
    // Masternodes processing
    CreditMNVerifications();
-   CleanMasterNodes(MyLastBlock);
+   //CleanMasterNodes(MyLastBlock);
    SaveMNsFile();
    ClearMNsChecks();
+   ClearMNsList();
 
 
    // Reset Order hashes received
