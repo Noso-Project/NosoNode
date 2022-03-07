@@ -44,6 +44,8 @@ Procedure SendMNsList(Slot:Integer);
 Procedure CleanMasterNodes(BlockNumber:Integer);
 Function GetVerificationMNLine():String;
 
+Procedure CreditMNVerifications();
+
 Procedure SaveMNsFile();
 
 var
@@ -146,7 +148,7 @@ MNsListCopy := copy(MNsList,0,length(MNsList));
 LeaveCriticalSection(CSMNsArray);
 for counter := 0 to length(MNsListCopy)-1 do
    begin
-   if (( MNsListCopy[counter].ip <> MN_Ip) and (IsValidIp(MNsListCopy[counter].ip)) ) then
+   if (( MNsListCopy[counter].ip <> MN_Ip) and (IsValidIp(MNsListCopy[counter].ip)) and (MNsListCopy[counter].First<>MyLastBlock)) then
       begin
       Inc(Launched);
       ThisThread := TThreadMNVerificator.Create(true,counter);
@@ -445,15 +447,17 @@ End;
 
 Procedure CleanMasterNodes(BlockNumber:Integer);
 var
-  counter : integer = 1;
-  Deleted : boolean = false;
-  TotalDeleted : integer = 0;
+  counter        : integer = 1;
+  Deleted        : boolean = false;
+  TotalDeleted   : integer = 0;
+  MinValidations : Integer;
 Begin
+MinValidations := (ValidatorsCount div 2) - 1;
 EnterCriticalSection(CSMNsArray);
 While Counter <= length(MNsList) do
    Begin
    Deleted := false;
-   if ( (MNsList[counter-1].Last+3<BlockNumber) and (MNsList[counter-1].Validations=0) ) then
+   if ( (MNsList[counter-1].Last+3<BlockNumber) and (MNsList[counter-1].Validations<MinValidations) ) then
       begin
       Delete(MNsList,counter-1,1);
       Deleted := true;
@@ -461,8 +465,18 @@ While Counter <= length(MNsList) do
       end;
    If not Deleted then Inc(Counter);
    end;
+for counter := 0 to length(MNsList)-1 do
+   begin
+   if MNsList[counter].Validations >= MinValidations then
+      Begin
+      MNsList[counter].Last:=BlockNumber;
+      MNsList[counter].Total:= +1;
+      end;
+   MNsList[counter].Validations := 0;
+   end;
+
 LeaveCriticalSection(CSMNsArray);
-ConsoleLinesAdd('Deleted MNs : '+TotalDeleted.toString);
+//ConsoleLinesAdd('Deleted MNs : '+TotalDeleted.toString);
 U_MNsGrid := true;
 End;
 
@@ -483,13 +497,57 @@ EnterCriticalSection(CSMNsArray);
    rewrite(archivo);
    For counter := 0 to length(MNsList)-1 do
       begin
-      WriteLn(archivo,MNsList[counter].Fund);
+      WriteLn(archivo,MNsList[counter].Fund+' '+IntToStr(MNsList[counter].Last)+' '+IntToStr(MNsList[counter].Total));
       end;
    Closefile(archivo);
    EXCEPT on E:Exception do
-      tolog ('Error creating the pool log file');
+      tolog ('Error Saving masternodes file');
    END {TRY};
 LEaveCriticalSection(CSMNsArray);
+End;
+
+Procedure CreditMNVerifications();
+var
+  counter     : integer;
+  NodesString : string;
+  ThisIP      : string;
+  IPIndex     : integer;
+
+  Procedure AddCheckToIP(IP:String);
+  var
+    counter2 : integer;
+  Begin
+  For counter2 := 0 to length(MNsList)-1 do
+     begin
+     if MNsList[Counter2].Ip = IP then
+        begin
+        MNsList[Counter2].Validations:=MNsList[Counter2].Validations+1;
+        Break;
+        end;
+     end;
+  End;
+
+Begin
+EnterCriticalSection(CSMNsArray);
+EnterCriticalSection(CSMNsChecks);
+for counter := 0 to length(ArrMNChecks)-1 do
+   begin
+   NodesString := StringReplace(ArrMNChecks[counter].ValidNodes,':',' ',[rfReplaceAll]);
+   IPIndex := 0;
+   REPEAT
+      begin
+      ThisIP := Parameter(NodesString,IPIndex);
+      if ThisIP <> '' then
+         begin
+         AddCheckToIP(ThisIP);
+         end;
+      Inc(IPIndex);
+      end;
+   UNTIL ThisIP = '';
+   end;
+
+LeaveCriticalSection(CSMNsChecks);
+LeaveCriticalSection(CSMNsArray);
 End;
 
 Initialization

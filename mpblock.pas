@@ -173,6 +173,7 @@ if not errored then
    SetCurrentJob('NewBLOCK_PoS',false);
 
    // Masternodes processing
+   CreditMNVerifications();
    CleanMasterNodes(MyLastBlock);
    SaveMNsFile();
    ClearMNsChecks();
