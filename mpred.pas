@@ -864,7 +864,7 @@ else if ((StrToIntDef(NetMNsChecks.Value,0)>GetMNsChecksCount) and (LastTimeChec
    begin
    PTC_SendLine(NetMNsChecks.Slot,ProtocolLine(GetChecks));  // Get MNsList
    LastTimeChecksRequested := UTCTime.ToInt64;
-   ConsoleLinesAdd('Checks requested');
+   ConsoleLinesAdd('Checks requested to '+conexiones[NetMNsChecks.Slot].ip);
    end;
 if IsAllSynced then Last_ActualizarseConLaRed := Last_ActualizarseConLaRed+5;
 SetCurrentJob('ActualizarseConLaRed',false);

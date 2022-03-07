@@ -743,7 +743,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa72';
+  SubVersion = 'Aa76';
   OficialRelease = false;
   VersionRequired = '0.3.0Aa1';
   BuildDate = 'March 2022';
@@ -988,6 +988,7 @@ var
     LastTimeMNsRequested   : int64 = 0;
   NetMNsChecks   : NetworkData;
     LastTimeChecksRequested : int64 = 0;
+  LastRunMNVerification : int64 = 0;
   // Variables asociadas a mi conexion
   MyConStatus :  integer = 0;
   STATUS_Connected : boolean = false;
@@ -1275,12 +1276,14 @@ While not terminated do
    begin
    if UTCTime.ToInt64 mod 10 = 0 then
       begin
-      if ( (IsValidator(MN_Ip)) and (BlockAge>120) and (Not MNVerificationDone) ) then
+      if ( (IsValidator(MN_Ip)) and (BlockAge>120) and (Not MNVerificationDone) and
+         (IsBlockOpen) and (LastRunMNVerification<>UTCTime.ToInt64) and (MyConStatus = 3) ) then
          begin
+         LastRunMNVerification := UTCTime.ToInt64;
          RunMNVerification();
          end;
       end;
-   Sleep(1);
+   Sleep(500);
    end;
 End;
 

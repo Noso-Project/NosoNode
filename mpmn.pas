@@ -106,7 +106,7 @@ if success then
    if ( (WasPositive) and (Parameter(Linea,1)=CurrSynctus) ) then
       begin
       EnterCriticalSection(CSVerNodes);
-      VerifiedNodes := VerifiedNodes+Ip+' ';
+      VerifiedNodes := VerifiedNodes+Ip+':';
       LeaveCriticalSection(CSVerNodes);
       end
    else
@@ -159,13 +159,10 @@ Repeat
   sleep(100);
   Inc(WaitCycles);
 until ( (NoVerificators= 0) or (WaitCycles = 100) );
-Trim(VerifiedNodes);
-ToLog('Finished MNs verification: '+launched.ToString+'->'+WaitCycles.ToString+slinebreak+VerifiedNodes);
-VerifiedNodes := StringReplace(VerifiedNodes,' ',':',[rfReplaceAll]);
+//ToLog('Finished MNs verification: '+launched.ToString+'->'+WaitCycles.ToString+slinebreak+VerifiedNodes);
 DataLine := MN_IP+' '+MyLastBlock.ToString+' '+MN_Sign+' '+ListaDirecciones[DireccionEsMia(MN_Sign)].PublicKey+' '+
             VerifiedNodes+' '+GetStringSigned(VerifiedNodes,ListaDirecciones[DireccionEsMia(MN_Sign)].PrivateKey);
 OutGoingMsjsAdd(ProtocolLine(MNCheck)+DataLine);
-ConsoleLinesAdd(ProtocolLine(MNCheck)+DataLine);
 End;
 
 Function GetMNCheckFromString(Linea:String):TMNCheck;
@@ -222,21 +219,28 @@ var
   CheckData : TMNCheck;
   StartPos : integer;
   ReportInfo : String;
+  ErrorCode : integer = 0;
 Begin
 StartPos := Pos('$',Linea);
 ReportInfo := copy (Linea,StartPos,length(Linea));
 CheckData := GetMNCheckFromString(Linea);
 if MnsCheckExists(CheckData.ValidatorIP) then exit;
-if ( (IsValidator(CheckData.ValidatorIP)) and (CheckData.Block=MyLastBlock) and
-   (GetAddressFromPublicKey(CheckData.PubKey)=CheckData.SignAddress) and
-   (VerifySignedString(CheckData.ValidNodes,CheckData.Signature,CheckData.PubKey)) ) then
+if not IsValidator(CheckData.ValidatorIP) then ErrorCode := 1;
+if CheckData.Block <> MyLastBlock then ErrorCode := 2;
+if GetAddressFromPublicKey(CheckData.PubKey)<>CheckData.SignAddress then ErrorCode := 3;
+if not VerifySignedString(CheckData.ValidNodes,CheckData.Signature,CheckData.PubKey) then ErrorCode := 4;
+if ErrorCode = 0 then
    begin
-   CheckData.ValidNodes := StringReplace(VerifiedNodes,':',' ',[rfReplaceAll]);
    AddMNCheck(CheckData);
    outGOingMsjsAdd(GetPTCEcn+ReportInfo);
    ConsoleLinesAdd('Check received from '+CheckData.ValidatorIP);
+   ToLog('Good check : (('+Linea+'))');
    end
-else consolelinesadd('Wrong check from '+CheckData.ValidatorIP);
+else
+   begin
+   consolelinesadd('Wrong check from '+CheckData.ValidatorIP+'->'+ErrorCode.ToString);
+   ToLog('Wrong MNCheck: (-('+Linea+')-)');
+   end;
 End;
 
 {MN_IP+' '+MyLastBlock.ToString+' '+MN_Sign+' '+ListaDirecciones[DireccionEsMia(MN_Sign)].PublicKey+' '+
@@ -245,7 +249,7 @@ End;
 Function GetStringFromMNCheck(Data:TMNCheck): String;
 Begin
 result := Data.ValidatorIP+' '+IntToStr(Data.Block)+' '+Data.SignAddress+' '+Data.PubKey+' '+
-          StringReplace(Data.ValidNodes,' ',':',[rfReplaceAll])+' '+Data.Signature;
+         Data.ValidNodes+' '+Data.Signature;
 End;
 
 Procedure PTC_SendChecks(Slot:integer);
@@ -258,7 +262,7 @@ if GetMNsChecksCount>0 then
    EnterCriticalSection(CSMNsChecks);
    for counter := 0 to length(ArrMNChecks)-1 do
       begin
-      Texto := GetPTCEcn+'$MNCHECK '+GetStringFromMNCheck(ArrMNChecks[counter]);
+      Texto := ProtocolLine(MNCheck)+GetStringFromMNCheck(ArrMNChecks[counter]);
       PTC_SendLine(slot,Texto);
       end;
    LeaveCriticalSection(CSMNsChecks);
