@@ -421,6 +421,8 @@ if ((valor1 <0) or (valor1>255)) then result := false;
 if ((valor2 <0) or (valor2>255)) then result := false;
 if ((valor3 <0) or (valor3>255)) then result := false;
 if ((valor4 <0) or (valor4>255)) then result := false;
+if ((valor1=192) and (valor2=168)) then result := false;
+if ((valor1=127) and (valor2=0)) then result := false;
 End;
 
 function GetCurrentStatus(mode:integer):String;

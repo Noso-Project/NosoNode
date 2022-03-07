@@ -318,7 +318,7 @@ object Form1: TForm1
     Height = 468
     Top = 38
     Width = 400
-    ActivePage = TabMonitor
+    ActivePage = tabOptions
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
     Font.CharSet = ANSI_CHARSET
@@ -327,7 +327,7 @@ object Form1: TForm1
     Font.Pitch = fpVariable
     Font.Quality = fqDraft
     ParentFont = False
-    TabIndex = 6
+    TabIndex = 5
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
@@ -1230,9 +1230,9 @@ object Form1: TForm1
         Height = 440
         Top = 0
         Width = 392
-        ActivePage = TabNodeOptions
+        ActivePage = TabSheet9
         Align = alClient
-        TabIndex = 1
+        TabIndex = 4
         TabOrder = 0
         object TabSheet1: TTabSheet
           Caption = 'Wallet'
@@ -1966,8 +1966,8 @@ object Form1: TForm1
         end
         object TabSheet9: TTabSheet
           Caption = 'About...'
-          ClientHeight = 436
-          ClientWidth = 388
+          ClientHeight = 412
+          ClientWidth = 384
           OnResize = TabSheet9Resize
           object LabAbout: TLabel
             Left = 8

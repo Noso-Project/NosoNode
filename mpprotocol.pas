@@ -62,6 +62,7 @@ CONST
   GetMNs = 11;
   BestHash = 12;
   MNReport =13;
+  MNCheck = 14;
 
 implementation
 
@@ -171,6 +172,8 @@ if tipo = BestHash then
    Resultado := '$BESTHASH';
 if tipo = MNReport then
    Resultado := '$MNREPO '+GetMNReportString;
+if tipo = MNCheck then
+   Resultado := '$MNCHECK ';
 Resultado := Encabezado+Resultado;
 Result := resultado;
 End;
@@ -232,6 +235,7 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = '$REPORTNODE' then PTC_Getnodes(contador) // DEPRECATED
       else if UpperCase(LineComando) = '$MNREPO' then CheckMNRepo(SlotLines[contador][0])
       else if UpperCase(LineComando) = '$BESTHASH' then PTC_BestHash(SlotLines[contador][0])
+      else if UpperCase(LineComando) = '$MNCHECK' then PTC_MNCheck(SlotLines[contador][0])
       else
          Begin  // El comando recibido no se reconoce. Verificar protocolos posteriores.
          ConsoleLinesAdd(LangLine(23)+SlotLines[contador][0]+') '+intToStr(contador)); //Unknown command () in slot: (

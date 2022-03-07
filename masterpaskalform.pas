@@ -325,6 +325,15 @@ type
        Hash         : String[32];
        end;
 
+  TMNCheck = Record
+       ValidatorIP  : string;      // Validator IP
+       Block        : integer;
+       SignAddress  : string;
+       PubKey       : string;
+       ValidNodes   : string;
+       Signature    : string;
+       end;
+
   TArrayCriptoOp = Packed record
        tipo: integer;
        data: string;
@@ -712,7 +721,7 @@ CONST
   B36Alphabet : string = '0123456789abcdefghijklmnopqrstuvwxyz';
   ReservedWords : string = 'NULL,DELADDR';
   ValidProtocolCommands : string = '$PING$PONG$GETPENDING$NEWBL$GETRESUMEN$LASTBLOCK'+
-                                   '$CUSTOMORDERADMINMSGNETREQ$REPORTNODE$GETMNS$BESTHASH$MNREPO';
+                                   '$CUSTOMORDERADMINMSGNETREQ$REPORTNODE$GETMNS$BESTHASH$MNREPO$MNCHECK';
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
   DefaultNodes : String = 'DefNodes '+
@@ -733,10 +742,10 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa68';
+  SubVersion = 'Aa70';
   OficialRelease = false;
   VersionRequired = '0.3.0Aa1';
-  BuildDate = 'Febraury 2022';
+  BuildDate = 'March 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   HasheableChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -959,6 +968,7 @@ var
    U_MNsGrid_Last : int64 = 0;
 
   MNsList   : array of TMnode;
+  ArrMNChecks : array of TMNCheck;
 
 
   Last_ActualizarseConLaRed : int64 = 0;
@@ -1044,8 +1054,10 @@ var
   // old system
   CSMNsArray    : TRTLCriticalSection;
   CSWaitingMNs  : TRTLCriticalSection;
-  //new system
+  //new MNs system
   CSMNsList     : TRTLCriticalSection;
+  CSMNsChecks   : TRTLCriticalSection;
+
   CSIdsProcessed: TRTLCriticalSection;
 
   // Cross OS variables
@@ -1088,7 +1100,7 @@ implementation
 
 Uses
   mpgui, mpdisk, mpParser, mpRed, mpTime, mpProtocol, mpMiner, mpcripto, mpcoin,
-  mpRPC,mpblock;
+  mpRPC,mpblock, mpMN;
 
 {$R *.lfm}
 
@@ -1258,7 +1270,13 @@ var
 Begin
 While not terminated do
    begin
-
+   if UTCTime.ToInt64 mod 10 = 0 then
+      begin
+      if ( (IsValidator(MN_Ip)) and (BlockAge>120) and (Not MNVerificationDone) ) then
+         begin
+         //RunMNVerification();
+         end;
+      end;
    Sleep(1);
    end;
 End;
@@ -1383,6 +1401,7 @@ InitCriticalSection(CSPoolMiner);
 InitCriticalSection(CSMNsArray);
 InitCriticalSection(CSWaitingMNs);
 InitCriticalSection(CSMNsList);
+InitCriticalSection(CSMNsChecks);
 InitCriticalSection(CSClosingApp);
 InitCriticalSection(CSMinersConex);
 InitCriticalSection(CSNMSData);
@@ -1417,6 +1436,7 @@ DoneCriticalSection(CSPoolMiner);
 DoneCriticalSection(CSMNsArray);
 DoneCriticalSection(CSWaitingMNs);
 DoneCriticalSection(CSMNsList);
+DoneCriticalSection(CSMNsChecks);
 DoneCriticalSection(CSClosingApp);
 DoneCriticalSection(CSMinersConex);
 DoneCriticalSection(CSNMSData);
@@ -1630,6 +1650,8 @@ if WO_CloseStart then
    SetLength(ArrPoolPays,0);
    Setlength(MNsArray,0);
    Setlength(MNsList,0);
+   Setlength(ArrMNChecks,0);
+
    Setlength(WaitingMNs,0);
       ThreadMNs := TUpdateMNs.Create(true);
       ThreadMNs.FreeOnTerminate:=true;
@@ -1665,6 +1687,8 @@ SetLength(ArrayNetworkRequests,0);
 SetLength(ArrPoolPays,0);
 Setlength(MNsArray,0);
 Setlength(MNsList,0);
+Setlength(ArrMNChecks,0);
+
 Setlength(WaitingMNs,0);
    ThreadMNs := TUpdateMNs.Create(true);
    ThreadMNs.FreeOnTerminate:=true;
@@ -2970,6 +2994,12 @@ if GoAhead then
    else if parameter(LLine,0) = 'NSLORDER' then
       begin
       Acontext.Connection.IOHandler.WriteLn(PTC_Order(LLine));
+      AContext.Connection.Disconnect();
+      end
+
+   else if parameter(LLine,0) = 'MNVER' then
+      begin
+      Acontext.Connection.IOHandler.WriteLn(GetVerificationMNLine);
       AContext.Connection.Disconnect();
       end
 

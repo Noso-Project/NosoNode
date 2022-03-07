@@ -49,6 +49,7 @@ Function IsSafeIP(IP:String):boolean;
 Function GetLastRelease():String;
 Function GetOS():string;
 Function GetLastVerZipFile(version,LocalOS:string):boolean;
+Function GetSyncTus():String;
 
 implementation
 
@@ -1072,6 +1073,11 @@ FINALLY
 MS.Free;
 conector.free;
 END{try};
+End;
+
+Function GetSyncTus():String;
+Begin
+Result := MyLastBlock.ToString+Copy(MyResumenHash,1,3)+Copy(MySumarioHash,1,3)+Copy(MyLastBlockHash,1,3);
 End;
 
 END. // END UNIT

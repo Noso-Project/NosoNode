@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, mpCripto, mpTime, mpblock, mpcoin,
   dialogs, fileutil, forms, idglobal, poolmanage, strutils, mpRPC, DateUtils, Clipbrd,translation,
-  idContext, math;
+  idContext, math, mpMN;
 
 procedure ProcessLinesAdd(const ALine: String);
 procedure ConsoleLinesAdd(const ALine: String);
@@ -1981,19 +1981,8 @@ else
 End;
 
 Procedure DebugTest(linetext:string);
-var
-  counter,count2 : integer;
-  header : BlockHeaderData;
 Begin
-count2 := 0;
-For counter := 1 to MyLastBlock do
-   begin
-   info(counter.ToString);
-   application.ProcessMessages;
-   header := LoadBlockDataHeader(counter);
-   if header.TargetHash <> header.LastBlockHash then count2 := count2+1;
-   end;
-ConsoleLinesAdd(count2.ToString)
+RunMNVerification;
 End;
 
 END. // END UNIT
