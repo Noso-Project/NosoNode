@@ -1982,7 +1982,7 @@ End;
 
 Procedure DebugTest(linetext:string);
 Begin
-ConsoleLinesAdd(RunMNVerification);
+ConsoleLinesAdd(GetMNsFileData);
 End;
 
 END. // END UNIT

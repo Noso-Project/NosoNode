@@ -64,6 +64,8 @@ CONST
   MNReport =13;
   MNCheck = 14;
   GetChecks = 15;
+  GetMNsFile = 16;
+  MNFile = 17;
 
 implementation
 
@@ -177,6 +179,11 @@ if tipo = MNCheck then
    Resultado := '$MNCHECK ';
 if Tipo = GetChecks then
    Resultado := '$GETCHECKS';
+if tipo = GetMNsFile then
+   Resultado := 'GETMNSFILE';
+if tipo = MNFile then
+   Resultado := 'MNFILE';
+
 Resultado := Encabezado+Resultado;
 Result := resultado;
 End;
@@ -240,6 +247,8 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = '$BESTHASH' then PTC_BestHash(SlotLines[contador][0])
       else if UpperCase(LineComando) = '$MNCHECK' then PTC_MNCheck(SlotLines[contador][0])
       else if UpperCase(LineComando) = '$GETCHECKS' then PTC_SendChecks(contador)
+      else if UpperCase(LineComando) = 'GETMNSFILE' then PTC_SendLine(contador,ProtocolLine(MNFILE)+' $'+GetMNsFileData)
+      else if UpperCase(LineComando) = 'MNFILE' then PTC_MNFile(SlotLines[contador][0])
 
       else
          Begin  // El comando recibido no se reconoce. Verificar protocolos posteriores.

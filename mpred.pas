@@ -784,8 +784,9 @@ if MySumarioHash <> NetSumarioHash.Value then result := false;
 if MyResumenHash <> NetResumenHash.Value then result := false;
 if GetPendingCount <> StrToIntDef(NetPendingTrxs.Value,0) then result := false;
 if GetMNsListLength <> StrToIntDef(NetMNsCount.Value,0) then result := false;
-//if NetBestHash.Value <> GetNMSData.Diff then result := false;
-//if GetMNsChecksCount <> StrToIntDef(NetMNsChecks,0) then result := false;
+if NetBestHash.Value <> GetNMSData.Diff then result := false;
+if GetMNsChecksCount <> StrToIntDef(NetMNsChecks.Value,0) then result := false;
+if NetMNsHash.value <>  MyMNsHash then result := false;
 End;
 
 // Actualiza mi informacion para compoartirla en la red
@@ -866,6 +867,12 @@ else if ((StrToIntDef(NetMNsChecks.Value,0)>GetMNsChecksCount) and (LastTimeChec
    PTC_SendLine(NetMNsChecks.Slot,ProtocolLine(GetChecks));  // Get MNsList
    LastTimeChecksRequested := UTCTime.ToInt64;
    ConsoleLinesAdd('Checks requested to '+conexiones[NetMNsChecks.Slot].ip);
+   end
+else if ((NetMNsHash.value<>Copy(MyMNsHash,1,5)) and (LastTimeMNHashRequestes+5<UTCTime.ToInt64)) then
+   begin
+   PTC_SendLine(NetMNsHash.Slot,ProtocolLine(GetMNsFile));  // Get MNsList
+   LastTimeMNHashRequestes := UTCTime.ToInt64;
+   ConsoleLinesAdd('Mns File requested to '+conexiones[NetMNsChecks.Slot].ip);
    end;
 if IsAllSynced then Last_ActualizarseConLaRed := Last_ActualizarseConLaRed+5;
 SetCurrentJob('ActualizarseConLaRed',false);

@@ -722,7 +722,8 @@ CONST
   B36Alphabet : string = '0123456789abcdefghijklmnopqrstuvwxyz';
   ReservedWords : string = 'NULL,DELADDR';
   ValidProtocolCommands : string = '$PING$PONG$GETPENDING$NEWBL$GETRESUMEN$LASTBLOCK$GETCHECKS'+
-                                   '$CUSTOMORDERADMINMSGNETREQ$REPORTNODE$GETMNS$BESTHASH$MNREPO$MNCHECK';
+                                   '$CUSTOMORDERADMINMSGNETREQ$REPORTNODE$GETMNS$BESTHASH$MNREPO$MNCHECK'+
+                                   'GETMNSFILEMNFILE';
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
   DefaultNodes : String = 'DefNodes '+
@@ -743,9 +744,9 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa81';
+  SubVersion = 'Ab1';
   OficialRelease = false;
-  VersionRequired = '0.3.0Aa1';
+  VersionRequired = '0.3.0Aa4';
   BuildDate = 'March 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
@@ -983,6 +984,7 @@ var
     LastTimeRequestResumen : int64 = 0;
     LastTimePendingRequested : int64 = 0;
   NetMNsHash     : NetworkData;
+    LastTimeMNHashRequestes : int64 = 0;
   NetMNsCount    : NetworkData;
   NetBestHash    : NetworkData;
     LastTimeMNsRequested   : int64 = 0;

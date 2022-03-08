@@ -47,7 +47,9 @@ Function GetVerificationMNLine():String;
 Procedure CreditMNVerifications();
 
 Function GetMNsAddresses():String;
+Function GetMNsFileData():String;
 Procedure SaveMNsFile(GotText:string);
+Procedure PTC_MNFile(Linea:String);
 
 var
   OpenVerificators : integer;
@@ -57,6 +59,7 @@ var
   CSVerNodes    : TRTLCriticalSection;
   CSMNsChecks   : TRTLCriticalSection;
   DecVerThreads : TRTLCriticalSection;
+  CSMNsFile     : TRTLCriticalSection;
 
 implementation
 
@@ -479,10 +482,29 @@ LeaveCriticalSection(CSMNsArray);
 SetLength(result, Length(result)-1);
 End;
 
+Function GetMNsFileData():String;
+var
+  archivo : textfile;
+  Linea   : string = '';
+Begin
+EnterCriticalSection(CSMNsFile);
+TRY
+Assignfile(archivo, MAsternodesfilename);
+reset(archivo);
+Readln(Archivo,Linea);
+Closefile(archivo);
+EXCEPT on E:Exception do
+   tolog ('Error Saving masternodes file');
+END {TRY};
+LeaveCriticalSection(CSMNsFile);
+Result := Linea;
+End;
+
 Procedure SaveMNsFile(GotText:string);
 var
   archivo        : textfile;
 Begin
+EnterCriticalSection(CSMNsFile);
 TRY
 Assignfile(archivo, MAsternodesfilename);
 rewrite(archivo);
@@ -491,7 +513,19 @@ Closefile(archivo);
 EXCEPT on E:Exception do
    tolog ('Error Saving masternodes file');
 END {TRY};
+LeaveCriticalSection(CSMNsFile);
+MyMNsHash     := HashMD5File(MasterNodesFilename);
 End;
+
+Procedure PTC_MNFile(Linea:String);
+var
+  startpos : integer;
+  content : string;
+Begin
+startpos := Pos('$',Linea);
+Content := Copy(Linea,Startpos+1,Length(linea));
+SaveMNsFile(content);
+end;
 
 Procedure CreditMNVerifications();
 var
@@ -542,12 +576,15 @@ Initialization
 InitCriticalSection(CSVerNodes);
 InitCriticalSection(DecVerThreads);
 InitCriticalSection(CSMNsChecks);
+InitCriticalSection(CSMNsFile);
+
 
 
 Finalization
 DoneCriticalSection(CSVerNodes);
 DoneCriticalSection(DecVerThreads);
 DoneCriticalSection(CSMNsChecks);
+DoneCriticalSection(CSMNsFile);
 
 END. // End UNIT
 
