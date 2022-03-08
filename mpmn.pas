@@ -42,12 +42,12 @@ Function GetMNodeFromString(const StringData:String; out ToMNode:TMNode):Boolean
 Function IsLegitNewNode(ThisNode:TMNode):Boolean;
 Procedure CheckMNRepo(LineText:String);
 Procedure SendMNsList(Slot:Integer);
-Procedure CleanMasterNodes(BlockNumber:Integer);
 Function GetVerificationMNLine():String;
 
 Procedure CreditMNVerifications();
 
-Procedure SaveMNsFile();
+Function GetMNsAddresses():String;
+Procedure SaveMNsFile(GotText:string);
 
 var
   OpenVerificators : integer;
@@ -237,15 +237,15 @@ if not VerifySignedString(CheckData.ValidNodes,CheckData.Signature,CheckData.Pub
 if ErrorCode = 0 then
    begin
    AddMNCheck(CheckData);
-   ToLog(CheckData.ValidNodes);
+   //ToLog(CheckData.ValidNodes);
    outGOingMsjsAdd(GetPTCEcn+ReportInfo);
-   ConsoleLinesAdd('Check received from '+CheckData.ValidatorIP);
-   ToLog('Good check : (('+Linea+'))');
+   //ConsoleLinesAdd('Check received from '+CheckData.ValidatorIP);
+   //ToLog('Good check : (('+Linea+'))');
    end
 else
    begin
-   consolelinesadd('Wrong check from '+CheckData.ValidatorIP+'->'+ErrorCode.ToString);
-   ToLog('Wrong MNCheck: (-('+Linea+')-)');
+   //consolelinesadd('Wrong check from '+CheckData.ValidatorIP+'->'+ErrorCode.ToString);
+   //ToLog('Wrong MNCheck: (-('+Linea+')-)');
    end;
 End;
 
@@ -456,65 +456,41 @@ if GetMNsListLength>0 then
    end;
 End;
 
-Procedure CleanMasterNodes(BlockNumber:Integer);
-var
-  counter        : integer = 1;
-  Deleted        : boolean = false;
-  TotalDeleted   : integer = 0;
-  MinValidations : Integer;
-Begin
-MinValidations := (ValidatorsCount div 2) - 1;
-EnterCriticalSection(CSMNsArray);
-While Counter <= length(MNsList) do
-   Begin
-   Deleted := false;
-   if ( (MNsList[counter-1].Last+3<BlockNumber) and (MNsList[counter-1].Validations<MinValidations) ) then
-      begin
-      Delete(MNsList,counter-1,1);
-      Deleted := true;
-      Inc(TotalDeleted);
-      end;
-   If not Deleted then Inc(Counter);
-   end;
-for counter := 0 to length(MNsList)-1 do
-   begin
-   if MNsList[counter].Validations >= MinValidations then
-      Begin
-      MNsList[counter].Last:=BlockNumber;
-      MNsList[counter].Total:= +1;
-      end;
-   MNsList[counter].Validations := 0;
-   end;
-
-LeaveCriticalSection(CSMNsArray);
-//ConsoleLinesAdd('Deleted MNs : '+TotalDeleted.toString);
-U_MNsGrid := true;
-End;
-
 Function GetVerificationMNLine():String;
 Begin
 if IsAllSynced then Result := 'True '+GetSyncTus
 else Result := 'False';
 End;
 
-Procedure SaveMNsFile();
+Function GetMNsAddresses():String;
 var
-  archivo : textfile;
-  Counter : integer;
+  MinValidations : integer;
+  Counter        : integer;
 Begin
+MinValidations := (ValidatorsCount div 2) - 1;
+result := MyLastBlock.ToString+' ';
 EnterCriticalSection(CSMNsArray);
-   TRY
-   Assignfile(archivo, MAsternodesfilename);
-   rewrite(archivo);
-   For counter := 0 to length(MNsList)-1 do
+For counter := 0 to length(MNsList)-1 do
       begin
-      WriteLn(archivo,MNsList[counter].Fund+' '+IntToStr(MNsList[counter].Validations));
+      if MNsList[counter].Validations> MinValidations then
+         result := result + MNsList[counter].Ip+':'+MNsList[counter].Fund+' ';
       end;
-   Closefile(archivo);
-   EXCEPT on E:Exception do
-      tolog ('Error Saving masternodes file');
-   END {TRY};
-LEaveCriticalSection(CSMNsArray);
+LeaveCriticalSection(CSMNsArray);
+SetLength(result, Length(result)-1);
+End;
+
+Procedure SaveMNsFile(GotText:string);
+var
+  archivo        : textfile;
+Begin
+TRY
+Assignfile(archivo, MAsternodesfilename);
+rewrite(archivo);
+write(Archivo,GotText,#13#10);
+Closefile(archivo);
+EXCEPT on E:Exception do
+   tolog ('Error Saving masternodes file');
+END {TRY};
 End;
 
 Procedure CreditMNVerifications();
@@ -545,7 +521,7 @@ for counter := 0 to length(ArrMNChecks)-1 do
    begin
    NodesString := ArrMNChecks[counter].ValidNodes;
    NodesString := StringReplace(NodesString,':',' ',[rfReplaceAll]);
-   ConsoleLinesAdd(NodesString);
+   //ConsoleLinesAdd(NodesString);
    IPIndex := 0;
    REPEAT
       begin

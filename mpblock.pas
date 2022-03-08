@@ -55,6 +55,9 @@ var
   PoSTotalReward : int64 = 0;
   PoSAddressess : array of TArrayPos;
   errored : boolean = false;
+
+  MNsAddresses   : String = '';
+
 Begin
 BuildingBlock := Numero;
 setmilitime('CrearNuevoBloque',1);
@@ -174,8 +177,8 @@ if not errored then
 
    // Masternodes processing
    CreditMNVerifications();
-   //CleanMasterNodes(MyLastBlock);
-   SaveMNsFile();
+   MNsAddresses := GetMNsAddresses;
+   SaveMNsFile(MNsAddresses);
    ClearMNsChecks();
    ClearMNsList();
 
