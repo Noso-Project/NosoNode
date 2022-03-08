@@ -117,7 +117,11 @@ if success then
       end
    else
       begin
-
+      {
+      EnterCriticalSection(CSVerNodes);
+      VerifiedNodes := VerifiedNodes+Ip+'>NOSYNCTUS'+':';
+      LeaveCriticalSection(CSVerNodes);
+      }
       end;
    end;
 EXCEPT on E:Exception do
@@ -170,7 +174,7 @@ until ( (NoVerificators= 0) or (WaitCycles = 100) );
 DataLine := MN_IP+' '+MyLastBlock.ToString+' '+MN_Sign+' '+ListaDirecciones[DireccionEsMia(MN_Sign)].PublicKey+' '+
             VerifiedNodes+' '+GetStringSigned(VerifiedNodes,ListaDirecciones[DireccionEsMia(MN_Sign)].PrivateKey);
 OutGoingMsjsAdd(ProtocolLine(MNCheck)+DataLine);
-Result := VerifiedNodes;
+Result := Launched.ToString+':'+VerifiedNodes;
 End;
 
 Function GetMNCheckFromString(Linea:String):TMNCheck;
@@ -242,7 +246,7 @@ if ErrorCode = 0 then
    AddMNCheck(CheckData);
    //ToLog(CheckData.ValidNodes);
    outGOingMsjsAdd(GetPTCEcn+ReportInfo);
-   //ConsoleLinesAdd('Check received from '+CheckData.ValidatorIP);
+   ConsoleLinesAdd('Check received from '+CheckData.validnodes);
    //ToLog('Good check : (('+Linea+'))');
    end
 else
@@ -469,17 +473,19 @@ Function GetMNsAddresses():String;
 var
   MinValidations : integer;
   Counter        : integer;
+  Resultado      : string = '';
 Begin
 MinValidations := (ValidatorsCount div 2) - 1;
-result := MyLastBlock.ToString+' ';
+Resultado := MyLastBlock.ToString+' ';
 EnterCriticalSection(CSMNsArray);
 For counter := 0 to length(MNsList)-1 do
       begin
-      if MNsList[counter].Validations> MinValidations then
-         result := result + MNsList[counter].Ip+':'+MNsList[counter].Fund+' ';
+      if MNsList[counter].Validations>= MinValidations then
+         Resultado := Resultado + MNsList[counter].Ip+':'+MNsList[counter].Fund+' ';
       end;
 LeaveCriticalSection(CSMNsArray);
-SetLength(result, Length(result)-1);
+SetLength(Resultado, Length(Resultado)-1);
+result := Resultado;
 End;
 
 Function GetMNsFileData():String;
@@ -542,7 +548,7 @@ var
      begin
      if MNsList[Counter2].Ip = IP then
         begin
-        Inc(MNsList[Counter2].Validations);
+        MNsList[Counter2].Validations := MNsList[Counter2].Validations+1;
         Break;
         end;
      end;
@@ -577,8 +583,6 @@ InitCriticalSection(CSVerNodes);
 InitCriticalSection(DecVerThreads);
 InitCriticalSection(CSMNsChecks);
 InitCriticalSection(CSMNsFile);
-
-
 
 Finalization
 DoneCriticalSection(CSVerNodes);

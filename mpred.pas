@@ -786,7 +786,7 @@ if GetPendingCount <> StrToIntDef(NetPendingTrxs.Value,0) then result := false;
 if GetMNsListLength <> StrToIntDef(NetMNsCount.Value,0) then result := false;
 if NetBestHash.Value <> GetNMSData.Diff then result := false;
 if GetMNsChecksCount <> StrToIntDef(NetMNsChecks.Value,0) then result := false;
-if NetMNsHash.value <>  MyMNsHash then result := false;
+if NetMNsHash.value <>  Copy(MyMNsHash,1,5) then result := false;
 End;
 
 // Actualiza mi informacion para compoartirla en la red
