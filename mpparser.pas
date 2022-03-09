@@ -1981,9 +1981,17 @@ else
 End;
 
 Procedure DebugTest(linetext:string);
+var
+  Texto : string;
 Begin
-ConsolelinesAdd('Getting MNs payment from block '+MyLastBlock.ToString);
-GetBlockMNs(Mylastblock);
+if Myconstatus<3 then
+  begin
+  ConsoleLinesAdd('Must be synced');
+  exit;
+  end;
+Texto := GetMNsFileData;
+if AnsiContainsStr(Texto,MN_Funds) then consolelinesAdd(MN_Funds+' go MN Reward on block '+MyLastBlock.ToString)
+else consolelinesAdd(MN_Funds+' not paid')
 End;
 
 END. // END UNIT

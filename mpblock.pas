@@ -214,11 +214,8 @@ if not errored then
       MNsTotalReward := ((GetBlockReward(Numero)+MinerFee)*GetMNsPercentage(Numero)) div 10000;
       MNsReward := MNsTotalReward div MNsCount;
       MNsTotalReward := MNsCount * MNsReward;
-      Tolog(Format('MNs   : %d ',[MNsCount]));
-      Tolog(Format('Reward: %s ',[Int2Curr(MNsReward)]));
       For contador := 0 to length(MNsAddressess)-1 do
          begin
-         ToLog(MNsAddressess[contador].address);
          UpdateSumario(MNsAddressess[contador].address,MNsReward,0,IntToStr(Numero));
          end;
 
@@ -510,13 +507,11 @@ var
   posreward,MNreward : int64;
   counter : integer;
 Begin
-ConsoleLinesAdd(BlockNumber.ToString);
 Setlength(resultado,0);
 Setlength(ArrayPos,0);
 if blocknumber <MNBlockStart then
    begin
    result := resultado;
-   ConsoleLinesAdd('EXITED');
    exit;
    end;
 ArchData := BlockDirectory+IntToStr(BlockNumber)+'.blk';
@@ -540,17 +535,15 @@ MemStr := TMemoryStream.Create;
    // MNS INFO
    MemStr.Read(MNReward, SizeOf(MNReward));
    MemStr.Read(totalMNs, SizeOf(totalMNs));
-   consolelinesAdd(Format('%d %s',[totalMNs, Int2Curr(MNReward)]));
    SetLength(resultado,totalMNs);
    For Counter := 0 to totalMNs-1 do
       begin
       MemStr.Read(resultado[Counter].address,Sizeof(resultado[Counter]));
-      consolelinesAdd(resultado[Counter].address);
       end;
    SetLength(resultado,totalMNs+1);
    resultado[length(resultado)-1].address := IntToStr(MNReward);
    EXCEPT on E: Exception do // nothing, the block is not founded
-      ConsoleLinesAdd('EXCEPTION:'+E.Message)
+      ToExcLog('EXCEPTION on MNs file data:'+E.Message)
    END; {TRY}
 MemStr.Free;
 Result := resultado;
