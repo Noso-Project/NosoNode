@@ -744,9 +744,9 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa0';
+  SubVersion = 'Aa1';
   OficialRelease = false;
-  VersionRequired = '0.3.1Aa0';
+  VersionRequired = '0.3.1Aa1';
   BuildDate = 'March 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';

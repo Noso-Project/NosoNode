@@ -476,7 +476,7 @@ var
   Counter        : integer;
   Resultado      : string = '';
 Begin
-MinValidations := (ValidatorsCount div 2) - 1;
+MinValidations := (GetMNsChecksCount div 2) - 1;
 Resultado := MyLastBlock.ToString+' ';
 EnterCriticalSection(CSMNsArray);
 For counter := 0 to length(MNsList)-1 do
