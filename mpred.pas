@@ -210,13 +210,6 @@ if not Form1.Server.Active then exit;
 SetCurrentJob('StopServer',true);
 KeepServerOn := false;
    TRY
-   {
-   for contador := 1 to MaxConecciones do
-      begin
-      info('Closing Node connection: '+conexiones[contador].ip);
-      if conexiones[contador].tipo='CLI' then CerrarSlot(contador);
-      end;
-   }
    Form1.Server.Active:=false;
    ConsoleLinesAdd(LangLine(16));             //Server stopped
    U_DataPanel := true;
@@ -394,6 +387,7 @@ SetCurrentJob('CerrarClientes',true);
       ToExcLog('Error closing client');
       end;
    end;
+if form1.Server.active then ProcessLinesAdd('SERVEROFF');
 SetCurrentJob('CerrarClientes',false);
 End;
 

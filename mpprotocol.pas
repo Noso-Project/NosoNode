@@ -200,7 +200,7 @@ Begin
 SetCurrentJob('ParseProtocolLines',true);
 for contador := 1 to MaxConecciones do
    begin
-   if ( (SlotLines[contador].Count > 50) and (not IsSeedNode(Conexiones[contador].ip)) ) then
+   if ( (SlotLines[contador].Count > 200) and (not IsSeedNode(Conexiones[contador].ip)) ) then
       begin
       Consolelinesadd('POSSIBLE ATTACK FROM: '+Conexiones[contador].ip);
       UpdateBotData(conexiones[contador].ip);

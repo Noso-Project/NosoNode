@@ -1219,7 +1219,7 @@ LeaveCriticalSection(CSSumary);
 if DireccionEsMia(Direccion)>= 0 then UpdateWalletFromSumario();
 End;
 
-// Set alias for an address it it is empty
+// Set alias for an address if it is empty
 function SetCustomAlias(Address,Addalias:String;block:integer):boolean;
 var
   cont : integer;
@@ -1419,9 +1419,13 @@ var
   BlockHeader : BlockHeaderData;
   ArrayOrders : BlockOrdersArray;
   ArrayPos    : BlockArraysPos;
+  ArrayMNs    : BlockArraysPos;
   PosReward   : int64;
   PosCount    : integer;
   CounterPos  : integer;
+  MNsReward   : int64;
+  MNsCount    : integer;
+  CounterMNs  : integer;
 Begin
 SetCurrentJob('AddBlockToSumary'+inttostr(BlockNumber),true);
 BlockHeader := Default(BlockHeaderData);
@@ -1455,6 +1459,19 @@ if blocknumber >= PoSBlockStart then
    UpdateSumario(BlockHeader.AccountMiner,Restar(PosCount*Posreward),0,IntToStr(BlockNumber));
    SetLength(ArrayPos,0);
    end;
+
+if blocknumber >= MNBlockStart then
+   begin
+   ArrayMNs := GetBlockMNs(BlockNumber);
+   MNsReward := StrToIntDef(ArrayMNs[length(ArrayMNs)-1].address,0);
+   SetLength(ArrayMNs,length(ArrayMNs)-1);
+   MNsCount := length(ArrayMNs);
+   for counterMNs := 0 to MNsCount-1 do
+      UpdateSumario(ArrayMNs[counterMNs].address,MNsreward,0,IntToStr(BlockNumber));
+   UpdateSumario(BlockHeader.AccountMiner,Restar(MNsCount*MNsreward),0,IntToStr(BlockNumber));
+   SetLength(ArrayMNs,0);
+   end;
+
 ListaSumario[0].LastOP:=BlockNumber;
 if SaveAndUpdate then
    begin
@@ -1471,10 +1488,14 @@ var
   contador, cont : integer;
   BlockHeader : BlockHeaderData;
   ArrayOrders : BlockOrdersArray;
- ArrayPos    : BlockArraysPos;
+  ArrayPos    : BlockArraysPos;
   PosReward   : int64;
   PosCount    : integer;
   CounterPos  : integer;
+  ArrayMNs    : BlockArraysPos;
+  MNsReward   : int64;
+  MNsCount    : integer;
+  CounterMNs  : integer;
 Begin
 SetCurrentJob('RebuildSumario',true);
 EnterCriticalSection(CSSumary);
@@ -1521,6 +1542,19 @@ for contador := 1 to UntilBlock do
       UpdateSumario(BlockHeader.AccountMiner,Restar(PosCount*Posreward),0,IntToStr(contador));
       SetLength(ArrayPos,0);
       end;
+
+   if contador >= MNBlockStart then
+      begin
+      ArrayMNs := GetBlockMNs(contador);
+      MNsReward := StrToIntDef(ArrayMNs[length(ArrayMNs)-1].address,0);
+      SetLength(ArrayMNs,length(ArrayMNs)-1);
+      MNsCount := length(ArrayMNs);
+      for counterMNs := 0 to MNsCount-1 do
+         UpdateSumario(ArrayMNs[counterMNs].address,MNsreward,0,IntToStr(contador));
+      UpdateSumario(BlockHeader.AccountMiner,Restar(MNsCount*MNsreward),0,IntToStr(contador));
+      SetLength(ArrayMNs,0);
+      end;
+
    end;
 ListaSumario[0].LastOP:=contador;
 RebuildingSumary := false;

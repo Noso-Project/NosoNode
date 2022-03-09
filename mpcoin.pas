@@ -586,9 +586,9 @@ End;
 Function GetMNsPercentage(block:integer):integer;
 Begin
 result := 0;
-if block >= 41000 then
+if block >= MNBlockStart then
    begin
-   result := MNsPercentage + (((block-41000) div 4000) * 100); // MNsPercentage := 2000
+   result := MNsPercentage + (((block-MNBlockStart) div 4000) * 100); // MNsPercentage := 2000
    if result > 6000 then result := 6000;
    end;
 End;

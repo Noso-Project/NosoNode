@@ -15,11 +15,13 @@ function GetDiffForNextBlock(UltimoBloque,Last20Average,lastblocktime,previous:i
 function GetLast20Time(LastBlTime:integer):integer;
 function GetBlockReward(BlNumber:int64):Int64;
 Function GuardarBloque(NombreArchivo:string;Cabezera:BlockHeaderData;Ordenes:array of OrderData;
-                        PosPay:Int64;PoSnumber:integer;PosAddresses:array of TArrayPos):boolean;
+                        PosPay:Int64;PoSnumber:integer;PosAddresses:array of TArrayPos;
+                        MNsPay:int64;MNsNumber:Integer;MNsAddresses:array of TArrayPos):boolean;
 function LoadBlockDataHeader(BlockNumber:integer):BlockHeaderData;
 function GetBlockTrxs(BlockNumber:integer):BlockOrdersArray;
 Procedure UndoneLastBlock();
 Function GetBlockPoSes(BlockNumber:integer): BlockArraysPos;
+Function GetBlockMNs(BlockNumber:integer): BlockArraysPos;
 Function BlockAge():integer;
 Function NextBlockTimeStamp():Int64;
 Function RemainingTillNextBlock():String;
@@ -49,14 +51,22 @@ var
   Filename : String;
   Contador : integer = 0;
   OperationAddress : string = '';
+  errored : boolean = false;
+  PoWTotalReward : int64;
 
   PoScount : integer = 0;
   PosRequired, PosReward: int64;
   PoSTotalReward : int64 = 0;
   PoSAddressess : array of TArrayPos;
-  errored : boolean = false;
 
-  MNsAddresses   : String = '';
+
+  MNsCount       : integer;
+  MNsReward      : int64;
+  MNsTotalReward : int64 =0;
+  MNsAddressess : array of TArrayPos;
+  ThisParam : String;
+
+  MNsFileText   : String = '';
 
 Begin
 BuildingBlock := Numero;
@@ -176,12 +186,46 @@ if not errored then
    SetCurrentJob('NewBLOCK_PoS',false);
 
    // Masternodes processing
+   setmilitime('NewBLOCK_MNs',1);
    CreditMNVerifications();
-   MNsAddresses := GetMNsAddresses;
-   SaveMNsFile(MNsAddresses);
+   MNsFileText := GetMNsAddresses();
+   SaveMNsFile(MNsFileText);
    ClearMNsChecks();
    ClearMNsList();
+   if numero >= MNBlockStart then
+      begin
+      SetLength(MNsAddressess,0);
+      Contador := 1;
+      Repeat
+         begin
+         ThisParam := Parameter(MNsFileText,contador);
+         if ThisParam<> '' then
+            begin
+            ThisParam := StringReplace(ThisParam,':',' ',[rfReplaceAll]);
+            ThisParam := Parameter(ThisParam,1);
+            SetLength(MNsAddressess,length(MNsAddressess)+1);
+            MNsAddressess[length(MNsAddressess)-1].address:=ThisParam;
+            end;
+         Inc(contador);
+         end;
+      until ThisParam = '';
 
+      MNsCount := Length(MNsAddressess);
+      MNsTotalReward := ((GetBlockReward(Numero)+MinerFee)*GetMNsPercentage(Numero)) div 10000;
+      MNsReward := MNsTotalReward div MNsCount;
+      MNsTotalReward := MNsCount * MNsReward;
+      Tolog(Format('MNs   : %d ',[MNsCount]));
+      Tolog(Format('Reward: %s ',[Int2Curr(MNsReward)]));
+      For contador := 0 to length(MNsAddressess)-1 do
+         begin
+         ToLog(MNsAddressess[contador].address);
+         UpdateSumario(MNsAddressess[contador].address,MNsReward,0,IntToStr(Numero));
+         end;
+
+      setmilitime('NewBLOCK_MNs',2);
+      end;// End of MNS payment proecess
+
+   // ***END MASTERNODES PROCESSING***
 
    // Reset Order hashes received
    EnterCriticalSection(CSIdsProcessed);
@@ -189,7 +233,8 @@ if not errored then
    LeaveCriticalSection(CSIdsProcessed);
 
    // Pago del minero
-   UpdateSumario(Minero,GetBlockReward(Numero)+MinerFee-PosTotalReward,0,IntToStr(numero));
+   PoWTotalReward := (GetBlockReward(Numero)+MinerFee)-PosTotalReward-MNsTotalReward;
+   UpdateSumario(Minero,PoWTotalReward,0,IntToStr(numero));
    // Actualizar el ultimo bloque añadido al sumario
    // Guardar el sumario
    setmilitime('NewBLOCK_SaveSum',1);
@@ -205,23 +250,24 @@ if not errored then
    BlockHeader.TimeStart:= StartBlockTime;
    BlockHeader.TimeEnd:= timeStamp;
    BlockHeader.TimeTotal:= TimeStamp - StartBlockTime;
-   BlockHeader.TimeLast20:=GetLast20Time(BlockHeader.TimeTotal);
+   BlockHeader.TimeLast20:=0;//GetLast20Time(BlockHeader.TimeTotal);
    BlockHeader.TrxTotales:=length(ListaOrdenes);
    if numero = 0 then BlockHeader.Difficult:= InitialBlockDiff
-   else BlockHeader.Difficult:= LastBlockData.NxtBlkDiff;
+   else BlockHeader.Difficult:= 0;{PosReward}//LastBlockData.NxtBlkDiff;
    BlockHeader.TargetHash:=TargetHash;
    //if protocolo = 1 then BlockHeader.Solution:= Solucion
-   BlockHeader.Solution:= Solucion+' '+GetNMSData.Diff;
+   BlockHeader.Solution:= Solucion+' '+GetNMSData.Diff+' '+PoWTotalReward.ToString+' '+MNsTotalReward.ToString+' '+PosTotalReward.ToString;
    if numero = 0 then BlockHeader.LastBlockHash:='NOSO GENESYS BLOCK'
    else BlockHeader.LastBlockHash:=MyLastBlockHash;
-   BlockHeader.NxtBlkDiff:=GetDiffForNextBlock(numero,BlockHeader.TimeLast20,BlockHeader.TimeTotal,BlockHeader.Difficult);
+   BlockHeader.NxtBlkDiff:= 0;{MNsReward}//GetDiffForNextBlock(numero,BlockHeader.TimeLast20,BlockHeader.TimeTotal,BlockHeader.Difficult);
    BlockHeader.AccountMiner:=Minero;
    BlockHeader.MinerFee:=MinerFee;
    BlockHeader.Reward:=GetBlockReward(Numero);
    SetCurrentJob('NewBLOCK_Headers',false);
    // Fin de la cabecera -----
    // Guardar bloque al disco
-   if not GuardarBloque(FileName,BlockHeader,ListaOrdenes,PosReward,PosCount,PoSAddressess) then
+   if not GuardarBloque(FileName,BlockHeader,ListaOrdenes,PosReward,PosCount,PoSAddressess,
+                        MNsReward, MNsCount,MNsAddressess) then
       ToExcLog('*****CRITICAL*****'+slinebreak+'Error building block: '+numero.ToString);
 
    SetNMSData('','','');
@@ -318,7 +364,9 @@ End;
 
 // Guarda el archivo de bloque en disco
 Function GuardarBloque(NombreArchivo:string;Cabezera:BlockHeaderData;
-                        Ordenes:array of OrderData;PosPay:Int64;PoSnumber:integer;PosAddresses:array of TArrayPos):boolean;
+                        Ordenes:array of OrderData;
+                        PosPay:Int64;PoSnumber:integer;PosAddresses:array of TArrayPos;
+                        MNsPay:int64;MNsNumber:Integer;MNsAddresses:array of TArrayPos):boolean;
 var
   MemStr: TMemoryStream;
   NumeroOrdenes : int64;
@@ -339,6 +387,15 @@ MemStr := TMemoryStream.Create;
       MemStr.Write(PoSnumber,Sizeof(PoSnumber));
       for counter := 0 to PoSnumber-1 do
          MemStr.Write(PosAddresses[counter],Sizeof(PosAddresses[Counter]));
+      end;
+   if Cabezera.Number>=MNBlockStart then
+      begin
+      MemStr.Write(MNsPay,Sizeof(MNsPay));
+      MemStr.Write(MNsnumber,Sizeof(MNsnumber));
+      for counter := 0 to MNsNumber-1 do
+         begin
+         MemStr.Write(MNsAddresses[counter],Sizeof(MNsAddresses[Counter]));
+         end;
       end;
    MemStr.SaveToFile(NombreArchivo);
    EXCEPT On E :Exception do
@@ -437,6 +494,64 @@ MemStr := TMemoryStream.Create;
    resultado[length(resultado)-1].address := IntToStr(posreward);
    Except on E: Exception do // nothing, the block is not founded
    end;
+MemStr.Free;
+Result := resultado;
+end;
+
+Function GetBlockMNs(BlockNumber:integer): BlockArraysPos;
+var
+  resultado : BlockArraysPos;
+  ArrayPos    : BlockArraysPos;
+  ArrTrxs : BlockOrdersArray;
+  ArchData : String;
+  MemStr: TMemoryStream;
+  Header : BlockHeaderData;
+  TotalTrxs, totalposes, totalMNs : integer;
+  posreward,MNreward : int64;
+  counter : integer;
+Begin
+ConsoleLinesAdd(BlockNumber.ToString);
+Setlength(resultado,0);
+Setlength(ArrayPos,0);
+if blocknumber <MNBlockStart then
+   begin
+   result := resultado;
+   ConsoleLinesAdd('EXITED');
+   exit;
+   end;
+ArchData := BlockDirectory+IntToStr(BlockNumber)+'.blk';
+MemStr := TMemoryStream.Create;
+   TRY
+   // HEADERS
+   MemStr.LoadFromFile(ArchData);
+   MemStr.Position := 0;
+   MemStr.Read(Header, SizeOf(Header));
+   // TRXS LIST
+   TotalTrxs := header.TrxTotales;
+   SetLength(ArrTrxs,TotalTrxs);
+   For Counter := 0 to TotalTrxs-1 do
+      MemStr.Read(ArrTrxs[Counter],Sizeof(ArrTrxs[Counter])); // read each record
+   // POS INFO
+   MemStr.Read(posreward, SizeOf(int64));
+   MemStr.Read(totalposes, SizeOf(integer));
+   SetLength(ArrayPos,totalposes);
+   For Counter := 0 to totalposes-1 do
+      MemStr.Read(ArrayPos[Counter].address,Sizeof(ArrayPos[Counter]));
+   // MNS INFO
+   MemStr.Read(MNReward, SizeOf(MNReward));
+   MemStr.Read(totalMNs, SizeOf(totalMNs));
+   consolelinesAdd(Format('%d %s',[totalMNs, Int2Curr(MNReward)]));
+   SetLength(resultado,totalMNs);
+   For Counter := 0 to totalMNs-1 do
+      begin
+      MemStr.Read(resultado[Counter].address,Sizeof(resultado[Counter]));
+      consolelinesAdd(resultado[Counter].address);
+      end;
+   SetLength(resultado,totalMNs+1);
+   resultado[length(resultado)-1].address := IntToStr(MNReward);
+   EXCEPT on E: Exception do // nothing, the block is not founded
+      ConsoleLinesAdd('EXCEPTION:'+E.Message)
+   END; {TRY}
 MemStr.Free;
 Result := resultado;
 end;

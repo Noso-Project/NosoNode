@@ -399,7 +399,7 @@ form1.DataPanel.Cells[1,7]:= format(rs0517,[length(ArrayCriptoOp),GetPendingCoun
 form1.DataPanel.Cells[1,0]:= Int2Curr(GetWalletBalance)+' '+CoinSimbol;
 form1.DataPanel.Cells[3,5]:= RemainingTillNextBlock;//IntToStr(OutgoingMsjs.Count);
 form1.DataPanel.Cells[3,6]:= Copy(MyMNsHash,0,5)+'/'+NetMNsHash.Value;
-form1.DataPanel.Cells[3,7]:= format(rs0517,[length(WaitingMNs),GetMNsListLength,NetMNsCount.Value]);
+form1.DataPanel.Cells[3,7]:= format(rs0517,[GetMNsChecksCount,GetMNsListLength,NetMNsCount.Value]);
 setmilitime('UpdateGUITime',2);
 
 if U_DirPanel then

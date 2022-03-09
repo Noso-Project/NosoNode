@@ -1982,7 +1982,8 @@ End;
 
 Procedure DebugTest(linetext:string);
 Begin
-ConsoleLinesAdd(RunMNVerification);
+ConsolelinesAdd('Getting MNs payment from block '+MyLastBlock.ToString);
+GetBlockMNs(Mylastblock);
 End;
 
 END. // END UNIT

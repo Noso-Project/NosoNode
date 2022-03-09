@@ -735,7 +735,7 @@ CONST
                             '23.94.21.83 '+
                             '172.245.52.208 '+
                             '107.175.59.177';
-  ProgramVersion = '0.3.0';
+  ProgramVersion = '0.3.1';
   {$IFDEF WINDOWS}
   RestartFileName = 'launcher.bat';
   updateextension = 'zip';
@@ -744,9 +744,9 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ab2';
+  SubVersion = 'Aa0';
   OficialRelease = false;
-  VersionRequired = '0.3.0Aa4';
+  VersionRequired = '0.3.1Aa0';
   BuildDate = 'March 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
@@ -776,7 +776,7 @@ CONST
   MNsPercentage = 2000;
   PosStackCoins = 20;               // PoS stack ammoount: supply*20 / PoSStack
   PoSBlockStart : integer = 8425;   // first block with PoSPayment
-  MNBlockStart  : integer = 40000;  // First block with MNpayments
+  MNBlockStart  : integer = 48010;  // First block with MNpayments
   InitialBlockDiff = 60;            // Dificultad durante los 20 primeros bloques
   GenesysTimeStamp = 1615132800;    // 1615132800;
   FileFormatVer = 'NFF2';
@@ -1278,7 +1278,7 @@ While not terminated do
    begin
    if UTCTime.ToInt64 mod 10 = 0 then
       begin
-      if ( (IsValidator(MN_Ip)) and (BlockAge>500) and (Not MNVerificationDone) and
+      if ( (IsValidator(MN_Ip)) and (BlockAge>500+random(20)) and (Not MNVerificationDone) and
          (BlockAge<575) and (LastRunMNVerification<>UTCTime.ToInt64) and (MyConStatus = 3) ) then
          begin
          LastRunMNVerification := UTCTime.ToInt64;
@@ -3057,7 +3057,7 @@ if GoAhead then
       begin
       ToLog(format(rs0058,[IPUser]));
       //ToLog('SERVER: Invalid client->'+IPUser);
-      TryCloseServerConnection(AContext);
+      TryCloseServerConnection(AContext,'WRONG_PROTOCOL');
       UpdateBotData(IPUser);
       end
 

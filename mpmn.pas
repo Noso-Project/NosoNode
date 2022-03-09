@@ -245,8 +245,9 @@ if ErrorCode = 0 then
    begin
    AddMNCheck(CheckData);
    //ToLog(CheckData.ValidNodes);
-   outGOingMsjsAdd(GetPTCEcn+ReportInfo);
-   ConsoleLinesAdd('Check received from '+CheckData.validnodes);
+   if form1.Server.Active then
+      outGOingMsjsAdd(GetPTCEcn+ReportInfo);
+   //ConsoleLinesAdd('Check received from '+CheckData.validnodes);
    //ToLog('Good check : (('+Linea+'))');
    end
 else
@@ -481,7 +482,9 @@ EnterCriticalSection(CSMNsArray);
 For counter := 0 to length(MNsList)-1 do
       begin
       if MNsList[counter].Validations>= MinValidations then
+         begin
          Resultado := Resultado + MNsList[counter].Ip+':'+MNsList[counter].Fund+' ';
+         end;
       end;
 LeaveCriticalSection(CSMNsArray);
 SetLength(Resultado, Length(Resultado)-1);
