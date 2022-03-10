@@ -381,10 +381,6 @@ msgstr "Сервер пула активен"
 msgid "RPC server active"
 msgstr "RPC-сервер активен"
 
-#: tform1.staserimg.hint
-msgid "Masternode active"
-msgstr "Мастернода активна"
-
 #: tform1.statimelab.caption
 msgid "00-00-00 00:00:00 (0)"
 msgstr "00-00-00 00:00:00 (0)"

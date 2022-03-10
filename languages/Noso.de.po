@@ -389,10 +389,6 @@ msgstr "Pool Server aktiv"
 msgid "RPC server active"
 msgstr "RPC Server aktiv"
 
-#: tform1.staserimg.hint
-msgid "Masternode active"
-msgstr "Masternode aktiv"
-
 #: tform1.statimelab.caption
 msgid "00-00-00 00:00:00 (0)"
 msgstr "00-00-00 00:00:00 (0)"

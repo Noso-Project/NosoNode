@@ -92,6 +92,7 @@ Function MainNetHashrate():string;
 // 0.2.1 DEBUG
 Procedure ShowBlockPos(LineText:string);
 Procedure showPosrequired(linetext:string);
+Procedure ShowBlockMNs(LineText:string);
 Procedure showgmts(LineText:string);
 
 // EXCHANGE
@@ -297,8 +298,7 @@ else if UpperCase(Command) = 'DECTO58' then consolelinesadd(BMDecTo58(parameter(
 else if UpperCase(Command) = 'HEXTO58' then consolelinesadd(BMHexTo58(parameter(linetext,1),58))
 else if UpperCase(Command) = '58TODEC' then consolelinesadd(BM58ToDec(parameter(linetext,1)))
 else if UpperCase(Command) = 'DECTOHEX' then consolelinesadd(BMDectoHex(parameter(linetext,1)))
-
-
+else if UpperCase(Command) = 'NOSOHASH' then consolelinesadd(Nosohash(parameter(linetext,1)))
 
 // CONSULTING
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()
@@ -308,6 +308,7 @@ else if UpperCase(Command) = 'NETRATE' then consolelinesadd('Average Mainnet has
 // 0.2.1 DEBUG
 else if UpperCase(Command) = 'BLOCKPOS' then ShowBlockPos(LineText)
 else if UpperCase(Command) = 'POSSTACK' then showPosrequired(linetext)
+else if UpperCase(Command) = 'BLOCKMNS' then ShowBlockMNs(LineText)
 
 // P2P
 else if UpperCase(Command) = 'PEERS' then ConsoleLinesAdd('Server list: '+IntToStr(form1.ClientsCount)+'/'+IntToStr(GetIncomingConnections))
@@ -1737,6 +1738,34 @@ else
    ConsolelinesAdd('Reward   : '+int2curr(PosReward));
    ConsolelinesAdd('Total    : '+int2curr(PosCount*PosReward));
    SetLength(ArrayPos,0);
+   end;
+End;
+
+Procedure ShowBlockMNs(LineText:string);
+var
+  number : integer;
+  ArrayMNs : BlockArraysPos;
+  MNsReward : int64;
+  MNsCount, counterMNs : integer;
+Begin
+number := StrToIntDef(parameter(linetext,1),0);
+if ((number < MNBlockStart) or (number > MyLastBlock))then
+   begin
+   ConsolelinesAdd('Invalid block number: '+number.ToString);
+   end
+else
+   begin
+   ArrayMNs := GetBlockMNs(number);
+   MNsReward := StrToIntDef(ArrayMNs[length(ArrayMNs)-1].address,0);
+   SetLength(ArrayMNs,length(ArrayMNs)-1);
+   MNSCount := length(ArrayMNs);
+   for counterMNs := 0 to MNsCount-1 do
+      consolelinesadd(ArrayMNs[counterMNs].address);
+   ConsoleLinesAdd('MNs Block : '+inttostr(number));
+   ConsoleLinesAdd('Addresses : '+IntToStr(MNsCount));
+   ConsolelinesAdd('Reward    : '+int2curr(MNsReward));
+   ConsolelinesAdd('Total     : '+int2curr(MNsCount*MNsReward));
+   SetLength(ArrayMNs,0);
    end;
 End;
 

@@ -480,23 +480,16 @@ if ((NumeroConexiones>=MinConexToWork) and (MyConStatus<2) and (not STATUS_Conne
    begin
    STATUS_Connected := true;
    MyConStatus := 2;
+   SetNMSData('','','');
    ConsoleLinesAdd(LangLine(35));     //Connected
    end;
 if STATUS_Connected then
    begin
    UpdateNetworkData();
-   { To be implemented on next release
-   if GetNMSData.Diff<>NetBestHash.Value  then
-      begin
-      SetNMSData('','','');
-      PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));
-      ConsolelinesAdd('Requesting besthash');
-      end;
-   }
    if Last_ActualizarseConLaRed+4<UTCTime.ToInt64 then ActualizarseConLaRed();
    end;
-if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLastBlock.Value)
-     and (MySumarioHash=NetSumarioHash.Value) and(MyResumenhash = NetResumenHash.Value)) then
+if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLastBlock.Value)
+     and (MySumarioHash=NetSumarioHash.Value) and(MyResumenhash = NetResumenHash.Value) ) then
    begin
    SetNMSData('','','');
    MyConStatus := 3;
@@ -517,9 +510,9 @@ if ((MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLas
       ConsoleLinesAdd('Pending requested to '+conexiones[NetPendingTrxs.Slot].ip);
       end;
    // Get MNS
-   PTC_SendLine(NetMNsHash.Slot,ProtocolLine(11));  // Get MNs
-   LastTimeMNsRequested := UTCTime.ToInt64;
-   ConsoleLinesAdd('Master nodes requested');
+   //PTC_SendLine(NetMNsHash.Slot,ProtocolLine(11));  // Get MNs
+   //LastTimeMNsRequested := UTCTime.ToInt64;
+   //ConsoleLinesAdd('Master nodes requested');
 
    OutgoingMsjsAdd(ProtocolLine(ping));
    Form1.imagenes.GetBitmap(0,form1.ConnectButton.Glyph);
@@ -535,7 +528,7 @@ if MyConStatus = 3 then
       ConsoleLinesAdd('Pending requested to '+conexiones[NetPendingTrxs.Slot].ip);
       end;
    if ( (not MyMNIsListed) and (Form1.Server.Active) and (UTCTime.ToInt64>LastTimeReportMyMN+5)
-        and (BlockAge>10) and (BlockAge<495) ) then
+        and (BlockAge>10+MNsRandomWait) and (BlockAge<495) ) then
      begin
      OutGoingMsjsAdd(ProtocolLine(MNReport));
      ConsoleLinesAdd('My Masternode reported');
@@ -850,7 +843,8 @@ else if ((MyResumenhash <> NetResumenHash.Value) and (NLBV=mylastblock) and (MyL
    ConsoleLinesAdd(LangLine(163)); //'Headers file requested'
    LastTimeRequestResumen := StrToInt64(UTCTime);
    end
-else if ( (StrToInt(NetMNsCount.Value)>GetMNsListLength) and (LastTimeMNsRequested+5<UTCTime.ToInt64) ) then
+else if ( (StrToInt(NetMNsCount.Value)>GetMNsListLength) and (LastTimeMNsRequested+5<UTCTime.ToInt64)
+           and (LengthWaitingMNs = 0) ) then
    begin
    PTC_SendLine(NetMNsCount.Slot,ProtocolLine(11));  // Get MNsList
    LastTimeMNsRequested := UTCTime.ToInt64;
@@ -858,16 +852,23 @@ else if ( (StrToInt(NetMNsCount.Value)>GetMNsListLength) and (LastTimeMNsRequest
    end
 else if ((StrToIntDef(NetMNsChecks.Value,0)>GetMNsChecksCount) and (LastTimeChecksRequested+5<UTCTime.ToInt64)) then
    begin
-   PTC_SendLine(NetMNsChecks.Slot,ProtocolLine(GetChecks));  // Get MNsList
+   PTC_SendLine(NetMNsChecks.Slot,ProtocolLine(GetChecks));  // Get MNsChecks
    LastTimeChecksRequested := UTCTime.ToInt64;
    ConsoleLinesAdd('Checks requested to '+conexiones[NetMNsChecks.Slot].ip);
    end
 else if ((NetMNsHash.value<>Copy(MyMNsHash,1,5)) and (LastTimeMNHashRequestes+5<UTCTime.ToInt64)) then
    begin
-   PTC_SendLine(NetMNsHash.Slot,ProtocolLine(GetMNsFile));  // Get MNsList
+   PTC_SendLine(NetMNsHash.Slot,ProtocolLine(GetMNsFile));  // Get MNsFile
    LastTimeMNHashRequestes := UTCTime.ToInt64;
    ConsoleLinesAdd('Mns File requested to '+conexiones[NetMNsChecks.Slot].ip);
+   end
+else if ( (GetNMSData.Diff<>NetBestHash.Value) and (LastTimeBestHashRequested+5<UTCTime.ToInt64) ) then
+   begin
+   PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));
+   LastTimeBestHashRequested := UTCTime.ToInt64;
+   ConsolelinesAdd('Requesting besthash');
    end;
+
 if IsAllSynced then Last_ActualizarseConLaRed := Last_ActualizarseConLaRed+5;
 SetCurrentJob('ActualizarseConLaRed',false);
 End;

@@ -5,7 +5,8 @@ unit mpMN;
 interface
 
 uses
-  Classes, SysUtils, mpCripto, MasterPaskalform, mpcoin, mpgui, IdTCPClient, IdGlobal;
+  Classes, SysUtils, mpCripto, MasterPaskalform, mpcoin, mpgui, IdTCPClient, IdGlobal,
+  strutils;
 
 Type
 
@@ -50,6 +51,12 @@ Function GetMNsAddresses():String;
 Function GetMNsFileData():String;
 Procedure SaveMNsFile(GotText:string);
 Procedure PTC_MNFile(Linea:String);
+
+// Waiting MNs
+
+Function LengthWaitingMNs():Integer;
+Procedure AddWaitingMNs(Linea:String);
+Function GetWaitingMNs():String;
 
 var
   OpenVerificators : integer;
@@ -441,7 +448,7 @@ if GetMNodeFromString(ReportInfo,NewNode) then
          if not Added then Insert(NewNode,MNsList,Length(MNsList));
          end;
       LeaveCriticalSection(CSMNsArray);
-      outGOingMsjsAdd(GetPTCEcn+ReportInfo);
+      if form1.Server.Active then outGOingMsjsAdd(GetPTCEcn+ReportInfo);
       U_MNsGrid := true;
       end;
    end;
@@ -506,6 +513,16 @@ EXCEPT on E:Exception do
    tolog ('Error Saving masternodes file');
 END {TRY};
 LeaveCriticalSection(CSMNsFile);
+if AnsiContainsStr(Linea,MN_IP) then
+   begin
+   Form1.imagenes.GetBitMap(68,Form1.StaSerImg.Picture.Bitmap);
+   Form1.StaSerImg.Hint:='Masternode Earning!';
+   end
+else
+   begin
+   Form1.imagenes.GetBitMap(27,Form1.StaSerImg.Picture.Bitmap);
+   Form1.StaSerImg.Hint:='Check your Masternode config';
+   end;
 Result := Linea;
 End;
 
@@ -524,6 +541,16 @@ EXCEPT on E:Exception do
 END {TRY};
 LeaveCriticalSection(CSMNsFile);
 MyMNsHash     := HashMD5File(MasterNodesFilename);
+if AnsiContainsStr(GotText,MN_IP) then
+   begin
+   Form1.imagenes.GetBitMap(68,Form1.StaSerImg.Picture.Bitmap);
+   Form1.StaSerImg.Hint:='Masternode Earning!';
+   end
+else
+   begin
+   Form1.imagenes.GetBitMap(27,Form1.StaSerImg.Picture.Bitmap);
+   Form1.StaSerImg.Hint:='Check your Masternode config';
+   end;
 End;
 
 Procedure PTC_MNFile(Linea:String);
@@ -579,6 +606,32 @@ for counter := 0 to length(ArrMNChecks)-1 do
    end;
 LeaveCriticalSection(CSMNsChecks);
 LeaveCriticalSection(CSMNsArray);
+End;
+
+Function LengthWaitingMNs():Integer;
+Begin
+EnterCriticalSection(CSWaitingMNs);
+result := Length(WaitingMNs);
+LeaveCriticalSection(CSWaitingMNs);
+End;
+
+Procedure AddWaitingMNs(Linea:String);
+Begin
+EnterCriticalSection(CSWaitingMNs);
+Insert(Linea,WaitingMNs,Length(WaitingMNs));
+LeaveCriticalSection(CSWaitingMNs);
+End;
+
+Function GetWaitingMNs():String;
+Begin
+result := '';
+EnterCriticalSection(CSWaitingMNs);
+if length(WaitingMNs)>0 then
+   begin
+   Result := WaitingMNs[0];
+   Delete(WaitingMNs,0,1);
+   end;
+LeaveCriticalSection(CSWaitingMNs);
 End;
 
 Initialization

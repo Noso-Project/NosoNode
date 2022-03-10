@@ -383,10 +383,6 @@ msgstr "Server kolam aktif"
 msgid "RPC server active"
 msgstr "Server RPC aktif"
 
-#: tform1.staserimg.hint
-msgid "Masternode active"
-msgstr "Masternode aktif"
-
 #: tform1.statimelab.caption
 msgid "00-00-00 00:00:00 (0)"
 msgstr "00-00-00 00:00:00 (0)"

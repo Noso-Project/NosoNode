@@ -744,7 +744,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa1';
+  SubVersion = 'Aa2';
   OficialRelease = false;
   VersionRequired = '0.3.1Aa1';
   BuildDate = 'March 2022';
@@ -965,13 +965,13 @@ var
   LastBlockData : BlockHeaderData;
   BuildingBlock : integer = 0;
   MNsArray   : array of TMasterNode;
-  WaitingMNs : array of TMasterNode;
+  WaitingMNs : array of String;
    U_MNsGrid : boolean = false;
    U_MNsGrid_Last : int64 = 0;
 
   MNsList   : array of TMnode;
   ArrMNChecks : array of TMNCheck;
-
+  MNsRandomWait : Integer= 0;
 
   Last_ActualizarseConLaRed : int64 = 0;
   NetSumarioHash : NetworkData;
@@ -987,6 +987,7 @@ var
     LastTimeMNHashRequestes : int64 = 0;
   NetMNsCount    : NetworkData;
   NetBestHash    : NetworkData;
+    LastTimeBestHashRequested : int64 = 0;
     LastTimeMNsRequested   : int64 = 0;
   NetMNsChecks   : NetworkData;
     LastTimeChecksRequested : int64 = 0;
@@ -1274,18 +1275,24 @@ procedure TUpdateMNs.Execute;
 var
   Node : TMasterNode;
 Begin
+Randomize;
+MNsRandomWait := Random(21);
 While not terminated do
    begin
    if UTCTime.ToInt64 mod 10 = 0 then
       begin
-      if ( (IsValidator(MN_Ip)) and (BlockAge>500+random(20)) and (Not MNVerificationDone) and
+      if ( (IsValidator(MN_Ip)) and (BlockAge>500+(MNsRandomWait div 4)) and (Not MNVerificationDone) and
          (BlockAge<575) and (LastRunMNVerification<>UTCTime.ToInt64) and (MyConStatus = 3) ) then
          begin
          LastRunMNVerification := UTCTime.ToInt64;
          RunMNVerification();
          end;
       end;
-   Sleep(1000);
+   if LengthWaitingMNs > 0 then
+      begin
+      CheckMNRepo(GetWaitingMNs);
+      end;
+   Sleep(10);
    end;
 End;
 
@@ -2259,7 +2266,7 @@ Form1.Server := TIdTCPServer.Create(Form1);
 Form1.Server.DefaultPort:=DefaultServerPort;
 Form1.Server.Active:=false;
 Form1.Server.UseNagle:=true;
-Form1.Server.TerminateWaitTime:=5000;
+Form1.Server.TerminateWaitTime:=2000;
 Form1.Server.OnExecute:=@form1.IdTCPServer1Execute;
 Form1.Server.OnConnect:=@form1.IdTCPServer1Connect;
 Form1.Server.OnDisconnect:=@form1.IdTCPServer1Disconnect;
@@ -2269,7 +2276,7 @@ Form1.PoolServer := TIdTCPServer.Create(Form1);
 Form1.PoolServer.DefaultPort:=DefaultServerPort;
 Form1.PoolServer.Active:=false;
 Form1.PoolServer.UseNagle:=true;
-Form1.PoolServer.TerminateWaitTime:=5000;
+Form1.PoolServer.TerminateWaitTime:=2000;
 Form1.PoolServer.OnExecute:=@form1.PoolServerExecute;
 Form1.PoolServer.OnConnect:=@form1.PoolServerConnect;
 Form1.PoolServer.OnDisconnect:=@form1.PoolServerDisconnect;

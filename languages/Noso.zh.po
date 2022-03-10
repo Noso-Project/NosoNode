@@ -384,10 +384,6 @@ msgstr "池服务器正常"
 msgid "RPC server active"
 msgstr "RPC服务器正常"
 
-#: tform1.staserimg.hint
-msgid "Masternode active"
-msgstr "主节点正常"
-
 #: tform1.statimelab.caption
 msgid "00-00-00 00:00:00 (0)"
 msgstr "00-00-00 00:00:00 (0)"
