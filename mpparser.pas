@@ -2019,7 +2019,7 @@ if Myconstatus<3 then
   exit;
   end;
 Texto := GetMNsFileData;
-if AnsiContainsStr(Texto,MN_Funds) then consolelinesAdd(MN_Funds+' go MN Reward on block '+MyLastBlock.ToString)
+if AnsiContainsStr(Texto,MN_Funds) then consolelinesAdd(MN_Funds+' got MN Reward on block '+MyLastBlock.ToString)
 else consolelinesAdd(MN_Funds+' not paid')
 End;
 

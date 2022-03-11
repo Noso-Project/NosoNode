@@ -510,10 +510,9 @@ if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLa
       ConsoleLinesAdd('Pending requested to '+conexiones[NetPendingTrxs.Slot].ip);
       end;
    // Get MNS
-   //PTC_SendLine(NetMNsHash.Slot,ProtocolLine(11));  // Get MNs
-   //LastTimeMNsRequested := UTCTime.ToInt64;
-   //ConsoleLinesAdd('Master nodes requested');
-
+   PTC_SendLine(NetMNsHash.Slot,ProtocolLine(11));  // Get MNs
+   LastTimeMNsRequested := UTCTime.ToInt64;
+   ConsoleLinesAdd('Master nodes requested');
    OutgoingMsjsAdd(ProtocolLine(ping));
    Form1.imagenes.GetBitmap(0,form1.ConnectButton.Glyph);
    end;
@@ -801,6 +800,7 @@ NLBV := StrToIntDef(NetLastBlock.Value,0);
 if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // solicitar cabeceras de bloque
    begin
    ClearAllPending;
+   SetNMSData('','','');
    if ((LastTimeRequestResumen+5 < StrToInt64(UTCTime)) and (not DownloadHeaders)) then
       begin
       PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
@@ -811,6 +811,7 @@ if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // sol
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  // solicitar hasta 100 bloques
    begin
    ClearAllPending;
+   SetNMSData('','','');
    if ((LastTimeRequestBlock+5<StrToInt64(UTCTime))and (not DownLoadBlocks)) then
       begin
       PTC_SendLine(NetResumenHash.Slot,ProtocolLine(8)); // lastblock
@@ -836,9 +837,10 @@ else if ( (mylastblock = NLBV) and ( (MyResumenhash <> NetResumenHash.Value) or
    end
 // Update headers
 else if ((MyResumenhash <> NetResumenHash.Value) and (NLBV=mylastblock) and (MyLastBlockHash=NetLastBlockHash.value)
-   and (MySumarioHash=NetSumarioHash.Value)) then
+   and (MySumarioHash=NetSumarioHash.Value) and (not DownloadHeaders) ) then
    begin
    ClearAllPending;
+   SetNMSData('','','');
    PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
    ConsoleLinesAdd(LangLine(163)); //'Headers file requested'
    LastTimeRequestResumen := StrToInt64(UTCTime);
@@ -864,9 +866,11 @@ else if ((NetMNsHash.value<>Copy(MyMNsHash,1,5)) and (LastTimeMNHashRequestes+5<
    end
 else if ( (GetNMSData.Diff<>NetBestHash.Value) and (LastTimeBestHashRequested+5<UTCTime.ToInt64) ) then
    begin
+   {
    PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));
    LastTimeBestHashRequested := UTCTime.ToInt64;
    ConsolelinesAdd('Requesting besthash');
+   }
    end;
 
 if IsAllSynced then Last_ActualizarseConLaRed := Last_ActualizarseConLaRed+5;

@@ -744,7 +744,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa3';
+  SubVersion = 'Aa4';
   OficialRelease = false;
   VersionRequired = '0.3.1Aa1';
   BuildDate = 'March 2022';
@@ -1291,6 +1291,7 @@ While not terminated do
    WHile LengthWaitingMNs > 0 do
       begin
       CheckMNRepo(GetWaitingMNs);
+      sleep(1);
       end;
    Sleep(10);
    end;

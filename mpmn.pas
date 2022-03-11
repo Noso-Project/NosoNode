@@ -59,6 +59,7 @@ Procedure AddWaitingMNs(Linea:String);
 Function GetWaitingMNs():String;
 
 var
+  ArrayIPsProcessed : array of string;
   OpenVerificators : integer;
   MNsListCopy : array of TMnode;
   CurrSynctus : string;
@@ -67,6 +68,7 @@ var
   CSMNsChecks   : TRTLCriticalSection;
   DecVerThreads : TRTLCriticalSection;
   CSMNsFile     : TRTLCriticalSection;
+  CSMNsIPCheck  : TRTLCriticalSection;
 
 implementation
 
@@ -344,6 +346,11 @@ Begin
 EnterCriticalSection(CSMNsArray);
 SetLength(MNsList,0);
 LeaveCriticalSection(CSMNsArray);
+{
+EnterCriticalSection(CSMNsIPCheck);
+Setlength(ArrayIPsProcessed,0);
+LeaveCriticalSection(CSMNsIPCheck);
+}
 End;
 
 function MyMNIsListed():boolean;
@@ -615,11 +622,38 @@ result := Length(WaitingMNs);
 LeaveCriticalSection(CSWaitingMNs);
 End;
 
+Function IsIPMNAlreadyProcessed(OrderText:string):Boolean;
+var
+  ThisIP : string;
+  counter : integer;
+Begin
+result := false;
+ThisIP := parameter(OrderText,5);
+EnterCriticalSection(CSMNsIPCheck);
+if length(ArrayIPsProcessed) > 0 then
+   begin
+   for counter := 0 to length(ArrayIPsProcessed)-1 do
+      begin
+      if ArrayIPsProcessed[counter] = ThisIP then
+         begin
+         result := true;
+         break
+         end;
+      end;
+   end;
+if result = false then Insert(ThisIP,ArrayIPsProcessed,length(ArrayIPsProcessed));
+LeaveCriticalSection(CSMNsIPCheck);
+End;
+
 Procedure AddWaitingMNs(Linea:String);
 Begin
-EnterCriticalSection(CSWaitingMNs);
-Insert(Linea,WaitingMNs,Length(WaitingMNs));
-LeaveCriticalSection(CSWaitingMNs);
+if 1=1 {not IsIPMNAlreadyProcessed(Linea)} then
+   begin
+   EnterCriticalSection(CSWaitingMNs);
+   Insert(Linea,WaitingMNs,Length(WaitingMNs));
+   LeaveCriticalSection(CSWaitingMNs);
+   sleep(1);
+   end;
 End;
 
 Function GetWaitingMNs():String;
@@ -639,12 +673,15 @@ InitCriticalSection(CSVerNodes);
 InitCriticalSection(DecVerThreads);
 InitCriticalSection(CSMNsChecks);
 InitCriticalSection(CSMNsFile);
+InitCriticalSection(CSMNsIPCheck);
+SetLength(ArrayIPsProcessed,0);
 
 Finalization
 DoneCriticalSection(CSVerNodes);
 DoneCriticalSection(DecVerThreads);
 DoneCriticalSection(CSMNsChecks);
 DoneCriticalSection(CSMNsFile);
+DoneCriticalSection(CSMNsIPCheck);
 
 END. // End UNIT
 
