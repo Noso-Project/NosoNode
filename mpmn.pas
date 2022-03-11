@@ -55,6 +55,7 @@ Procedure PTC_MNFile(Linea:String);
 // Waiting MNs
 
 Function LengthWaitingMNs():Integer;
+Function IsIPMNAlreadyProcessed(OrderText:string):Boolean;
 Procedure AddWaitingMNs(Linea:String);
 Function GetWaitingMNs():String;
 
@@ -346,11 +347,9 @@ Begin
 EnterCriticalSection(CSMNsArray);
 SetLength(MNsList,0);
 LeaveCriticalSection(CSMNsArray);
-{
 EnterCriticalSection(CSMNsIPCheck);
 Setlength(ArrayIPsProcessed,0);
 LeaveCriticalSection(CSMNsIPCheck);
-}
 End;
 
 function MyMNIsListed():boolean;
@@ -647,13 +646,9 @@ End;
 
 Procedure AddWaitingMNs(Linea:String);
 Begin
-if 1=1 {not IsIPMNAlreadyProcessed(Linea)} then
-   begin
-   EnterCriticalSection(CSWaitingMNs);
-   Insert(Linea,WaitingMNs,Length(WaitingMNs));
-   LeaveCriticalSection(CSWaitingMNs);
-   sleep(1);
-   end;
+EnterCriticalSection(CSWaitingMNs);
+Insert(Linea,WaitingMNs,Length(WaitingMNs));
+LeaveCriticalSection(CSWaitingMNs);
 End;
 
 Function GetWaitingMNs():String;

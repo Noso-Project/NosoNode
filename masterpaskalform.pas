@@ -744,7 +744,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa6';
+  SubVersion = 'Aa7';
   OficialRelease = false;
   VersionRequired = '0.3.1Aa1';
   BuildDate = 'March 2022';
@@ -1273,7 +1273,7 @@ end;
 // Process the Masternodes reports
 procedure TUpdateMNs.Execute;
 var
-  Node : TMasterNode;
+  TextLine : String;
 Begin
 Randomize;
 MNsRandomWait := Random(21);
@@ -1290,8 +1290,12 @@ While not terminated do
       end;
    WHile LengthWaitingMNs > 0 do
       begin
-      CheckMNRepo(GetWaitingMNs);
-      sleep(1);
+      TextLine := GetWaitingMNs;
+      if not IsIPMNAlreadyProcessed(TextLine) then
+         begin
+         CheckMNRepo(TextLine);
+         sleep(1);
+         end;
       end;
    Sleep(10);
    end;
