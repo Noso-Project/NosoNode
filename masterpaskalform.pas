@@ -744,7 +744,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa5';
+  SubVersion = 'Aa6';
   OficialRelease = false;
   VersionRequired = '0.3.1Aa1';
   BuildDate = 'March 2022';
@@ -2010,7 +2010,7 @@ if form1.SystrayIcon.Visible then
 if FormSlots.Visible then UpdateSlotsGrid();
 ConnectedRotor +=1; if ConnectedRotor>6 then ConnectedRotor := 0;
 UpdateStatusBar;
-if ( (StrToInt64(UTCTime) mod 21600=0) and (LastBotClear<>UTCTime) and (Form1.Server.Active) ) then ProcessLinesAdd('delbot all');
+if ( (StrToInt64(UTCTime) mod 3600=3590) and (LastBotClear<>UTCTime) and (Form1.Server.Active) ) then ProcessLinesAdd('delbot all');
 Form1.Latido.Enabled:=true;
 end;
 

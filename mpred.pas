@@ -233,18 +233,17 @@ if conexiones[Slot].tipo='CLI' then
    Conexiones[Slot].context.Connection.Disconnect;
    Sleep(10);
    //Conexiones[Slot].Thread.terminate; // free ? WaitFor??
-   Conexiones[Slot] := Default(conectiondata);
    end;
 if conexiones[Slot].tipo='SER' then
    begin
    SlotLines[slot].Clear;
    CanalCliente[Slot].IOHandler.InputBuffer.Clear;
    CanalCliente[Slot].Disconnect;
-   Conexiones[Slot] := Default(conectiondata);
    end;
 EXCEPT on E:Exception do
   ToExcLog('Error: Closing slot '+IntToStr(Slot)+SLINEBREAK+E.Message);
 END;{Try}
+Conexiones[Slot] := Default(conectiondata);
 setmilitime('CerrarSlot',1);
 SetCurrentJob('CerrarSlot',false);
 End;
