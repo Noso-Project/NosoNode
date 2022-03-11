@@ -1319,9 +1319,15 @@ Begin
 assignfile(FileResumen,ResumenFilename);
 reset(FileResumen);
 ConsoleLinesAdd(LangLine(127)+IntToStr(untilblock)); //'Rebuilding until block '
-contador := MyLastBlock;
+contador := 0;
 while contador <= untilblock do
    begin
+   if contador mod 100 = 0 then
+      begin
+      info('REBUILDING '+Contador.ToString);  //'Rebuilding sumary block: '
+      application.ProcessMessages;
+      EngineLastUpdate := UTCTime.ToInt64;
+      end;
    if ((contador = MyLastBlock) and (contador>0)) then
       LastHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock-1)+'.blk');
    info(LangLine(127)+IntToStr(contador)); //'Rebuild block: '

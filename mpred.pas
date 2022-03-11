@@ -847,6 +847,9 @@ else if ((MyResumenhash <> NetResumenHash.Value) and (NLBV=mylastblock) and (MyL
 else if ( (StrToInt(NetMNsCount.Value)>GetMNsListLength) and (LastTimeMNsRequested+5<UTCTime.ToInt64)
            and (LengthWaitingMNs = 0) ) then
    begin
+   EnterCriticalSection(CSMNsIPCheck);
+   Setlength(ArrayIPsProcessed,0);
+   LeaveCriticalSection(CSMNsIPCheck);
    PTC_SendLine(NetMNsCount.Slot,ProtocolLine(11));  // Get MNsList
    LastTimeMNsRequested := UTCTime.ToInt64;
    ConsoleLinesAdd('Master nodes requested');

@@ -744,9 +744,9 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa7';
+  SubVersion = 'Ab2';
   OficialRelease = false;
-  VersionRequired = '0.3.1Aa1';
+  VersionRequired = '0.3.1Aa8';
   BuildDate = 'March 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
@@ -2678,6 +2678,8 @@ TRY
       TryClosePoolConnection(AContext);
       ToPoolLog(Format('TIMEOUT connection from %s',[IPUser]));
       end
+   else if not IsSeedNode(IPUser) then
+      TryClosePoolConnection(AContext,'#$%("$%"#')
    else if BotExists(IPUser) then
       TryClosePoolConnection(AContext,'BANNED')
    else if password <> Poolinfo.PassWord then  // WRONG PASSWORD.
@@ -2892,6 +2894,7 @@ if GoAhead then
       begin
       EnterCriticalSection(CSHeadAccess);
          try
+
          AFileStream := TFileStream.Create(ResumenFilename, fmOpenRead + fmShareDenyNone);
          GetFileOk := true;
          Except on E:Exception do
@@ -3103,6 +3106,8 @@ if GoAhead then
       begin
       TryCloseServerConnection(AContext);
       end
+   else if not IsSeedNode(IPUser) then
+      TryClosePoolConnection(AContext,'#$%("$%"#')
    else if Copy(LLine,1,4) = 'PSK ' then
       begin    // Se acepta la nueva conexion
       OutText(format(rs0061,[IPUser]));

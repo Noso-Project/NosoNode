@@ -238,6 +238,7 @@ else if UpperCase(Command) = 'CUSTOMIZE' then CustomizeAddress(LineText)
 else if UpperCase(Command) = 'SENDTO' then Parse_SendFunds(LineText)
 else if UpperCase(Command) = 'HALVING' then ShowHalvings()
 else if UpperCase(Command) = 'REBUILDSUMARY' then RebuildSumario(MyLastBlock)
+else if UpperCase(Command) = 'REBUILDHEADERS' then BuildHeaderFile(MyLastBlock)
 else if UpperCase(Command) = 'GROUPCOINS' then Groupcoins(linetext)
 else if UpperCase(Command) = 'GENLANG' then CreateTraslationFile()
 else if UpperCase(Command) = 'IMPLANG' then ImportLanguage(LineText)
@@ -1611,6 +1612,7 @@ var
   PosPAyments : integer = 0;
   PoSEarnings : int64 = 0;
   TransSL : TStringlist;
+  MinedBlocksStr : string = '';
 Begin
 TransSL := TStringlist.Create;
 addtoshow := parameter(LineText,1);
@@ -1625,6 +1627,7 @@ for counter := 1 to MyLastBlock do
    if Header.AccountMiner= addtoshow then // address is miner
      begin
      minedblocks +=1;
+     MinedBlocksStr := MinedBlocksStr+Counter.ToString+' ';
      inccoins := inccoins + header.Reward+header.MinerFee;
      end;
    ArrTrxs := GetBlockTrxs(counter);
@@ -1669,6 +1672,7 @@ ConsoleLinesAdd('Last block : '+inttostr(MyLastBlock));
 ConsoleLinesAdd('Address    : '+addtoshow);
 ConsoleLinesAdd('INCOMINGS');
 ConsoleLinesAdd('  Mined        : '+IntToStr(minedblocks));
+ConsoleLinesAdd('  Mined blocks : '+MinedBlocksStr);
 ConsoleLinesAdd('  Transactions : '+IntToStr(incomingtrx));
 ConsoleLinesAdd('  Coins        : '+Int2Curr(inccoins));
 ConsoleLinesAdd('  PoS Payments : '+IntToStr(PosPAyments));

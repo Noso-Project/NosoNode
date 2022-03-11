@@ -559,6 +559,8 @@ if BlockNumber = 0 then exit;
 if MyConStatus = 3 then
    begin
    if Form1.Server.Active then Form1.Server.Active := false;
+   ClearMNsChecks();
+   ClearMNsList();
    MyConStatus := 2;
    SetNMSData('','','');
    ClearAllPending;
