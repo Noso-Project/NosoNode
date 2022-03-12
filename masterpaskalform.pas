@@ -652,6 +652,9 @@ type
     procedure PoolServerExecute(AContext: TIdContext);
     procedure PoolServerDisconnect(AContext: TIdContext);
     procedure PoolServerException(AContext: TIdContext;AException: Exception);
+    // NODE SERVER
+    Function TryMessageToNode(AContext: TIdContext;message:string):boolean;
+
     // RPC
     procedure RPCServerExecute(AContext: TIdContext;
       ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo);
@@ -744,9 +747,9 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ab2';
+  SubVersion = 'Ab3';
   OficialRelease = false;
-  VersionRequired = '0.3.1Aa8';
+  VersionRequired = '0.3.1Aa5';
   BuildDate = 'March 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
@@ -2024,6 +2027,7 @@ var
   counter: integer;
   GoAhead : boolean = false;
   EarlyRestart : Boolean;
+  IsLinux   : boolean = false;
 
   procedure CloseLine(texto:String);
   Begin
@@ -2043,6 +2047,9 @@ if not G_ClosingAPP then
 LeaveCriticalSection(CSClosingApp);
 if GoAhead then
    begin
+   {$IFDEF LINUX}
+   IsLinux := true;
+   {$ENDIF}
    EarlyRestart := form1.Server.Active;
    Form1.Latido.Enabled:=false; // Stopped the latido
    form1.RestartTimer.Enabled:=false;
@@ -2062,7 +2069,7 @@ if GoAhead then
    CloseLine('Peer connections closed');
    sleep(100);
    if ((EarlyRestart) and (RestartNosoAfterQuit)) then RestartNoso;
-   if form1.Server.Active then
+   if ( (form1.Server.Active) and (Not IsLinux) ) then
       begin
       if StopServer then CloseLine('Node server stopped')
       else CloseLine('Error closing node server');
@@ -2770,6 +2777,20 @@ begin
   end;
 end ;
 
+// Try message to Node safely
+Function TForm1.TryMessageToNode(AContext: TIdContext;message:string):boolean;
+Begin
+result := true;
+TRY
+Acontext.Connection.IOHandler.WriteLn(message);
+EXCEPT on E:Exception do
+   begin
+   result := false
+   end;
+END;{Try}
+End;
+
+
 // Trys to close a server connection safely
 Procedure TForm1.TryCloseServerConnection(AContext: TIdContext; closemsg:string='');
 Begin
@@ -2793,6 +2814,7 @@ var
   UpdateZipName : String = ''; UpdateVersion : String = ''; UpdateHash:string ='';
   UpdateClavePublica :string ='';UpdateFirma : string = '';
   AFileStream : TFileStream;
+  MemStream   : TMemoryStream;
   BlockZipName: string = '';
   GetFileOk : boolean = false;
   GoAhead : boolean;
@@ -2892,37 +2914,45 @@ if GoAhead then
       end
    else if parameter(LLine,4) = '$GETRESUMEN' then
       begin
-      EnterCriticalSection(CSHeadAccess);
-         try
-
-         AFileStream := TFileStream.Create(ResumenFilename, fmOpenRead + fmShareDenyNone);
+      MemStream := TMemoryStream.Create;
+      //EnterCriticalSection(CSHeadAccess);
+         TRY
+         SetMilitime('HeadsToStream',1);
+         EnterCriticalSection(CSHeadAccess);
+         MemStream.LoadFromFile(ResumenFilename);
+         LeaveCriticalSection(CSHeadAccess);
+         SetMilitime('HeadsToStream',2);
+         //AFileStream := TFileStream.Create(ResumenFilename, fmOpenRead + fmShareDenyNone);
          GetFileOk := true;
-         Except on E:Exception do
+         EXCEPT on E:Exception do
             begin
             GetFileOk := false;
-            AFileStream.Free;
+            MemStream.Free;
+            //AFileStream.Free;
             ToExcLog(Format(rs0049,[E.Message]));
             //ToExcLog(Format('SERVER: Error creating stream from headers: %s',[E.Message]));
             end;
-         end;
+         END; {TRY}
       if GetFileOk then
          begin
-            try
+            TRY
             Acontext.Connection.IOHandler.WriteLn('RESUMENFILE');
-            Acontext.connection.IOHandler.Write(AFileStream,0,true);
+            Acontext.connection.IOHandler.Write(MemStream,0,true);
+            //Acontext.connection.IOHandler.Write(AFileStream,0,true);
             ConsoleLinesAdd(format(rs0050,[IPUser]));
             //ConsoleLinesAdd(LangLine(91)+': '+IPUser);//'Headers file sent'
-            Except on E:Exception do
+            EXCEPT on E:Exception do
                begin
                Form1.TryCloseServerConnection(Conexiones[Slot].context);
                ToExcLog(Format(rs0051,[E.Message]));
                ConsoleLinesAdd(Format(rs0051,[E.Message]));
                //ToExcLog('SERVER: Error sending headers file ('+E.Message+')');
                end;
-            end;
-         AFileStream.Free;
+            END; {TRY}
+         //AFileStream.Free;
+         MemStream.Free;
          end;
-      LeaveCriticalSection(CSHeadAccess);
+      //LeaveCriticalSection(CSHeadAccess);
       end
    else if parameter(LLine,4) = '$LASTBLOCK' then
       begin
@@ -3106,8 +3136,10 @@ if GoAhead then
       begin
       TryCloseServerConnection(AContext);
       end
+   {
    else if not IsSeedNode(IPUser) then
-      TryClosePoolConnection(AContext,'#$%("$%"#')
+      TryCloseServerConnection(AContext,'#$%("$%"#')
+   }
    else if Copy(LLine,1,4) = 'PSK ' then
       begin    // Se acepta la nueva conexion
       OutText(format(rs0061,[IPUser]));
