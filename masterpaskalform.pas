@@ -2047,7 +2047,7 @@ if not G_ClosingAPP then
 LeaveCriticalSection(CSClosingApp);
 if GoAhead then
    begin
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    IsLinux := true;
    {$ENDIF}
    EarlyRestart := form1.Server.Active;
