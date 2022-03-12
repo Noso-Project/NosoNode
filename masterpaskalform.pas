@@ -2149,8 +2149,8 @@ if GoAhead then
    END{Try};
    sleep(100);
    if ((not EarlyRestart) and (RestartNosoAfterQuit)) then RestartNoso;
-   form1.Close;
-   //application.Terminate;
+   if not IsLinux then form1.Close
+   else application.Terminate;
    //Halt(0);
    end;
 End;
