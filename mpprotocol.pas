@@ -572,8 +572,8 @@ LastBlock := FirstBlock + 100; if LastBlock>MyLastBlock then LastBlock := MyLast
 MyZipFile := TZipper.Create;
 ZipFileName := BlockDirectory+'Blocks_'+IntToStr(FirstBlock)+'_'+IntToStr(LastBlock)+'.zip';
 MyZipFile.FileName := ZipFileName;
-EnterCriticalSection(CSBlocksAccess);
-   try
+//EnterCriticalSection(CSBlocksAccess);
+   TRY
    for contador := FirstBlock to LastBlock do
       begin
       filename := BlockDirectory+IntToStr(contador)+'.blk';
@@ -587,10 +587,13 @@ EnterCriticalSection(CSBlocksAccess);
       end;
    MyZipFile.ZipAllFiles;
    result := ZipFileName;
-   finally
-   MyZipFile.Free;
-   LeaveCriticalSection(CSBlocksAccess);
+   EXCEPT ON E:Exception do
+      begin
+      ToExcLog('Error zipping block files: '+E.Message);
+      end;
    end;
+//LeaveCriticalSection(CSBlocksAccess);
+MyZipFile.Free;
 End;
 
 // Send Zipped blocks to peer

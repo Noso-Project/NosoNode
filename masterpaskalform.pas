@@ -2940,30 +2940,36 @@ if GoAhead then
       MemStream.Free;
       end
    else if parameter(LLine,4) = '$LASTBLOCK' then
-      begin
+      begin // START SENDING BLOCKS
       BlockZipName := CreateZipBlockfile(StrToIntDef(parameter(LLine,5),0));
       if BlockZipName <> '' then
          begin
-         AFileStream := TFileStream.Create(BlockZipName, fmOpenRead + fmShareDenyNone);
-            try
-               try
+         MemStream := TMemoryStream.Create;
+            TRY
+            MemStream.LoadFromFile(BlockZipName);
+            GetFileOk := true;
+            EXCEPT ON E:Exception do
+               begin
+               GetFileOk := false;
+               end;
+            END; {TRY}
+         If GetFileOk then
+            begin
+               TRY
                Acontext.Connection.IOHandler.WriteLn('BLOCKZIP');
                Acontext.connection.IOHandler.Write(AFileStream,0,true);
-               ToLog(Format(rs0052,[IPUser,BlockZipName]));
-               //ToLog('SERVER: BlockZip send to '+IPUser+':'+BlockZipName);
-               Except on E:Exception do
+               ToLog(Format(rs0052,[IPUser,BlockZipName])); //SERVER: BlockZip send to '+IPUser+':'+BlockZipName);
+               EXCEPT ON E:Exception do
                   begin
                   Form1.TryCloseServerConnection(Conexiones[Slot].context);
-                  ToExcLog(Format(rs0053,[E.Message]));
-                  //ToExcLog('SERVER: Error sending ZIP blocks file ('+E.Message+')');
-                  end;
-               end;
-            finally
-            AFileStream.Free;
+                  ToExcLog(Format(rs0053,[E.Message])); //'SERVER: Error sending ZIP blocks file ('+E.Message+')');
+                  end
+               END; {TRY}
             end;
+         MemStream.Free;
          Trydeletefile(BlockZipName); // safe function to delete files
          end
-      end
+      end // END SENDING BLOCKS
    else if AnsiContainsStr(ValidProtocolCommands,Uppercase(parameter(LLine,4))) then
       begin
          try
