@@ -273,15 +273,12 @@ While ConsoleLines.Count > 0 do
    begin
    form1.Memoconsola.Lines.Add(ConsoleLines[0]);
    EnterCriticalSection(CSConsoleLines);
-      try
-         try
-         ConsoleLines.Delete(0);
-         Except on E:Exception do
-            ToLog('Error showing lines to console');
-         end;
-      finally
-      LeaveCriticalSection(CSConsoleLines);
-      end;
+      TRY
+      ConsoleLines.Delete(0);
+      EXCEPT ON E:Exception do
+         ToLog('Error showing lines to console');
+      END; {TRY}
+   LeaveCriticalSection(CSConsoleLines);
    end;
 End;
 

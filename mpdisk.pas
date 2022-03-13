@@ -1268,7 +1268,6 @@ var
   UnZipper: TUnZipper;
 Begin
 result := true;
-TRY
 UnZipper := TUnZipper.Create;
    TRY
    UnZipper.FileName := 'NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator+'update.zip';
@@ -1276,19 +1275,17 @@ UnZipper := TUnZipper.Create;
    UnZipper.Examine;
    UnZipper.UnZipAllFiles;
    OutText('File unzipped',false,1)
-   FINALLY
-   UnZipper.Free;
+   EXCEPT on E:Exception do
+      begin
+      result := false;
+      OutText ('Error unzipping update file',false,1);
+      OutText (E.Message,false,1);
+      end;
    END{Try};
 Trydeletefile('NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator+'update.zip');
-{$IFDEF WINDOWS}copyfile('NOSODATA/UPDATES/Noso.exe','nosonew');{$ENDIF}
-{$IFDEF UNIX}copyfile('NOSODATA/UPDATES/Noso','Nosonew');{$ENDIF}
-EXCEPT on E:Exception do
-   begin
-   OutText ('Error unzipping update file',false,1);
-   OutText (E.Message,false,1);
-   result := false;
-   end;
-END{Try};
+{$IFDEF WINDOWS}Trycopyfile('NOSODATA/UPDATES/Noso.exe','nosonew');{$ENDIF}
+{$IFDEF UNIX}Trycopyfile('NOSODATA/UPDATES/Noso','Nosonew');{$ENDIF}
+UnZipper.Free;
 End;
 
 // Creates header file

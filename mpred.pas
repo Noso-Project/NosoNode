@@ -1089,26 +1089,20 @@ if localOS = 'Windows64' then
    DownLink := 'https://github.com/Noso-Project/NosoWallet/releases/download/v'+version+'/noso-v'+version+'-x86_64-win64.zip';
 if localOS = 'Linux64' then
    DownLink := 'https://github.com/Noso-Project/NosoWallet/releases/download/v'+version+'/noso-v'+version+'-x86_64-linux.zip';
-
 MS := TMemoryStream.Create;
 Conector := TFPHttpClient.Create(nil);
 conector.ConnectTimeout:=1000;
 conector.IOTimeout:=1000;
 conector.AllowRedirect:=true;
-TRY
    TRY
    Conector.Get(DownLink,MS);
    MS.SaveToFile('NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator+'update.zip');
    result := true;
    EXCEPT ON E:Exception do
-      begin
       ConsoleLines.Add('Error downloading last release: '+E.Message);
-      end;
    END{Try};
-FINALLY
 MS.Free;
 conector.free;
-END{try};
 End;
 
 Function GetSyncTus():String;

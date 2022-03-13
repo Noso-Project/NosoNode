@@ -27,7 +27,6 @@ Procedure PTC_SendResumen(Slot:int64);
 Function ZipSumary():boolean;
 Function ZipHeaders():boolean;
 function CreateZipBlockfile(firstblock:integer):string;
-Procedure PTC_SendBlocks(Slot:integer;TextLine:String);
 Procedure INC_PTC_Custom(TextLine:String;connection:integer);
 Procedure PTC_Custom(TextLine:String);
 function ValidateTrfr(order:orderdata;Origen:String):Boolean;
@@ -237,7 +236,7 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = '$GETPENDING' then PTC_SendPending(contador)
       else if UpperCase(LineComando) = '$GETMNS' then SendMNsList(contador)
       else if UpperCase(LineComando) = '$GETRESUMEN' then PTC_SendResumen(contador)
-      else if UpperCase(LineComando) = '$LASTBLOCK' then PTC_SendBlocks(contador,SlotLines[contador][0])
+      //else if UpperCase(LineComando) = '$LASTBLOCK' then PTC_SendBlocks(contador,SlotLines[contador][0])
       else if UpperCase(LineComando) = '$CUSTOM' then INC_PTC_Custom(GetOpData(SlotLines[contador][0]),contador)
       else if UpperCase(LineComando) = 'ORDER' then INC_PTC_Order(SlotLines[contador][0], contador)
       else if UpperCase(LineComando) = 'ADMINMSG' then PTC_AdminMSG(SlotLines[contador][0])
@@ -514,21 +513,24 @@ result := false;
 MyZipFile := TZipper.Create;
 MyZipFile.FileName := ZipSumaryFileName;
 EnterCriticalSection(CSSumary);
-TRY
-{$IFDEF WINDOWS}
-archivename:= StringReplace(SumarioFilename,'\','/',[rfReplaceAll]);
-{$ENDIF}
-{$IFDEF UNIX}
-archivename:= SumarioFilename;
-{$ENDIF}
-archivename:= StringReplace(archivename,'NOSODATA','data',[rfReplaceAll]);
-MyZipFile.Entries.AddFileEntry(SumarioFilename, archivename);
-MyZipFile.ZipAllFiles;
-result := true;
-FINALLY
+   TRY
+   {$IFDEF WINDOWS}
+   archivename:= StringReplace(SumarioFilename,'\','/',[rfReplaceAll]);
+   {$ENDIF}
+   {$IFDEF UNIX}
+   archivename:= SumarioFilename;
+   {$ENDIF}
+   archivename:= StringReplace(archivename,'NOSODATA','data',[rfReplaceAll]);
+   MyZipFile.Entries.AddFileEntry(SumarioFilename, archivename);
+   MyZipFile.ZipAllFiles;
+   result := true;
+   EXCEPT ON E:Exception do
+      begin
+      ToExcLog('Error zipping summary');
+      end;
+   END{Try};
 MyZipFile.Free;
 LeaveCriticalSection(CSSumary);
-END{Try};
 End;
 
 // Zips the sumary file
@@ -594,56 +596,6 @@ MyZipFile.FileName := ZipFileName;
    end;
 //LeaveCriticalSection(CSBlocksAccess);
 MyZipFile.Free;
-End;
-
-// Send Zipped blocks to peer
-Procedure PTC_SendBlocks(Slot:integer;TextLine:String);
-var
-  FirstBlock, LastBlock : integer;
-  MyZipFile: TZipper;
-  contador : integer;
-  AFileStream : TFileStream;
-  filename, archivename: String;
-  FileSentOk : Boolean = false;
-  ZipFileName:String;
-Begin
-SetCurrentJob('PTC_SendBlocks',true);
-FirstBlock := StrToIntDef(Parameter(textline,5),-1)+1;
-ZipFileName := CreateZipBlockfile(FirstBlock);
-AFileStream := TFileStream.Create(ZipFileName, fmOpenRead + fmShareDenyNone);
-   try
-   if conexiones[Slot].tipo='CLI' then
-      begin
-         try
-         Conexiones[Slot].context.Connection.IOHandler.WriteLn('BLOCKZIP');
-         Conexiones[Slot].context.connection.IOHandler.Write(AFileStream,0,true);
-         FileSentOk := true;
-         Except on E:Exception do
-            begin
-            Form1.TryCloseServerConnection(Conexiones[Slot].context);
-            ToExcLog('SERVER: Error sending ZIP blocks file ('+E.Message+')');
-            end;
-         end;
-      end;
-   if conexiones[Slot].tipo='SER' then
-      begin
-         try
-         CanalCliente[Slot].IOHandler.WriteLn('BLOCKZIP');
-         CanalCliente[Slot].IOHandler.Write(AFileStream,0,true);
-         FileSentOk := true;
-         Except on E:Exception do
-            begin
-            ToExcLog('CLIENT: Error sending ZIP blocks file ('+E.Message+')');
-            CerrarSlot(slot);
-            end;
-         end;
-      end;
-   finally
-   AFileStream.Free;
-   end;
-//MyZipFile.Free;
-deletefile(ZipFileName);
-SetCurrentJob('PTC_SendBlocks',false);
 End;
 
 Procedure INC_PTC_Custom(TextLine:String;connection:integer);

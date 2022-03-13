@@ -416,20 +416,17 @@ Begin
 Header := Default(BlockHeaderData);
 ArchData := BlockDirectory+IntToStr(BlockNumber)+'.blk';
 MemStr := TMemoryStream.Create;
-TRY
-   try
+   TRY
    MemStr.LoadFromFile(ArchData);
    MemStr.Position := 0;
    MemStr.Read(Header, SizeOf(Header));
-   Except on E:Exception do
+   EXCEPT ON E:Exception do
       begin
       ConsoleLinesAdd('Error loading Header from block '+IntToStr(BlockNumber)+':'+E.Message);
       end;
-   end;
-FINALLY
+   END{Try};
 MemStr.Free;
 Result := header;
-END{Try};
 End;
 
 // Devuelve las transacciones del bloque

@@ -747,7 +747,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ab6';
+  SubVersion = 'Ab7';
   OficialRelease = false;
   VersionRequired = '0.3.1Aa5';
   BuildDate = 'March 2022';
@@ -2365,15 +2365,16 @@ End;
 function TForm1.PoolClientsCount : Integer ;
 var
   Clients : TList;
-begin
+Begin
 result := 0;
-  Clients:= PoolServer.Contexts.LockList;
-  try
-    Result := Clients.Count ;
-  finally
-    PoolServer.Contexts.UnlockList;
-  end;
-end ;
+Clients:= PoolServer.Contexts.LockList;
+   TRY
+   Result := Clients.Count ;
+   EXCEPT ON E:Exception do
+      ToExcLog('DEPRECATED');
+   END; {TRY}
+PoolServer.Contexts.UnlockList;
+End ;
 
 // Try to close a pool connection safely
 Procedure TForm1.TryClosePoolConnection(AContext: TIdContext; closemsg:string='');
@@ -2770,14 +2771,15 @@ End;
 function TForm1.ClientsCount : Integer ;
 var
   Clients : TList;
-begin
-  Clients:= server.Contexts.LockList;
-  try
-    Result := Clients.Count ;
-  finally
-    server.Contexts.UnlockList;
-  end;
-end ;
+Begin
+Clients:= server.Contexts.LockList;
+   TRY
+   Result := Clients.Count ;
+   EXCEPT ON E:Exception do
+      ToExcLog('Error getting server list count: '+E.Message);
+   END; {TRY}
+server.Contexts.UnlockList;
+End ;
 
 // Try message to Node safely
 Function TForm1.TryMessageToNode(AContext: TIdContext;message:string):boolean;
@@ -2831,15 +2833,6 @@ if slot = 0 then
    end;
 TRY
 LLine := AContext.Connection.IOHandler.ReadLn(IndyTextEncoding_UTF8);
-{
-if AContext.Connection.IOHandler.ReadLnTimedout then
-   begin
-   TryCloseServerConnection(AContext);
-   ToExcLog(rs0044);
-   //ToExcLog('SERVER: Timeout reading line from connection');
-   GoAhead := false;
-   end;
-}
 EXCEPT on E:Exception do
    begin
    TryCloseServerConnection(AContext);
@@ -2884,32 +2877,31 @@ if GoAhead then
    else if LLine = 'BLOCKZIP' then
       begin
       BlockZipName := BlockDirectory+'blocks.zip';
-      if FileExists(BlockZipName) then TryDeleteFile(BlockZipName);
-      AFileStream := TFileStream.Create(BlockZipName, fmCreate);
+      TryDeleteFile(BlockZipName);
+      MemStream := TMemoryStream.Create;
       DownLoadBlocks := true;
-         try
-            try
-            AContext.Connection.IOHandler.ReadStream(AFileStream);
-            GetFileOk := true;
-            except on E:Exception do
-               begin
-               ToExcLog(Format(rs0048,[E.Message]));
-               //ToExcLog('SERVER: Server error receiving block file ('+E.Message+')');
-               TryCloseServerConnection(AContext);
-               GetFileOk := false;
-               end;
+         TRY
+         AContext.Connection.IOHandler.ReadStream(MemStream);
+         MemStream.SaveToFile(BlockZipName);
+         GetFileOk := true;
+         EXCEPT ON E:Exception do
+            begin
+            ToExcLog(Format(rs0048,[E.Message])); // Server error receiving block file ('+E.Message+')');
+            GetFileOk := false;
+            TryCloseServerConnection(AContext);
             end;
-         finally
-         AFileStream.Free;
-         DownLoadBlocks := false;
-         end;
+         END; {TRY}
       if GetFileOk then
          begin
-         UnzipBlockFile(BlockDirectory+'blocks.zip',true);
-         MyLastBlock := GetMyLastUpdatedBlock();
-         ResetMinerInfo();
-         LastTimeRequestBlock := 0;
+         if UnzipBlockFile(BlockDirectory+'blocks.zip',true) then
+            begin
+            MyLastBlock := GetMyLastUpdatedBlock();
+            LastTimeRequestBlock := 0;
+            ToLog(format(rs0021,[IntToStr(MyLastBlock)])); //'Blocks received up to '+IntToStr(MyLastBlock));
+            end
          end;
+      MemStream.Free;
+      DownLoadBlocks := false;
       end
    else if parameter(LLine,4) = '$GETRESUMEN' then
       begin
