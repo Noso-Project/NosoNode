@@ -310,6 +310,7 @@ else if UpperCase(Command) = 'NETRATE' then consolelinesadd('Average Mainnet has
 else if UpperCase(Command) = 'BLOCKPOS' then ShowBlockPos(LineText)
 else if UpperCase(Command) = 'POSSTACK' then showPosrequired(linetext)
 else if UpperCase(Command) = 'BLOCKMNS' then ShowBlockMNs(LineText)
+else if UpperCase(Command) = 'MYIP' then ConsoleLinesAdd(GetMiIP)
 
 // P2P
 else if UpperCase(Command) = 'PEERS' then ConsoleLinesAdd('Server list: '+IntToStr(form1.ClientsCount)+'/'+IntToStr(GetIncomingConnections))

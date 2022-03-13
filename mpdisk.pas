@@ -1282,7 +1282,7 @@ UnZipper := TUnZipper.Create;
    END{Try};
 Trydeletefile('NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator+'update.zip');
 {$IFDEF WINDOWS}copyfile('NOSODATA/UPDATES/Noso.exe','nosonew');{$ENDIF}
-{$IFDEF LINUX}copyfile('NOSODATA/UPDATES/Noso','Nosonew');{$ENDIF}
+{$IFDEF UNIX}copyfile('NOSODATA/UPDATES/Noso','Nosonew');{$ENDIF}
 EXCEPT on E:Exception do
    begin
    OutText ('Error unzipping update file',false,1);
@@ -1860,7 +1860,7 @@ if IncludeUpdate then
    end
 else writeln(archivo,'start '+Appfilename);
 {$ENDIF}
-{$IFDEF Linux}
+{$IFDEF UNIX}
 writeln(archivo,'for x in 5 4 3 2 1; do');
 writeln(archivo,'echo -ne "Restarting in ${x}\r"');
 writeln(archivo,'sleep 1');
@@ -2275,7 +2275,7 @@ begin
   {$IFDEF LCLcarbon}
   OSVersion := 'Mac OS X 10.';
   {$ELSE}
-  {$IFDEF Linux}
+  {$IFDEF UNIX}
   OSVersion := 'Linux Kernel ';
   {$ELSE}
   {$IFDEF UNIX}

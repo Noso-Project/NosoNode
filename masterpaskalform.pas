@@ -743,11 +743,11 @@ CONST
   RestartFileName = 'launcher.bat';
   updateextension = 'zip';
   {$ENDIF}
-  {$IFDEF LINUX}
+  {$IFDEF UNIX}
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ab3';
+  SubVersion = 'Ab5';
   OficialRelease = false;
   VersionRequired = '0.3.1Aa5';
   BuildDate = 'March 2022';
@@ -755,7 +755,7 @@ CONST
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   HasheableChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
   DefaultServerPort = 8080;
-  MaxConecciones  = 60;
+  MaxConecciones  = 75;
   Protocolo = 2;
   Miner_Steps = 10;
   Pool_Max_Members = 1000;
@@ -2283,6 +2283,7 @@ Form1.Server.OnExecute:=@form1.IdTCPServer1Execute;
 Form1.Server.OnConnect:=@form1.IdTCPServer1Connect;
 Form1.Server.OnDisconnect:=@form1.IdTCPServer1Disconnect;
 Form1.Server.OnException:=@Form1.IdTCPServer1Exception;
+//Form1.Server.MaxConnections:=MaxConecciones;
 
 Form1.PoolServer := TIdTCPServer.Create(Form1);
 Form1.PoolServer.DefaultPort:=DefaultServerPort;
@@ -3009,6 +3010,7 @@ var
   GoAhead : boolean;
   GetFileOk : boolean = false;
   AFileStream : TFileStream;
+  MemStream   : TMemoryStream;
 Begin
 GoAhead := true;
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
@@ -3039,63 +3041,47 @@ Peerversion := Parameter(LLine,2);
 if GoAhead then
    begin
    if parameter(LLine,0) = 'NODESTATUS' then
-      begin
-      Acontext.Connection.IOHandler.WriteLn('NODESTATUS '+GetNodeStatusString);
-      AContext.Connection.Disconnect();
-      end
-
+      TryCloseServerConnection(AContext,'NODESTATUS '+GetNodeStatusString)
    else if parameter(LLine,0) = 'NSLORDER' then
-      begin
-      Acontext.Connection.IOHandler.WriteLn(PTC_Order(LLine));
-      AContext.Connection.Disconnect();
-      end
-
+      TryCloseServerConnection(AContext,PTC_Order(LLine))
+   else if parameter(LLine,0) = 'GETMIIP' then
+      TryCloseServerConnection(AContext,IPUser)
    else if parameter(LLine,0) = 'MNVER' then
-      begin
-      Acontext.Connection.IOHandler.WriteLn(GetVerificationMNLine);
-      AContext.Connection.Disconnect();
-      end
-
+      TryCloseServerConnection(AContext,GetVerificationMNLine)
    else if parameter(LLine,0) = 'BESTHASH' then
       begin
-      if BlockAge>585 then Acontext.Connection.IOHandler.WriteLn('False '+GetNMSData.Diff+' 6')
-      else Acontext.Connection.IOHandler.WriteLn(PTC_BestHash(LLine));
-      AContext.Connection.Disconnect();
+      if BlockAge>585 then TryCloseServerConnection(AContext,'False '+GetNMSData.Diff+' 6')
+      else TryCloseServerConnection(AContext,PTC_BestHash(LLine));
       end
    else if parameter(LLine,0) = 'NSLPEND' then
-      begin
-      Acontext.Connection.IOHandler.WriteLn(PendingRawInfo);
-      AContext.Connection.Disconnect();
-      end
-
+      TryCloseServerConnection(AContext,PendingRawInfo)
    else if parameter(LLine,0) = 'GETZIPSUMARY' then  //
       begin
-
-         try
-         EnterCriticalSection(CSSumary);
-         AFileStream := TFileStream.Create(ZipSumaryFileName, fmOpenRead + fmShareDenyNone);
-         LeaveCriticalSection(CSSumary);
+      MemStream := TMemoryStream.Create;
+      EnterCriticalSection(CSSumary);
+         TRY
+         MemStream.LoadFromFile(ZipSumaryFileName);
          GetFileOk := true;
-         Except on E:Exception do
+         EXCEPT on E:Exception do
             begin
             GetFileOk := false;
-            AFileStream.Free;
-            ToExcLog(Format(rs0049,[E.Message]));
-            //ToExcLog(Format('SERVER: Error creating stream from headers: %s',[E.Message]));
+            MemStream.Free;
+            ToExcLog(Format(rs0049,[E.Message])); //'SERVER: Error creating stream from headers: %s',[E.Message]));
             end;
-         end;
+         END; {TRY}
+      LeaveCriticalSection(CSSumary);
       if GetFileOk then
          begin
-            try
+            TRY
             Acontext.Connection.IOHandler.WriteLn('ZIPSUMARY '+Copy(MySumarioHash,0,5));
-            Acontext.connection.IOHandler.Write(AFileStream,0,true);
-            Except on E:Exception do
+            Acontext.connection.IOHandler.Write(MemStream,0,true);
+            EXCEPT on E:Exception do
                begin
                end;
-            end;
-         AFileStream.Free;
+            END; {TRY}
+         MemStream.Free;
          end;
-      AContext.Connection.Disconnect();
+      TryCloseServerConnection(AContext);
       end
 
    else if Copy(LLine,1,4) <> 'PSK ' then  // invalid protocol
@@ -3136,10 +3122,6 @@ if GoAhead then
       begin
       TryCloseServerConnection(AContext);
       end
-   {
-   else if not IsSeedNode(IPUser) then
-      TryCloseServerConnection(AContext,'#$%("$%"#')
-   }
    else if Copy(LLine,1,4) = 'PSK ' then
       begin    // Se acepta la nueva conexion
       OutText(format(rs0061,[IPUser]));

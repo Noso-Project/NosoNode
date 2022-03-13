@@ -518,7 +518,7 @@ TRY
 {$IFDEF WINDOWS}
 archivename:= StringReplace(SumarioFilename,'\','/',[rfReplaceAll]);
 {$ENDIF}
-{$IFDEF LINUX}
+{$IFDEF UNIX}
 archivename:= SumarioFilename;
 {$ENDIF}
 archivename:= StringReplace(archivename,'NOSODATA','data',[rfReplaceAll]);
@@ -545,7 +545,7 @@ TRY
 {$IFDEF WINDOWS}
 archivename:= StringReplace(ResumenFilename,'\','/',[rfReplaceAll]);
 {$ENDIF}
-{$IFDEF LINUX}
+{$IFDEF UNIX}
 archivename:= ResumenFilename;
 {$ENDIF}
 archivename:= StringReplace(archivename,'NOSODATA','data',[rfReplaceAll]);
@@ -580,7 +580,7 @@ EnterCriticalSection(CSBlocksAccess);
       {$IFDEF WINDOWS}
       archivename:= StringReplace(filename,'\','/',[rfReplaceAll]);
       {$ENDIF}
-      {$IFDEF LINUX}
+      {$IFDEF UNIX}
       archivename:= filename;
       {$ENDIF}
       MyZipFile.Entries.AddFileEntry(filename, archivename);

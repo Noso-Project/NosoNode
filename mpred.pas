@@ -7,7 +7,7 @@ interface
 uses
   Classes, forms, SysUtils, MasterPaskalForm, MPTime, IdContext, IdGlobal, mpGUI, mpDisk,
   mpBlock, mpMiner, fileutil, graphics,  dialogs,poolmanage, strutils, mpcoin, fphttpclient,
-  opensslsockets,translation, IdHTTP, IdComponent, IdSSLOpenSSL, mpmn;
+  opensslsockets,translation, IdHTTP, IdComponent, IdSSLOpenSSL, mpmn, IdTCPClient;
 
 function GetSlotFromIP(Ip:String):int64;
 function GetSlotFromContext(Context:TidContext):int64;
@@ -51,6 +51,7 @@ Function GetLastRelease():String;
 Function GetOS():string;
 Function GetLastVerZipFile(version,LocalOS:string):boolean;
 Function GetSyncTus():String;
+function GetMiIP():String;
 
 implementation
 
@@ -1062,7 +1063,7 @@ Function GetOS():string;
   End;
 
 Begin
-{$IFDEF Linux}
+{$IFDEF UNIX}
 result := 'Linux';
 {$ENDIF}
 {$IFDEF WINDOWS}
@@ -1114,6 +1115,30 @@ Function GetSyncTus():String;
 Begin
 Result := MyLastBlock.ToString+Copy(MyResumenHash,1,3)+Copy(MySumarioHash,1,3)+Copy(MyLastBlockHash,1,3);
 End;
+
+function GetMiIP():String;
+var
+  TCPClient : TidTCPClient;
+  LineText  : String = '';
+  Sucess    : Boolean = false;
+Begin
+TCPClient := TidTCPClient.Create(nil);
+TCPclient.Host:='23.94.21.83';
+TCPclient.Port:=8080;
+TCPclient.ConnectTimeout:= 1000;
+TCPclient.ReadTimeout:=1000;
+TRY
+TCPclient.Connect;
+TCPclient.IOHandler.WriteLn('GETMIIP');
+Result := TCPclient.IOHandler.ReadLn(IndyTextEncoding_UTF8);
+TCPclient.Disconnect();
+Sucess := true;
+EXCEPT on E:Exception do
+   Sucess := false;
+END{try};
+TCPClient.Free;
+End;
+
 
 END. // END UNIT
 

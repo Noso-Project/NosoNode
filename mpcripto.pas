@@ -211,8 +211,8 @@ Process := TProcess.Create(nil);
    Process.Options := [];
    Process.ShowWindow := swoShow;
    for I := 1 to GetEnvironmentVariableCount do
-     Process.Environment.Add(GetEnvironmentString(I));
-   {$IFDEF Linux}
+      Process.Environment.Add(GetEnvironmentString(I));
+   {$IFDEF UNIX}
    process.Executable := 'bash';
    process.Parameters.Add(ProgramToRun);
    {$ENDIF}

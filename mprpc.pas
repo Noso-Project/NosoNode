@@ -433,6 +433,22 @@ var
   thisOr : orderdata;
   validID : string = 'true';
 Begin
+ToLog('GetOrderDetails requested: '+NosoPParams);
+NosoPParams := Trim(NosoPParams);
+ThisOr := Default(orderdata);
+if NosoPParams='' then
+   begin
+   validID := 'false';
+   result := format('orderinfo'#127'%s'#127'%s'#127+
+                 '%d'#127'%d'#127'%s'#127+
+                 '%d'#127'%s'#127'%d'#127+
+                 '%d'#127'%s'#127,
+                [validid,NosoPParams,
+                thisor.timestamp,thisor.block,thisor.OrderType,
+                thisor.OrderLines,thisor.Receiver,thisor.AmmountTrf,
+                thisor.AmmountFee,thisor.reference]);
+   exit;
+   end;
 thisor := GetOrderDetails(NosoPParams);
 if thisor.OrderID = '' then validID := 'false';
 result := format('orderinfo'#127'%s'#127'%s'#127+
