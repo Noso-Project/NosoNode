@@ -76,7 +76,7 @@ Procedure GuardarWallet();
 function GetMyLastUpdatedBlock():int64;
 
 function SetCustomAlias(Address,Addalias:String;block:integer):Boolean;
-procedure UnzipBlockFile(filename:String;delfile:boolean);
+Function UnzipBlockFile(filename:String;delFile:boolean):boolean;
 function UnZipUpdateFromRepo():boolean;
 Procedure CreateResumen();
 Procedure BuildHeaderFile(untilblock:integer);
@@ -1242,27 +1242,26 @@ if ((result=false) and (block > 10429)) then
 End;
 
 // Unzip a zip file and (optional) delete it
-procedure UnzipBlockFile(filename:String;delFile:boolean);
+Function UnzipBlockFile(filename:String;delFile:boolean):boolean;
 var
   UnZipper: TUnZipper;
 Begin
-   try
-   UnZipper := TUnZipper.Create;
-      try
-      UnZipper.FileName := filename;
-      UnZipper.OutputPath := '';
-      UnZipper.Examine;
-      UnZipper.UnZipAllFiles;
-      finally
-      UnZipper.Free;
-      end;
-   if delfile then Trydeletefile(filename);
-   Except on E:Exception do
+Result := true;
+UnZipper := TUnZipper.Create;
+   TRY
+   UnZipper.FileName := filename;
+   UnZipper.OutputPath := '';
+   UnZipper.Examine;
+   UnZipper.UnZipAllFiles;
+   EXCEPT on E:Exception do
       begin
-      tolog ('Error unzipping block file');
+      Result := false;
+      ToExcLog ('Error unzipping block file '+filename+': '+E.Message);
       end;
-   end;
-end;
+   END; {TRY}
+if delfile then Trydeletefile(filename);
+UnZipper.Free;
+End;
 
 function UnZipUpdateFromRepo():boolean;
 var
@@ -2358,14 +2357,14 @@ End;
 function TryDeleteFile(filename:string):boolean;
 Begin
 result := true;
-   try
+   TRY
    deletefile(filename);
-   Except on E:Exception do
+   EXCEPT on E:Exception do
       begin
       result := false;
       ToExcLog('Error deleting file ('+filename+') :'+E.Message);
       end;
-   end;
+   END;{TRY}
 End;
 
 // Trys to coyy a file safely

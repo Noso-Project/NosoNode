@@ -747,7 +747,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ab5';
+  SubVersion = 'Ab6';
   OficialRelease = false;
   VersionRequired = '0.3.1Aa5';
   BuildDate = 'March 2022';
@@ -1126,11 +1126,13 @@ procedure TThreadClientRead.Execute;
 var
   LLine: String;
   AFileStream : TFileStream;
+  MemStream   : TMemoryStream;
   BlockZipName : string = '';
   Continuar : boolean = true;
   TruncateLine : string = '';
   Errored, downloaded : Boolean;
 begin
+CanalCliente[FSlot].ReadTimeout:=10000;
 REPEAT
 sleep(1);
 continuar := true;
@@ -1170,71 +1172,70 @@ if Continuar then
          if GetCommand(LLine) = 'RESUMENFILE' then
             begin
             DownloadHeaders := true;
-            EnterCriticalSection(CSHeadAccess);
             ToLog(rs0003); //'Receiving headers'
-            ConsoleLinesAdd(rs0003); //'Receiving headers'
-            TRY
-            AFileStream := TFileStream.Create(ResumenFilename, fmCreate);
-            Errored := False;
-            EXCEPT ON E:Exception do
-               begin
-               Errored := true;
-               end;
-            END; {TRY}
-            if not errored then
-               begin
-               CanalCliente[FSlot].ReadTimeout:=10000;
-               downloaded := false;
+            MemStream := TMemoryStream.Create;
                TRY
-               CanalCliente[FSlot].IOHandler.ReadStream(AFileStream);
-               downloaded := true;
-               EXCEPT on E:Exception do
+               CanalCliente[FSlot].IOHandler.ReadStream(MemStream);
+               downloaded := True;
+               EXCEPT ON E:Exception do
                   begin
+                  toExcLog(format(rs0004,[conexiones[fSlot].ip,E.Message])); //'Error Receiving headers from
                   downloaded := false;
-                  toExcLog(format(rs0004,[conexiones[fSlot].ip,E.Message]));
-                  //toExcLog(format('Error Receiving headers from %s (%s)',[conexiones[fSlot].ip,E.Message]));
-                  consolelinesadd(format(rs0004,[conexiones[fSlot].ip,E.Message]));
-                  //consolelinesadd(format('Error Receiving headers from %s (%s)',[conexiones[fSlot].ip,E.Message]));
                   end;
                END; {TRY}
+            if Downloaded then
+               begin
+               Errored := false;
+               EnterCriticalSection(CSHeadAccess);
+                  TRY
+                  MemStream.SaveToFile(ResumenFilename);
+                  Errored := False;
+                  EXCEPT on E:Exception do
+                     begin
+                     Errored := true;
+                     toExcLog('Error saving headers to file: '+E.Message);
+                     end;
+                  END; {TRY}
+               LeaveCriticalSection(CSHeadAccess);
                end;
-            if Assigned(AFileStream) then AFileStream.Free;
-            LeaveCriticalSection(CSHeadAccess);
-            if not errored and downloaded then
+            if Downloaded and not errored then
                begin
                consolelinesAdd(format(rs0005,[copy(HashMD5File(ResumenFilename),1,5)])); //'Headers file received'
                LastTimeRequestResumen := 0;
                UpdateMyData();
                end;
+            MemStream.Free;
             DownloadHeaders := false;
             end
          else if LLine = 'BLOCKZIP' then
-            begin
+            begin  // START RECEIVING BLOCKS
             ToLog(rs0006); //'Receiving blocks'
             BlockZipName := BlockDirectory+'blocks.zip';
-            if FileExists(BlockZipName) then DeleteFile(BlockZipName);
-            AFileStream := TFileStream.Create(BlockZipName, fmCreate);
+            TryDeleteFile(BlockZipName);
+            MemStream := TMemoryStream.Create;
             DownLoadBlocks := true;
-               try
-               CanalCliente[FSlot].ReadTimeout:=0;
-                  try
-                  CanalCliente[FSlot].IOHandler.ReadStream(AFileStream);
-                  Except on E:Exception do
-                     begin
-                     ConsoleLinesadd(format(rs0007,[conexiones[fSlot].ip,E.Message]));
-                     //consolelinesadd(format('Error Receiving blocks from %s (%s)',[conexiones[fSlot].ip,E.Message]));
-                     end;
+               TRY
+               CanalCliente[FSlot].IOHandler.ReadStream(MemStream);
+               MemStream.SaveToFile(BlockZipName);
+               Errored := false;
+               EXCEPT ON E:Exception do
+                  begin
+                  ToExcLog(format(rs0007,[conexiones[fSlot].ip,E.Message])); //'Error Receiving blocks from %s (%s)',[conexiones[fSlot].ip,E.Message]));
+                  Errored := true;
                   end;
-               finally
-               AFileStream.Free;
+               END; {TRY}
+            If not Errored then
+               begin
+               if UnzipBlockFile(BlockDirectory+'blocks.zip',true) then
+                  begin
+                  MyLastBlock := GetMyLastUpdatedBlock();
+                  ToLog(format(rs0021,[IntToStr(MyLastBlock)])); //'Blocks received up to '+IntToStr(MyLastBlock));
+                  LastTimeRequestBlock := 0;
+                  end;
                end;
-            UnzipBlockFile(BlockDirectory+'blocks.zip',true);
-            MyLastBlock := GetMyLastUpdatedBlock();
-            ConsoleLinesadd(format(rs0021,[IntToStr(MyLastBlock)])); //'Blocks received up to '+IntToStr(MyLastBlock));
-            ResetMinerInfo();
-            LastTimeRequestBlock := 0;
+            MemStream.Free;
             DownLoadBlocks := false;
-            end
+            end // END RECEIVING BLOCKS
          else
             begin
             SlotLines[FSlot].Add(LLine);
@@ -2791,7 +2792,6 @@ EXCEPT on E:Exception do
 END;{Try}
 End;
 
-
 // Trys to close a server connection safely
 Procedure TForm1.TryCloseServerConnection(AContext: TIdContext; closemsg:string='');
 Begin
@@ -2825,64 +2825,62 @@ GoAhead := true;
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
 slot := GetSlotFromIP(IPUser);
 if slot = 0 then
-  begin
-  {
-  ToExcLog(Format(rs0043,[IPUser]));
-  //ToExcLog('SERVER: Received a line from a client without and assigned slot: '+IPUser);
-  }
-  TryCloseServerConnection(AContext);
-  exit;
-  end;
-   TRY
-   LLine := AContext.Connection.IOHandler.ReadLn(IndyTextEncoding_UTF8);
-   if AContext.Connection.IOHandler.ReadLnTimedout then
-      begin
-      TryCloseServerConnection(AContext);
-      ToExcLog(rs0044);
-      //ToExcLog('SERVER: Timeout reading line from connection');
-      GoAhead := false;
-      end;
-   EXCEPT on E:Exception do
-      begin
-      TryCloseServerConnection(AContext);
-      ToExcLog(format(rs0045,[IPUser,E.Message]));
-      //ToExcLog('SERVER: Can not read line from connection '+IPUser+'('+E.Message+')');
-      GoAhead := false;
-      end;
-   END{Try};
+   begin
+   TryCloseServerConnection(AContext);
+   exit;
+   end;
+TRY
+LLine := AContext.Connection.IOHandler.ReadLn(IndyTextEncoding_UTF8);
+{
+if AContext.Connection.IOHandler.ReadLnTimedout then
+   begin
+   TryCloseServerConnection(AContext);
+   ToExcLog(rs0044);
+   //ToExcLog('SERVER: Timeout reading line from connection');
+   GoAhead := false;
+   end;
+}
+EXCEPT on E:Exception do
+   begin
+   TryCloseServerConnection(AContext);
+   ToExcLog(format(rs0045,[IPUser,E.Message]));
+   //ToExcLog('SERVER: Can not read line from connection '+IPUser+'('+E.Message+')');
+   GoAhead := false;
+   end;
+END{Try};
 if GoAhead then
    begin
    conexiones[slot].IsBusy:=true;
    if GetCommand(LLine) = 'RESUMENFILE' then
       begin
-      EnterCriticalSection(CSHeadAccess);
-      AFileStream := TFileStream.Create(ResumenFilename, fmCreate);
+      MemStream := TMemoryStream.Create;
       DownloadHeaders := true;
-         try
-            try
-            AContext.Connection.IOHandler.ReadStream(AFileStream);
-            GetFileOk := true;
-            except on E:Exception do
-               begin
-               ToExcLog(Format(rs0046,[E.Message]));
-               //ToExcLog('SERVER: Server error receiving headers file ('+E.Message+')');
-               TryCloseServerConnection(AContext);
-               GetFileOk := false;
-               end;
+         TRY
+         AContext.Connection.IOHandler.ReadStream(MemStream);
+         GetFileOk := true;
+         EXCEPT ON E:EXCEPTION do
+            begin
+            ToExcLog(Format(rs0046,[E.Message])); //'SERVER: Server error receiving headers file ('+E.Message+')');
+            TryCloseServerConnection(AContext);
+            GetFileOk := false;
             end;
-         finally
-         DownloadHeaders := false;
-         AFileStream.Free;
+         END; {TRY}
+      if GetfileOk then
+         begin
+         EnterCriticalSection(CSHeadAccess);
+            TRY
+            MemStream.SaveToFile(ResumenFilename);
+            ConsoleLinesAdd(Format(rs0047,[copy(HashMD5File(ResumenFilename),1,5)]));//'Headers file received'
+            EXCEPT ON E:EXCEPTION do
+               ToExcLog('Error saving Headers received on server: '+E.Message)
+            END; {TRY};
          LeaveCriticalSection(CSHeadAccess);
          end;
-      if GetFileOk then
-         begin
-         ConsoleLinesAdd(Format(rs0047,[copy(HashMD5File(ResumenFilename),1,5)]));
-         //ConsoleLinesAdd(LAngLine(74)+': '+copy(HashMD5File(ResumenFilename),1,5)); //'Headers file received'
-         LastTimeRequestResumen := 0;
-         UpdateMyData();
-         end;
-      end
+      UpdateMyData();
+      LastTimeRequestResumen := 0;
+      DownloadHeaders := false;
+      AFileStream.Free;
+      end // END GET RESUMEN FILE
    else if LLine = 'BLOCKZIP' then
       begin
       BlockZipName := BlockDirectory+'blocks.zip';
@@ -2916,22 +2914,15 @@ if GoAhead then
    else if parameter(LLine,4) = '$GETRESUMEN' then
       begin
       MemStream := TMemoryStream.Create;
-      //EnterCriticalSection(CSHeadAccess);
          TRY
-         SetMilitime('HeadsToStream',1);
          EnterCriticalSection(CSHeadAccess);
          MemStream.LoadFromFile(ResumenFilename);
          LeaveCriticalSection(CSHeadAccess);
-         SetMilitime('HeadsToStream',2);
-         //AFileStream := TFileStream.Create(ResumenFilename, fmOpenRead + fmShareDenyNone);
          GetFileOk := true;
          EXCEPT on E:Exception do
             begin
             GetFileOk := false;
-            MemStream.Free;
-            //AFileStream.Free;
-            ToExcLog(Format(rs0049,[E.Message]));
-            //ToExcLog(Format('SERVER: Error creating stream from headers: %s',[E.Message]));
+            ToExcLog(Format(rs0049,[E.Message]));//SERVER: Error creating stream from headers: %s',[E.Message]));
             end;
          END; {TRY}
       if GetFileOk then
@@ -2939,21 +2930,14 @@ if GoAhead then
             TRY
             Acontext.Connection.IOHandler.WriteLn('RESUMENFILE');
             Acontext.connection.IOHandler.Write(MemStream,0,true);
-            //Acontext.connection.IOHandler.Write(AFileStream,0,true);
-            ConsoleLinesAdd(format(rs0050,[IPUser]));
-            //ConsoleLinesAdd(LangLine(91)+': '+IPUser);//'Headers file sent'
             EXCEPT on E:Exception do
                begin
                Form1.TryCloseServerConnection(Conexiones[Slot].context);
                ToExcLog(Format(rs0051,[E.Message]));
-               ConsoleLinesAdd(Format(rs0051,[E.Message]));
-               //ToExcLog('SERVER: Error sending headers file ('+E.Message+')');
                end;
             END; {TRY}
-         //AFileStream.Free;
-         MemStream.Free;
          end;
-      //LeaveCriticalSection(CSHeadAccess);
+      MemStream.Free;
       end
    else if parameter(LLine,4) = '$LASTBLOCK' then
       begin
@@ -3050,7 +3034,7 @@ if GoAhead then
       TryCloseServerConnection(AContext,GetVerificationMNLine)
    else if parameter(LLine,0) = 'BESTHASH' then
       begin
-      if BlockAge>585 then TryCloseServerConnection(AContext,'False '+GetNMSData.Diff+' 6')
+      if not IsBlockOpen then TryCloseServerConnection(AContext,'False '+GetNMSData.Diff+' 6')
       else TryCloseServerConnection(AContext,PTC_BestHash(LLine));
       end
    else if parameter(LLine,0) = 'NSLPEND' then
@@ -3086,8 +3070,7 @@ if GoAhead then
 
    else if Copy(LLine,1,4) <> 'PSK ' then  // invalid protocol
       begin
-      ToLog(format(rs0058,[IPUser]));
-      //ToLog('SERVER: Invalid client->'+IPUser);
+      ToLog(format(rs0058,[IPUser])); //ToLog('SERVER: Invalid client->'+IPUser);
       TryCloseServerConnection(AContext,'WRONG_PROTOCOL');
       UpdateBotData(IPUser);
       end
