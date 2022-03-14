@@ -747,7 +747,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ab8';
+  SubVersion = 'Ab9';
   OficialRelease = false;
   VersionRequired = '0.3.1Aa5';
   BuildDate = 'March 2022';
@@ -2949,7 +2949,7 @@ if GoAhead then
             begin
                TRY
                Acontext.Connection.IOHandler.WriteLn('BLOCKZIP');
-               Acontext.connection.IOHandler.Write(AFileStream,0,true);
+               Acontext.connection.IOHandler.Write(MemStream,0,true);
                ToLog(Format(rs0052,[IPUser,BlockZipName])); //SERVER: BlockZip send to '+IPUser+':'+BlockZipName);
                EXCEPT ON E:Exception do
                   begin
