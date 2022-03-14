@@ -21,7 +21,7 @@ function TruncateBlockSolution(solucion:string;step:integer):string;
 implementation
 
 uses
-  mpRed, mpParser,mpProtocol, mpGui, mpBlock;
+  mpRed, mpParser,mpProtocol, mpGui, mpBlock, mpdisk;
 
 // Verifica la situacion del minero
 Procedure VerifyMiner();
@@ -91,24 +91,25 @@ End;
 // Resetea la informacion para uso del minero
 Procedure ResetMinerInfo();
 Begin
-try
-Miner_Waiting := -1;
-Miner_BlockToMine := LastBlockData.Number+1;
-Miner_Difficult := LastBlockData.NxtBlkDiff;
-MINER_FoundedSteps := 0;
-Miner_DifChars := GetCharsFromDifficult(Miner_Difficult, MINER_FoundedSteps);
-Miner_Target := copy(MyLastBlockHash,1,Miner_DifChars);
-MINER_HashCounter := 100000000;
-if UserOptions.UsePool then MINER_HashSeed := MyPoolData.Prefijo
-else MINER_HashSeed := '!!!!!!!!!';
-if UserOptions.UsePool then Miner_Address := MyPoolData.Direccion
-else Miner_Address := ListaDirecciones[0].Hash;
-Miner_BlockFOund := False;
-Miner_Solution := '';
-Miner_SolutionVerified := false;
-Miner_PoolHashRate := 0;
-finally
-end;
+   TRY
+   Miner_Waiting := -1;
+   Miner_BlockToMine := LastBlockData.Number+1;
+   Miner_Difficult := LastBlockData.NxtBlkDiff;
+   MINER_FoundedSteps := 0;
+   Miner_DifChars := GetCharsFromDifficult(Miner_Difficult, MINER_FoundedSteps);
+   Miner_Target := copy(MyLastBlockHash,1,Miner_DifChars);
+   MINER_HashCounter := 100000000;
+   if UserOptions.UsePool then MINER_HashSeed := MyPoolData.Prefijo
+   else MINER_HashSeed := '!!!!!!!!!';
+   if UserOptions.UsePool then Miner_Address := MyPoolData.Direccion
+   else Miner_Address := ListaDirecciones[0].Hash;
+   Miner_BlockFOund := False;
+   Miner_Solution := '';
+   Miner_SolutionVerified := false;
+   Miner_PoolHashRate := 0;
+   EXCEPT ON E:Exception do
+      ToExcLog('Error reseting miner info');
+   END;{TRY}
 End;
 
 // Obtiene el nivel de dificultad de un bloque

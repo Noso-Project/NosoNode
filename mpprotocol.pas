@@ -543,20 +543,21 @@ result := false;
 MyZipFile := TZipper.Create;
 MyZipFile.FileName := ZipHeadersFileName;
 EnterCriticalSection(CSHeadAccess);
-TRY
-{$IFDEF WINDOWS}
-archivename:= StringReplace(ResumenFilename,'\','/',[rfReplaceAll]);
-{$ENDIF}
-{$IFDEF UNIX}
-archivename:= ResumenFilename;
-{$ENDIF}
-archivename:= StringReplace(archivename,'NOSODATA','data',[rfReplaceAll]);
-MyZipFile.Entries.AddFileEntry(ResumenFilename, archivename);
-MyZipFile.ZipAllFiles;
-result := true;
-FINALLY
+   TRY
+   {$IFDEF WINDOWS}
+   archivename:= StringReplace(ResumenFilename,'\','/',[rfReplaceAll]);
+   {$ENDIF}
+   {$IFDEF UNIX}
+   archivename:= ResumenFilename;
+   {$ENDIF}
+   archivename:= StringReplace(archivename,'NOSODATA','data',[rfReplaceAll]);
+   MyZipFile.Entries.AddFileEntry(ResumenFilename, archivename);
+   MyZipFile.ZipAllFiles;
+   result := true;
+   EXCEPT ON E:Exception do
+      ToExcLog('Error on Zip Headers file: '+E.Message);
+   END{Try};
 MyZipFile.Free;
-END{Try};
 LeaveCriticalSection(CSHeadAccess);
 End;
 

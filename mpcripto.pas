@@ -206,7 +206,7 @@ var
   I: Integer;
 begin
 Process := TProcess.Create(nil);
-   try
+   TRY
    Process.InheritHandles := False;
    Process.Options := [];
    Process.ShowWindow := swoShow;
@@ -220,9 +220,10 @@ Process := TProcess.Create(nil);
    Process.Executable := ProgramToRun;
    {$ENDIF}
    Process.Execute;
-   finally
-   Process.Free;
-   end;
+   EXCEPT ON E:Exception do
+      ToExcLog('Error RunExternalProgram='+ProgramToRun+' Error:'+E.Message);
+   END; {TRY}
+Process.Free;
 End;
 
 // SIGNS A MESSAGE WITH THE GIVEN PRIVATE KEY

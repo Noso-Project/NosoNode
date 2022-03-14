@@ -110,36 +110,39 @@ uses
 // **************************
 
 // Adds a line to ProcessLines thread safe
-procedure ProcessLinesAdd(const ALine: String);
-begin
-  EnterCriticalSection(CSProcessLines);
-  try
-    ProcessLines.Add(ALine);
-  finally
-    LeaveCriticalSection(CSProcessLines);
-  end;
-end;
+Procedure ProcessLinesAdd(const ALine: String);
+Begin
+EnterCriticalSection(CSProcessLines);
+   TRY
+   ProcessLines.Add(ALine);
+   EXCEPT ON E:Exception do
+      ToExcLog('Error on PROCESSLINESADD: '+E.Message);
+   END; {TRY}
+LeaveCriticalSection(CSProcessLines);
+End;
 
 // Adds a line to ConsoleLines thread safe
-procedure ConsoleLinesAdd(const ALine: String);
-begin
-  EnterCriticalSection(CSConsoleLines);
-  try
-    ConsoleLines.Add(ALine);
-  finally
-    LeaveCriticalSection(CSConsoleLines);
-  end;
+Procedure ConsoleLinesAdd(const ALine: String);
+Begin
+EnterCriticalSection(CSConsoleLines);
+   TRY
+   ConsoleLines.Add(ALine);
+   EXCEPT ON E:Exception do
+      ToExcLog('Error on ConsoleLinesAdd: '+E.Message);
+   END; {TRY};
+LeaveCriticalSection(CSConsoleLines);
 end;
 
 // Adds a line to OutgoingMsjs thread safe
 procedure OutgoingMsjsAdd(const ALine: String);
 Begin
 EnterCriticalSection(CSOutgoingMsjs);
-TRY
-OutgoingMsjs.Add(ALine);
-FINALLY
+   TRY
+   OutgoingMsjs.Add(ALine);
+   EXCEPT ON E:Exception do
+      ToExcLog('Error on OutgoingMsjsAdd: '+E.Message);
+   END{Try};
 LeaveCriticalSection(CSOutgoingMsjs);
-END{Try};
 End;
 
 // Gets a line from OutgoingMsjs thread safe

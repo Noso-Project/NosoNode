@@ -161,16 +161,17 @@ Begin
   result := '';
 JSONResultado := TJSONObject.Create;
 JSONErrorObj  := TJSONObject.Create;
-   try
+   TRY
    JSONResultado.Add('jsonrpc', TJSONString.Create('2.0'));
    JSONErrorObj.Add('code', TJSONIntegerNumber.Create(ErrorCode));
    JSONErrorObj.Add('message', TJSONString.Create(GetJSONErrorString(ErrorCode)));
    JSONResultado.Add('error',JSONErrorObj);
    JSONResultado.Add('id', TJSONIntegerNumber.Create(JSONIdNumber));
-   finally
-   result := JSONResultado.AsJSON;
-   JSONResultado.Free;
-   end;
+   EXCEPT ON E:Exception do
+      ToExcLog('Error on GetJSONErrorCode: '+E.Message)
+   END; {TRY}
+result := JSONResultado.AsJSON;
+JSONResultado.Free;
 End;
 
 // Returns a valid response JSON string
@@ -182,36 +183,32 @@ var
   counter : integer;
   Errored : boolean = false;
 Begin
+result := '';
 paramsarray := TJSONArray.Create;
 if length(ResultToSend)>0 then myParams:= ResultToSend.Split(' ');
 JSONResultado := TJSONObject.Create;
-   try
-      try
-      JSONResultado.Add('jsonrpc', TJSONString.Create('2.0'));
-      if length(myparams) > 0 then
-         for counter := low(myParams) to high(myParams) do
-            if myParams[counter] <>'' then
-               begin
-               paramsarray.Add(GetJSON(ObjectFromString(myParams[counter])));
-               end;
-      SetLength(MyParams, 0);
-      JSONResultado.Add('result', paramsarray);
-      JSONResultado.Add('id', TJSONIntegerNumber.Create(JSONIdNumber));
-      Except on E:Exception do
-         begin
-         result := GetJSONErrorCode(499,JSONIdNumber);
-         JSONResultado.Free;
-         paramsarray.Free;
-         Errored := true;
-         end;
-      end;
-   finally
-   if not errored then
+   TRY
+   JSONResultado.Add('jsonrpc', TJSONString.Create('2.0'));
+   if length(myparams) > 0 then
+      for counter := low(myParams) to high(myParams) do
+         if myParams[counter] <>'' then
+            begin
+            paramsarray.Add(GetJSON(ObjectFromString(myParams[counter])));
+            end;
+   SetLength(MyParams, 0);
+   JSONResultado.Add('result', paramsarray);
+   JSONResultado.Add('id', TJSONIntegerNumber.Create(JSONIdNumber));
+   EXCEPT ON E:Exception do
       begin
-      result := JSONResultado.AsJSON;
+      result := GetJSONErrorCode(499,JSONIdNumber);
+      JSONResultado.Free;
+      paramsarray.Free;
+      Errored := true;
+      ToExcLog('Error on GetJSONResponse: '+E.Message);
       end;
-   JSONResultado.Free;
-   end;
+   END; {TRY}
+if not errored then result := JSONResultado.AsJSON;
+JSONResultado.Free;
 End;
 
 function ObjectFromString(MyString:string): string;
