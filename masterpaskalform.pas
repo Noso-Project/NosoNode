@@ -747,7 +747,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ab9';
+  SubVersion = 'AC1';
   OficialRelease = false;
   VersionRequired = '0.3.1Aa5';
   BuildDate = 'March 2022';
@@ -1132,7 +1132,6 @@ var
   TruncateLine : string = '';
   Errored, downloaded : Boolean;
 begin
-CanalCliente[FSlot].ReadTimeout:=10000;
 REPEAT
 sleep(1);
 continuar := true;
@@ -1174,6 +1173,7 @@ if Continuar then
             DownloadHeaders := true;
             ToLog(rs0003); //'Receiving headers'
             MemStream := TMemoryStream.Create;
+            CanalCliente[FSlot].ReadTimeout:=10000;
                TRY
                CanalCliente[FSlot].IOHandler.ReadStream(MemStream);
                downloaded := True;
@@ -1214,6 +1214,7 @@ if Continuar then
             TryDeleteFile(BlockZipName);
             MemStream := TMemoryStream.Create;
             DownLoadBlocks := true;
+            CanalCliente[FSlot].ReadTimeout:=10000;
                TRY
                CanalCliente[FSlot].IOHandler.ReadStream(MemStream);
                MemStream.SaveToFile(BlockZipName);
