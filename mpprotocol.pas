@@ -469,37 +469,38 @@ End;
 // Send headers file to peer
 Procedure PTC_SendResumen(Slot:int64);
 var
-  AFileStream : TFileStream;
+  MemStream   : TMemoryStream;
 Begin
 SetCurrentJob('PTC_SendResumen',true);
+MemStream := TMemoryStream.Create;
 EnterCriticalSection(CSHeadAccess);
-AFileStream := TFileStream.Create(ResumenFilename, fmOpenRead + fmShareDenyNone);
+MemStream.LoadFromFile(ResumenFilename);
 LeaveCriticalSection(CSHeadAccess);
 if conexiones[slot].tipo='CLI' then
    begin
-      try
+      TRY
       Conexiones[slot].context.Connection.IOHandler.WriteLn('RESUMENFILE');
-      Conexiones[slot].context.connection.IOHandler.Write(AFileStream,0,true);
-      Except on E:Exception do
+      Conexiones[slot].context.connection.IOHandler.Write(MemStream,0,true);
+      EXCEPT on E:Exception do
          begin
          Form1.TryCloseServerConnection(Conexiones[Slot].context);
          ToExcLog('SERVER: Error sending headers file ('+E.Message+')');
          end;
-      end;
+      END; {TRY}
    end;
 if conexiones[slot].tipo='SER' then
    begin
-      try
+      TRY
       CanalCliente[slot].IOHandler.WriteLn('RESUMENFILE');
-      CanalCliente[slot].IOHandler.Write(AFileStream,0,true);
-      Except on E:Exception do
+      CanalCliente[slot].IOHandler.Write(MemStream,0,true);
+      EXCEPT on E:Exception do
          begin
          ToExcLog('CLIENT: Error sending Headers file ('+E.Message+')');
          CerrarSlot(slot);
          end;
-      end;
+      END;{TRY}
    end;
-AFileStream.Free;
+MemStream.Free;
 SetCurrentJob('PTC_SendResumen',false);
 //ConsoleLinesAdd(LangLine(91));//'Headers file sent'
 End;
@@ -606,8 +607,9 @@ var
   FirstBlock, LastBlock : integer;
   MyZipFile: TZipper;
   contador : integer;
-  AFileStream : TFileStream;
+  MemStream   : TMemoryStream;
   filename, archivename: String;
+  GetFileOk  : boolean = false;
   FileSentOk : Boolean = false;
   ZipFileName:String;
 Begin
@@ -615,45 +617,52 @@ ConsoleLinesAdd('********** DEBUG CHECK **********');
 SetCurrentJob('PTC_SendBlocks',true);
 FirstBlock := StrToIntDef(Parameter(textline,5),-1)+1;
 ZipFileName := CreateZipBlockfile(FirstBlock);
-AFileStream := TFileStream.Create(ZipFileName, fmOpenRead + fmShareDenyNone);
-   try
-   if conexiones[Slot].tipo='CLI' then
+MemStream := TMemoryStream.Create;
+   TRY
+   MemStream.LoadFromFile(ZipFileName);
+   GetFileOk := true;
+   EXCEPT on E:Exception do
       begin
-         try
-         Conexiones[Slot].context.Connection.IOHandler.WriteLn('BLOCKZIP');
-         Conexiones[Slot].context.connection.IOHandler.Write(AFileStream,0,true);
-         FileSentOk := true;
-         Except on E:Exception do
-            begin
-            Form1.TryCloseServerConnection(Conexiones[Slot].context);
-            ToExcLog('SERVER: Error sending ZIP blocks file ('+E.Message+')');
+      GetFileOk := false;
+      ToExcLog('Error on PTC_SendBlocks: '+E.Message);
+      end;
+   END; {TRY}
+   if GetFileOk then
+      begin
+      if conexiones[Slot].tipo='CLI' then
+         begin
+            TRY
+            Conexiones[Slot].context.Connection.IOHandler.WriteLn('BLOCKZIP');
+            Conexiones[Slot].context.connection.IOHandler.Write(MemStream,0,true);
+            FileSentOk := true;
+            EXCEPT on E:Exception do
+               begin
+               Form1.TryCloseServerConnection(Conexiones[Slot].context);
+               ToExcLog('SERVER: Error sending ZIP blocks file ('+E.Message+')');
+               end;
+            END; {TRY}
+         end;
+      if conexiones[Slot].tipo='SER' then
+         begin
+            TRY
+            CanalCliente[Slot].IOHandler.WriteLn('BLOCKZIP');
+            CanalCliente[Slot].IOHandler.Write(MemStream,0,true);
+            FileSentOk := true;
+            EXCEPT on E:Exception do
+               begin
+               ToExcLog('CLIENT: Error sending ZIP blocks file ('+E.Message+')');
+               CerrarSlot(slot);
+               END; {TRY}
             end;
          end;
       end;
-   if conexiones[Slot].tipo='SER' then
-      begin
-         try
-         CanalCliente[Slot].IOHandler.WriteLn('BLOCKZIP');
-         CanalCliente[Slot].IOHandler.Write(AFileStream,0,true);
-         FileSentOk := true;
-         Except on E:Exception do
-            begin
-            ToExcLog('CLIENT: Error sending ZIP blocks file ('+E.Message+')');
-            CerrarSlot(slot);
-            end;
-         end;
-      end;
-   finally
-   AFileStream.Free;
-   end;
-//MyZipFile.Free;
-deletefile(ZipFileName);
+MemStream.Free;
+Trydeletefile(ZipFileName);
 SetCurrentJob('PTC_SendBlocks',false);
 End;
 
 Procedure INC_PTC_Custom(TextLine:String;connection:integer);
 Begin
-//Consolelinesadd('Received from: '+Conexiones[connection].ip);
 AddCriptoOp(4,TextLine,'');
 StartCriptoThread();
 End;

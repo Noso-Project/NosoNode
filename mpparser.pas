@@ -660,7 +660,7 @@ var
   FilenameHash : string = '';
   TextToSend : String = '';
   Contador : integer = 1;
-  AFileStream : TFileStream;
+  MemStream   : TMemoryStream;
   ClavePublica : string = '';
   Firma : string = '';
   Envios : integer = 0;
@@ -696,23 +696,24 @@ if not bypassed then FilenameHash := HashMD5File(UpdatesDirectory+filename);
 if not bypassed then ClavePublica := ListaDirecciones[DireccionEsMia(AdminHash)].PublicKey;
 if not bypassed then Firma := GetStringSigned(version+' '+FilenameHash,ListaDirecciones[DireccionEsMia(AdminHash)].PrivateKey);
 TextToSend := 'UPDATE '+Version+' '+FilenameHash+' '+ClavePublica+' '+firma;
-AFileStream := TFileStream.Create(UpdatesDirectory+Filename, fmOpenRead + fmShareDenyNone);
+MemStream := TMemoryStream.Create;
+MemStream.LoadFromFile(UpdatesDirectory+Filename);
 For contador := 1 to maxconecciones do
    begin
    if conexiones[contador].tipo='CLI' then
       begin
       Conexiones[contador].context.Connection.IOHandler.WriteLn(TextToSend);
-      Conexiones[contador].context.connection.IOHandler.Write(AFileStream,0,true);
+      Conexiones[contador].context.connection.IOHandler.Write(MemStream,0,true);
       Envios := envios + 1;
       end;
    if conexiones[contador].tipo='SER' then
       begin
       CanalCliente[contador].IOHandler.WriteLn(TextToSend);
-      CanalCliente[contador].IOHandler.Write(AFileStream,0,true);
+      CanalCliente[contador].IOHandler.Write(MemStream,0,true);
       Envios := envios + 1;
       end;
    end;
-AFileStream.Free;
+MemStream.Free;
 if envios = 0 then ConsoleLinesAdd(LangLine(56)) else ConsoleLinesAdd(LangLine(57)+intToStr(envios));   //Can not send the update file // Update file sent to peers:
 End;
 

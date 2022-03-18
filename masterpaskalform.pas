@@ -751,7 +751,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ac4';
+  SubVersion = 'Ac5';
   OficialRelease = false;
   VersionRequired = '0.3.1Aa5';
   BuildDate = 'March 2022';
@@ -1133,7 +1133,6 @@ End;
 procedure TThreadClientRead.Execute;
 var
   LLine: String;
-  AFileStream : TFileStream;
   MemStream   : TMemoryStream;
   BlockZipName : string = '';
   Continuar : boolean = true;
@@ -2825,7 +2824,6 @@ var
   slot : integer = 0;
   UpdateZipName : String = ''; UpdateVersion : String = ''; UpdateHash:string ='';
   UpdateClavePublica :string ='';UpdateFirma : string = '';
-  AFileStream : TFileStream;
   MemStream   : TMemoryStream;
   BlockZipName: string = '';
   GetFileOk : boolean = false;
@@ -2881,7 +2879,7 @@ if GoAhead then
       UpdateMyData();
       LastTimeRequestResumen := 0;
       DownloadHeaders := false;
-      AFileStream.Free;
+      MemStream.Free;
       end // END GET RESUMEN FILE
    else if LLine = 'BLOCKZIP' then
       begin
@@ -3000,7 +2998,6 @@ var
   Peerversion : string = '';
   GoAhead : boolean;
   GetFileOk : boolean = false;
-  AFileStream : TFileStream;
   MemStream   : TMemoryStream;
 Begin
 GoAhead := true;

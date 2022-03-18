@@ -257,7 +257,7 @@ var
   Intentado : boolean = false;
   Intentos : integer = 0;
   rannumber : integer;
-begin
+Begin
 SetCurrentJob('ConnectToServers',true);
 setmilitime('ConnectToServers',1);
 if not CONNECT_Try then
@@ -282,7 +282,7 @@ if proceder then
 CONNECT_LastTime := UTCTime();
 setmilitime('ConnectToServers',2);
 SetCurrentJob('ConnectToServers',false);
-end;
+End;
 
 // regresa el primer slot dispoinible, o 0 si no hay ninguno
 function GetFreeSlot():integer;
