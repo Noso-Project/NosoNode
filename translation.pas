@@ -71,9 +71,9 @@ resourcestring
   rs0060 = 'SERVER: Duplicated connection -> %s';
   rs0061 = 'New Connection from: %s';
   rs0062 = 'SERVER: Closed unhandled incoming connection -> %s';
-  rs0063 = 'Next block required';
-  rs0064 = 'My PoS addresses';
-  rs0065 = 'My PoS earnings';
+  rs0063 = 'Stake size';
+  rs0064 = 'MNs earnings';
+  rs0065 = 'PoS earnings';
   rs0066 = 'Rebuilding my transactions...';
   rs0067 = '✓ My transactions rebuilded';
   rs0068 = '✓ My transactions grid updated';

@@ -147,6 +147,14 @@ msgstr "Minimalkan ke baki"
 msgid "Download blockchain"
 msgstr "Unduh blockchain"
 
+#: tform1.checkbox2.caption
+msgid "Auto"
+msgstr ""
+
+#: tform1.checkbox2.hint
+msgid "Use mainnet auto assigned IP"
+msgstr ""
+
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
 msgstr "Jalankan MasterNode"
@@ -756,15 +764,21 @@ msgid "SERVER: Closed unhandled incoming connection -> %s"
 msgstr "SERVER: Koneksi masuk yang tidak tertangani tertutup -> %s"
 
 #: translation.rs0063
-msgid "Next block required"
+#, fuzzy
+#| msgid "Next block required"
+msgid "Stake size"
 msgstr "Dibutuhkan blok berikutnya"
 
 #: translation.rs0064
-msgid "My PoS addresses"
+#, fuzzy
+#| msgid "My PoS addresses"
+msgid "MNs earnings"
 msgstr "Alamat PoS saya"
 
 #: translation.rs0065
-msgid "My PoS earnings"
+#, fuzzy
+#| msgid "My PoS earnings"
+msgid "PoS earnings"
 msgstr "Pendapatan PoS saya"
 
 #: translation.rs0066

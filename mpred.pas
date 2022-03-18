@@ -1114,11 +1114,13 @@ function GetMiIP():String;
 var
   TCPClient : TidTCPClient;
   LineText  : String = '';
-  Sucess    : Boolean = false;
+  NodeToUse : integer;
 Begin
+NodeToUse := Random(Length(ListaNodos));
+Result := '';
 TCPClient := TidTCPClient.Create(nil);
-TCPclient.Host:='23.94.21.83';
-TCPclient.Port:=8080;
+TCPclient.Host:=ListaNodos[NodeToUse].ip;
+TCPclient.Port:=StrToInt(ListaNodos[NodeToUse].port);
 TCPclient.ConnectTimeout:= 1000;
 TCPclient.ReadTimeout:=1000;
 TRY
@@ -1126,9 +1128,8 @@ TCPclient.Connect;
 TCPclient.IOHandler.WriteLn('GETMIIP');
 Result := TCPclient.IOHandler.ReadLn(IndyTextEncoding_UTF8);
 TCPclient.Disconnect();
-Sucess := true;
 EXCEPT on E:Exception do
-   Sucess := false;
+   ToExcLog('Error on GetMiIP: '+E.Message)
 END{try};
 TCPClient.Free;
 End;

@@ -148,6 +148,14 @@ msgstr "In die Ablage minimieren"
 msgid "Download blockchain"
 msgstr "Blockchain herunterladen"
 
+#: tform1.checkbox2.caption
+msgid "Auto"
+msgstr ""
+
+#: tform1.checkbox2.hint
+msgid "Use mainnet auto assigned IP"
+msgstr ""
+
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
 msgstr "MasterNode ausführen"
@@ -761,15 +769,21 @@ msgid "SERVER: Closed unhandled incoming connection -> %s"
 msgstr "SERVER: Unbehandelte eingehende Verbindung geschlossen -> %s"
 
 #: translation.rs0063
-msgid "Next block required"
+#, fuzzy
+#| msgid "Next block required"
+msgid "Stake size"
 msgstr "Nächster Block benötigt"
 
 #: translation.rs0064
-msgid "My PoS addresses"
+#, fuzzy
+#| msgid "My PoS addresses"
+msgid "MNs earnings"
 msgstr "Meine PoS Adressen"
 
 #: translation.rs0065
-msgid "My PoS earnings"
+#, fuzzy
+#| msgid "My PoS earnings"
+msgid "PoS earnings"
 msgstr "Meine PoS Einnahmen"
 
 #: translation.rs0066

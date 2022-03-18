@@ -367,6 +367,7 @@ type
     CBSummaryhash: TCheckBox;
     CBPool_Restart: TCheckBox;
     CB_PoolLBS: TCheckBox;
+    CheckBox2: TCheckBox;
     ComboBoxLang: TComboBox;
     IdHTTPUpdate: TIdHTTP;
     LabelNodesHash: TLabel;
@@ -573,10 +574,13 @@ type
     procedure CB_RPCFilterChange(Sender: TObject);
     procedure CB_WO_AutoupdateChange(Sender: TObject);
     procedure CB_PoolLBSChange(Sender: TObject);
+    procedure CheckBox2Click(Sender: TObject);
     procedure ComboBoxLangChange(Sender: TObject);
     procedure ComboBoxLangDrawItem(Control: TWinControl; Index: Integer;
       ARect: TRect; State: TOwnerDrawState);
     procedure DataPanelResize(Sender: TObject);
+    procedure DireccionesPanelDrawCell(Sender: TObject; aCol, aRow: Integer;
+      aRect: TRect; aState: TGridDrawState);
     procedure DireccionesPanelResize(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
@@ -747,7 +751,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ac1';
+  SubVersion = 'Ac4';
   OficialRelease = false;
   VersionRequired = '0.3.1Aa5';
   BuildDate = 'March 2022';
@@ -821,6 +825,8 @@ var
   MN_Port          : string = '8080';
   MN_Funds         : string = '';
   MN_Sign          : string = '';
+  MN_AutoIP        : Boolean = false;
+  MN_FileText      : String = '';
   POOL_MineRestart : boolean = false;
   POOL_LBS         : boolean = false;
 
@@ -840,6 +846,8 @@ var
   RunningDoctor : boolean = false;
 
   G_PoSPayouts, G_PoSEarnings : int64;
+  G_MNsPayouts, G_MNsEarnings : int64;
+
 
   CheckMonitor : boolean = false;
   RunDoctorBeforeClose : boolean = false;
@@ -2174,9 +2182,9 @@ Form1.PageControl1.ActivePage:= Form1.TabSheet1;
 
 // Resize all grids at launch
 Form1.GridPoSResize(form1);
-Form1.GridPoS.Cells[0,0] := rs0063;
-Form1.GridPoS.Cells[0,1] := rs0064;
-Form1.GridPoS.Cells[0,2] := rs0065;
+Form1.GridPoS.Cells[0,0] := 'Stake size';//rs0063;
+Form1.GridPoS.Cells[0,1] := 'MNs Earned';//rs0064;
+Form1.GridPoS.Cells[0,2] := 'PoS Earned';//rs0065;
 form1.GridPoS.FocusRectVisible:=false;
 
 
@@ -3906,6 +3914,30 @@ form1.DataPanel.ColWidths[2]:= thispercent(20,GridWidth);
 form1.DataPanel.ColWidths[3]:= thispercent(30,GridWidth);
 end;
 
+// Grid Addresses DrawCell
+procedure TForm1.DireccionesPanelDrawCell(Sender: TObject; aCol, aRow: Integer;
+  aRect: TRect; aState: TGridDrawState);
+var
+  Bitmap    : TBitmap;
+  myRect    : TRect;
+  CurrPos   : integer;
+  ColWidth : Integer;
+Begin
+if ( (aRow>0) and (aCol=0) and (AnsiContainsstr(MN_FileText,ListaDirecciones[aRow-1].Hash)) ) then
+   begin
+   ColWidth := (sender as TStringGrid).ColWidths[0];
+   Bitmap:=TBitmap.Create;
+   Imagenes.GetBitmap(68,Bitmap);
+   myRect := Arect;
+   myrect.Left:=ColWidth-20;
+   myRect.Right := ColWidth-4;
+   myrect.top:=myrect.Top+2;
+   myrect.Bottom:=myrect.Top+18;
+   (sender as TStringGrid).Canvas.StretchDraw(myRect,bitmap);
+   Bitmap.free
+   end;
+End;
+
 // adjust addresses grid when resizing
 procedure TForm1.DireccionesPanelResize(Sender: TObject);
 var
@@ -3950,8 +3982,10 @@ end;
 // Load Masternode options when TAB is selected
 procedure TForm1.TabNodeOptionsShow(Sender: TObject);
 begin
+CheckBox2.checked:=MN_AutoIP;
 CheckBox4.Checked:=WO_AutoServer;
 LabeledEdit5.Text:=MN_IP;
+LabeledEdit5.visible:=not MN_AutoIP;
 LabeledEdit6.Text:=MN_Port;
 LabeledEdit8.Text:=MN_Funds;
 LabeledEdit9.Text:=MN_Sign;
@@ -3978,6 +4012,7 @@ MN_IP:=LabeledEdit5.Text;
 MN_Port:=LabeledEdit6.Text;
 MN_Funds:=LabeledEdit8.Text;
 MN_Sign:=LabeledEdit9.Text;
+MN_AutoIP:=CheckBox2.Checked;
 S_AdvOpt := true;
 if not WO_AutoServer and form1.Server.Active then processlinesadd('serveroff');
 if WO_AutoServer and not form1.Server.Active then processlinesadd('serveron');
@@ -3990,6 +4025,7 @@ var
   Client : TidTCPClient;
   LineResult : String = '';
   ServerActivated : boolean = false;
+  IPToUse : String;
 Begin
 if DireccionEsMia(LabeledEdit9.Text) < 0 then
    begin
@@ -4022,8 +4058,11 @@ EXCEPT on E:Exception do
 END;{Try}
 LineResult := '';
 Client := TidTCPClient.Create(nil);
-Client.Host:=trim(LabeledEdit5.text);
-Client.Port:=StrToIntDef(Trim(LabeledEdit6.Text),8080);
+
+if CheckBox2.Checked then IPToUse:= GetMiIp()
+else IPToUse := trim(LabeledEdit5.text);
+Client.Host:= IPToUse;
+Client.Port:= StrToIntDef(Trim(LabeledEdit6.Text),8080);
 Client.ConnectTimeout:= 1000;
 Client.ReadTimeout:= 1000;
 
@@ -4033,15 +4072,15 @@ Client.IOHandler.WriteLn('NODESTATUS');
 LineResult := Client.IOHandler.ReadLn(IndyTextEncoding_UTF8);
 EXCEPT on E:Exception do
    begin
-   info('Error in connection');
+   info('Cant connect to '+IPToUse);
    ToExcLog('Error testing masternode: '+E.Message);
    client.Free;
    if ServerActivated then form1.Server.Active := false;
    exit;
    end;
 END;{Try}
-if LineResult <> '' then info('Test OK')
-else info ('Test Failed');
+if LineResult <> '' then info(IPToUse+': OK')
+else info ('Test Failed: '+IPToUse);
 if client.Connected then Client.Disconnect();
 if ServerActivated then form1.Server.Active := false;
 client.Free;
@@ -4080,6 +4119,13 @@ if not G_Launching then
    else POOL_LBS := false ;
    S_AdvOpt := true;
    end;
+End;
+
+// Set MN IP to Auto
+procedure TForm1.CheckBox2Click(Sender: TObject);
+Begin
+if CheckBox2.Checked then LabeledEdit5.Visible:=false
+else LabeledEdit5.Visible:=true;
 End;
 
 // adjust transactions history grid when resize

@@ -135,6 +135,14 @@ msgstr ""
 msgid "Download blockchain"
 msgstr ""
 
+#: tform1.checkbox2.caption
+msgid "Auto"
+msgstr ""
+
+#: tform1.checkbox2.hint
+msgid "Use mainnet auto assigned IP"
+msgstr ""
+
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
 msgstr ""
@@ -741,15 +749,15 @@ msgid "SERVER: Closed unhandled incoming connection -> %s"
 msgstr ""
 
 #: translation.rs0063
-msgid "Next block required"
+msgid "Stake size"
 msgstr ""
 
 #: translation.rs0064
-msgid "My PoS addresses"
+msgid "MNs earnings"
 msgstr ""
 
 #: translation.rs0065
-msgid "My PoS earnings"
+msgid "PoS earnings"
 msgstr ""
 
 #: translation.rs0066

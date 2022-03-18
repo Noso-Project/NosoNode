@@ -62,7 +62,7 @@ Procedure RebuildSumario(UntilBlock:integer);
 // My transactions
 Procedure CrearMistrx();
 Procedure CargarMisTrx();
-Procedure SaveMyTrxsLastUpdatedblock(Number:integer;PoSPayouts, PoSEarnings:int64);
+Procedure SaveMyTrxsLastUpdatedblock(Number:integer;PoSPayouts, PoSEarnings, MNsPayouts, MNsEarnings:int64);
 Procedure RebuildMyTrx(blocknumber:integer);
 Procedure SaveMyTrxsToDisk(Cantidad:integer);
 
@@ -441,6 +441,7 @@ setmilitime('CreateADV',1);
    writeln(FileAdvOptions,'MNFunds '+(MN_Funds));
    if MN_Sign = '' then MN_Sign := ListaDirecciones[0].Hash;
    writeln(FileAdvOptions,'MNSign '+(MN_Sign));
+   writeln(FileAdvOptions,'MNAutoIp '+BoolToStr(MN_AutoIP,true));
 
    writeln(FileAdvOptions,'PoolRestart '+BoolToStr(POOL_MineRestart,true));
    writeln(FileAdvOptions,'PoolLBS '+BoolToStr(POOL_LBS,true));
@@ -499,6 +500,7 @@ Begin
       if parameter(linea,0) ='MNPort' then MN_Port:=Parameter(linea,1);
       if parameter(linea,0) ='MNFunds' then MN_Funds:=Parameter(linea,1);
       if parameter(linea,0) ='MNSign' then MN_Sign:=Parameter(linea,1);
+      if parameter(linea,0) ='MNAutoIp' then MN_AutoIP:=StrToBool(Parameter(linea,1));
 
       if parameter(linea,0) ='PoolRestart' then POOL_MineRestart:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='PoolLBS' then POOL_LBS:=StrToBool(Parameter(linea,1));
@@ -1613,7 +1615,7 @@ Begin
    try
    DefaultOrder := Default(MyTrxData);
    DefaultOrder.Block:=0;
-   DefaultOrder.receiver:='0 0';
+   DefaultOrder.receiver:='0 0 0 0';
    assignfile(FileMyTrx,MyTrxFilename);
    rewrite(FileMyTrx);
    write(FileMyTrx,DefaultOrder);
@@ -1655,6 +1657,8 @@ setmilitime('CargarMisTrx',1);
    closefile(FileMyTrx);
    G_PoSPayouts := StrToInt64Def(parameter(ListaMisTrx[0].receiver,0),0);
    G_PoSEarnings := StrToInt64Def(parameter(ListaMisTrx[0].receiver,1),0);
+   G_MNsPayouts := StrToInt64Def(parameter(ListaMisTrx[0].receiver,2),0);
+   G_MNsEarnings := StrToInt64Def(parameter(ListaMisTrx[0].receiver,3),0);
    if G_Launching then
       OutText('✓ '+IntToStr(length(ListaMisTrx))+' own transactions',false,1);
    Except on E:Exception do
@@ -1664,7 +1668,7 @@ setmilitime('CargarMisTrx',2);
 End;
 
 // Save value of last checked block for user transactions
-Procedure SaveMyTrxsLastUpdatedblock(Number:integer;PoSPayouts, PoSEarnings:int64);
+Procedure SaveMyTrxsLastUpdatedblock(Number:integer;PoSPayouts, PoSEarnings, MNsPayouts, MNsEarnings:int64);
 var
   FirstTrx : MyTrxData;
 Begin
@@ -1672,7 +1676,7 @@ SetCurrentJob('SaveMyTrxsLastUpdatedblock',true);
 TRY
 FirstTrx := Default(MyTrxData);
 FirstTrx.block:=Number;
-FirstTrx.receiver := IntToStr(PoSPayouts)+' '+IntToStr(PoSEarnings);
+FirstTrx.receiver := IntToStr(PoSPayouts)+' '+IntToStr(PoSEarnings)+' '+IntToStr(MNsPayouts)+' '+IntToStr(MNsEarnings);
 assignfile (FileMyTrx,MyTrxFilename);
 reset(FileMyTrx);
 seek(FileMyTrx,0);
@@ -1680,12 +1684,17 @@ write(FileMyTrx,FirstTrx);
 Closefile(FileMyTrx);
 G_PoSPayouts  := PoSPayouts;
 G_PoSEarnings := PoSEarnings;
-ListaMisTrx[0].receiver := IntToStr(PoSPayouts)+' '+IntToStr(PoSEarnings);
+G_MNsPayouts  := MNsPayouts;
+G_MNsEarnings := MNsEarnings;
+ListaMisTrx[0].receiver := IntToStr(PoSPayouts)+' '+IntToStr(PoSEarnings)+' '+IntToStr(MNsPayouts)+' '+IntToStr(MNsEarnings);
 if G_PoSPayouts > 0 then
    ToLog(Format('Total PoS : %d : %s',[G_PoSPayouts,Int2curr(G_PoSEarnings)]));
+if G_MNsPayouts > 0 then
+   ToLog(Format('Total MNs : %d : %s',[G_MNsPayouts,Int2curr(G_MNsEarnings)]));
 EXCEPT on E:Exception do
    toExclog ('Error setting last block checked for my trx');
 END;{Try}
+U_PoSGrid := true;
 SetCurrentJob('SaveMyTrxsLastUpdatedblock',false);
 End;
 
@@ -1702,6 +1711,7 @@ var
   PosCount    : integer;
   CounterPos  : integer;
   PoSPayouts, PoSEarnings : int64;
+  MNsPayouts, MNsEarnings : int64;
   BlockPayouts, BlockEarnings : int64;
 Begin
 SetCurrentJob('RebuildMyTrx',true);
@@ -1711,6 +1721,8 @@ if ListaMisTrx[0].Block < blocknumber then
    TRY
    PoSPayouts := StrToInt64Def(parameter(ListaMisTrx[0].receiver,0),0);
    PoSEarnings := StrToInt64Def(parameter(ListaMisTrx[0].receiver,1),0);
+   MNsPayouts := StrToInt64Def(parameter(ListaMisTrx[0].receiver,2),0);
+   MNsEarnings := StrToInt64Def(parameter(ListaMisTrx[0].receiver,3),0);
    NewTrx := Default(MyTrxData);
    for contador := ListaMisTrx[0].Block+1 to blocknumber do
       begin
@@ -1774,7 +1786,7 @@ if ListaMisTrx[0].Block < blocknumber then
             end;
          end;
       setlength(ArrTrxs,0);
-      if contador >= PoSBlockStart then
+      if contador >= PoSBlockStart then  // PoS payments
          begin
          ArrayPos := GetBlockPoSes(contador);
          PosReward := StrToIntDef(Arraypos[length(Arraypos)-1].address,0);
@@ -1795,16 +1807,39 @@ if ListaMisTrx[0].Block < blocknumber then
          if NewTrx.tipo ='MINE' then NewTrx.monto :=NewTrx.monto-(PosReward*PosCount);
          SetLength(ArrayPos,0);
          end;
+      if contador >= MNBlockStart then  // MNs payments
+         begin
+         BlockPayouts := 0;
+         BlockEarnings := 0;
+         ArrayPos := GetBlockMNs(contador);
+         PosReward := StrToIntDef(Arraypos[length(Arraypos)-1].address,0);
+         SetLength(ArrayPos,length(ArrayPos)-1);
+         PosCount := length(ArrayPos);
+         for counterpos := 0 to PosCount-1 do
+            begin
+            if direccionesmia(ArrayPos[counterPos].address)>=0 then
+               begin
+               BlockPayouts+=1;
+               MNsPayouts := MNsPayouts+1;
+               BlockEarnings := BlockEarnings+PosReward;
+               MNsEarnings := MNsEarnings + PosReward;
+               end;
+            end;
+         if BlockPayouts > 0 then
+            ToLog(Format('MNs : %d -> %d : %s',[contador,BlockPayouts,Int2curr(BlockEarnings)]));
+         if NewTrx.tipo ='MINE' then NewTrx.monto :=NewTrx.monto-(PosReward*PosCount);
+         SetLength(ArrayPos,0);
+         end;
       if NewTrx.tipo ='MINE' then insert(NewTrx,ListaMisTrx,length(ListaMisTrx));
       end;
    ListaMisTrx[0].block:=blocknumber;
-   ListaMisTrx[0].receiver:=IntToStr(PoSPayouts)+' '+IntToStr(PoSEarnings);
+   ListaMisTrx[0].receiver:=IntToStr(PoSPayouts)+' '+IntToStr(PoSEarnings)+' '+IntToStr(MNsPayouts)+' '+IntToStr(MNsEarnings);
    if length(ListaMisTrx) > Existentes then  // se han añadido transacciones
       begin
       SaveMyTrxsToDisk(existentes);
       U_Mytrxs := true;
       end;
-   SaveMyTrxsLastUpdatedblock(blocknumber, PoSPayouts, PoSEarnings);
+   SaveMyTrxsLastUpdatedblock(blocknumber, PoSPayouts, PoSEarnings, MNsPayouts, MNsEarnings);
    EXCEPT ON E:Exception do
       ToExcLog('*****CRITICAL***** Error in RebuildMyTrx: '+E.Message);
    END;{Try}

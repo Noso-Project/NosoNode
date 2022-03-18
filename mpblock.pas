@@ -294,6 +294,7 @@ if not errored then
    SetCurrentJob('CrearNuevoBloque',false);
    setmilitime('CrearNuevoBloque',2);
    end;
+U_PoSGrid := true;
 BuildingBlock := 0;
 End;
 

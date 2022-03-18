@@ -148,6 +148,14 @@ msgstr "最小化"
 msgid "Download blockchain"
 msgstr "下载区块链"
 
+#: tform1.checkbox2.caption
+msgid "Auto"
+msgstr ""
+
+#: tform1.checkbox2.hint
+msgid "Use mainnet auto assigned IP"
+msgstr ""
+
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
 msgstr "运行主节点"
@@ -756,15 +764,21 @@ msgid "SERVER: Closed unhandled incoming connection -> %s"
 msgstr "服务器：关闭未处理的传入连接 -> %s"
 
 #: translation.rs0063
-msgid "Next block required"
+#, fuzzy
+#| msgid "Next block required"
+msgid "Stake size"
 msgstr "PoS需要硬币"
 
 #: translation.rs0064
-msgid "My PoS addresses"
+#, fuzzy
+#| msgid "My PoS addresses"
+msgid "MNs earnings"
 msgstr "我的PoS地址"
 
 #: translation.rs0065
-msgid "My PoS earnings"
+#, fuzzy
+#| msgid "My PoS earnings"
+msgid "PoS earnings"
 msgstr "我的PoS收入"
 
 #: translation.rs0066

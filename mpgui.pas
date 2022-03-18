@@ -67,7 +67,7 @@ End;
 Procedure CreateFormInicio();
 Begin
 FormInicio := TFormInicio.Createnew(form1);
-FormInicio.caption := rs0500;
+FormInicio.caption := 'Noso '+ProgramVersion+SubVersion;
 FormInicio.SetBounds(0, 0, 350, 200);
 FormInicio.BorderStyle := bssingle;
 FormInicio.Position:=poOwnerFormCenter;
@@ -352,8 +352,10 @@ if U_DataPanel then
 
 if U_PoSGrid then
    begin
-   form1.GridPoS.Cells[1,0]:=Int2Curr((GetSupply(MyLastBlock+1)*PosStackCoins) div 10000)+' '+coinsimbol;
-   form1.GridPoS.Cells[1,1]:=IntToStr(GetMyPosAddressesCount);
+   //form1.GridPoS.Cells[1,0]:=Int2Curr((GetSupply(MyLastBlock+1)*PosStackCoins) div 10000)+' '+coinsimbol;
+   form1.GridPoS.Cells[1,0]:=Format('%s  (%d)',[Int2Curr((GetSupply(MyLastBlock+1)*PosStackCoins) div 10000),GetMyPosAddressesCount]);
+   //form1.GridPoS.Cells[1,1]:=IntToStr(GetMyPosAddressesCount);
+   form1.GridPoS.Cells[1,1]:=Int2Curr(G_MNsEarnings)+' '+CoinSimbol;
    form1.GridPoS.Cells[1,2]:=Int2Curr(G_PoSEarnings)+' '+CoinSimbol;
    U_PoSGrid := false;
    End;

@@ -322,10 +322,20 @@ if IsSeedNode(IP) then result := true;
 End;
 
 Function GetMNReportString():String;
+var
+  IpToUse : string;
 Begin
 // {5}IP 6{Port} 7{SignAddress} 8{FundsAddress} 9{FirstBlock} 10{LastVerified}
 //    11{TotalVerified} 12{BlockVerifys} 13{hash}
-result := MN_IP+' '+MN_Port+' '+MN_Sign+' '+MN_Funds+' '+MyLastBlock.ToString+' '+MyLastBlock.ToString+' '+
+if MN_AutoIP then
+   begin
+   REPEAT
+   IpToUse := GetMiIP;
+   sleep(1);
+   until IsValidIP(GetMiIP);
+   end
+else IpToUse := MN_IP;
+result := IpToUse+' '+MN_Port+' '+MN_Sign+' '+MN_Funds+' '+MyLastBlock.ToString+' '+MyLastBlock.ToString+' '+
    '0'+' '+'0'+' '+HashMD5String(MN_IP+MN_Port+MN_Sign+MN_Funds);
 End;
 
@@ -529,6 +539,7 @@ else
    Form1.imagenes.GetBitMap(27,Form1.StaSerImg.Picture.Bitmap);
    Form1.StaSerImg.Hint:='Check your Masternode config';
    end;
+MN_FileText := linea;
 Result := Linea;
 End;
 
@@ -542,6 +553,7 @@ Assignfile(archivo, MAsternodesfilename);
 rewrite(archivo);
 write(Archivo,GotText,#13#10);
 Closefile(archivo);
+MN_FileText := GotText;
 EXCEPT on E:Exception do
    tolog ('Error Saving masternodes file');
 END {TRY};
