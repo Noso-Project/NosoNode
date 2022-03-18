@@ -128,7 +128,6 @@ if not FileExists (ExceptLogFilename) then CreateExceptlog;
 OutText('✓ Except Log file ok',false,1);
 
 if not FileExists (AdvOptionsFilename) then CreateADV(false) else LoadADV();
-UpdateRowHeigth();
 OutText('✓ Advanced options loaded',false,1);
 if not FileExists (ErrorLogFilename) then Createlog;
 OutText('✓ Log file ok',false,1);
@@ -435,6 +434,7 @@ setmilitime('CreateADV',1);
    writeln(FileAdvOptions,'PoUpdate '+(WO_LastPoUpdate));
    writeln(FileAdvOptions,'Closestart '+BoolToStr(WO_CloseStart,true));
    writeln(FileAdvOptions,'Autoupdate '+BoolToStr(WO_AutoUpdate,true));
+   writeln(FileAdvOptions,Format('FormState %d %d %d %d %d',[Form1.Top,form1.Left,form1.Width,form1.Height,form1.WindowState]));
 
    writeln(FileAdvOptions,'MNIP '+(MN_IP));
    writeln(FileAdvOptions,'MNPort '+(MN_Port));
@@ -495,6 +495,27 @@ Begin
       if parameter(linea,0) ='PoUpdate' then WO_LastPoUpdate:=Parameter(linea,1);
       if parameter(linea,0) ='Closestart' then WO_CloseStart:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='Autoupdate' then WO_AutoUpdate:=StrToBool(Parameter(linea,1));
+      if parameter(linea,0) ='FormState' then
+         begin
+         FormState_Top    := StrToIntDef(Parameter(linea,1),0);
+         FormState_Left   := StrToIntDef(Parameter(linea,2),0);
+         FormState_Width  := StrToIntDef(Parameter(linea,3),400);
+         FormState_Heigth := StrToIntDef(Parameter(linea,4),560);
+         FormState_Status := StrToIntDef(Parameter(linea,5),2);
+         if FormState_Status = 2 then // Maximized
+            form1.WindowState:=wsMaximized;
+         if FormState_Status = 0 then
+            begin
+            form1.Width:=FormState_Width;
+            form1.Height:=FormState_Heigth;
+            end;
+         if FormState_Status = 1 then
+            begin
+            FormState_Status := 0;
+            form1.Width:=FormState_Width;
+            form1.Height:=FormState_Heigth;
+            end;
+         end;
 
       if parameter(linea,0) ='MNIP' then MN_IP:=Parameter(linea,1);
       if parameter(linea,0) ='MNPort' then MN_Port:=Parameter(linea,1);
@@ -687,15 +708,15 @@ End;
 // Load options from disk
 Procedure CargarOpciones();
 Begin
-   try
+   TRY
    assignfile(FileOptions,OptionsFileName);
    reset(FileOptions);
    read(FileOptions,UserOptions);
    closefile(FileOptions);
    OutText('✓ Options file loaded',false,1);
-   Except on E:Exception do
+   EXCEPT on E:Exception do
       tolog ('Error loading user options');
-   end;
+   END; {TRY}
 End;
 
 // Save Options to disk
@@ -1601,8 +1622,12 @@ EnterCriticalSection(CSHeadAccess);
    seek(fileResumen,filesize(fileResumen)-1);
    truncate(fileResumen);
    closefile(FileResumen);
+   Result := true;
    EXCEPT on E:Exception do
+      begin
       tolog ('Error deleting last record from headers');
+      result := false;
+      end;
    END;{TRY}
 LeaveCriticalSection(CSHeadAccess);
 End;

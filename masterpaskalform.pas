@@ -1078,6 +1078,13 @@ var
 
   CSIdsProcessed: TRTLCriticalSection;
 
+  // FormState
+  FormState_Top    : integer;
+  FormState_Left   : integer;
+  FormState_Heigth : integer;
+  FormState_Width  : integer;
+  FormState_Status : integer;
+
   // Cross OS variables
   OSFsep : string = '';
   OptionsFileName : string = '';
@@ -1413,6 +1420,13 @@ End;
 // Form create
 procedure TForm1.FormCreate(Sender: TObject);
 begin
+StringListLang     := TStringlist.Create;
+DLSL               := TStringlist.Create;
+IdiomasDisponibles := TStringlist.Create;
+LogLines           := TStringlist.Create;
+PoolLogLines       := TStringlist.Create;
+ExceptLines        := TStringlist.Create;
+PoolPaysLines      := TStringlist.Create;
 Randomize;
 InitCriticalSection(CSProcessLines);
 InitCriticalSection(CSConsoleLines);
@@ -1613,13 +1627,6 @@ InitCrossValues();
 if not directoryexists('NOSODATA') then CreateDir('NOSODATA');
 OutText(rs0022,false,1); //'✓ Data directory ok'
 if not FileExists(OptionsFileName) then CrearArchivoOpciones() else CargarOpciones();
-StringListLang := TStringlist.Create;
-DLSL := TStringlist.Create;
-IdiomasDisponibles := TStringlist.Create;
-LogLines := TStringlist.Create;
-PoolLogLines := TStringlist.Create;
-ExceptLines := TStringlist.Create;
-PoolPaysLines := TStringlist.Create;
 if not FileExists (LanguageFileName) then CrearIdiomaFile() else CargarIdioma(UserOptions.language);
 // finalizar la inicializacion
 InicializarFormulario();
@@ -1700,6 +1707,11 @@ if WO_CloseStart then
    SetCurrentJob('Main',true);
    forminicio.Visible:=false;
    form1.Visible:=true;
+   if FormState_Status = 0 then
+      begin
+      form1.Top:=FormState_Top;
+      form1.Left:=FormState_Left;
+      end;
    Form1.RestartTimer.Enabled:=true;
    end // CLOSE start form
 else FormInicio.BorderIcons:=FormInicio.BorderIcons-[biminimize]+[bisystemmenu];
@@ -1737,6 +1749,11 @@ form1.infopanel.BringToFront;
 SetCurrentJob('Main',true);
 forminicio.Visible:=false;
 form1.Visible:=true;
+if FormState_Status = 0 then
+   begin
+   form1.Top:=FormState_Top;
+   form1.Left:=FormState_Left;
+   end;
 Form1.RestartTimer.Enabled:=true;
 End;
 
@@ -3144,6 +3161,11 @@ Begin
 SysTrayIcon.visible:=false;
 Form1.WindowState:=wsNormal;
 Form1.Show;
+if FormState_Status = 0 then
+   begin
+   form1.Top:=FormState_Top;
+   form1.Left:=FormState_Left;
+   end;
 End;
 
 // Click en conectar

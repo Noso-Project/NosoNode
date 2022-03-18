@@ -99,6 +99,7 @@ Procedure showgmts(LineText:string);
 Procedure PostOffer(LineText:String);
 
 Procedure DebugTest(linetext:string);
+Procedure DebugTest2(linetext:string);
 
 implementation
 
@@ -297,6 +298,7 @@ else if UpperCase(Command) = 'GETMNS' then Consolelinesadd( GetMNsPercentage(Str
 else if UpperCase(Command) = 'CLOSESTARTON' then WO_CloseStart := true
 else if UpperCase(Command) = 'CLOSESTARTOFF' then WO_CloseStart := false
 else if UpperCase(Command) = 'DT' then DebugTest(LineText)
+else if UpperCase(Command) = 'TT' then DebugTest2(LineText)
 else if UpperCase(Command) = 'BASE58SUM' then consolelinesadd(BMB58resumen(parameter(linetext,1)))
 else if UpperCase(Command) = 'DECTO58' then consolelinesadd(BMDecTo58(parameter(linetext,1)))
 else if UpperCase(Command) = 'HEXTO58' then consolelinesadd(BMHexTo58(parameter(linetext,1),58))
@@ -2030,6 +2032,11 @@ if Myconstatus<3 then
 Texto := GetMNsFileData;
 if AnsiContainsStr(Texto,MN_Funds) then consolelinesAdd(MN_Funds+' got MN Reward on block '+MyLastBlock.ToString)
 else consolelinesAdd(MN_Funds+' not paid')
+End;
+
+Procedure DebugTest2(linetext:string);
+Begin
+ConsolelinesAdd(format('x: %d   y: %d   %d',[form1.Left,form1.Top,Form1.WindowState]));
 End;
 
 END. // END UNIT
