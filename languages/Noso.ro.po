@@ -88,6 +88,16 @@ msgstr "Stop"
 msgid "Noso"
 msgstr "Noso"
 
+#: tform1.cbautoip.caption
+msgctxt "tform1.cbautoip.caption"
+msgid "Auto"
+msgstr ""
+
+#: tform1.cbautoip.hint
+msgctxt "tform1.cbautoip.hint"
+msgid "Use mainnet auto assigned IP"
+msgstr ""
+
 #: tform1.cbblockexists.caption
 msgid "Block file"
 msgstr "Fișierul blocului"
@@ -145,14 +155,6 @@ msgstr "Minimizează pe bară"
 #: tform1.checkbox1.caption
 msgid "Download blockchain"
 msgstr "Descarcă blockchain"
-
-#: tform1.checkbox2.caption
-msgid "Auto"
-msgstr ""
-
-#: tform1.checkbox2.hint
-msgid "Use mainnet auto assigned IP"
-msgstr ""
 
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"

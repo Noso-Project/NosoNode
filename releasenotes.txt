@@ -1,3 +1,14 @@
+Version 0.3.1Ad1
+
+- Auto MNs IP assign.
+- Slots array is thread safe.
+- Removed all TFILESTREAM and FINALLY.
+- Node test improved.
+- Master node earnings report implemented.
+- Node Context.data assigned including the slot number.
+- Code cleaned.
+- Mainform size and position saved.
+
 Version 0.3.0Aa6
 
 - MNs reports creation and propagation.
@@ -6,9 +17,8 @@ Version 0.3.0Aa5
 
 - Nethashrate function&command implemented.
 - Datapanel: target deprecated.
-- ** BlockHeader.difficult is now PoS payment ammount.
-- ** BlockHeader.NextBlkDiff is now PoS addresses paid.
-- ** Blockheader.reward is now PoW payment.
+- ** BlockHeader.difficult is now PoS addresses paid.
+- ** BlockHeader.NextBlkDiff is now MNs addresses paid.
 - Command "sumary" improved.
 - All pool relative commands deprecated.
 - Updated mainmenu.

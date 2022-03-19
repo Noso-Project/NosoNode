@@ -375,7 +375,7 @@ type
     CBSummaryhash: TCheckBox;
     CBPool_Restart: TCheckBox;
     CB_PoolLBS: TCheckBox;
-    CheckBox2: TCheckBox;
+    CBAutoIP: TCheckBox;
     ComboBoxLang: TComboBox;
     IdHTTPUpdate: TIdHTTP;
     LabelNodesHash: TLabel;
@@ -582,7 +582,7 @@ type
     procedure CB_RPCFilterChange(Sender: TObject);
     procedure CB_WO_AutoupdateChange(Sender: TObject);
     procedure CB_PoolLBSChange(Sender: TObject);
-    procedure CheckBox2Click(Sender: TObject);
+    procedure CBAutoIPClick(Sender: TObject);
     procedure ComboBoxLangChange(Sender: TObject);
     procedure ComboBoxLangDrawItem(Control: TWinControl; Index: Integer;
       ARect: TRect; State: TOwnerDrawState);
@@ -759,7 +759,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ac7';
+  SubVersion = 'Ad1';
   OficialRelease = false;
   VersionRequired = '0.3.1Aa5';
   BuildDate = 'March 2022';
@@ -4028,7 +4028,7 @@ end;
 // Load Masternode options when TAB is selected
 procedure TForm1.TabNodeOptionsShow(Sender: TObject);
 begin
-CheckBox2.checked:=MN_AutoIP;
+CBAutoIP.checked:=MN_AutoIP;
 CheckBox4.Checked:=WO_AutoServer;
 LabeledEdit5.Text:=MN_IP;
 LabeledEdit5.visible:=not MN_AutoIP;
@@ -4058,7 +4058,7 @@ MN_IP:=LabeledEdit5.Text;
 MN_Port:=LabeledEdit6.Text;
 MN_Funds:=LabeledEdit8.Text;
 MN_Sign:=LabeledEdit9.Text;
-MN_AutoIP:=CheckBox2.Checked;
+MN_AutoIP:=CBAutoIP.Checked;
 S_AdvOpt := true;
 if not WO_AutoServer and form1.Server.Active then processlinesadd('serveroff');
 if WO_AutoServer and not form1.Server.Active then processlinesadd('serveron');
@@ -4105,7 +4105,7 @@ END;{Try}
 LineResult := '';
 Client := TidTCPClient.Create(nil);
 
-if CheckBox2.Checked then IPToUse:= GetMiIp()
+if CBAutoIP.Checked then IPToUse:= GetMiIp()
 else IPToUse := trim(LabeledEdit5.text);
 Client.Host:= IPToUse;
 Client.Port:= StrToIntDef(Trim(LabeledEdit6.Text),8080);
@@ -4168,9 +4168,9 @@ if not G_Launching then
 End;
 
 // Set MN IP to Auto
-procedure TForm1.CheckBox2Click(Sender: TObject);
+procedure TForm1.CBAutoIPClick(Sender: TObject);
 Begin
-if CheckBox2.Checked then LabeledEdit5.Visible:=false
+if CBAutoIP.Checked then LabeledEdit5.Visible:=false
 else LabeledEdit5.Visible:=true;
 End;
 
