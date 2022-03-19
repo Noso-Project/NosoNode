@@ -24,6 +24,14 @@ type
     property TimeLast: int64 read FTimeLast write FTimeLast;
   end;
 
+  TServerTipo = class(TObject)
+  private
+    VSlot: integer;
+  public
+    constructor Create;
+    property Slot: integer read VSlot write VSlot;
+  end;
+
   TThreadClientRead = class(TThread)
    private
      FSlot: Integer;
@@ -751,7 +759,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ac5';
+  SubVersion = 'Ac6';
   OficialRelease = false;
   VersionRequired = '0.3.1Aa5';
   BuildDate = 'March 2022';
@@ -1077,6 +1085,8 @@ var
   CSMNsChecks   : TRTLCriticalSection;
 
   CSIdsProcessed: TRTLCriticalSection;
+  // Server handling
+  CSNodesList   : TRTLCriticalSection;
 
   // FormState
   FormState_Top    : integer;
@@ -1133,6 +1143,11 @@ Uses
 constructor TNodeConnectionInfo.Create;
 Begin
 FTimeLast:= 0;
+End;
+
+constructor TServerTipo.Create;
+Begin
+VSlot:= -1;
 End;
 
 { TThreadClientRead }
@@ -1427,6 +1442,9 @@ LogLines           := TStringlist.Create;
 PoolLogLines       := TStringlist.Create;
 ExceptLines        := TStringlist.Create;
 PoolPaysLines      := TStringlist.Create;
+ConsoleLines       := TStringlist.Create;
+ProcessLines       := TStringlist.Create;
+OutgoingMsjs       := TStringlist.Create;
 Randomize;
 InitCriticalSection(CSProcessLines);
 InitCriticalSection(CSConsoleLines);
@@ -1452,6 +1470,7 @@ InitCriticalSection(CSClosingApp);
 InitCriticalSection(CSMinersConex);
 InitCriticalSection(CSNMSData);
 InitCriticalSection(CSIdsProcessed);
+InitCriticalSection(CSNodesList);
 
 CreateFormInicio();
 CreateFormSlots();
@@ -1487,9 +1506,7 @@ DoneCriticalSection(CSClosingApp);
 DoneCriticalSection(CSMinersConex);
 DoneCriticalSection(CSNMSData);
 DoneCriticalSection(CSIdsProcessed);
-
-
-
+DoneCriticalSection(CSNodesList);
 
 form1.Server.free;
 form1.RPCServer.Free;
@@ -1581,7 +1598,6 @@ var
   LastRelease : String = '';
 Begin
 // Check last release
-ConsoleLines := TStringlist.Create;
 OutText(rs0071,false,1); // Checking last release available...
 if WO_AutoUpdate then LastRelease := GetLastRelease;
 if lastrelease <> '' then // Data retrieved
@@ -2276,8 +2292,6 @@ form1.SG_Monitor.ColWidths[0]:= 160;form1.SG_Monitor.ColWidths[1]:= 62;
 form1.SG_Monitor.ColWidths[2]:= 62;form1.SG_Monitor.ColWidths[3]:= 62;
 
 //Elementos no visuales
-ProcessLines := TStringlist.Create;
-OutgoingMsjs := TStringlist.Create;
 Setlength(PendingTXs,0);
 For contador := 1 to MaxConecciones do
    begin
@@ -3009,15 +3023,20 @@ End;
 // Un usuario intenta conectarse
 procedure TForm1.IdTCPServer1Connect(AContext: TIdContext);
 var
-  IPUser : string;
-  LLine : String;
-  MiIp: String = '';
+  IPUser      : string;
+  LLine       : String;
+  MiIp        : String = '';
   Peerversion : string = '';
-  GoAhead : boolean;
-  GetFileOk : boolean = false;
+  GoAhead     : boolean;
+  GetFileOk   : boolean = false;
   MemStream   : TMemoryStream;
+  ContextData : TServerTipo;
+  ThisSlot    : integer;
 Begin
 GoAhead := true;
+ContextData := TServerTipo.Create;
+ContextData.Slot:=0;
+AContext.Data:=ContextData;
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
 if KeepServerOn = false then // Reject any new connection if we are closing the server
    begin
@@ -3122,16 +3141,19 @@ if GoAhead then
       begin
       TryCloseServerConnection(AContext,GetPTCEcn+'OLDVERSION->REQUIRED_'+VersionRequired);
       end
-   else if SaveConection('CLI',IPUser,Acontext) = 0 then
-      begin
-      TryCloseServerConnection(AContext);
-      end
    else if Copy(LLine,1,4) = 'PSK ' then
-      begin    // Se acepta la nueva conexion
-      OutText(format(rs0061,[IPUser]));
-      //OutText(LangLine(13)+IPUser,true);             //New Connection from:
-      MyPublicIP := MiIp;
-      U_DataPanel := true;
+      begin    // Check for available slot
+      ThisSlot := SaveConection('CLI',IPUser,Acontext);
+      if ThisSlot = 0 then  // Server full
+         TryCloseServerConnection(AContext)
+      else
+         begin
+         OutText(format(rs0061,[IPUser])); //New Connection from:
+         ContextData.Slot:=ThisSlot;
+         AContext.Data:=ContextData;
+         MyPublicIP := MiIp;
+         U_DataPanel := true;
+         end;
       end
    else
       begin
@@ -3144,8 +3166,12 @@ End;
 
 // Un cliente se desconecta del servidor
 procedure TForm1.IdTCPServer1Disconnect(AContext: TIdContext);
+var
+  ContextData : TServerTipo;
 Begin
-CerrarSlot(GetSlotFromContext(AContext));
+ContextData:= TServerTipo(AContext.Data);
+if ContextData.Slot>0 then
+   CerrarSlot(ContextData.Slot);
 End;
 
 // Excepcion en el servidor

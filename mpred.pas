@@ -114,9 +114,11 @@ End;
 function SaveConection(tipo,ipuser:String;contextdata:TIdContext):integer;
 var
   contador : integer = 1;
-  Slot : int64 = 0;
+  Slot     : int64 = 0;
+  FoundSlot: boolean = false;
 begin
 SetCurrentJob('SaveConection',true);
+EnterCriticalSection(CSNodesList);
 For contador := 1 to MaxConecciones do
    begin
    if Conexiones[contador].tipo = '' then
@@ -137,9 +139,12 @@ For contador := 1 to MaxConecciones do
       Conexiones[contador].ConexStatus:=0;
       slot := contador;
       SlotLines[slot].Clear;
+      FoundSlot := true;
       break;
       end;
    end;
+LeaveCriticalSection(CSNodesList);
+if not FoundSlot then Slot := 0;
 result := slot;
 SetCurrentJob('SaveConection',false);
 end;
@@ -244,7 +249,9 @@ if conexiones[Slot].tipo='SER' then
 EXCEPT on E:Exception do
   ToExcLog('Error: Closing slot '+IntToStr(Slot)+SLINEBREAK+E.Message);
 END;{Try}
+EnterCriticalSection(CSNodesList);
 Conexiones[Slot] := Default(conectiondata);
+LeaveCriticalSection(CSNodesList);
 setmilitime('CerrarSlot',1);
 SetCurrentJob('CerrarSlot',false);
 End;
