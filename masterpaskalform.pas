@@ -759,7 +759,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ac6';
+  SubVersion = 'Ac7';
   OficialRelease = false;
   VersionRequired = '0.3.1Aa5';
   BuildDate = 'March 2022';
@@ -965,6 +965,7 @@ var
   // Variables asociadas a la red
   KeepServerOn : Boolean = false;
      LastTryServerOn : Int64 = 0;
+     ServerStartTime : Int64 = 0;
   DownloadHeaders : boolean = false;
   DownLoadBlocks  : boolean = false;
   CONNECT_LastTime : string = ''; // La ultima vez que se intento una conexion

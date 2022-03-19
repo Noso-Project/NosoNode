@@ -52,6 +52,7 @@ Function GetOS():string;
 Function GetLastVerZipFile(version,LocalOS:string):boolean;
 Function GetSyncTus():String;
 function GetMiIP():String;
+Function NodeServerInfo():String;
 
 implementation
 
@@ -198,6 +199,7 @@ else
       Form1.Server.DefaultPort:=UserOptions.Port;
       Form1.Server.Active:=true;
       ConsoleLinesAdd(LangLine(14)+IntToStr(UserOptions.Port));   //Server ENABLED. Listening on port
+      ServerStartTime := UTCTime.ToInt64;
       U_DataPanel := true;
       except
       on E : Exception do
@@ -1141,6 +1143,25 @@ END{try};
 TCPClient.Free;
 End;
 
+Function NodeServerInfo():String;
+var
+  TotalSeconds,days,hours,minutes,seconds, remain : integer;
+Begin
+if not form1.Server.Active then Result := 'OFF'
+else
+   begin
+   Totalseconds := UTCTime.ToInt64-ServerStartTime;
+   Days := Totalseconds div 86400;
+   remain := Totalseconds mod 86400;
+   hours := remain div 3600;
+   remain := remain mod 3600;
+   minutes := remain div 60;
+   remain := remain mod 60;
+   seconds := remain;
+   if Days > 0 then Result:= Format('%dd %.2d:%.2d:%.2d', [Days, Hours, Minutes, Seconds])
+   else Result:= Format('%.2d:%.2d:%.2d', [Hours, Minutes, Seconds]);
+   end;
+End;
 
 END. // END UNIT
 
