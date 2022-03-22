@@ -759,7 +759,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ad1';
+  SubVersion = 'Ad2';
   OficialRelease = false;
   VersionRequired = '0.3.1Aa5';
   BuildDate = 'March 2022';
@@ -767,7 +767,7 @@ CONST
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   HasheableChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
   DefaultServerPort = 8080;
-  MaxConecciones  = 100;
+  MaxConecciones  = 99;
   Protocolo = 2;
   Miner_Steps = 10;
   Pool_Max_Members = 1000;

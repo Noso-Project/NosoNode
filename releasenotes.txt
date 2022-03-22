@@ -1,3 +1,8 @@
+Version 0.3.1Ad2
+
+- Fixed netrate calculation.
+- Fixed error using a different MN port.
+
 Version 0.3.1Ad1
 
 - Auto MNs IP assign.

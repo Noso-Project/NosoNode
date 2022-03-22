@@ -342,7 +342,7 @@ if form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor then
 
 if U_DataPanel then
    begin
-   //form1.DataPanel.Cells[1,1]:=Booltostr(form1.Server.Active, true)+'('+IntToStr(UserOptions.Port)+')';
+   //form1.DataPanel.Cells[1,1]:=Booltostr(form1.Server.Active, true)+'('+IntToStr(Form1.Server.DefaultPort)+')';
    form1.DataPanel.Cells[1,1]:=NodeServerInfo;
 
    form1.DataPanel.Cells[1,3]:=copy(myResumenHash,0,5)+'/'+copy(NetResumenHash.Value,0,5)+'('+IntToStr(NetResumenHash.Porcentaje)+')';

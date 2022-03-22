@@ -151,31 +151,36 @@ SetCurrentJob('SaveConection',false);
 end;
 
 Procedure ForceServer();
+var
+  PortNumber : integer;
 Begin
 KeepServerOn := true;
+PortNumber := StrToIntDef(MN_Port,8080);
 if Form1.Server.Active then
    begin
    ConsoleLinesAdd(LangLine(160)); //'Server Already active'
    end
 else
    begin
-      try
+      TRY
       LastTryServerOn := StrToInt64(UTCTime);
       Form1.Server.Bindings.Clear;
-      Form1.Server.DefaultPort:=UserOptions.Port;
+      Form1.Server.DefaultPort:=PortNumber;//UserOptions.Port;
       Form1.Server.Active:=true;
-      ConsoleLinesAdd(LangLine(14)+IntToStr(UserOptions.Port));   //Server ENABLED. Listening on port
+      ConsoleLinesAdd(LangLine(14)+PortNumber.ToString);   //Server ENABLED. Listening on port
       U_DataPanel := true;
-      except
-      on E : Exception do
+      EXCEPT on E : Exception do
         ToLog(LangLine(15));       //Unable to start Server
-      end;
+      END; {TRY}
    end;
 End;
 
 // Activa el servidor
 procedure StartServer();
+var
+  PortNumber : integer;
 Begin
+PortNumber := StrToIntDef(MN_Port,8080);
 if DireccionEsMia(MN_Sign)<0 then
    begin
    ConsoleLinesAdd(rs2000); //Sign address not valid
@@ -196,9 +201,9 @@ else
       try
       LastTryServerOn := StrToInt64(UTCTime);
       Form1.Server.Bindings.Clear;
-      Form1.Server.DefaultPort:=UserOptions.Port;
+      Form1.Server.DefaultPort:=PortNumber;//UserOptions.Port;
       Form1.Server.Active:=true;
-      ConsoleLinesAdd(LangLine(14)+IntToStr(UserOptions.Port));   //Server ENABLED. Listening on port
+      ConsoleLinesAdd(LangLine(14)+PortNumber.ToString);   //Server ENABLED. Listening on port
       ServerStartTime := UTCTime.ToInt64;
       U_DataPanel := true;
       except

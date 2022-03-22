@@ -1264,6 +1264,8 @@ Procedure SetServerPort(LineText:string);
 var
   NewPort:string = '';
 Begin
+ConsoleLinesAdd('Deprecated');
+Exit;
 NewPort := parameter(linetext,1);
 if ((StrToIntDef(NewPort,0) < 1) or (StrToIntDef(NewPort,0)>65535)) then
    begin
@@ -1857,10 +1859,11 @@ For counter:= MyLastblock downto Mylastblock-(TotalBlocksCalculated-1) do
    ThisBlockDiff := Parameter(Header.Solution,1);
    ThisBlockValue := GetDiffHashrate(ThisBlockDiff);
    TotalRate := TotalRate+(ThisBlockValue/100);
-   ResultStr := ResultStr+Format('[%d]-',[ThisBlockValue]);
+   ResultStr := ResultStr+Format('[%s]-',[FormatFloat('0.00',ThisBlockValue/100)]);
    end;
 //ConsoleLinesAdd(ResultStr);
 TotalRate := TotalRate/TotalBlocksCalculated;
+//ConsoleLinesAdd(format('Average: %s',[FormatFloat('0.00',TotalRate)]));
 TotalRate := Power(16,TotalRate);
 TotalRate := TotalRate/(575*1024);
 Result := FormatFloat('0.00',TotalRate);

@@ -383,7 +383,7 @@ function GetPingString():string;
 var
   Port : integer = 0;
 Begin
-if Form1.Server.Active then port := UserOptions.Port else port:= -1 ;
+if Form1.Server.Active then port := Form1.Server.DefaultPort else port:= -1 ;
 result :=IntToStr(GetTotalConexiones())+' '+
          IntToStr(MyLastBlock)+' '+
          MyLastBlockHash+' '+
