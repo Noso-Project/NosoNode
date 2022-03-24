@@ -287,35 +287,6 @@ Procedure ActualizarGUI();
 var
   contador : integer = 0;
 Begin
-// Update poolstats grid
-if form1.PCPool.ActivePage=Form1.TabPoolStats then
-   begin
-   if form1.PoolServer.Active then
-      begin
-      if form1.PoolPanelBlink.Visible then form1.PoolPanelBlink.Visible := false
-      else form1.PoolPanelBlink.Visible := true;
-      end;
-      TRY
-      Form1.SG_PoolStats.Cells[1,0] := booltostr(form1.PoolServer.Active,true);
-      Form1.SG_PoolStats.Cells[1,1] := IntToStr(PoolMiner.Block);
-      Form1.SG_PoolStats.Cells[1,2] := IntToStr(poolminer.Dificult);
-      Form1.SG_PoolStats.Cells[1,3] := IntToStr(Poolminer.DiffChars);
-      Form1.SG_PoolStats.Cells[1,4] := IntToStr(PoolMiner.steps);
-      Form1.SG_PoolStats.Cells[1,5] := IntToStr(length(ArrayPoolMembers));
-      Form1.SG_PoolStats.Cells[1,6] := IntToStr(GetPoolTotalActiveConex)+'/0'; //PoolClientsCount
-      Form1.SG_PoolStats.Cells[1,7] := Int2Curr(PoolMembersTotalDeuda);
-      Form1.SG_PoolStats.Cells[1,8] := ShowHashrate(PoolTotalHashRate);
-      Form1.SG_PoolStats.Cells[1,9] := Int2Curr(PoolInfo.FeeEarned);
-      Form1.SG_PoolStats.Cells[1,10] := '('+IntToStr(Lastblockdata.TimeLast20)+') '+TimeSinceStamp(LastblockData.TimeEnd);
-      Form1.SG_PoolStats.Cells[1,11] := IntToStr(Length(Miner_PoolSharedStep));
-      form1.MemoPool.Text:=PoolMiner.Solucion;
-      EXCEPT on E:Exception do
-         begin
-         ToExclog('Error showing pool stats data: '+E.Message);
-         end;
-      END{Try};
-   end;
-
 //Update Monitor Grid
 if form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor then
    begin

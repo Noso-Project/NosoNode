@@ -391,10 +391,6 @@ msgstr "0"
 msgid "Connected peers"
 msgstr "Verbundene Peers"
 
-#: tform1.stapoolser.hint
-msgid "Pool server active"
-msgstr "Pool Server aktiv"
-
 #: tform1.starpcimg.hint
 msgid "RPC server active"
 msgstr "RPC Server aktiv"

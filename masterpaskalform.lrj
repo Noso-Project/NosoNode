@@ -92,7 +92,6 @@
 {"hash":371552,"name":"tform1.butstopdoctor.caption","sourcebytes":[83,116,111,112],"value":"Stop"},
 {"hash":265189445,"name":"tform1.statimelab.hint","sourcebytes":[78,111,115,111,32,110,101,116,119,111,114,107,32,116,105,109,101],"value":"Noso network time"},
 {"hash":238209033,"name":"tform1.statimelab.caption","sourcebytes":[48,48,45,48,48,45,48,48,32,48,48,58,48,48,58,48,48,32,40,48,41],"value":"00-00-00 00:00:00 (0)"},
-{"hash":180699893,"name":"tform1.stapoolser.hint","sourcebytes":[80,111,111,108,32,115,101,114,118,101,114,32,97,99,116,105,118,101],"value":"Pool server active"},
 {"hash":22008787,"name":"tform1.bitbtnpending.hint","sourcebytes":[78,101,116,119,111,114,107,32,112,101,110,100,105,110,103,32,111,114,100,101,114,115],"value":"Network pending orders"},
 {"hash":816,"name":"tform1.bitbtnpending.caption","sourcebytes":[48,48],"value":"00"},
 {"hash":54352963,"name":"tform1.staconlab.hint","sourcebytes":[67,111,110,110,101,99,116,101,100,32,112,101,101,114,115],"value":"Connected peers"},

@@ -421,7 +421,6 @@ type
     StaRPCimg: TImage;
     StaSerImg: TImage;
     StaConLab: TLabel;
-    StaPoolSer: TImage;
     Imgs32: TImageList;
     ImgRotor: TImage;
     GridNodes: TStringGrid;
@@ -535,7 +534,7 @@ type
     PCMonitor: TPageControl;
     PageMain: TPageControl;
     Server: TIdTCPServer;
-    PoolServer : TIdTCPServer;
+    {PoolServer : TIdTCPServer;}
     RPCServer : TIdHTTPServer;
     SE_WO_AntifreezeTime: TSpinEdit;
     SE_WO_RTOT: TSpinEdit;
@@ -656,6 +655,7 @@ type
     Procedure ResetearValoresEnvio(Sender:TObject);
     Procedure CheckClipboardForPays();
     // Pool
+    {
     Procedure TryClosePoolConnection(AContext: TIdContext; closemsg:string='');
     Function TryMessageToMiner(AContext: TIdContext;message:string): boolean;
     function PoolClientsCount : Integer ;
@@ -664,6 +664,7 @@ type
     procedure PoolServerExecute(AContext: TIdContext);
     procedure PoolServerDisconnect(AContext: TIdContext);
     procedure PoolServerException(AContext: TIdContext;AException: Exception);
+    }
     // NODE SERVER
     Function TryMessageToNode(AContext: TIdContext;message:string):boolean;
 
@@ -1511,7 +1512,7 @@ DoneCriticalSection(CSNodesList);
 
 form1.Server.free;
 form1.RPCServer.Free;
-form1.PoolServer.free;
+{form1.PoolServer.free;}
 
 end;
 
@@ -2326,6 +2327,7 @@ Form1.Server.OnDisconnect:=@form1.IdTCPServer1Disconnect;
 Form1.Server.OnException:=@Form1.IdTCPServer1Exception;
 //Form1.Server.MaxConnections:=MaxConecciones;
 
+{
 Form1.PoolServer := TIdTCPServer.Create(Form1);
 Form1.PoolServer.DefaultPort:=DefaultServerPort;
 Form1.PoolServer.Active:=false;
@@ -2336,6 +2338,7 @@ Form1.PoolServer.OnConnect:=@form1.PoolServerConnect;
 Form1.PoolServer.OnDisconnect:=@form1.PoolServerDisconnect;
 Form1.PoolServer.OnException:=@Form1.PoolServerException;
 Form1.PoolServer.MaxConnections:=400;
+}
 
 Form1.RPCServer := TIdHTTPServer.Create(Form1);
 Form1.RPCServer.DefaultPort:=RPCPort;
@@ -2401,6 +2404,7 @@ PoolMiner := NewData;
 LeaveCriticalSection(CSPoolMiner);
 End;
 
+{
 // returns the number of active connections
 function TForm1.PoolClientsCount : Integer ;
 var
@@ -2414,8 +2418,9 @@ Clients:= PoolServer.Contexts.LockList;
       ToExcLog('DEPRECATED');
    END; {TRY}
 PoolServer.Contexts.UnlockList;
-End ;
-
+End;
+}
+{
 // Try to close a pool connection safely
 Procedure TForm1.TryClosePoolConnection(AContext: TIdContext; closemsg:string='');
 Begin
@@ -2431,7 +2436,9 @@ EXCEPT on E:Exception do
    ToPoolLog(format(rs0031,[E.Message]));//'POOL: Error trying close a pool client connection ('+E.Message+')');
 END;{Try}
 End;
+}
 
+{
 // Try to send a message safely
 Function TForm1.TryMessageToMiner(AContext: TIdContext;message:string):boolean;
 Begin
@@ -2447,7 +2454,9 @@ EXCEPT on E:Exception do
 END;{Try}
 //PoolServer.Contexts.UnlockList;
 End;
+}
 
+{
 Procedure TForm1.CheckOutPool(AContext: TIdContext; ThisID:Integer);
 Begin
 if ((ThisID >= 0) and (PoolServerConex[ThisID].SendSteps) ) then
@@ -2456,7 +2465,9 @@ if ((ThisID >= 0) and (PoolServerConex[ThisID].SendSteps) ) then
       SetMinerUpdate(false,ThisID);
       end;
 End;
+}
 
+{
 // Pool server receives a line
 procedure TForm1.PoolServerExecute(AContext: TIdContext);
 var
@@ -2680,7 +2691,9 @@ else
    ToPoolLog(Format(rs0038,[ipuser,linea]));//('POOL: Unexpected command from: '+ipuser+'->'+Linea);
    end;
 End;
+}
 
+{
 // Pool server receives a new connection
 procedure TForm1.PoolServerConnect(AContext: TIdContext);
 var
@@ -2788,19 +2801,24 @@ EXCEPT on E:Exception do
 END{Try};
 LeaveCriticalSection(CSMinerJoin);InsideMinerJoin := false;
 End;
+}
 
+{
 // A miner disconnects from pool server
 procedure TForm1.PoolServerDisConnect(AContext: TIdContext);
 Begin
 //TNodeConnectionInfo(AContext.Data).Free;
 BorrarPoolServerConex(AContext);
 End;
+}
 
+{
 // Exception on pool server
 procedure TForm1.PoolServerException(AContext: TIdContext;AException: Exception);
 Begin
 BorrarPoolServerConex(AContext);
 End;
+}
 
 
 // *****************************
@@ -3538,8 +3556,6 @@ if MyConStatus = 2 then Form1.StaConLab.Color:= claqua;
 if MyConStatus = 3 then Form1.StaConLab.Color:= clgreen;
 Form1.BitBtnBlocks.Caption:=IntToStr(MyLastBlock);
 form1.BitBtnPending.Caption:=GetPendingCount.ToString;
-if form1.PoolServer.active then Form1.StaPoolSer.Visible:=true
-else Form1.StaPoolSer.Visible:=false;
 if form1.RPCServer.active then Form1.StaRPCimg.Visible:=true
 else Form1.StaRPCimg.Visible:=false;
 Form1.Imgs32.GetBitMap(ConnectedRotor,form1.ImgRotor.picture.BitMap);
