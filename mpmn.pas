@@ -335,8 +335,13 @@ if MN_AutoIP then
    until IsValidIP(GetMiIP);
    end
 else IpToUse := MN_IP;
+if IPToUse <> MN_IP then
+   begin
+   MN_IP := IPToUse;
+   S_AdvOpt := true;
+   end;
 result := IpToUse+' '+MN_Port+' '+MN_Sign+' '+MN_Funds+' '+MyLastBlock.ToString+' '+MyLastBlock.ToString+' '+
-   '0'+' '+'0'+' '+HashMD5String(MN_IP+MN_Port+MN_Sign+MN_Funds);
+   '0'+' '+'0'+' '+HashMD5String(IpToUse+MN_Port+MN_Sign+MN_Funds);
 End;
 
 Function GetStringFromMN(Node:TMNode):String;
@@ -383,6 +388,8 @@ if GetMNsListLength > 0 then
 End;
 
 Function GetMNodeFromString(const StringData:String; out ToMNode:TMNode):Boolean;
+var
+  ErrCode : integer = 0;
 Begin
 Result := true;
 ToMNode := Default(TMNode);
@@ -396,14 +403,19 @@ ToMNode.Total       := StrToIntDef(Parameter(StringData,7),-1);
 ToMNode.Validations := StrToIntDef(Parameter(StringData,8),-1);
 ToMNode.hash        := Parameter(StringData,9);
 If Not IsValidIP(ToMNode.Ip) then result := false
-else if ( (ToMNode.Port<0) or (ToMNode.Port>65535) ) then result := false
-else if not IsValidHashAddress(ToMNode.Sign) then result := false
-else if not IsValidHashAddress(ToMNode.Fund) then result := false
-else if ToMNode.first < 0 then result := false
-else if ToMNode.last < 0 then result := false
-else if ToMNode.total <0 then result := false
-else if ToMNode.validations < 0 then result := false
-else if ToMNode.hash <> HashMD5String(ToMNode.Ip+IntToStr(ToMNode.Port)+ToMNode.Sign+ToMNode.Fund) then result := false;
+else if ( (ToMNode.Port<0) or (ToMNode.Port>65535) ) then ErrCode := 1
+else if not IsValidHashAddress(ToMNode.Sign) then ErrCode := 2
+else if not IsValidHashAddress(ToMNode.Fund) then ErrCode := 3
+else if ToMNode.first < 0 then ErrCode := 4
+else if ToMNode.last < 0 then ErrCode := 5
+else if ToMNode.total <0 then ErrCode := 6
+else if ToMNode.validations < 0 then ErrCode := 7
+else if ToMNode.hash <> HashMD5String(ToMNode.Ip+IntToStr(ToMNode.Port)+ToMNode.Sign+ToMNode.Fund) then ErrCode := 8;
+if ErrCode>0 then
+   begin
+   Result := false;
+   //ConsoleLinesAdd('MASTERNODE REJECTED ERROR: '+ErrCode.ToString);
+   end;
 End;
 
 Function IsLegitNewNode(ThisNode:TMNode):Boolean;
@@ -466,7 +478,15 @@ if GetMNodeFromString(ReportInfo,NewNode) then
       LeaveCriticalSection(CSMNsArray);
       if form1.Server.Active then outGOingMsjsAdd(GetPTCEcn+ReportInfo);
       U_MNsGrid := true;
+      end
+   else
+      begin
+      //ConsoleLinesAdd('NO LEGIT Masternode: '+Reportinfo);
       end;
+   end
+else
+   begin
+   //ConsoleLinesAdd('REJECTED Masternode: '+Reportinfo);
    end;
 End;
 

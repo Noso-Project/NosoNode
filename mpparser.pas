@@ -249,6 +249,7 @@ else if UpperCase(Command) = 'IMPLANG' then ImportLanguage(LineText)
 else if UpperCase(Command) = 'SETPORT' then SetServerPort(LineText)
 else if UpperCase(Command) = 'RESETMINER' then ResetMinerInfo
 else if UpperCase(Command) = 'SHA256' then Sha256(LineText)
+else if UpperCase(Command) = 'MD5' then ConsoleLinesAdd(HashMD5String(Parameter(LineText,1)))
 else if UpperCase(Command) = 'TOTRAYON' then ToTrayON()
 else if UpperCase(Command) = 'TOTRAYOFF' then ToTrayOFF()
 else if UpperCase(Command) = 'CLEAR' then form1.Memoconsola.Lines.clear

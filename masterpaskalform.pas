@@ -760,7 +760,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ad2';
+  SubVersion = 'Ad3';
   OficialRelease = false;
   VersionRequired = '0.3.1Aa5';
   BuildDate = 'March 2022';
@@ -4070,10 +4070,10 @@ end;
 procedure TForm1.BSaveNodeOptionsClick(Sender: TObject);
 begin
 WO_AutoServer:=CheckBox4.Checked;
-MN_IP:=LabeledEdit5.Text;
-MN_Port:=LabeledEdit6.Text;
-MN_Funds:=LabeledEdit8.Text;
-MN_Sign:=LabeledEdit9.Text;
+MN_IP:=Trim(LabeledEdit5.Text);
+MN_Port:=Trim(LabeledEdit6.Text);
+MN_Funds:=Trim(LabeledEdit8.Text);
+MN_Sign:=Trim(LabeledEdit9.Text);
 MN_AutoIP:=CBAutoIP.Checked;
 S_AdvOpt := true;
 if not WO_AutoServer and form1.Server.Active then processlinesadd('serveroff');

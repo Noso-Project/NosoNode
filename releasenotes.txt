@@ -1,7 +1,12 @@
+Version 0.3.1Ad3
+
+- Official release
+
 Version 0.3.1Ad2
 
 - Fixed netrate calculation.
 - Fixed error using a different MN port.
+- MN_IP auto modified when auto is selected.
 
 Version 0.3.1Ad1
 
