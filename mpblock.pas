@@ -91,11 +91,11 @@ if not errored then
    FileName := BlockDirectory + IntToStr(Numero)+'.blk';
    SetLength(ListaOrdenes,0);
    SetLength(IgnoredTrxs,0);
-   // CREAR COPIA DEL SUMARIO
+   // Generate summary copy
    trydeletefile(SumarioFilename+'.bak');
    copyfile(SumarioFilename,SumarioFilename+'.bak');
 
-   // PROCESAR LAS TRANSACCIONES EN LISTAORDENES
+   // Processs pending orders
    EnterCriticalSection(CSPending);
    SetCurrentJob('NewBLOCK_PENDING',true);
    setmilitime('NewBLOCK_PENDING',1);
@@ -109,7 +109,8 @@ if not errored then
       // Version 0.2.1Ga1 reverification ends
       if PendingTXs[contador].TimeStamp+60 > TimeStamp then
          begin
-         insert(PendingTXs[contador],IgnoredTrxs,length(IgnoredTrxs));
+         if PendingTXs[contador].TimeStamp < TimeStamp+600 then
+            insert(PendingTXs[contador],IgnoredTrxs,length(IgnoredTrxs));
          continue;
          end;
       if PendingTXs[contador].OrderType='CUSTOM' then
@@ -143,14 +144,14 @@ if not errored then
          insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
          end;
       end;
-   try
+   TRY
       SetLength(PendingTXs,0);
       PendingTXs := copy(IgnoredTrxs,0,length(IgnoredTrxs));
-   Except on E:Exception do
+   EXCEPT on E:Exception do
       begin
       ToExcLog('Error asigning pending to Ignored');
       end;
-   end;
+   END; {TRY}
    SetLength(IgnoredTrxs,0);
    setmilitime('NewBLOCK_PENDING',2);
    SetCurrentJob('NewBLOCK_PENDING',false);

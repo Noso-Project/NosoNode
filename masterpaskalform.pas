@@ -760,7 +760,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ad3';
+  SubVersion = 'Ad4';
   OficialRelease = false;
   VersionRequired = '0.3.1Aa5';
   BuildDate = 'March 2022';
@@ -3091,6 +3091,8 @@ if GoAhead then
       TryCloseServerConnection(AContext,IPUser)
    else if parameter(LLine,0) = 'MNVER' then
       TryCloseServerConnection(AContext,GetVerificationMNLine)
+   else if parameter(LLine,0) = 'NSLBALANCE' then
+      TryCloseServerConnection(AContext,IntToStr(GetAddressAvailable(parameter(LLine,1))))
    else if parameter(LLine,0) = 'BESTHASH' then
       begin
       if not IsBlockOpen then TryCloseServerConnection(AContext,'False '+GetNMSData.Diff+' 6')

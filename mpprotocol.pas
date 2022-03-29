@@ -30,7 +30,7 @@ function CreateZipBlockfile(firstblock:integer):string;
 Procedure PTC_SendBlocks(Slot:integer;TextLine:String);
 Procedure INC_PTC_Custom(TextLine:String;connection:integer);
 Procedure PTC_Custom(TextLine:String);
-function ValidateTrfr(order:orderdata;Origen:String):Boolean;
+function ValidateTrfr(order:orderdata;Origen:String):integer;
 Function IsOrderIDAlreadyProcessed(OrderText:string):Boolean;
 Procedure INC_PTC_Order(TextLine:String;connection:integer);
 Function PTC_Order(TextLine:String):String;
@@ -696,21 +696,24 @@ if proceder then
 End;
 
 // Verify a transfer
-function ValidateTrfr(order:orderdata;Origen:String):Boolean;
+function ValidateTrfr(order:orderdata;Origen:String):integer;
 Begin
-Result := true;
+Result := 0;
 if GetAddressBalance(Origen)-GetAddressPendingPays(Origen) < Order.AmmountFee+order.AmmountTrf then
-   result:=false;
-if TranxAlreadyPending(order.TrfrID ) then
-   result:=false;
-if Order.TimeStamp < LastBlockData.TimeStart then
-   result:=false;
-if TrxExistsInLastBlock(Order.TrfrID) then
-   result:=false;
-if not VerifySignedString(IntToStr(order.TimeStamp)+origen+order.Receiver+IntToStr(order.AmmountTrf)+
+   result:=1
+else if TranxAlreadyPending(order.TrfrID ) then
+   result:=2
+else if Order.TimeStamp < LastBlockData.TimeStart then
+   result:=3
+else if Order.TimeStamp > LastBlockData.TimeEnd+600 then
+   result:=4
+else if TrxExistsInLastBlock(Order.TrfrID) then
+   result:=5
+else if not VerifySignedString(IntToStr(order.TimeStamp)+origen+order.Receiver+IntToStr(order.AmmountTrf)+
    IntToStr(order.AmmountFee)+IntToStr(order.TrxLine),
    Order.Signature,Order.Sender ) then
-   result:=false;
+   result:=6
+else result := 0;
 End;
 
 Function IsOrderIDAlreadyProcessed(OrderText:string):Boolean;
@@ -784,7 +787,7 @@ for cont := 0 to NumTransfers-1 do
    end;
 for cont := 0 to NumTransfers-1 do
    begin
-   if not ValidateTrfr(TrxArray[cont],SenderTrx[cont]) then
+   if ValidateTrfr(TrxArray[cont],SenderTrx[cont])>0 then
       begin
       TodoValido := false;
       end;

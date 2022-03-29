@@ -547,7 +547,7 @@ if Length(PendingTXs) > 0 then
                    CopyPendingTXs[counter].Address+','+
                    CopyPendingTXs[counter].Receiver+','+
                    CopyPendingTXs[counter].AmmountTrf.ToString+','+
-                   CopyPendingTXs[counter].AmmountFee.ToString;
+                   CopyPendingTXs[counter].AmmountFee.ToString{+','+CopyPendingTXs[counter].TimeStamp.ToString};
       result := result+ThisPending+' ';
       end;
    Trim(result);

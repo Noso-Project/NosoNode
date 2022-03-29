@@ -306,6 +306,7 @@ else if UpperCase(Command) = 'HEXTO58' then consolelinesadd(BMHexTo58(parameter(
 else if UpperCase(Command) = '58TODEC' then consolelinesadd(BM58ToDec(parameter(linetext,1)))
 else if UpperCase(Command) = 'DECTOHEX' then consolelinesadd(BMDectoHex(parameter(linetext,1)))
 else if UpperCase(Command) = 'NOSOHASH' then consolelinesadd(Nosohash(parameter(linetext,1)))
+else if UpperCase(Command) = 'PENDING' then consolelinesadd(PendingRawInfo)
 
 // CONSULTING
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()

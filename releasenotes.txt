@@ -1,3 +1,8 @@
+Version 0.3.1Ad4
+
+- Fixed post-dated transfers propagation.
+- NSLBALANCE protocol available. (returns address available)
+
 Version 0.3.1Ad3
 
 - Official release
