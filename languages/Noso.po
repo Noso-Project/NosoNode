@@ -96,20 +96,12 @@ msgstr ""
 msgid "Block hash"
 msgstr ""
 
-#: tform1.cbpool_restart.caption
-msgid "Restart after mine block"
-msgstr ""
-
 #: tform1.cbsummaryhash.caption
 msgid "Summary hash"
 msgstr ""
 
 #: tform1.cb_autorpc.caption
 msgid "Active JSON-RPC server at launch"
-msgstr ""
-
-#: tform1.cb_poollbs.caption
-msgid "Long blocks split"
 msgstr ""
 
 #: tform1.cb_rpcfilter.caption
@@ -410,11 +402,6 @@ msgstr ""
 msgid "History"
 msgstr ""
 
-#: tform1.tabmainpool.caption
-msgctxt "tform1.tabmainpool.caption"
-msgid "Pool"
-msgstr ""
-
 #: tform1.tabmonitor.caption
 msgctxt "tform1.tabmonitor.caption"
 msgid "Monitor"
@@ -438,23 +425,6 @@ msgstr ""
 msgid "Options"
 msgstr ""
 
-#: tform1.tabpoollog.caption
-msgctxt "tform1.tabpoollog.caption"
-msgid "Log"
-msgstr ""
-
-#: tform1.tabpoolminers.caption
-msgid "Miners"
-msgstr ""
-
-#: tform1.tabpoolpays.caption
-msgid "Pays"
-msgstr ""
-
-#: tform1.tabpoolstats.caption
-msgid "Stats"
-msgstr ""
-
 #: tform1.tabsheet1.caption
 msgctxt "tform1.tabsheet1.caption"
 msgid "Wallet"
@@ -470,11 +440,6 @@ msgstr ""
 
 #: tform1.tabsheet5.caption
 msgid "Trade"
-msgstr ""
-
-#: tform1.tabsheet6.caption
-msgctxt "tform1.tabsheet6.caption"
-msgid "Miner"
 msgstr ""
 
 #: tform1.tabsheet7.caption

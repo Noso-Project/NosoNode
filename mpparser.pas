@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, mpCripto, mpTime, mpblock, mpcoin,
-  dialogs, fileutil, forms, idglobal, poolmanage, strutils, mpRPC, DateUtils, Clipbrd,translation,
+  dialogs, fileutil, forms, idglobal, strutils, mpRPC, DateUtils, Clipbrd,translation,
   idContext, math, mpMN;
 
 procedure ProcessLinesAdd(const ALine: String);

@@ -54,7 +54,7 @@ var
 implementation
 
 Uses
-  mpParser, mpDisk, mpRed, mpProtocol,mpcoin, mpblock, formexplore, poolmanage, translation, mpMN;
+  mpParser, mpDisk, mpRed, mpProtocol,mpcoin, mpblock, formexplore, translation, mpMN;
 
 // Returns the X percentage of a specified number
 function ThisPercent(percent, thiswidth : integer;RestarBarra : boolean = false):integer;

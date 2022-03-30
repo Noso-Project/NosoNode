@@ -108,10 +108,6 @@ msgstr "区块文件"
 msgid "Block hash"
 msgstr "区块哈希"
 
-#: tform1.cbpool_restart.caption
-msgid "Restart after mine block"
-msgstr ""
-
 #: tform1.cbsummaryhash.caption
 msgid "Summary hash"
 msgstr "摘要哈希"
@@ -119,10 +115,6 @@ msgstr "摘要哈希"
 #: tform1.cb_autorpc.caption
 msgid "Active JSON-RPC server at launch"
 msgstr "运行 JSON-RPC 服务器"
-
-#: tform1.cb_poollbs.caption
-msgid "Long blocks split"
-msgstr ""
 
 #: tform1.cb_rpcfilter.caption
 msgid "Accept only whitelist requests"
@@ -423,11 +415,6 @@ msgstr "内置交易所"
 msgid "History"
 msgstr "历史订单"
 
-#: tform1.tabmainpool.caption
-msgctxt "tform1.tabmainpool.caption"
-msgid "Pool"
-msgstr "池"
-
 #: tform1.tabmonitor.caption
 msgctxt "tform1.tabmonitor.caption"
 msgid "Monitor"
@@ -451,23 +438,6 @@ msgstr "节点"
 msgid "Options"
 msgstr "选项"
 
-#: tform1.tabpoollog.caption
-msgctxt "tform1.tabpoollog.caption"
-msgid "Log"
-msgstr "日志"
-
-#: tform1.tabpoolminers.caption
-msgid "Miners"
-msgstr "矿工"
-
-#: tform1.tabpoolpays.caption
-msgid "Pays"
-msgstr "支付"
-
-#: tform1.tabpoolstats.caption
-msgid "Stats"
-msgstr "统计数据"
-
 #: tform1.tabsheet1.caption
 msgctxt "tform1.tabsheet1.caption"
 msgid "Wallet"
@@ -484,11 +454,6 @@ msgstr "RPC"
 #: tform1.tabsheet5.caption
 msgid "Trade"
 msgstr "设置"
-
-#: tform1.tabsheet6.caption
-msgctxt "tform1.tabsheet6.caption"
-msgid "Miner"
-msgstr "矿工"
 
 #: tform1.tabsheet7.caption
 msgctxt "tform1.tabsheet7.caption"

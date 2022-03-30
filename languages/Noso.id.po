@@ -107,10 +107,6 @@ msgstr "Berkas blok"
 msgid "Block hash"
 msgstr "Hash blok"
 
-#: tform1.cbpool_restart.caption
-msgid "Restart after mine block"
-msgstr ""
-
 #: tform1.cbsummaryhash.caption
 msgid "Summary hash"
 msgstr "Ringkasan hash"
@@ -118,10 +114,6 @@ msgstr "Ringkasan hash"
 #: tform1.cb_autorpc.caption
 msgid "Active JSON-RPC server at launch"
 msgstr "Server JSON-RPC aktif saat diluncurkan"
-
-#: tform1.cb_poollbs.caption
-msgid "Long blocks split"
-msgstr ""
 
 #: tform1.cb_rpcfilter.caption
 msgid "Accept only whitelist requests"
@@ -422,11 +414,6 @@ msgstr "NoBiEx"
 msgid "History"
 msgstr "Riwayat"
 
-#: tform1.tabmainpool.caption
-msgctxt "tform1.tabmainpool.caption"
-msgid "Pool"
-msgstr "Kolam"
-
 #: tform1.tabmonitor.caption
 msgctxt "tform1.tabmonitor.caption"
 msgid "Monitor"
@@ -450,23 +437,6 @@ msgstr "Simpul"
 msgid "Options"
 msgstr "Pilihan"
 
-#: tform1.tabpoollog.caption
-msgctxt "tform1.tabpoollog.caption"
-msgid "Log"
-msgstr "Catatan"
-
-#: tform1.tabpoolminers.caption
-msgid "Miners"
-msgstr "Penambang"
-
-#: tform1.tabpoolpays.caption
-msgid "Pays"
-msgstr "Bayar"
-
-#: tform1.tabpoolstats.caption
-msgid "Stats"
-msgstr "Statistik"
-
 #: tform1.tabsheet1.caption
 msgctxt "tform1.tabsheet1.caption"
 msgid "Wallet"
@@ -483,11 +453,6 @@ msgstr "RPC"
 #: tform1.tabsheet5.caption
 msgid "Trade"
 msgstr "Dagang"
-
-#: tform1.tabsheet6.caption
-msgctxt "tform1.tabsheet6.caption"
-msgid "Miner"
-msgstr "Penambang"
 
 #: tform1.tabsheet7.caption
 msgctxt "tform1.tabsheet7.caption"

@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, forms, SysUtils, MasterPaskalForm, MPTime, IdContext, IdGlobal, mpGUI, mpDisk,
-  mpBlock, mpMiner, fileutil, graphics,  dialogs,poolmanage, strutils, mpcoin, fphttpclient,
+  mpBlock, mpMiner, fileutil, graphics,  dialogs, strutils, mpcoin, fphttpclient,
   opensslsockets,translation, IdHTTP, IdComponent, IdSSLOpenSSL, mpmn, IdTCPClient;
 
 function GetSlotFromIP(Ip:String):int64;
@@ -511,7 +511,6 @@ if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLa
    U_Mytrxs := true;
    ConsoleLinesAdd(LangLine(36));   //Updated!
    ResetMinerInfo();
-   ResetPoolMiningInfo();
    if RPCAuto then  ProcessLinesAdd('RPCON');
    if StrToIntDef(NetPendingTrxs.Value,0)<GetPendingCount then
       begin

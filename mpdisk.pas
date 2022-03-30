@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, Dialogs, Forms, mpTime, FileUtil, LCLType,
-  lclintf, controls, mpCripto, mpBlock, Zipper, mpLang, mpcoin, poolmanage,
+  lclintf, controls, mpCripto, mpBlock, Zipper, mpLang, mpcoin,
   {$IFDEF WINDOWS}Win32Proc, {$ENDIF}
   mpminer, translation, strutils;
 
@@ -36,8 +36,6 @@ Procedure ExtractPoFiles();
 Procedure CreateFileFromResource(resourcename,filename:string);
 Procedure ToLog(Texto:string);
 Procedure SaveLog();
-Procedure ToPoolLog(Texto:string);
-Procedure SavePoolLog();
 Procedure CrearArchivoOpciones();
 Procedure CargarOpciones();
 Procedure GuardarOpciones();
@@ -92,7 +90,6 @@ Procedure GuardarArchivoPoolInfo();
 function GetPoolInfoFromDisk():PoolInfoData;
 Procedure LoadPoolMembers();
 Procedure CrearArchivoPoolMembers;
-Procedure GuardarPoolMembers(TruncateFile:Boolean=false);
 Procedure EjecutarAutoUpdate(version:string);
 Procedure CrearRestartfile();
 Procedure RestartConditions();
@@ -154,30 +151,7 @@ OutText('✓ Headers file ok',false,1);
 if not FileExists(BlockDirectory+'0.blk') then CrearBloqueCero();
 if not FileExists(MyTrxFilename) then CrearMistrx() else CargarMisTrx();
 OutText('✓ My transactions file ok',false,1);
-if fileexists(PoolInfoFilename) then
-   begin
-   GetPoolInfoFromDisk();
-   form1.TabMainPool.TabVisible:=true;
-   if not FileExists(PoolPaymentsFilename) then CreatePoolPayfile();
-   SetLength(PoolServerConex,PoolInfo.MaxMembers);
-   SetLength(ArrayPoolMembers,PoolInfo.MaxMembers);
-   for contador := 0 to length(PoolServerConex)-1 do
-      begin
-      PoolServerConex[contador] := Default(PoolUserConnection);
-      ArrayPoolMembers[contador] := Default(PoolMembersData)
-      end;
-   form1.SG_PoolMiners.RowCount:=PoolInfo.MaxMembers+1;
-   ConsoleLinesAdd('PoolMaxMembers:'+inttostr(length(PoolServerConex)));
-   Miner_OwnsAPool := true;
-   LoadPoolMembers();
-   ResetPoolMiningInfo();
-   PoolMembersTotalDeuda := GetTotalPoolDeuda();
-   end;
-if UserOptions.PoolInfo<> '' then
-   begin
-   LoadMyPoolData;
-   end;
-OutText('✓ Pool info verified',false,1);
+
 MyLastBlock := GetMyLastUpdatedBlock;
 OutText('✓ My last block verified: '+MyLastBlock.ToString,false,1);
 //OutText('✓ Headers file build',false,1);
@@ -598,20 +572,6 @@ END{Try};
 LeaveCriticalSection(CSLoglines);
 End;
 
-Procedure ToPoolLog(Texto:string);
-Begin
-EnterCriticalSection(CSPoolLog);
-   try
-   PoolLogLines.Add(timetostr(now)+': '+texto);
-   S_PoolLog := true;
-   Except on E:Exception do
-      begin
-
-      end;
-   end;
-LeaveCriticalSection(CSPoolLog);
-End;
-
 // Save log files to disk
 Procedure SaveLog();
 var
@@ -642,38 +602,6 @@ if IOCode = 0 then
 else if IOCode = 5 then
    {$I-}Closefile(archivo){$I+};
 setmilitime('SaveLog',2);
-End;
-
-// Save Pool log files to disk
-Procedure SavePoolLog();
-var
-  archivo : textfile;
-  IOCode : integer;
-Begin
-setmilitime('SavePoolLog',1);
-Assignfile(archivo, PoolLogFilename);
-{$I-}Append(archivo);{$I+}
-IOCode := IOResult;
-if IOCode = 0 then
-   begin
-   EnterCriticalSection(CSPoolLog);
-      try
-      while PoolLogLines.Count>0 do
-         begin
-         Writeln(archivo,PoolLogLines[0]);
-         form1.MemoPoolLog.Lines.Add(PoolLogLines[0]);
-         PoolLogLines.Delete(0);
-         end;
-      S_PoolLog := false;
-      Except on E:Exception do
-         toExclog ('Error saving to the Pool log file: '+E.Message);
-      end;
-   Closefile(archivo);
-   LeaveCriticalSection(CSPoolLog);
-   end
-else if IOCode = 5 then
-   {$I-}Closefile(archivo){$I+};
-setmilitime('SavePoolLog',2);
 End;
 
 // Creates options file
@@ -985,9 +913,7 @@ if S_BotData then SaveBotData();
 if S_Options then GuardarOpciones();
 if S_Wallet then GuardarWallet();
 if ( (S_Sumario) and (BuildingBlock=0) ) then GuardarSumario();
-if S_PoolMembers then GuardarPoolMembers();
 if S_Log then SaveLog;
-if S_PoolLog then SavePoolLog;
 if S_Exc then SaveExceptLog;
 //if S_PoolPays then SavePoolPays;
 if S_PoolInfo then GuardarArchivoPoolInfo;
@@ -2141,7 +2067,6 @@ dato.PassWord:=pass;
 write(filepool,dato);
 Closefile(FilePool);
 PoolInfo := Dato;
-ResetPoolMiningInfo;
 End;
 
 // Saves the pool info file
@@ -2209,37 +2134,6 @@ TRY
 EXCEPT on E:Exception do
    ToLog('Error loading pool members from disk.');
 END;
-End;
-
-// Save pool members file to disk
-Procedure GuardarPoolMembers(TruncateFile:boolean=false);
-var
-  contador : integer;
-  SavedOk : boolean = false;
-  CopyArray :array of PoolMembersData;
-Begin
-setmilitime('GuardarPoolMembers',1);
-assignfile(FilePoolMembers,PoolMembersFilename);
-   TRY
-   reset(FilePoolMembers);
-   setlength(CopyArray,0);
-   EnterCriticalSection(CSPoolMembers);
-   CopyArray := copy(ArrayPoolMembers,0,length(ArrayPoolMembers));
-   LeaveCriticalSection(CSPoolMembers);
-   for contador := 0 to length(CopyArray)-1 do
-      begin
-      seek(FilePoolMembers,contador);
-      write(FilePoolMembers,CopyArray[contador]);
-      end;
-   if TruncateFile then truncate(FilePoolMembers);
-   Closefile(FilePoolMembers);
-   SavedOk := true;
-   EXCEPT on E:Exception do
-      ToExcLog('Error saving pool members to disk: '+E.Message);
-   END;
-SetLength(CopyArray,0);
-if SavedOk then S_PoolMembers := false;
-setmilitime('GuardarPoolMembers',2);
 End;
 
 // Creates and executes autolauncher.bat  // DEPRECATED

@@ -4,6 +4,7 @@ Version 0.3.1Ad4
 - NSLBALANCE protocol available. (returns address available)
 - New seed node: 107.172.193.176
 - Added GetWebSeedNodes.
+- Removed unit Poolmanage.
 
 Version 0.3.1Ad3
 

@@ -108,10 +108,6 @@ msgstr ""
 msgid "Block hash"
 msgstr ""
 
-#: tform1.cbpool_restart.caption
-msgid "Restart after mine block"
-msgstr ""
-
 #: tform1.cbsummaryhash.caption
 msgid "Summary hash"
 msgstr ""
@@ -119,10 +115,6 @@ msgstr ""
 #: tform1.cb_autorpc.caption
 msgid "Active JSON-RPC server at launch"
 msgstr "Aktiver JSON-RPC-Server beim Start"
-
-#: tform1.cb_poollbs.caption
-msgid "Long blocks split"
-msgstr ""
 
 #: tform1.cb_rpcfilter.caption
 msgid "Accept only whitelist requests"
@@ -428,11 +420,6 @@ msgstr "NoBiEx"
 msgid "History"
 msgstr "Verlauf"
 
-#: tform1.tabmainpool.caption
-msgctxt "tform1.tabmainpool.caption"
-msgid "Pool"
-msgstr "Pool"
-
 #: tform1.tabmonitor.caption
 msgctxt "tform1.tabmonitor.caption"
 msgid "Monitor"
@@ -456,23 +443,6 @@ msgstr "Knoten"
 msgid "Options"
 msgstr "Optionen"
 
-#: tform1.tabpoollog.caption
-msgctxt "tform1.tabpoollog.caption"
-msgid "Log"
-msgstr "Log"
-
-#: tform1.tabpoolminers.caption
-msgid "Miners"
-msgstr "Miners"
-
-#: tform1.tabpoolpays.caption
-msgid "Pays"
-msgstr "Bezahlt"
-
-#: tform1.tabpoolstats.caption
-msgid "Stats"
-msgstr "Statistiken"
-
 #: tform1.tabsheet1.caption
 msgctxt "tform1.tabsheet1.caption"
 msgid "Wallet"
@@ -489,11 +459,6 @@ msgstr "RPC"
 #: tform1.tabsheet5.caption
 msgid "Trade"
 msgstr "Handel"
-
-#: tform1.tabsheet6.caption
-msgctxt "tform1.tabsheet6.caption"
-msgid "Miner"
-msgstr "Miner"
 
 #: tform1.tabsheet7.caption
 msgctxt "tform1.tabsheet7.caption"

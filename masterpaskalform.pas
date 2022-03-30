@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, LCLType,
   Grids, ExtCtrls, Buttons, IdTCPServer, IdContext, IdGlobal, IdTCPClient,
   fileutil, Clipbrd, Menus, formexplore, lclintf, ComCtrls, Spin,
-  poolmanage, strutils, mpoptions, math, IdHTTPServer, IdCustomHTTPServer,
+  strutils, mpoptions, math, IdHTTPServer, IdCustomHTTPServer,
   IdHTTP, fpJSON, Types, DefaultTranslator, LCLTranslator, translation,
   ubarcodes, IdComponent;
 
@@ -373,8 +373,6 @@ type
     CBBlockexists: TCheckBox;
     CBBlockhash: TCheckBox;
     CBSummaryhash: TCheckBox;
-    CBPool_Restart: TCheckBox;
-    CB_PoolLBS: TCheckBox;
     CBAutoIP: TCheckBox;
     ComboBoxLang: TComboBox;
     IdHTTPUpdate: TIdHTTP;
@@ -394,8 +392,6 @@ type
     LabeledEdit5: TEdit;
     Label1: TLabel;
     Label7: TLabel;
-    MemoPoolLog: TMemo;
-    MemoPool: TMemo;
     MemoDoctor: TMemo;
     Panel10: TPanel;
     Panel11: TPanel;
@@ -424,7 +420,6 @@ type
     Imgs32: TImageList;
     ImgRotor: TImage;
     GridNodes: TStringGrid;
-    StringGrid1: TStringGrid;
     TabDoctor: TTabSheet;
     TextQRcode: TStaticText;
     StaTimeLab: TLabel;
@@ -522,8 +517,6 @@ type
     PanelNobiex: TPanel;
     TopPanel: TPanel;
     StatusPanel: TPanel;
-    PoolPanelBlink: TPanel;
-    PCPool: TPageControl;
     RestartTimer : Ttimer;
     MemoRPCWhitelist: TMemo;
     Memo2: TMemo;
@@ -542,8 +535,6 @@ type
     SE_WO_CTOT: TSpinEdit;
     SE_WO_ShowOrders: TSpinEdit;
     SE_WO_PosWarning: TSpinEdit;
-    SG_PoolMiners: TStringGrid;
-    SG_PoolStats: TStringGrid;
     SG_Monitor: TStringGrid;
     GridExLTC: TStringGrid;
     SystrayIcon: TTrayIcon;
@@ -552,18 +543,12 @@ type
     TabSheet10: TTabSheet;
     TabNodeOptions: TTabSheet;
     TabSheet3: TTabSheet;
-    TabPoolLog: TTabSheet;
-    TabPoolPays: TTabSheet;
     TabSheet5: TTabSheet;
     TabExchange: TTabSheet;
     TabMonitor: TTabSheet;
     tabExBuy: TTabSheet;
-    TabSheet6: TTabSheet;
     TabSheet7: TTabSheet;
     TabSheet8: TTabSheet;
-    TabMainPool: TTabSheet;
-    TabPoolMiners: TTabSheet;
-    TabPoolStats: TTabSheet;
     TabMonitorMonitor: TTabSheet;
     TabSheet9: TTabSheet;
     TabWallet: TTabSheet;
@@ -577,10 +562,8 @@ type
     procedure BTestNodeClick(Sender: TObject);
     procedure ButStartDoctorClick(Sender: TObject);
     procedure ButStopDoctorClick(Sender: TObject);
-    procedure CBPool_RestartChange(Sender: TObject);
     procedure CB_RPCFilterChange(Sender: TObject);
     procedure CB_WO_AutoupdateChange(Sender: TObject);
-    procedure CB_PoolLBSChange(Sender: TObject);
     procedure CBAutoIPClick(Sender: TObject);
     procedure ComboBoxLangChange(Sender: TObject);
     procedure ComboBoxLangDrawItem(Control: TWinControl; Index: Integer;
@@ -890,7 +873,6 @@ var
   LogLines : TStringList;
     S_Log : boolean = false;
   PoolLogLines : TStringList;
-    S_PoolLog : boolean = false;
   ExceptLines : TStringList;
     S_Exc : boolean = false;
   PoolPaysLines : TStringList;
@@ -930,7 +912,6 @@ var
     PoolInfo : PoolInfoData;
     S_PoolInfo : boolean = false;
   FilePoolMembers : File of PoolMembersData;
-    S_PoolMembers : boolean = false;
   FilePoolPays : textfile;
     S_PoolPayments : boolean = false;
   FileAdvOptions : textfile;
@@ -1801,9 +1782,6 @@ if not RPCFilter then MemoRPCWhitelist.Enabled:=false;
 CB_AUTORPC.Checked:= RPCAuto;
 ComboBoxLang.Text:=WO_Language;
 
-//Pool
-CBPool_Restart.Checked:=POOL_MineRestart;
-CB_PoolLBS.Checked := POOL_LBS;
 End;
 
 // Cuando se solicita cerrar el programa
@@ -2120,7 +2098,6 @@ if GoAhead then
       else CloseLine('Error closing node server');
       end;
    sleep(100);
-   if length(ArrayPoolMembers)>0 then GuardarPoolMembers();
    If Miner_IsOn then Miner_IsON := false;
    If Assigned(StringListLang) then StringListLang.Free;
    If Assigned(ConsoleLines) then ConsoleLines.Free;
@@ -2206,8 +2183,7 @@ var
   contador : integer = 0;
 Begin
 // BY GUS: Make sure ALL tabs are set correct at startup
-if FileExists(PoolinfoFilename) then Form1.PageMain.ActivePage:= Form1.TabMainPool
-else Form1.PageMain.ActivePage:= Form1.TabWallet;
+Form1.PageMain.ActivePage:= Form1.TabWallet;
 Form1.TabWalletMain.ActivePage:= Form1.TabAddresses;
 Form1.PageControl2.ActivePage:= Form1.tabExBuy;
 Form1.PageControl1.ActivePage:= Form1.TabSheet1;
@@ -2263,34 +2239,12 @@ form1.GridMyTxs.FocusRectVisible:=false;
 
 Form1.imagenes.GetBitMap(54,form1.ImgRotor.picture.BitMap);
 
-// Pre-designed elements adjustments
-form1.SG_PoolMiners.Font.Name:='consolas'; form1.SG_PoolMiners.Font.Size:=8;
-form1.SG_PoolMiners.ScrollBars:=ssBoth;
-form1.SG_PoolMiners.FocusRectVisible:=false;
-form1.SG_PoolMiners.Options:= form1.SG_PoolMiners.Options+[goRowSelect]-[goRangeSelect];
-form1.SG_PoolMiners.ColWidths[0]:= 50;form1.SG_PoolMiners.ColWidths[1]:= 24;
-form1.SG_PoolMiners.ColWidths[2]:= 32;form1.SG_PoolMiners.ColWidths[3]:= 80;
-form1.SG_PoolMiners.ColWidths[4]:= 30;form1.SG_PoolMiners.ColWidths[5]:= 50;
-form1.SG_PoolMiners.ColWidths[6]:= 50;form1.SG_PoolMiners.ColWidths[7]:= 90;
-form1.SG_PoolMiners.ColWidths[8]:= 50;
-form1.SG_PoolMiners.Cells[0,0]:='Address';form1.SG_PoolMiners.Cells[1,0]:='Pre';
-form1.SG_PoolMiners.Cells[2,0]:='Get';form1.SG_PoolMiners.Cells[3,0]:='Earned';
-form1.SG_PoolMiners.Cells[4,0]:='Ping';form1.SG_PoolMiners.Cells[5,0]:='HRate';
-form1.SG_PoolMiners.Cells[6,0]:='Ver';form1.SG_PoolMiners.Cells[7,0]:='IP';
-form1.SG_PoolMiners.Cells[8,0]:='Buffer';
-form1.SG_PoolMiners.Enabled := true;
-form1.SG_PoolMiners.GridLineWidth := 1;
-//GridPoolMembers.PopupMenu:=PoolMembersPopUp;
-//GridPoolMembers.OnContextPopup:=@formpool.checkPoolMembersPopup;
-
-form1.SG_Poolstats.FocusRectVisible:=false;
-
 form1.LabAbout.Caption:=CoinName+' project'+SLINEBREAK+'Designed by PedroJOR'+SLINEBREAK+
 'Crypto routines by Xor-el'+SLINEBREAK+
 'Version '+ProgramVersion+subVersion+SLINEBREAK+'Protocol '+IntToStr(Protocolo)+SLINEBREAK+BuildDate;
 
 form1.SG_Monitor.FocusRectVisible:=false;
-form1.SG_Monitor.Options:= form1.SG_PoolMiners.Options+[goRowSelect]-[goRangeSelect];
+form1.SG_Monitor.Options:= form1.GridMyTxs.Options+[goRowSelect]-[goRangeSelect];
 form1.SG_Monitor.ColWidths[0]:= 160;form1.SG_Monitor.ColWidths[1]:= 62;
 form1.SG_Monitor.ColWidths[2]:= 62;form1.SG_Monitor.ColWidths[3]:= 62;
 
@@ -2404,422 +2358,6 @@ EnterCriticalSection(CSPoolMiner);
 PoolMiner := NewData;
 LeaveCriticalSection(CSPoolMiner);
 End;
-
-{
-// returns the number of active connections
-function TForm1.PoolClientsCount : Integer ;
-var
-  Clients : TList;
-Begin
-result := 0;
-Clients:= PoolServer.Contexts.LockList;
-   TRY
-   Result := Clients.Count ;
-   EXCEPT ON E:Exception do
-      ToExcLog('DEPRECATED');
-   END; {TRY}
-PoolServer.Contexts.UnlockList;
-End;
-}
-{
-// Try to close a pool connection safely
-Procedure TForm1.TryClosePoolConnection(AContext: TIdContext; closemsg:string='');
-Begin
-TRY
-if closemsg <>'' then
-   begin
-   TryMessageToMiner(AContext,closemsg);
-   end;
-Acontext.Connection.IOHandler.InputBuffer.Clear;
-AContext.Connection.Disconnect;
-AContext.Connection.IOHandler.DiscardAll(); // ?? is valid
-EXCEPT on E:Exception do
-   ToPoolLog(format(rs0031,[E.Message]));//'POOL: Error trying close a pool client connection ('+E.Message+')');
-END;{Try}
-End;
-}
-
-{
-// Try to send a message safely
-Function TForm1.TryMessageToMiner(AContext: TIdContext;message:string):boolean;
-Begin
-result := true;
-//PoolServer.Contexts.LockList;
-TRY
-Acontext.Connection.IOHandler.WriteLn(message);
-EXCEPT on E:Exception do
-   begin
-   ToPoolLog(format(rs0032,[E.Message])); //POOL: Error sending message to miner ('+E.Message+')');
-   result := false;
-   end;
-END;{Try}
-//PoolServer.Contexts.UnlockList;
-End;
-}
-
-{
-Procedure TForm1.CheckOutPool(AContext: TIdContext; ThisID:Integer);
-Begin
-if ((ThisID >= 0) and (PoolServerConex[ThisID].SendSteps) ) then
-      begin
-      TryMessageToMiner(AContext,'POOLSTEPS '+PoolDataString(PoolServerConex[ThisID].Address));
-      SetMinerUpdate(false,ThisID);
-      end;
-End;
-}
-
-{
-// Pool server receives a line
-procedure TForm1.PoolServerExecute(AContext: TIdContext);
-var
-  Linea, IPUser : String;
-  Password, UserDireccion, Comando : String;
-  MemberBalance : Int64;
-  BloqueStep: integer; SeedStep, HashStep,Solucion : String;
-  PoolSolutionStep : integer = 0;
-  StepLength, StepValue, StepBase : integer;
-  BlockTime : string;
-  ReadCycles : integer = 0;
-  ConexID : integer;
-  PoolReq : PoolMinerData;
-  nci: TNodeConnectionInfo;
-Begin
-IPUser := AContext.Connection.Socket.Binding.PeerIP;
-ConexID := GetPoolContextIndex(AContext);
-nci:= TNodeConnectionInfo(AContext.Data);
-if UTCTime.ToInt64 >nci.TimeLast+15 then
-   begin
-   TryClosePoolConnection(AContext);
-   ToPoolLog('Pinned out new system');
-   exit;
-   end;
-if IsMinerPinedOut(ConexID) then
-   begin
-   TryClosePoolConnection(AContext);
-   //ToPoolLog('POOL pined out');
-   exit;
-   end;
-if ConexID<0 then
-   begin
-   TryClosePoolConnection(AContext); //ConsoleLinesAdd('Pool: Rejected unasigned context connection');
-   exit;
-   end;
-Linea := '';
-AContext.Connection.IOHandler.CheckForDataOnSource(1000); //new line
-if not AContext.Connection.IOHandler.InputBufferIsEmpty then //new line
-   begin //
-   TRY
-   REPEAT
-   ReadCycles := ReadCycles+1;
-   Linea := AContext.Connection.IOHandler.ReadLn(IndyTextEncoding_UTF8);
-   UNTIL AContext.Connection.IOHandler.InputBufferIsEmpty;
-   if ReadCycles>1 then
-      begin
-      ToPoolLog(Format('----- Readed %d lines from %s -----',[ReadCycles,IPUser]))
-      end;
-   EXCEPT On E:Exception do
-      begin
-      TryClosePoolConnection(AContext);
-      ToPoolLog(format('POOL: Exception from %s: %s',[IpUser,E.Message]));
-      exit;
-      end;
-   END{Try};
-   CheckOutPool(Acontext,ConexID);
-   end
-else
-   begin
-   //CheckOutPool(Acontext,ConexID);
-   exit;
-   end;
-if not IsValidASCII(linea) then
-   begin
-   TryClosePoolConnection(AContext);
-   ToPoolLog('Not valid ASCII line received from '+IPUser);
-   exit;
-   end;
-
-Password := Parameter(Linea,0);
-if password <> Poolinfo.PassWord then
-   begin
-   TryClosePoolConnection(AContext);
-   ToPoolLog('Member sent invalid password');
-   exit;
-   end;
-UserDireccion := Parameter(Linea,1);
-if IsPoolMemberConnected(UserDireccion)<0 then
-   begin
-   TryClosePoolConnection(AContext);
-   ToPoolLog(rs0033);//ConsoleLinesAdd('Pool: Rejected not registered user');
-   exit;
-   end;
-Comando := Parameter(Linea,2);
-MemberBalance := GetPoolMemberBalance(UserDireccion);
-// *** NEW MINER FORMAT ***
-if comando = 'PING' then
-   begin
-   TRY
-   TryMessageToMiner(AContext,'PONG '+PoolDataString(UserDireccion));
-   UpdateMinerPing(ConexID,StrToIntDef(Parameter(linea,3),0));
-   nci:= TNodeConnectionInfo(AContext.Data);
-   nci.TimeLast:=UTCTime.ToInt64;
-   //PoolServerConex[IsPoolMemberConnected(UserDireccion)].Hashpower:=StrToIntDef(Parameter(linea,3),0);
-   //PoolServerConex[IsPoolMemberConnected(UserDireccion)].LastPing:=StrToInt64Def(UTCTime,0);
-   EXCEPT on E:Exception do
-      begin
-      TryClosePoolConnection(Acontext);
-      ToPoolLog(format(rs0034,[E.Message]));//'Pool: Error registerin a ping-> %s',[E.Message]));
-      end;
-   END;{Try}
-   end
-else if Comando = 'PAYMENT' then
-   begin
-
-   end
-else if Comando = 'STEP' then
-   begin
-   UpdateMinerPing(ConexID);
-   nci:= TNodeConnectionInfo(AContext.Data);
-   nci.TimeLast:=UTCTime.ToInt64;
-   AContext.Data := nci;
-   //PoolServerConex[IsPoolMemberConnected(UserDireccion)].LastPing:=UTCTime.ToInt64;
-   bloqueStep := StrToIntDef(parameter(linea,3),0);
-   SeedStep := parameter(linea,4);
-   HashStep := parameter(linea,5);
-   StepLength := StrToIntDef(parameter(linea,6),-1);
-   PoolReq := GetPoolMinningInfo();
-   StepBase := GetCharsFromDifficult(PoolReq.Dificult, 0)-PoolStepsDeep; //Get the minimun steplength
-   if StepLength<0 then StepLength := PoolReq.DiffChars;
-   StepValue := 16**(StepLength-Stepbase);
-   if StepValue > 16**PoolStepsDeep then StepValue := 16**PoolStepsDeep;
-   Solucion := HashSha256String(SeedStep+PoolInfo.Direccion+HashStep);
-   if not PoolMinerBlockFound then
-      begin
-      EnterCriticalSection(CSPoolStep);InsidePoolStep := true;
-      if not PoolMinerBlockFound then
-         begin
-         TRY
-         if ((StepLength>=StepBase) and (StepLength<PoolReq.DiffChars) and
-            (PoolReq.steps<10) and (bloqueStep=PoolReq.Block) ) then
-            begin                                       // Proof of work solution
-            if ( (AnsiContainsStr(Solucion,copy(PoolReq.Target,1,StepLength))) and
-               (GetPoolMemberBalance(UserDireccion)>-1) and (bloqueStep=PoolReq.Block) and
-               (PoolReq.steps<10) and (not StepAlreadyAdded(SeedStep+HashStep)) ) then
-               begin
-               AcreditarPoolStep(UserDireccion, StepValue);
-               TryMessageToMiner(Acontext,'STEPOK '+IntToStr(StepValue));
-               EnterCriticalSection(CSPoolMiner);
-               insert(SeedStep+HashStep,Miner_PoolSharedStep,length(Miner_PoolSharedStep)+1);
-               LeaveCriticalSection(CSPoolMiner);
-               end;
-            end
-         else if ( (AnsiContainsStr(Solucion,copy(PoolReq.Target,1,PoolReq.DiffChars))) and
-             (GetPoolMemberBalance(UserDireccion)>-1) and (bloqueStep=PoolReq.Block) and
-             (IsValidStep(PoolReq.Solucion,SeedStep+HashStep)) and (PoolReq.steps<10) and
-             (not StepAlreadyAdded(SeedStep+HashStep)) ) then
-            begin   // IT IS A COMPLETE STEP
-            AcreditarPoolStep(UserDireccion, StepValue);
-            TryMessageToMiner(Acontext,'STEPOK '+IntToStr(StepValue));
-            EnterCriticalSection(CSPoolMiner);
-            insert(SeedStep+HashStep,Miner_PoolSharedStep,length(Miner_PoolSharedStep)+1);
-            LeaveCriticalSection(CSPoolMiner);
-            PoolReq.Solucion := PoolReq.Solucion+SeedStep+HashStep+' ';
-            PoolReq.steps := PoolReq.steps+1;
-            CrearRestartfile; // TEMP TEST
-            PoolReq.DiffChars:=GetCharsFromDifficult(PoolReq.Dificult, PoolReq.steps);
-            if PoolReq.steps = Miner_Steps then
-               begin           // BLOCK FOUND
-               SetLength(PoolReq.Solucion,length(PoolReq.Solucion)-1);
-               PoolSolutionStep := VerifySolutionForBlock(PoolReq.Dificult, PoolReq.Target,PoolInfo.Direccion , PoolReq.Solucion);
-               if PoolSolutionStep=0 then
-                  Begin
-                  BlockTime := UTCTime;
-                  consolelinesAdd(rs0035); // Block solution verified!
-                  OutgoingMsjsAdd(ProtocolLine(6)+BlockTime+' '+IntToStr(PoolReq.Block)+' '+
-                     PoolInfo.Direccion+' '+StringReplace(PoolReq.Solucion,' ','_',[rfReplaceAll, rfIgnoreCase]));
-                  PoolMinerBlockFound := true;
-                 //ResetPoolMiningInfo();
-                  //SendNetworkRequests(blocktime,PoolInfo.Direccion,PoolMiner.Block);
-                  end
-               else  // Pool solution failed
-                  begin
-                  consolelinesAdd(format(rs0036,[IntToStr(PoolSolutionStep)]));
-                  //consolelinesAdd('Pool solution FAILED at step '+IntToStr(PoolSolutionStep));
-                  PoolSolutionFails := PoolSolutionFails+1;
-                  if PoolSolutionFails >= 3 then
-                     begin
-                     PoolSolutionFails := 0;PoolReq.Solucion := '';PoolReq.steps:=0;
-                     end
-                  else
-                     begin
-                     PoolReq.Solucion:=TruncateBlockSolution(PoolReq.Solucion,PoolSolutionStep);
-                     PoolReq.steps := PoolSolutionStep-1;
-                     end;
-                  PoolReq.DiffChars:=GetCharsFromDifficult(PoolReq.Dificult, PoolReq.steps);
-                  //ProcessLinesAdd('SENDPOOLSTEPS '+IntToStr(PoolMiner.steps));
-                  SetMinerUpdate(true,-1);
-                  SetPoolMinningInfo(PoolReq);
-                  end;
-               end
-            else // not 10 steps yet
-               begin
-               //SetMinerUpdate(true,-1);
-               SetPoolMinningInfo(PoolReq);
-               //ProcessLinesAdd('SENDPOOLSTEPS '+IntToStr(PoolMiner.steps));
-               end;
-            end
-         else  // Failed step
-            begin
-            if ((bloqueStep=PoolReq.Block) and (PoolReq.steps<10)) then
-               begin
-               TryMessageToMiner(Acontext,'STEPFAIL');
-               //PoolServerConex[IsPoolMemberConnected(UserDireccion)].WrongSteps+=1;
-               end;
-            end;
-         EXCEPT on E:Exception do
-            begin
-            TryClosePoolConnection(Acontext);
-            ToPoolLog(Format(rs0037,[E.Message]));
-            //ToExclog(Format('Pool: Error inside CSPoolStep-> %s',[E.Message]));
-            end;
-      END;{Try}
-         end;
-      LeaveCriticalSection(CSPoolStep);InsidePoolStep := false;
-      end;
-   end
-else
-   begin
-   TryClosePoolConnection(Acontext);
-   ToPoolLog(Format(rs0038,[ipuser,linea]));//('POOL: Unexpected command from: '+ipuser+'->'+Linea);
-   end;
-End;
-}
-
-{
-// Pool server receives a new connection
-procedure TForm1.PoolServerConnect(AContext: TIdContext);
-var
-  IPUser,Linea,password, comando, minerversion, JoinPrefijo : String;
-  UserDireccion : string = '';
-  WasHandled : boolean = false;
-  GoodJoin : boolean;
-  nci: TNodeConnectionInfo;
-Begin
-IPUser := AContext.Connection.Socket.Binding.PeerIP;
-if G_KeepPoolOff then // The pool server is closed or closing
-   begin
-   TryClosePoolConnection(AContext,'CLOSINGPOOL');
-   exit;
-   end;
-Linea := '';
-AContext.Connection.IOHandler.CheckForDataOnSource(100); //new line
-if not AContext.Connection.IOHandler.InputBufferIsEmpty then //new line
-   begin //
-   TRY
-   Linea := AContext.Connection.IOHandler.ReadLn('',ReadTimeOutTIme,-1,IndyTextEncoding_UTF8);
-   if AContext.Connection.IOHandler.ReadLnTimedout then
-      begin
-      TryClosePoolConnection(AContext);
-      ToPoolLog('POOL: Conex Timedout from '+IpUser);
-      exit;
-      end;
-   EXCEPT On E:Exception do
-       begin
-      TryClosePoolConnection(AContext);
-      ToPoolLog(format('POOL: Conex Exception from %s: %s',[IpUser,E.Message]));
-      exit;
-      end;
-   END{Try};
-   end
-else exit;
-EnterCriticalSection(CSMinerJoin);InsideMinerJoin := true;
-TRY
-   Password := Parameter(Linea,0);
-   UserDireccion := Parameter(Linea,1);
-   comando :=Parameter(Linea,2);
-   minerversion :=Parameter(Linea,3);
-   if AContext.Connection.IOHandler.ReadLnTimedout then
-      begin
-      TryClosePoolConnection(AContext);
-      ToPoolLog(Format('TIMEOUT connection from %s',[IPUser]));
-      end
-   else if not IsSeedNode(IPUser) then
-      TryClosePoolConnection(AContext,'#$%("$%"#')
-   else if BotExists(IPUser) then
-      TryClosePoolConnection(AContext,'BANNED')
-   else if password <> Poolinfo.PassWord then  // WRONG PASSWORD.
-      TryClosePoolConnection(AContext,'PASSFAILED')
-   else if ( (not IsValidHashAddress(UserDireccion)) and (AddressSumaryIndex(UserDireccion)<0) ) then
-      TryClosePoolConnection(AContext,'INVALIDADDRESS')
-   else if IsPoolMemberConnected(UserDireccion)>=0 then   // ALREADY CONNECTED
-      TryClosePoolConnection(AContext,'ALREADYCONNECTED')
-   else if Comando = 'PAYMENT' then
-      begin
-
-      end
-   else if Comando = 'JOIN' then
-      begin
-      JoinPrefijo := PoolAddNewMember(UserDireccion);
-      if JoinPrefijo<>'' then
-         begin
-         goodJoin := true;
-         if not TryMessageToMiner(AContext,'JOINOK '+PoolInfo.Direccion+' '+JoinPrefijo+' '+PoolDataString(UserDireccion)) then
-            goodJoin := false;
-         if not SavePoolServerConnection(IpUser,JoinPrefijo, UserDireccion,minerversion,Acontext) then
-            goodJoin := false;
-         if not goodJoin then
-            begin
-            TryClosePoolConnection(AContext);
-            BorrarPoolServerConex(Acontext);
-            end
-         else
-            begin
-            nci:= TNodeConnectionInfo.Create;
-            nci.TimeLast:= UTCTime.ToInt64;
-            AContext.Data := nci;
-            end;
-         end
-      else
-         begin
-         TryClosePoolConnection(AContext,'POOLFULL');
-         end;
-      end
-   else if Comando = 'STATUS' then
-      begin
-      TryClosePoolConnection(AContext,PoolStatusString);
-      ToPoolLog(Format(rs0039,[IPUser])); //'POOL: Status requested from '+IPUser);
-      end
-   else
-      begin
-      TryClosePoolConnection(AContext,'INVALIDCOMMAND');
-      ToPoolLog(Format(rs0040,[IPUser,comando]));
-      //ToExclog(Format('Pool: closed incoming %s (%s)',[IPUser,comando]));
-      end;
-EXCEPT on E:Exception do
-   begin
-   ToPoolLog(Format(rs0041,[IPUser,E.Message]));//ToExclog(Format('Pool: Error inside MinerJoin-> %s',[E.Message]));
-   TryClosePoolConnection(AContext,'INVALIDCOMMAND');
-   end
-END{Try};
-LeaveCriticalSection(CSMinerJoin);InsideMinerJoin := false;
-End;
-}
-
-{
-// A miner disconnects from pool server
-procedure TForm1.PoolServerDisConnect(AContext: TIdContext);
-Begin
-//TNodeConnectionInfo(AContext.Data).Free;
-BorrarPoolServerConex(AContext);
-End;
-}
-
-{
-// Exception on pool server
-procedure TForm1.PoolServerException(AContext: TIdContext;AException: Exception);
-Begin
-BorrarPoolServerConex(AContext);
-End;
-}
 
 
 // *****************************
@@ -4165,26 +3703,6 @@ procedure TForm1.ButStopDoctorClick(Sender: TObject);
 begin
 StopDoctor := true;
 end;
-
-procedure TForm1.CBPool_RestartChange(Sender: TObject);
-begin
-if not G_Launching then
-   begin
-   if CBPool_Restart.Checked then POOL_MineRestart := true
-   else POOL_MineRestart := false ;
-   S_AdvOpt := true;
-   end;
-end;
-
-procedure TForm1.CB_PoolLBSChange(Sender: TObject);
-Begin
-if not G_Launching then
-   begin
-   if CB_PoolLBS.Checked then POOL_LBS := true
-   else POOL_LBS := false ;
-   S_AdvOpt := true;
-   end;
-End;
 
 // Set MN IP to Auto
 procedure TForm1.CBAutoIPClick(Sender: TObject);

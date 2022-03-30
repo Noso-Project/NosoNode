@@ -135,7 +135,7 @@
         <PackageName Value="LCL"/>
       </Item7>
     </RequiredPackages>
-    <Units Count="18">
+    <Units Count="17">
       <Unit0>
         <Filename Value="Noso.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -208,24 +208,19 @@
         <UnitName Value="mpSignerUtils"/>
       </Unit13>
       <Unit14>
-        <Filename Value="poolmanage.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="PoolManage"/>
-      </Unit14>
-      <Unit15>
         <Filename Value="mprpc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpRPC"/>
-      </Unit15>
-      <Unit16>
+      </Unit14>
+      <Unit15>
         <Filename Value="translation.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit16>
-      <Unit17>
+      </Unit15>
+      <Unit16>
         <Filename Value="mpmn.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpMN"/>
-      </Unit17>
+      </Unit16>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

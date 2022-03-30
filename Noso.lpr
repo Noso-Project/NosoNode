@@ -8,7 +8,7 @@ uses
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
   Forms, MasterPaskalForm, mpGUI, mpdisk, mpParser, mpRed, mpTime, mpCripto,
-  mpProtocol, mpBlock, mpMiner, mpLang, mpCoin, mpsignerutils, PoolMAnage,
+  mpProtocol, mpBlock, mpMiner, mpLang, mpCoin, mpsignerutils,
   mpRPC, translation, indylaz, sysutils, LCLTranslator, mpmn;
 
 {$R *.res}
