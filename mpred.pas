@@ -48,6 +48,7 @@ function GetOrderDetails(orderid:string):orderdata;
 Function GetNodeStatusString():string;
 Function IsSafeIP(IP:String):boolean;
 Function GetLastRelease():String;
+Function GetWebSeedNodes():String;
 Function GetOS():string;
 Function GetLastVerZipFile(version,LocalOS:string):boolean;
 Function GetSyncTus():String;
@@ -1055,15 +1056,34 @@ var
   Conector : TFPHttpClient;
 Begin
 Conector := TFPHttpClient.Create(nil);
-conector.ConnectTimeout:=ConnectTimeOutTime;
-conector.IOTimeout:=ReadTimeOutTime;
-Try
+conector.ConnectTimeout:=1000;
+conector.IOTimeout:=1000;
+TRY
    readedLine := Conector.SimpleGet('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/lastrelease.txt');
-Except on E: Exception do
+EXCEPT on E: Exception do
    begin
    Consolelinesadd('ERROR RETRIEVING LAST RELEASES DATA: '+E.Message);
    end;
-end;//TRY
+END;//TRY
+Conector.Free;
+result := readedLine;
+End;
+
+Function GetWebSeedNodes():String;
+var
+  readedLine : string = '';
+  Conector : TFPHttpClient;
+Begin
+Conector := TFPHttpClient.Create(nil);
+conector.ConnectTimeout:=1000;
+conector.IOTimeout:=1000;
+TRY
+   readedLine := Conector.SimpleGet('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/seednodes.txt');
+EXCEPT on E: Exception do
+   begin
+   Consolelinesadd('ERROR RETRIEVING WebSeedNodes: '+E.Message);
+   end;
+END;//TRY
 Conector.Free;
 result := readedLine;
 End;

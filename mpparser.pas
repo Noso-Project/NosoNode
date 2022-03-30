@@ -307,6 +307,7 @@ else if UpperCase(Command) = '58TODEC' then consolelinesadd(BM58ToDec(parameter(
 else if UpperCase(Command) = 'DECTOHEX' then consolelinesadd(BMDectoHex(parameter(linetext,1)))
 else if UpperCase(Command) = 'NOSOHASH' then consolelinesadd(Nosohash(parameter(linetext,1)))
 else if UpperCase(Command) = 'PENDING' then consolelinesadd(PendingRawInfo)
+else if UpperCase(Command) = 'WEBSEED' then consolelinesadd(GetWebSeedNodes)
 
 // CONSULTING
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()
