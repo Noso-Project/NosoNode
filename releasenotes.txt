@@ -8,6 +8,8 @@ Version 0.3.1Ad4
 - Removed old seed nodes.
 - Added GetWebSeedNodes.
 - Removed unit Poolmanage.
+- BlockHeader.Difficult := PoSCount
+- BlockHeader.NxtBlkDiff := MNsCount
 
 Version 0.3.1Ad3
 

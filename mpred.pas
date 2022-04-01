@@ -811,10 +811,12 @@ if BuildingBlock>0 then exit;
 if ((BlockAge <10) or (blockAge>595)) then exit;
 SetCurrentJob('ActualizarseConLaRed',true);
 NLBV := StrToIntDef(NetLastBlock.Value,0);
-if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // solicitar cabeceras de bloque
+if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // Request headers
    begin
    ClearAllPending;
    SetNMSData('','','');
+   ClearMNsChecks();
+   ClearMNsList();
    if ((LastTimeRequestResumen+5 < StrToInt64(UTCTime)) and (not DownloadHeaders)) then
       begin
       PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
@@ -822,10 +824,12 @@ if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // sol
       LastTimeRequestResumen := StrToInt64(UTCTime);
       end;
    end
-else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  // solicitar hasta 100 bloques
+else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  // equest up to 100 blocks
    begin
    ClearAllPending;
    SetNMSData('','','');
+   ClearMNsChecks();
+   ClearMNsList();
    if ((LastTimeRequestBlock+5<StrToInt64(UTCTime))and (not DownLoadBlocks)) then
       begin
       PTC_SendLine(NetResumenHash.Slot,ProtocolLine(8)); // lastblock

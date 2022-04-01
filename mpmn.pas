@@ -546,7 +546,10 @@ reset(archivo);
 Readln(Archivo,Linea);
 Closefile(archivo);
 EXCEPT on E:Exception do
+   begin
    tolog ('Error Saving masternodes file');
+   Linea := '';
+   end;
 END {TRY};
 LeaveCriticalSection(CSMNsFile);
 if AnsiContainsStr(Linea,MN_IP) then
@@ -561,6 +564,7 @@ else
    end;
 MN_FileText := linea;
 Result := Linea;
+MyMNsHash     := HashMD5File(MasterNodesFilename);
 End;
 
 Procedure SaveMNsFile(GotText:string);
@@ -575,7 +579,10 @@ write(Archivo,GotText,#13#10);
 Closefile(archivo);
 MN_FileText := GotText;
 EXCEPT on E:Exception do
+   begin
    tolog ('Error Saving masternodes file');
+   MN_FileText := '';
+   end;
 END {TRY};
 LeaveCriticalSection(CSMNsFile);
 MyMNsHash     := HashMD5File(MasterNodesFilename);

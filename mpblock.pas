@@ -11,6 +11,7 @@ uses
 Procedure CrearBloqueCero();
 Procedure CrearNuevoBloque(Numero,TimeStamp: Int64; TargetHash, Minero, Solucion:String);
 Function GetDiffHashrate(bestdiff:String):integer;
+Function BestHashReadeable(BestDiff:String):string;
 function GetDiffForNextBlock(UltimoBloque,Last20Average,lastblocktime,previous:integer):integer;
 function GetLast20Time(LastBlTime:integer):integer;
 function GetBlockReward(BlNumber:int64):Int64;
@@ -251,13 +252,15 @@ if not errored then
    BlockHeader.TimeLast20:=0;//GetLast20Time(BlockHeader.TimeTotal);
    BlockHeader.TrxTotales:=length(ListaOrdenes);
    if numero = 0 then BlockHeader.Difficult:= InitialBlockDiff
-   else BlockHeader.Difficult:= 0;{PosReward}//LastBlockData.NxtBlkDiff;
+   else if ( (numero>0) and (numero<53000) ) then BlockHeader.Difficult:= 0
+   else BlockHeader.Difficult := PoSCount;
    BlockHeader.TargetHash:=TargetHash;
    //if protocolo = 1 then BlockHeader.Solution:= Solucion
    BlockHeader.Solution:= Solucion+' '+GetNMSData.Diff+' '+PoWTotalReward.ToString+' '+MNsTotalReward.ToString+' '+PosTotalReward.ToString;
    if numero = 0 then BlockHeader.LastBlockHash:='NOSO GENESYS BLOCK'
    else BlockHeader.LastBlockHash:=MyLastBlockHash;
-   BlockHeader.NxtBlkDiff:= 0;{MNsReward}//GetDiffForNextBlock(numero,BlockHeader.TimeLast20,BlockHeader.TimeTotal,BlockHeader.Difficult);
+   if numero<53000 then BlockHeader.NxtBlkDiff:= 0{MNsReward}//GetDiffForNextBlock(numero,BlockHeader.TimeLast20,BlockHeader.TimeTotal,BlockHeader.Difficult);
+   else BlockHeader.NxtBlkDiff := MNsCount;
    BlockHeader.AccountMiner:=Minero;
    BlockHeader.MinerFee:=MinerFee;
    BlockHeader.Reward:=GetBlockReward(Numero);
@@ -312,6 +315,19 @@ if bestdiff[counter]='2' then Result := Result+75;
 if bestdiff[counter]='3' then Result := Result+50;
 if bestdiff[counter]='4' then Result := Result+37;
 if bestdiff[counter]='5' then Result := Result+25;
+End;
+
+Function BestHashReadeable(BestDiff:String):string;
+var
+  counter :integer = 0;
+Begin
+if bestdiff = '' then BestDiff := 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF';
+repeat
+  counter := counter+1;
+until bestdiff[counter]<> '0';
+Result := (Counter-1).ToString+'.';
+if counter<length(BestDiff) then Result := Result+bestdiff[counter];
+
 End;
 
 // Devuelve cuantos caracteres compondran el targethash del siguiente bloque

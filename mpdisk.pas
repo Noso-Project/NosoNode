@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, Dialogs, Forms, mpTime, FileUtil, LCLType,
-  lclintf, controls, mpCripto, mpBlock, Zipper, mpLang, mpcoin,
+  lclintf, controls, mpCripto, mpBlock, Zipper, mpLang, mpcoin, mpMn,
   {$IFDEF WINDOWS}Win32Proc, {$ENDIF}
   mpminer, translation, strutils;
 
@@ -133,6 +133,7 @@ if not FileExists (PoolLogFilename) then CreatePoollog;
 OutText('✓ Pool Log file ok',false,1);
 
 if not FileExists(MasterNodesFilename) then CreateMasterNodesFile;
+GetMNsFileData;
 OutText('✓ Masternodes file ok',false,1);
 
 if not FileExists (UserOptions.wallet) then CrearWallet() else CargarWallet(UserOptions.wallet);
