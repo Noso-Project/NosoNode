@@ -728,13 +728,12 @@ CONST
   DefaultNodes : String = 'DefNodes '+
                             '45.146.252.103 '+
                             '194.156.88.117 '+
-                            '192.210.226.118 '+
-                            '107.172.5.8 '+
                             '109.230.238.240 '+
                             '23.94.21.83 '+
-                            '172.245.52.208 '+
                             '107.175.59.177 '+
-                            '107.172.193.176';
+                            '107.172.193.176 '+
+                            '107.175.194.151 '+
+                            '192.210.226.118';
   ProgramVersion = '0.3.1';
   {$IFDEF WINDOWS}
   RestartFileName = 'launcher.bat';
@@ -3558,10 +3557,10 @@ var
 begin
 GridWidth := form1.GridNodes.Width;
 form1.GridNodes.ColWidths[0]:= thispercent(36,GridWidth);
-form1.GridNodes.ColWidths[1]:= thispercent(16,GridWidth);
-form1.GridNodes.ColWidths[2]:= thispercent(16,GridWidth);
-form1.GridNodes.ColWidths[3]:= thispercent(16,GridWidth);
-form1.GridNodes.ColWidths[4]:= thispercent(16,GridWidth, true);
+form1.GridNodes.ColWidths[1]:= thispercent(64,GridWidth,true);
+form1.GridNodes.ColWidths[2]:= thispercent(0,GridWidth);
+form1.GridNodes.ColWidths[3]:= thispercent(0,GridWidth);
+form1.GridNodes.ColWidths[4]:= thispercent(0,GridWidth, true);
 
 end;
 

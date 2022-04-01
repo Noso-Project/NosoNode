@@ -3,6 +3,9 @@ Version 0.3.1Ad4
 - Fixed post-dated transfers propagation.
 - NSLBALANCE protocol available. (returns address available)
 - New seed node: 107.172.193.176
+- New seed node: 107.175.194.151
+- New seed node: 192.210.226.118
+- Removed old seed nodes.
 - Added GetWebSeedNodes.
 - Removed unit Poolmanage.
 

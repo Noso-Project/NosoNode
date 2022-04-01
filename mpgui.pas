@@ -234,7 +234,7 @@ for contador := 0 to length(ListaDirecciones)-1 do
 
 // Nodes Grid
 form1.GridNodes.Cells[0,0] := 'Node';
-form1.GridNodes.Cells[1,0] := 'First';
+form1.GridNodes.Cells[1,0] := 'Funds';
 form1.GridNodes.Cells[2,0] := 'Last';
 form1.GridNodes.Cells[3,0] := 'Total';
 form1.GridNodes.Cells[4,0] := 'Conf';
@@ -351,7 +351,8 @@ if ((U_MNsGrid) or (UTCTime.ToInt64>U_MNsGrid_Last+59)) then
          begin
          form1.GridNodes.RowCount := form1.GridNodes.RowCount+1;
          form1.GridNodes.Cells[0,1+contador] := MNsList[contador].Ip+':'+IntToStr(MNsList[contador].Port);
-         form1.GridNodes.Cells[1,1+contador] := MNsList[contador].First.ToString;
+         form1.GridNodes.Cells[1,1+contador] := MNsList[contador].Fund;
+         //form1.GridNodes.Cells[1,1+contador] := MNsList[contador].First.ToString;
          form1.GridNodes.Cells[2,1+contador] := MNsList[contador].Last.ToString;
          form1.GridNodes.Cells[3,1+contador] := MNsList[contador].Total.ToString;
          form1.GridNodes.Cells[4,1+contador] := MNsList[contador].Validations.ToString; ;
