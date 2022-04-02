@@ -733,7 +733,7 @@ CONST
                             '107.175.59.177 '+
                             '107.172.193.176 '+
                             '107.175.194.151 '+
-                            '192.210.226.118';
+                            '192.3.173.184';
   ProgramVersion = '0.3.1';
   {$IFDEF WINDOWS}
   RestartFileName = 'launcher.bat';
@@ -2279,20 +2279,7 @@ Form1.Server.OnExecute:=@form1.IdTCPServer1Execute;
 Form1.Server.OnConnect:=@form1.IdTCPServer1Connect;
 Form1.Server.OnDisconnect:=@form1.IdTCPServer1Disconnect;
 Form1.Server.OnException:=@Form1.IdTCPServer1Exception;
-//Form1.Server.MaxConnections:=MaxConecciones;
 
-{
-Form1.PoolServer := TIdTCPServer.Create(Form1);
-Form1.PoolServer.DefaultPort:=DefaultServerPort;
-Form1.PoolServer.Active:=false;
-Form1.PoolServer.UseNagle:=true;
-Form1.PoolServer.TerminateWaitTime:=2000;
-Form1.PoolServer.OnExecute:=@form1.PoolServerExecute;
-Form1.PoolServer.OnConnect:=@form1.PoolServerConnect;
-Form1.PoolServer.OnDisconnect:=@form1.PoolServerDisconnect;
-Form1.PoolServer.OnException:=@Form1.PoolServerException;
-Form1.PoolServer.MaxConnections:=400;
-}
 
 Form1.RPCServer := TIdHTTPServer.Create(Form1);
 Form1.RPCServer.DefaultPort:=RPCPort;

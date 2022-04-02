@@ -544,7 +544,7 @@ if MyConStatus = 3 then
         and (BlockAge>10+MNsRandomWait) and (BlockAge<495) and(1=1) ) then
      begin
      OutGoingMsjsAdd(ProtocolLine(MNReport));
-     //ConsoleLinesAdd('My Masternode reported: '+ProtocolLine(MNReport));
+     ToLog('My Masternode reported: '+ProtocolLine(MNReport));
      LastTimeReportMyMN := UTCTime.ToInt64;
      end;
    SetCurrentJob('MyConStatus3',false);
@@ -824,7 +824,7 @@ if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // Req
       LastTimeRequestResumen := StrToInt64(UTCTime);
       end;
    end
-else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  // equest up to 100 blocks
+else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  // request up to 100 blocks
    begin
    ClearAllPending;
    SetNMSData('','','');
