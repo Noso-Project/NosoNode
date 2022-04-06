@@ -355,6 +355,11 @@ type
        Miner: String;
        end;
 
+  TypeAddressCount = Packed Record
+       address : string;
+       value   : integer;
+       end;
+
 
   { TForm1 }
 
@@ -722,7 +727,7 @@ CONST
   ReservedWords : string = 'NULL,DELADDR';
   ValidProtocolCommands : string = '$PING$PONG$GETPENDING$NEWBL$GETRESUMEN$LASTBLOCK$GETCHECKS'+
                                    '$CUSTOMORDERADMINMSGNETREQ$REPORTNODE$GETMNS$BESTHASH$MNREPO$MNCHECK'+
-                                   'GETMNSFILEMNFILE';
+                                   'GETMNSFILEMNFILEGETHEADUPDATE';
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
   DefaultNodes : String = 'DefNodes '+
@@ -733,7 +738,8 @@ CONST
                             '107.175.59.177 '+
                             '107.172.193.176 '+
                             '107.175.194.151 '+
-                            '192.3.173.184';
+                            '192.3.173.184 '+
+                            '192.210.226.118';
   ProgramVersion = '0.3.1';
   {$IFDEF WINDOWS}
   RestartFileName = 'launcher.bat';
@@ -743,10 +749,10 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ad5';
+  SubVersion = 'Ad6';
   OficialRelease = false;
   VersionRequired = '0.3.1Aa5';
-  BuildDate = 'March 2022';
+  BuildDate = 'April 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   HasheableChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';

@@ -1,3 +1,12 @@
+Version 0.3.1Ad6
+
+- Update recent headers instead download complete file.
+- Nodestatus improved.
+
+Version 0.3.1Ad5
+
+- Official release
+
 Version 0.3.1Ad4
 
 - Fixed post-dated transfers propagation.

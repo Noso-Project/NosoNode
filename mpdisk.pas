@@ -80,6 +80,8 @@ Procedure CreateResumen();
 Procedure BuildHeaderFile(untilblock:integer);
 Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
 Function DelBlChHeadLast(Block:integer): boolean;
+Function ShowBlockHeaders(BlockNumber:Integer):String;
+Function LastHeaders(FromBlock:integer):String;
 
 Procedure CreateLauncherFile(IncludeUpdate:boolean = false);
 Procedure RestartNoso();
@@ -1557,6 +1559,54 @@ EnterCriticalSection(CSHeadAccess);
       end;
    END;{TRY}
 LeaveCriticalSection(CSHeadAccess);
+End;
+
+Function ShowBlockHeaders(BlockNumber:Integer):String;
+var
+  Dato: ResumenData;
+Begin
+result :='';
+if BlockNumber=-1 then BlockNumber:= MyLastBlock;
+EnterCriticalSection(CSHeadAccess);
+TRY
+assignfile(FileResumen,ResumenFilename);
+reset(FileResumen);
+Dato := Default(ResumenData);
+seek(fileResumen,BlockNumber);
+Read(fileResumen,dato);
+Result := Dato.block.ToString+':'+Dato.blockhash+':'+Dato.SumHash;
+closefile(FileResumen);
+EXCEPT on E:Exception do
+   tolog ('Error adding new register to headers');
+END;
+LeaveCriticalSection(CSHeadAccess);
+End;
+
+Function LastHeaders(FromBlock:integer):String;
+var
+  Dato: ResumenData;
+Begin
+result := '';
+if FromBlock<MyLastBlock-1008 then exit;
+setmilitime('LastHeaders',1);
+EnterCriticalSection(CSHeadAccess);
+TRY
+assignfile(FileResumen,ResumenFilename);
+reset(FileResumen);
+Dato := Default(ResumenData);
+seek(fileResumen,FromBlock+1);
+While not Eof(fileResumen) do
+   begin
+   Read(fileResumen,dato);
+   Result := Result+Dato.block.ToString+':'+Dato.blockhash+':'+Dato.SumHash+' ';
+   end;
+closefile(FileResumen);
+Result := Trim(Result);
+EXCEPT on E:Exception do
+
+END;{TRY}
+LeaveCriticalSection(CSHeadAccess);
+setmilitime('LastHeaders',2);
 End;
 
 // Creates user transactions file

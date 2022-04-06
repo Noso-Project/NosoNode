@@ -819,9 +819,19 @@ if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // Req
    ClearMNsList();
    if ((LastTimeRequestResumen+5 < StrToInt64(UTCTime)) and (not DownloadHeaders)) then
       begin
-      PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
-      ConsoleLinesAdd(LangLine(163)); //'Headers file requested'
-      LastTimeRequestResumen := StrToInt64(UTCTime);
+      if NLBV-mylastblock >= 1008 then
+         begin
+         PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
+         ConsoleLinesAdd(LangLine(163)); //'Headers file requested'
+         LastTimeRequestResumen := StrToInt64(UTCTime);
+         end
+      else // If less than 1008 block just update heades
+         begin
+         //PTC_SendLine(NetResumenHash.Slot,ProtocolLine(18)); // GetResumen update
+         PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
+         ConsoleLinesAdd('Headers update requested'); //'Headers file requested'
+         LastTimeRequestResumen := StrToInt64(UTCTime);
+         end;
       end;
    end
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  // request up to 100 blocks
@@ -1038,12 +1048,12 @@ End;
 Function GetNodeStatusString():string;
 Begin
 //NODESTATUS 1{Peers} 2{LastBlock} 3{Pendings} 4{Delta} 5{headers} 6{version} 7{UTCTime} 8{MNsHash} 9{MNscount}
-//           10{LasBlockHash} 11{BestHashDiff} 12{LastBlockTimeEnd} 13{LBMiner} 14{ChecksCount}
+//           10{LasBlockHash} 11{BestHashDiff} 12{LastBlockTimeEnd} 13{LBMiner} 14{ChecksCount} {15}LastBlockPoW
 result := {1}IntToStr(GetTotalConexiones)+' '+{2}IntToStr(MyLastBlock)+' '+{3}GetPendingCount.ToString+' '+
           {4}IntToStr(UTCTime.ToInt64-EngineLastUpdate)+' '+{5}copy(myResumenHash,0,5)+' '+
           {6}ProgramVersion+SubVersion+' '+{7}UTCTime+' '+{8}copy(MyMnsHash,0,5)+' '+{9}GetMNsListLength.ToString+' '+
           {10}MyLastBlockHash+' '+{11}GetNMSData.Diff+' '+{12}IntToStr(LastBlockData.TimeEnd)+' '+
-          {13}LastBlockData.AccountMiner+' '+{14}GetMNsChecksCount.ToString;
+          {13}LastBlockData.AccountMiner+' '+{14}GetMNsChecksCount.ToString+' '+{15}Parameter(LastBlockData.Solution,2);
 End;
 
 Function IsSafeIP(IP:String):boolean;

@@ -88,6 +88,7 @@ Procedure ExportKeys(linea:string);
 // CONSULTING
 Procedure ShowDiftory();
 Function MainNetHashrate():string;
+Procedure ShowMiners(Linea:string);
 
 // 0.2.1 DEBUG
 Procedure ShowBlockPos(LineText:string);
@@ -308,11 +309,12 @@ else if UpperCase(Command) = 'DECTOHEX' then consolelinesadd(BMDectoHex(paramete
 else if UpperCase(Command) = 'NOSOHASH' then consolelinesadd(Nosohash(parameter(linetext,1)))
 else if UpperCase(Command) = 'PENDING' then consolelinesadd(PendingRawInfo)
 else if UpperCase(Command) = 'WEBSEED' then consolelinesadd(GetWebSeedNodes)
+else if UpperCase(Command) = 'HEADER' then consolelinesadd(LastHeaders(StrToIntDef(parameter(linetext,1),-1)))
 
 // CONSULTING
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()
 else if UpperCase(Command) = 'NETRATE' then consolelinesadd('Average Mainnet hashrate: '+MainnetHashRate+' KH/s')
-
+else if UpperCase(Command) = 'MINERS' then ShowMiners(Linetext)
 
 // 0.2.1 DEBUG
 else if UpperCase(Command) = 'BLOCKPOS' then ShowBlockPos(LineText)
@@ -1846,6 +1848,20 @@ for counter := 1 to MyLastBlock do
 ConsoleLinesAdd('Highest ever: '+IntToStr(HighDiff)+' on block '+highblock.ToString);
 End;
 
+// ON DEVELOPMENT
+Procedure ShowMiners(Linea:string);
+var
+  ThisArr : Array of TypeAddressCount;
+  counter : integer;
+Begin
+Setlength(ThisArr,0);
+For counter := mylastblock downto Mylastblock-143 do
+   begin
+
+   end;
+ConsoleLinesAdd('On development...');
+End;
+
 Function MainNetHashrate():string;
 var
   counter : integer;
@@ -2042,7 +2058,7 @@ End;
 
 Procedure DebugTest2(linetext:string);
 Begin
-ConsolelinesAdd(format('x: %d   y: %d   %d',[form1.Left,form1.Top,Form1.WindowState]));
+ConsolelinesAdd(Parameter(LastBlockData.Solution,2));
 End;
 
 END. // END UNIT

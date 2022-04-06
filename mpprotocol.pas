@@ -39,6 +39,8 @@ Procedure PTC_NetReqs(textline:string);
 function RequestAlreadyexists(reqhash:string):string;
 Procedure UpdateMyRequests(tipo:integer;timestamp:string;bloque:integer;hash,hashvalue:string);
 Function PTC_BestHash(Linea:string):String;
+Procedure PTC_SendUpdateHeaders(Slot:integer;Linea:String);
+Procedure PTC_HeadUpdate(linea:String);
 
 function GetMNfromText(LineText:String):TMasterNode;
 function GetTextFromMN(node:TMasterNode):string;
@@ -66,6 +68,8 @@ CONST
   GetChecks = 15;
   GetMNsFile = 16;
   MNFile = 17;
+  GetHeadUpdate = 18;
+  HeadUpdate = 19;
 
 implementation
 
@@ -183,6 +187,10 @@ if tipo = GetMNsFile then
    Resultado := 'GETMNSFILE';
 if tipo = MNFile then
    Resultado := 'MNFILE';
+if tipo = GetHeadUpdate then
+   Resultado := 'GETHEADUPDATE '+MyLastBlock.ToString;
+if tipo = HeadUpdate then
+   Resultado := 'HEADUPDATE';
 
 Resultado := Encabezado+Resultado;
 Result := resultado;
@@ -249,6 +257,9 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = '$GETCHECKS' then PTC_SendChecks(contador)
       else if UpperCase(LineComando) = 'GETMNSFILE' then PTC_SendLine(contador,ProtocolLine(MNFILE)+' $'+GetMNsFileData)
       else if UpperCase(LineComando) = 'MNFILE' then PTC_MNFile(SlotLines[contador][0])
+      else if UpperCase(LineComando) = 'GETHEADUPDATE' then PTC_SendUpdateHeaders(contador,SlotLines[contador][0])
+      else if UpperCase(LineComando) = 'HEADUPDATE' then PTC_HeadUpdate(SlotLines[contador][0])
+
 
       else
          Begin  // El comando recibido no se reconoce. Verificar protocolos posteriores.
@@ -1071,6 +1082,41 @@ else
    begin
    Result := Result+' 5';
    end;
+End;
+
+Procedure PTC_SendUpdateHeaders(Slot:integer;Linea:String);
+var
+  Block : integer;
+Begin
+//PTC_SendLine(contador,ProtocolLine(HEADUPDATE)+' $'+LastHeaders(StrToIntDef(Parameter(SlotLines[contador][0],1),-1)))
+Block := StrToIntDef(Parameter(Linea,5),0);
+PTC_SendLine(slot,ProtocolLine(headupdate)+' $'+LastHeaders(Block));
+ConsoleLinesAdd('Blockheaders update sent');
+End;
+
+Procedure PTC_HeadUpdate(linea:String);
+var
+  startpos : integer;
+  content : string;
+  ThisHeader, blockhash, sumhash: String;
+  Counter : integer = 0;
+  Numero : integer;
+Begin
+startpos := Pos('$',Linea);
+Content := Copy(Linea,Startpos+1,Length(linea));
+REPEAT
+   ThisHeader := Parameter(Content,counter);
+   If thisheader<>'' then
+      begin
+      ThisHeader := StringReplace(ThisHeader,':',' ',[rfReplaceAll, rfIgnoreCase]);
+      Numero := StrToIntDef(Parameter(ThisHeader,0),0);
+      blockhash := Parameter(ThisHeader,1);
+      sumhash := Parameter(ThisHeader,2);
+      AddBlchHead(numero,blockhash,sumhash);
+      end;
+   inc(counter);
+UNTIL ThisHeader='';
+MyResumenHash := HashMD5File(ResumenFilename);
 End;
 
 Procedure SetNMSData(diff,hash,miner:string);
