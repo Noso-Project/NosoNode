@@ -749,7 +749,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ad6';
+  SubVersion = 'Ad7';
   OficialRelease = false;
   VersionRequired = '0.3.1Aa5';
   BuildDate = 'April 2022';

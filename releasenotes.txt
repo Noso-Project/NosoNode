@@ -1,3 +1,7 @@
+Version 0.3.1Ad7
+
+- Official release
+
 Version 0.3.1Ad6
 
 - Update recent headers instead download complete file.
