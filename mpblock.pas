@@ -327,7 +327,6 @@ repeat
 until bestdiff[counter]<> '0';
 Result := (Counter-1).ToString+'.';
 if counter<length(BestDiff) then Result := Result+bestdiff[counter];
-
 End;
 
 // Devuelve cuantos caracteres compondran el targethash del siguiente bloque

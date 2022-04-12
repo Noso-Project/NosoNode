@@ -1117,6 +1117,8 @@ REPEAT
    inc(counter);
 UNTIL ThisHeader='';
 MyResumenHash := HashMD5File(ResumenFilename);
+if MyResumenHash <> NetResumenHash.Value then ForceCompleteHeadersDownload := true
+else ForceCompleteHeadersDownload := false;
 End;
 
 Procedure SetNMSData(diff,hash,miner:string);

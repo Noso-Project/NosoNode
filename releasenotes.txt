@@ -1,3 +1,13 @@
+Version 0.3.1Ae1
+
+- Official release
+
+Version 0.3.1Ad8
+
+- Turbo update headers.
+- NSLTIME implemented.
+- LBDiff added to nodestatus.
+
 Version 0.3.1Ad7
 
 - Official release

@@ -1115,8 +1115,8 @@ Var
   LastBlock : int64 = 0;
   OnlyNumbers : String;
 Begin
-   try
-   BlockFiles := TStringList.Create;
+BlockFiles := TStringList.Create;
+   TRY
    FindAllFiles(BlockFiles, BlockDirectory, '*.blk', true);
    while contador < BlockFiles.Count do
       begin
@@ -1125,11 +1125,11 @@ Begin
          LastBlock := CadToNum(OnlyNumbers,0,'Failed converting block to number:'+OnlyNumbers);
       contador := contador+1;
       end;
-   BlockFiles.Free;
    Result := LastBlock;
-   Except on E:Exception do
+   EXCEPT on E:Exception do
       tolog ('Error getting my last updated block');
-   end;
+   END; {TRY}
+BlockFiles.Free;
 end;
 
 // Updates sumary

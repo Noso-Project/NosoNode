@@ -87,7 +87,7 @@ Procedure ExportKeys(linea:string);
 
 // CONSULTING
 Procedure ShowDiftory();
-Function MainNetHashrate():string;
+Function MainNetHashrate(blocks:integer = 100):string;
 Procedure ShowMiners(Linea:string);
 
 // 0.2.1 DEBUG
@@ -313,7 +313,7 @@ else if UpperCase(Command) = 'HEADER' then consolelinesadd(LastHeaders(StrToIntD
 
 // CONSULTING
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()
-else if UpperCase(Command) = 'NETRATE' then consolelinesadd('Average Mainnet hashrate: '+MainnetHashRate+' KH/s')
+else if UpperCase(Command) = 'NETRATE' then consolelinesadd('Average Mainnet hashrate: '+MainnetHashRate(StrToIntDef(Parameter(linetext,1),100))+' KH/s')
 else if UpperCase(Command) = 'MINERS' then ShowMiners(Linetext)
 
 // 0.2.1 DEBUG
@@ -1862,7 +1862,7 @@ For counter := mylastblock downto Mylastblock-143 do
 ConsoleLinesAdd('On development...');
 End;
 
-Function MainNetHashrate():string;
+Function MainNetHashrate(blocks:integer = 100):string;
 var
   counter : integer;
   TotalRate : double = 0;
@@ -1872,6 +1872,7 @@ var
   TotalBlocksCalculated : integer = 100;
   ResultStr : string = '';
 Begin
+TotalBlocksCalculated := blocks;
 For counter:= MyLastblock downto Mylastblock-(TotalBlocksCalculated-1) do
    begin
    Header := LoadBlockDataHeader(counter);
@@ -2058,7 +2059,7 @@ End;
 
 Procedure DebugTest2(linetext:string);
 Begin
-ConsolelinesAdd(Parameter(LastBlockData.Solution,2));
+ConsolelinesAdd(GetNodeStatusString);
 End;
 
 END. // END UNIT

@@ -716,8 +716,6 @@ Procedure CerrarPrograma();
 Procedure UpdateStatusBar();
 Procedure GenerateCode();
 Procedure CompleteInicio();
-Function GetPoolMinningInfo():PoolMinerData;
-Procedure SetPoolMinningInfo(NewData:PoolMinerData);
 
 
 CONST
@@ -738,8 +736,8 @@ CONST
                             '107.175.59.177 '+
                             '107.172.193.176 '+
                             '107.175.194.151 '+
-                            '192.3.173.184 '+
-                            '192.210.226.118';
+                            '192.3.73.184';
+
   ProgramVersion = '0.3.1';
   {$IFDEF WINDOWS}
   RestartFileName = 'launcher.bat';
@@ -749,7 +747,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ad7';
+  SubVersion = 'Ae1';
   OficialRelease = false;
   VersionRequired = '0.3.1Aa5';
   BuildDate = 'April 2022';
@@ -991,6 +989,7 @@ var
   NetResumenHash : NetworkData;
     LastTimeRequestResumen : int64 = 0;
     LastTimePendingRequested : int64 = 0;
+    ForceCompleteHeadersDownload : boolean = false;
   NetMNsHash     : NetworkData;
     LastTimeMNHashRequestes : int64 = 0;
   NetMNsCount    : NetworkData;
@@ -2337,21 +2336,6 @@ End;
 // *** POOL SERVER ***
 // *******************
 
-Function GetPoolMinningInfo():PoolMinerData;
-Begin
-EnterCriticalSection(CSPoolMiner);
-result := PoolMiner;
-LeaveCriticalSection(CSPoolMiner);
-End;
-
-Procedure SetPoolMinningInfo(NewData:PoolMinerData);
-Begin
-EnterCriticalSection(CSPoolMiner);
-PoolMiner := NewData;
-LeaveCriticalSection(CSPoolMiner);
-End;
-
-
 // *****************************
 // *** NODE SERVER FUNCTIONS ***
 // *****************************
@@ -2631,6 +2615,8 @@ if GoAhead then
       end
    else if parameter(LLine,0) = 'NSLPEND' then
       TryCloseServerConnection(AContext,PendingRawInfo)
+   else if parameter(LLine,0) = 'NSLTIME' then
+      TryCloseServerConnection(AContext,UTCTime)
    else if parameter(LLine,0) = 'GETZIPSUMARY' then  //
       begin
       MemStream := TMemoryStream.Create;
