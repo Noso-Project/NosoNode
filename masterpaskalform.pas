@@ -1189,6 +1189,7 @@ if Continuar then
             begin
             DownloadHeaders := true;
             ToLog(rs0003); //'Receiving headers'
+            ConsoleLinesAdd(rs0003); //'Receiving headers'
             MemStream := TMemoryStream.Create;
             CanalCliente[FSlot].ReadTimeout:=10000;
                TRY

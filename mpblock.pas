@@ -310,11 +310,11 @@ repeat
   counter := counter+1;
 until bestdiff[counter]<> '0';
 Result := (Counter-1)*100;
-if bestdiff[counter]='1' then Result := Result+87;
-if bestdiff[counter]='2' then Result := Result+75;
-if bestdiff[counter]='3' then Result := Result+50;
-if bestdiff[counter]='4' then Result := Result+37;
-if bestdiff[counter]='5' then Result := Result+25;
+if bestdiff[counter]='1' then Result := Result+50;
+if bestdiff[counter]='2' then Result := Result+37;
+if bestdiff[counter]='3' then Result := Result+25;
+if bestdiff[counter]='4' then Result := Result+12;
+if bestdiff[counter]='5' then Result := Result+6;
 End;
 
 Function BestHashReadeable(BestDiff:String):string;

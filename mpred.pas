@@ -829,7 +829,7 @@ if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // Req
       else // If less than 1008 block just update heades
          begin
          //PTC_SendLine(NetResumenHash.Slot,ProtocolLine(18)); // GetResumen update
-         PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
+         PTC_SendLine(NetResumenHash.Slot,ProtocolLine(18)); // GetResumen
          ConsoleLinesAdd('Headers update requested'); //'Headers file requested'
          LastTimeRequestResumen := StrToInt64(UTCTime);
          end;
@@ -890,7 +890,8 @@ else if ((StrToIntDef(NetMNsChecks.Value,0)>GetMNsChecksCount) and (LastTimeChec
    LastTimeChecksRequested := UTCTime.ToInt64;
    ConsoleLinesAdd('Checks requested to '+conexiones[NetMNsChecks.Slot].ip);
    end
-else if ((NetMNsHash.value<>Copy(MyMNsHash,1,5)) and (LastTimeMNHashRequestes+5<UTCTime.ToInt64)) then
+else if ( (NetMNsHash.value<>Copy(MyMNsHash,1,5)) and (LastTimeMNHashRequestes+5<UTCTime.ToInt64) and
+          (NetMNsHash.value<>'') ) then
    begin
    PTC_SendLine(NetMNsHash.Slot,ProtocolLine(GetMNsFile));  // Get MNsFile
    LastTimeMNHashRequestes := UTCTime.ToInt64;
