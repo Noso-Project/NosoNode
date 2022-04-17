@@ -1885,7 +1885,7 @@ For counter:= MyLastblock downto Mylastblock-(TotalBlocksCalculated-1) do
 TotalRate := TotalRate/TotalBlocksCalculated;
 //ConsoleLinesAdd(format('Average: %s',[FormatFloat('0.00',TotalRate)]));
 TotalRate := Power(16,TotalRate);
-TotalRate := TotalRate/(575*1024);
+TotalRate := TotalRate/(575*1000);
 Result := FormatFloat('0.00',TotalRate);
 End;
 

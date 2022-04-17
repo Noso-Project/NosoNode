@@ -509,7 +509,7 @@ End;
 
 Function GetVerificationMNLine():String;
 Begin
-if IsAllSynced then Result := 'True '+GetSyncTus
+if IsAllSynced then Result := 'True '+GetSyncTus+' '+MN_Funds
 else Result := 'False';
 End;
 

@@ -747,9 +747,9 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ae1';
+  SubVersion = 'Ae2';
   OficialRelease = false;
-  VersionRequired = '0.3.1Aa5';
+  VersionRequired = '0.3.1Ae1';
   BuildDate = 'April 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
@@ -2039,6 +2039,10 @@ setmilitime('VerifyMiner',2);
 if ( (KeepServerOn) and (not Form1.Server.Active) and (LastTryServerOn+5<StrToInt64(UTCTime))
       and (MyConStatus = 3) ) then
    ProcessLinesAdd('serveron');
+if  ( (not Form1.Server.Active) and(IsSeedNode(MN_IP)) )then
+   begin
+   ProcessLinesAdd('forceserver');
+   end;
 if G_CloseRequested then CerrarPrograma();
 if form1.SystrayIcon.Visible then
    form1.SystrayIcon.Hint:=Coinname+' Ver. '+ProgramVersion+SubVersion+SLINEBREAK+LabelBigBalance.Caption;

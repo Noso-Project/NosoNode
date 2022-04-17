@@ -169,6 +169,7 @@ else
       Form1.Server.DefaultPort:=PortNumber;//UserOptions.Port;
       Form1.Server.Active:=true;
       ConsoleLinesAdd(LangLine(14)+PortNumber.ToString);   //Server ENABLED. Listening on port
+      ServerStartTime := UTCTime.ToInt64;
       U_DataPanel := true;
       EXCEPT on E : Exception do
         ToLog(LangLine(15));       //Unable to start Server
@@ -269,10 +270,12 @@ Procedure ConnectToServers();
 var
   //contador : integer = 0;
   proceder : boolean = true;
-  Intentado : boolean = false;
+  Success : boolean = false;
   Intentos : integer = 0;
   rannumber : integer;
+  OutGoing  : integer;
 Begin
+OutGoing := GetOutGoingConnections;
 SetCurrentJob('ConnectToServers',true);
 setmilitime('ConnectToServers',1);
 if not CONNECT_Try then
@@ -280,26 +283,28 @@ if not CONNECT_Try then
    ConsoleLinesAdd(LangLine(162)); //'Trying connection to servers'
    CONNECT_Try := true;
    end;
-if GetOutGoingConnections >= MaxOutgoingConnections then proceder := false;
+if OutGoing >= MaxOutgoingConnections then proceder := false;
 if getTotalConexiones >= MaxConecciones then Proceder := false;
 if proceder then
    begin
-   Repeat
    rannumber := random(length(ListaNodos));
+   REPEAT
+   Inc(rannumber);
+   if rannumber >=length(ListaNodos) then rannumber := 0;
    if ((GetSlotFromIP(ListaNodos[rannumber].ip)=0) AND (GetFreeSlot()>0) and (ListaNodos[rannumber].ip<>MN_Ip)) then
       begin
-      ConnectClient(ListaNodos[rannumber].ip,ListaNodos[rannumber].port);
-      intentado := true;
+      if ConnectClient(ListaNodos[rannumber].ip,ListaNodos[rannumber].port) > 0 then Inc(OutGoing);
+      //Success := true;
       end;
    intentos+=1;
-   until ((Intentado) or (intentos = 5));
+   CONNECT_LastTime := UTCTime();
+   UNTIL ((Success) or (intentos = length(ListaNodos)) or (OutGoing=MaxOutgoingConnections));
    end;
-CONNECT_LastTime := UTCTime();
 setmilitime('ConnectToServers',2);
 SetCurrentJob('ConnectToServers',false);
 End;
 
-// regresa el primer slot dispoinible, o 0 si no hay ninguno
+// regresa el primer slot disponible, o 0 si no hay ninguno
 function GetFreeSlot():integer;
 var
   contador : integer = 1;
@@ -352,8 +357,8 @@ if not errored then
       end;
    CanalCliente[Slot].Host:=Address;
    CanalCliente[Slot].Port:=StrToIntDef(Port,8080);
-   TRY
    CanalCliente[Slot].ConnectTimeout:= ConnectTimeOutTime;
+   TRY
    CanalCliente[Slot].Connect;
    SaveConection('SER',Address,ConContext);
    ToLog(LangLine(30)+Address);          //Connected TO:
@@ -1077,6 +1082,9 @@ conector.ConnectTimeout:=1000;
 conector.IOTimeout:=1000;
 TRY
    readedLine := Conector.SimpleGet('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/lastrelease.txt');
+   // Binance API example
+   //readedLine := Conector.SimpleGet('https://api.binance.com/api/v3/ticker/price?symbol=LTCUSDT');
+
 EXCEPT on E: Exception do
    begin
    Consolelinesadd('ERROR RETRIEVING LAST RELEASES DATA: '+E.Message);

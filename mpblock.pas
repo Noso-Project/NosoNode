@@ -304,17 +304,17 @@ End;
 
 Function GetDiffHashrate(bestdiff:String):integer;
 var
-  counter, number:integer;
+  counter :integer= 0;
 Begin
 repeat
   counter := counter+1;
 until bestdiff[counter]<> '0';
 Result := (Counter-1)*100;
 if bestdiff[counter]='1' then Result := Result+50;
-if bestdiff[counter]='2' then Result := Result+37;
-if bestdiff[counter]='3' then Result := Result+25;
-if bestdiff[counter]='4' then Result := Result+12;
-if bestdiff[counter]='5' then Result := Result+6;
+if bestdiff[counter]='2' then Result := Result+25;
+if bestdiff[counter]='3' then Result := Result+12;
+if bestdiff[counter]='4' then Result := Result+6;
+//if bestdiff[counter]='5' then Result := Result+3;
 End;
 
 Function BestHashReadeable(BestDiff:String):string;
@@ -572,10 +572,10 @@ blocknumber:= MyLastBlock;
 if BlockNumber = 0 then exit;
 if MyConStatus = 3 then
    begin
-   if Form1.Server.Active then Form1.Server.Active := false;
+   MyConStatus := 2;
+   //if Form1.Server.Active then Form1.Server.Active := false;
    ClearMNsChecks();
    ClearMNsList();
-   MyConStatus := 2;
    SetNMSData('','','');
    ClearAllPending;
    end;

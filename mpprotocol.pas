@@ -1091,7 +1091,8 @@ Begin
 //PTC_SendLine(contador,ProtocolLine(HEADUPDATE)+' $'+LastHeaders(StrToIntDef(Parameter(SlotLines[contador][0],1),-1)))
 Block := StrToIntDef(Parameter(Linea,5),0);
 PTC_SendLine(slot,ProtocolLine(headupdate)+' $'+LastHeaders(Block));
-ConsoleLinesAdd('Blockheaders update sent');
+ConsoleLinesAdd(Format('Blockheaders update sent to %s (%d)',[Conexiones[slot].ip,Block]));
+//ConsoleLinesAdd('Blockheaders update sent to '+Conexiones[slot].ip);
 End;
 
 Procedure PTC_HeadUpdate(linea:String);

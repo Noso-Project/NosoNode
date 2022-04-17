@@ -3,6 +3,9 @@ Version 0.3.1Ae2
 - Fixed multimple MNs file requests.
 - New network hashrate formula.
 - ProtocolLine(18) activated.
+- Connection to mainnet improved.
+- Forceserver for verificators.
+- Funds address returned on synctus request.
 
 Version 0.3.1Ae1
 
