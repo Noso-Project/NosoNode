@@ -4,8 +4,11 @@ Version 0.3.1Ae2
 - New network hashrate formula.
 - ProtocolLine(18) activated.
 - Connection to mainnet improved.
-- Forceserver for verificators.
-- Funds address returned on synctus request.
+- Fixed division by zero bug on MNS payment.
+- Filter <0 orders on validatetrfr.
+//- Forceserver for verificators.
+//- Funds address returned on synctus request.
+
 
 Version 0.3.1Ae1
 

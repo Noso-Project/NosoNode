@@ -2041,7 +2041,7 @@ if ( (KeepServerOn) and (not Form1.Server.Active) and (LastTryServerOn+5<StrToIn
    ProcessLinesAdd('serveron');
 if  ( (not Form1.Server.Active) and(IsSeedNode(MN_IP)) )then
    begin
-   ProcessLinesAdd('forceserver');
+   //ProcessLinesAdd('forceserver');
    end;
 if G_CloseRequested then CerrarPrograma();
 if form1.SystrayIcon.Visible then
@@ -2577,6 +2577,7 @@ ContextData := TServerTipo.Create;
 ContextData.Slot:=0;
 AContext.Data:=ContextData;
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
+// if ( (MyConStatus <3) and (not IsSeedNode(IPUser)) ) then GoAhead := false;
 if KeepServerOn = false then // Reject any new connection if we are closing the server
    begin
    TryCloseServerConnection(AContext,'Closing NODE');

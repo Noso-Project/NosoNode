@@ -724,6 +724,10 @@ else if not VerifySignedString(IntToStr(order.TimeStamp)+origen+order.Receiver+I
    IntToStr(order.AmmountFee)+IntToStr(order.TrxLine),
    Order.Signature,Order.Sender ) then
    result:=6
+else if Order.AmmountTrf<0 then
+   result := 7
+else if Order.AmmountFee<0 then
+   result := 8
 else result := 0;
 End;
 

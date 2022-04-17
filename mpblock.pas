@@ -214,7 +214,8 @@ if not errored then
 
       MNsCount := Length(MNsAddressess);
       MNsTotalReward := ((GetBlockReward(Numero)+MinerFee)*GetMNsPercentage(Numero)) div 10000;
-      MNsReward := MNsTotalReward div MNsCount;
+      if MNsCount>0 then MNsReward := MNsTotalReward div MNsCount
+      else MNsReward := 0;
       MNsTotalReward := MNsCount * MNsReward;
       For contador := 0 to length(MNsAddressess)-1 do
          begin
@@ -222,7 +223,7 @@ if not errored then
          end;
 
       setmilitime('NewBLOCK_MNs',2);
-      end;// End of MNS payment proecess
+      end;// End of MNS payment procecessing
 
    // ***END MASTERNODES PROCESSING***
 
@@ -573,7 +574,7 @@ if BlockNumber = 0 then exit;
 if MyConStatus = 3 then
    begin
    MyConStatus := 2;
-   //if Form1.Server.Active then Form1.Server.Active := false;
+   if Form1.Server.Active then Form1.Server.Active := false;
    ClearMNsChecks();
    ClearMNsList();
    SetNMSData('','','');
