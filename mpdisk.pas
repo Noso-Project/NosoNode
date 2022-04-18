@@ -80,6 +80,7 @@ Procedure CreateResumen();
 Procedure BuildHeaderFile(untilblock:integer);
 Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
 Function DelBlChHeadLast(Block:integer): boolean;
+Function GetHeadersSize():integer;
 Function ShowBlockHeaders(BlockNumber:Integer):String;
 Function LastHeaders(FromBlock:integer):String;
 
@@ -1556,6 +1557,22 @@ EnterCriticalSection(CSHeadAccess);
       begin
       tolog ('Error deleting last record from headers');
       result := false;
+      end;
+   END;{TRY}
+LeaveCriticalSection(CSHeadAccess);
+End;
+
+Function GetHeadersSize():integer;
+Begin
+EnterCriticalSection(CSHeadAccess);
+assignfile(FileResumen,ResumenFilename);
+   TRY
+   reset(FileResumen);
+   Result := filesize(fileResumen)-1;
+   closefile(FileResumen);
+   EXCEPT on E:Exception do
+      begin
+      tolog ('Error retrieving headers size');
       end;
    END;{TRY}
 LeaveCriticalSection(CSHeadAccess);

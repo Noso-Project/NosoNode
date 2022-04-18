@@ -18,6 +18,8 @@ function IsValidProtocol(line:String):Boolean;
 Procedure PTC_Getnodes(Slot:integer);
 function GetNodesString():string;
 Procedure PTC_SendLine(Slot:int64;Message:String);
+Procedure ClearOutTextToSlot(slot:integer);
+Function GetTextToSlot(slot:integer):string;
 function GetNodeFromString(NodeDataString: string): NodeData;
 Procedure ProcessPing(LineaDeTexto: string; Slot: integer; Responder:boolean);
 function GetPingString():string;
@@ -308,33 +310,68 @@ if slot <= length(conexiones)-1 then
    begin
    if ((conexiones[Slot].tipo='CLI') and (not conexiones[Slot].IsBusy)) then
       begin
-         try
+      if SendDirectToPeer then
+         begin
+         TRY
          Conexiones[Slot].context.Connection.IOHandler.WriteLn(Message);
-         except
-         On E :Exception do
+         EXCEPT On E :Exception do
             begin
             ConsoleLinesAdd(E.Message);
             ToExcLog('Error sending line: '+E.Message);
             CerrarSlot(Slot);
             end;
+         END;{TRY}
+         end
+      else
+         begin
+         EnterCriticalSection(CSOutGoingArr[slot]);
+         Insert(Message,ArrayOutgoing[slot],length(ArrayOutgoing[slot]));
+         LeaveCriticalSection(CSOutGoingArr[slot]);
          end;
       end;
    if ((conexiones[Slot].tipo='SER') and (not conexiones[Slot].IsBusy)) then
       begin
-         try
-         CanalCliente[Slot].IOHandler.WriteLn(Message);
-         except
-         On E :Exception do
-            begin
-            ConsoleLinesAdd(E.Message);
-            ToExcLog('Error sending line: '+E.Message);
-            CerrarSlot(Slot);
-            end;
+      TRY
+      CanalCliente[Slot].IOHandler.WriteLn(Message);
+      EXCEPT On E :Exception do
+         begin
+         ConsoleLinesAdd(E.Message);
+         ToExcLog('Error sending line: '+E.Message);
+         CerrarSlot(Slot);
          end;
+      END;{TRY}
       end;
    end
 else ToExcLog('Invalid PTC_SendLine slot: '+IntToStr(slot));
 end;
+
+{
+EnterCriticalSection(CSOutGoingArr[slot]);
+Insert(Message,ArrayOutgoing[slot],length(ArrayOutgoing[slot]));
+LeaveCriticalSection(CSOutGoingArr[slot]);
+}
+
+Procedure ClearOutTextToSlot(slot:integer);
+Begin
+EnterCriticalSection(CSOutGoingArr[slot]);
+SetLength(ArrayOutgoing[slot],0);
+LeaveCriticalSection(CSOutGoingArr[slot]);
+End;
+
+Function GetTextToSlot(slot:integer):string;
+Begin
+result := '';
+if ( (Slot>1) and (slot<=MaxConecciones) ) then
+   begin
+   EnterCriticalSection(CSOutGoingArr[slot]);
+   if length(ArrayOutgoing[slot])>0 then
+      begin
+      result:= ArrayOutgoing[slot][0];
+      Delete(ArrayOutgoing[slot],0,1);
+      end;
+   LeaveCriticalSection(CSOutGoingArr[slot]);
+   end;
+End;
 
 // Devuelve la info de un nodo a partir de una cadena pre-tratada
 function GetNodeFromString(NodeDataString: string): NodeData;
@@ -776,6 +813,7 @@ var
   Proceder : boolean = true;
 Begin
 Result := '';
+TRY
 NumTransfers := StrToInt(Parameter(TextLine,5));
 Textbak := GetOpData(TextLine);
 SetLength(TrxArray,0);SetLength(SenderTrx,0);
@@ -818,6 +856,11 @@ if proceder then
    U_DirPanel := true;
    Result := Parameter(Textbak,7); // send order ID as result
    end;
+EXCEPT ON E:EXCEPTION DO
+   begin
+   ConsoleLinesAdd('****************************************'+slinebreak+'PTC_Order:'+E.Message);
+   end;
+END; {TRY}
 End;
 
 Procedure PTC_AdminMSG(TextLine:String);
@@ -1095,7 +1138,7 @@ Begin
 //PTC_SendLine(contador,ProtocolLine(HEADUPDATE)+' $'+LastHeaders(StrToIntDef(Parameter(SlotLines[contador][0],1),-1)))
 Block := StrToIntDef(Parameter(Linea,5),0);
 PTC_SendLine(slot,ProtocolLine(headupdate)+' $'+LastHeaders(Block));
-ConsoleLinesAdd(Format('Blockheaders update sent to %s (%d)',[Conexiones[slot].ip,Block]));
+//ConsoleLinesAdd(Format('Blockheaders update sent to %s (%d)',[Conexiones[slot].ip,Block]));
 //ConsoleLinesAdd('Blockheaders update sent to '+Conexiones[slot].ip);
 End;
 

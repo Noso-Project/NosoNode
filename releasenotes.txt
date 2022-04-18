@@ -1,14 +1,22 @@
+Version 0.3.1Ae3
+
+- Forceserver for verificators.
+- Exception catcher on PTC_Order.
+- Clear received orders IDs when pending is requested.
+- Implement outgoing strings.
+- Update headers short to 144 blocks
+- Funds address returned on synctus request.
+- Not close server when undone block.
+- Solve the issue that it do not resync after undone block.
+
 Version 0.3.1Ae2
 
-- Fixed multimple MNs file requests.
+- Fixed multiple MNs file requests.
 - New network hashrate formula.
 - ProtocolLine(18) activated.
 - Connection to mainnet improved.
 - Fixed division by zero bug on MNS payment.
 - Filter <0 orders on validatetrfr.
-//- Forceserver for verificators.
-//- Funds address returned on synctus request.
-
 
 Version 0.3.1Ae1
 

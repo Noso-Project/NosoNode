@@ -31,7 +31,7 @@ Function IsBlockOpen():boolean;
 implementation
 
 Uses
-  mpDisk,mpProtocol, mpGui, mpparser;
+  mpDisk,mpProtocol, mpGui, mpparser, mpRed;
 
 // Crea el bloque CERO con los datos por defecto
 Procedure CrearBloqueCero();
@@ -228,9 +228,7 @@ if not errored then
    // ***END MASTERNODES PROCESSING***
 
    // Reset Order hashes received
-   EnterCriticalSection(CSIdsProcessed);
-   Setlength(ArrayOrderIDsProcessed,0);
-   LeaveCriticalSection(CSIdsProcessed);
+   ClearReceivedOrdersIDs;
 
    // Pago del minero
    PoWTotalReward := (GetBlockReward(Numero)+MinerFee)-PosTotalReward-MNsTotalReward;
@@ -574,11 +572,12 @@ if BlockNumber = 0 then exit;
 if MyConStatus = 3 then
    begin
    MyConStatus := 2;
-   if Form1.Server.Active then Form1.Server.Active := false;
+   //if Form1.Server.Active then Form1.Server.Active := false;
    ClearMNsChecks();
    ClearMNsList();
    SetNMSData('','','');
    ClearAllPending;
+   ClearReceivedOrdersIDs;
    end;
 // recuperar el sumario
 Trydeletefile(SumarioFilename);

@@ -87,7 +87,7 @@ Procedure ExportKeys(linea:string);
 
 // CONSULTING
 Procedure ShowDiftory();
-Function MainNetHashrate(blocks:integer = 100):string;
+Function MainNetHashrate(blocks:integer = 100):int64;
 Procedure ShowMiners(Linea:string);
 
 // 0.2.1 DEBUG
@@ -310,10 +310,11 @@ else if UpperCase(Command) = 'NOSOHASH' then consolelinesadd(Nosohash(parameter(
 else if UpperCase(Command) = 'PENDING' then consolelinesadd(PendingRawInfo)
 else if UpperCase(Command) = 'WEBSEED' then consolelinesadd(GetWebSeedNodes)
 else if UpperCase(Command) = 'HEADER' then consolelinesadd(LastHeaders(StrToIntDef(parameter(linetext,1),-1)))
+else if UpperCase(Command) = 'HEADSIZE' then consolelinesadd(GetHeadersSize.ToString)
 
 // CONSULTING
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()
-else if UpperCase(Command) = 'NETRATE' then consolelinesadd('Average Mainnet hashrate: '+MainnetHashRate(StrToIntDef(Parameter(linetext,1),100))+' KH/s')
+else if UpperCase(Command) = 'NETRATE' then consolelinesadd('Average Mainnet hashrate: '+HashrateToShow(MainNetHashrate))
 else if UpperCase(Command) = 'MINERS' then ShowMiners(Linetext)
 
 // 0.2.1 DEBUG
@@ -1420,6 +1421,7 @@ Procedure CheckOwnerHash(LineText:string);
 var
   data, pubkey, direc,firmtime,firma : string;
 Begin
+setmilitime('CheckOwnerHash',1);
 data := parameter(LineText,1);
 data := DecodeCertificate(Data);
 data := StringReplace(data,':',' ',[rfReplaceAll, rfIgnoreCase]);
@@ -1431,6 +1433,7 @@ if ListaSumario[AddressSumaryIndex(direc)].custom <> '' then direc := ListaSumar
 if VerifySignedString('I OWN THIS ADDRESS '+direc+firmtime,firma,pubkey) then
    ConsoleLinesAdd(direc+' verified '+TimeSinceStamp(StrToInt64(firmtime))+' ago.')
 else ConsoleLinesAdd('Invalid verification');
+setmilitime('CheckOwnerHash',2);
 End;
 
 // devuelve una cadena con los updates disponibles
@@ -1862,7 +1865,7 @@ For counter := mylastblock downto Mylastblock-143 do
 ConsoleLinesAdd('On development...');
 End;
 
-Function MainNetHashrate(blocks:integer = 100):string;
+Function MainNetHashrate(blocks:integer = 100):int64;
 var
   counter : integer;
   TotalRate : double = 0;
@@ -1885,8 +1888,7 @@ For counter:= MyLastblock downto Mylastblock-(TotalBlocksCalculated-1) do
 TotalRate := TotalRate/TotalBlocksCalculated;
 //ConsoleLinesAdd(format('Average: %s',[FormatFloat('0.00',TotalRate)]));
 TotalRate := Power(16,TotalRate);
-TotalRate := TotalRate/(575*1000);
-Result := FormatFloat('0.00',TotalRate);
+Result := Round(TotalRate/575);
 End;
 
 function ShowPrivKey(linea:String;ToConsole:boolean = false):String;

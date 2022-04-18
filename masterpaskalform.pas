@@ -642,17 +642,7 @@ type
     Procedure SCBitConfOnClick(Sender:TObject);
     Procedure ResetearValoresEnvio(Sender:TObject);
     Procedure CheckClipboardForPays();
-    // Pool
-    {
-    Procedure TryClosePoolConnection(AContext: TIdContext; closemsg:string='');
-    Function TryMessageToMiner(AContext: TIdContext;message:string): boolean;
-    function PoolClientsCount : Integer ;
-    Procedure CheckOutPool(AContext: TIdContext; ThisID:Integer);
-    procedure PoolServerConnect(AContext: TIdContext);
-    procedure PoolServerExecute(AContext: TIdContext);
-    procedure PoolServerDisconnect(AContext: TIdContext);
-    procedure PoolServerException(AContext: TIdContext;AException: Exception);
-    }
+
     // NODE SERVER
     Function TryMessageToNode(AContext: TIdContext;message:string):boolean;
 
@@ -747,7 +737,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ae2';
+  SubVersion = 'Ae3';
   OficialRelease = false;
   VersionRequired = '0.3.1Ae1';
   BuildDate = 'April 2022';
@@ -786,6 +776,7 @@ CONST
   NPLS = '<NOS>';
   NPLE = '<END>';
   AvailableMarkets = '/LTC';
+  SendDirectToPeer = false;
 
 var
   UserFontSize : integer = 8;
@@ -1075,6 +1066,9 @@ var
   CSIdsProcessed: TRTLCriticalSection;
   // Server handling
   CSNodesList   : TRTLCriticalSection;
+  // Outgoing lines, needs to be initialized
+  CSOutGoingArr : array[1..MaxConecciones] of TRTLCriticalSection;
+  ArrayOutgoing : array[1..MaxConecciones] of array of string;
 
   // FormState
   FormState_Top    : integer;
@@ -1148,6 +1142,8 @@ var
   Continuar : boolean = true;
   TruncateLine : string = '';
   Errored, downloaded : Boolean;
+  LineToSend : string;
+  LineSent : boolean;
 begin
 REPEAT
 sleep(1);
@@ -1156,7 +1152,9 @@ if CanalCliente[FSlot].IOHandler.InputBufferIsEmpty then
    begin
    CanalCliente[FSlot].IOHandler.CheckForDataOnSource(ReadTimeOutTIme);
    if CanalCliente[FSlot].IOHandler.InputBufferIsEmpty then
+      begin
       Continuar := false;
+      end;
    end;
 if Continuar then
    begin
@@ -1248,8 +1246,10 @@ if Continuar then
                if UnzipBlockFile(BlockDirectory+'blocks.zip',true) then
                   begin
                   MyLastBlock := GetMyLastUpdatedBlock();
+                  MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
                   ToLog(format(rs0021,[IntToStr(MyLastBlock)])); //'Blocks received up to '+IntToStr(MyLastBlock));
                   LastTimeRequestBlock := 0;
+                  UpdateMyData();
                   end;
                end;
             MemStream.Free;
@@ -1423,6 +1423,8 @@ End;
 
 // Form create
 procedure TForm1.FormCreate(Sender: TObject);
+var
+  counter : integer;
 begin
 StringListLang     := TStringlist.Create;
 DLSL               := TStringlist.Create;
@@ -1460,6 +1462,11 @@ InitCriticalSection(CSMinersConex);
 InitCriticalSection(CSNMSData);
 InitCriticalSection(CSIdsProcessed);
 InitCriticalSection(CSNodesList);
+for counter := 1 to MaxConecciones do
+   begin
+   InitCriticalSection(CSOutGoingArr[counter]);
+   SetLength(ArrayOutgoing[counter],0);
+   end;
 
 CreateFormInicio();
 CreateFormSlots();
@@ -1496,6 +1503,8 @@ DoneCriticalSection(CSMinersConex);
 DoneCriticalSection(CSNMSData);
 DoneCriticalSection(CSIdsProcessed);
 DoneCriticalSection(CSNodesList);
+for contador := 1 to MaxConecciones do
+   DoneCriticalSection(CSOutGoingArr[contador]);
 
 form1.Server.free;
 form1.RPCServer.Free;
@@ -2039,10 +2048,6 @@ setmilitime('VerifyMiner',2);
 if ( (KeepServerOn) and (not Form1.Server.Active) and (LastTryServerOn+5<StrToInt64(UTCTime))
       and (MyConStatus = 3) ) then
    ProcessLinesAdd('serveron');
-if  ( (not Form1.Server.Active) and(IsSeedNode(MN_IP)) )then
-   begin
-   //ProcessLinesAdd('forceserver');
-   end;
 if G_CloseRequested then CerrarPrograma();
 if form1.SystrayIcon.Visible then
    form1.SystrayIcon.Hint:=Coinname+' Ver. '+ProgramVersion+SubVersion+SLINEBREAK+LabelBigBalance.Caption;
@@ -2399,13 +2404,32 @@ var
   GetFileOk : boolean = false;
   GoAhead : boolean;
   NextLines : array of string;
+  LineToSend : string;
+  LinesSent : integer = 0;
 Begin
 GoAhead := true;
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
 slot := GetSlotFromIP(IPUser);
+if not SendDirectToPeer then
+   begin
+   REPEAT
+   LineToSend := GetTextToSlot(slot);
+   if LineToSend <> '' then
+      begin
+      TryMessageToNode(AContext,LineToSend);
+      Inc(LinesSent);
+      end;
+   UNTIL LineToSend='' ;
+   if LinesSent >0 then exit;
+   end;
 if slot = 0 then
    begin
    TryCloseServerConnection(AContext);
+   exit;
+   end;
+if ( (MyConStatus <3) and (not IsSeedNode(IPUser)) ) then
+   begin
+   TryCloseServerConnection(AContext,'Closing NODE');
    exit;
    end;
 TRY
@@ -2577,7 +2601,11 @@ ContextData := TServerTipo.Create;
 ContextData.Slot:=0;
 AContext.Data:=ContextData;
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
-// if ( (MyConStatus <3) and (not IsSeedNode(IPUser)) ) then GoAhead := false;
+if ( (MyConStatus <3) and (not IsSeedNode(IPUser)) ) then
+   begin
+   TryCloseServerConnection(AContext,'Closing NODE');
+   exit;
+   end;
 if KeepServerOn = false then // Reject any new connection if we are closing the server
    begin
    TryCloseServerConnection(AContext,'Closing NODE');
@@ -2697,6 +2725,7 @@ if GoAhead then
          AContext.Data:=ContextData;
          MyPublicIP := MiIp;
          U_DataPanel := true;
+         ClearOutTextToSlot(ThisSlot);
          end;
       end
    else

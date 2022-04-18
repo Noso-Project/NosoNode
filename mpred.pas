@@ -54,6 +54,7 @@ Function GetLastVerZipFile(version,LocalOS:string):boolean;
 Function GetSyncTus():String;
 function GetMiIP():String;
 Function NodeServerInfo():String;
+Procedure ClearReceivedOrdersIDs();
 
 implementation
 
@@ -300,6 +301,10 @@ if proceder then
    CONNECT_LastTime := UTCTime();
    UNTIL ((Success) or (intentos = length(ListaNodos)) or (OutGoing=MaxOutgoingConnections));
    end;
+//{
+if  ( (not Form1.Server.Active) and(IsSeedNode(MN_IP)) and (GetOutGoingConnections=0) and (WO_autoserver) )then
+   forceserver;
+//}
 setmilitime('ConnectToServers',2);
 SetCurrentJob('ConnectToServers',false);
 End;
@@ -326,6 +331,7 @@ var
   Slot : integer = 0;
   ConContext : TIdContext; // EMPTY
   Errored : boolean = false;
+  SavedSlot : integer;
 Begin
 SetCurrentJob('ConnectClient',true);
 result := 0;
@@ -358,12 +364,16 @@ if not errored then
    CanalCliente[Slot].Host:=Address;
    CanalCliente[Slot].Port:=StrToIntDef(Port,8080);
    CanalCliente[Slot].ConnectTimeout:= ConnectTimeOutTime;
+   ClearOutTextToSlot(slot);
    TRY
    CanalCliente[Slot].Connect;
-   SaveConection('SER',Address,ConContext);
+   SavedSlot := SaveConection('SER',Address,ConContext);
+   COnsoleLinesAdd(slot.ToString+'<->'+SavedSlot.ToString);
    ToLog(LangLine(30)+Address);          //Connected TO:
    CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address+' '+ProgramVersion+subversion);
    CanalCliente[Slot].IOHandler.WriteLn(ProtocolLine(3));   // Send PING
+   //PTC_SendLine(slot,'PSK '+Address+' '+ProgramVersion+subversion);
+   //PTC_SendLine(slot,ProtocolLine(3));
    Conexiones[slot].Thread := TThreadClientRead.Create(true, slot);
    Conexiones[slot].Thread.FreeOnTerminate:=true;
    Conexiones[slot].Thread.Start;
@@ -541,6 +551,7 @@ if MyConStatus = 3 then
    if ((StrToIntDef(NetPendingTrxs.Value,0)>GetPendingCount) and (LastTimePendingRequested+5<UTCTime.ToInt64) and
       (length(ArrayCriptoOp)=0) ) then
       begin
+      ClearReceivedOrdersIDs();
       PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));  // Get pending
       LastTimePendingRequested := UTCTime.ToInt64;
       ConsoleLinesAdd('Pending requested to '+conexiones[NetPendingTrxs.Slot].ip);
@@ -825,13 +836,13 @@ if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // Req
    ClearMNsList();
    if ((LastTimeRequestResumen+5 < StrToInt64(UTCTime)) and (not DownloadHeaders)) then
       begin
-      if ( (NLBV-mylastblock >= 1008) or (ForceCompleteHeadersDownload) ) then
+      if ( (NLBV-mylastblock >= 144) or (ForceCompleteHeadersDownload) ) then
          begin
          PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
          ConsoleLinesAdd(LangLine(163)); //'Headers file requested'
          LastTimeRequestResumen := StrToInt64(UTCTime);
          end
-      else // If less than 1008 block just update heades
+      else // If less than 144 block just update heades
          begin
          //PTC_SendLine(NetResumenHash.Slot,ProtocolLine(18)); // GetResumen update
          PTC_SendLine(NetResumenHash.Slot,ProtocolLine(18)); // GetResumen
@@ -867,6 +878,7 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
 else if ( (mylastblock = NLBV) and ( (MyResumenhash <> NetResumenHash.Value) or
    (MyLastBlockHash<>NetLastBlockHash.value) ) ) then
    begin
+   ConsoleLinesAdd(MyLastBlockHash+' '+MyLastBlockHash);
    UndoneLastBlock();
    end
 // Update headers
@@ -1166,7 +1178,14 @@ End;
 
 Function GetSyncTus():String;
 Begin
+result := '';
+TRY
 Result := MyLastBlock.ToString+Copy(MyResumenHash,1,3)+Copy(MySumarioHash,1,3)+Copy(MyLastBlockHash,1,3);
+EXCEPT ON E:EXCEPTION do
+   begin
+   ConsolelinesAdd('****************************************'+slinebreak+'GetSyncTus:'+e.Message);
+   end;
+END; {TRY}
 End;
 
 function GetMiIP():String;
@@ -1211,6 +1230,13 @@ else
    if Days > 0 then Result:= Format('%dd %.2d:%.2d:%.2d', [Days, Hours, Minutes, Seconds])
    else Result:= Format('%.2d:%.2d:%.2d', [Hours, Minutes, Seconds]);
    end;
+End;
+
+Procedure ClearReceivedOrdersIDs();
+Begin
+EnterCriticalSection(CSIdsProcessed);
+Setlength(ArrayOrderIDsProcessed,0); // clear processed Orders
+LeaveCriticalSection(CSIdsProcessed);
 End;
 
 END. // END UNIT

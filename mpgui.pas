@@ -42,6 +42,7 @@ Procedure SetMiliTime(Name:string;tipo:integer);
 Procedure SetCurrentJob(CurrJob:String;status:boolean);
 Procedure CloseAllForms();
 Procedure UpdateRowHeigth();
+Function HashrateToShow(speed:int64):String;
 
 var
   FormInicio : TFormInicio;
@@ -651,14 +652,14 @@ End;
 
 Procedure CloseAllForms();
 Begin
-   try
+   TRY
    formslots.Visible:=false;
    CloseExplorer;
-   Except on E: Exception do
+   EXCEPT on E: Exception do
       begin
 
       end;
-   end;
+   END; {TRY}
 End;
 
 Procedure UpdateRowHeigth();
@@ -670,6 +671,14 @@ for contador := 0 to form1.datapanel.RowCount-1 do
    begin
    form1.DataPanel.RowHeights[contador]:=UserRowHeigth;
    end;
+End;
+
+Function HashrateToShow(speed:int64):String;
+Begin
+if speed>1000000000 then result := FormatFloat('0.00',speed/1000000000)+' Gh/s'
+else if speed>1000000 then result := FormatFloat('0.00',speed/1000000)+' Mh/s'
+else if speed>1000 then result := FormatFloat('0.00',speed/1000)+' Kh/s'
+else result := speed.ToString+' h/s'
 End;
 
 
