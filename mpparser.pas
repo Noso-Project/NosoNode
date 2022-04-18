@@ -566,10 +566,19 @@ var
   BiggerAmmount : int64 = 0;
   BiggerAddress : string = '';
   AsExpected : string = '';
+  NotValid   : integer = 0;
+  NotValidBalance : int64 = 0;
+  NotValidStr     : string = '';
 Begin
 EnterCriticalSection(CSSumary);
 For contador := 0 to length(ListaSumario)-1 do
    begin
+   if not IsValidHashAddress(ListaSumario[contador].Hash) then
+      begin
+      Inc(NotValid);
+      Inc(NotValidBalance,ListaSumario[contador].Balance);
+      NotValidStr := NotValidStr+contador.ToString+'->'+ListaSumario[contador].Hash+slinebreak;
+      end;
    if ListaSumario[contador].custom ='' then ThisCustom := 'NULL'
       else ThisCustom := ListaSumario[contador].custom;
    {
@@ -594,6 +603,11 @@ For contador := 0 to length(ListaSumario)-1 do
       BiggerAmmount := ListaSumario[contador].Balance;
       BiggerAddress := ListaSumario[contador].Hash;
       end;
+   end;
+if NotValid>0 then
+   begin
+   ConsoleLinesAdd(Format('Not Valid: %d [%s]',[NotValid,Int2Curr(NotValidBalance)]));
+   ConsoleLinesAdd(NotValidStr);
    end;
 ConsoleLinesAdd(IntToStr(Length(ListaSumario))+langline(51)); //addresses
 ConsoleLinesAdd(IntToStr(EmptyAddresses)+' empty.'); //addresses

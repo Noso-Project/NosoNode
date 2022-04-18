@@ -763,8 +763,12 @@ else if not VerifySignedString(IntToStr(order.TimeStamp)+origen+order.Receiver+I
    result:=6
 else if Order.AmmountTrf<0 then
    result := 7
-else if Order.AmmountFee<0 then
+else if Order.AmmountFee<=0 then
    result := 8
+else if Not IsValidHashAddress(Origen) then
+   result := 9
+else if ( (order.OrderType='TRFR') and  (Not IsValidHashAddress(Order.Receiver)) ) then
+   result := 10
 else result := 0;
 End;
 
@@ -1150,6 +1154,7 @@ var
   Counter : integer = 0;
   Numero : integer;
 Begin
+if MyResumenHash = NetResumenHash.Value then exit;
 startpos := Pos('$',Linea);
 Content := Copy(Linea,Startpos+1,Length(linea));
 REPEAT

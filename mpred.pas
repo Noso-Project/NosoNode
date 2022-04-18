@@ -368,7 +368,7 @@ if not errored then
    TRY
    CanalCliente[Slot].Connect;
    SavedSlot := SaveConection('SER',Address,ConContext);
-   COnsoleLinesAdd(slot.ToString+'<->'+SavedSlot.ToString);
+   //ConsoleLinesAdd(slot.ToString+'<->'+SavedSlot.ToString);
    ToLog(LangLine(30)+Address);          //Connected TO:
    CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address+' '+ProgramVersion+subversion);
    CanalCliente[Slot].IOHandler.WriteLn(ProtocolLine(3));   // Send PING

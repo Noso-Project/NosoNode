@@ -737,7 +737,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ae3';
+  SubVersion = 'Ae4';
   OficialRelease = false;
   VersionRequired = '0.3.1Ae1';
   BuildDate = 'April 2022';

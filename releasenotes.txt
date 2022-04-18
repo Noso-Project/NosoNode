@@ -1,3 +1,7 @@
+Version 0.3.1Ae4
+
+- Validatetrfr hash valid verification.
+
 Version 0.3.1Ae3
 
 - Forceserver for verificators.
