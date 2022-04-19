@@ -87,7 +87,7 @@ Procedure SetRPCOn();
 Begin
 if not Form1.RPCServer.Active then
    begin
-      try
+      TRY
       Form1.RPCServer.Bindings.Clear;
       Form1.RPCServer.DefaultPort:=RPCPort;
       Form1.RPCServer.Active:=true;
@@ -95,14 +95,14 @@ if not Form1.RPCServer.Active then
       form1.CB_RPC_ON.Checked:=true;
       G_Launching := false;
       ConsoleLinesAdd('RPC server ENABLED');
-      Except on E:Exception do
+      EXCEPT on E:Exception do
          begin
          ConsoleLinesAdd('Unable to start RPC port');
          G_Launching := true;
          form1.CB_RPC_ON.Checked:=false;
          G_Launching := false;
          end;
-      end;
+      END; {TRY}
    end
 else ConsoleLinesAdd('RPC server already ENABLED');
 End;

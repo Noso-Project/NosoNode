@@ -40,6 +40,7 @@ Procedure Processhint(sender:TObject);
 Procedure ShowGlobo(Titulo,texto:string);
 Procedure SetMiliTime(Name:string;tipo:integer);
 Procedure SetCurrentJob(CurrJob:String;status:boolean);
+Function GetCurrentJob():String;
 Procedure CloseAllForms();
 Procedure UpdateRowHeigth();
 Function HashrateToShow(speed:int64):String;
@@ -645,9 +646,24 @@ End;
 Procedure SetCurrentJob(CurrJob:String;status:boolean);
 Begin
 if status then
-   currentjob := CurrentJob+'>'+CurrJob
+   begin
+   EnterCriticalSection(CSCurrentJob);
+   currentjob := CurrentJob+'>'+CurrJob;
+   LeaveCriticalSection(CSCurrentJob);
+   end
 else
+   begin
+   EnterCriticalSection(CSCurrentJob);
    currentjob := StringReplace(currentjob,'>'+CurrJob,'',[rfReplaceAll, rfIgnoreCase]);
+   LeaveCriticalSection(CSCurrentJob);
+   end;
+End;
+
+Function GetCurrentJob():String;
+Begin
+EnterCriticalSection(CSCurrentJob);
+Result := currentjob;
+LeaveCriticalSection(CSCurrentJob);
 End;
 
 Procedure CloseAllForms();

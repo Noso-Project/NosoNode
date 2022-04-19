@@ -22,7 +22,7 @@ Procedure ConnectToServers();
 function GetFreeSlot():integer;
 function ConnectClient(Address,Port:String):integer;
 function GetTotalConexiones():integer;
-Procedure CerrarClientes();
+function CerrarClientes(ServerToo:Boolean=True):string;
 Procedure LeerLineasDeClientes();
 Procedure VerifyConnectionStatus();
 Procedure UpdateConsenso(data:String;Slot:integer);
@@ -43,6 +43,7 @@ Procedure ActualizarseConLaRed();
 Procedure AddNewBot(linea:string);
 function GetOutGoingConnections():integer;
 function GetIncomingConnections():integer;
+Function GetSeedConnections():integer;
 Procedure SendNetworkRequests(timestamp,direccion:string;block:integer);
 function GetOrderDetails(orderid:string):orderdata;
 Function GetNodeStatusString():string;
@@ -286,6 +287,7 @@ if not CONNECT_Try then
    end;
 if OutGoing >= MaxOutgoingConnections then proceder := false;
 if getTotalConexiones >= MaxConecciones then Proceder := false;
+if GetSeedConnections>=3 then proceder := false;
 if proceder then
    begin
    rannumber := random(length(ListaNodos));
@@ -301,10 +303,8 @@ if proceder then
    CONNECT_LastTime := UTCTime();
    UNTIL ((Success) or (intentos = length(ListaNodos)) or (OutGoing=MaxOutgoingConnections));
    end;
-//{
 if  ( (not Form1.Server.Active) and(IsSeedNode(MN_IP)) and (GetOutGoingConnections=0) and (WO_autoserver) )then
    forceserver;
-//}
 setmilitime('ConnectToServers',2);
 SetCurrentJob('ConnectToServers',false);
 End;
@@ -401,23 +401,29 @@ setmilitime('GetTotalConexiones',2);
 End;
 
 // Cierra todas las conexiones salientes
-Procedure CerrarClientes();
+function CerrarClientes(ServerToo:Boolean=True):string;
 var
   Contador: integer;
 Begin
+result := '';
 CONNECT_Try := false;
 SetCurrentJob('CerrarClientes',true);
-   try
+   TRY
    for contador := 1 to MaxConecciones do
       begin
       if conexiones[contador].tipo='SER' then CerrarSlot(contador);
       end;
-   Except on E:Exception do
+   Result := 'Clients connections closed'
+   EXCEPT on E:EXCEPTION do
       begin
       ToExcLog('Error closing client');
+      Result := 'Error closing clients';
       end;
+   END; {TRY}
+if ServerToo then
+   begin
+   if form1.Server.active then ProcessLinesAdd('SERVEROFF');
    end;
-if form1.Server.active then ProcessLinesAdd('SERVEROFF');
 SetCurrentJob('CerrarClientes',false);
 End;
 
@@ -967,6 +973,19 @@ for contador := 1 to MaxConecciones do
       resultado += 1;
    end;
 Result := resultado;
+end;
+
+Function GetSeedConnections():integer;
+var
+  contador : integer;
+  resultado : integer = 0;
+Begin
+Result := 0;
+for contador := 1 to MaxConecciones do
+   begin
+   if IsSeedNode(conexiones[contador].ip) then
+      Inc(Result);
+   end;
 end;
 
 Procedure SendNetworkRequests(timestamp,direccion:string;block:integer);

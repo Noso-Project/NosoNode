@@ -726,7 +726,8 @@ CONST
                             '107.175.59.177 '+
                             '107.172.193.176 '+
                             '107.175.194.151 '+
-                            '192.3.73.184';
+                            '192.3.73.184 '+
+                            '107.175.24.151';
 
   ProgramVersion = '0.3.1';
   {$IFDEF WINDOWS}
@@ -737,7 +738,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ae42';
+  SubVersion = 'Ae43';
   OficialRelease = false;
   VersionRequired = '0.3.1Ae1';
   BuildDate = 'April 2022';
@@ -1056,6 +1057,7 @@ var
   CSClosingApp  : TRTLCriticalSection;
   CSMinersConex : TRTLCriticalSection;
   CSNMSData     : TRTLCriticalSection;
+  CSCurrentJob  : TRTLCriticalSection;
   // old system
   CSMNsArray    : TRTLCriticalSection;
   CSWaitingMNs  : TRTLCriticalSection;
@@ -1461,6 +1463,7 @@ InitCriticalSection(CSMNsChecks);
 InitCriticalSection(CSClosingApp);
 InitCriticalSection(CSMinersConex);
 InitCriticalSection(CSNMSData);
+InitCriticalSection(CSCurrentJob);
 InitCriticalSection(CSIdsProcessed);
 InitCriticalSection(CSNodesList);
 for counter := 1 to MaxConecciones do
@@ -1503,6 +1506,7 @@ DoneCriticalSection(CSMNsChecks);
 DoneCriticalSection(CSClosingApp);
 DoneCriticalSection(CSMinersConex);
 DoneCriticalSection(CSNMSData);
+DoneCriticalSection(CSCurrentJob);
 DoneCriticalSection(CSIdsProcessed);
 DoneCriticalSection(CSNodesList);
 for contador := 1 to MaxConecciones do
@@ -2071,7 +2075,6 @@ var
   counter: integer;
   GoAhead : boolean = false;
   EarlyRestart : Boolean;
-  IsLinux   : boolean = false;
 
   procedure CloseLine(texto:String);
   Begin
@@ -2091,9 +2094,6 @@ if not G_ClosingAPP then
 LeaveCriticalSection(CSClosingApp);
 if GoAhead then
    begin
-   {$IFDEF UNIX}
-   IsLinux := true;
-   {$ENDIF}
    EarlyRestart := form1.Server.Active;
    Form1.Latido.Enabled:=false; // Stopped the latido
    form1.RestartTimer.Enabled:=false;
@@ -2109,11 +2109,10 @@ if GoAhead then
    CloseAllforms();
    CloseLine('Forms closed');
    sleep(100);
-   CerrarClientes();
-   CloseLine('Peer connections closed');
+   CloseLine(CerrarClientes(false));
    sleep(100);
    if ((EarlyRestart) and (RestartNosoAfterQuit)) then RestartNoso;
-   if ( (form1.Server.Active) and (Not IsLinux) ) then
+   if form1.Server.Active then
       begin
       if StopServer then CloseLine('Node server stopped')
       else CloseLine('Error closing node server');
@@ -2188,8 +2187,8 @@ if GoAhead then
    END{Try};
    sleep(100);
    if ((not EarlyRestart) and (RestartNosoAfterQuit)) then RestartNoso;
-   if not IsLinux then form1.Close
-   else Halt(0);//application.Terminate;
+   form1.Close;
+   //application.Terminate;
    //Halt(0);
    end;
 End;
@@ -2199,7 +2198,7 @@ Procedure InicializarFormulario();
 var
   contador : integer = 0;
 Begin
-// BY GUS: Make sure ALL tabs are set correct at startup
+// Make sure ALL tabs are set correct at startup
 Form1.PageMain.ActivePage:= Form1.TabWallet;
 Form1.TabWalletMain.ActivePage:= Form1.TabAddresses;
 Form1.PageControl2.ActivePage:= Form1.tabExBuy;
@@ -2318,7 +2317,6 @@ var
 //  StreamString: TStream ;
   StreamString: TStringStream ;
 Begin
-//consolelinesadd(ARequestInfo.RemoteIP);
 if ( (RPCFilter) and (Not ValidRPCHost(ARequestInfo.RemoteIP)) ) then
    begin
    AResponseInfo.ContentText:= GetJSONErrorCode(498,-1);
@@ -2329,18 +2327,18 @@ else if ARequestInfo.Command <> 'POST' then
    end
 else if ARequestInfo.Command = 'POST' then
    begin  // Is a post request
-
    StreamString := TStringStream.Create('', TEncoding.UTF8);
+   TRY
    StreamString.LoadFromStream(ARequestInfo.PostStream);
-
-   //StreamString := ARequestInfo.PostStream;
    if assigned(StreamString) then
       begin
       StreamString.Position:=0;
       PostString := ReadStringFromStream(StreamString,-1,IndyTextEncoding_UTF8);
       end;
+   EXCEPT ON E:EXCEPTION DO
+      ToExcLog('Error on Http server: '+E.Message);
+   END; {TRY}
    AResponseInfo.ContentText:= ParseRPCJSON(PostString);
-   //AResponseInfo.ContentText:= 'Ok';
    StreamString.Free;
    end;
 End;

@@ -2,6 +2,12 @@ Version 0.3.1Ae4
 
 - Validatetrfr hash valid verification.
 - Implement CS protected incoming strings.
+- Stringlist.free moved to on form destroy.
+- CS for currentjob added.
+- Improved cerrarprograma procedure.
+- New seednode 107.175.24.151
+- Parsed RPCserver execute to catch exceptions.
+- Added GetSeedConnections verificator.
 
 Version 0.3.1Ae3
 
