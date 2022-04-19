@@ -439,11 +439,14 @@ Begin
 ConsoleLinesAdd(LangLine(46)); //Number Type ConnectedTo ChannelUsed LinesOnWait SumHash LBHash Offset ConStatus
 for contador := 1 to MaxConecciones do
    begin
-   ConsoleLinesAdd(IntToStr(contador)+' '+conexiones[contador].tipo+
-   ' '+conexiones[contador].ip+
-   ' '+BoolToStr(CanalCliente[contador].connected,true)+' '+IntToStr(SlotLines[contador].count)+
-   ' '+conexiones[contador].SumarioHash+' '+conexiones[contador].LastblockHash+' '+
-   IntToStr(conexiones[contador].offset)+' '+IntToStr(conexiones[contador].ConexStatus));
+   if conexiones[contador].tipo <> '' then
+      begin
+      ConsoleLinesAdd(IntToStr(contador)+' '+conexiones[contador].tipo+
+      ' '+conexiones[contador].ip+
+      ' '+BoolToStr(CanalCliente[contador].connected,true)+' '+IntToStr(LengthIncoming(contador))+
+      ' '+conexiones[contador].SumarioHash+' '+conexiones[contador].LastblockHash+' '+
+      IntToStr(conexiones[contador].offset)+' '+IntToStr(conexiones[contador].ConexStatus));
+      end;
    end;
 end;
 

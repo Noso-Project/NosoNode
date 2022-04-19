@@ -141,7 +141,7 @@ For contador := 1 to MaxConecciones do
       Conexiones[contador].ResumenHash:='';
       Conexiones[contador].ConexStatus:=0;
       slot := contador;
-      SlotLines[slot].Clear;
+      ClearIncoming(slot);
       FoundSlot := true;
       break;
       end;
@@ -245,14 +245,14 @@ setmilitime('CerrarSlot',1);
 TRY
 if conexiones[Slot].tipo='CLI' then
    begin
-   SlotLines[slot].Clear;
+   ClearIncoming(slot);
    Conexiones[Slot].context.Connection.Disconnect;
    Sleep(10);
    //Conexiones[Slot].Thread.terminate; // free ? WaitFor??
    end;
 if conexiones[Slot].tipo='SER' then
    begin
-   SlotLines[slot].Clear;
+   ClearIncoming(slot);
    CanalCliente[Slot].IOHandler.InputBuffer.Clear;
    CanalCliente[Slot].Disconnect;
    end;

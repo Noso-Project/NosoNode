@@ -1,17 +1,18 @@
 Version 0.3.1Ae4
 
 - Validatetrfr hash valid verification.
+- Implement CS protected incoming strings.
 
 Version 0.3.1Ae3
 
 - Forceserver for verificators.
 - Exception catcher on PTC_Order.
 - Clear received orders IDs when pending is requested.
-- Implement outgoing strings.
+- Implement CS protected outgoing strings.
 - Update headers short to 144 blocks
 - Funds address returned on synctus request.
 - Not close server when undone block.
-- Solve the issue that it do not resync after undone block.
+- Solved the issue that it do not resync after undone block.
 
 Version 0.3.1Ae2
 

@@ -737,7 +737,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ae4';
+  SubVersion = 'Ae42';
   OficialRelease = false;
   VersionRequired = '0.3.1Ae1';
   BuildDate = 'April 2022';
@@ -1068,7 +1068,8 @@ var
   CSNodesList   : TRTLCriticalSection;
   // Outgoing lines, needs to be initialized
   CSOutGoingArr : array[1..MaxConecciones] of TRTLCriticalSection;
-  ArrayOutgoing : array[1..MaxConecciones] of array of string;
+     ArrayOutgoing : array[1..MaxConecciones] of array of string;
+  CSIncomingArr : array[1..MaxConecciones] of TRTLCriticalSection;
 
   // FormState
   FormState_Top    : integer;
@@ -1257,7 +1258,7 @@ if Continuar then
             end // END RECEIVING BLOCKS
          else
             begin
-            SlotLines[FSlot].Add(LLine);
+            AddToIncoming(FSlot,LLine);
             end;
          end;
       Conexiones[fSlot].IsBusy:=false;
@@ -1465,6 +1466,7 @@ InitCriticalSection(CSNodesList);
 for counter := 1 to MaxConecciones do
    begin
    InitCriticalSection(CSOutGoingArr[counter]);
+   InitCriticalSection(CSIncomingArr[counter]);
    SetLength(ArrayOutgoing[counter],0);
    end;
 
@@ -1504,7 +1506,12 @@ DoneCriticalSection(CSNMSData);
 DoneCriticalSection(CSIdsProcessed);
 DoneCriticalSection(CSNodesList);
 for contador := 1 to MaxConecciones do
+   begin
    DoneCriticalSection(CSOutGoingArr[contador]);
+   DoneCriticalSection(CSIncomingArr[contador]);
+   end;
+for contador := 1 to maxconecciones do
+   If Assigned(SlotLines[contador]) then SlotLines[contador].Free;
 
 form1.Server.free;
 form1.RPCServer.Free;
@@ -2124,10 +2131,6 @@ if GoAhead then
    If Assigned(PoolPaysLines) then PoolPaysLines.Free;
    CloseLine('Componnents freed');
    sleep(100);
-   for counter := 1 to maxconecciones do
-      If Assigned(SlotLines[counter]) then SlotLines[counter].Free;
-   CloseLine('Client lines freed');
-   sleep(100);
    EnterCriticalSection(CSOutgoingMsjs);
    OutgoingMsjs.clear;
    LeaveCriticalSection(CSOutgoingMsjs);
@@ -2566,7 +2569,7 @@ if GoAhead then
    else if AnsiContainsStr(ValidProtocolCommands,Uppercase(parameter(LLine,4))) then
       begin
          try
-         SlotLines[slot].Add(LLine);
+         AddToIncoming(slot,LLine);
          Except
          On E :Exception do
             ToExcLog(Format(rs0054,[E.Message]));

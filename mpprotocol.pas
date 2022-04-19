@@ -51,6 +51,12 @@ function NodeAlreadyadded(Node:TMasterNode):boolean;
 Procedure SetNMSData(diff,hash,miner:string);
 Function GetNMSData():TNMSData;
 
+// CS Incoming
+Procedure AddToIncoming(Index:integer;texto:string);
+Function GetIncoming(Index:integer):String;
+Function LengthIncoming(Index:integer):integer;
+Procedure ClearIncoming(Index:integer);
+
 
 CONST
   OnlyHeaders = 0;
@@ -198,6 +204,39 @@ Resultado := Encabezado+Resultado;
 Result := resultado;
 End;
 
+Procedure AddToIncoming(Index:integer;texto:string);
+Begin
+EnterCriticalSection(CSIncomingArr[Index]);
+SlotLines[Index].Add(texto);
+LeaveCriticalSection(CSIncomingArr[Index]);
+End;
+
+Function GetIncoming(Index:integer):String;
+Begin
+result := '';
+EnterCriticalSection(CSIncomingArr[Index]);
+if SlotLines[Index].Count > 0 then
+   begin
+   result := SlotLines[Index][0];
+   SlotLines[index].Delete(0);
+   end;
+LeaveCriticalSection(CSIncomingArr[Index]);
+End;
+
+Function LengthIncoming(Index:integer):integer;
+Begin
+EnterCriticalSection(CSIncomingArr[Index]);
+result := SlotLines[Index].Count;
+LeaveCriticalSection(CSIncomingArr[Index]);
+End;
+
+Procedure ClearIncoming(Index:integer);
+Begin
+EnterCriticalSection(CSIncomingArr[Index]);
+SlotLines[Index].Clear;
+LeaveCriticalSection(CSIncomingArr[Index]);
+End;
+
 // Procesa todas las lineas procedentes de las conexiones
 Procedure ParseProtocolLines();
 var
@@ -206,27 +245,29 @@ var
   UsedVersion : string = '';
   PeerTime: String = '';
   Linecomando : string = '';
+  ProcessLine : String;
 Begin
 SetCurrentJob('ParseProtocolLines',true);
 for contador := 1 to MaxConecciones do
    begin
-   if ( (SlotLines[contador].Count > 200) and (not IsSeedNode(Conexiones[contador].ip)) ) then
+   if ( (LengthIncoming(contador) > 200) and (not IsSeedNode(Conexiones[contador].ip)) ) then
       begin
       Consolelinesadd('POSSIBLE ATTACK FROM: '+Conexiones[contador].ip);
       UpdateBotData(conexiones[contador].ip);
       CerrarSlot(contador);
       continue;
       end;
-   While SlotLines[contador].Count > 0 do
+   While LengthIncoming(contador) > 0 do
       begin
-      UsedProtocol := StrToIntDef(Parameter(SlotLines[contador][0],1),1);
-      UsedVersion := Parameter(SlotLines[contador][0],2);
-      PeerTime := Parameter(SlotLines[contador][0],3);
-      LineComando := Parameter(SlotLines[contador][0],4);
-      if ((not IsValidProtocol(SlotLines[contador][0])) and (not Conexiones[contador].Autentic)) then
+      ProcessLine := GetIncoming(contador);
+      UsedProtocol := StrToIntDef(Parameter(ProcessLine,1),1);
+      UsedVersion := Parameter(ProcessLine,2);
+      PeerTime := Parameter(ProcessLine,3);
+      LineComando := Parameter(ProcessLine,4);
+      if ((not IsValidProtocol(ProcessLine)) and (not Conexiones[contador].Autentic)) then
          // La linea no es valida y proviene de una conexion no autentificada
          begin
-         ConsoleLinesAdd(LangLine(22)+conexiones[contador].ip+'->'+SlotLines[contador][0]); //CONNECTION REJECTED: INVALID PROTOCOL ->
+         ConsoleLinesAdd(LangLine(22)+conexiones[contador].ip+'->'+ProcessLine); //CONNECTION REJECTED: INVALID PROTOCOL ->
          UpdateBotData(conexiones[contador].ip);
          CerrarSlot(contador);
          end
@@ -242,32 +283,31 @@ for contador := 1 to MaxConecciones do
          end
       else if UpperCase(LineComando) = '$GETNODES' then PTC_Getnodes(contador)
       else if UpperCase(LineComando) = '$NEWBL' then PTC_Getnodes(contador)   // DEPRECATED
-      else if UpperCase(LineComando) = '$PING' then ProcessPing(SlotLines[contador][0],contador,true)
-      else if UpperCase(LineComando) = '$PONG' then ProcessPing(SlotLines[contador][0],contador,false)
+      else if UpperCase(LineComando) = '$PING' then ProcessPing(ProcessLine,contador,true)
+      else if UpperCase(LineComando) = '$PONG' then ProcessPing(ProcessLine,contador,false)
       else if UpperCase(LineComando) = '$GETPENDING' then PTC_SendPending(contador)
       else if UpperCase(LineComando) = '$GETMNS' then SendMNsList(contador)
       else if UpperCase(LineComando) = '$GETRESUMEN' then PTC_SendResumen(contador)
-      else if UpperCase(LineComando) = '$LASTBLOCK' then PTC_SendBlocks(contador,SlotLines[contador][0])
-      else if UpperCase(LineComando) = '$CUSTOM' then INC_PTC_Custom(GetOpData(SlotLines[contador][0]),contador)
-      else if UpperCase(LineComando) = 'ORDER' then INC_PTC_Order(SlotLines[contador][0], contador)
-      else if UpperCase(LineComando) = 'ADMINMSG' then PTC_AdminMSG(SlotLines[contador][0])
-      else if UpperCase(LineComando) = 'NETREQ' then PTC_NetReqs(SlotLines[contador][0])
+      else if UpperCase(LineComando) = '$LASTBLOCK' then PTC_SendBlocks(contador,ProcessLine)
+      else if UpperCase(LineComando) = '$CUSTOM' then INC_PTC_Custom(GetOpData(ProcessLine),contador)
+      else if UpperCase(LineComando) = 'ORDER' then INC_PTC_Order(ProcessLine, contador)
+      else if UpperCase(LineComando) = 'ADMINMSG' then PTC_AdminMSG(ProcessLine)
+      else if UpperCase(LineComando) = 'NETREQ' then PTC_NetReqs(ProcessLine)
       else if UpperCase(LineComando) = '$REPORTNODE' then PTC_Getnodes(contador) // DEPRECATED
-      else if UpperCase(LineComando) = '$MNREPO' then AddWaitingMNs(SlotLines[contador][0])//CheckMNRepo(SlotLines[contador][0])
-      else if UpperCase(LineComando) = '$BESTHASH' then PTC_BestHash(SlotLines[contador][0])
-      else if UpperCase(LineComando) = '$MNCHECK' then PTC_MNCheck(SlotLines[contador][0])
+      else if UpperCase(LineComando) = '$MNREPO' then AddWaitingMNs(ProcessLine)//
+      else if UpperCase(LineComando) = '$BESTHASH' then PTC_BestHash(ProcessLine)
+      else if UpperCase(LineComando) = '$MNCHECK' then PTC_MNCheck(ProcessLine)
       else if UpperCase(LineComando) = '$GETCHECKS' then PTC_SendChecks(contador)
       else if UpperCase(LineComando) = 'GETMNSFILE' then PTC_SendLine(contador,ProtocolLine(MNFILE)+' $'+GetMNsFileData)
-      else if UpperCase(LineComando) = 'MNFILE' then PTC_MNFile(SlotLines[contador][0])
-      else if UpperCase(LineComando) = 'GETHEADUPDATE' then PTC_SendUpdateHeaders(contador,SlotLines[contador][0])
-      else if UpperCase(LineComando) = 'HEADUPDATE' then PTC_HeadUpdate(SlotLines[contador][0])
+      else if UpperCase(LineComando) = 'MNFILE' then PTC_MNFile(ProcessLine)
+      else if UpperCase(LineComando) = 'GETHEADUPDATE' then PTC_SendUpdateHeaders(contador,ProcessLine)
+      else if UpperCase(LineComando) = 'HEADUPDATE' then PTC_HeadUpdate(ProcessLine)
 
 
       else
          Begin  // El comando recibido no se reconoce. Verificar protocolos posteriores.
-         ConsoleLinesAdd(LangLine(23)+SlotLines[contador][0]+') '+intToStr(contador)); //Unknown command () in slot: (
+         ConsoleLinesAdd(LangLine(23)+ProcessLine+') '+intToStr(contador)); //Unknown command () in slot: (
          end;
-      if SlotLines[contador].count > 0 then SlotLines[contador].Delete(0);
       end;
    end;
 SetCurrentJob('ParseProtocolLines',false);
@@ -344,12 +384,6 @@ if slot <= length(conexiones)-1 then
    end
 else ToExcLog('Invalid PTC_SendLine slot: '+IntToStr(slot));
 end;
-
-{
-EnterCriticalSection(CSOutGoingArr[slot]);
-Insert(Message,ArrayOutgoing[slot],length(ArrayOutgoing[slot]));
-LeaveCriticalSection(CSOutGoingArr[slot]);
-}
 
 Procedure ClearOutTextToSlot(slot:integer);
 Begin
@@ -1139,7 +1173,6 @@ Procedure PTC_SendUpdateHeaders(Slot:integer;Linea:String);
 var
   Block : integer;
 Begin
-//PTC_SendLine(contador,ProtocolLine(HEADUPDATE)+' $'+LastHeaders(StrToIntDef(Parameter(SlotLines[contador][0],1),-1)))
 Block := StrToIntDef(Parameter(Linea,5),0);
 PTC_SendLine(slot,ProtocolLine(headupdate)+' $'+LastHeaders(Block));
 //ConsoleLinesAdd(Format('Blockheaders update sent to %s (%d)',[Conexiones[slot].ip,Block]));
