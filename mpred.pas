@@ -300,11 +300,12 @@ if proceder then
       //Success := true;
       end;
    intentos+=1;
-   CONNECT_LastTime := UTCTime();
+   CONNECT_LastTime := IntTOStr(UTCTime.ToInt64+60);
    UNTIL ((Success) or (intentos = length(ListaNodos)) or (OutGoing=MaxOutgoingConnections));
    end;
 if  ( (not Form1.Server.Active) and(IsSeedNode(MN_IP)) and (GetOutGoingConnections=0) and (WO_autoserver) )then
    forceserver;
+CONNECT_LastTime := UTCTime();
 setmilitime('ConnectToServers',2);
 SetCurrentJob('ConnectToServers',false);
 End;
@@ -456,7 +457,12 @@ var
 Begin
 SetCurrentJob('VerifyConnectionStatus',true);
 TRY
-if ( (CONNECT_Try) and (StrToInt64(UTCTime)>StrToInt64Def(CONNECT_LastTime,StrToInt64(UTCTime))+5) ) then ConnectToServers;
+if ( (CONNECT_Try) and (StrToInt64(UTCTime)>StrToInt64Def(CONNECT_LastTime,StrToInt64(UTCTime))+5) ) then
+   begin
+   CONNECT_LastTime := IntTOStr(UTCTime.ToInt64+60);
+   ConnectToServers;
+
+   end;
 NumeroConexiones := GetTotalConexiones;
 if NumeroConexiones = 0 then  // Desconeectado
    begin

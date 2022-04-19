@@ -6,6 +6,7 @@ Version 0.3.1Ae4
 - CS for currentjob added.
 - Improved cerrarprograma procedure.
 - New seednode 107.175.24.151
+- New seednode 107.174.137.27
 - Parsed RPCserver execute to catch exceptions.
 - Added GetSeedConnections verificator.
 

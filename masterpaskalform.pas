@@ -727,7 +727,8 @@ CONST
                             '107.172.193.176 '+
                             '107.175.194.151 '+
                             '192.3.73.184 '+
-                            '107.175.24.151';
+                            '107.175.24.151 '+
+                            '107.174.137.27';
 
   ProgramVersion = '0.3.1';
   {$IFDEF WINDOWS}
@@ -738,7 +739,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ae43';
+  SubVersion = 'Ae5';
   OficialRelease = false;
   VersionRequired = '0.3.1Ae1';
   BuildDate = 'April 2022';
