@@ -374,6 +374,8 @@ type
     BTestNode: TBitBtn;
     ButStartDoctor: TButton;
     ButStopDoctor: TButton;
+    Button1: TButton;
+    Button2: TButton;
     CB_WO_Autoupdate: TCheckBox;
     CBBlockexists: TCheckBox;
     CBBlockhash: TCheckBox;
@@ -381,6 +383,7 @@ type
     CBAutoIP: TCheckBox;
     ComboBoxLang: TComboBox;
     IdHTTPUpdate: TIdHTTP;
+    LabelCurrentjob: TLabel;
     LabelNodesHash: TLabel;
     LabelDoctor: TLabel;
     LE_Rpc_Pass: TEdit;
@@ -408,6 +411,9 @@ type
     Panel17: TPanel;
     Panel18: TPanel;
     Panel19: TPanel;
+    Panel20: TPanel;
+    Panel21: TPanel;
+    Panel22: TPanel;
     PanelNodesHeaders: TPanel;
     PanelDoctor: TPanel;
     Panel7: TPanel;
@@ -567,6 +573,8 @@ type
     procedure BTestNodeClick(Sender: TObject);
     procedure ButStartDoctorClick(Sender: TObject);
     procedure ButStopDoctorClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
     procedure CB_RPCFilterChange(Sender: TObject);
     procedure CB_WO_AutoupdateChange(Sender: TObject);
     procedure CBAutoIPClick(Sender: TObject);
@@ -606,6 +614,7 @@ type
     function  ClientsCount : Integer ;
     procedure SE_WO_AntifreezeTimeChange(Sender: TObject);
     procedure GridExLTCResize(Sender: TObject);
+    procedure SG_MonitorResize(Sender: TObject);
     procedure SpeedButton2Click(Sender: TObject);
     procedure SpeedButton3Click(Sender: TObject);
     procedure StaConLabDblClick(Sender: TObject);
@@ -739,7 +748,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ae5';
+  SubVersion = 'Ae52';
   OficialRelease = false;
   VersionRequired = '0.3.1Ae1';
   BuildDate = 'April 2022';
@@ -783,8 +792,8 @@ CONST
 var
   UserFontSize : integer = 8;
   UserRowHeigth : integer = 22;
-  ReadTimeOutTIme : integer = 100;
-  ConnectTimeOutTime : integer = 500;
+  ReadTimeOutTIme : integer = 1000;
+  ConnectTimeOutTime : integer = 1000;
   DefCPUs : integer = 1;
   PoolExpelBlocks :integer = 0;
   PoolShare : integer = 100;
@@ -1380,10 +1389,10 @@ While not terminated do
           begin
           TRY
           PTC_Order(ArrayCriptoOp[0].data);
-         EXCEPT ON E:Exception do
+          EXCEPT ON E:Exception do
             ToExclog(format(rs2503,[E.Message]));
-         END{Try};
-         end;
+          END{Try};
+          end;
       DeleteCriptoOp();
       sleep(1);
       end;
@@ -1397,6 +1406,7 @@ procedure TThreadSendOutMsjs.Execute;
 Var
   Slot :integer = 1;
   Linea : string;
+  Counter : int64 = 0;
 Begin
 While not terminated do
    begin
@@ -2215,6 +2225,8 @@ Form1.GridPoS.Cells[0,1] := 'MNs Earned';//rs0064;
 Form1.GridPoS.Cells[0,2] := 'PoS Earned';//rs0065;
 form1.GridPoS.FocusRectVisible:=false;
 
+Form1.SG_MonitorResize(nil);
+
 
 form1.DataPanel.DefaultRowHeight:=UserRowHeigth;
 form1.DataPanel.Font.Size:=UserFontSize;
@@ -2262,8 +2274,8 @@ form1.LabAbout.Caption:=CoinName+' project'+SLINEBREAK+'Designed by PedroJOR'+SL
 
 form1.SG_Monitor.FocusRectVisible:=false;
 form1.SG_Monitor.Options:= form1.GridMyTxs.Options+[goRowSelect]-[goRangeSelect];
-form1.SG_Monitor.ColWidths[0]:= 160;form1.SG_Monitor.ColWidths[1]:= 62;
-form1.SG_Monitor.ColWidths[2]:= 62;form1.SG_Monitor.ColWidths[3]:= 62;
+form1.SG_Monitor.ColWidths[0]:= 142;form1.SG_Monitor.ColWidths[1]:= 73;
+form1.SG_Monitor.ColWidths[2]:= 73;form1.SG_Monitor.ColWidths[3]:= 73;
 
 //Elementos no visuales
 Setlength(PendingTXs,0);
@@ -2292,7 +2304,7 @@ Form1.Server := TIdTCPServer.Create(Form1);
 Form1.Server.DefaultPort:=DefaultServerPort;
 Form1.Server.Active:=false;
 Form1.Server.UseNagle:=true;
-Form1.Server.TerminateWaitTime:=2000;
+Form1.Server.TerminateWaitTime:=10000;
 Form1.Server.OnExecute:=@form1.IdTCPServer1Execute;
 Form1.Server.OnConnect:=@form1.IdTCPServer1Connect;
 Form1.Server.OnDisconnect:=@form1.IdTCPServer1Disconnect;
@@ -2637,7 +2649,9 @@ if GoAhead then
    if parameter(LLine,0) = 'NODESTATUS' then
       TryCloseServerConnection(AContext,'NODESTATUS '+GetNodeStatusString)
    else if parameter(LLine,0) = 'NSLORDER' then
-      TryCloseServerConnection(AContext,PTC_Order(LLine))
+      begin
+      TryCloseServerConnection(AContext,PTC_Order(LLine));
+      end
    else if parameter(LLine,0) = 'GETMIIP' then
       TryCloseServerConnection(AContext,IPUser)
    else if parameter(LLine,0) = 'MNVER' then
@@ -3538,7 +3552,6 @@ procedure TForm1.DireccionesPanelDrawCell(Sender: TObject; aCol, aRow: Integer;
 var
   Bitmap    : TBitmap;
   myRect    : TRect;
-  CurrPos   : integer;
   ColWidth : Integer;
 Begin
 if ( (aRow>0) and (aCol=0) and (AnsiContainsstr(MN_FileText,ListaDirecciones[aRow-1].Hash)) ) then
@@ -3590,6 +3603,17 @@ form1.GridExLTC.ColWidths[0]:= thispercent(34,GridWidth);
 form1.GridExLTC.ColWidths[1]:= thispercent(33,GridWidth);
 form1.GridExLTC.ColWidths[2]:= thispercent(33,GridWidth,true);
 end;
+
+procedure TForm1.SG_MonitorResize(Sender: TObject);
+var
+  GridWidth : integer;
+Begin
+GridWidth := form1.SG_Monitor.Width;
+form1.SG_Monitor.ColWidths[0]:= thispercent(40,GridWidth);
+form1.SG_Monitor.ColWidths[1]:= thispercent(20,GridWidth);
+form1.SG_Monitor.ColWidths[2]:= thispercent(20,GridWidth);
+form1.SG_Monitor.ColWidths[3]:= thispercent(20,GridWidth,true);
+End;
 
 // Fill the transaction details when Tab is selected
 procedure TForm1.TabHistoryShow(Sender: TObject);
@@ -3718,6 +3742,16 @@ procedure TForm1.ButStopDoctorClick(Sender: TObject);
 begin
 StopDoctor := true;
 end;
+
+procedure TForm1.Button1Click(Sender: TObject);
+Begin
+MemoLog.Lines.Clear;
+End;
+
+procedure TForm1.Button2Click(Sender: TObject);
+Begin
+MemoExceptLog.Lines.Clear;
+End;
 
 // Set MN IP to Auto
 procedure TForm1.CBAutoIPClick(Sender: TObject);

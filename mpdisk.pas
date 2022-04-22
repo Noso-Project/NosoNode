@@ -952,7 +952,7 @@ Procedure CargarWallet(wallet:String);
 var
   contador : integer = 0;
 Begin
-   try
+   TRY
    if fileExists(wallet) then
       begin
       assignfile(FileWallet,Wallet);
@@ -969,9 +969,9 @@ Begin
       end;
    UpdateWalletFromSumario();
    GuardarWallet();                         // Permite corregir cualquier problema con los pending
-   Except on E:Exception do
+   EXCEPT on E:Exception do
       tolog ('Error loading wallet from file');
-   end;
+   END;{TRY}
 End;
 
 // Save wallet data to disk
@@ -979,12 +979,16 @@ Procedure GuardarWallet();
 var
   contador : integer = 0;
   previous : int64;
+  IOCode   : integer;
 Begin
 setmilitime('GuardarWallet',1);
-copyfile (UserOptions.Wallet,UserOptions.Wallet+'.bak');
+Trycopyfile (UserOptions.Wallet,UserOptions.Wallet+'.bak');
 assignfile(FileWallet,UserOptions.Wallet);
-reset(FileWallet);
-   try
+{$I-}reset(FileWallet);{$I+}
+IOCode := IOResult;
+If IOCode = 0 then
+   begin
+   TRY
    for contador := 0 to Length(ListaDirecciones)-1 do
       begin
       seek(FileWallet,contador);
@@ -994,10 +998,11 @@ reset(FileWallet);
       ListaDirecciones[contador].Pending := Previous;
       end;
    S_Wallet := false;
-   Except on E:Exception do
-      tolog ('Error saving wallet to disk ('+E.Message+')');
+   EXCEPT on E:Exception do
+      ToExcLog ('Error saving wallet to disk ('+E.Message+')');
+   END; {TRY}
    end;
-closefile(FileWallet);
+{$I-}closefile(FileWallet);{$I+}
 setmilitime('GuardarWallet',2);
 End;
 
@@ -1072,15 +1077,19 @@ End;
 // Save sumary to disk
 Procedure GuardarSumario(SaveCheckmark:boolean = false);
 var
-  contador : integer = 0;
+  contador     : integer = 0;
   CurrentBlock : integer;
+  IOCode       : integer;
 Begin
 setmilitime('GuardarSumario',1);
 SetCurrentJob('GuardarSumario',true);
-EnterCriticalSection(CSSumary);
 assignfile(FileSumario,SumarioFilename);
-   try
-   Reset(FileSumario);
+EnterCriticalSection(CSSumary);
+{$I-}Reset(FileSumario);{$I+};
+IOCode := IOResult;
+If IOCode = 0 then
+   Begin
+   TRY
    for contador := 0 to length(ListaSumario)-1 do
       Begin
       seek(filesumario,contador);
@@ -1090,10 +1099,11 @@ assignfile(FileSumario,SumarioFilename);
    MySumarioHash := HashMD5File(SumarioFilename);
    S_Sumario := false;
    U_DataPanel := true;
-   Except on E:Exception do
-      tolog ('Error saving summary file');
+   EXCEPT on E:Exception do
+      ToExcLog ('Error saving summary file: '+e.Message);
+   END; {TRY}
    end;
-CloseFile(FileSumario);
+{$I-}CloseFile(FileSumario);{$I+};
 LeaveCriticalSection(CSSumary);
 ZipSumary;
 if SaveCheckmark then

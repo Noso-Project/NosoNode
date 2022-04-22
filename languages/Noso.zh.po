@@ -86,6 +86,19 @@ msgstr "开始"
 msgid "Stop"
 msgstr "停止"
 
+#: tform1.button1.caption
+#, fuzzy
+#| msgid "CLear"
+msgctxt "tform1.button1.caption"
+msgid "Clear"
+msgstr "清除"
+
+#: tform1.button2.caption
+#, fuzzy
+msgctxt "tform1.button2.caption"
+msgid "Clear"
+msgstr "清除"
+
 #: tform1.caption
 msgid "Noso"
 msgstr "Noso"
@@ -236,6 +249,10 @@ msgctxt "tform1.labelbigbalance.caption"
 msgid "0 NOS"
 msgstr "0 NOS"
 
+#: tform1.labelcurrentjob.caption
+msgid "Currentjob"
+msgstr ""
+
 #: tform1.labeldoctor.caption
 msgid "Waiting"
 msgstr "等待"
@@ -271,6 +288,7 @@ msgid "Start Server"
 msgstr "启动服务器"
 
 #: tform1.menuitem23.caption
+msgctxt "tform1.menuitem23.caption"
 msgid "CLear"
 msgstr "清除"
 
@@ -416,13 +434,17 @@ msgid "History"
 msgstr "历史订单"
 
 #: tform1.tabmonitor.caption
+#, fuzzy
+#| msgid "Monitor"
 msgctxt "tform1.tabmonitor.caption"
-msgid "Monitor"
+msgid "Debug"
 msgstr "监视器"
 
 #: tform1.tabmonitormonitor.caption
+#, fuzzy
+#| msgid "Monitor"
 msgctxt "tform1.tabmonitormonitor.caption"
-msgid "Monitor"
+msgid "Processes"
 msgstr "监视器"
 
 #: tform1.tabnodeoptions.caption

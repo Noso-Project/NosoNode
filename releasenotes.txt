@@ -1,3 +1,15 @@
+Version 0.3.1Ae5
+
+- Fixed bug on GuardarSumario.
+- Fixed bug on GuardarWallet.
+- Added Clear button on memo log.
+- Added Clear button on Exception log.
+- Main tab "Monitor" renamed to "Debug".
+- "Monitor" tab on debug rename "Processes".
+- Added CurrentJob label on Processes tab.
+- Adjusted size for processes string grid.
+- CTOT and RTOT defaults increased to 1000.
+
 Version 0.3.1Ae4
 
 - Validatetrfr hash valid verification.

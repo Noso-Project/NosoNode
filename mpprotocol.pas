@@ -797,7 +797,7 @@ else if not VerifySignedString(IntToStr(order.TimeStamp)+origen+order.Receiver+I
    result:=6
 else if Order.AmmountTrf<0 then
    result := 7
-else if Order.AmmountFee<=0 then
+else if Order.AmmountFee<0 then
    result := 8
 else if Not IsValidHashAddress(Origen) then
    result := 9
@@ -849,6 +849,7 @@ var
   SendersString : String = '';
   TodoValido : boolean = true;
   Proceder : boolean = true;
+  ErrorCode : integer = 0;
 Begin
 Result := '';
 TRY
@@ -878,9 +879,11 @@ for cont := 0 to NumTransfers-1 do
    end;
 for cont := 0 to NumTransfers-1 do
    begin
-   if ValidateTrfr(TrxArray[cont],SenderTrx[cont])>0 then
+   ErrorCode := ValidateTrfr(TrxArray[cont],SenderTrx[cont]);
+   if ErrorCode>0 then
       begin
       TodoValido := false;
+      break;
       end;
    end;
 if not todovalido then Proceder := false;
@@ -893,6 +896,10 @@ if proceder then
    if form1.Server.Active then OutgoingMsjsAdd(Textbak);
    U_DirPanel := true;
    Result := Parameter(Textbak,7); // send order ID as result
+   end
+else
+   begin
+   //if ErrorCode>0 then Result := 'ERROR '+ErrorCode.ToString;
    end;
 EXCEPT ON E:EXCEPTION DO
    begin

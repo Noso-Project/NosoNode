@@ -607,11 +607,13 @@ For contador := 0 to length(ListaSumario)-1 do
       BiggerAddress := ListaSumario[contador].Hash;
       end;
    end;
+{
 if NotValid>0 then
    begin
    ConsoleLinesAdd(Format('Not Valid: %d [%s]',[NotValid,Int2Curr(NotValidBalance)]));
    ConsoleLinesAdd(NotValidStr);
    end;
+}
 ConsoleLinesAdd(IntToStr(Length(ListaSumario))+langline(51)); //addresses
 ConsoleLinesAdd(IntToStr(EmptyAddresses)+' empty.'); //addresses
 if NegAdds>0 then ConsoleLinesAdd('Possible issues: '+IntToStr(NegAdds));

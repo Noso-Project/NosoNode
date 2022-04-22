@@ -572,7 +572,7 @@ if MyConStatus = 3 then
         and (BlockAge>10+MNsRandomWait) and (BlockAge<495) and(1=1) ) then
      begin
      OutGoingMsjsAdd(ProtocolLine(MNReport));
-     ToLog('My Masternode reported: '+ProtocolLine(MNReport));
+     ToLog('My Masternode reported');
      LastTimeReportMyMN := UTCTime.ToInt64;
      end;
    SetCurrentJob('MyConStatus3',false);

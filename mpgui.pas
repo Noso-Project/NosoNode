@@ -48,6 +48,7 @@ Function HashrateToShow(speed:int64):String;
 var
   FormInicio : TFormInicio;
     GridInicio : TStringgrid;
+  LastUpdateMonitor : int64 = 0;
 
   FormSlots : TFormSlots;
     GridMSlots : TStringgrid;
@@ -290,7 +291,7 @@ var
   contador : integer = 0;
 Begin
 //Update Monitor Grid
-if form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor then
+if ( (form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor) and (LastUpdateMonitor<>UTCTime.ToInt64) ) then
    begin
    setmilitime('UpdateGUIMonitor',1);
    if length(MilitimeArray)>0 then
@@ -310,6 +311,7 @@ if form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor then
             end;
          end;
       end;
+   LastUpdateMonitor := UTCTime.ToInt64;
    setmilitime('UpdateGUIMonitor',2);
    end;
 
@@ -362,7 +364,7 @@ if ((U_MNsGrid) or (UTCTime.ToInt64>U_MNsGrid_Last+59)) then
       end;
    //}
    U_MNsGrid_Last := UTCTime.ToInt64;
-   //form1.LabelNodesHash.Caption:=format(rs0516,[MyMNsCount,MyMNsHash]);
+   form1.LabelNodesHash.Caption:='Count: '+GetMNsListLength.ToString;
    U_MNsGrid := false;
    end;
 
@@ -656,6 +658,11 @@ else
    EnterCriticalSection(CSCurrentJob);
    currentjob := StringReplace(currentjob,'>'+CurrJob,'',[rfReplaceAll, rfIgnoreCase]);
    LeaveCriticalSection(CSCurrentJob);
+   end;
+if (form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor) then
+   begin
+   Form1.LabelCurrentJob.Caption:=GetCurrentJob;
+   Form1.LabelCurrentJob.Update;
    end;
 End;
 

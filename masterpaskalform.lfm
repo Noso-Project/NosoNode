@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 642
+  Left = 941
   Height = 560
-  Top = 157
+  Top = 61
   Width = 400
   Caption = 'Noso'
   ClientHeight = 540
@@ -318,7 +318,7 @@ object Form1: TForm1
     Height = 468
     Top = 38
     Width = 400
-    ActivePage = tabOptions
+    ActivePage = TabMonitor
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
     Font.CharSet = ANSI_CHARSET
@@ -327,7 +327,7 @@ object Form1: TForm1
     Font.Pitch = fpVariable
     Font.Quality = fqDraft
     ParentFont = False
-    TabIndex = 3
+    TabIndex = 4
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
@@ -1061,9 +1061,9 @@ object Form1: TForm1
         Height = 440
         Top = 0
         Width = 392
-        ActivePage = TabNodeOptions
+        ActivePage = TabSheet1
         Align = alClient
-        TabIndex = 1
+        TabIndex = 0
         TabOrder = 0
         object TabSheet1: TTabSheet
           Caption = 'Wallet'
@@ -2288,7 +2288,7 @@ object Form1: TForm1
       end
     end
     object TabMonitor: TTabSheet
-      Caption = 'Monitor'
+      Caption = 'Debug'
       ClientHeight = 440
       ClientWidth = 392
       object PCMonitor: TPageControl
@@ -2296,9 +2296,9 @@ object Form1: TForm1
         Height = 440
         Top = 0
         Width = 392
-        ActivePage = TabSheet7
+        ActivePage = TabNodes
         Align = alClient
-        TabIndex = 0
+        TabIndex = 4
         TabOrder = 0
         object TabSheet7: TTabSheet
           Caption = 'Log'
@@ -2307,8 +2307,8 @@ object Form1: TForm1
           ParentShowHint = False
           object MemoLog: TMemo
             Left = 0
-            Height = 412
-            Top = 0
+            Height = 386
+            Top = 26
             Width = 384
             Align = alClient
             Color = clBlack
@@ -2322,16 +2322,39 @@ object Form1: TForm1
             ReadOnly = True
             ScrollBars = ssAutoVertical
             TabOrder = 0
+          end
+          object Panel20: TPanel
+            Left = 0
+            Height = 26
+            Top = 0
+            Width = 384
+            Align = alTop
+            BevelOuter = bvNone
+            ClientHeight = 26
+            ClientWidth = 384
+            ParentColor = False
+            TabOrder = 1
+            object Button1: TButton
+              Left = 10
+              Height = 26
+              Top = 0
+              Width = 75
+              Align = alLeft
+              BorderSpacing.Left = 10
+              Caption = 'Clear'
+              OnClick = Button1Click
+              TabOrder = 0
+            end
           end
         end
         object TabSheet8: TTabSheet
           Caption = 'Except'
-          ClientHeight = 430
-          ClientWidth = 380
+          ClientHeight = 412
+          ClientWidth = 384
           object MemoExceptLog: TMemo
             Left = 0
-            Height = 406
-            Top = 0
+            Height = 386
+            Top = 26
             Width = 384
             Align = alClient
             Color = clBlack
@@ -2346,16 +2369,38 @@ object Form1: TForm1
             ScrollBars = ssAutoVertical
             TabOrder = 0
           end
+          object Panel21: TPanel
+            Left = 0
+            Height = 26
+            Top = 0
+            Width = 384
+            Align = alTop
+            BevelOuter = bvNone
+            ClientHeight = 26
+            ClientWidth = 384
+            TabOrder = 1
+            object Button2: TButton
+              Left = 10
+              Height = 26
+              Top = 0
+              Width = 75
+              Align = alLeft
+              BorderSpacing.Left = 10
+              Caption = 'Clear'
+              OnClick = Button2Click
+              TabOrder = 0
+            end
+          end
         end
         object TabMonitorMonitor: TTabSheet
-          Caption = 'Monitor'
-          ClientHeight = 430
-          ClientWidth = 380
+          Caption = 'Processes'
+          ClientHeight = 412
+          ClientWidth = 384
           object SG_Monitor: TStringGrid
             Left = 0
-            Height = 430
-            Top = 0
-            Width = 380
+            Height = 386
+            Top = 26
+            Width = 384
             Align = alClient
             ColCount = 4
             Font.CharSet = ANSI_CHARSET
@@ -2367,6 +2412,7 @@ object Form1: TForm1
             RowCount = 1
             ScrollBars = ssVertical
             TabOrder = 0
+            OnResize = SG_MonitorResize
             Cells = (
               4
               0
@@ -2382,6 +2428,35 @@ object Form1: TForm1
               0
               'Average'
             )
+          end
+          object Panel22: TPanel
+            Left = 0
+            Height = 26
+            Top = 0
+            Width = 384
+            Align = alTop
+            BevelOuter = bvNone
+            ClientHeight = 26
+            ClientWidth = 384
+            TabOrder = 1
+            object LabelCurrentjob: TLabel
+              Left = 10
+              Height = 26
+              Top = 0
+              Width = 70
+              Align = alLeft
+              BorderSpacing.Left = 10
+              Caption = 'Currentjob'
+              Font.CharSet = ANSI_CHARSET
+              Font.Color = clBlack
+              Font.Height = -13
+              Font.Name = 'Consolas'
+              Font.Pitch = fpFixed
+              Font.Quality = fqDraft
+              Layout = tlCenter
+              ParentColor = False
+              ParentFont = False
+            end
           end
         end
         object TabSheet10: TTabSheet
@@ -2420,8 +2495,8 @@ object Form1: TForm1
               Left = 8
               Height = 15
               Top = 7
-              Width = 33
-              Caption = 'Hash: '
+              Width = 39
+              Caption = 'Count: '
               ParentColor = False
             end
           end
