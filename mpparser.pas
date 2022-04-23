@@ -439,7 +439,7 @@ Begin
 ConsoleLinesAdd(LangLine(46)); //Number Type ConnectedTo ChannelUsed LinesOnWait SumHash LBHash Offset ConStatus
 for contador := 1 to MaxConecciones do
    begin
-   if conexiones[contador].tipo <> '' then
+   if IsSlotConnected(contador) then
       begin
       ConsoleLinesAdd(IntToStr(contador)+' '+conexiones[contador].tipo+
       ' '+conexiones[contador].ip+

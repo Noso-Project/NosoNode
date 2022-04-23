@@ -338,9 +338,9 @@ object Form1: TForm1
         Height = 440
         Top = 0
         Width = 392
-        ActivePage = TabAddresses
+        ActivePage = TabHistory
         Align = alClient
-        TabIndex = 0
+        TabIndex = 1
         TabOrder = 0
         object TabAddresses: TTabSheet
           Caption = 'Addresses'
@@ -1061,11 +1061,11 @@ object Form1: TForm1
         Height = 440
         Top = 0
         Width = 392
-        ActivePage = TabSheet1
+        ActivePage = TabOpt_Wallet
         Align = alClient
         TabIndex = 0
         TabOrder = 0
-        object TabSheet1: TTabSheet
+        object TabOpt_Wallet: TTabSheet
           Caption = 'Wallet'
           ClientHeight = 412
           ClientWidth = 384
@@ -1372,7 +1372,7 @@ object Form1: TForm1
           object Panel7: TPanel
             Left = 0
             Height = 28
-            Top = 281
+            Top = 304
             Width = 384
             Align = alTop
             AutoSize = True
@@ -1417,6 +1417,21 @@ object Form1: TForm1
               Style = csOwnerDrawFixed
               TabOrder = 0
             end
+          end
+          object CBRunNodeAlone: TCheckBox
+            Left = 8
+            Height = 19
+            Hint = 'Run as unattended Masternode'
+            Top = 285
+            Width = 376
+            Align = alTop
+            BorderSpacing.Left = 8
+            BorderSpacing.Top = 4
+            Caption = 'Stop memos outputs (BETA)'
+            OnChange = CBRunNodeAloneChange
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 12
           end
         end
         object TabNodeOptions: TTabSheet
@@ -1750,8 +1765,8 @@ object Form1: TForm1
         end
         object TabSheet5: TTabSheet
           Caption = 'Trade'
-          ClientHeight = 436
-          ClientWidth = 388
+          ClientHeight = 412
+          ClientWidth = 384
           Enabled = False
           object CheckBox7: TCheckBox
             Left = 8
@@ -2296,11 +2311,11 @@ object Form1: TForm1
         Height = 440
         Top = 0
         Width = 392
-        ActivePage = TabNodes
+        ActivePage = TabSheet10
         Align = alClient
-        TabIndex = 4
+        TabIndex = 3
         TabOrder = 0
-        object TabSheet7: TTabSheet
+        object TabDebug_Log: TTabSheet
           Caption = 'Log'
           ClientHeight = 412
           ClientWidth = 384
@@ -2438,29 +2453,35 @@ object Form1: TForm1
             BevelOuter = bvNone
             ClientHeight = 26
             ClientWidth = 384
+            ParentColor = False
             TabOrder = 1
-            object LabelCurrentjob: TLabel
-              Left = 10
+            object CB_Currentjob: TCheckBox
+              Left = 5
               Height = 26
+              Hint = 'Show current job (BETA)'
               Top = 0
-              Width = 70
+              Width = 76
               Align = alLeft
-              BorderSpacing.Left = 10
-              Caption = 'Currentjob'
+              BorderSpacing.Left = 5
+              Caption = 'Disabled'
+              Color = clDefault
               Font.CharSet = ANSI_CHARSET
-              Font.Color = clBlack
-              Font.Height = -13
+              Font.Color = 7171437
+              Font.Height = -12
               Font.Name = 'Consolas'
               Font.Pitch = fpFixed
               Font.Quality = fqDraft
-              Layout = tlCenter
+              OnChange = CB_CurrentjobChange
               ParentColor = False
               ParentFont = False
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 0
             end
           end
         end
         object TabSheet10: TTabSheet
-          Caption = 'Peers'
+          Caption = 'Stats'
         end
         object TabNodes: TTabSheet
           Caption = 'Nodes'

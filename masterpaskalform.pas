@@ -381,9 +381,10 @@ type
     CBBlockhash: TCheckBox;
     CBSummaryhash: TCheckBox;
     CBAutoIP: TCheckBox;
+    CB_Currentjob: TCheckBox;
+    CBRunNodeAlone: TCheckBox;
     ComboBoxLang: TComboBox;
     IdHTTPUpdate: TIdHTTP;
-    LabelCurrentjob: TLabel;
     LabelNodesHash: TLabel;
     LabelDoctor: TLabel;
     LE_Rpc_Pass: TEdit;
@@ -550,7 +551,7 @@ type
     GridExLTC: TStringGrid;
     SystrayIcon: TTrayIcon;
     tabOptions: TTabSheet;
-    TabSheet1: TTabSheet;
+    TabOpt_Wallet: TTabSheet;
     TabSheet10: TTabSheet;
     TabNodeOptions: TTabSheet;
     TabSheet3: TTabSheet;
@@ -558,7 +559,7 @@ type
     TabExchange: TTabSheet;
     TabMonitor: TTabSheet;
     tabExBuy: TTabSheet;
-    TabSheet7: TTabSheet;
+    TabDebug_Log: TTabSheet;
     TabSheet8: TTabSheet;
     TabMonitorMonitor: TTabSheet;
     TabSheet9: TTabSheet;
@@ -575,6 +576,8 @@ type
     procedure ButStopDoctorClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
+    procedure CBRunNodeAloneChange(Sender: TObject);
+    procedure CB_CurrentjobChange(Sender: TObject);
     procedure CB_RPCFilterChange(Sender: TObject);
     procedure CB_WO_AutoupdateChange(Sender: TObject);
     procedure CBAutoIPClick(Sender: TObject);
@@ -748,7 +751,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ae52';
+  SubVersion = 'Ae53';
   OficialRelease = false;
   VersionRequired = '0.3.1Ae1';
   BuildDate = 'April 2022';
@@ -816,6 +819,7 @@ var
   WO_AutoUpdate    : Boolean = true;
     UpdateFileSize : int64 = 0;
     FirstTimeUpChe : boolean = true;
+  WO_OmmitMemos    : boolean = false;
   RPCFilter        : boolean = true;
   RPCWhitelist     : string = '127.0.0.1,localhost';
   RPCAuto          : boolean = false;
@@ -1418,7 +1422,7 @@ While not terminated do
          For Slot := 1 to MaxConecciones do
             begin
             TRY
-            if conexiones[Slot].tipo <> '' then PTC_SendLine(Slot,linea);
+            if IsSlotConnected(slot) then PTC_SendLine(Slot,linea);
             EXCEPT on E:Exception do
                 ToExclog(format(rs0008,[E.Message]));
                //ToExclog('Error sending outgoing message: '+E.Message);
@@ -1950,11 +1954,13 @@ if ((Shift = [ssCtrl, ssAlt]) and (Key = VK_D)) then
       Form1.PageMain.ActivePage:= Form1.TabMonitor;
       Form1.TabDoctor.TabVisible:= True;
       Form1.PCMonitor.ActivePage:= Form1.TabDoctor;
+      ConsoleLinesAdd('Doctor available');
       end
-      else
+   else
       begin
-      Form1.PCMonitor.ActivePage:= Form1.TabSheet7;
+      Form1.PCMonitor.ActivePage:= Form1.TabDebug_Log;
       Form1.TabDoctor.TabVisible:= False;
+      ConsoleLinesAdd('Doctor closed');
       end;
    end;
 end;
@@ -2212,9 +2218,8 @@ Begin
 // Make sure ALL tabs are set correct at startup
 Form1.PageMain.ActivePage:= Form1.TabWallet;
 Form1.TabWalletMain.ActivePage:= Form1.TabAddresses;
-Form1.PageControl2.ActivePage:= Form1.tabExBuy;
-Form1.PageControl1.ActivePage:= Form1.TabSheet1;
-
+Form1.PageControl1.ActivePage:= Form1.TabOpt_Wallet;
+Form1.PCMonitor.ActivePage:=form1.TabDebug_Log;
 
 // Visual components
 
@@ -3751,6 +3756,17 @@ End;
 procedure TForm1.Button2Click(Sender: TObject);
 Begin
 MemoExceptLog.Lines.Clear;
+End;
+
+procedure TForm1.CBRunNodeAloneChange(Sender: TObject);
+begin
+WO_OmmitMemos:= CBRunNodeAlone.Checked;
+end;
+
+// Enable/Disable current job label
+procedure TForm1.CB_CurrentjobChange(Sender: TObject);
+Begin
+if Not CB_Currentjob.Checked then CB_Currentjob.Caption:='Disabled';
 End;
 
 // Set MN IP to Auto

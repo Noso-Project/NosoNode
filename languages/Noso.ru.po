@@ -119,6 +119,14 @@ msgstr "Заблокировать файл"
 msgid "Block hash"
 msgstr "Блочный хэш"
 
+#: tform1.cbrunnodealone.caption
+msgid "Stop memos outputs (BETA)"
+msgstr ""
+
+#: tform1.cbrunnodealone.hint
+msgid "Run as unattended Masternode"
+msgstr ""
+
 #: tform1.cbsummaryhash.caption
 msgid "Summary hash"
 msgstr "Сводный хэш"
@@ -126,6 +134,14 @@ msgstr "Сводный хэш"
 #: tform1.cb_autorpc.caption
 msgid "Active JSON-RPC server at launch"
 msgstr "Включить сервер JSON-RPC при запуске"
+
+#: tform1.cb_currentjob.caption
+msgid "Disabled"
+msgstr ""
+
+#: tform1.cb_currentjob.hint
+msgid "Show current job (BETA)"
+msgstr ""
 
 #: tform1.cb_rpcfilter.caption
 msgid "Accept only whitelist requests"
@@ -246,10 +262,6 @@ msgctxt "tform1.labelbigbalance.caption"
 msgid "0 NOS"
 msgstr "0 NOS"
 
-#: tform1.labelcurrentjob.caption
-msgid "Currentjob"
-msgstr ""
-
 #: tform1.labeldoctor.caption
 msgid "Waiting"
 msgstr "Ожидание"
@@ -265,7 +277,7 @@ msgid "Last: -.-"
 msgstr "Последнее: -.-"
 
 #: tform1.labelnodeshash.caption
-msgid "Hash: "
+msgid "Count: "
 msgstr ""
 
 #: tform1.labeltransactiondetails.caption
@@ -414,6 +426,12 @@ msgctxt "tform1.tabconsole.caption"
 msgid "Console"
 msgstr "Консоль"
 
+#: tform1.tabdebug_log.caption
+#, fuzzy
+msgctxt "tform1.tabdebug_log.caption"
+msgid "Log"
+msgstr "Журнал"
+
 #: tform1.tabdoctor.caption
 msgid "Doctor"
 msgstr "Доктор"
@@ -457,13 +475,16 @@ msgstr "Узлы"
 msgid "Options"
 msgstr "Параметры"
 
-#: tform1.tabsheet1.caption
-msgctxt "tform1.tabsheet1.caption"
+#: tform1.tabopt_wallet.caption
+#, fuzzy
+msgctxt "tform1.tabopt_wallet.caption"
 msgid "Wallet"
 msgstr "Кошелек"
 
 #: tform1.tabsheet10.caption
-msgid "Peers"
+#, fuzzy
+#| msgid "Peers"
+msgid "Stats"
 msgstr "Peers"
 
 #: tform1.tabsheet3.caption
@@ -473,11 +494,6 @@ msgstr "RPC"
 #: tform1.tabsheet5.caption
 msgid "Trade"
 msgstr "Торговля"
-
-#: tform1.tabsheet7.caption
-msgctxt "tform1.tabsheet7.caption"
-msgid "Log"
-msgstr "Журнал"
 
 #: tform1.tabsheet8.caption
 msgid "Except"

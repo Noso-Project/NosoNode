@@ -6,9 +6,17 @@ Version 0.3.1Ae5
 - Added Clear button on Exception log.
 - Main tab "Monitor" renamed to "Debug".
 - "Monitor" tab on debug rename "Processes".
-- Added CurrentJob label on Processes tab.
+- Added CurrentJob label on Processes tab. (BETA)
 - Adjusted size for processes string grid.
 - CTOT and RTOT defaults increased to 1000.
+- TThreadMNVerificator increased to 5 trys, 3 seconds each.
+- Added option to ignore memos output (BETA)
+- Extra fee validation.
+- Strict orderID required.
+- Removed Creation of the pool info file (deprecated)
+- Added Reserve and Unreserve slots.
+- Tab "Peers" renamed "Stats".
+
 
 Version 0.3.1Ae4
 
@@ -40,7 +48,6 @@ Version 0.3.1Ae2
 - ProtocolLine(18) activated.
 - Connection to mainnet improved.
 - Fixed division by zero bug on MNS payment.
-- Filter <0 orders on validatetrfr.
 
 Version 0.3.1Ae1
 

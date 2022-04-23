@@ -841,19 +841,25 @@ End;
 
 Function PTC_Order(TextLine:String):String;
 var
-  NumTransfers : integer;
-  TrxArray : Array of orderdata;
-  SenderTrx : array of string;
-  cont : integer;
-  Textbak : string;
+  NumTransfers  : integer;
+  TrxArray      : Array of orderdata;
+  SenderTrx     : array of string;
+  cont          : integer;
+  Textbak       : string;
   SendersString : String = '';
-  TodoValido : boolean = true;
-  Proceder : boolean = true;
-  ErrorCode : integer = 0;
+  TodoValido    : boolean = true;
+  Proceder      : boolean = true;
+  ErrorCode     : integer = 0;
+  TotalSent     : int64 = 0;
+  TotalFee      : int64 = 0;
+  RecOrderID    : string = '';
+  GenOrderID    : string = '';
 Begin
 Result := '';
 TRY
 NumTransfers := StrToInt(Parameter(TextLine,5));
+RecOrderId   := Parameter(TextLine,7);
+GenOrderID   := Parameter(TextLine,5)+Parameter(TextLine,10);
 Textbak := GetOpData(TextLine);
 SetLength(TrxArray,0);SetLength(SenderTrx,0);
 for cont := 0 to NumTransfers-1 do
@@ -861,6 +867,9 @@ for cont := 0 to NumTransfers-1 do
    SetLength(TrxArray,length(TrxArray)+1);SetLength(SenderTrx,length(SenderTrx)+1);
    TrxArray[cont] := default (orderdata);
    TrxArray[cont] := GetOrderFromString(Textbak);
+   Inc(TotalSent,TrxArray[cont].AmmountTrf);
+   Inc(TotalFee,TrxArray[cont].AmmountFee);
+   GenOrderID := GenOrderID+TrxArray[cont].TrfrID;
    if TranxAlreadyPending(TrxArray[cont].TrfrID) then Proceder := false;//Proceder := false;
    SenderTrx[cont] := GetAddressFromPublicKey(TrxArray[cont].Sender);
    if SenderTrx[cont] <> TrxArray[cont].Address then
@@ -872,18 +881,40 @@ for cont := 0 to NumTransfers-1 do
       begin
       ConsoleLinesAdd(LangLine(94)); //'Duplicate sender in order'
       Proceder:=false; // hay una direccion de envio repetida
+      ErrorCode := 99;
       end;
    SendersString := SendersString + SenderTrx[cont];
    Textbak := copy(textBak,2,length(textbak));
    Textbak := GetOpData(Textbak);
    end;
-for cont := 0 to NumTransfers-1 do
+GenOrderID := GetOrderHash(GenOrderID);
+if TotalFee >= GetFee(TotalSent) then
    begin
-   ErrorCode := ValidateTrfr(TrxArray[cont],SenderTrx[cont]);
-   if ErrorCode>0 then
+   //ConsoleLinesAdd(Format('Order fees match : %d >= %d',[TotalFee,GetFee(TotalSent)]))
+   end
+else
+   begin
+   //ConsoleLinesAdd(Format('WRONG ORDER FEES : %d >= %d',[TotalFee,GetFee(TotalSent)]));
+   TodoValido := false;
+   ErrorCode := 100;
+   end;
+if RecOrderId<>GenOrderID then
+   begin
+   ConsoleLinesAdd('<-'+RecOrderId);
+   ConsoleLinesAdd('->'+GenOrderID);
+   if mylastblock >= 56000 then TodoValido := false;
+   if mylastblock >= 56000 then ErrorCode := 101;
+   end;
+if TodoValido then
+   begin
+   for cont := 0 to NumTransfers-1 do
       begin
-      TodoValido := false;
-      break;
+      ErrorCode := ValidateTrfr(TrxArray[cont],SenderTrx[cont]);
+      if ErrorCode>0 then
+         begin
+         TodoValido := false;
+         break;
+         end;
       end;
    end;
 if not todovalido then Proceder := false;
@@ -899,7 +930,8 @@ if proceder then
    end
 else
    begin
-   //if ErrorCode>0 then Result := 'ERROR '+ErrorCode.ToString;
+   if ErrorCode>0 then
+      if mylastblock >= 56000 then Result := 'ERROR '+ErrorCode.ToString;
    end;
 EXCEPT ON E:EXCEPTION DO
    begin

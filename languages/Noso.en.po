@@ -106,12 +106,28 @@ msgstr ""
 msgid "Block hash"
 msgstr ""
 
+#: tform1.cbrunnodealone.caption
+msgid "Stop memos outputs (BETA)"
+msgstr ""
+
+#: tform1.cbrunnodealone.hint
+msgid "Run as unattended Masternode"
+msgstr ""
+
 #: tform1.cbsummaryhash.caption
 msgid "Summary hash"
 msgstr ""
 
 #: tform1.cb_autorpc.caption
 msgid "Active JSON-RPC server at launch"
+msgstr ""
+
+#: tform1.cb_currentjob.caption
+msgid "Disabled"
+msgstr ""
+
+#: tform1.cb_currentjob.hint
+msgid "Show current job (BETA)"
 msgstr ""
 
 #: tform1.cb_rpcfilter.caption
@@ -233,10 +249,6 @@ msgctxt "tform1.labelbigbalance.caption"
 msgid "0 NOS"
 msgstr ""
 
-#: tform1.labelcurrentjob.caption
-msgid "Currentjob"
-msgstr ""
-
 #: tform1.labeldoctor.caption
 msgid "Waiting"
 msgstr ""
@@ -252,7 +264,7 @@ msgid "Last: -.-"
 msgstr ""
 
 #: tform1.labelnodeshash.caption
-msgid "Hash: "
+msgid "Count: "
 msgstr ""
 
 #: tform1.labeltransactiondetails.caption
@@ -401,6 +413,11 @@ msgctxt "tform1.tabconsole.caption"
 msgid "Console"
 msgstr ""
 
+#: tform1.tabdebug_log.caption
+msgctxt "tform1.tabdebug_log.caption"
+msgid "Log"
+msgstr ""
+
 #: tform1.tabdoctor.caption
 msgid "Doctor"
 msgstr ""
@@ -440,13 +457,13 @@ msgstr ""
 msgid "Options"
 msgstr ""
 
-#: tform1.tabsheet1.caption
-msgctxt "tform1.tabsheet1.caption"
+#: tform1.tabopt_wallet.caption
+msgctxt "tform1.tabopt_wallet.caption"
 msgid "Wallet"
 msgstr ""
 
 #: tform1.tabsheet10.caption
-msgid "Peers"
+msgid "Stats"
 msgstr ""
 
 #: tform1.tabsheet3.caption
@@ -455,11 +472,6 @@ msgstr ""
 
 #: tform1.tabsheet5.caption
 msgid "Trade"
-msgstr ""
-
-#: tform1.tabsheet7.caption
-msgctxt "tform1.tabsheet7.caption"
-msgid "Log"
 msgstr ""
 
 #: tform1.tabsheet8.caption

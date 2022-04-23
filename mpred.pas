@@ -13,13 +13,16 @@ function GetSlotFromIP(Ip:String):int64;
 function GetSlotFromContext(Context:TidContext):int64;
 function BotExists(IPUser:String):Boolean;
 function NodeExists(IPUser,Port:String):integer;
-function SaveConection(tipo,ipuser:String;contextdata:TIdContext):integer;
+function SaveConection(tipo,ipuser:String;contextdata:TIdContext;toSlot:integer=-1):integer;
 Procedure ForceServer();
 procedure StartServer();
 function StopServer():boolean;
 procedure CerrarSlot(Slot:integer);
 Procedure ConnectToServers();
+Function IsSlotFree(number:integer):Boolean;
+Function IsSlotConnected(number:integer):Boolean;
 function GetFreeSlot():integer;
+function ReserveSlot():integer;
 function ConnectClient(Address,Port:String):integer;
 function GetTotalConexiones():integer;
 function CerrarClientes(ServerToo:Boolean=True):string;
@@ -115,41 +118,34 @@ for contador := 0 to length(ListadoBots)-1 do
 End;
 
 // Almacena una conexion con sus datos en el array Conexiones
-function SaveConection(tipo,ipuser:String;contextdata:TIdContext):integer;
+function SaveConection(tipo,ipuser:String;contextdata:TIdContext;toSlot:integer=-1):integer;
 var
-  contador : integer = 1;
-  Slot     : int64 = 0;
-  FoundSlot: boolean = false;
+  Slot      : int64 = 0;
+  FoundSlot : boolean = false;
 begin
 SetCurrentJob('SaveConection',true);
-EnterCriticalSection(CSNodesList);
-For contador := 1 to MaxConecciones do
+if ToSlot<0 then ToSlot := ReserveSlot;
+if ToSlot>0 then
    begin
-   if Conexiones[contador].tipo = '' then
-      begin
-      Conexiones[contador] := Default(conectiondata);
-      Conexiones[contador].Autentic:=false;
-      Conexiones[contador].Connections:=0;
-      Conexiones[contador].tipo := tipo;
-      Conexiones[contador].ip:= ipuser;
-      Conexiones[contador].lastping:=UTCTime;
-      Conexiones[contador].context:=contextdata;
-      Conexiones[contador].Lastblock:='0';
-      Conexiones[contador].LastblockHash:='';
-      Conexiones[contador].SumarioHash:='';
-      Conexiones[contador].ListeningPort:=-1;
-      Conexiones[contador].Pending:=0;
-      Conexiones[contador].ResumenHash:='';
-      Conexiones[contador].ConexStatus:=0;
-      slot := contador;
-      ClearIncoming(slot);
-      FoundSlot := true;
-      break;
-      end;
+   EnterCriticalSection(CSNodesList);
+   Conexiones[toSlot] := Default(conectiondata);
+   Conexiones[toSlot].Autentic:=false;
+   Conexiones[toSlot].Connections:=0;
+   Conexiones[toSlot].tipo := tipo;
+   Conexiones[toSlot].ip:= ipuser;
+   Conexiones[toSlot].lastping:=UTCTime;
+   Conexiones[toSlot].context:=contextdata;
+   Conexiones[toSlot].Lastblock:='0';
+   Conexiones[toSlot].LastblockHash:='';
+   Conexiones[toSlot].SumarioHash:='';
+   Conexiones[toSlot].ListeningPort:=-1;
+   Conexiones[toSlot].Pending:=0;
+   Conexiones[toSlot].ResumenHash:='';
+   Conexiones[toSlot].ConexStatus:=0;
+   ClearIncoming(ToSlot);
+   LeaveCriticalSection(CSNodesList);
    end;
-LeaveCriticalSection(CSNodesList);
-if not FoundSlot then Slot := 0;
-result := slot;
+result := ToSlot;
 SetCurrentJob('SaveConection',false);
 end;
 
@@ -310,21 +306,64 @@ setmilitime('ConnectToServers',2);
 SetCurrentJob('ConnectToServers',false);
 End;
 
-// regresa el primer slot disponible, o 0 si no hay ninguno
+Function IsSlotFree(number:integer):Boolean;
+Begin
+result := true;
+if conexiones[number].tipo <> '' then result := false;
+End;
+
+Function IsSlotConnected(number:integer):Boolean;
+Begin
+result := false;
+if ((conexiones[number].tipo = 'SER') or (conexiones[number].tipo = 'CLI')) then result := true;
+End;
+
+// Returns first available slot
 function GetFreeSlot():integer;
 var
   contador : integer = 1;
-begin
+Begin
 result := 0;
 for contador := 1 to MaxConecciones do
    begin
-   if Conexiones[contador].tipo = '' then
+   if IsSlotFree(Contador) then
       begin
       result := contador;
       break;
       end;
    end;
-end;
+End;
+
+// Reserves the first available slot
+function ReserveSlot():integer;
+var
+  contador : integer = 1;
+Begin
+result := 0;
+for contador := 1 to MaxConecciones do
+   begin
+   if IsSlotFree(Contador) then
+      begin
+      Conexiones[contador].tipo:='RES';
+      result := contador;
+      break;
+      end;
+   end;
+End;
+
+// Reserves the first available slot
+Procedure UnReserveSlot(number:integer);
+Begin
+if Conexiones[number].tipo ='RES' then
+   begin
+   Conexiones[number].tipo :='';
+   CerrarSlot(Number);
+   end
+else
+   begin
+   ToExcLog('Error un-reserving slot '+number.ToString);
+   end;
+End;
 
 // Connects a client and returns the slot
 function ConnectClient(Address,Port:String):integer;
@@ -337,7 +376,7 @@ Begin
 SetCurrentJob('ConnectClient',true);
 result := 0;
 ConContext := Default(TIdContext);
-Slot := GetFreeSlot();
+Slot := ReserveSlot();
 if Address = '127.0.0.1' then
    begin
    ToLog(LangLine(29));    //127.0.0.1 is an invalid server address
@@ -353,6 +392,7 @@ if not errored then
    begin
    if CanalCliente[Slot].Connected then
       begin // Close Slot if it is connected
+      {
       TRY
       CanalCliente[Slot].IOHandler.InputBuffer.Clear;
       CanalCliente[Slot].Disconnect;
@@ -361,6 +401,7 @@ if not errored then
          begin
          end;
       END;{Try}
+      }
       end;
    CanalCliente[Slot].Host:=Address;
    CanalCliente[Slot].Port:=StrToIntDef(Port,8080);
@@ -368,13 +409,11 @@ if not errored then
    ClearOutTextToSlot(slot);
    TRY
    CanalCliente[Slot].Connect;
-   SavedSlot := SaveConection('SER',Address,ConContext);
+   SavedSlot := SaveConection('SER',Address,ConContext,slot);
    //ConsoleLinesAdd(slot.ToString+'<->'+SavedSlot.ToString);
    ToLog(LangLine(30)+Address);          //Connected TO:
    CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address+' '+ProgramVersion+subversion);
    CanalCliente[Slot].IOHandler.WriteLn(ProtocolLine(3));   // Send PING
-   //PTC_SendLine(slot,'PSK '+Address+' '+ProgramVersion+subversion);
-   //PTC_SendLine(slot,ProtocolLine(3));
    Conexiones[slot].Thread := TThreadClientRead.Create(true, slot);
    Conexiones[slot].Thread.FreeOnTerminate:=true;
    Conexiones[slot].Thread.Start;
@@ -383,9 +422,11 @@ if not errored then
    EXCEPT on E:Exception do
       begin
       ToExcLog('Error Connecting to '+Address+': '+E.Message);
+      UnReserveSlot(Slot);
       end;
    END;{Try}
-   end;
+   end
+else UnReserveSlot(Slot);
 SetCurrentJob('ConnectClient',false);
 End;
 
@@ -397,7 +438,7 @@ Begin
 setmilitime('GetTotalConexiones',1);
 result := 0;
 for counter := 1 to MaxConecciones do
-   if conexiones[counter].tipo <> '' then result := result + 1;
+   if IsSlotConnected(Counter) then result := result + 1;
 setmilitime('GetTotalConexiones',2);
 End;
 
@@ -437,7 +478,7 @@ Begin
 SetCurrentJob('LeerLineasDeClientes',true);
 for contador := 1 to Maxconecciones do
    begin
-   if Conexiones[contador].tipo <> '' then
+   if IsSlotConnected(contador) then
      begin
      if ((StrToInt64(UTCTime) > StrToInt64Def(conexiones[contador].lastping,0)+15) and
         (not conexiones[contador].IsBusy) and (not REbuildingSumary) )then
@@ -642,7 +683,7 @@ SetLength(ArrayConsenso,0);
 ConsensoValues := 0;
 for contador := 1 to MaxConecciones do
    Begin
-   if ( (conexiones[contador].tipo<> '') and (IsSeedNode(conexiones[contador].ip)) ) then
+   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
       begin
       UpdateConsenso(conexiones[contador].Lastblock,contador);
       end;
@@ -659,7 +700,7 @@ SetLength(ArrayConsenso,0);
 ConsensoValues := 0;
 for contador := 1 to MaxConecciones do
    Begin
-   if ( (conexiones[contador].tipo<> '') and (IsSeedNode(conexiones[contador].ip)) ) then
+   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
       begin
       UpdateConsenso(conexiones[contador].LastblockHash,contador);
       end;
@@ -676,7 +717,7 @@ SetLength(ArrayConsenso,0);
 ConsensoValues := 0;
 for contador := 1 to MaxConecciones do
    Begin
-   if ( (conexiones[contador].tipo<> '') and (IsSeedNode(conexiones[contador].ip)) ) then
+   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
       begin
       UpdateConsenso(conexiones[contador].SumarioHash, contador);
       end;
@@ -693,7 +734,7 @@ SetLength(ArrayConsenso,0);
 ConsensoValues := 0;
 for contador := 1 to MaxConecciones do
    Begin
-   if ( (conexiones[contador].tipo<> '') and (IsSeedNode(conexiones[contador].ip)) ) then
+   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
       begin
       UpdateConsenso(IntToStr(conexiones[contador].Pending), contador);
       end;
@@ -710,7 +751,7 @@ SetLength(ArrayConsenso,0);
 ConsensoValues := 0;
 for contador := 1 to MaxConecciones do
    Begin
-   if ( (conexiones[contador].tipo<> '') and (IsSeedNode(conexiones[contador].ip)) ) then
+   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
       begin
       UpdateConsenso(conexiones[contador].ResumenHash, contador);
       end;
@@ -727,7 +768,7 @@ SetLength(ArrayConsenso,0);
 ConsensoValues := 0;
 for contador := 1 to MaxConecciones do
    Begin
-   if ( (conexiones[contador].tipo<> '') and (IsSeedNode(conexiones[contador].ip)) ) then
+   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
       begin
       UpdateConsenso(conexiones[contador].MNsHash, contador);
       end;
@@ -744,7 +785,7 @@ SetLength(ArrayConsenso,0);
 ConsensoValues := 0;
 for contador := 1 to MaxConecciones do
    Begin
-   if ( (conexiones[contador].tipo<> '') and (IsSeedNode(conexiones[contador].ip)) ) then
+   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
       begin
       UpdateConsenso(IntToStr(conexiones[contador].MNsCount), contador);
       end;
@@ -761,7 +802,7 @@ SetLength(ArrayConsenso,0);
 ConsensoValues := 0;
 for contador := 1 to MaxConecciones do
    Begin
-   if ( (conexiones[contador].tipo<> '') and (IsSeedNode(conexiones[contador].ip)) ) then
+   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
       begin
       UpdateConsenso(conexiones[contador].BestHashDiff, contador);
       end;
@@ -778,7 +819,7 @@ SetLength(ArrayConsenso,0);
 ConsensoValues := 0;
 for contador := 1 to MaxConecciones do
    Begin
-   if ( (conexiones[contador].tipo<> '') and (IsSeedNode(conexiones[contador].ip)) ) then
+   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
       begin
       UpdateConsenso(IntToStr(conexiones[contador].MNChecksCount), contador);
       end;
@@ -846,7 +887,7 @@ if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // Req
    SetNMSData('','','');
    ClearMNsChecks();
    ClearMNsList();
-   if ((LastTimeRequestResumen+5 < StrToInt64(UTCTime)) and (not DownloadHeaders)) then
+   if ((LastTimeRequestResumen+5 < UTCTime.ToInt64) and (not DownloadHeaders)) then
       begin
       if ( (NLBV-mylastblock >= 144) or (ForceCompleteHeadersDownload) ) then
          begin
@@ -903,7 +944,7 @@ else if ((MyResumenhash <> NetResumenHash.Value) and (NLBV=mylastblock) and (MyL
    ConsoleLinesAdd(LangLine(163)); //'Headers file requested'
    LastTimeRequestResumen := StrToInt64(UTCTime);
    end
-else if ( (StrToInt(NetMNsCount.Value)>GetMNsListLength) and (LastTimeMNsRequested+5<UTCTime.ToInt64)
+else if ( (StrToIntDef(NetMNsCount.Value,0)>GetMNsListLength) and (LastTimeMNsRequested+5<UTCTime.ToInt64)
            and (LengthWaitingMNs = 0) ) then
    begin
    EnterCriticalSection(CSMNsIPCheck);
@@ -934,7 +975,6 @@ else if ( (GetNMSData.Diff<>NetBestHash.Value) and (LastTimeBestHashRequested+5<
    ConsolelinesAdd('Requesting besthash');
    }
    end;
-
 if IsAllSynced then Last_ActualizarseConLaRed := Last_ActualizarseConLaRed+5;
 SetCurrentJob('ActualizarseConLaRed',false);
 End;

@@ -88,7 +88,6 @@ Procedure CreateLauncherFile(IncludeUpdate:boolean = false);
 Procedure RestartNoso();
 Procedure NewDoctor();
 Procedure RunDiagnostico(linea:string);
-Procedure CrearArchivoPoolInfo(nombre,direccion:string;porcentaje,miembros,port,tipo:integer;pass:string);
 Procedure GuardarArchivoPoolInfo();
 function GetPoolInfoFromDisk():PoolInfoData;
 Procedure LoadPoolMembers();
@@ -246,7 +245,8 @@ If IOCode = 0 then
       while ExceptLines.Count>0 do
          begin
          Writeln(archivo, ExceptLines[0]);
-         form1.MemoExceptLog.Lines.Add( ExceptLines[0]);
+         if not WO_OmmitMemos then
+            form1.MemoExceptLog.Lines.Add( ExceptLines[0]);
          NewExclogLines +=1;
          ExceptLines.Delete(0);
          end;
@@ -593,7 +593,8 @@ if IOCode = 0 then
       while LogLines.Count>0 do
          begin
          Writeln(archivo,LogLines[0]);
-         form1.MemoLog.Lines.Add(LogLines[0]);
+         if not WO_OmmitMemos then
+            form1.MemoLog.Lines.Add(LogLines[0]);
          LogLines.Delete(0);
          end;
       S_Log := false;
@@ -1003,6 +1004,9 @@ If IOCode = 0 then
    END; {TRY}
    end;
 {$I-}closefile(FileWallet);{$I+}
+IOCode := IOResult;
+if IOCode>0 then
+   ToExcLog('Unable to close wallet file, error= '+IOCode.ToString );
 setmilitime('GuardarWallet',2);
 End;
 
@@ -1104,6 +1108,9 @@ If IOCode = 0 then
    END; {TRY}
    end;
 {$I-}CloseFile(FileSumario);{$I+};
+IOCode := IOResult;
+if IOCode>0 then
+   ToExcLog('Unable to close summary file, error= '+IOCode.ToString );
 LeaveCriticalSection(CSSumary);
 ZipSumary;
 if SaveCheckmark then
@@ -2125,26 +2132,6 @@ errores := 0;
 RunningDoctor := false;
 FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
 UpdateMyData();
-End;
-
-// Creates the pool info file
-Procedure CrearArchivoPoolInfo(nombre,direccion:string;porcentaje,miembros,port,tipo:integer;pass:string);
-var
-  dato : PoolInfoData;
-Begin
-assignfile(FilePool,PoolInfoFilename);
-rewrite(FilePool);
-dato.Name := nombre;
-dato.Direccion:=direccion;
-dato.Porcentaje:=porcentaje;
-dato.MaxMembers:=miembros;
-dato.Port:=port;
-dato.TipoPago:=tipo;
-Dato.FeeEarned:=0;
-dato.PassWord:=pass;
-write(filepool,dato);
-Closefile(FilePool);
-PoolInfo := Dato;
 End;
 
 // Saves the pool info file

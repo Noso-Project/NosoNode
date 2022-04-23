@@ -274,7 +274,8 @@ Procedure MostrarLineasDeConsola();
 Begin
 While ConsoleLines.Count > 0 do
    begin
-   form1.Memoconsola.Lines.Add(ConsoleLines[0]);
+   if not WO_OmmitMemos then
+      form1.Memoconsola.Lines.Add(ConsoleLines[0]);
    EnterCriticalSection(CSConsoleLines);
       TRY
       ConsoleLines.Delete(0);
@@ -659,10 +660,11 @@ else
    currentjob := StringReplace(currentjob,'>'+CurrJob,'',[rfReplaceAll, rfIgnoreCase]);
    LeaveCriticalSection(CSCurrentJob);
    end;
-if (form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor) then
+if ( (form1.PCMonitor.ActivePage=Form1.TabMonitorMonitor) and (Form1.PageMain.ActivePage=form1.TabMonitor) and
+     (form1.CB_Currentjob.Checked) ) then
    begin
-   Form1.LabelCurrentJob.Caption:=GetCurrentJob;
-   Form1.LabelCurrentJob.Update;
+   Form1.CB_Currentjob.Caption:=GetCurrentJob;
+   Form1.CB_Currentjob.Update;
    end;
 End;
 

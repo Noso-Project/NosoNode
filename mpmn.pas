@@ -85,7 +85,7 @@ end;
 procedure TThreadMNVerificator.Execute;
 var
   TCPClient : TidTCPClient;
-  Linea : String;
+  Linea : String = '';
   WasPositive : Boolean;
   IP : string;
   Port: integer;
@@ -93,14 +93,14 @@ var
   Trys :integer = 0;
 Begin
 Sleep(100);
-{BIG}TRY
+TRY {BIG}
 IP := MNsListCopy[FSlot].Ip;
 Port := MNsListCopy[FSlot].Port;
 TCPClient := TidTCPClient.Create(nil);
 TCPclient.Host:=Ip;
 TCPclient.Port:=Port;
-TCPclient.ConnectTimeout:= 1000;
-TCPclient.ReadTimeout:=1000;
+TCPclient.ConnectTimeout:= 3000;
+TCPclient.ReadTimeout:=3000;
 REPEAT
    Inc(Trys);
    TRY
@@ -114,24 +114,24 @@ REPEAT
       Success := false;
       end;
 END{try};
-UNTIL ((Success) or (trys = 3));
+UNTIL ((Success) or (trys = 5));
 TCPClient.Free;
 if success then
    begin
-   WasPositive := StrToBool(Parameter(Linea,0));
+   WasPositive := StrToBoolDef(Parameter(Linea,0),false);
    if ( (WasPositive) and (Parameter(Linea,1)=CurrSynctus) ) then
       begin
       EnterCriticalSection(CSVerNodes);
       VerifiedNodes := VerifiedNodes+Ip+':';
       LeaveCriticalSection(CSVerNodes);
       end
+   else if ( (WasPositive) and (Parameter(Linea,1)<>CurrSynctus) ) then
+      begin
+      // Wrong synctus returned
+      end
    else
       begin
-      {
-      EnterCriticalSection(CSVerNodes);
-      VerifiedNodes := VerifiedNodes+Ip+'>NOSYNCTUS'+':';
-      LeaveCriticalSection(CSVerNodes);
-      }
+      // Was not possitive
       end;
    end;
 EXCEPT on E:Exception do
