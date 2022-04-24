@@ -96,11 +96,12 @@ var
   orderinfo : OrderData;
 Begin
 OrderInfo := Default(OrderData);
+TRY
 OrderInfo.OrderID    := Parameter(textline,1);
 OrderInfo.OrderLines := StrToInt(Parameter(textline,2));
 OrderInfo.OrderType  := Parameter(textline,3);
 OrderInfo.TimeStamp  := StrToInt64(Parameter(textline,4));
-OrderInfo.reference    := Parameter(textline,5);
+OrderInfo.reference  := Parameter(textline,5);
 OrderInfo.TrxLine    := StrToInt(Parameter(textline,6));
 OrderInfo.Sender     := Parameter(textline,7);
 OrderInfo.Address    := Parameter(textline,8);
@@ -109,6 +110,11 @@ OrderInfo.AmmountFee := StrToInt64(Parameter(textline,10));
 OrderInfo.AmmountTrf := StrToInt64(Parameter(textline,11));
 OrderInfo.Signature  := Parameter(textline,12);
 OrderInfo.TrfrID     := Parameter(textline,13);
+EXCEPT ON E:Exception do
+   begin
+   ToExcLog('Error GetOrderFromString : '+E.Message);
+   end;
+END;{TRY}
 Result := OrderInfo;
 End;
 

@@ -1448,7 +1448,7 @@ ListaSumario[0].LastOP:=BlockNumber;
 if SaveAndUpdate then
    begin
    GuardarSumario();
-   UpdateMyData();
+   {if not RunningDoctor then} UpdateMyData();
    end;
 LeaveCriticalSection(CSSumary);
 SetCurrentJob('AddBlockToSumary'+inttostr(BlockNumber),false);
@@ -1975,6 +1975,7 @@ assignfile(FileResumen,ResumenFilename);
 if ((form1.CBBlockhash.Checked) or (form1.CBSummaryhash.Checked)) then
    reset(FileResumen);
 if form1.CBSummaryhash.Checked then Rebuildsumario(FirstB-1);
+RunningDoctor := True;
 for cont := firstB to lastB do
    begin
    if ((form1.CBBlockhash.Checked) or (form1.CBSummaryhash.Checked)) then
@@ -2013,6 +2014,7 @@ for cont := firstB to lastB do
       end;
    if stopdoctor then break;
    end;
+RunningDoctor := false;
 if ((form1.CBBlockhash.Checked) or (form1.CBSummaryhash.Checked)) then
    CloseFile(FileResumen);
 form1.ButStartDoctor.Visible:=true;

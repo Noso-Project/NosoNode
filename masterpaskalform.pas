@@ -751,7 +751,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ae53';
+  SubVersion = 'Ae6';
   OficialRelease = false;
   VersionRequired = '0.3.1Ae1';
   BuildDate = 'April 2022';
@@ -1163,6 +1163,7 @@ var
   LineSent : boolean;
 begin
 REPEAT
+TRY
 sleep(1);
 continuar := true;
 if CanalCliente[FSlot].IOHandler.InputBufferIsEmpty then
@@ -1280,7 +1281,16 @@ if Continuar then
       Conexiones[fSlot].IsBusy:=false;
       end;
    end;
-UNTIL ((terminated) or (not CanalCliente[FSlot].Connected));
+
+EXCEPT ON E:Exception do
+   begin
+   ToExcLog('*****CRITICAL**** Error inside Client thread: '+E.Message);
+   end;
+END; {TRY}
+UNTIL ( (terminated) or (not CanalCliente[FSlot].Connected) );
+//EnterCriticalSection(CSNodesList);
+//Conexiones[FSlot] := Default(conectiondata);
+//LeaveCriticalSection(CSNodesList);
 End;
 
 constructor TThreadClientRead.Create(const CreatePaused: Boolean; const ConexSlot:Integer);

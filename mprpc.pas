@@ -244,7 +244,7 @@ else if objecttype = 'orderinfo' then
       begin
       orderobject := TJSONObject.Create;
          orderobject.Add('orderid',parameter(mystring,2));
-         orderobject.Add('timestamp',StrToInt(parameter(mystring,3)));
+         orderobject.Add('timestamp',StrToInt64(parameter(mystring,3)));
          orderobject.Add('block',StrToInt64(parameter(mystring,4)));
          orderobject.Add('type',parameter(mystring,5));
          orderobject.Add('trfrs',StrToInt(parameter(mystring,6)));

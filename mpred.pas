@@ -120,32 +120,62 @@ End;
 // Almacena una conexion con sus datos en el array Conexiones
 function SaveConection(tipo,ipuser:String;contextdata:TIdContext;toSlot:integer=-1):integer;
 var
-  Slot      : int64 = 0;
-  FoundSlot : boolean = false;
+  contador : integer = 1;
+  Slot     : int64 = 0;
+  FoundSlot: boolean = false;
 begin
 SetCurrentJob('SaveConection',true);
-if ToSlot<0 then ToSlot := ReserveSlot;
-if ToSlot>0 then
+if ToSLot<0 then
    begin
    EnterCriticalSection(CSNodesList);
-   Conexiones[toSlot] := Default(conectiondata);
-   Conexiones[toSlot].Autentic:=false;
-   Conexiones[toSlot].Connections:=0;
-   Conexiones[toSlot].tipo := tipo;
-   Conexiones[toSlot].ip:= ipuser;
-   Conexiones[toSlot].lastping:=UTCTime;
-   Conexiones[toSlot].context:=contextdata;
-   Conexiones[toSlot].Lastblock:='0';
-   Conexiones[toSlot].LastblockHash:='';
-   Conexiones[toSlot].SumarioHash:='';
-   Conexiones[toSlot].ListeningPort:=-1;
-   Conexiones[toSlot].Pending:=0;
-   Conexiones[toSlot].ResumenHash:='';
-   Conexiones[toSlot].ConexStatus:=0;
-   ClearIncoming(ToSlot);
+   For contador := 1 to MaxConecciones do
+      begin
+      if Conexiones[contador].tipo = '' then
+         begin
+         Conexiones[contador] := Default(conectiondata);
+         Conexiones[contador].Autentic:=false;
+         Conexiones[contador].Connections:=0;
+         Conexiones[contador].tipo := tipo;
+         Conexiones[contador].ip:= ipuser;
+         Conexiones[contador].lastping:=UTCTime;
+         Conexiones[contador].context:=contextdata;
+         Conexiones[contador].Lastblock:='0';
+         Conexiones[contador].LastblockHash:='';
+         Conexiones[contador].SumarioHash:='';
+         Conexiones[contador].ListeningPort:=-1;
+         Conexiones[contador].Pending:=0;
+         Conexiones[contador].ResumenHash:='';
+         Conexiones[contador].ConexStatus:=0;
+         ClearIncoming(contador);
+         FoundSlot := true;
+         result := contador;
+         break;
+         end;
+      end;
+   LeaveCriticalSection(CSNodesList);
+   if not FoundSlot then Result := 0;
+   end
+else
+   begin
+   EnterCriticalSection(CSNodesList);
+   Conexiones[ToSLot] := Default(conectiondata);
+   Conexiones[ToSLot].Autentic:=false;
+   Conexiones[ToSLot].Connections:=0;
+   Conexiones[ToSLot].tipo := tipo;
+   Conexiones[ToSLot].ip:= ipuser;
+   Conexiones[ToSLot].lastping:=UTCTime;
+   Conexiones[ToSLot].context:=contextdata;
+   Conexiones[ToSLot].Lastblock:='0';
+   Conexiones[ToSLot].LastblockHash:='';
+   Conexiones[ToSLot].SumarioHash:='';
+   Conexiones[ToSLot].ListeningPort:=-1;
+   Conexiones[ToSLot].Pending:=0;
+   Conexiones[ToSLot].ResumenHash:='';
+   Conexiones[ToSLot].ConexStatus:=0;
+   ClearIncoming(ToSLot);
+   result := ToSLot;
    LeaveCriticalSection(CSNodesList);
    end;
-result := ToSlot;
 SetCurrentJob('SaveConection',false);
 end;
 
@@ -344,7 +374,9 @@ for contador := 1 to MaxConecciones do
    begin
    if IsSlotFree(Contador) then
       begin
+      EnterCriticalSection(CSNodesList);
       Conexiones[contador].tipo:='RES';
+      LeaveCriticalSection(CSNodesList);
       result := contador;
       break;
       end;
@@ -356,7 +388,9 @@ Procedure UnReserveSlot(number:integer);
 Begin
 if Conexiones[number].tipo ='RES' then
    begin
+   EnterCriticalSection(CSNodesList);
    Conexiones[number].tipo :='';
+   LeaveCriticalSection(CSNodesList);
    CerrarSlot(Number);
    end
 else
@@ -410,7 +444,6 @@ if not errored then
    TRY
    CanalCliente[Slot].Connect;
    SavedSlot := SaveConection('SER',Address,ConContext,slot);
-   //ConsoleLinesAdd(slot.ToString+'<->'+SavedSlot.ToString);
    ToLog(LangLine(30)+Address);          //Connected TO:
    CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address+' '+ProgramVersion+subversion);
    CanalCliente[Slot].IOHandler.WriteLn(ProtocolLine(3));   // Send PING
@@ -480,7 +513,7 @@ for contador := 1 to Maxconecciones do
    begin
    if IsSlotConnected(contador) then
      begin
-     if ((StrToInt64(UTCTime) > StrToInt64Def(conexiones[contador].lastping,0)+15) and
+     if ( (StrToInt64(UTCTime) > StrToInt64Def(conexiones[contador].lastping,0)+15) and
         (not conexiones[contador].IsBusy) and (not REbuildingSumary) )then
         begin
         ConsoleLinesAdd(LangLine(32)+conexiones[contador].ip);   //Conection closed: Time Out Auth ->
@@ -851,10 +884,10 @@ if MyLastBlock <> StrToIntDef(NetLastBlock.Value,0) then result := false;
 if MyLastBlockHash <> NetLastBlockHash.Value then result := false;
 if MySumarioHash <> NetSumarioHash.Value then result := false;
 if MyResumenHash <> NetResumenHash.Value then result := false;
-if GetPendingCount <> StrToIntDef(NetPendingTrxs.Value,0) then result := false;
+//if GetPendingCount <> StrToIntDef(NetPendingTrxs.Value,0) then result := false;
 if GetMNsListLength <> StrToIntDef(NetMNsCount.Value,0) then result := false;
-if NetBestHash.Value <> GetNMSData.Diff then result := false;
-if GetMNsChecksCount <> StrToIntDef(NetMNsChecks.Value,0) then result := false;
+//if NetBestHash.Value <> GetNMSData.Diff then result := false;
+//if GetMNsChecksCount <> StrToIntDef(NetMNsChecks.Value,0) then result := false;
 if NetMNsHash.value <>  Copy(MyMNsHash,1,5) then result := false;
 End;
 
@@ -1263,7 +1296,7 @@ NodeToUse := Random(Length(ListaNodos));
 Result := '';
 TCPClient := TidTCPClient.Create(nil);
 TCPclient.Host:=ListaNodos[NodeToUse].ip;
-TCPclient.Port:=StrToInt(ListaNodos[NodeToUse].port);
+TCPclient.Port:=StrToIntDef(ListaNodos[NodeToUse].port,8080);
 TCPclient.ConnectTimeout:= 1000;
 TCPclient.ReadTimeout:=1000;
 TRY

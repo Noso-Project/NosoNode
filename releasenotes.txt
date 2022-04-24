@@ -16,7 +16,7 @@ Version 0.3.1Ae5
 - Removed Creation of the pool info file (deprecated)
 - Added Reserve and Unreserve slots.
 - Tab "Peers" renamed "Stats".
-
+- Added TRY catcher in read client thread.
 
 Version 0.3.1Ae4
 
