@@ -19,6 +19,7 @@ Type
         constructor Create(const CreatePaused: Boolean; const ConexSlot:Integer);
       end;
 
+Function NoVerificators():integer;
 Function RunMNVerification():String;
 Function GetMNCheckFromString(Linea:String):TMNCheck;
 
@@ -99,8 +100,8 @@ Port := MNsListCopy[FSlot].Port;
 TCPClient := TidTCPClient.Create(nil);
 TCPclient.Host:=Ip;
 TCPclient.Port:=Port;
-TCPclient.ConnectTimeout:= 3000;
-TCPclient.ReadTimeout:=3000;
+TCPclient.ConnectTimeout:= 1000;
+TCPclient.ReadTimeout:= 1000;
 REPEAT
    Inc(Trys);
    TRY
@@ -122,7 +123,7 @@ if success then
    if ( (WasPositive) and (Parameter(Linea,1)=CurrSynctus) ) then
       begin
       EnterCriticalSection(CSVerNodes);
-      VerifiedNodes := VerifiedNodes+Ip+':';
+      VerifiedNodes := VerifiedNodes+Ip+';'+Port.ToString+':';
       LeaveCriticalSection(CSVerNodes);
       end
    else if ( (WasPositive) and (Parameter(Linea,1)<>CurrSynctus) ) then
@@ -142,6 +143,13 @@ Dec(OpenVerificators);
 LeaveCriticalSection(DecVerThreads);
 End;
 
+Function NoVerificators():integer;
+Begin
+EnterCriticalSection(DecVerThreads);
+result := OpenVerificators;
+LeaveCriticalSection(DecVerThreads);
+End;
+
 function RunMNVerification():String;
 var
   counter : integer;
@@ -149,13 +157,6 @@ var
   Launched : integer = 0;
   WaitCycles : integer = 0;
   DataLine : String;
-
-  Function NoVerificators():integer;
-  Begin
-  EnterCriticalSection(DecVerThreads);
-  result := OpenVerificators;
-  LeaveCriticalSection(DecVerThreads);
-  End;
 
 Begin
 Result := '';
@@ -184,9 +185,10 @@ until ( (NoVerificators= 0) or (WaitCycles = 100) );
 DataLine := MN_IP+' '+MyLastBlock.ToString+' '+MN_Sign+' '+ListaDirecciones[DireccionEsMia(MN_Sign)].PublicKey+' '+
             VerifiedNodes+' '+GetStringSigned(VerifiedNodes,ListaDirecciones[DireccionEsMia(MN_Sign)].PrivateKey);
 OutGoingMsjsAdd(ProtocolLine(MNCheck)+DataLine);
-Result := Launched.ToString+':'+VerifiedNodes;
+Result := Launched.ToString+':'+VerifiedNodes
 End;
 
+// Converts a string into a TMNChekc data
 Function GetMNCheckFromString(Linea:String):TMNCheck;
 Begin
 Result.ValidatorIP    :=Parameter(Linea,5);
@@ -197,6 +199,7 @@ Result.ValidNodes     :=Parameter(Linea,9);
 Result.Signature      :=Parameter(Linea,10);
 End;
 
+// Returns the number of MNs checks
 Function GetMNsChecksCount():integer;
 Begin
 EnterCriticalSection(CSMNsChecks);
@@ -204,6 +207,7 @@ result := Length(ArrMNChecks);
 LeaveCriticalSection(CSMNsChecks);
 End;
 
+// Clears all the MNS checks
 Procedure ClearMNsChecks();
 Begin
 EnterCriticalSection(CSMNsChecks);
@@ -211,6 +215,7 @@ SetLength(ArrMNChecks,0);
 LeaveCriticalSection(CSMNsChecks);
 End;
 
+// Verify if an IP already sent a verification
 Function MnsCheckExists(Ip:String):Boolean;
 var
   Counter : integer;
@@ -228,6 +233,7 @@ For counter := 0 to length(ArrMNChecks)-1 do
 LeaveCriticalSection(CSMNsChecks);
 End;
 
+// Adds a new MNCheck
 Procedure AddMNCheck(ThisData:TMNCheck);
 Begin
 EnterCriticalSection(CSMNsChecks);
@@ -293,6 +299,7 @@ if GetMNsChecksCount>0 then
    end;
 End;
 
+// Verify is there are a masternode verification from the user
 Function MNVerificationDone():Boolean;
 var
   counter : integer;
@@ -321,18 +328,22 @@ result := false;
 if IsSeedNode(IP) then result := true;
 End;
 
+// Returns the string to send the own MN report
 Function GetMNReportString():String;
 var
   IpToUse : string;
+  IPTrys  : integer = 0;
 Begin
 // {5}IP 6{Port} 7{SignAddress} 8{FundsAddress} 9{FirstBlock} 10{LastVerified}
 //    11{TotalVerified} 12{BlockVerifys} 13{hash}
 if MN_AutoIP then
    begin
    REPEAT
+   Inc(IPTrys);
    IpToUse := GetMiIP;
    sleep(1);
-   until IsValidIP(GetMiIP);
+   until ( (IsValidIP(IpToUse)) or (IPTrys=5) );
+   if IPToUse = '' then IpToUse := MN_IP;
    end
 else IpToUse := MN_IP;
 if IPToUse <> MN_IP then
@@ -344,12 +355,14 @@ result := IpToUse+' '+MN_Port+' '+MN_Sign+' '+MN_Funds+' '+MyLastBlock.ToString+
    '0'+' '+'0'+' '+HashMD5String(IpToUse+MN_Port+MN_Sign+MN_Funds);
 End;
 
+// Converst a MNNode data into a string
 Function GetStringFromMN(Node:TMNode):String;
 Begin
 result := Node.Ip+' '+Node.Port.ToString+' '+Node.Sign+' '+Node.Fund+' '+Node.First.ToString+' '+Node.Last.ToString+' '+
           Node.Total.ToString+' '+Node.Validations.ToString+' '+Node.Hash;
 End;
 
+// Returns the count of reported MNs
 Function GetMNsListLength():Integer;
 Begin
 EnterCriticalSection(CSMNsArray);
@@ -357,6 +370,7 @@ Result := Length(MNsList);
 LeaveCriticalSection(CSMNsArray);
 End;
 
+// Clears all the reported MNs
 Procedure ClearMNsList();
 Begin
 EnterCriticalSection(CSMNsArray);
@@ -367,6 +381,7 @@ Setlength(ArrayIPsProcessed,0);
 LeaveCriticalSection(CSMNsIPCheck);
 End;
 
+// Returns if the user MN is already reported
 function MyMNIsListed():boolean;
 var
   counter : integer;
@@ -526,7 +541,7 @@ For counter := 0 to length(MNsList)-1 do
       begin
       if MNsList[counter].Validations>= MinValidations then
          begin
-         Resultado := Resultado + MNsList[counter].Ip+':'+MNsList[counter].Fund+' ';
+         Resultado := Resultado + MNsList[counter].Ip+';'+MNsList[counter].Port.ToString+':'+MNsList[counter].Fund+' ';
          end;
       end;
 LeaveCriticalSection(CSMNsArray);
@@ -641,6 +656,8 @@ for counter := 0 to length(ArrMNChecks)-1 do
    REPEAT
       begin
       ThisIP := Parameter(NodesString,IPIndex);
+      ThisIP := StringReplace(ThisIP,';',' ',[rfReplaceAll]);
+      ThisIP := Parameter(ThisIP,0);
       if ThisIP <> '' then
          begin
          AddCheckToIP(ThisIP);

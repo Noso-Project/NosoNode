@@ -23,6 +23,10 @@ Function IsSlotFree(number:integer):Boolean;
 Function IsSlotConnected(number:integer):Boolean;
 function GetFreeSlot():integer;
 function ReserveSlot():integer;
+
+Procedure IncClientReadThreads();
+Procedure DecClientReadThreads();
+Function GetClientReadThreads():integer;
 function ConnectClient(Address,Port:String):integer;
 function GetTotalConexiones():integer;
 function CerrarClientes(ServerToo:Boolean=True):string;
@@ -399,6 +403,27 @@ else
    end;
 End;
 
+Procedure IncClientReadThreads();
+Begin
+EnterCriticalSection(CSClientReads);
+Inc(OpenReadClientThreads);
+LeaveCriticalSection(CSClientReads);
+End;
+
+Procedure DecClientReadThreads();
+Begin
+EnterCriticalSection(CSClientReads);
+Dec(OpenReadClientThreads);
+LeaveCriticalSection(CSClientReads);
+End;
+
+Function GetClientReadThreads():integer;
+Begin
+EnterCriticalSection(CSClientReads);
+Result := OpenReadClientThreads;
+LeaveCriticalSection(CSClientReads);
+End;
+
 // Connects a client and returns the slot
 function ConnectClient(Address,Port:String):integer;
 var
@@ -406,6 +431,7 @@ var
   ConContext : TIdContext; // EMPTY
   Errored : boolean = false;
   SavedSlot : integer;
+  ConnectOk : boolean = false;
 Begin
 SetCurrentJob('ConnectClient',true);
 result := 0;
@@ -441,23 +467,46 @@ if not errored then
    CanalCliente[Slot].Port:=StrToIntDef(Port,8080);
    CanalCliente[Slot].ConnectTimeout:= ConnectTimeOutTime;
    ClearOutTextToSlot(slot);
-   TRY
-   CanalCliente[Slot].Connect;
-   SavedSlot := SaveConection('SER',Address,ConContext,slot);
-   ToLog(LangLine(30)+Address);          //Connected TO:
-   CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address+' '+ProgramVersion+subversion);
-   CanalCliente[Slot].IOHandler.WriteLn(ProtocolLine(3));   // Send PING
-   Conexiones[slot].Thread := TThreadClientRead.Create(true, slot);
-   Conexiones[slot].Thread.FreeOnTerminate:=true;
-   Conexiones[slot].Thread.Start;
-   result := Slot;
-   SetCurrentJob('ConnectClient',false);
+      TRY
+      CanalCliente[Slot].Connect;
+      ConnectOk := true;
+      EXCEPT on E:Exception do
+         begin
+         ConnectOk := False;
+         end;
+      END;{TRY}
+   if connectok then
+      begin
+      SavedSlot := SaveConection('SER',Address,ConContext,slot);
+      ToLog(LangLine(30)+Address);          //Connected TO:
+      Conexiones[slot].Thread := TThreadClientRead.Create(true, slot);
+      Conexiones[slot].Thread.FreeOnTerminate:=true;
+      Conexiones[slot].Thread.Start;
+      IncClientReadThreads;
+      result := Slot;
+         TRY
+         CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address+' '+ProgramVersion+subversion);
+         CanalCliente[Slot].IOHandler.WriteLn(ProtocolLine(3));   // Send PING
+         EXCEPT on E:Exception do
+            begin
+            result := 0;
+            CerrarSlot(slot);
+            end;
+         END;{TRY}
+      end
+   else
+      begin
+      result := 0;
+      CerrarSlot(slot);
+      end;
+   {
    EXCEPT on E:Exception do
       begin
       ToExcLog('Error Connecting to '+Address+': '+E.Message);
       UnReserveSlot(Slot);
       end;
    END;{Try}
+   }
    end
 else UnReserveSlot(Slot);
 SetCurrentJob('ConnectClient',false);

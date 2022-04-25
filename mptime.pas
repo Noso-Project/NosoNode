@@ -77,17 +77,17 @@ var
   NTPClient: TIdSNTP;
 begin
 NTPClient := TIdSNTP.Create(nil);
-   try
+   TRY
    NTPClient.Host := hostname;
    NTPClient.Active := True;
    NTPClient.ReceiveTimeout:=500;
    result := IntToStr(DateTimeToUnix(NTPClient.DateTime));
    if StrToInt64Def(result,-1) < 0 then result := '';
-   Except on E:Exception do
+   EXCEPT on E:Exception do
       begin
       result := '';
       end;
-   end;
+   END; {TRY}
 NTPClient.Free;
 end;
 

@@ -1,3 +1,10 @@
+Version 0.3.1Ae6
+
+- Adjustment on GuardarSumario.
+- Added port to masternodes.txt report.
+- Readclientthreads counter (debug).
+- Sumary marks implemented.
+
 Version 0.3.1Ae5
 
 - Fixed bug on GuardarSumario.

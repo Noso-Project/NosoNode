@@ -751,7 +751,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ae6';
+  SubVersion = 'Ae7';
   OficialRelease = false;
   VersionRequired = '0.3.1Ae1';
   BuildDate = 'April 2022';
@@ -967,6 +967,7 @@ var
   MyLastBlockHash : String = '';
   MyResumenHash : String = '';
   MyPublicIP : String = '';
+  OpenReadClientThreads : integer = 0;
 
   MyMNsHash : String = '';
 
@@ -1072,6 +1073,7 @@ var
   CSMinersConex : TRTLCriticalSection;
   CSNMSData     : TRTLCriticalSection;
   CSCurrentJob  : TRTLCriticalSection;
+  CSClientReads : TRTLCriticalSection;
   // old system
   CSMNsArray    : TRTLCriticalSection;
   CSWaitingMNs  : TRTLCriticalSection;
@@ -1288,6 +1290,7 @@ EXCEPT ON E:Exception do
    end;
 END; {TRY}
 UNTIL ( (terminated) or (not CanalCliente[FSlot].Connected) );
+DecClientReadThreads;
 //EnterCriticalSection(CSNodesList);
 //Conexiones[FSlot] := Default(conectiondata);
 //LeaveCriticalSection(CSNodesList);
@@ -1332,7 +1335,7 @@ While not terminated do
    if UTCTime.ToInt64 mod 10 = 0 then
       begin
       if ( (IsValidator(MN_Ip)) and (BlockAge>500+(MNsRandomWait div 4)) and (Not MNVerificationDone) and
-         (BlockAge<575) and (LastRunMNVerification<>UTCTime.ToInt64) and (MyConStatus = 3) ) then
+         (BlockAge<575)and(LastRunMNVerification<>UTCTime.ToInt64) and (MyConStatus = 3) and(NoVerificators=0) ) then
          begin
          LastRunMNVerification := UTCTime.ToInt64;
          RunMNVerification();
@@ -1489,6 +1492,7 @@ InitCriticalSection(CSClosingApp);
 InitCriticalSection(CSMinersConex);
 InitCriticalSection(CSNMSData);
 InitCriticalSection(CSCurrentJob);
+InitCriticalSection(CSClientReads);
 InitCriticalSection(CSIdsProcessed);
 InitCriticalSection(CSNodesList);
 for counter := 1 to MaxConecciones do
@@ -1532,6 +1536,7 @@ DoneCriticalSection(CSClosingApp);
 DoneCriticalSection(CSMinersConex);
 DoneCriticalSection(CSNMSData);
 DoneCriticalSection(CSCurrentJob);
+DoneCriticalSection(CSClientReads);
 DoneCriticalSection(CSIdsProcessed);
 DoneCriticalSection(CSNodesList);
 for contador := 1 to MaxConecciones do
@@ -2483,7 +2488,7 @@ if GoAhead then
          GetFileOk := true;
          EXCEPT ON E:EXCEPTION do
             begin
-            ToExcLog(Format(rs0046,[E.Message])); //'SERVER: Server error receiving headers file ('+E.Message+')');
+            //ToExcLog(Format(rs0046,[E.Message])); //'SERVER: Server error receiving headers file ('+E.Message+')');
             TryCloseServerConnection(AContext);
             GetFileOk := false;
             end;
@@ -2516,7 +2521,7 @@ if GoAhead then
          GetFileOk := true;
          EXCEPT ON E:Exception do
             begin
-            ToExcLog(Format(rs0048,[E.Message])); // Server error receiving block file ('+E.Message+')');
+            //ToExcLog(Format(rs0048,[E.Message])); // Server error receiving block file ('+E.Message+')');
             GetFileOk := false;
             TryCloseServerConnection(AContext);
             end;
@@ -2544,7 +2549,7 @@ if GoAhead then
          EXCEPT on E:Exception do
             begin
             GetFileOk := false;
-            ToExcLog(Format(rs0049,[E.Message]));//SERVER: Error creating stream from headers: %s',[E.Message]));
+            //ToExcLog(Format(rs0049,[E.Message]));//SERVER: Error creating stream from headers: %s',[E.Message]));
             end;
          END; {TRY}
       if GetFileOk then
@@ -2555,7 +2560,7 @@ if GoAhead then
             EXCEPT on E:Exception do
                begin
                Form1.TryCloseServerConnection(Conexiones[Slot].context);
-               ToExcLog(Format(rs0051,[E.Message]));
+               //ToExcLog(Format(rs0051,[E.Message]));
                end;
             END; {TRY}
          end;
@@ -2584,7 +2589,7 @@ if GoAhead then
                EXCEPT ON E:Exception do
                   begin
                   Form1.TryCloseServerConnection(Conexiones[Slot].context);
-                  ToExcLog(Format(rs0053,[E.Message])); //'SERVER: Error sending ZIP blocks file ('+E.Message+')');
+                  //ToExcLog(Format(rs0053,[E.Message])); //'SERVER: Error sending ZIP blocks file ('+E.Message+')');
                   end
                END; {TRY}
             end;
@@ -2594,13 +2599,13 @@ if GoAhead then
       end // END SENDING BLOCKS
    else if AnsiContainsStr(ValidProtocolCommands,Uppercase(parameter(LLine,4))) then
       begin
-         try
+         TRY
          AddToIncoming(slot,LLine);
-         Except
+         EXCEPT
          On E :Exception do
             ToExcLog(Format(rs0054,[E.Message]));
             //ToExcLog('SERVER: Server error adding received line ('+E.Message+')');
-         end;
+         END; {TRY}
       end
    else
       begin

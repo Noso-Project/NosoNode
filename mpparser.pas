@@ -274,6 +274,7 @@ else if UpperCase(Command) = 'OWNER' then GetOwnerHash(LineText)
 else if UpperCase(Command) = 'CHECKOWNER' then CheckOwnerHash(LineText)
 else if UpperCase(Command) = 'UPDATE' then RunUpdate(LineText)
 else if UpperCase(Command) = 'RESTOREBLOCKCHAIN' then RestoreBlockChain()
+else if UpperCase(Command) = 'RESTORESUMARY' then RestoreSumary(StrToIntDef(Parameter(LineText,1),0))
 else if UpperCase(Command) = 'REQHEAD' then RequestHeaders()
 else if UpperCase(Command) = 'SAVEADV' then CreateADV(true)
 else if UpperCase(Command) = 'SHOWADVOPT' then ShowAdvOpt()
@@ -623,7 +624,7 @@ if DuplicatedCount>2 then
    ConsoleLinesAdd(DuplicatedCustoms);
    end;
 if TotalCoins = GetSupply(MyLastBlock) then AsExpected := '✓'
-else AsExpected := '✗';
+else AsExpected := '✗ '+Int2curr(TotalCoins-GetSupply(MyLastBlock));
 ConsoleLinesAdd(Int2Curr(Totalcoins)+' '+CoinSimbol+' '+AsExpected);
 ConsoleLinesAdd('Bigger : '+BiggerAddress);
 ConsoleLinesAdd('Balance: '+Int2curr(BiggerAmmount));

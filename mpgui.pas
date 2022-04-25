@@ -208,7 +208,7 @@ form1.DataPanel.Cells[0,7]:=rs0511;  //'Pending'
 
 form1.DataPanel.Cells[2,0]:=rs0518;  //'Next Miner'
 form1.DataPanel.Cells[2,1]:=rs0519;  //'Hashing'
-form1.DataPanel.Cells[2,2]:=LangLine(105);  //'Target'
+form1.DataPanel.Cells[2,2]:='Clients';  //'Target'
 form1.DataPanel.Cells[2,3]:=LangLine(106);  //'Reward'
 form1.DataPanel.Cells[2,4]:=LangLine(107);  //'Block Time'
 form1.DataPanel.Cells[2,5]:='Next in';  //'Pool Balance'
@@ -340,7 +340,7 @@ if U_PoSGrid then
 
 form1.DataPanel.Cells[3,0]:=Copy(GetNMSData.Miner,1,10)+'...';
 form1.DataPanel.Cells[3,1]:=BestHashReadeable(GetNMSData.Diff);
-form1.DataPanel.Cells[3,2]:='';
+form1.DataPanel.Cells[3,2]:=GEtOutgoingconnections.ToString+'/'+GetClientReadThreads.ToString;
 form1.DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
 form1.DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+BlockAge.ToString;
 

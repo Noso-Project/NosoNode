@@ -50,7 +50,7 @@ Procedure SaveBotData();
 // sumary
 Procedure UpdateWalletFromSumario();
 Procedure CreateSumario();
-Procedure CargarSumario();
+Procedure CargarSumario(source:string='');
 Procedure GuardarSumario(SaveCheckmark:boolean = false);
 Procedure UpdateSumario(Direccion:string;monto:Int64;score:integer;LastOpBlock:string);
 Procedure AddBlockToSumary(BlockNumber:integer;SaveAndUpdate:boolean = true);
@@ -99,6 +99,7 @@ Procedure CrearCrashInfo();
 function OSVersion: string;
 {$IFDEF WINDOWS} Function GetWinVer():string; {$ENDIF}
 Procedure RestoreBlockChain();
+Procedure RestoreSumary(fromBlock:integer=0);
 Procedure InitCrossValues();
 function TryDeleteFile(filename:string):boolean;
 function TryCopyFile(Source, destination:string):boolean;
@@ -220,10 +221,11 @@ End;
 Procedure ToExcLog(Texto:string);
 Begin
 EnterCriticalSection(CSExcLogLines);
-   try
-   ExceptLines.Add(FormatDateTime('dd MMMM YYYY HH:MM:SS.zzz', Now)+' -> '+texto);
-   except on E:Exception do begin end;
-   end;
+   TRY
+   if copy(texto,1,7)<>'SERVER:' then
+     ExceptLines.Add(FormatDateTime('dd MMMM YYYY HH:MM:SS.zzz', Now)+' -> '+texto);
+   EXCEPT on E:Exception do begin end;
+   END;{TRY}
 LeaveCriticalSection(CSExcLogLines);
 S_Exc := true;
 End;
@@ -241,7 +243,7 @@ IOCode := IOResult;
 If IOCode = 0 then
    begin
    EnterCriticalSection(CSExcLogLines);
-      try
+      TRY
       while ExceptLines.Count>0 do
          begin
          Writeln(archivo, ExceptLines[0]);
@@ -1058,13 +1060,22 @@ Begin
 End;
 
 // Loads sumary from disk
-Procedure CargarSumario();
+Procedure CargarSumario(source:string='');
 var
   contador : integer = 0;
 Begin
+if source = ''then source := SumarioFilename
+else
+   begin
+   if not FileExists(Source) then
+      begin
+      source := SumarioFilename;
+      ConsoleLinesAdd('Can not find '+source+slinebreak+'Loading sumary from default');
+      end;
+   end;
    TRY
    SetLength(ListaSumario,0);
-   assignfile(FileSumario,SumarioFilename);
+   assignfile(FileSumario,source);
    Reset(FileSumario);
    SetLength(ListaSumario,fileSize(FileSumario));
    for contador := 0 to Filesize(fileSumario)-1 do
@@ -1102,17 +1113,27 @@ If IOCode = 0 then
    Truncate(filesumario);
    MySumarioHash := HashMD5File(SumarioFilename);
    S_Sumario := false;
+   CloseFile(FileSumario);
    U_DataPanel := true;
    EXCEPT on E:Exception do
       ToExcLog ('Error saving summary file: '+e.Message);
    END; {TRY}
+   end
+else
+   begin
+   ToExcLog('Error opening summary: '+IOCode.ToString );
+   if IOCode=5 then
+      begin
+      {$I-}CloseFile(FileSumario);{$I+};
+      end;
    end;
-{$I-}CloseFile(FileSumario);{$I+};
-IOCode := IOResult;
-if IOCode>0 then
-   ToExcLog('Unable to close summary file, error= '+IOCode.ToString );
 LeaveCriticalSection(CSSumary);
 ZipSumary;
+if ( (Listasumario[0].LastOP mod 1000 = 0) and (Listasumario[0].LastOP>0) ) then
+   begin
+   Trycopyfile(SumarioFilename,MarksDirectory+Listasumario[0].LastOP.ToString+'.bak');
+   //form1.MemoConsola.Lines.Add('sumary backedup: '+MarksDirectory+Listasumario[0].LastOP.ToString+'.bak');
+   end;
 if SaveCheckmark then
    begin
    CurrentBlock := Listasumario[contador].LastOP;
@@ -1445,7 +1466,7 @@ if blocknumber >= MNBlockStart then
    end;
 
 ListaSumario[0].LastOP:=BlockNumber;
-if SaveAndUpdate then
+if ( (SaveAndUpdate) or (BlockNumber mod 1000 = 0) ) then
    begin
    GuardarSumario();
    {if not RunningDoctor then} UpdateMyData();
@@ -1526,7 +1547,11 @@ for contador := 1 to UntilBlock do
       UpdateSumario(BlockHeader.AccountMiner,Restar(MNsCount*MNsreward),0,IntToStr(contador));
       SetLength(ArrayMNs,0);
       end;
-
+   if contador mod 1000 = 0 then
+      begin
+      //form1.MemoConsola.lines.Add('Saving backup');
+      GuardarSumario();
+      end;
    end;
 ListaSumario[0].LastOP:=contador;
 RebuildingSumary := false;
@@ -2341,6 +2366,17 @@ deletefile(MyTrxFilename);
 if DeleteDirectory(BlockDirectory,True) then
    RemoveDir(BlockDirectory);
 ProcessLinesAdd('restart');
+End;
+
+Procedure RestoreSumary(fromBlock:integer=0);
+var
+  startmark : integer = 0;
+Begin
+if fromblock = 0 then StartMark := ((GetMyLastUpdatedBlock div 1000)-1)*1000
+else StartMark := Fromblock;
+Cargarsumario(MarksDirectory+StartMark.ToString+'.bak');
+ConsoleLinesAdd('Restoring sumary from '+StartMark.ToString);
+CompleteSumary;
 End;
 
 Procedure InitCrossValues();

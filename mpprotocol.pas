@@ -855,7 +855,7 @@ var
   SendersString : String = '';
   TodoValido    : boolean = true;
   Proceder      : boolean = true;
-  ErrorCode     : integer = 0;
+  ErrorCode     : integer = -1;
   TotalSent     : int64 = 0;
   TotalFee      : int64 = 0;
   RecOrderID    : string = '';
@@ -876,16 +876,21 @@ for cont := 0 to NumTransfers-1 do
    Inc(TotalSent,TrxArray[cont].AmmountTrf);
    Inc(TotalFee,TrxArray[cont].AmmountFee);
    GenOrderID := GenOrderID+TrxArray[cont].TrfrID;
-   if TranxAlreadyPending(TrxArray[cont].TrfrID) then Proceder := false;//Proceder := false;
+   if TranxAlreadyPending(TrxArray[cont].TrfrID) then
+      begin
+      Proceder := false;
+      ErrorCode := 98;
+      end;
    SenderTrx[cont] := GetAddressFromPublicKey(TrxArray[cont].Sender);
    if SenderTrx[cont] <> TrxArray[cont].Address then
       begin
       proceder := false;
+      ErrorCode := 97;
       //ConsoleLinesAdd(format('error: %s <> %s',[SenderTrx[cont],TrxArray[cont].Address ]))
       end;
    if pos(SendersString,SenderTrx[cont]) > 0 then
       begin
-      ConsoleLinesAdd(LangLine(94)); //'Duplicate sender in order'
+      //ConsoleLinesAdd(LangLine(94)); //'Duplicate sender in order'
       Proceder:=false; // hay una direccion de envio repetida
       ErrorCode := 99;
       end;
@@ -906,8 +911,8 @@ else
    end;
 if RecOrderId<>GenOrderID then
    begin
-   ConsoleLinesAdd('<-'+RecOrderId);
-   ConsoleLinesAdd('->'+GenOrderID);
+   //ConsoleLinesAdd('<-'+RecOrderId);
+   //ConsoleLinesAdd('->'+GenOrderID);
    if mylastblock >= 56000 then TodoValido := false;
    if mylastblock >= 56000 then ErrorCode := 101;
    end;
