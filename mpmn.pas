@@ -114,8 +114,8 @@ REPEAT
       begin
       Success := false;
       end;
-END{try};
-UNTIL ((Success) or (trys = 5));
+   END{try};
+UNTIL ((Success) or (trys = 3));
 TCPClient.Free;
 if success then
    begin
@@ -176,12 +176,15 @@ for counter := 0 to length(MNsListCopy)-1 do
       ThisThread.Start;
       end;
    end;
-OpenVerificators := launched;
+EnterCriticalSection(DecVerThreads);
+OpenVerificators := Launched;
+LeaveCriticalSection(DecVerThreads);
+ToLog(Format('MNs verification Launched: %d to verify',[Launched]));
 Repeat
   sleep(100);
   Inc(WaitCycles);
 until ( (NoVerificators= 0) or (WaitCycles = 100) );
-//ToLog('Finished MNs verification: '+launched.ToString+'->'+WaitCycles.ToString+slinebreak+VerifiedNodes);
+ToLog(Format('MNs verification finish: %d launched, %d Open, %d cycles',[Launched,NoVerificators,WaitCycles ]));
 DataLine := MN_IP+' '+MyLastBlock.ToString+' '+MN_Sign+' '+ListaDirecciones[DireccionEsMia(MN_Sign)].PublicKey+' '+
             VerifiedNodes+' '+GetStringSigned(VerifiedNodes,ListaDirecciones[DireccionEsMia(MN_Sign)].PrivateKey);
 OutGoingMsjsAdd(ProtocolLine(MNCheck)+DataLine);

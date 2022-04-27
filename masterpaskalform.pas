@@ -751,9 +751,9 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ae7';
+  SubVersion = 'Ae8';
   OficialRelease = false;
-  VersionRequired = '0.3.1Ae1';
+  VersionRequired = '0.3.1Ae7';
   BuildDate = 'April 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
@@ -1291,9 +1291,6 @@ EXCEPT ON E:Exception do
 END; {TRY}
 UNTIL ( (terminated) or (not CanalCliente[FSlot].Connected) );
 DecClientReadThreads;
-//EnterCriticalSection(CSNodesList);
-//Conexiones[FSlot] := Default(conectiondata);
-//LeaveCriticalSection(CSNodesList);
 End;
 
 constructor TThreadClientRead.Create(const CreatePaused: Boolean; const ConexSlot:Integer);

@@ -1064,7 +1064,7 @@ Procedure CargarSumario(source:string='');
 var
   contador : integer = 0;
 Begin
-if source = ''then source := SumarioFilename
+if source = '' then source := SumarioFilename
 else
    begin
    if not FileExists(Source) then
@@ -1547,13 +1547,13 @@ for contador := 1 to UntilBlock do
       UpdateSumario(BlockHeader.AccountMiner,Restar(MNsCount*MNsreward),0,IntToStr(contador));
       SetLength(ArrayMNs,0);
       end;
+   ListaSumario[0].LastOP:=contador;
    if contador mod 1000 = 0 then
       begin
       //form1.MemoConsola.lines.Add('Saving backup');
       GuardarSumario();
       end;
    end;
-ListaSumario[0].LastOP:=contador;
 RebuildingSumary := false;
 LeaveCriticalSection(CSSumary);
 GuardarSumario();

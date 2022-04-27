@@ -1,3 +1,11 @@
+Version 0.3.1Ae8
+
+- MNs verificaion moved to 3x1
+
+Version 0.3.1Ae7
+
+- Official release
+
 Version 0.3.1Ae6
 
 - Adjustment on GuardarSumario.

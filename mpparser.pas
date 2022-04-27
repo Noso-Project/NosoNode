@@ -64,6 +64,8 @@ Procedure Parse_RestartNoso();
 Procedure ShowNetworkDataInfo();
 Procedure GetOwnerHash(LineText:string);
 Procedure CheckOwnerHash(LineText:string);
+Function CreateAppCode(Texto:string):string;
+Function DecodeAppCode(Texto:string):string;
 function AvailableUpdates():string;
 Procedure RunUpdate(linea:string);
 Procedure ShowAdvOpt();
@@ -323,6 +325,8 @@ else if UpperCase(Command) = 'BLOCKPOS' then ShowBlockPos(LineText)
 else if UpperCase(Command) = 'POSSTACK' then showPosrequired(linetext)
 else if UpperCase(Command) = 'BLOCKMNS' then ShowBlockMNs(LineText)
 else if UpperCase(Command) = 'MYIP' then ConsoleLinesAdd(GetMiIP)
+else if UpperCase(Command) = 'CREATEAPPCODE' then ConsoleLinesAdd(CreateAppCode(parameter(linetext,1)))
+else if UpperCase(Command) = 'DECODEAPPCODE' then ConsoleLinesAdd(DecodeAppCode(parameter(linetext,1)))
 
 // P2P
 else if UpperCase(Command) = 'PEERS' then ConsoleLinesAdd('Server list: '+IntToStr(form1.ClientsCount)+'/'+IntToStr(GetIncomingConnections))
@@ -1454,6 +1458,16 @@ if VerifySignedString('I OWN THIS ADDRESS '+direc+firmtime,firma,pubkey) then
    ConsoleLinesAdd(direc+' verified '+TimeSinceStamp(StrToInt64(firmtime))+' ago.')
 else ConsoleLinesAdd('Invalid verification');
 setmilitime('CheckOwnerHash',2);
+End;
+
+Function CreateAppCode(Texto:string):string;
+Begin
+result := UPPERCASE(XorEncode(HashSha256String('nosoapp'),Texto));
+End;
+
+Function DecodeAppCode(Texto:string):string;
+Begin
+result := XorDecode(HashSha256String('nosoapp'), texto);
 End;
 
 // devuelve una cadena con los updates disponibles
