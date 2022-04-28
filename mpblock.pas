@@ -93,8 +93,10 @@ if not errored then
    SetLength(ListaOrdenes,0);
    SetLength(IgnoredTrxs,0);
    // Generate summary copy
+   EnterCriticalSection(CSSumary);
    trydeletefile(SumarioFilename+'.bak');
    copyfile(SumarioFilename,SumarioFilename+'.bak');
+   LeaveCriticalSection(CSSumary);
 
    // Processs pending orders
    EnterCriticalSection(CSPending);
@@ -567,6 +569,7 @@ Procedure UndoneLastBlock();
 var
   blocknumber : integer;
 Begin
+if BlockUndoneTime+30>UTCTime.ToInt64 then exit;
 blocknumber:= MyLastBlock;
 if BlockNumber = 0 then exit;
 if MyConStatus = 3 then
@@ -580,8 +583,10 @@ if MyConStatus = 3 then
    ClearReceivedOrdersIDs;
    end;
 // recuperar el sumario
+EnterCriticalSection(CSSumary);
 Trydeletefile(SumarioFilename);
 Trycopyfile(SumarioFilename+'.bak',SumarioFilename);
+LeaveCriticalSection(CSSumary);
 CargarSumario();
 // Actualizar la cartera
 UpdateWalletFromSumario();
@@ -599,6 +604,7 @@ ConsoleLinesAdd(LAngLine(90)+IntToStr(blocknumber)); //'Block undone: '
 ConsoleLinesAdd('****************************');
 Tolog('Block Undone: '+IntToStr(blocknumber));
 U_DataPanel := true;
+BlockUndoneTime := UTCTime.ToInt64;
 End;
 
 Function BlockAge():integer;

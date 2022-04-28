@@ -1113,7 +1113,6 @@ If IOCode = 0 then
    Truncate(filesumario);
    MySumarioHash := HashMD5File(SumarioFilename);
    S_Sumario := false;
-   CloseFile(FileSumario);
    U_DataPanel := true;
    EXCEPT on E:Exception do
       ToExcLog ('Error saving summary file: '+e.Message);
@@ -1122,25 +1121,16 @@ If IOCode = 0 then
 else
    begin
    ToExcLog('Error opening summary: '+IOCode.ToString );
-   if IOCode=5 then
-      begin
-      {$I-}CloseFile(FileSumario);{$I+};
-      end;
+   {$I-}CloseFile(FileSumario);{$I+};
    end;
+{$I-}CloseFile(FileSumario);{$I+};
 LeaveCriticalSection(CSSumary);
 ZipSumary;
-if ( (Listasumario[0].LastOP mod 1000 = 0) and (Listasumario[0].LastOP>0) ) then
+if ( (Listasumario[0].LastOP mod SumMarkInterval = 0) and (Listasumario[0].LastOP>0) ) then
    begin
+   EnterCriticalSection(CSSumary);
    Trycopyfile(SumarioFilename,MarksDirectory+Listasumario[0].LastOP.ToString+'.bak');
-   //form1.MemoConsola.Lines.Add('sumary backedup: '+MarksDirectory+Listasumario[0].LastOP.ToString+'.bak');
-   end;
-if SaveCheckmark then
-   begin
-   CurrentBlock := Listasumario[contador].LastOP;
-   if not fileexists(MarksDirectory+CurrentBlock.ToString+'.psk') then
-      begin
-      copyfile(SumarioFilename,MarksDirectory+CurrentBlock.ToString+'.psk');
-      end;
+   LeaveCriticalSection(CSSumary);
    end;
 SetCurrentJob('GuardarSumario',false);
 setmilitime('GuardarSumario',2);
@@ -1466,7 +1456,7 @@ if blocknumber >= MNBlockStart then
    end;
 
 ListaSumario[0].LastOP:=BlockNumber;
-if ( (SaveAndUpdate) or (BlockNumber mod 1000 = 0) ) then
+if ( (SaveAndUpdate) or (BlockNumber mod SumMarkInterval = 0) ) then
    begin
    GuardarSumario();
    {if not RunningDoctor then} UpdateMyData();
@@ -1548,7 +1538,7 @@ for contador := 1 to UntilBlock do
       SetLength(ArrayMNs,0);
       end;
    ListaSumario[0].LastOP:=contador;
-   if contador mod 1000 = 0 then
+   if contador mod SumMarkInterval = 0 then
       begin
       //form1.MemoConsola.lines.Add('Saving backup');
       GuardarSumario();
@@ -2372,7 +2362,7 @@ Procedure RestoreSumary(fromBlock:integer=0);
 var
   startmark : integer = 0;
 Begin
-if fromblock = 0 then StartMark := ((GetMyLastUpdatedBlock div 1000)-1)*1000
+if fromblock = 0 then StartMark := ((GetMyLastUpdatedBlock div SumMarkInterval)-1)*SumMarkInterval
 else StartMark := Fromblock;
 Cargarsumario(MarksDirectory+StartMark.ToString+'.bak');
 ConsoleLinesAdd('Restoring sumary from '+StartMark.ToString);

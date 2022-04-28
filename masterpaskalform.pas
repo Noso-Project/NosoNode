@@ -751,7 +751,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ae8';
+  SubVersion = 'Ba1';
   OficialRelease = false;
   VersionRequired = '0.3.1Ae7';
   BuildDate = 'April 2022';
@@ -791,6 +791,7 @@ CONST
   NPLE = '<END>';
   AvailableMarkets = '/LTC';
   SendDirectToPeer = false;
+  SumMarkInterval  = 20;
 
 var
   UserFontSize : integer = 8;
@@ -968,6 +969,7 @@ var
   MyResumenHash : String = '';
   MyPublicIP : String = '';
   OpenReadClientThreads : integer = 0;
+  BlockUndoneTime    : int64 = 0;
 
   MyMNsHash : String = '';
 

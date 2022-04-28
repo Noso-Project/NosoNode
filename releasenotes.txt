@@ -1,6 +1,13 @@
+Version 0.3.1Ba1
+
+- Official release
+
 Version 0.3.1Ae8
 
 - MNs verificaion moved to 3x1
+- Implemented BlockUndoneTime.
+- New adjustment on GuardarSumario.
+- CONST SumMarkInterval added.
 
 Version 0.3.1Ae7
 
