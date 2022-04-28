@@ -8,6 +8,7 @@ Version 0.3.1Ae8
 - Implemented BlockUndoneTime.
 - New adjustment on GuardarSumario.
 - CONST SumMarkInterval added.
+- Moved connections info to log instead console.
 
 Version 0.3.1Ae7
 

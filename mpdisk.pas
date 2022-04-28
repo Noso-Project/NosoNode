@@ -1047,16 +1047,16 @@ End;
 // Creates sumary file
 Procedure CreateSumario();
 Begin
-   try
+   TRY
    SetLength(ListaSumario,0);
    assignfile(FileSumario,SumarioFilename);
    Rewrite(FileSumario);
    CloseFile(FileSumario);
    // for cases when rebuilding sumary
    if FileExists(BlockDirectory+'0.blk') then UpdateSumario(ADMINHash,PremineAmount,0,'0');
-   Except on E:Exception do
+   EXCEPT on E:Exception do
       tolog ('Error creating summary file');
-   end;
+   END; {TRY}
 End;
 
 // Loads sumary from disk

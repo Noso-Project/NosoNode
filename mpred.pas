@@ -312,7 +312,7 @@ SetCurrentJob('ConnectToServers',true);
 setmilitime('ConnectToServers',1);
 if not CONNECT_Try then
    begin
-   ConsoleLinesAdd(LangLine(162)); //'Trying connection to servers'
+   ToLog(LangLine(162)); //'Trying connection to servers'
    CONNECT_Try := true;
    end;
 if OutGoing >= MaxOutgoingConnections then proceder := false;
@@ -565,7 +565,7 @@ for contador := 1 to Maxconecciones do
      if ( (StrToInt64(UTCTime) > StrToInt64Def(conexiones[contador].lastping,0)+15) and
         (not conexiones[contador].IsBusy) and (not REbuildingSumary) )then
         begin
-        ConsoleLinesAdd(LangLine(32)+conexiones[contador].ip);   //Conection closed: Time Out Auth ->
+        ToLog(LangLine(32)+conexiones[contador].ip);   //Conection closed: Time Out Auth ->
         CerrarSlot(contador);
         end;
      end;

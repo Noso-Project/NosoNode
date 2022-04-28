@@ -2755,7 +2755,7 @@ if GoAhead then
          TryCloseServerConnection(AContext)
       else
          begin
-         OutText(format(rs0061,[IPUser])); //New Connection from:
+         ToLog(format(rs0061,[IPUser])); //New Connection from:
          ContextData.Slot:=ThisSlot;
          AContext.Data:=ContextData;
          MyPublicIP := MiIp;
