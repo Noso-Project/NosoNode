@@ -93,7 +93,7 @@ var
   Success : boolean ;
   Trys :integer = 0;
 Begin
-Sleep(100);
+Sleep(1000);
 TRY {BIG}
 IP := MNsListCopy[FSlot].Ip;
 Port := MNsListCopy[FSlot].Port;
@@ -136,7 +136,9 @@ if success then
       end;
    end;
 EXCEPT on E:Exception do
+   begin
    ToExcLog('CRITICAL MNs VERIFICATION ('+Ip+'): '+E.Message);
+   end;
 END{BIG TRY};
 EnterCriticalSection(DecVerThreads);
 Dec(OpenVerificators);
@@ -183,8 +185,15 @@ ToLog(Format('MNs verification Launched: %d to verify',[Launched]));
 Repeat
   sleep(100);
   Inc(WaitCycles);
-until ( (NoVerificators= 0) or (WaitCycles = 100) );
+until ( (NoVerificators= 0) or (WaitCycles = 150) );
 ToLog(Format('MNs verification finish: %d launched, %d Open, %d cycles',[Launched,NoVerificators,WaitCycles ]));
+if NoVerificators>0 then
+   begin
+   ToExcLog('*****CRITICAL****'+slinebreak+'Open verificators : '+NoVerificators.ToString);
+   EnterCriticalSection(DecVerThreads);
+   OpenVerificators := 0;
+   LeaveCriticalSection(DecVerThreads);
+   end;
 DataLine := MN_IP+' '+MyLastBlock.ToString+' '+MN_Sign+' '+ListaDirecciones[DireccionEsMia(MN_Sign)].PublicKey+' '+
             VerifiedNodes+' '+GetStringSigned(VerifiedNodes,ListaDirecciones[DireccionEsMia(MN_Sign)].PrivateKey);
 OutGoingMsjsAdd(ProtocolLine(MNCheck)+DataLine);

@@ -616,14 +616,14 @@ EnterCriticalSection(CSSumary);
    result := true;
    EXCEPT ON E:Exception do
       begin
-      ToExcLog('Error zipping summary');
+      ToExcLog('Error zipping summary: '+E.Message);
       end;
    END{Try};
 MyZipFile.Free;
 LeaveCriticalSection(CSSumary);
 End;
 
-// Zips the sumary file
+// Zips the headers file
 Function ZipHeaders():boolean;
 var
   MyZipFile: TZipper;

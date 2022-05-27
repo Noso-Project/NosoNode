@@ -9,6 +9,8 @@ Version 0.3.1Ae8
 - New adjustment on GuardarSumario.
 - CONST SumMarkInterval added.
 - Moved connections info to log instead console.
+- Fixed save bots procedure.
+- Added trigger to run verificators.
 
 Version 0.3.1Ae7
 

@@ -834,14 +834,18 @@ End;
 // Save bots to disk
 Procedure SaveBotData();
 Var
-  contador : integer = 0;
+  contador  : integer = 0;
+  ErrorCode : integer = 0;
 Begin
 setmilitime('SaveBotData',1);
 SetCurrentJob('SaveBotData',true);
-   try
-   assignfile (FileBotData,BotDataFilename);
-   contador := 0;
-   reset (FileBotData);
+contador := 0;
+assignfile (FileBotData,BotDataFilename);
+{$I-}reset (FileBotData){$I+};
+ErrorCode := IOResult;
+if ErrorCode = 0 then
+   begin
+   TRY
    if length(ListadoBots) > 0 then
       begin
    for contador := 0 to length(ListadoBots)-1 do
@@ -851,12 +855,13 @@ SetCurrentJob('SaveBotData',true);
          end;
       end;
    Truncate(FileBotData);
-   closefile(FileBotData);
    S_BotData := false;
    tolog ('Bot file saved: '+inttoStr(length(ListadoBots))+' registers');
-   Except on E:Exception do
+   EXCEPT on E:Exception do
          tolog ('Error saving bots to file :'+E.Message);
+   END; {TRY}
    end;
+{$I-}closefile(FileBotData);{$I+};
 SetCurrentJob('SaveBotData',false);
 setmilitime('SaveBotData',2);
 End;
@@ -897,8 +902,8 @@ Procedure CargarNTPData();
 Var
   contador : integer = 0;
 Begin
-   try
-   assignfile(FileNTPData,NTPDataFilename);
+assignfile(FileNTPData,NTPDataFilename);
+   TRY
    reset(FileNTPData);
    setlength(ListaNTP,filesize(FileNTPData));
    for contador := 0 to filesize(FileNTPData)-1 do
@@ -907,9 +912,9 @@ Begin
       Read(FileNTPData,ListaNTP[contador]);
       end;
    closefile(FileNTPData);
-   Except on E:Exception do
+   EXCEPT on E:Exception do
       tolog ('Error loading NTP servers');
-   end;
+   END;{TRY}
 End;
 
 // Saves updates files to disk
