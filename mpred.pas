@@ -1000,6 +1000,16 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  /
       end;
    end
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
+        (MySumarioHash<>NetSumarioHash.Value) and (ListaSumario[0].LastOP+(2*SumMarkInterval) < mylastblock)) then
+   begin  // Download sumary
+   if ((LastTimeRequestsumary+5 < UTCTime.ToInt64) and (not DownloadSumary) ) then
+      begin
+      PTC_SendLine(NetResumenHash.Slot,ProtocolLine(6)); // Getsumary
+      ConsoleLinesAdd(rs2003); //'sumary file requested'
+      LastTimeRequestsumary := StrToInt64(UTCTime);
+      end;
+   end
+else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
         (MySumarioHash<>NetSumarioHash.Value) and (ListaSumario[0].LastOP < mylastblock)) then
    begin  // complete or rebuild sumary
    CompleteSumary();

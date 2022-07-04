@@ -133,6 +133,7 @@ resourcestring
   rs2000 = 'Sign address not valid';
   rs2001 = 'Wallet not updated';
   rs2002 = '*****CRITICAL*****'+Slinebreak+'Error inside VerifyConnectionStatus: %s'+Slinebreak+'*****CRITICAL*****';
+  rs2003 = 'Headers file requested';
   //mpcrypto
   rs2501 = '*****CRITICAL*****'+Slinebreak+'Error type 3 on crypto thread: %s'+Slinebreak+'*****CRITICAL*****';
   rs2502 = '*****CRITICAL*****'+Slinebreak+'Error type 4 on crypto thread: %s'+Slinebreak+'*****CRITICAL*****';

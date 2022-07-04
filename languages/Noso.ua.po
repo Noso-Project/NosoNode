@@ -1023,6 +1023,10 @@ msgid ""
 "*****CRITICAL*****\n"
 msgstr ""
 
+#: translation.rs2003
+msgid "Headers file requested"
+msgstr ""
+
 #: translation.rs2501
 msgid ""
 "*****CRITICAL*****\n"
