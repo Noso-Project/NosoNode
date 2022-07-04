@@ -383,6 +383,7 @@ type
     CBAutoIP: TCheckBox;
     CB_Currentjob: TCheckBox;
     CBRunNodeAlone: TCheckBox;
+    CB_WO_RebuildTrx: TCheckBox;
     ComboBoxLang: TComboBox;
     IdHTTPUpdate: TIdHTTP;
     LabelNodesHash: TLabel;
@@ -581,6 +582,7 @@ type
     procedure CB_RPCFilterChange(Sender: TObject);
     procedure CB_WO_AutoupdateChange(Sender: TObject);
     procedure CBAutoIPClick(Sender: TObject);
+    procedure CB_WO_RebuildTrxChange(Sender: TObject);
     procedure ComboBoxLangChange(Sender: TObject);
     procedure ComboBoxLangDrawItem(Control: TWinControl; Index: Integer;
       ARect: TRect; State: TOwnerDrawState);
@@ -832,6 +834,7 @@ var
   MN_FileText      : String = '';
   POOL_MineRestart : boolean = false;
   POOL_LBS         : boolean = false;
+  WO_RebuildTrx    : boolean = true;
 
   SynchWarnings : integer = 0;
   ConnectedRotor : integer = 0;
@@ -1868,7 +1871,7 @@ CB_WO_AntiFreeze.Checked:=WO_AntiFreeze;
 CB_WO_Multisend.Checked:=WO_Multisend;
 SE_WO_AntifreezeTime.value := WO_AntifreezeTime;
 CB_WO_Autoupdate.Checked := WO_AutoUpdate;
-
+CB_WO_RebuildTrx.Checked := WO_RebuildTrx;
 // RPC
 LE_Rpc_Port.Text := IntToStr(RPCPort);
 LE_Rpc_Pass.Text := RPCPass;
@@ -3461,7 +3464,6 @@ if not G_Launching then
       end;
    S_AdvOpt := true;
    end;
-
 End;
 
 procedure TForm1.CB_WO_MultisendChange(Sender: TObject);
@@ -3830,6 +3832,22 @@ procedure TForm1.CBAutoIPClick(Sender: TObject);
 Begin
 if CBAutoIP.Checked then LabeledEdit5.Visible:=false
 else LabeledEdit5.Visible:=true;
+End;
+
+procedure TForm1.CB_WO_RebuildTrxChange(Sender: TObject);
+Begin
+if not G_Launching then
+   begin
+   if CB_WO_RebuildTrx.Checked then
+      begin
+      WO_RebuildTrx := true;
+      end
+   else
+      begin
+      WO_RebuildTrx := false ;
+      end;
+   S_AdvOpt := true;
+   end;
 End;
 
 // adjust transactions history grid when resize

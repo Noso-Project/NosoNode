@@ -425,8 +425,7 @@ setmilitime('CreateADV',1);
 
    writeln(FileAdvOptions,'PoolRestart '+BoolToStr(POOL_MineRestart,true));
    writeln(FileAdvOptions,'PoolLBS '+BoolToStr(POOL_LBS,true));
-
-
+   writeln(FileAdvOptions,'WO_RebuildTrx '+BoolToStr(WO_RebuildTrx,true));
 
    Closefile(FileAdvOptions);
    if saving then tolog('Options file saved');
@@ -505,7 +504,7 @@ Begin
 
       if parameter(linea,0) ='PoolRestart' then POOL_MineRestart:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='PoolLBS' then POOL_LBS:=StrToBool(Parameter(linea,1));
-
+      if parameter(linea,0) ='WO_RebuildTrx' then WO_RebuildTrx:=StrToBool(Parameter(linea,1));
 
       end;
    Closefile(FileAdvOptions);
@@ -1775,6 +1774,11 @@ var
   MNsPayouts, MNsEarnings : int64;
   BlockPayouts, BlockEarnings : int64;
 Begin
+if not WO_RebuildTrx then
+   begin
+   consolelinesAdd('Skipping rebuild transactions');
+   exit;
+   end;
 SetCurrentJob('RebuildMyTrx',true);
 Existentes := Length(ListaMisTrx);
 if ListaMisTrx[0].Block < blocknumber then

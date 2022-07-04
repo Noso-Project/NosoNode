@@ -1,5 +1,9 @@
 Version 0.3.2Aa1
 
+- Auto sync the sumary file.
+- Skip rebuild transactions option.
+
+
 Version 0.3.1Ba1
 
 - Official release

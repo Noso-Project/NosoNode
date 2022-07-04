@@ -170,6 +170,10 @@ msgstr "Pasang rilis resmi baru secara otomatis"
 msgid "Send coins only from default address"
 msgstr "Kirim koin hanya dari alamat bawaan"
 
+#: tform1.cb_wo_rebuildtrx.caption
+msgid "Rebuild transactions"
+msgstr ""
+
 #: tform1.cb_wo_totray.caption
 msgid "Minimize to tray"
 msgstr "Minimalkan ke baki"

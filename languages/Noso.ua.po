@@ -170,6 +170,10 @@ msgstr "Автоматично встановлюйте нові офіційн�
 msgid "Send coins only from default address"
 msgstr "Надсилати монети лише з адреси за замовчуванням"
 
+#: tform1.cb_wo_rebuildtrx.caption
+msgid "Rebuild transactions"
+msgstr ""
+
 #: tform1.cb_wo_totray.caption
 msgid "Minimize to tray"
 msgstr "Згорнути до кошика"

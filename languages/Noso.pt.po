@@ -169,6 +169,10 @@ msgstr "Instalar lançamentos oficiais automaticamente"
 msgid "Send coins only from default address"
 msgstr "Enviar moedas somente do endereço por defeito"
 
+#: tform1.cb_wo_rebuildtrx.caption
+msgid "Rebuild transactions"
+msgstr ""
+
 #: tform1.cb_wo_totray.caption
 msgid "Minimize to tray"
 msgstr "Minimizar para a barra"
