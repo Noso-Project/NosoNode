@@ -67,7 +67,7 @@ while result = '' do
    G_NTPServer := ListaNTP[counter].Host;
    result := GetNetworkTimestamp(ListaNTP[counter].Host);
    Inc(counter);
-   if counter > 9 then result := 'ERROR';
+   if counter > 10 then result := 'ERROR';
    end;
 End;
 

@@ -150,11 +150,11 @@ type
      end;
 
   SumarioData = Packed Record
-     Hash : String[40]; // El hash publico o direccion
-     Custom : String[40]; // En caso de que la direccion este personalizada
-     Balance : int64; // el ultimo saldo conocido de la direccion
-     Score : int64; // estado del registro de la direccion.
-     LastOP : int64;// tiempo de la ultima operacion en UnixTime.
+     Hash : String[40];    // El hash publico o direccion
+     Custom : String[40];  // En caso de que la direccion este personalizada
+     Balance : int64;      // el ultimo saldo conocido de la direccion
+     Score : int64;        // estado del registro de la direccion.
+     LastOP : int64;       // tiempo de la ultima operacion en UnixTime.
      end;
 
   BlockHeaderData = Packed Record
@@ -727,7 +727,7 @@ CONST
   ReservedWords : string = 'NULL,DELADDR';
   ValidProtocolCommands : string = '$PING$PONG$GETPENDING$NEWBL$GETRESUMEN$LASTBLOCK$GETCHECKS'+
                                    '$CUSTOMORDERADMINMSGNETREQ$REPORTNODE$GETMNS$BESTHASH$MNREPO$MNCHECK'+
-                                   'GETMNSFILEMNFILEGETHEADUPDATE';
+                                   'GETMNSFILEMNFILEGETHEADUPDATE$GETSUMARY';
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
   DefaultNodes : String = 'DefNodes '+
@@ -737,12 +737,12 @@ CONST
                             '23.94.21.83 '+
                             '107.175.59.177 '+
                             '107.172.193.176 '+
-                            '107.175.194.151 '+
+                            '107.175.194.151 '+//'66.151.117.247 '+
                             '192.3.73.184 '+
                             '107.175.24.151 '+
                             '107.174.137.27';
 
-  ProgramVersion = '0.3.1';
+  ProgramVersion = '0.3.2';
   {$IFDEF WINDOWS}
   RestartFileName = 'launcher.bat';
   updateextension = 'zip';
@@ -751,10 +751,10 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ba1';
+  SubVersion = 'Aa1';
   OficialRelease = false;
   VersionRequired = '0.3.1Ae7';
-  BuildDate = 'April 2022';
+  BuildDate = 'July 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   HasheableChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -791,7 +791,7 @@ CONST
   NPLE = '<END>';
   AvailableMarkets = '/LTC';
   SendDirectToPeer = false;
-  SumMarkInterval  = 20;
+  SumMarkInterval  = 100;
 
 var
   UserFontSize : integer = 8;
@@ -960,6 +960,7 @@ var
      LastTryServerOn : Int64 = 0;
      ServerStartTime : Int64 = 0;
   DownloadHeaders : boolean = false;
+  DownloadSumary  : Boolean = false;
   DownLoadBlocks  : boolean = false;
   CONNECT_LastTime : string = ''; // La ultima vez que se intento una conexion
   CONNECT_Try : boolean = false;
@@ -991,6 +992,7 @@ var
   Last_ActualizarseConLaRed : int64 = 0;
   NetSumarioHash : NetworkData;
     SumaryRebuilded : boolean = false;
+    LastTimeRequestSumary  : int64 = 0;
   NetLastBlock : NetworkData;
     LastTimeRequestBlock : int64 = 0;
   NetLastBlockHash : NetworkData;
@@ -1244,6 +1246,46 @@ if Continuar then
                end;
             MemStream.Free;
             DownloadHeaders := false;
+            end
+         else if GetCommand(LLine) = 'SUMARYFILE' then
+            begin
+            DownloadSumary := true;
+            ToLog(rs0085); //'Receiving sumary'
+            ConsoleLinesAdd(rs0085); //'Receiving sumary'
+            MemStream := TMemoryStream.Create;
+            CanalCliente[FSlot].ReadTimeout:=10000;
+               TRY
+               CanalCliente[FSlot].IOHandler.ReadStream(MemStream);
+               downloaded := True;
+               EXCEPT ON E:Exception do
+                  begin
+                  toExcLog(format(rs0086,[conexiones[fSlot].ip,E.Message])); //'Error Receiving sumary from
+                  downloaded := false;
+                  end;
+               END; {TRY}
+            if Downloaded then
+               begin
+               Errored := false;
+               EnterCriticalSection(CSSumary);
+                  TRY
+                  MemStream.SaveToFile(SumarioFilename);
+                  Errored := False;
+                  EXCEPT on E:Exception do
+                     begin
+                     Errored := true;
+                     toExcLog('Error saving sumary to file: '+E.Message);
+                     end;
+                  END; {TRY}
+               LeaveCriticalSection(CSSumary);
+               end;
+            if Downloaded and not errored then
+               begin
+               consolelinesAdd(format(rs0087,[copy(HashMD5File(SumarioFilename),1,5)])); //'Sumary file received'
+               LastTimeRequestSumary := 0;
+               UpdateMyData();
+               end;
+            MemStream.Free;
+            DownloadSumary := false;
             end
          else if LLine = 'BLOCKZIP' then
             begin  // START RECEIVING BLOCKS

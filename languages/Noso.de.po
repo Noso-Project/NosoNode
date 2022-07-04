@@ -865,6 +865,18 @@ msgstr ""
 msgid "Not valid ASCII message received: %s"
 msgstr ""
 
+#: translation.rs0085
+msgid "Receiving summary file"
+msgstr ""
+
+#: translation.rs0086
+msgid "Error Receiving sumary from %s (%s)"
+msgstr ""
+
+#: translation.rs0087
+msgid "Sumary file received: %s"
+msgstr ""
+
 #: translation.rs0500
 msgid "Noso Launcher"
 msgstr "Noso Launcher"

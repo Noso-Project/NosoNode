@@ -74,6 +74,7 @@ Procedure SetReadTimeOutTIme(LineText:string);
 Procedure SetConnectTimeOutTIme(LineText:string);
 Procedure ShowNetReqs();
 Procedure RequestHeaders();
+Procedure RequestSumary();
 Procedure ShowOrderDetails(LineText:string);
 Procedure ExportAddress(LineText:string);
 Procedure ShowAddressInfo(LineText:string);
@@ -278,6 +279,7 @@ else if UpperCase(Command) = 'UPDATE' then RunUpdate(LineText)
 else if UpperCase(Command) = 'RESTOREBLOCKCHAIN' then RestoreBlockChain()
 else if UpperCase(Command) = 'RESTORESUMARY' then RestoreSumary(StrToIntDef(Parameter(LineText,1),0))
 else if UpperCase(Command) = 'REQHEAD' then RequestHeaders()
+else if UpperCase(Command) = 'REQSUM' then RequestSumary()
 else if UpperCase(Command) = 'SAVEADV' then CreateADV(true)
 else if UpperCase(Command) = 'SHOWADVOPT' then ShowAdvOpt()
 else if UpperCase(Command) = 'ORDER' then ShowOrderDetails(LineText)
@@ -1576,6 +1578,11 @@ End;
 Procedure RequestHeaders();
 Begin
 PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7));
+End;
+
+Procedure RequestSumary();
+Begin
+PTC_SendLine(NetResumenHash.Slot,ProtocolLine(6));
 End;
 
 Procedure ShowOrderDetails(LineText:string);

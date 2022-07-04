@@ -93,6 +93,9 @@ resourcestring
   rs0082 = 'Funds address do not owns enough coins';
   rs0083 = 'You need update the wallet';
   rs0084 = 'Not valid ASCII message received: %s';
+  rs0085 = 'Receiving summary file';
+  rs0086 = 'Error Receiving sumary from %s (%s)';
+  rs0087 = 'Sumary file received: %s';
   //mpGUI
   rs0500 = 'Noso Launcher';
   rs0501 = 'Destination';

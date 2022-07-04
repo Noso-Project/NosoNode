@@ -886,7 +886,7 @@ Begin
    ListaNTP[9].host := 'ntp.ntp-servers.com'; ListaNTP[9].LastUsed:='0';
    ListaNTP[10].host := '1.de.pool.ntp.org'; ListaNTP[10].LastUsed:='0';
    rewrite(FileNTPData);
-   for contador := 0 to 9 do
+   for contador := 0 to 10 do
       begin
       seek (FileNTPData,contador);
       write(FileNTPData,ListaNTP[contador]);
@@ -1165,6 +1165,11 @@ BlockFiles := TStringList.Create;
    END; {TRY}
 BlockFiles.Free;
 end;
+
+Function deleteBlockFiles(fromnumber:integer):integer;
+Begin
+
+End;
 
 // Updates sumary
 Procedure UpdateSumario(Direccion:string;monto:Int64;score:integer;LastOpBlock:string);

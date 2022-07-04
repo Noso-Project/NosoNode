@@ -26,6 +26,7 @@ function GetPingString():string;
 procedure PTC_SendPending(Slot:int64);
 Procedure PTC_SendMNs(Slot:int64);
 Procedure PTC_SendResumen(Slot:int64);
+Procedure PTC_SendSumary(Slot:int64);
 Function ZipSumary():boolean;
 Function ZipHeaders():boolean;
 function CreateZipBlockfile(firstblock:integer):string;
@@ -78,6 +79,7 @@ CONST
   MNFile = 17;
   GetHeadUpdate = 18;
   HeadUpdate = 19;
+  GetSumary  = 6;
 
 implementation
 
@@ -205,6 +207,8 @@ if tipo = GetHeadUpdate then
    Resultado := 'GETHEADUPDATE '+MyLastBlock.ToString;
 if tipo = HeadUpdate then
    Resultado := 'HEADUPDATE';
+if tipo = GetSumary then
+   Resultado := '$GETSUMARY';
 
 Resultado := Encabezado+Resultado;
 Result := resultado;
@@ -308,6 +312,8 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = 'MNFILE' then PTC_MNFile(ProcessLine)
       else if UpperCase(LineComando) = 'GETHEADUPDATE' then PTC_SendUpdateHeaders(contador,ProcessLine)
       else if UpperCase(LineComando) = 'HEADUPDATE' then PTC_HeadUpdate(ProcessLine)
+      else if UpperCase(LineComando) = '$GETSUMARY' then PTC_SendSumary(contador)
+
 
 
       else
@@ -590,6 +596,44 @@ if conexiones[slot].tipo='SER' then
    end;
 MemStream.Free;
 SetCurrentJob('PTC_SendResumen',false);
+//ConsoleLinesAdd(LangLine(91));//'Headers file sent'
+End;
+
+Procedure PTC_SendSumary(Slot:int64);
+var
+  MemStream   : TMemoryStream;
+Begin
+SetCurrentJob('PTC_SendSumary',true);
+MemStream := TMemoryStream.Create;
+EnterCriticalSection(CSSumary);
+MemStream.LoadFromFile(SumarioFilename);
+LeaveCriticalSection(CSSumary);
+if conexiones[slot].tipo='CLI' then
+   begin
+      TRY
+      Conexiones[slot].context.Connection.IOHandler.WriteLn('SUMARYFILE');
+      Conexiones[slot].context.connection.IOHandler.Write(MemStream,0,true);
+      EXCEPT on E:Exception do
+         begin
+         Form1.TryCloseServerConnection(Conexiones[Slot].context);
+         ToExcLog('SERVER: Error sending sumary file ('+E.Message+')');
+         end;
+      END; {TRY}
+   end;
+if conexiones[slot].tipo='SER' then
+   begin
+      TRY
+      CanalCliente[slot].IOHandler.WriteLn('SUMARYFILE');
+      CanalCliente[slot].IOHandler.Write(MemStream,0,true);
+      EXCEPT on E:Exception do
+         begin
+         ToExcLog('CLIENT: Error sending Sumary file ('+E.Message+')');
+         CerrarSlot(slot);
+         end;
+      END;{TRY}
+   end;
+MemStream.Free;
+SetCurrentJob('PTC_SendSumary',false);
 //ConsoleLinesAdd(LangLine(91));//'Headers file sent'
 End;
 
