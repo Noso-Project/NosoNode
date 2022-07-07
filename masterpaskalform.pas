@@ -1750,7 +1750,7 @@ Application.Title := coinname+format(rs0027,[ProgramVersion,SubVersion]);   // W
 OutText(format(rs0026,[IntToStr(IdiomasDisponibles.count)]),false,1); //'✓ %s languages available'
 ConsoleLinesAdd(coinname+format(rs0027,[ProgramVersion,SubVersion]));
 OutText(rs0066,false,1); // Rebuilding my transactions
-RebuildMyTrx(MyLastBlock);
+if WO_RebuildTrx then RebuildMyTrx(MyLastBlock);
 gridinicio.RowCount:=gridinicio.RowCount-1;
 OutText(rs0067,false,1); // '✓ My transactions rebuilded';
 UpdateMyTrxGrid();
