@@ -1493,22 +1493,31 @@ if length(resultado) >0 then setlength(resultado,length(resultado)-1);
 result := resultado;
 End;
 
+// Manual update the app
 Procedure RunUpdate(linea:string);
 var
-  version : string;
+  Tversion : string;
+  TArch    : string;
 Begin
-version := parameter(linea,1);
-if fileexists(UpdatesDirectory+'nosoupdate'+version+'.zip') then
+Tversion := parameter(linea,1);
+TArch    := Uppercase(parameter(linea,2));
+if GetLastVerZipFile(Tversion,TArch) then
    begin
-   UnzipBlockFile(UpdatesDirectory+'nosoupdate'+version+'.zip',false);
-   copyfile(UpdatesDirectory+'noso'+version+'.exe','noso'+version+'.exe');
-   useroptions.JustUpdated:=true;
-   GuardarOpciones();
-   CrearRestartfile();
-   EjecutarAutoUpdate(version);
-   form1.close;
+   ConsoleLinesAdd('Version '+Tversion+' downloaded');
+   if UnZipUpdateFromRepo(Tversion,TArch) then
+     begin
+     consolelinesadd('Unzipped !');
+     {$IFDEF WINDOWS}Trycopyfile('NOSODATA/UPDATES/Noso.exe','nosonew');{$ENDIF}
+     {$IFDEF UNIX}Trycopyfile('NOSODATA/UPDATES/Noso','Nosonew');{$ENDIF}
+     CreateLauncherFile(true);
+     RunExternalProgram(RestartFilename);
+     cerrarprograma();
+     end
    end
-else ConsoleLinesAdd('Invalid update');
+else
+   begin
+   ConsoleLinesAdd('Update Failed');
+   end
 End;
 
 Procedure ShowAdvOpt();

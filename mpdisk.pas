@@ -75,7 +75,7 @@ function GetMyLastUpdatedBlock():int64;
 
 function SetCustomAlias(Address,Addalias:String;block:integer):Boolean;
 Function UnzipBlockFile(filename:String;delFile:boolean):boolean;
-function UnZipUpdateFromRepo():boolean;
+function UnZipUpdateFromRepo(Tver,TArch:String):boolean;
 Procedure CreateResumen();
 Procedure BuildHeaderFile(untilblock:integer);
 Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
@@ -1257,14 +1257,14 @@ if delfile then Trydeletefile(filename);
 UnZipper.Free;
 End;
 
-function UnZipUpdateFromRepo():boolean;
+function UnZipUpdateFromRepo(Tver,TArch:String):boolean;
 var
   UnZipper: TUnZipper;
 Begin
 result := true;
 UnZipper := TUnZipper.Create;
    TRY
-   UnZipper.FileName := 'NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator+'update.zip';
+   UnZipper.FileName := 'NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator+TVer+'_'+TArch+'.zip';
    UnZipper.OutputPath := 'NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator;
    UnZipper.Examine;
    UnZipper.UnZipAllFiles;
@@ -1276,9 +1276,11 @@ UnZipper := TUnZipper.Create;
       OutText (E.Message,false,1);
       end;
    END{Try};
-Trydeletefile('NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator+'update.zip');
+Trydeletefile('NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator+TVer+'_'+TArch+'.zip');
+{
 {$IFDEF WINDOWS}Trycopyfile('NOSODATA/UPDATES/Noso.exe','nosonew');{$ENDIF}
 {$IFDEF UNIX}Trycopyfile('NOSODATA/UPDATES/Noso','Nosonew');{$ENDIF}
+}
 UnZipper.Free;
 End;
 

@@ -1706,7 +1706,7 @@ if lastrelease <> '' then // Data retrieved
          if GetLastVerZipFile(Parameter(lastrelease,0),GetOS) then
             begin
             OutText('Last release downloaded!',false,1);
-            if UnZipUpdateFromRepo() then
+            if UnZipUpdateFromRepo(Parameter(lastrelease,0),GetOS) then
                begin
                OutText('Unzipped!',false,1);
                CreateLauncherFile(true);

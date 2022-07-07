@@ -1303,7 +1303,7 @@ Begin
 result := 'Linux';
 {$ENDIF}
 {$IFDEF WINDOWS}
-result := 'Windows';
+result := 'Win';
 {$ENDIF}
 if Is32Bit then result := result+'32'
 else result := result+'64';
@@ -1312,18 +1312,16 @@ End;
 Function GetLastVerZipFile(version,LocalOS:string):boolean;
 var
   MS: TMemoryStream;
-  Int_SumarySize : int64;
-  //IdSSLIOHandler: TIdSSLIOHandlerSocketOpenSSL;
   DownLink : String = '';
   extension : string;
   Conector : TFPHttpClient;
 Begin
 result := false;
-if localOS = 'Windows32' then
+if Uppercase(localOS) = 'WIN32' then
    DownLink := 'https://github.com/Noso-Project/NosoWallet/releases/download/v'+version+'/noso-v'+version+'-i386-win32.zip';
-if localOS = 'Windows64' then
+if Uppercase(localOS) = 'WIN64' then
    DownLink := 'https://github.com/Noso-Project/NosoWallet/releases/download/v'+version+'/noso-v'+version+'-x86_64-win64.zip';
-if localOS = 'Linux64' then
+if Uppercase(localOS) = 'LINUX64' then
    DownLink := 'https://github.com/Noso-Project/NosoWallet/releases/download/v'+version+'/noso-v'+version+'-x86_64-linux.zip';
 MS := TMemoryStream.Create;
 Conector := TFPHttpClient.Create(nil);
@@ -1332,10 +1330,10 @@ conector.IOTimeout:=1000;
 conector.AllowRedirect:=true;
    TRY
    Conector.Get(DownLink,MS);
-   MS.SaveToFile('NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator+'update.zip');
+   MS.SaveToFile('NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator+version+'_'+LocalOS+'.zip');
    result := true;
    EXCEPT ON E:Exception do
-      ConsoleLines.Add('Error downloading last release: '+E.Message);
+      ConsoleLines.Add('Error downloading release: '+E.Message);
    END{Try};
 MS.Free;
 conector.free;
