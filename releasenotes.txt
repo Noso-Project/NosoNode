@@ -1,5 +1,9 @@
 Version 0.3.2Aa1
 
+- Official release
+
+Version 0.3.2Aa0
+
 - Auto sync the sumary file.
 - Skip rebuild transactions option.
 - Not complete blockchain required.
