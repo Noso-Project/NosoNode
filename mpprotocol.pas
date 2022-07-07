@@ -161,9 +161,10 @@ End;
 //Devuelve la linea de protocolo solicitada
 Function ProtocolLine(tipo:integer):String;
 var
-  Resultado : String = '';
-  Encabezado : String = '';
-  TempStr    : string = '';
+  Resultado     : String = '';
+  Encabezado    : String = '';
+  TempStr       : string = '';
+  LastDownBlock : integer =0;
 Begin
 Encabezado := 'PSK '+IntToStr(protocolo)+' '+ProgramVersion+subversion+' '+UTCTime+' ';
 if tipo = OnlyHeaders then
@@ -181,7 +182,13 @@ if tipo = GetPending then
 if tipo = GetResumen then
    Resultado := '$GETRESUMEN';
 if tipo = LastBlock then
-   Resultado := '$LASTBLOCK '+IntToStr(mylastblock);
+   if WO_FullNode then Resultado := '$LASTBLOCK '+IntToStr(mylastblock)
+   else
+      begin
+      LastDownBlock := StrToIntDef(NetLastBlock.Value,0)-SecurityBlocks;
+      if LastDownBlock<MyLastBlock then LastDownBlock:=MyLastBlock;
+      Resultado := '$LASTBLOCK '+IntToStr(LastDownBlock);
+      end;
 if tipo = Custom then
    Resultado := '$CUSTOM ';
 if tipo = NodeReport then    // DEPRECATED

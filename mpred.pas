@@ -656,6 +656,7 @@ if STATUS_Connected then
 if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLastBlock.Value)
      and (MySumarioHash=NetSumarioHash.Value) and(MyResumenhash = NetResumenHash.Value) ) then
    begin
+   ClearReceivedOrdersIDs;
    SetNMSData('','','');
    MyConStatus := 3;
    U_Mytrxs := true;
@@ -957,7 +958,8 @@ End;
 // Request necessary files/info to update
 Procedure ActualizarseConLaRed();
 var
-  NLBV : integer = 0; // network last block value
+  NLBV          : integer = 0; // network last block value
+  LastDownBlock : integer = 0;
 Begin
 if BuildingBlock>0 then exit;
 if ((BlockAge <10) or (blockAge>595)) then exit;
@@ -981,7 +983,7 @@ if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // Req
          begin
          //PTC_SendLine(NetResumenHash.Slot,ProtocolLine(18)); // GetResumen update
          PTC_SendLine(NetResumenHash.Slot,ProtocolLine(18)); // GetResumen
-         ConsoleLinesAdd('Headers update requested'); //'Headers file requested'
+         ConsoleLinesAdd('Headers update requested'); //'Headers update requested'
          LastTimeRequestResumen := StrToInt64(UTCTime);
          end;
       end;
@@ -995,24 +997,30 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  /
    if ((LastTimeRequestBlock+5<StrToInt64(UTCTime))and (not DownLoadBlocks)) then
       begin
       PTC_SendLine(NetResumenHash.Slot,ProtocolLine(8)); // lastblock
-      ConsoleLinesAdd(LangLine(164)+IntToStr(mylastblock)); //'LastBlock requested from block '
+      if WO_FullNode then ConsoleLinesAdd(LangLine(164)+IntToStr(mylastblock)) //'LastBlock requested from block '
+      else
+         begin
+         LastDownBlock := NLBV-SecurityBlocks;
+         if LastDownBlock<MyLastBlock then LastDownBlock:=MyLastBlock;
+         ConsoleLinesAdd(LangLine(164)+IntToStr(LastDownBlock));
+         end;
       LastTimeRequestBlock := StrToInt64(UTCTime);
       end;
    end
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
-        (MySumarioHash<>NetSumarioHash.Value) and (ListaSumario[0].LastOP+(2*SumMarkInterval) < mylastblock)) then
-   begin  // Download sumary
-   if ((LastTimeRequestsumary+5 < UTCTime.ToInt64) and (not DownloadSumary) ) then
-      begin
-      PTC_SendLine(NetResumenHash.Slot,ProtocolLine(6)); // Getsumary
-      ConsoleLinesAdd(rs2003); //'sumary file requested'
-      LastTimeRequestsumary := StrToInt64(UTCTime);
-      end;
-   end
-else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
         (MySumarioHash<>NetSumarioHash.Value) and (ListaSumario[0].LastOP < mylastblock)) then
-   begin  // complete or rebuild sumary
-   CompleteSumary();
+   begin  // complete or download summary
+   if (ListaSumario[0].LastOP+(2*SumMarkInterval) < mylastblock) then
+      begin
+      if ((LastTimeRequestsumary+5 < UTCTime.ToInt64) and (not DownloadSumary) ) then
+         begin
+         PTC_SendLine(NetResumenHash.Slot,ProtocolLine(6)); // Getsumary
+         ConsoleLinesAdd(rs2003); //'sumary file requested'
+         LastTimeRequestsumary := StrToInt64(UTCTime);
+         end;
+      end
+   else
+      CompleteSumary();
    end
 // Blockchain status issues starts here
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and

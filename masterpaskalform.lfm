@@ -1343,7 +1343,7 @@ object Form1: TForm1
             OnChange = CB_WO_MultisendChange
             TabOrder = 3
           end
-          object CheckBox1: TCheckBox
+          object CB_FullNode: TCheckBox
             Left = 8
             Height = 19
             Top = 239
@@ -1351,9 +1351,9 @@ object Form1: TForm1
             Align = alTop
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
-            Caption = 'Download blockchain'
+            Caption = 'Download complete blockchain'
             Checked = True
-            Enabled = False
+            OnChange = CB_FullNodeChange
             State = cbChecked
             TabOrder = 2
           end

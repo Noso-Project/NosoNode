@@ -50,7 +50,7 @@ Procedure SaveBotData();
 // sumary
 Procedure UpdateWalletFromSumario();
 Procedure CreateSumario();
-Procedure CargarSumario(source:string='');
+Procedure LoadSumaryFromFile(source:string='');
 Procedure GuardarSumario(SaveCheckmark:boolean = false);
 Procedure UpdateSumario(Direccion:string;monto:Int64;score:integer;LastOpBlock:string);
 Procedure AddBlockToSumary(BlockNumber:integer;SaveAndUpdate:boolean = true);
@@ -148,7 +148,7 @@ FillNodeList;  // Fills the hardcoded seed nodes list
 
 if not Fileexists(NTPDataFilename) then CrearNTPData() else CargarNTPData();
 OutText('✓ NTP servers file ok',false,1);
-if not Fileexists(SumarioFilename) then CreateSumario() else CargarSumario();
+if not Fileexists(SumarioFilename) then CreateSumario() else LoadSumaryFromFile();
 OutText('✓ Sumary file ok',false,1);
 if not Fileexists(ResumenFilename) then CreateResumen();
 OutText('✓ Headers file ok',false,1);
@@ -426,6 +426,9 @@ setmilitime('CreateADV',1);
    writeln(FileAdvOptions,'PoolRestart '+BoolToStr(POOL_MineRestart,true));
    writeln(FileAdvOptions,'PoolLBS '+BoolToStr(POOL_LBS,true));
    writeln(FileAdvOptions,'WO_RebuildTrx '+BoolToStr(WO_RebuildTrx,true));
+   writeln(FileAdvOptions,'WO_FullNode '+BoolToStr(WO_FullNode,true));
+
+
 
    Closefile(FileAdvOptions);
    if saving then tolog('Options file saved');
@@ -505,6 +508,7 @@ Begin
       if parameter(linea,0) ='PoolRestart' then POOL_MineRestart:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='PoolLBS' then POOL_LBS:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='WO_RebuildTrx' then WO_RebuildTrx:=StrToBool(Parameter(linea,1));
+      if parameter(linea,0) ='WO_FullNode' then WO_FullNode:=StrToBool(Parameter(linea,1));
 
       end;
    Closefile(FileAdvOptions);
@@ -1064,7 +1068,7 @@ Begin
 End;
 
 // Loads sumary from disk
-Procedure CargarSumario(source:string='');
+Procedure LoadSumaryFromFile(source:string='');
 var
   contador : integer = 0;
 Begin
@@ -2378,7 +2382,7 @@ var
 Begin
 if fromblock = 0 then StartMark := ((GetMyLastUpdatedBlock div SumMarkInterval)-1)*SumMarkInterval
 else StartMark := Fromblock;
-Cargarsumario(MarksDirectory+StartMark.ToString+'.bak');
+LoadSumaryFromFile(MarksDirectory+StartMark.ToString+'.bak');
 ConsoleLinesAdd('Restoring sumary from '+StartMark.ToString);
 CompleteSumary;
 End;

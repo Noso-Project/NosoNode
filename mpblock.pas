@@ -587,7 +587,7 @@ EnterCriticalSection(CSSumary);
 Trydeletefile(SumarioFilename);
 Trycopyfile(SumarioFilename+'.bak',SumarioFilename);
 LeaveCriticalSection(CSSumary);
-CargarSumario();
+LoadSumaryFromFile();
 // Actualizar la cartera
 UpdateWalletFromSumario();
 // actualizar el archivo de cabeceras

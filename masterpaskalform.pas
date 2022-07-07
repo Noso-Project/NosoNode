@@ -441,7 +441,7 @@ type
     CB_AUTORPC: TCheckBox;
     CB_WO_AutoConnect: TCheckBox;
     CB_WO_ToTray: TCheckBox;
-    CheckBox1: TCheckBox;
+    CB_FullNode: TCheckBox;
     CB_WO_Multisend: TCheckBox;
     CB_WO_AntiFreeze: TCheckBox;
     CheckBox4: TCheckBox;
@@ -583,6 +583,7 @@ type
     procedure CB_WO_AutoupdateChange(Sender: TObject);
     procedure CBAutoIPClick(Sender: TObject);
     procedure CB_WO_RebuildTrxChange(Sender: TObject);
+    procedure CB_FullNodeChange(Sender: TObject);
     procedure ComboBoxLangChange(Sender: TObject);
     procedure ComboBoxLangDrawItem(Control: TWinControl; Index: Integer;
       ARect: TRect; State: TOwnerDrawState);
@@ -794,6 +795,7 @@ CONST
   AvailableMarkets = '/LTC';
   SendDirectToPeer = false;
   SumMarkInterval  = 100;
+  SecurityBlocks   = 1000;
 
 var
   UserFontSize : integer = 8;
@@ -835,6 +837,7 @@ var
   POOL_MineRestart : boolean = false;
   POOL_LBS         : boolean = false;
   WO_RebuildTrx    : boolean = true;
+  WO_FullNode      : boolean = true;
 
   SynchWarnings : integer = 0;
   ConnectedRotor : integer = 0;
@@ -1284,6 +1287,9 @@ if Continuar then
             if Downloaded and not errored then
                begin
                consolelinesAdd(format(rs0087,[copy(HashMD5File(SumarioFilename),1,5)])); //'Sumary file received'
+               EnterCriticalSection(CSSumary);
+               LoadSumaryFromFile();
+               LeaveCriticalSection(CSSumary);
                LastTimeRequestSumary := 0;
                UpdateMyData();
                end;
@@ -3845,6 +3851,23 @@ if not G_Launching then
    else
       begin
       WO_RebuildTrx := false ;
+      end;
+   S_AdvOpt := true;
+   end;
+End;
+
+// Enable/Disable download the whole blockchain
+procedure TForm1.CB_FullNodeChange(Sender: TObject);
+Begin
+if not G_Launching then
+   begin
+   if CB_FullNode.Checked then
+      begin
+      WO_FullNode := true;
+      end
+   else
+      begin
+      WO_FullNode := false ;
       end;
    S_AdvOpt := true;
    end;

@@ -145,6 +145,13 @@ msgstr ""
 msgid "Show current job (BETA)"
 msgstr ""
 
+#: tform1.cb_fullnode.caption
+#, fuzzy
+#| msgid "Download blockchain"
+msgctxt "tform1.cb_fullnode.caption"
+msgid "Download complete blockchain"
+msgstr "Descargar cadena de bloques"
+
 #: tform1.cb_rpcfilter.caption
 msgid "Accept only whitelist requests"
 msgstr "Aceptar unicamente solicitudes de lista autorizada"
@@ -178,10 +185,6 @@ msgstr ""
 #: tform1.cb_wo_totray.caption
 msgid "Minimize to tray"
 msgstr "Minimizar a barra de tareas"
-
-#: tform1.checkbox1.caption
-msgid "Download blockchain"
-msgstr "Descargar cadena de bloques"
 
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
@@ -1026,7 +1029,7 @@ msgid ""
 msgstr ""
 
 #: translation.rs2003
-msgid "Headers file requested"
+msgid "Sumary file requested"
 msgstr ""
 
 #: translation.rs2501

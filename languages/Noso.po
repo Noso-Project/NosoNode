@@ -130,6 +130,11 @@ msgstr ""
 msgid "Show current job (BETA)"
 msgstr ""
 
+#: tform1.cb_fullnode.caption
+msgctxt "tform1.cb_fullnode.caption"
+msgid "Download complete blockchain"
+msgstr ""
+
 #: tform1.cb_rpcfilter.caption
 msgid "Accept only whitelist requests"
 msgstr ""
@@ -161,10 +166,6 @@ msgstr ""
 
 #: tform1.cb_wo_totray.caption
 msgid "Minimize to tray"
-msgstr ""
-
-#: tform1.checkbox1.caption
-msgid "Download blockchain"
 msgstr ""
 
 #: tform1.checkbox4.caption
@@ -989,7 +990,7 @@ msgid ""
 msgstr ""
 
 #: translation.rs2003
-msgid "Headers file requested"
+msgid "Sumary file requested"
 msgstr ""
 
 #: translation.rs2501
