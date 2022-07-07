@@ -734,13 +734,13 @@ CONST
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
   DefaultNodes : String = 'DefNodes '+
-                            '45.146.252.103 '+
-                            '194.156.88.117 '+
+                            //'45.146.252.103 '+
+                            //'194.156.88.117 '+
                             '109.230.238.240 '+
                             '23.94.21.83 '+
                             '107.175.59.177 '+
                             '107.172.193.176 '+
-                            '107.175.194.151 '+//'66.151.117.247 '+
+                            '66.151.117.247 '+
                             '192.3.73.184 '+
                             '107.175.24.151 '+
                             '107.174.137.27';

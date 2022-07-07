@@ -1,3 +1,7 @@
+Version 0.3.2Aa2
+
+- Seed nodes adjustments.
+
 Version 0.3.2Aa1
 
 - Official release
