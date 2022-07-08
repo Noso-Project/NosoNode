@@ -360,6 +360,12 @@ type
        value   : integer;
        end;
 
+  TMNsData  = Packed Record
+       ipandport  : string;
+       address    : string;
+       age        : integer;
+       end;
+
 
   { TForm1 }
 
@@ -737,7 +743,7 @@ CONST
                             //'45.146.252.103 '+
                             //'194.156.88.117 '+
                             '109.230.238.240 '+
-                            '23.94.21.83 '+
+                            '198.144.190.194 '+
                             '107.175.59.177 '+
                             '107.172.193.176 '+
                             '66.151.117.247 '+
@@ -754,7 +760,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa3';
+  SubVersion = 'Aa5';
   OficialRelease = false;
   VersionRequired = '0.3.1Ae7';
   BuildDate = 'July 2022';
@@ -2737,6 +2743,8 @@ if GoAhead then
       TryCloseServerConnection(AContext,PendingRawInfo)
    else if parameter(LLine,0) = 'NSLTIME' then
       TryCloseServerConnection(AContext,UTCTime)
+   else if parameter(LLine,0) = 'NSLMNS' then
+      TryCloseServerConnection(AContext,GetMN_FileText)
    else if parameter(LLine,0) = 'GETZIPSUMARY' then  //
       begin
       MemStream := TMemoryStream.Create;
@@ -3623,7 +3631,7 @@ var
   myRect    : TRect;
   ColWidth : Integer;
 Begin
-if ( (aRow>0) and (aCol=0) and (AnsiContainsstr(MN_FileText,ListaDirecciones[aRow-1].Hash)) ) then
+if ( (aRow>0) and (aCol=0) and (AnsiContainsstr(GetMN_FileText,ListaDirecciones[aRow-1].Hash)) ) then
    begin
    ColWidth := (sender as TStringGrid).ColWidths[0];
    Bitmap:=TBitmap.Create;

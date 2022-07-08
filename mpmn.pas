@@ -50,6 +50,8 @@ Procedure CreditMNVerifications();
 
 Function GetMNsAddresses():String;
 Function GetMNsFileData():String;
+Procedure SetMN_FileText(Tvalue:String);
+Function GetMN_FileText():String;
 Procedure SaveMNsFile(GotText:string);
 Procedure PTC_MNFile(Linea:String);
 
@@ -71,6 +73,7 @@ var
   DecVerThreads : TRTLCriticalSection;
   CSMNsFile     : TRTLCriticalSection;
   CSMNsIPCheck  : TRTLCriticalSection;
+  CSMN_FileText : TRTLCriticalSection;
 
 implementation
 
@@ -589,9 +592,25 @@ else
    Form1.imagenes.GetBitMap(27,Form1.StaSerImg.Picture.Bitmap);
    Form1.StaSerImg.Hint:='Check your Masternode config';
    end;
-MN_FileText := linea;
+SetMN_FileText(linea);
 Result := Linea;
 MyMNsHash     := HashMD5File(MasterNodesFilename);
+//MyMNsHash     := HashMD5File(GetMN_FileText);
+End;
+
+Procedure SetMN_FileText(Tvalue:String);
+Begin
+EnterCriticalSection(CSMN_FileText);
+MN_FileText := Tvalue;
+
+LeaveCriticalSection(CSMN_FileText);
+End;
+
+Function GetMN_FileText():String;
+Begin
+EnterCriticalSection(CSMN_FileText);
+Result := MN_FileText;
+LeaveCriticalSection(CSMN_FileText);
 End;
 
 Procedure SaveMNsFile(GotText:string);
@@ -604,11 +623,11 @@ Assignfile(archivo, MAsternodesfilename);
 rewrite(archivo);
 write(Archivo,GotText,#13#10);
 Closefile(archivo);
-MN_FileText := GotText;
+SetMN_FileText(GotText);
 EXCEPT on E:Exception do
    begin
-   tolog ('Error Saving masternodes file');
-   MN_FileText := '';
+   toExclog ('Error Saving masternodes file');
+   SetMN_FileText('');
    end;
 END {TRY};
 LeaveCriticalSection(CSMNsFile);
@@ -737,6 +756,8 @@ InitCriticalSection(DecVerThreads);
 InitCriticalSection(CSMNsChecks);
 InitCriticalSection(CSMNsFile);
 InitCriticalSection(CSMNsIPCheck);
+InitCriticalSection(CSMN_FileText);
+
 SetLength(ArrayIPsProcessed,0);
 
 Finalization
@@ -745,6 +766,7 @@ DoneCriticalSection(DecVerThreads);
 DoneCriticalSection(CSMNsChecks);
 DoneCriticalSection(CSMNsFile);
 DoneCriticalSection(CSMNsIPCheck);
+DoneCriticalSection(CSMN_FileText);
 
 END. // End UNIT
 

@@ -1264,7 +1264,7 @@ TRY
 
 EXCEPT on E: Exception do
    begin
-   Consolelinesadd('ERROR RETRIEVING LAST RELEASES DATA: '+E.Message);
+   Consolelinesadd('ERROR RETRIEVING LAST RELEASE DATA: '+E.Message);
    end;
 END;//TRY
 Conector.Free;

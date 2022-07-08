@@ -1500,7 +1500,16 @@ var
   TArch    : string;
 Begin
 Tversion := parameter(linea,1);
+if Tversion = '' then Tversion := Parameter(GetLastRelease,0);
 TArch    := Uppercase(parameter(linea,2));
+if TArch = '' then TArch := GetOS;
+ConsolelinesAdd(Format('Trying upgrade to version %s (%s)',[TVersion,TArch]));
+Application.ProcessMessages;
+if Tversion = ProgramVersion+Subversion then
+   begin
+   ConsolelinesAdd('Version '+TVersion+' already installed');
+   exit;
+   end;
 if GetLastVerZipFile(Tversion,TArch) then
    begin
    ConsoleLinesAdd('Version '+Tversion+' downloaded');
