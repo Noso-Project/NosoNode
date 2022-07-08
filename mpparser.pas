@@ -2119,8 +2119,17 @@ else consolelinesAdd(MN_Funds+' not paid')
 End;
 
 Procedure DebugTest2(linetext:string);
+var
+  total   : integer;
+  verifis : integer;
+  counter : integer;
 Begin
-ConsolelinesAdd(GetNodeStatusString);
+Total := Length(ArrayMNsData);
+verifis := (total div 10)+3;
+consolelinesAdd('Masternodes  : '+IntToStr(total));
+consolelinesadd('Verificators : '+IntToStr(verifis));
+for counter := 0 to verifis-1 do
+   consolelinesadd(format('%s %s %d',[ArrayMNsData[counter].ipandport,copy(arrayMNsData[counter].address,1,5),ArrayMNsData[counter].age]));
 End;
 
 END. // END UNIT

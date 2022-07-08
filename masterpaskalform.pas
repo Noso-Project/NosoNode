@@ -985,6 +985,7 @@ var
   BlockUndoneTime    : int64 = 0;
 
   MyMNsHash : String = '';
+  ArrayMNsData  : array of TMNsData;
 
 
   LastTimeReportMyMN : int64 = 0;
@@ -1561,6 +1562,7 @@ for counter := 1 to MaxConecciones do
 CreateFormInicio();
 CreateFormSlots();
 SetLength(ArrayOrderIDsProcessed,0);
+SetLength(ArrayMNsData,0);
 end;
 
 // Form destroy

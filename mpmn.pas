@@ -50,6 +50,7 @@ Procedure CreditMNVerifications();
 
 Function GetMNsAddresses():String;
 Function GetMNsFileData():String;
+Procedure FillMNsArray(TValue:String);
 Procedure SetMN_FileText(Tvalue:String);
 Function GetMN_FileText():String;
 Procedure SaveMNsFile(GotText:string);
@@ -543,11 +544,32 @@ if IsAllSynced then Result := 'True '+GetSyncTus+' '+MN_Funds
 else Result := 'False';
 End;
 
+Function GetMNAgeCount(TNode:TMNode):string;
+var
+  TIpandPort : string;
+  counter    : integer;
+  Number     : integer=0;
+Begin
+result := '';
+//if MyLastBlock < 65500 then exit;
+TIpandPort := TNode.Ip+';'+IntToStr(TNode.Port);
+for counter := 0 to length(ArrayMNsData)-1 do
+   begin
+   if ( (TIpandPort = ArrayMNsData[counter].ipandport) and (TNode.Fund=ArrayMNsData[counter].address) ) then
+      begin
+      Number := ArrayMNsData[counter].age;
+      break;
+      end;
+   end;
+result := ':'+IntToStr(number+1);
+End;
+
 Function GetMNsAddresses():String;
 var
   MinValidations : integer;
   Counter        : integer;
   Resultado      : string = '';
+  AddAge         : string = '';
 Begin
 MinValidations := (GetMNsChecksCount div 2) - 1;
 Resultado := MyLastBlock.ToString+' ';
@@ -556,7 +578,9 @@ For counter := 0 to length(MNsList)-1 do
       begin
       if MNsList[counter].Validations>= MinValidations then
          begin
-         Resultado := Resultado + MNsList[counter].Ip+';'+MNsList[counter].Port.ToString+':'+MNsList[counter].Fund+' ';
+         AddAge := GetMNAgeCount(MNsList[counter]);
+         Resultado := Resultado + MNsList[counter].Ip+';'+MNsList[counter].Port.ToString+':'+MNsList[counter].Fund+
+            AddAge+' ';
          end;
       end;
 LeaveCriticalSection(CSMNsArray);
@@ -598,11 +622,55 @@ MyMNsHash     := HashMD5File(MasterNodesFilename);
 //MyMNsHash     := HashMD5File(GetMN_FileText);
 End;
 
+Procedure FillMNsArray(TValue:String);
+var
+  counter   : integer = 1;
+  count2    : integer = 0;
+  ThisData  : string  = '';
+  ThisMN    : TMNsData;
+  TempArray : array of TMNsData;
+  Added     : boolean = false;
+Begin
+SetLength(ArrayMNsData,0);
+SetLength(TempArray,0);
+Repeat
+   ThisData := Parameter(Tvalue,counter);
+   if ThisData <> '' then
+      begin
+      ThisData := StringReplace(ThisData,':',' ',[rfReplaceAll]);
+      ThisMN.ipandport:=Parameter(ThisData,0);
+      ThisMN.address  :=Parameter(ThisData,1);
+      ThisMN.age      :=StrToIntDef(Parameter(ThisData,2),1);
+      Insert(ThisMN,TempArray,length(TempArray));
+      end;
+   inc(counter);
+until thisData = '';
+for counter := 0 to length(TempArray)-1 do
+   begin
+   ThisMN := TempArray[counter];
+   Added := false;
+   if length(ArrayMNsData) = 0 then
+      Insert(ThisMN,ArrayMNsData,0)
+   else
+      begin
+      for count2 := 0 to length(ArrayMNsData)-1 do
+         begin
+         if ThisMN.age < ArrayMNsData[count2].age then
+            begin
+            Insert(ThisMN,ArrayMNsData,count2);
+            added := true;
+            end;
+         end;
+      if not added then Insert(ThisMN,ArrayMNsData,length(ArrayMNsData));
+      end;
+   end;
+End;
+
 Procedure SetMN_FileText(Tvalue:String);
 Begin
 EnterCriticalSection(CSMN_FileText);
 MN_FileText := Tvalue;
-
+FillMNsArray(TValue);
 LeaveCriticalSection(CSMN_FileText);
 End;
 

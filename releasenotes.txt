@@ -3,6 +3,7 @@ Version 0.3.2Aa4
 - Seed node 198.144.190.194 added.
 - Update command without parameters.
 - NSLMNS call added.
+- Dynamic verificators control.
 
 Version 0.3.2Aa3
 
