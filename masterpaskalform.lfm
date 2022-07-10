@@ -1365,7 +1365,7 @@ object Form1: TForm1
             Align = alTop
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
-            Caption = 'Install automatically new official releases'
+            Caption = 'Update automatically with directives'
             OnChange = CB_WO_AutoupdateChange
             TabOrder = 10
           end

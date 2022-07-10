@@ -132,9 +132,6 @@ OutText('✓ Advanced options loaded',false,1);
 if not FileExists (ErrorLogFilename) then Createlog;
 OutText('✓ Log file ok',false,1);
 
-if not FileExists (PoolLogFilename) then CreatePoollog;
-OutText('✓ Pool Log file ok',false,1);
-
 if not FileExists(MasterNodesFilename) then CreateMasterNodesFile;
 GetMNsFileData;
 OutText('✓ Masternodes file ok',false,1);
@@ -1276,7 +1273,7 @@ UnZipper := TUnZipper.Create;
       OutText (E.Message,false,1);
       end;
    END{Try};
-Trydeletefile('NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator+TVer+'_'+TArch+'.zip');
+//Trydeletefile('NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator+TVer+'_'+TArch+'.zip');
 {
 {$IFDEF WINDOWS}Trycopyfile('NOSODATA/UPDATES/Noso.exe','nosonew');{$ENDIF}
 {$IFDEF UNIX}Trycopyfile('NOSODATA/UPDATES/Noso','Nosonew');{$ENDIF}

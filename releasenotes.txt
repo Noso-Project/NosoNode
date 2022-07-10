@@ -1,3 +1,20 @@
+Version 0.3.2Aa7
+
+- Official release
+
+Version 0.3.2Aa6
+
+- Fix on MNlist creation.
+- Node onconnect wait changed from 200 to 1000
+- Pool log file removed.
+- Directive "update" implemented.
+- Removed auto update at start.
+- Included warning when SSL files are missed on windows.
+
+Version 0.3.2Aa5
+
+- Official release
+
 Version 0.3.2Aa4
 
 - Seed node 198.144.190.194 added.

@@ -168,8 +168,9 @@ msgstr "Conectare automată la pornire"
 
 #: tform1.cb_wo_autoupdate.caption
 #, fuzzy
+#| msgid "Install automatically new official releases"
 msgctxt "tform1.cb_wo_autoupdate.caption"
-msgid "Install automatically new official releases"
+msgid "Update automatically with directives"
 msgstr "Instalează automat noi versiuni oficiale"
 
 #: tform1.cb_wo_multisend.caption

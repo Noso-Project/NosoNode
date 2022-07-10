@@ -267,7 +267,7 @@ else if UpperCase(Command) = 'RUNDIAG' then RunDiagnostico(LineText)
 else if UpperCase(Command) = 'RESTART' then Parse_RestartNoso()
 else if UpperCase(Command) = 'SND' then ShowNetworkDataInfo()
 else if UpperCase(Command) = 'OSVERSION' then ConsoleLinesAdd(OsVersion)
-else if UpperCase(Command) = 'SENDMESSAGE' then SendAdminMessage(linetext)
+else if UpperCase(Command) = 'DIRECTIVE' then SendAdminMessage(linetext)
 else if UpperCase(Command) = 'MYHASH' then ConsoleLinesAdd(HashMD5File('noso.exe'))
 else if UpperCase(Command) = 'ADDBOT' then AddNewBot(LineText)
 else if UpperCase(Command) = 'SETRTOT' then SetReadTimeOutTIme(LineText)
@@ -1548,7 +1548,7 @@ else
    mensaje := StringReplace(mensaje,' ','_',[rfReplaceAll, rfIgnoreCase]);
    OutgoingMsjsAdd(GetPTCEcn+'ADMINMSG '+currtime+' '+mensaje+' '+firma+' '+hashmsg);
    mensaje := StringReplace(mensaje,'_',' ',[rfReplaceAll, rfIgnoreCase]);
-   ConsoleLinesAdd('Message sent: '+mensaje);
+   ConsoleLinesAdd('Directive sent: '+mensaje);
    end;
 End;
 

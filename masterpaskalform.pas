@@ -41,6 +41,15 @@ type
      constructor Create(const CreatePaused: Boolean; const ConexSlot:Integer);
    end;
 
+  TThreadDirective = class(TThread)
+   private
+     command: string;
+   protected
+     procedure Execute; override;
+   public
+     constructor Create(const CreatePaused: Boolean; const TCommand:string);
+   end;
+
   TThreadSendOutMsjs = class(TThread)
     protected
       procedure Execute; override;
@@ -760,7 +769,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa5';
+  SubVersion = 'Aa7';
   OficialRelease = false;
   VersionRequired = '0.3.1Ae7';
   BuildDate = 'July 2022';
@@ -1359,6 +1368,29 @@ begin
   FSlot:= ConexSlot;
 end;
 
+constructor TThreadDirective.Create(const CreatePaused: Boolean; const TCommand:string);
+begin
+  inherited Create(CreatePaused);
+  Command := TCommand;
+end;
+
+procedure TThreadDirective.Execute;
+var
+  TimeToRun : int64;
+  TFinished  : boolean = false;
+Begin
+TimeToRun := 50+(MNsRandomWait*20);
+While not Tfinished do
+   begin
+   sleep(10);
+   if BlockAge = TimeToRun then
+      begin
+      ProcesslinesAdd(Command);
+      TFinished := true;
+      end;
+   end;
+End;
+
 { TForm1 }
 
 // ***************
@@ -1695,6 +1727,7 @@ var
   LastRelease : String = '';
 Begin
 // Check last release
+{
 OutText(rs0071,false,1); // Checking last release available...
 if WO_AutoUpdate then LastRelease := GetLastRelease;
 if lastrelease <> '' then // Data retrieved
@@ -1735,6 +1768,7 @@ else // Error retrieving last release data
    gridinicio.RowCount:=gridinicio.RowCount-1;
    OutText(rs0072,false,1);
    end;
+}
 InitCrossValues();
 // A partir de aqui se inicializa todo
 if not directoryexists('NOSODATA') then CreateDir('NOSODATA');
@@ -2704,7 +2738,7 @@ if KeepServerOn = false then // Reject any new connection if we are closing the 
    exit;
    end;
 TRY
-   LLine := AContext.Connection.IOHandler.ReadLn('',200,-1,IndyTextEncoding_UTF8);
+   LLine := AContext.Connection.IOHandler.ReadLn('',1000,-1,IndyTextEncoding_UTF8);
    if AContext.Connection.IOHandler.ReadLnTimedout then
       begin
       TryCloseServerConnection(AContext);
@@ -3479,6 +3513,14 @@ if not G_Launching then
       WO_AutoUpdate := false ;
       end;
    S_AdvOpt := true;
+   end;
+if WO_AutoUpdate then
+   begin
+   {$IFDEF WINDOWS}
+   if ( (not fileexists('libeay32.dll')) or (not fileexists('ssleay32.dll')) ) then
+      consolelinesadd('Warning: SSL files missed. Auto directive update will not work properly');
+
+   {$ENDIF}
    end;
 End;
 

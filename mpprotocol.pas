@@ -1006,8 +1006,11 @@ Procedure PTC_AdminMSG(TextLine:String);
 var
   msgtime, mensaje, firma, hashmsg : string;
   msgtoshow : string = '';
-  contador : integer = 1;
-  errored : boolean = false;
+  contador  : integer = 1;
+  errored   : boolean = false;
+  TCommand  : string;
+  TParam    : string;
+  ThDirect  : TThreadDirective;
 Begin
 msgtime := parameter(TextLine,5);
 mensaje := parameter(TextLine,6);
@@ -1017,26 +1020,30 @@ if AnsiContainsStr(MsgsReceived,hashmsg) then errored := true
 else mensaje := StringReplace(mensaje,'_',' ',[rfReplaceAll, rfIgnoreCase]);
 if not VerifySignedString(msgtime+mensaje,firma,AdminPubKey) then
    begin
-   ToLog('Admin msg wrong sign');
+   ToLog('Directive wrong sign');
    errored := true;
    end;
 if HashMD5String(msgtime+mensaje+firma) <> Hashmsg then
    begin
-   ToLog('Admin msg wrong hash');
+   ToLog('Directive wrong hash');
    errored :=true;
    end;
 if not errored then
    begin
-   MsgsReceived := MsgsReceived + Hashmsg;
-   for contador := 1 to length(mensaje) do
+   MsgsReceived :=MsgsReceived+hashmsg;
+   TCommand := Parameter(mensaje,0);
+   if UpperCase(TCommand) = 'UPDATE' then
       begin
-      if mensaje[contador] = '}' then msgtoshow := msgtoshow+slinebreak
-      else msgtoshow := msgtoshow +mensaje[contador];
+      if WO_AutoUpdate then
+         begin
+         TParam := Parameter(mensaje,1);
+         ThDirect := TThreadDirective.Create(true,'update '+TParam);
+         ThDirect.FreeOnTerminate:=true;
+         ThDirect.Start;
+         Tolog('DIRECTIVE'+slinebreak+'update '+TParam);
+         ConsoleLinesAdd('AutoUpdate directive received');
+         end;
       end;
-   Tolog('Admin message'+slinebreak+
-         TimestampToDate(msgtime)+slinebreak+
-         msgtoshow);
-   form1.MemoLog.Visible:=true;
    OutgoingMsjsAdd(TextLine);
    end;
 End;

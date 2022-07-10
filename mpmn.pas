@@ -631,6 +631,7 @@ var
   TempArray : array of TMNsData;
   Added     : boolean = false;
 Begin
+setmilitime('FillMNsArray',1);
 SetLength(ArrayMNsData,0);
 SetLength(TempArray,0);
 Repeat
@@ -655,15 +656,17 @@ for counter := 0 to length(TempArray)-1 do
       begin
       for count2 := 0 to length(ArrayMNsData)-1 do
          begin
-         if ThisMN.age < ArrayMNsData[count2].age then
+         if ThisMN.age > ArrayMNsData[count2].age then
             begin
             Insert(ThisMN,ArrayMNsData,count2);
             added := true;
+            break;
             end;
          end;
       if not added then Insert(ThisMN,ArrayMNsData,length(ArrayMNsData));
       end;
    end;
+setmilitime('FillMNsArray',2);
 End;
 
 Procedure SetMN_FileText(Tvalue:String);
