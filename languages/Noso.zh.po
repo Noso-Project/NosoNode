@@ -492,6 +492,10 @@ msgctxt "tform1.tabopt_wallet.caption"
 msgid "Wallet"
 msgstr "钱包"
 
+#: tform1.tabsheet1.caption
+msgid "GVTs"
+msgstr ""
+
 #: tform1.tabsheet10.caption
 #, fuzzy
 #| msgid "Peers"

@@ -449,6 +449,7 @@ type
     ImgRotor: TImage;
     GridNodes: TStringGrid;
     TabDoctor: TTabSheet;
+    TabSheet1: TTabSheet;
     TextQRcode: TStaticText;
     StaTimeLab: TLabel;
     SCBitSend: TBitBtn;
@@ -769,7 +770,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa7';
+  SubVersion = 'Aa9';
   OficialRelease = false;
   VersionRequired = '0.3.1Ae7';
   BuildDate = 'July 2022';
@@ -1182,13 +1183,15 @@ End;
 procedure TThreadClientRead.Execute;
 var
   LLine: String;
-  MemStream   : TMemoryStream;
+  MemStream    : TMemoryStream;
   BlockZipName : string = '';
-  Continuar : boolean = true;
+  Continuar    : boolean = true;
   TruncateLine : string = '';
-  Errored, downloaded : Boolean;
-  LineToSend : string;
-  LineSent : boolean;
+  Errored      : Boolean;
+  downloaded   : boolean;
+  LineToSend   : string;
+  LineSent     : boolean;
+  KillIt       : boolean = false;
 begin
 REPEAT
 TRY
@@ -1356,9 +1359,10 @@ if Continuar then
 EXCEPT ON E:Exception do
    begin
    ToExcLog('*****CRITICAL**** Error inside Client thread: '+E.Message);
+   if AnsiContainsStr(E.Message,'Error # 10053') then KillIt := true;
    end;
 END; {TRY}
-UNTIL ( (terminated) or (not CanalCliente[FSlot].Connected) );
+UNTIL ( (terminated) or (not CanalCliente[FSlot].Connected) or (KillIt) );
 DecClientReadThreads;
 End;
 
