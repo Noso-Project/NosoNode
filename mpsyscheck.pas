@@ -60,12 +60,16 @@ Result := (cores*10000) div (EndTime-StartTime);
 End;
 
 Function AllocateMem(UpToMb:integer=16384):int64;
+{$IFDEF Unix} Uses Linux; {$ENDIF}
 var
   counter  : integer;
   MemMb    : array of pointer;
   Finished : boolean = false;
+  {$IFDEF Unix} Info : TSysInfo; {$ENDIF}
 Begin
 result := 0;
+{$IFDEF WINDOWS}
+ReturnNilIfGrowHeapFails := false;
 counter := 0;
 SetLength(MemMb,0);
 repeat
@@ -83,6 +87,11 @@ until ( (finished) or (counter >=16384));
 result := counter;
 for counter := 0 to length(MemMB)-1 do
    FreeMem (MemMb[counter],1048576);
+{$ENDIF}
+{$IFDEF Unix}
+SysInfo(@Info);
+result := Info.freeram div 1024:
+{$ENDIF}
 End;
 
 Function TestDownloadSpeed():int64;

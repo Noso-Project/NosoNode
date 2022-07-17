@@ -99,7 +99,7 @@ Procedure ShowBlockPos(LineText:string);
 Procedure showPosrequired(linetext:string);
 Procedure ShowBlockMNs(LineText:string);
 Procedure showgmts(LineText:string);
-Procedure ShowSystemInfo();
+Procedure ShowSystemInfo(Linetext:string);
 
 // EXCHANGE
 Procedure PostOffer(LineText:String);
@@ -324,7 +324,7 @@ else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()
 else if UpperCase(Command) = 'NETRATE' then consolelinesadd('Average Mainnet hashrate: '+HashrateToShow(MainNetHashrate))
 else if UpperCase(Command) = 'MINERS' then ShowMiners(Linetext)
 else if UpperCase(Command) = 'LISTGVT' then ListGVTs()
-else if UpperCase(Command) = 'SYSTEM' then ShowSystemInfo()
+else if UpperCase(Command) = 'SYSTEM' then ShowSystemInfo(Linetext)
 
 // 0.2.1 DEBUG
 else if UpperCase(Command) = 'BLOCKPOS' then ShowBlockPos(LineText)
@@ -1502,14 +1502,16 @@ Procedure RunUpdate(linea:string);
 var
   Tversion : string;
   TArch    : string;
+  overRule : boolean = false;
 Begin
 Tversion := parameter(linea,1);
 if Tversion = '' then Tversion := Parameter(GetLastRelease,0);
 TArch    := Uppercase(parameter(linea,2));
 if TArch = '' then TArch := GetOS;
 ConsolelinesAdd(Format('Trying upgrade to version %s (%s)',[TVersion,TArch]));
+if ansicontainsstr(linea,' /or') then overRule := true;
 Application.ProcessMessages;
-if Tversion = ProgramVersion+Subversion then
+if ( (Tversion = ProgramVersion+Subversion) and (not overRule) ) then
    begin
    ConsolelinesAdd('Version '+TVersion+' already installed');
    exit;
@@ -2146,14 +2148,20 @@ for counter := 0 to verifis-1 do
    consolelinesadd(format('%s %s %d',[ArrayMNsData[counter].ipandport,copy(arrayMNsData[counter].address,1,5),ArrayMNsData[counter].age]));
 End;
 
-Procedure ShowSystemInfo();
+Procedure ShowSystemInfo(Linetext:string);
 var
   DownSpeed : int64;
+  Param     : string;
 Begin
 if MyConStatus > 0 then exit;
-consolelinesadd(Format('Processing       : %d Trx/s',[Sys_HashSpeed]));
-ConsoleLinesadd(Format('Available memory : %d MB',[AllocateMem]));
-ConsoleLinesAdd(Format('Download speed   : %d Kb/s',[TestDownloadSpeed]));
+Param := Uppercase(Parameter(Linetext,1));
+if param = 'POWER' then
+  consolelinesadd(Format('Processing       : %d Trx/s',[Sys_HashSpeed]))
+else if param = 'MEM' then
+  ConsoleLinesadd(Format('Available memory : %d MB',[AllocateMem]))
+else if param = 'DOWNSPEED' then
+  ConsoleLinesAdd(Format('Download speed   : %d Kb/s',[TestDownloadSpeed]))
+else consolelinesadd('Invalid parameter: '+Param);
 End;
 
 END. // END UNIT
