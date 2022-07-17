@@ -2147,10 +2147,13 @@ for counter := 0 to verifis-1 do
 End;
 
 Procedure ShowSystemInfo();
+var
+  DownSpeed : int64;
 Begin
 if MyConStatus > 0 then exit;
-consolelinesadd(Format('Hash speed: %d Hash/s',[Sys_HashSpeed]));
-ConsoleLinesadd(Format('Available memory: %d',[AllocateMem]));
+consolelinesadd(Format('Processing       : %d Trx/s',[Sys_HashSpeed]));
+ConsoleLinesadd(Format('Available memory : %d MB',[AllocateMem]));
+ConsoleLinesAdd(Format('Download speed   : %d Kb/s',[TestDownloadSpeed]));
 End;
 
 END. // END UNIT

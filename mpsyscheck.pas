@@ -5,7 +5,7 @@ unit mpSysCheck;
 interface
 
 uses
-  Classes, SysUtils, mpcripto, mpdisk;
+  Classes, SysUtils, mpcripto, fphttpclient, mpdisk;
 
 Type
   TThreadHashtest = class(TThread)
@@ -16,7 +16,8 @@ Type
     end;
 
 Function Sys_HashSpeed(cores:integer=4):int64;
-Function AllocateMem():int64;
+Function AllocateMem(UpToMb:integer=16384):int64;
+Function TestDownloadSpeed():int64;
 
 var
   OpenHashThreads : integer;
@@ -58,7 +59,7 @@ EndTime := GetTickCount64;
 Result := (cores*10000) div (EndTime-StartTime);
 End;
 
-Function AllocateMem():int64;
+Function AllocateMem(UpToMb:integer=16384):int64;
 var
   counter  : integer;
   MemMb    : array of pointer;
@@ -75,17 +76,47 @@ repeat
       EXCEPT ON E:Exception do
          begin
          finished := true;
-         ToLog(E.Message);
          end;
       END;
    inc(counter);
-until ( (finished) or (counter >=2048));
+until ( (finished) or (counter >=16384));
 result := counter;
-{
 for counter := 0 to length(MemMB)-1 do
    FreeMem (MemMb[counter],1048576);
-}
+End;
 
+Function TestDownloadSpeed():int64;
+var
+  MS: TMemoryStream;
+  DownLink : String = '';
+  Conector : TFPHttpClient;
+  Sucess   : boolean = false;
+  timeStart, timeEnd : int64;
+  trys     : integer = 0;
+Begin
+result := 0;
+DownLink := 'https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/1mb.dat';
+MS := TMemoryStream.Create;
+Conector := TFPHttpClient.Create(nil);
+conector.ConnectTimeout:=1000;
+conector.IOTimeout:=1000;
+conector.AllowRedirect:=true;
+REPEAT
+timeStart := GetTickCount64;
+   TRY
+   Conector.Get(DownLink,MS);
+   MS.SaveToFile('NOSODATA'+DirectorySeparator+'1mb.dat');
+   timeEnd := GetTickCount64;
+   //DeleteFile('NOSODATA'+DirectorySeparator+'1mb.dat');
+   Sucess := true;
+   EXCEPT ON E:Exception do
+    tolog(e.Message);
+   END{Try};
+Inc(Trys);
+UNTIL ( (sucess) or (trys=5) );
+MS.Free;
+conector.free;
+if Sucess then result := 1048576 div (TimeEnd-TimeStart);
 End;
 
 END. // END UNIT
