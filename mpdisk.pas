@@ -25,6 +25,12 @@ Procedure CreatePoolPayfile();
 Procedure AddPoolPay(Texto:string);
 Procedure SavePoolPays();
 
+// GVTs file handling
+Procedure CreateGVTsFile();
+Procedure GetGVTsFileData();
+Procedure SaveGVTs();
+
+
 Procedure CreateTextFile(FileName:String);
 Procedure CreateLog();
 Procedure CreatePoolLog();
@@ -135,6 +141,11 @@ OutText('✓ Log file ok',false,1);
 if not FileExists(MasterNodesFilename) then CreateMasterNodesFile;
 GetMNsFileData;
 OutText('✓ Masternodes file ok',false,1);
+
+
+if not FileExists(GVTsFilename) then CreateGVTsFile;
+GetGVTsFileData;
+OutText('✓ GVTs file ok',false,1);
 
 if not FileExists (UserOptions.wallet) then CrearWallet() else CargarWallet(UserOptions.wallet);
 OutText('✓ Wallet file ok',false,1);
@@ -368,13 +379,70 @@ Procedure CreateMasterNodesFile();
 var
   archivo : textfile;
 Begin
-   try
-   Assignfile(archivo, MAsternodesfilename);
-   rewrite(archivo);
-   Closefile(archivo);
-   Except on E:Exception do
-      tolog ('Error creating the masternodes file');
+TRY
+Assignfile(archivo, MAsternodesfilename);
+rewrite(archivo);
+Closefile(archivo);
+EXCEPT on E:Exception do
+   tolog ('Error creating the masternodes file');
+END;
+End;
+
+Procedure CreateGVTsFile();
+Begin
+TRY
+Assignfile(FileGVTs, GVTsFilename);
+rewrite(FileGVTs);
+Closefile(FileGVTs);
+EXCEPT on E:Exception do
+   tolog ('Error creating the GVTs file');
+END;
+MyGVTsHash := HashMD5File(GVTsFilename);
+End;
+
+// Load GVTs array from file
+Procedure GetGVTsFileData();
+var
+  counter : integer;
+Begin
+EnterCriticalSection(CSGVTsArray);
+Assignfile(FileGVTs, GVTsFilename);
+TRY
+reset(FileGVTs);
+Setlength(ArrGVTs,filesize(FileGVTs));
+For counter := 0 to filesize(FileGVTs)-1 do
+   begin
+   seek(FileGVTs,counter);
+   read(FileGVTs,ArrGVTs[counter]);
    end;
+Closefile(FileGVTs);
+EXCEPT ON E:Exception do
+   tolog ('Error loading the GVTs from file');
+END;
+MyGVTsHash := HashMD5File(GVTsFilename);
+LeaveCriticalSection(CSGVTsArray);
+End;
+
+// Save GVTs array to file
+Procedure SaveGVTs();
+var
+  counter : integer;
+Begin
+Assignfile(FileGVTs, GVTsFilename);
+EnterCriticalSection(CSGVTsArray);
+TRY
+rewrite(FileGVTs);
+For counter := 0 to length(ArrGVTs)-1 do
+   begin
+   seek(FileGVTs,counter);
+   write(FileGVTs,ArrGVTs[counter]);
+   end;
+Closefile(FileGVTs);
+EXCEPT ON E:Exception do
+   tolog ('Error loading the GVTs from file');
+END;
+MyGVTsHash := HashMD5File(GVTsFilename);
+LeaveCriticalSection(CSGVTsArray);
 End;
 
 // Creates/Saves Advopt file
@@ -2412,6 +2480,7 @@ MasterNodesFilename := 'NOSODATA'+DirectorySeparator+'masternodes.txt';
 PoolPaymentsFilename:= 'NOSODATA'+DirectorySeparator+'poolpays.psk';
 ZipSumaryFileName   := 'NOSODATA'+DirectorySeparator+'sumary.zip';
 ZipHeadersFileName  := 'NOSODATA'+DirectorySeparator+'blchhead.zip';
+GVTsFilename        := 'NOSODATA'+DirectorySeparator+'gvts.psk';
 End;
 
 // Try to delete a file safely

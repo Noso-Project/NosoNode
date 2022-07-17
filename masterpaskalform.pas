@@ -375,6 +375,13 @@ type
        age        : integer;
        end;
 
+  TGVT = packed record
+       number   : string[2];
+       owner    : string[32];
+       Hash     : string[64];
+       control  : integer;
+       end;
+
 
   { TForm1 }
 
@@ -940,6 +947,10 @@ var
     S_Sumario : boolean = false;
   FileResumen : file of ResumenData;
     S_Resumen : Boolean = false;
+
+  FileGVTs    : file of TGVT;
+  ArrGVTs     : array of TGVT;
+
   FilePool : File of PoolInfoData;
     PoolInfo : PoolInfoData;
     S_PoolInfo : boolean = false;
@@ -990,6 +1001,7 @@ var
   MyLastBlock : integer = 0;
   MyLastBlockHash : String = '';
   MyResumenHash : String = '';
+  MyGVTsHash    : string = '';
   MyPublicIP : String = '';
   OpenReadClientThreads : integer = 0;
   BlockUndoneTime    : int64 = 0;
@@ -1036,6 +1048,8 @@ var
   // Variables asociadas a mi conexion
   MyConStatus :  integer = 0;
   STATUS_Connected : boolean = false;
+  NetGVTS      : NetworkData;
+    LasTimeGVTsRequest : int64 = 0;
 
   // Variables asociadas al minero
   MyPoolData : PoolData;
@@ -1101,6 +1115,8 @@ var
   CSNMSData     : TRTLCriticalSection;
   CSCurrentJob  : TRTLCriticalSection;
   CSClientReads : TRTLCriticalSection;
+  CSGVTsArray   : TRTLCriticalSection;
+
   // old system
   CSMNsArray    : TRTLCriticalSection;
   CSWaitingMNs  : TRTLCriticalSection;
@@ -1150,6 +1166,8 @@ var
   PoolPaymentsFilename : string = '';
   ZipSumaryFileName : String = '';
   ZipHeadersFileName : string = '';
+  GVTsFilename       : string = '';
+
   MontoIncoming : Int64 = 0;
   MontoOutgoing : Int64 = 0;
   U_Mytrxs: boolean = false;
@@ -1586,6 +1604,7 @@ InitCriticalSection(CSMinersConex);
 InitCriticalSection(CSNMSData);
 InitCriticalSection(CSCurrentJob);
 InitCriticalSection(CSClientReads);
+InitCriticalSection(CSGVTsArray);
 InitCriticalSection(CSIdsProcessed);
 InitCriticalSection(CSNodesList);
 for counter := 1 to MaxConecciones do
@@ -1631,6 +1650,7 @@ DoneCriticalSection(CSMinersConex);
 DoneCriticalSection(CSNMSData);
 DoneCriticalSection(CSCurrentJob);
 DoneCriticalSection(CSClientReads);
+DoneCriticalSection(CSGVTsArray);
 DoneCriticalSection(CSIdsProcessed);
 DoneCriticalSection(CSNodesList);
 for contador := 1 to MaxConecciones do

@@ -7,6 +7,7 @@ Version 0.3.2Aa8
 - Killit boolean added to client thread.
 - Fixed bug not closing properly threads on socket error 10053.
 - Summary hash included in nodestatus.
+- syscheck unit included.
 
 Version 0.3.2Aa7
 

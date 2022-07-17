@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, mpCripto, mpTime, mpblock, mpcoin,
   dialogs, fileutil, forms, idglobal, strutils, mpRPC, DateUtils, Clipbrd,translation,
-  idContext, math, mpMN;
+  idContext, math, mpMN, MPSysCheck;
 
 procedure ProcessLinesAdd(const ALine: String);
 procedure ConsoleLinesAdd(const ALine: String);
@@ -92,12 +92,14 @@ Procedure ExportKeys(linea:string);
 Procedure ShowDiftory();
 Function MainNetHashrate(blocks:integer = 100):int64;
 Procedure ShowMiners(Linea:string);
+Procedure ListGVTs();
 
 // 0.2.1 DEBUG
 Procedure ShowBlockPos(LineText:string);
 Procedure showPosrequired(linetext:string);
 Procedure ShowBlockMNs(LineText:string);
 Procedure showgmts(LineText:string);
+Procedure ShowSystemInfo();
 
 // EXCHANGE
 Procedure PostOffer(LineText:String);
@@ -321,6 +323,8 @@ else if UpperCase(Command) = 'HEADSIZE' then consolelinesadd(GetHeadersSize.ToSt
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()
 else if UpperCase(Command) = 'NETRATE' then consolelinesadd('Average Mainnet hashrate: '+HashrateToShow(MainNetHashrate))
 else if UpperCase(Command) = 'MINERS' then ShowMiners(Linetext)
+else if UpperCase(Command) = 'LISTGVT' then ListGVTs()
+else if UpperCase(Command) = 'SYSTEM' then ShowSystemInfo()
 
 // 0.2.1 DEBUG
 else if UpperCase(Command) = 'BLOCKPOS' then ShowBlockPos(LineText)
@@ -1924,6 +1928,16 @@ For counter := mylastblock downto Mylastblock-143 do
 ConsoleLinesAdd('On development...');
 End;
 
+// List all GVTs owners
+Procedure ListGVTs();
+var
+  counter : integer;
+Begin
+consolelinesadd('Existing: '+Length(arrgvts).ToString);
+for counter := 0 to length(arrgvts)-1 do
+   consolelinesadd(Format('%.2d %s',[counter,arrgvts[counter].owner]));
+End;
+
 Function MainNetHashrate(blocks:integer = 100):int64;
 var
   counter : integer;
@@ -2130,6 +2144,13 @@ consolelinesAdd('Masternodes  : '+IntToStr(total));
 consolelinesadd('Verificators : '+IntToStr(verifis));
 for counter := 0 to verifis-1 do
    consolelinesadd(format('%s %s %d',[ArrayMNsData[counter].ipandport,copy(arrayMNsData[counter].address,1,5),ArrayMNsData[counter].age]));
+End;
+
+Procedure ShowSystemInfo();
+Begin
+if MyConStatus > 0 then exit;
+consolelinesadd(Format('Hash speed: %d Hash/s',[Sys_HashSpeed]));
+ConsoleLinesadd(Format('Available memory: %d',[AllocateMem]));
 End;
 
 END. // END UNIT
