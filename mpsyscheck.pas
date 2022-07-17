@@ -89,7 +89,7 @@ for counter := 0 to length(MemMB)-1 do
 {$ENDIF}
 {$IFDEF Unix}
 SysInfo(@Info);
-result := Info.freeram div 1024:
+result := Info.freeram div 1024;
 {$ENDIF}
 End;
 
