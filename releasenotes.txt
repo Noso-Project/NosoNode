@@ -1,6 +1,6 @@
 Version 0.3.2Aa9
 
-- Official release
+- SysMem for linux
 
 Version 0.3.2Aa8
 

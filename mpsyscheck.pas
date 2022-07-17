@@ -5,7 +5,7 @@ unit mpSysCheck;
 interface
 
 uses
-  Classes, SysUtils, mpcripto, fphttpclient, mpdisk;
+  Classes, SysUtils, mpcripto, fphttpclient, mpdisk{$IFDEF Unix} ,Linux; {$ENDIF} ;
 
 Type
   TThreadHashtest = class(TThread)
@@ -60,7 +60,6 @@ Result := (cores*10000) div (EndTime-StartTime);
 End;
 
 Function AllocateMem(UpToMb:integer=16384):int64;
-{$IFDEF Unix} Uses Linux; {$ENDIF}
 var
   counter  : integer;
   MemMb    : array of pointer;
