@@ -43,6 +43,7 @@ function UpdateNetworkMNsHash():NetworkData;
 function UpdateNetworkMNsCount():NetworkData;
 function UpdateNetworkBestHash():NetworkData;
 function UpdateNetworkMNsChecks():NetworkData;
+function UpdateNetworkGVTsHash():NetworkData;
 Procedure UpdateNetworkData();
 Function IsAllSynced():Boolean;
 Procedure UpdateMyData();
@@ -911,6 +912,23 @@ if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
 else result := Default(NetworkData);
 End;
 
+function UpdateNetworkGVTsHash():NetworkData;
+var
+  contador : integer = 1;
+Begin
+SetLength(ArrayConsenso,0);
+ConsensoValues := 0;
+for contador := 1 to MaxConecciones do
+   Begin
+   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
+      begin
+      UpdateConsenso(conexiones[contador].GVTsHash, contador);
+      end;
+   end;
+if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
+else result := Default(NetworkData);
+End;
+
 Procedure UpdateNetworkData();
 Begin
 SetCurrentJob('UpdateNetworkData',true);
@@ -923,6 +941,7 @@ NetMNsHash := UpdateNetworkMNsHash;
 NetMNsCount := UpdateNetworkMNsCOunt;
 NetBestHash := UpdateNetworkBestHash;
 NetMNsChecks := UpdateNetworkMNsChecks;
+NetGVTSHash      := UpdateNetworkGVTsHash;
 U_DataPanel := true;
 SetCurrentJob('UpdateNetworkData',false);
 End;
@@ -1074,6 +1093,11 @@ else if ( (GetNMSData.Diff<>NetBestHash.Value) and (LastTimeBestHashRequested+5<
    LastTimeBestHashRequested := UTCTime.ToInt64;
    ConsolelinesAdd('Requesting besthash');
    }
+   end
+else if ( (NetGVTSHash.Value<>MyGVTsHash) and (LasTimeGVTsRequest+5<UTCTime.ToInt64) and (NetGVTSHash.Value<>'')
+        and (not DownloadGVTs) ) then
+   begin
+   // REQUEST GVTS
    end;
 if IsAllSynced then Last_ActualizarseConLaRed := Last_ActualizarseConLaRed+5;
 SetCurrentJob('ActualizarseConLaRed',false);

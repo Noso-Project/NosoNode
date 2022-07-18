@@ -96,6 +96,9 @@ resourcestring
   rs0085 = 'Receiving summary file';
   rs0086 = 'Error Receiving sumary from %s (%s)';
   rs0087 = 'Sumary file received: %s';
+  rs0088 = '✓ My GVTs grid updated';
+  rs0089 = 'Receiving GVTs file';
+  rs0090 = 'Error Receiving GVTs from %s (%s)';
   //mpGUI
   rs0500 = 'Noso Launcher';
   rs0501 = 'Destination';

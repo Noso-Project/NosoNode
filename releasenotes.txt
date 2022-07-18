@@ -1,6 +1,7 @@
 Version 0.3.2Aa9
 
 - SysMem for linux
+- Added seednode 3.111.137.132:58445
 
 Version 0.3.2Aa8
 

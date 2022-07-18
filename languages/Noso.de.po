@@ -239,6 +239,17 @@ msgctxt "tform1.label13.caption"
 msgid "Funds password"
 msgstr "Guthaben Passwort"
 
+#: tform1.label14.caption
+msgctxt "tform1.label14.caption"
+msgid "Transfer"
+msgstr ""
+
+#: tform1.label15.caption
+#, fuzzy
+msgctxt "tform1.label15.caption"
+msgid "Destination"
+msgstr "Ziel"
+
 #: tform1.label2.caption
 msgid "Minimum connections to work"
 msgstr "Minimale Verbindungen zum Arbeiten"
@@ -393,6 +404,11 @@ msgstr "Bestätigen"
 msgid "Send"
 msgstr "Senden"
 
+#: tform1.scbitsend1.caption
+msgctxt "tform1.scbitsend1.caption"
+msgid "Transfer"
+msgstr ""
+
 #: tform1.speedbutton1.hint
 msgid "Copy Order ID"
 msgstr "Auftrags-ID kopieren"
@@ -460,6 +476,11 @@ msgstr "LTC"
 msgid "NoBiEx"
 msgstr "NoBiEx"
 
+#: tform1.tabgvts.caption
+msgctxt "tform1.tabgvts.caption"
+msgid "GVTs"
+msgstr ""
+
 #: tform1.tabhistory.caption
 msgid "History"
 msgstr "Verlauf"
@@ -496,10 +517,6 @@ msgstr "Optionen"
 msgctxt "tform1.tabopt_wallet.caption"
 msgid "Wallet"
 msgstr "Brieftasche"
-
-#: tform1.tabsheet1.caption
-msgid "GVTs"
-msgstr ""
 
 #: tform1.tabsheet10.caption
 #, fuzzy
@@ -889,11 +906,24 @@ msgstr ""
 msgid "Sumary file received: %s"
 msgstr ""
 
+#: translation.rs0088
+msgid "✓ My GVTs grid updated"
+msgstr ""
+
+#: translation.rs0089
+msgid "Receiving GVTs file"
+msgstr ""
+
+#: translation.rs0090
+msgid "Error Receiving GVTs from %s (%s)"
+msgstr ""
+
 #: translation.rs0500
 msgid "Noso Launcher"
 msgstr "Noso Launcher"
 
 #: translation.rs0501
+msgctxt "translation.rs0501"
 msgid "Destination"
 msgstr "Ziel"
 

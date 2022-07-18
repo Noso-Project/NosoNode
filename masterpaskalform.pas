@@ -145,6 +145,7 @@ type
      MNsCount : Integer;
      BestHashDiff : string[32];
      MNChecksCount : integer;
+     GVTsHash      : string[32];
      end;
 
   WalletData = Packed Record
@@ -407,7 +408,10 @@ type
     CBRunNodeAlone: TCheckBox;
     CB_WO_RebuildTrx: TCheckBox;
     ComboBoxLang: TComboBox;
+    Edit2: TEdit;
     IdHTTPUpdate: TIdHTTP;
+    Label14: TLabel;
+    Label15: TLabel;
     LabelNodesHash: TLabel;
     LabelDoctor: TLabel;
     LE_Rpc_Pass: TEdit;
@@ -438,6 +442,8 @@ type
     Panel20: TPanel;
     Panel21: TPanel;
     Panel22: TPanel;
+    Panel23: TPanel;
+    PanelTransferGVT: TPanel;
     PanelNodesHeaders: TPanel;
     PanelDoctor: TPanel;
     Panel7: TPanel;
@@ -445,6 +451,7 @@ type
     Panel9: TPanel;
     PanelQRImg: TPanel;
     PanelPostOffer: TPanel;
+    SCBitSend1: TBitBtn;
     SpeedButton2: TSpeedButton;
     SpeedButton3: TSpeedButton;
     SpinDoctor1: TSpinEdit;
@@ -455,8 +462,9 @@ type
     Imgs32: TImageList;
     ImgRotor: TImage;
     GridNodes: TStringGrid;
+    GVTsGrid: TStringGrid;
     TabDoctor: TTabSheet;
-    TabSheet1: TTabSheet;
+    TabGVTs: TTabSheet;
     TextQRcode: TStaticText;
     StaTimeLab: TLabel;
     SCBitSend: TBitBtn;
@@ -623,6 +631,7 @@ type
     procedure GridMyTxsSelection(Sender: TObject; aCol, aRow: Integer);
     procedure GridNodesResize(Sender: TObject);
     procedure GridPoSResize(Sender: TObject);
+    procedure GVTsGridResize(Sender: TObject);
     procedure IdHTTPUpdateWork(ASender: TObject; AWorkMode: TWorkMode;
       AWorkCount: Int64);
     procedure IdHTTPUpdateWorkBegin(ASender: TObject; AWorkMode: TWorkMode;
@@ -744,6 +753,7 @@ Procedure CerrarPrograma();
 Procedure UpdateStatusBar();
 Procedure GenerateCode();
 Procedure CompleteInicio();
+Procedure UpdateMyGVTsList();
 
 
 CONST
@@ -753,7 +763,7 @@ CONST
   ReservedWords : string = 'NULL,DELADDR';
   ValidProtocolCommands : string = '$PING$PONG$GETPENDING$NEWBL$GETRESUMEN$LASTBLOCK$GETCHECKS'+
                                    '$CUSTOMORDERADMINMSGNETREQ$REPORTNODE$GETMNS$BESTHASH$MNREPO$MNCHECK'+
-                                   'GETMNSFILEMNFILEGETHEADUPDATE$GETSUMARY';
+                                   'GETMNSFILEMNFILEGETHEADUPDATE$GETSUMARY$GETGVTSGVTSFILE';
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
   DefaultNodes : String = 'DefNodes '+
@@ -766,7 +776,8 @@ CONST
                             '66.151.117.247 '+
                             '192.3.73.184 '+
                             '107.175.24.151 '+
-                            '107.174.137.27';
+                            '107.174.137.27 '+
+                            '3.111.137.132:58445';
 
   ProgramVersion = '0.3.2';
   {$IFDEF WINDOWS}
@@ -995,6 +1006,7 @@ var
   DownloadHeaders : boolean = false;
   DownloadSumary  : Boolean = false;
   DownLoadBlocks  : boolean = false;
+  DownLoadGVTs    : boolean = false;
   CONNECT_LastTime : string = ''; // La ultima vez que se intento una conexion
   CONNECT_Try : boolean = false;
   MySumarioHash : String = '';
@@ -1048,7 +1060,7 @@ var
   // Variables asociadas a mi conexion
   MyConStatus :  integer = 0;
   STATUS_Connected : boolean = false;
-  NetGVTS      : NetworkData;
+  NetGVTSHash      : NetworkData;
     LasTimeGVTsRequest : int64 = 0;
 
   // Variables asociadas al minero
@@ -1333,6 +1345,48 @@ if Continuar then
             MemStream.Free;
             DownloadSumary := false;
             end
+
+         else if GetCommand(LLine) = 'GVTSFILE' then
+            begin
+            DownloadGVTs := true;
+            ToLog(rs0089); //'Receiving GVTs'
+            ConsoleLinesAdd(rs0089); //'Receiving GVTs'
+            MemStream := TMemoryStream.Create;
+            CanalCliente[FSlot].ReadTimeout:=10000;
+               TRY
+               CanalCliente[FSlot].IOHandler.ReadStream(MemStream);
+               downloaded := True;
+               EXCEPT ON E:Exception do
+                  begin
+                  toExcLog(format(rs0090,[conexiones[fSlot].ip,E.Message])); //'Error Receiving GVTs from
+                  downloaded := false;
+                  end;
+               END; {TRY}
+            if Downloaded then
+               begin
+               Errored := false;
+               EnterCriticalSection(CSGVTsArray);
+                  TRY
+                  MemStream.SaveToFile(GVTsFilename);
+                  Errored := False;
+                  EXCEPT on E:Exception do
+                     begin
+                     Errored := true;
+                     toExcLog('Error saving GVTs to file: '+E.Message);
+                     end;
+                  END; {TRY}
+               LeaveCriticalSection(CSGVTsArray);
+               end;
+            if Downloaded and not errored then
+               begin
+               ConsoleLinesAdd('GVTS file downloaded');
+               GetGVTsFileData;
+               UpdateMyGVTsList;
+               end;
+            MemStream.Free;
+            DownloadGVTs := false;
+            end
+
          else if LLine = 'BLOCKZIP' then
             begin  // START RECEIVING BLOCKS
             ToLog(rs0006); //'Receiving blocks'
@@ -1821,6 +1875,8 @@ gridinicio.RowCount:=gridinicio.RowCount-1;
 OutText(rs0067,false,1); // '✓ My transactions rebuilded';
 UpdateMyTrxGrid();
 OutText(rs0068,false,1); // '✓ My transactions grid updated';
+UpdateMyGVTsList;
+OutText(rs0088,false,1); // '✓ My GVTs grid updated';
 if useroptions.JustUpdated then
    begin
    ConsoleLinesAdd(LangLine(19)+ProgramVersion);  // Update to version sucessfull:
@@ -2492,10 +2548,6 @@ else if ARequestInfo.Command = 'POST' then
    end;
 End;
 
-// *******************
-// *** POOL SERVER ***
-// *******************
-
 // *****************************
 // *** NODE SERVER FUNCTIONS ***
 // *****************************
@@ -2713,6 +2765,36 @@ if GoAhead then
          Trydeletefile(BlockZipName); // safe function to delete files
          end
       end // END SENDING BLOCKS
+
+      else if parameter(LLine,4) = '$GETGVTS' then
+         begin
+         MemStream := TMemoryStream.Create;
+            TRY
+            EnterCriticalSection(CSGVTsArray);
+            MemStream.LoadFromFile(GVTsFilename);
+            LeaveCriticalSection(CSGVTsArray);
+            GetFileOk := true;
+            EXCEPT on E:Exception do
+               begin
+               GetFileOk := false;
+               //ToExcLog(Format(rs0049,[E.Message]));//SERVER: Error creating stream from headers: %s',[E.Message]));
+               end;
+            END; {TRY}
+         if GetFileOk then
+            begin
+               TRY
+               Acontext.Connection.IOHandler.WriteLn('GVTSFILE');
+               Acontext.connection.IOHandler.Write(MemStream,0,true);
+               EXCEPT on E:Exception do
+                  begin
+                  Form1.TryCloseServerConnection(Conexiones[Slot].context);
+                  //ToExcLog(Format(rs0051,[E.Message]));
+                  end;
+               END; {TRY}
+            end;
+         MemStream.Free;
+         end // SENDING GVTS FILE
+
    else if AnsiContainsStr(ValidProtocolCommands,Uppercase(parameter(LLine,4))) then
       begin
          TRY
@@ -3969,6 +4051,38 @@ begin
 GridWidth := form1.GridPoS.Width;
 form1.GridPoS.ColWidths[0]:= thispercent(50,GridWidth);
 form1.GridPoS.ColWidths[1]:= thispercent(50,GridWidth);
+End;
+
+// Resize GVTs grid
+procedure TForm1.GVTsGridResize(Sender: TObject);
+var
+  GridWidth : integer;
+Begin
+GridWidth := form1.GVTsGrid.Width;
+form1.GVTsGrid.ColWidths[0]:= thispercent(20,GridWidth);
+form1.GVTsGrid.ColWidths[1]:= thispercent(80,GridWidth,true);
+End;
+
+// Update my GVTsList
+Procedure UpdateMyGVTsList();
+var
+  counter : integer;
+  Owned   : integer = 0;
+Begin
+form1.GVTsGrid.RowCount:=1;
+EnterCriticalSection(CSGVTsArray);
+for counter := 0 to length(ArrGVTs)-1 do
+   begin
+   if DireccionEsMia(ArrGVTs[counter].owner) >= 0 then
+      begin
+      form1.GVTsGrid.RowCount:=form1.GVTsGrid.RowCount+1;
+      form1.GVTsGrid.Cells[0,form1.GVTsGrid.RowCount-1] := ArrGVTs[counter].number;
+      form1.GVTsGrid.Cells[1,form1.GVTsGrid.RowCount-1] := ArrGVTs[counter].owner;
+      Inc(Owned);
+      end;
+   end;
+LeaveCriticalSection(CSGVTsArray);
+Form1.TabGVTs.TabVisible:= Owned>0;
 End;
 
 // Download the auto update process

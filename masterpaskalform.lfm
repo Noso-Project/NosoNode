@@ -338,9 +338,9 @@ object Form1: TForm1
         Height = 440
         Top = 0
         Width = 392
-        ActivePage = TabAddresses
+        ActivePage = TabGVTs
         Align = alClient
-        TabIndex = 0
+        TabIndex = 2
         TabOrder = 0
         object TabAddresses: TTabSheet
           Caption = 'Addresses'
@@ -879,8 +879,114 @@ object Form1: TForm1
             end
           end
         end
-        object TabSheet1: TTabSheet
+        object TabGVTs: TTabSheet
           Caption = 'GVTs'
+          ClientHeight = 412
+          ClientWidth = 384
+          TabVisible = False
+          object GVTsGrid: TStringGrid
+            Left = 0
+            Height = 346
+            Top = 0
+            Width = 384
+            Align = alClient
+            ColCount = 2
+            FixedCols = 0
+            Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRowSelect, goSmoothScroll]
+            RowCount = 1
+            ScrollBars = ssVertical
+            TabOrder = 0
+            OnResize = GVTsGridResize
+          end
+          object PanelTransferGVT: TPanel
+            Left = 0
+            Height = 66
+            Top = 346
+            Width = 384
+            Align = alBottom
+            ClientHeight = 66
+            ClientWidth = 384
+            TabOrder = 1
+            object Label14: TLabel
+              Left = 1
+              Height = 21
+              Top = 1
+              Width = 382
+              Align = alTop
+              Alignment = taCenter
+              Caption = 'Transfer'
+              Font.CharSet = ANSI_CHARSET
+              Font.Color = clBlack
+              Font.Height = -16
+              Font.Name = 'Segoe UI'
+              Font.Pitch = fpVariable
+              Font.Quality = fqDraft
+              Font.Style = [fsBold]
+              ParentColor = False
+              ParentFont = False
+            end
+            object SCBitSend1: TBitBtn
+              Left = 287
+              Height = 43
+              Top = 22
+              Width = 96
+              Align = alRight
+              Caption = 'Transfer'
+              Font.CharSet = ANSI_CHARSET
+              Font.Height = -12
+              Font.Name = 'Segoe UI'
+              Font.Pitch = fpVariable
+              Font.Quality = fqDraft
+              Images = Imagenes
+              ImageIndex = 16
+              OnClick = SCBitSendOnClick
+              ParentFont = False
+              TabOrder = 0
+            end
+            object Panel23: TPanel
+              Left = 1
+              Height = 43
+              Top = 22
+              Width = 286
+              Align = alClient
+              BevelOuter = bvNone
+              ClientHeight = 43
+              ClientWidth = 286
+              TabOrder = 1
+              object Label15: TLabel
+                Left = 0
+                Height = 17
+                Top = 0
+                Width = 286
+                Align = alTop
+                Caption = 'Destination'
+                Font.CharSet = ANSI_CHARSET
+                Font.Color = clBlack
+                Font.Height = -13
+                Font.Name = 'Segoe UI'
+                Font.Pitch = fpVariable
+                Font.Quality = fqDraft
+                ParentColor = False
+                ParentFont = False
+              end
+              object Edit2: TEdit
+                Left = 0
+                Height = 26
+                Top = 17
+                Width = 286
+                Align = alClient
+                Color = clBlack
+                Font.CharSet = ANSI_CHARSET
+                Font.Color = clWhite
+                Font.Height = -13
+                Font.Name = 'Consolas'
+                Font.Pitch = fpFixed
+                Font.Quality = fqDraft
+                ParentFont = False
+                TabOrder = 0
+              end
+            end
+          end
         end
       end
     end
@@ -2909,8 +3015,8 @@ object Form1: TForm1
     end
   end
   object Imagenes: TImageList
-    Left = 72
-    Top = 440
+    Left = 64
+    Top = 384
     Bitmap = {
       4C69450000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
@@ -5125,8 +5231,8 @@ object Form1: TForm1
   end
   object MainMenu: TMainMenu
     Images = Imagenes
-    Left = 120
-    Top = 440
+    Left = 112
+    Top = 384
     object MenuItem1: TMenuItem
       Caption = 'Network'
       OnClick = CheckMMCaptions
@@ -5173,8 +5279,8 @@ object Form1: TForm1
     end
   end
   object ConsolePopUp2: TPopupMenu
-    Left = 168
-    Top = 440
+    Left = 160
+    Top = 392
     object MenuItem23: TMenuItem
       Caption = 'CLear'
       OnClick = ConsolePopUpClear
@@ -5186,7 +5292,7 @@ object Form1: TForm1
   end
   object ConsoLinePopUp2: TPopupMenu
     Left = 224
-    Top = 440
+    Top = 376
     object MenuItem25: TMenuItem
       Caption = 'Clear'
       OnClick = ConsoLinePopUpClear
@@ -5203,8 +5309,8 @@ object Form1: TForm1
   object Imgs32: TImageList
     Height = 32
     Width = 32
-    Left = 24
-    Top = 440
+    Left = 16
+    Top = 384
     Bitmap = {
       4C69070000002000000020000000000001000000010000000100000001000000
       0100000001000000010000000100000001000000010000000100000001000000
@@ -6121,6 +6227,6 @@ object Form1: TForm1
     Request.Ranges = <>
     HTTPOptions = [hoForceEncodeParams]
     Left = 296
-    Top = 442
+    Top = 392
   end
 end

@@ -233,6 +233,17 @@ msgctxt "tform1.label13.caption"
 msgid "Funds password"
 msgstr "Parola fondurilor"
 
+#: tform1.label14.caption
+msgctxt "tform1.label14.caption"
+msgid "Transfer"
+msgstr ""
+
+#: tform1.label15.caption
+#, fuzzy
+msgctxt "tform1.label15.caption"
+msgid "Destination"
+msgstr "Destinaţie"
+
 #: tform1.label2.caption
 msgid "Minimum connections to work"
 msgstr "Conexiuni minime pentru a funcţiona"
@@ -386,6 +397,11 @@ msgstr "Confirmă"
 msgid "Send"
 msgstr "Trimite"
 
+#: tform1.scbitsend1.caption
+msgctxt "tform1.scbitsend1.caption"
+msgid "Transfer"
+msgstr ""
+
 #: tform1.speedbutton1.hint
 msgid "Copy Order ID"
 msgstr "Copiază ID-ul comenzii"
@@ -453,6 +469,11 @@ msgstr "LTC"
 msgid "NoBiEx"
 msgstr "NoBiEx"
 
+#: tform1.tabgvts.caption
+msgctxt "tform1.tabgvts.caption"
+msgid "GVTs"
+msgstr ""
+
 #: tform1.tabhistory.caption
 msgid "History"
 msgstr "Istoric"
@@ -489,10 +510,6 @@ msgstr "Opțiuni"
 msgctxt "tform1.tabopt_wallet.caption"
 msgid "Wallet"
 msgstr "Portofel"
-
-#: tform1.tabsheet1.caption
-msgid "GVTs"
-msgstr ""
 
 #: tform1.tabsheet10.caption
 #, fuzzy
@@ -881,11 +898,24 @@ msgstr ""
 msgid "Sumary file received: %s"
 msgstr ""
 
+#: translation.rs0088
+msgid "✓ My GVTs grid updated"
+msgstr ""
+
+#: translation.rs0089
+msgid "Receiving GVTs file"
+msgstr ""
+
+#: translation.rs0090
+msgid "Error Receiving GVTs from %s (%s)"
+msgstr ""
+
 #: translation.rs0500
 msgid "Noso Launcher"
 msgstr "Lansator Noso"
 
 #: translation.rs0501
+msgctxt "translation.rs0501"
 msgid "Destination"
 msgstr "Destinaţie"
 

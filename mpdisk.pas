@@ -183,6 +183,7 @@ Procedure FillNodeList(); // 0.2.1Lb2 revisited
 var
   counter : integer;
   ThisNode : string = '';
+  Thisport  : integer;
   continuar : boolean = true;
   NodeToAdd : NodeData;
 Begin
@@ -190,11 +191,14 @@ counter := 1;
 SetLength(ListaNodos,0);
 Repeat
    ThisNode := parameter(DefaultNodes,counter);
+   ThisNode := StringReplace(ThisNode,':',' ',[rfReplaceAll, rfIgnoreCase]);
+   ThisPort := StrToIntDef(Parameter(ThisNode,1),8080);
+   ThisNode := Parameter(ThisNode,0);
    if thisnode = '' then continuar := false
    else
       begin
       NodeToAdd.ip:=ThisNode;
-      NodeToAdd.port:='8080';
+      NodeToAdd.port:=IntToStr(ThisPort);
       NodeToAdd.LastConexion:=UTCTime;
       Insert(NodeToAdd,Listanodos,Length(ListaNodos));
       counter+=1;

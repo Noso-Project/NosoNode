@@ -1938,6 +1938,7 @@ Begin
 consolelinesadd('Existing: '+Length(arrgvts).ToString);
 for counter := 0 to length(arrgvts)-1 do
    consolelinesadd(Format('%.2d %s',[counter,arrgvts[counter].owner]));
+UpdateMyGVTsList
 End;
 
 Function MainNetHashrate(blocks:integer = 100):int64;

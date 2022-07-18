@@ -80,6 +80,7 @@ CONST
   GetHeadUpdate = 18;
   HeadUpdate = 19;
   GetSumary  = 6;
+  GetGVTs    = 20;
 
 implementation
 
@@ -216,6 +217,8 @@ if tipo = HeadUpdate then
    Resultado := 'HEADUPDATE';
 if tipo = GetSumary then
    Resultado := '$GETSUMARY';
+if tipo = GetGVTs then
+   Resultado := '$GETGVTS';
 
 Resultado := Encabezado+Resultado;
 Result := resultado;
@@ -475,6 +478,7 @@ conexiones[slot].MNsHash      :=PMNsHash;
 conexiones[slot].MNsCount     :=StrToIntDef(PMNsCount,0);
 conexiones[slot].BestHashDiff := BestHashDiff;
 conexiones[slot].MNChecksCount:=StrToIntDef(MnsCheckCount,0);
+conexiones[slot].GVTsHash     :=Parameter(LineaDeTexto,17);
 if responder then PTC_SendLine(slot,ProtocolLine(4));
 if responder then G_TotalPings := G_TotalPings+1;
 End;
@@ -496,7 +500,8 @@ result :=IntToStr(GetTotalConexiones())+' '+
          copy(MyMNsHash,0,5)+' '+
          IntToStr(GetMNsListLength)+' '+
          GetNMSData.Diff+' '+
-         GetMNsChecksCount.ToString;
+         GetMNsChecksCount.ToString+' '+
+         MyGVTsHash;
 End;
 
 // Envia las TXs pendientes al slot indicado

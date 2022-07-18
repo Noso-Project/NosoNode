@@ -121,7 +121,7 @@ Procedure CreateFormSlots();
 Begin
 FormSlots := TFormSlots.Createnew(form1);
 FormSlots.caption := coinname+' Slots Monitor';
-FormSlots.SetBounds(0, 0, 740, 410);
+FormSlots.SetBounds(0, 0, 780, 410);
 FormSlots.BorderStyle := bssingle;
 //FormSlots.Position:=poOwnerFormCenter;
 FormSlots.Top:=1;FormSlots.Left:=1;
@@ -130,9 +130,9 @@ FormSlots.ShowInTaskBar:=sTAlways;
 
 GridMSlots := TStringGrid.Create(FormSlots);GridMSlots.Parent:=FormSlots;
 GridMSlots.Font.Name:='consolas'; GridMSlots.Font.Size:=8;
-GridMSlots.Left:=1;GridMSlots.Top:=1;GridMSlots.Height:=408;GridMSlots.width:=734;
+GridMSlots.Left:=1;GridMSlots.Top:=1;GridMSlots.Height:=408;GridMSlots.width:=774;
 GridMSlots.FixedCols:=0;GridMSlots.FixedRows:=1;
-GridMSlots.rowcount := MaxConecciones+1;GridMSlots.ColCount:=19;
+GridMSlots.rowcount := MaxConecciones+1;GridMSlots.ColCount:=20;
 GridMSlots.ScrollBars:=ssVertical;
 GridMSlots.FocusRectVisible:=false;
 GridMSlots.Options:= GridMSlots.Options-[goRangeSelect];
@@ -142,7 +142,7 @@ GridMSlots.ColWidths[6]:= 40;GridMSlots.ColWidths[7]:= 25;GridMSlots.ColWidths[8
 GridMSlots.ColWidths[9]:= 70;GridMSlots.ColWidths[10]:= 30;GridMSlots.ColWidths[11]:= 25;
 GridMSlots.ColWidths[12]:= 40;GridMSlots.ColWidths[13]:= 25;GridMSlots.ColWidths[14]:= 29;
 GridMSlots.ColWidths[15]:= 40;GridMSlots.ColWidths[16]:= 25;GridMSlots.ColWidths[17]:= 80;
-GridMSlots.ColWidths[18]:= 25;
+GridMSlots.ColWidths[18]:= 25;GridMSlots.ColWidths[19]:= 40;
 GridMSlots.Enabled := true;
 GridMSlots.Cells[0,0]:='N';GridMSlots.Cells[1,0]:='IP';GridMSlots.Cells[2,0]:='T';
 GridMSlots.Cells[3,0]:='Cx';GridMSlots.Cells[4,0]:='LBl';GridMSlots.Cells[5,0]:='LBlH';
@@ -150,7 +150,7 @@ GridMSlots.Cells[6,0]:='SumH';GridMSlots.Cells[7,0]:='Pen';GridMSlots.Cells[8,0]
 GridMSlots.Cells[9,0]:='Ver';GridMSlots.Cells[10,0]:='LiP';GridMSlots.Cells[11,0]:='Off';
 GridMSlots.Cells[12,0]:='HeaH';GridMSlots.Cells[13,0]:='Sta';GridMSlots.Cells[14,0]:='Ping';
 GridMSlots.Cells[15,0]:='MNs';GridMSlots.Cells[16,0]:='#';GridMSlots.Cells[17,0]:='Besthash';
-GridMSlots.Cells[18,0]:='MNC';
+GridMSlots.Cells[18,0]:='MNC';GridMSlots.Cells[19,0]:='GVTs';
 GridMSlots.GridLineWidth := 1;
 GridMSlots.OnPrepareCanvas:= @FormSlots.GridMSlotsPrepareCanvas;
 End;
@@ -185,6 +185,7 @@ if CurrentUTC>SlotsLastUpdate then
       GridMSlots.Cells[16,contador]:= IntToStr(Conexiones[contador].MNsCount);
       GridMSlots.Cells[17,contador]:= Conexiones[contador].BestHashDiff;
       GridMSlots.Cells[18,contador]:= Conexiones[contador].MNChecksCount.ToString;
+      GridMSlots.Cells[19,contador]:= copy(Conexiones[contador].GVTsHash,0,5);
       end;
    SlotsLastUpdate := CurrentUTC;
    end;
@@ -211,7 +212,7 @@ form1.DataPanel.Cells[2,1]:=rs0519;  //'Hashing'
 form1.DataPanel.Cells[2,2]:='Clients';  //'Target'
 form1.DataPanel.Cells[2,3]:=LangLine(106);  //'Reward'
 form1.DataPanel.Cells[2,4]:=LangLine(107);  //'Block Time'
-form1.DataPanel.Cells[2,5]:='Next in';  //'Pool Balance'
+form1.DataPanel.Cells[2,5]:='GVTs';  //'Pool Balance'
 form1.DataPanel.Cells[2,6]:='Masternodes';     //'mainnet Time'
 form1.DataPanel.Cells[2,7]:='MNs #';     //'Masternodes'
 
@@ -242,6 +243,10 @@ form1.GridNodes.Cells[2,0] := 'Last';
 form1.GridNodes.Cells[3,0] := 'Total';
 form1.GridNodes.Cells[4,0] := 'Conf';
 form1.GridNodes.FocusRectVisible:=false;
+
+form1.GVTsGrid.Cells[0,0] := '#';
+form1.GVTsGrid.Cells[1,0] := 'Address';
+form1.GVTsGrid.FocusRectVisible:=false;
 
 
 NetSumarioHash.Value:='?';
@@ -375,7 +380,7 @@ setmilitime('UpdateGUITime',1);
 form1.DataPanel.Cells[1,2]:=IntToStr(GetTotalConexiones)+' ('+IntToStr(MyConStatus)+') ['+IntToStr(G_TotalPings)+']';
 form1.DataPanel.Cells[1,7]:= format(rs0517,[length(ArrayCriptoOp),GetPendingCount,NetPendingTrxs.Value]);
 form1.DataPanel.Cells[1,0]:= Int2Curr(GetWalletBalance)+' '+CoinSimbol;
-form1.DataPanel.Cells[3,5]:= RemainingTillNextBlock;//IntToStr(OutgoingMsjs.Count);
+form1.DataPanel.Cells[3,5]:= Copy(MyGVTsHash,0,5)+'/'+Copy(NetGVTSHash.Value,0,5);//GVTs data
 form1.DataPanel.Cells[3,6]:= Copy(MyMNsHash,0,5)+'/'+NetMNsHash.Value;
 form1.DataPanel.Cells[3,7]:= format('(%d)  %d/%s (%d)',[GetMNsChecksCount,GetMNsListLength,NetMNsCount.Value,LengthWaitingMNs]);
 setmilitime('UpdateGUITime',2);
@@ -705,7 +710,6 @@ else if speed>1000000 then result := FormatFloat('0.00',speed/1000000)+' Mh/s'
 else if speed>1000 then result := FormatFloat('0.00',speed/1000)+' Kh/s'
 else result := speed.ToString+' h/s'
 End;
-
 
 END. // END UNIT
 
