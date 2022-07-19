@@ -4,6 +4,8 @@ Version 0.3.2Ab0
 - NSLGVT support implemented.
 - Fixed memory leak on GETZIPSUMMARY service.
 - GVTs transfer system.
+- Maxconex moved to 120.
+
 
 Version 0.3.2Aa9
 
