@@ -1098,6 +1098,9 @@ else if ( (NetGVTSHash.Value<>MyGVTsHash) and (LasTimeGVTsRequest+5<UTCTime.ToIn
         and (not DownloadGVTs) ) then
    begin
    // REQUEST GVTS
+   PTC_SendLine(NetGVTSHash.Slot,ProtocolLine(GetGVTs));  // Get MNsFile
+   LasTimeGVTsRequest := UTCTime.ToInt64;
+   ConsoleLinesAdd('GVTs File requested to '+conexiones[NetMNsChecks.Slot].ip);
    end;
 if IsAllSynced then Last_ActualizarseConLaRed := Last_ActualizarseConLaRed+5;
 SetCurrentJob('ActualizarseConLaRed',false);

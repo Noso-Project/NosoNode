@@ -50,6 +50,8 @@ Procedure showmd160(linetext:string);
 Procedure CustomizeAddress(linetext:string);
 Procedure Parse_SendFunds(LineText:string);
 function SendFunds(LineText:string;showOutput:boolean=true):string;
+Procedure Parse_SendGVT(LineText:string);
+Function SendGVT(LineText:string;showOutput:boolean=true):string;
 Procedure ShowHalvings();
 Procedure GroupCoins(linetext:string);
 Procedure CreateTraslationFile();
@@ -246,6 +248,7 @@ else if UpperCase(Command) = 'MD160' then showmd160(LineText)
 else if UpperCase(Command) = 'UNDOBLOCK' then UndoneLastBlock()  // to be removed
 else if UpperCase(Command) = 'CUSTOMIZE' then CustomizeAddress(LineText)
 else if UpperCase(Command) = 'SENDTO' then Parse_SendFunds(LineText)
+else if UpperCase(Command) = 'SENDGVT' then Parse_SendGVT(LineText)
 else if UpperCase(Command) = 'HALVING' then ShowHalvings()
 else if UpperCase(Command) = 'REBUILDSUMARY' then RebuildSumario(MyLastBlock)
 else if UpperCase(Command) = 'REBUILDHEADERS' then BuildHeaderFile(MyLastBlock)
@@ -1124,6 +1127,93 @@ else
    begin
    if showOutput then ConsoleLinesAdd('Syntax: sendto {destination} {ammount} {reference}');
    end;
+End;
+
+// Process a GVT sending
+Procedure Parse_SendGVT(LineText:string);
+Begin
+AddCriptoOp(6,linetext,'');
+StartCriptoThread();
+End;
+
+Function SendGVT(LineText:string;showOutput:boolean=true):string;
+var
+  GVTNumber   : integer;
+  GVTOwner    : string;
+  Destination : string = '';
+  AliasIndex  : integer;
+  Procesar    : boolean = true;
+  OrderTime   : string = '';
+  TrfrHash    : string = '';
+  OrderHash   : string = '';
+  ResultStr   : string = '';
+  Signature   : string = '';
+  GVTNumStr   : string = '';
+  StrTosign   : String = '';
+Begin
+result := '';
+setmilitime('SendGVT',1);
+GVTNumber:= StrToIntDef(Parameter(Linetext,1),-1);
+Destination := Parameter(Linetext,2);
+if ( (GVTnumber<0) or (GVTnumber>length(ArrGVTs)-1) ) then
+   begin
+   if showOutput then ConsoleLinesAdd('Invalid GVT number');
+   exit;
+   end;
+GVTNumStr := ArrGVTs[GVTnumber].number;
+GVTOwner := ArrGVTs[GVTnumber].owner;
+If DireccionEsMia(GVTOwner)<0 then
+   begin
+   if showOutput then ConsoleLinesAdd('You do not own that GVT');
+   exit;
+   end;
+if GetAddressAvailable(GVTOwner)<Customizationfee then
+   begin
+   if showOutput then ConsoleLinesAdd('Inssuficient funds');
+   exit;
+   end;
+if not IsValidHashAddress(Destination) then
+   begin
+   AliasIndex:=AddressSumaryIndex(Destination);
+   if AliasIndex<0 then
+      begin
+      if showOutput then ConsoleLinesAdd(LangLine(146)); //'Invalid destination.'
+      Exit;
+      end
+   else Destination := ListaSumario[aliasIndex].Hash;
+   end;
+if GVTOwner=Destination then
+   begin
+   if showOutput then ConsoleLinesAdd('Can not transfer GVT to same address');
+   exit;
+   end;
+OrderTime := UTCTime;
+TrfrHash := GetTransferHash(OrderTime+GVTOwner+Destination);
+OrderHash := GetOrderHash('1'+OrderTime+TrfrHash);
+StrTosign := 'Transfer GVT '+GVTNumStr+' '+Destination+OrderTime;
+Signature := GetStringSigned(StrTosign,ListaDirecciones[DireccionEsMia(GVTOwner)].PrivateKey);
+ResultStr := ProtocolLine(21)+ // sndGVT
+             OrderHash+' '+  // OrderID
+             '1'+' '+        // OrderLines
+             'SNDGVT'+' '+   // OrderType
+             OrderTime+' '+   // Timestamp
+             GVTNumStr+' '+     // reference
+             '1'+' '+        // Trxline
+             ListaDirecciones[DireccionEsMia(GVTOwner)].PublicKey+' '+    // sender
+             ListaDirecciones[DireccionEsMia(GVTOwner)].Hash+' '+        // address
+             Destination+' '+   // receiver
+             IntToStr(Customizationfee)+' '+  // Amountfee
+             '0'+' '+                         // amount trfr
+             Signature+' '+
+             TrfrHash;      // trfrhash
+OutgoingMsjsAdd(ResultStr);
+if showoutput then
+   begin
+   ConsoleLinesAdd('GVT '+GVTNumStr+' transfered to '+Destination);
+   ConsolelinesAdd('Order: '+OrderHash);
+   //ConsoleLinesAdd(StrToSign);
+   end;
+setmilitime('SendGVT',2);
 End;
 
 // Muestra la escala de halvings

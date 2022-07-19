@@ -650,6 +650,7 @@ type
     Procedure LatidoEjecutar(Sender: TObject);
     Procedure InfoTimerEnd(Sender: TObject);
     function  ClientsCount : Integer ;
+    procedure SCBitSend1Click(Sender: TObject);
     procedure SE_WO_AntifreezeTimeChange(Sender: TObject);
     procedure GridExLTCResize(Sender: TObject);
     procedure SG_MonitorResize(Sender: TObject);
@@ -763,7 +764,7 @@ CONST
   ReservedWords : string = 'NULL,DELADDR';
   ValidProtocolCommands : string = '$PING$PONG$GETPENDING$NEWBL$GETRESUMEN$LASTBLOCK$GETCHECKS'+
                                    '$CUSTOMORDERADMINMSGNETREQ$REPORTNODE$GETMNS$BESTHASH$MNREPO$MNCHECK'+
-                                   'GETMNSFILEMNFILEGETHEADUPDATE$GETSUMARY$GETGVTSGVTSFILE';
+                                   'GETMNSFILEMNFILEGETHEADUPDATE$GETSUMARY$GETGVTSGVTSFILE$SENDGVT';
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
   DefaultNodes : String = 'DefNodes '+
@@ -788,15 +789,15 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa9';
+  SubVersion = 'Ab0';
   OficialRelease = false;
-  VersionRequired = '0.3.1Ae7';
+  VersionRequired = '0.3.2Aa7';
   BuildDate = 'July 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   HasheableChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
   DefaultServerPort = 8080;
-  MaxConecciones  = 99;
+  MaxConecciones  = 120;
   Protocolo = 2;
   Miner_Steps = 10;
   Pool_Max_Members = 1000;
@@ -1162,6 +1163,7 @@ var
   LanguageFileName : string = '';
   BlockDirectory : string = '';
   MarksDirectory : string = '';
+  GVTMarksDirectory : string = '';
   UpdatesDirectory : string = '';
   LanguagesDirectory : String = '';
   LogsDirectory : string = '';
@@ -1573,6 +1575,22 @@ While not terminated do
           PTC_Order(ArrayCriptoOp[0].data);
           EXCEPT ON E:Exception do
             ToExclog(format(rs2503,[E.Message]));
+          END{Try};
+          end
+       else if ArrayCriptoOp[0].tipo = 6 then // Send GVT
+          begin
+          TRY
+          SendGVT(ArrayCriptoOp[0].data);
+          EXCEPT ON E:Exception do
+            ToExclog(format(rs2504,[E.Message]));
+          END{Try};
+          end
+       else if ArrayCriptoOp[0].tipo = 7 then // Send GVT
+          begin
+          TRY
+          PTC_SendGVT(ArrayCriptoOp[0].data);
+          EXCEPT ON E:Exception do
+            ToExclog(format(rs2505,[E.Message]));
           END{Try};
           end;
       DeleteCriptoOp();
@@ -2887,6 +2905,34 @@ if GoAhead then
       TryCloseServerConnection(AContext,UTCTime)
    else if parameter(LLine,0) = 'NSLMNS' then
       TryCloseServerConnection(AContext,GetMN_FileText)
+
+   else if parameter(LLine,0) = 'NSLGVT' then
+      begin
+      MemStream := TMemoryStream.Create;
+      EnterCriticalSection(CSGVTsArray);
+         TRY
+         MemStream.LoadFromFile(GVTsFilename);
+         GetFileOk := true;
+         EXCEPT on E:Exception do
+            begin
+            GetFileOk := false;
+            ToExcLog(Format(rs0091,[E.Message])); //'SERVER: Error creating stream from GVTs: %s',[E.Message]));
+            end;
+         END; {TRY}
+      LeaveCriticalSection(CSGVTsArray);
+      if GetFileOk then
+         begin
+            TRY
+            Acontext.Connection.IOHandler.WriteLn('GVTFILE '+Copy(MyGVTsHash,0,5));
+            Acontext.connection.IOHandler.Write(MemStream,0,true);
+            EXCEPT on E:Exception do
+               begin
+               end;
+            END; {TRY}
+         end;
+      MemStream.Free;
+      TryCloseServerConnection(AContext);
+      end
    else if parameter(LLine,0) = 'GETZIPSUMARY' then  //
       begin
       MemStream := TMemoryStream.Create;
@@ -2897,7 +2943,6 @@ if GoAhead then
          EXCEPT on E:Exception do
             begin
             GetFileOk := false;
-            MemStream.Free;
             ToExcLog(Format(rs0049,[E.Message])); //'SERVER: Error creating stream from headers: %s',[E.Message]));
             end;
          END; {TRY}
@@ -2911,8 +2956,8 @@ if GoAhead then
                begin
                end;
             END; {TRY}
-         MemStream.Free;
          end;
+      MemStream.Free;
       TryCloseServerConnection(AContext);
       end
 
@@ -4083,6 +4128,13 @@ for counter := 0 to length(ArrGVTs)-1 do
    end;
 LeaveCriticalSection(CSGVTsArray);
 Form1.TabGVTs.TabVisible:= Owned>0;
+End;
+
+// Transfer GVT button
+procedure TForm1.SCBitSend1Click(Sender: TObject);
+Begin
+if GVTsGrid.Row > 0 then
+   ProcessLinesAdd('sendgvt '+GVTsGrid.Cells[0,GVTsGrid.Row]+' '+edit2.Text);
 End;
 
 // Download the auto update process

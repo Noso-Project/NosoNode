@@ -1,5 +1,13 @@
+Version 0.3.2Ab0
+
+- GVT file download system.
+- NSLGVT support implemented.
+- Fixed memory leak on GETZIPSUMMARY service.
+- GVTs transfer system.
+
 Version 0.3.2Aa9
 
+- Directive update processed.
 - SysMem for linux
 - Added seednode 3.111.137.132:58445
 - Added GVTs file support.

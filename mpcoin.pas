@@ -16,6 +16,7 @@ function TrxExistsInLastBlock(trfrhash:String):boolean;
 function AddPendingTxs(order:OrderData):boolean;
 Procedure VerifyIfPendingIsMine(order:orderdata);
 function AddressAlreadyCustomized(address:string):boolean;
+Function GVTAlreadyTransfered(NumberStr:String):boolean;
 function AliasAlreadyExists(Addalias:string):boolean;
 function Restar(number:int64):int64;
 function AddressSumaryIndex(Address:string):integer;
@@ -245,6 +246,30 @@ if result = false then
          end;
       end;
    end;
+End;
+
+Function GVTAlreadyTransfered(NumberStr:String):boolean;
+var
+  number  : integer;
+  counter : integer;
+Begin
+result := false;
+Number := StrToIntDef(NumberStr,-1);
+if number < 0 then
+   begin
+   result := true;
+   exit;
+   end;
+EnterCriticalSection(CSGVTsArray);
+for counter := 0 to GetPendingCount-1 do
+   begin
+   if ((PendingTxs[counter].reference=NumberStr) and (PendingTxs[counter].OrderType = 'SNDGVT')) then
+         begin
+         result := true;
+         break;
+         end;
+   end;
+LeaveCriticalSection(CSGVTsArray);
 End;
 
 // verify if an alias is already registered

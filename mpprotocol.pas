@@ -37,6 +37,8 @@ function ValidateTrfr(order:orderdata;Origen:String):integer;
 Function IsOrderIDAlreadyProcessed(OrderText:string):Boolean;
 Procedure INC_PTC_Order(TextLine:String;connection:integer);
 Function PTC_Order(TextLine:String):String;
+Procedure INC_PTC_SendGVT(TextLine:String;connection:integer);
+Procedure PTC_SendGVT(TextLine:String);
 Procedure PTC_AdminMSG(TextLine:String);
 Procedure PTC_NetReqs(textline:string);
 function RequestAlreadyexists(reqhash:string):string;
@@ -219,6 +221,8 @@ if tipo = GetSumary then
    Resultado := '$GETSUMARY';
 if tipo = GetGVTs then
    Resultado := '$GETGVTS';
+if tipo = 21 then
+   Resultado := '$SENDGVT ';
 
 Resultado := Encabezado+Resultado;
 Result := resultado;
@@ -323,8 +327,7 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = 'GETHEADUPDATE' then PTC_SendUpdateHeaders(contador,ProcessLine)
       else if UpperCase(LineComando) = 'HEADUPDATE' then PTC_HeadUpdate(ProcessLine)
       else if UpperCase(LineComando) = '$GETSUMARY' then PTC_SendSumary(contador)
-
-
+      else if UpperCase(LineComando) = '$SENDGVT' then INC_PTC_SendGVT(GetOpData(ProcessLine), contador)
 
       else
          Begin  // El comando recibido no se reconoce. Verificar protocolos posteriores.
@@ -892,9 +895,6 @@ LeaveCriticalSection(CSIdsProcessed);
 End;
 
 Procedure INC_PTC_Order(TextLine:String;connection:integer);
-var
-  numtransfers : integer;
-  TrxID : string;
 Begin
 if not IsOrderIDAlreadyProcessed(TextLine) then
    AddCriptoOp(5,TextLine,'');
@@ -1005,6 +1005,51 @@ EXCEPT ON E:EXCEPTION DO
    ConsoleLinesAdd('****************************************'+slinebreak+'PTC_Order:'+E.Message);
    end;
 END; {TRY}
+End;
+
+Procedure INC_PTC_SendGVT(TextLine:String;connection:integer);
+Begin
+if not IsOrderIDAlreadyProcessed(TextLine) then
+   AddCriptoOp(7,TextLine,'');
+End;
+
+Procedure PTC_SendGVT(TextLine:String);
+var
+  OrderInfo : OrderData;
+  Address : String = '';
+  OpData : String = '';
+  Proceder : Integer = 0;
+  StrTosign   : String = '';
+Begin
+OrderInfo := Default(OrderData);
+ConsoleLinesAdd(TextLine);
+OrderInfo := GetOrderFromString(TextLine);
+Address := GetAddressFromPublicKey(OrderInfo.Sender);
+if address <> OrderInfo.Address then proceder := 1;
+// La direccion no dispone de fondos
+if GetAddressBalance(Address)-GetAddressPendingPays(Address) < Customizationfee then Proceder:=2;
+if TranxAlreadyPending(OrderInfo.TrfrID ) then Proceder:=3;
+if OrderInfo.TimeStamp < LastBlockData.TimeStart then Proceder:=4;
+if TrxExistsInLastBlock(OrderInfo.TrfrID) then Proceder:=5;
+//if AddressAlreadyCustomized(Address) then Proceder:=false;
+  if GVTAlreadyTransfered(OrderInfo.Reference) then proceder := 6;
+//If AliasAlreadyExists(OrderInfo.Receiver) then Proceder:=false;
+StrTosign := 'Transfer GVT '+OrderInfo.Reference+' '+OrderInfo.Receiver+OrderInfo.TimeStamp.ToString;
+if not VerifySignedString(StrToSign,OrderInfo.Signature,OrderInfo.Sender ) then Proceder:=7;
+if proceder= 0 then
+   begin
+   //ConsoleLinesAdd(Format('Send GVT %s sucessfull!',[OrderInfo.Reference]));
+   //{
+   OpData := GetOpData(TextLine); // Eliminar el encabezado
+   AddPendingTxs(OrderInfo);
+   if form1.Server.Active then OutgoingMsjsAdd(GetPTCEcn+opdata);
+   //}
+   end
+else
+   begin
+   consolelinesAdd(Format('SendGVT number: %s rejected, error: %d',[OrderInfo.Reference,proceder]));
+   //consolelinesAdd(StrTosign);
+   end;
 End;
 
 Procedure PTC_AdminMSG(TextLine:String);

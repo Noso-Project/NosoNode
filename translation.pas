@@ -99,6 +99,7 @@ resourcestring
   rs0088 = '✓ My GVTs grid updated';
   rs0089 = 'Receiving GVTs file';
   rs0090 = 'Error Receiving GVTs from %s (%s)';
+  rs0091 = 'SERVER: Error creating stream from GVTs: %s';
   //mpGUI
   rs0500 = 'Noso Launcher';
   rs0501 = 'Destination';
@@ -141,6 +142,8 @@ resourcestring
   rs2501 = '*****CRITICAL*****'+Slinebreak+'Error type 3 on crypto thread: %s'+Slinebreak+'*****CRITICAL*****';
   rs2502 = '*****CRITICAL*****'+Slinebreak+'Error type 4 on crypto thread: %s'+Slinebreak+'*****CRITICAL*****';
   rs2503 = '*****CRITICAL*****'+Slinebreak+'Error type 5 on crypto thread: %s'+Slinebreak+'*****CRITICAL*****';
+  rs2504 = '*****CRITICAL*****'+Slinebreak+'Error type 6 on crypto thread: %s'+Slinebreak+'*****CRITICAL*****';
+  rs2505 = '*****CRITICAL*****'+Slinebreak+'Error type 7 on crypto thread: %s'+Slinebreak+'*****CRITICAL*****';
 {
 ConsoleLinesadd(format(rs,[]));
 }

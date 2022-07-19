@@ -917,6 +917,10 @@ msgstr ""
 msgid "Error Receiving GVTs from %s (%s)"
 msgstr ""
 
+#: translation.rs0091
+msgid "SERVER: Error creating stream from GVTs: %s"
+msgstr ""
+
 #: translation.rs0500
 msgid "Noso Launcher"
 msgstr "Lanzador Noso"
@@ -1085,6 +1089,20 @@ msgstr ""
 msgid ""
 "*****CRITICAL*****\n"
 "Error type 5 on crypto thread: %s\n"
+"*****CRITICAL*****\n"
+msgstr ""
+
+#: translation.rs2504
+msgid ""
+"*****CRITICAL*****\n"
+"Error type 6 on crypto thread: %s\n"
+"*****CRITICAL*****\n"
+msgstr ""
+
+#: translation.rs2505
+msgid ""
+"*****CRITICAL*****\n"
+"Error type 7 on crypto thread: %s\n"
 "*****CRITICAL*****\n"
 msgstr ""
 

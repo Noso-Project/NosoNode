@@ -128,6 +128,8 @@ if not directoryexists(UpdatesDirectory) then CreateDir(UpdatesDirectory);
 OutText('✓ Updates folder ok',false,1);
 if not directoryexists(MarksDirectory) then CreateDir(MarksDirectory);
 OutText('✓ Marks folder ok',false,1);
+if not directoryexists(GVTMarksDirectory) then CreateDir(GVTMarksDirectory);
+OutText('✓ GVTs Marks folder ok',false,1);
 
 if not directoryexists(LogsDirectory) then CreateDir(LogsDirectory);
 if not FileExists (ExceptLogFilename) then CreateExceptlog;
@@ -1208,6 +1210,9 @@ if ( (Listasumario[0].LastOP mod SumMarkInterval = 0) and (Listasumario[0].LastO
    EnterCriticalSection(CSSumary);
    Trycopyfile(SumarioFilename,MarksDirectory+Listasumario[0].LastOP.ToString+'.bak');
    LeaveCriticalSection(CSSumary);
+   EnterCriticalSection(CSGVTsArray);
+   Trycopyfile(GVTsFilename,GVTMarksDirectory+Listasumario[0].LastOP.ToString+'.bak');
+   LeaveCriticalSection(CSGVTsArray);
    end;
 SetCurrentJob('GuardarSumario',false);
 setmilitime('GuardarSumario',2);
@@ -2469,6 +2474,7 @@ SumarioFilename     := 'NOSODATA'+DirectorySeparator+'sumary.psk';
 LanguageFileName    := 'NOSODATA'+DirectorySeparator+'noso.lng';
 BlockDirectory      := 'NOSODATA'+DirectorySeparator+'BLOCKS'+DirectorySeparator;
 MarksDirectory      := 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator;
+GVTMarksDirectory   := 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator+'GVTS'+DirectorySeparator;
 UpdatesDirectory    := 'NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator;
 LogsDirectory       := 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator;
 ExceptLogFilename   := 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'exceptlog.txt';

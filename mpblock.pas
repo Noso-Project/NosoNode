@@ -98,6 +98,12 @@ if not errored then
    copyfile(SumarioFilename,SumarioFilename+'.bak');
    LeaveCriticalSection(CSSumary);
 
+   // Generate GVT copy
+   EnterCriticalSection(CSGVTsArray);
+   trydeletefile(GVTsFilename+'.bak');
+   copyfile(GVTsFilename,GVTsFilename+'.bak');
+   LeaveCriticalSection(CSGVTsArray);
+
    // Processs pending orders
    EnterCriticalSection(CSPending);
    SetCurrentJob('NewBLOCK_PENDING',true);
@@ -145,6 +151,10 @@ if not errored then
          PendingTXs[contador].Block:=numero;
          PendingTXs[contador].Sender:=OperationAddress;
          insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
+         end;
+      if PendingTXs[contador].OrderType='SNDGVT' then
+         begin
+         ToLog('SNDGVT ignored : '+PendingTXs[contador].Reference);
          end;
       end;
    TRY
@@ -582,12 +592,20 @@ if MyConStatus = 3 then
    ClearAllPending;
    ClearReceivedOrdersIDs;
    end;
-// recuperar el sumario
+// recover summary
 EnterCriticalSection(CSSumary);
 Trydeletefile(SumarioFilename);
 Trycopyfile(SumarioFilename+'.bak',SumarioFilename);
 LeaveCriticalSection(CSSumary);
 LoadSumaryFromFile();
+// recover GVTs file
+EnterCriticalSection(CSGVTsArray);
+trydeletefile(GVTsFilename);
+copyfile(GVTsFilename+'.bak',GVTsFilename);
+LeaveCriticalSection(CSGVTsArray);
+GetGVTsFileData();
+UpdateMyGVTsList;
+
 // Actualizar la cartera
 UpdateWalletFromSumario();
 // actualizar el archivo de cabeceras

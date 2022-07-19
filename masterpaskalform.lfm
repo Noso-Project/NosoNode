@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 941
+  Left = 956
   Height = 560
-  Top = 61
+  Top = 103
   Width = 400
   Caption = 'Noso'
   ClientHeight = 540
@@ -939,7 +939,7 @@ object Form1: TForm1
               Font.Quality = fqDraft
               Images = Imagenes
               ImageIndex = 16
-              OnClick = SCBitSendOnClick
+              OnClick = SCBitSend1Click
               ParentFont = False
               TabOrder = 0
             end
