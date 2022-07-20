@@ -1061,7 +1061,7 @@ if not IsValidHashAddress(Destination) then
    end;
 monto := StrToInt64Def(amount,-1);
 if reference = '' then reference := 'null';
-if monto<=0 then
+if monto<=Comisiontrfr then
    begin
    if showOutput then ConsoleLinesAdd(LangLine(147)); //'Invalid ammount.'
    Procesar := false;
@@ -1976,9 +1976,17 @@ Begin
 monto := StrToInt64Def(Parameter(LineText,1),0);
 gmts := GetMaximunToSend(monto);
 fee := monto-gmts;
+if fee<MinimunFee then fee := MinimunFee;
+if monto <= MinimunFee then
+   begin
+   gmts := 0;
+   fee  := 0;
+   end;
 consolelinesadd('Ammount         : '+Int2Curr(monto));
 consolelinesadd('Maximun to send : '+Int2Curr(gmts));
 consolelinesadd('Fee paid        : '+Int2Curr(fee));
+if gmts+fee = monto then ConsolelinesAdd('✓ Match')
+else ConsolelinesAdd('✗ Error')
 End;
 
 Procedure ShowDiftory();

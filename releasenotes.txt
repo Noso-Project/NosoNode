@@ -1,3 +1,8 @@
+Version 0.3.2Ab1
+
+- Fixed hardcoded nodes
+- Maxconex moved back to 99.
+
 Version 0.3.2Ab0
 
 - GVT file download system.
@@ -5,7 +10,7 @@ Version 0.3.2Ab0
 - Fixed memory leak on GETZIPSUMMARY service.
 - GVTs transfer system.
 - Maxconex moved to 120.
-
+- Directive update processed.
 
 Version 0.3.2Aa9
 

@@ -768,17 +768,14 @@ CONST
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
   DefaultNodes : String = 'DefNodes '+
-                            //'45.146.252.103 '+
-                            //'194.156.88.117 '+
                             '109.230.238.240 '+
                             '198.144.190.194 '+
-                            '107.175.59.177 '+
+                            '149.57.226.244 '+
                             '107.172.193.176 '+
                             '66.151.117.247 '+
                             '192.3.73.184 '+
                             '107.175.24.151 '+
-                            '107.174.137.27 '+
-                            '3.111.137.132:58445';
+                            '149.57.137.108';
 
   ProgramVersion = '0.3.2';
   {$IFDEF WINDOWS}
@@ -789,7 +786,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ab0';
+  SubVersion = 'Ab1';
   OficialRelease = false;
   VersionRequired = '0.3.2Aa7';
   BuildDate = 'July 2022';
@@ -797,7 +794,7 @@ CONST
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   HasheableChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
   DefaultServerPort = 8080;
-  MaxConecciones  = 120;
+  MaxConecciones  = 99;
   Protocolo = 2;
   Miner_Steps = 10;
   Pool_Max_Members = 1000;

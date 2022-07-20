@@ -404,17 +404,23 @@ End;
 function GetMaximunToSend(monto:int64):int64;
 var
   Disponible : int64;
-  maximo : int64;
-  comision : int64;
-  Envio : int64;
+  maximo     : int64;
+  comision   : int64;
+  Envio      : int64;
   Diferencia : int64;
 Begin
 Disponible := monto;
-maximo := (Disponible * Comisiontrfr) div (Comisiontrfr+1);
-comision := maximo div Comisiontrfr;
-Envio := maximo + comision;
+if ( (disponible < MinimunFee) or (Disponible<0) ) then
+   begin
+   result := 0;
+   exit;
+   end;
+maximo     := (Disponible * Comisiontrfr) div (Comisiontrfr+1);
+comision   := maximo div Comisiontrfr;
+if Comision < MinimunFee then Comision := MinimunFee;
+Envio      := maximo + comision;
 Diferencia := Disponible-envio;
-result := maximo+diferencia;
+result     := maximo+diferencia;
 End;
 
 // Convierte una cadena a un numero y devuelve un error si se llega a generar
