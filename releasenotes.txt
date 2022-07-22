@@ -1,3 +1,9 @@
+Version 0.3.2Ab2
+
+- Update Wallet from sumary after reqsum.
+- History command improved.
+- New temp seed nodes.
+
 Version 0.3.2Ab1
 
 - Fixed hardcoded nodes

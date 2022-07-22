@@ -1770,6 +1770,7 @@ End;
 // Shows transaction history of the specified address
 Procedure ShowAddressHistory(LineText:string);
 var
+  BlockCount : integer;
   addtoshow : string;
   counter,contador2 : integer;
   Header : BlockHeaderData;
@@ -1786,9 +1787,12 @@ var
   TransSL : TStringlist;
   MinedBlocksStr : string = '';
 Begin
+BlockCount := StrToIntDef(Parameter(Linetext,2),0);
+if BlockCount = 0 then BlockCount := SecurityBlocks-1;
+if BlockCount >= MyLastBlock then BlockCount := MyLastBlock-1;
 TransSL := TStringlist.Create;
 addtoshow := parameter(LineText,1);
-for counter := 1 to MyLastBlock do
+for counter := MyLastBlock downto MyLastBlock- BlockCount do
    begin
    if counter mod 10 = 0 then
       begin
@@ -1811,13 +1815,13 @@ for counter := 1 to MyLastBlock do
             begin
             incomingtrx += 1;
             inccoins := inccoins+ArrTrxs[contador2].AmmountTrf;
-            transSL.Add(IntToStr(Counter)+']]'+ArrTrxs[contador2].sender+'-->'+ArrTrxs[contador2].Receiver+' : '+Int2curr(ArrTrxs[contador2].AmmountTrf));
+            transSL.Add(IntToStr(Counter)+'] '+ArrTrxs[contador2].sender+'<-- '+Int2curr(ArrTrxs[contador2].AmmountTrf));
             end;
          if ArrTrxs[contador2].sender = addtoshow then // outgoing order
             begin
             outgoingtrx +=1;
             outcoins := outcoins + ArrTrxs[contador2].AmmountTrf + ArrTrxs[contador2].AmmountFee;
-            transSL.Add(IntToStr(Counter)+']]'+ArrTrxs[contador2].sender+'-->'+ArrTrxs[contador2].Receiver+' : '+Int2curr(ArrTrxs[contador2].AmmountTrf));
+            transSL.Add(IntToStr(Counter)+'] '+ArrTrxs[contador2].Receiver+'--> '+Int2curr(ArrTrxs[contador2].AmmountTrf));
             end;
          end;
       end;

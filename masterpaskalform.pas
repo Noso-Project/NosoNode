@@ -775,7 +775,9 @@ CONST
                             '66.151.117.247 '+
                             '192.3.73.184 '+
                             '107.175.24.151 '+
-                            '149.57.137.108';
+                            '149.57.137.108 '+
+                            '159.196.1.198 '+
+                            '101.100.138.125';
 
   ProgramVersion = '0.3.2';
   {$IFDEF WINDOWS}
@@ -786,7 +788,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ab1';
+  SubVersion = 'Ab2';
   OficialRelease = false;
   VersionRequired = '0.3.2Aa7';
   BuildDate = 'July 2022';
@@ -1337,7 +1339,9 @@ if Continuar then
                consolelinesAdd(format(rs0087,[copy(HashMD5File(SumarioFilename),1,5)])); //'Sumary file received'
                EnterCriticalSection(CSSumary);
                LoadSumaryFromFile();
+               UpdateWalletFromSumario;
                LeaveCriticalSection(CSSumary);
+
                LastTimeRequestSumary := 0;
                UpdateMyData();
                end;
