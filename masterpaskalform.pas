@@ -788,7 +788,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ab2';
+  SubVersion = 'Ab3';
   OficialRelease = false;
   VersionRequired = '0.3.2Aa7';
   BuildDate = 'July 2022';
