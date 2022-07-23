@@ -2886,9 +2886,11 @@ if GoAhead then
    if parameter(LLine,0) = 'NODESTATUS' then
       TryCloseServerConnection(AContext,'NODESTATUS '+GetNodeStatusString)
    else if parameter(LLine,0) = 'NSLORDER' then
-      begin
-      TryCloseServerConnection(AContext,PTC_Order(LLine));
-      end
+      TryCloseServerConnection(AContext,PTC_Order(LLine))
+   else if parameter(LLine,0) = 'NSLCUSTOM' then
+      TryCloseServerConnection(AContext,PTC_Custom(LLine).ToString)
+   else if parameter(LLine,0) = 'NSLSENDGVT' then
+      TryCloseServerConnection(AContext,PTC_SendGVT(LLine).ToString)
    else if parameter(LLine,0) = 'GETMIIP' then
       TryCloseServerConnection(AContext,IPUser)
    else if parameter(LLine,0) = 'MNVER' then

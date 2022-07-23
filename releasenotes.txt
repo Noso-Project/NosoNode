@@ -1,3 +1,9 @@
+Version 0.3.2Ab3
+
+- GVTs included on nodestatus.
+- NSL customize support.
+- NSL trfrgvt support.
+
 Version 0.3.2Ab2
 
 - Update Wallet from sumary after reqsum.

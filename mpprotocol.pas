@@ -32,13 +32,13 @@ Function ZipHeaders():boolean;
 function CreateZipBlockfile(firstblock:integer):string;
 Procedure PTC_SendBlocks(Slot:integer;TextLine:String);
 Procedure INC_PTC_Custom(TextLine:String;connection:integer);
-Procedure PTC_Custom(TextLine:String);
+Function PTC_Custom(TextLine:String):integer;
 function ValidateTrfr(order:orderdata;Origen:String):integer;
 Function IsOrderIDAlreadyProcessed(OrderText:string):Boolean;
 Procedure INC_PTC_Order(TextLine:String;connection:integer);
 Function PTC_Order(TextLine:String):String;
 Procedure INC_PTC_SendGVT(TextLine:String;connection:integer);
-Procedure PTC_SendGVT(TextLine:String);
+Function PTC_SendGVT(TextLine:String):integer;
 Procedure PTC_AdminMSG(TextLine:String);
 Procedure PTC_NetReqs(textline:string);
 function RequestAlreadyexists(reqhash:string):string;
@@ -815,31 +815,33 @@ StartCriptoThread();
 End;
 
 // Procesa una solicitud de customizacion
-Procedure PTC_Custom(TextLine:String);
+Function PTC_Custom(TextLine:String):integer;
 var
   OrderInfo : OrderData;
-  Address : String = '';
-  OpData : String = '';
-  Proceder : boolean = true;
+  Address   : String = '';
+  OpData    : String = '';
+  ErrorCode : Integer = 0;
 Begin
+Result := 0;
 OrderInfo := Default(OrderData);
 OrderInfo := GetOrderFromString(TextLine);
 Address := GetAddressFromPublicKey(OrderInfo.Sender);
-if address <> OrderInfo.Address then proceder := false;
+if address <> OrderInfo.Address then ErrorCode := 1;
 // La direccion no dispone de fondos
-if GetAddressBalance(Address)-GetAddressPendingPays(Address) < Customizationfee then Proceder:=false;
-if TranxAlreadyPending(OrderInfo.TrfrID ) then Proceder:=false;
-if OrderInfo.TimeStamp < LastBlockData.TimeStart then Proceder:=false;
-if TrxExistsInLastBlock(OrderInfo.TrfrID) then Proceder:=false;
-if AddressAlreadyCustomized(Address) then Proceder:=false;
-If AliasAlreadyExists(OrderInfo.Receiver) then Proceder:=false;
-if not VerifySignedString('Customize this '+Address+' '+OrderInfo.Receiver,OrderInfo.Signature,OrderInfo.Sender ) then Proceder:=false;
-if proceder then
+if GetAddressBalance(Address)-GetAddressPendingPays(Address) < Customizationfee then ErrorCode:=2;
+if TranxAlreadyPending(OrderInfo.TrfrID ) then ErrorCode:=3;
+if OrderInfo.TimeStamp < LastBlockData.TimeStart then ErrorCode:=4;
+if TrxExistsInLastBlock(OrderInfo.TrfrID) then ErrorCode:=5;
+if AddressAlreadyCustomized(Address) then ErrorCode:=6;
+If AliasAlreadyExists(OrderInfo.Receiver) then ErrorCode:=7;
+if not VerifySignedString('Customize this '+Address+' '+OrderInfo.Receiver,OrderInfo.Signature,OrderInfo.Sender ) then ErrorCode:=8;
+if ErrorCode = 0 then
    begin
    OpData := GetOpData(TextLine); // Eliminar el encabezado
    AddPendingTxs(OrderInfo);
    if form1.Server.Active then OutgoingMsjsAdd(GetPTCEcn+opdata);
    end;
+Result := ErrorCode;
 End;
 
 // Verify a transfer
@@ -1013,43 +1015,34 @@ if not IsOrderIDAlreadyProcessed(TextLine) then
    AddCriptoOp(7,TextLine,'');
 End;
 
-Procedure PTC_SendGVT(TextLine:String);
+Function PTC_SendGVT(TextLine:String):integer;
 var
-  OrderInfo : OrderData;
-  Address : String = '';
-  OpData : String = '';
-  Proceder : Integer = 0;
-  StrTosign   : String = '';
+  OrderInfo  : OrderData;
+  Address    : String = '';
+  OpData     : String = '';
+  ErrorCode  : Integer = 0;
+  StrTosign  : String = '';
 Begin
 OrderInfo := Default(OrderData);
 ConsoleLinesAdd(TextLine);
 OrderInfo := GetOrderFromString(TextLine);
 Address := GetAddressFromPublicKey(OrderInfo.Sender);
-if address <> OrderInfo.Address then proceder := 1;
+if address <> OrderInfo.Address then ErrorCode := 1;
 // La direccion no dispone de fondos
-if GetAddressBalance(Address)-GetAddressPendingPays(Address) < Customizationfee then Proceder:=2;
-if TranxAlreadyPending(OrderInfo.TrfrID ) then Proceder:=3;
-if OrderInfo.TimeStamp < LastBlockData.TimeStart then Proceder:=4;
-if TrxExistsInLastBlock(OrderInfo.TrfrID) then Proceder:=5;
-//if AddressAlreadyCustomized(Address) then Proceder:=false;
-  if GVTAlreadyTransfered(OrderInfo.Reference) then proceder := 6;
-//If AliasAlreadyExists(OrderInfo.Receiver) then Proceder:=false;
+if GetAddressBalance(Address)-GetAddressPendingPays(Address) < Customizationfee then ErrorCode:=2;
+if TranxAlreadyPending(OrderInfo.TrfrID ) then ErrorCode:=3;
+if OrderInfo.TimeStamp < LastBlockData.TimeStart then ErrorCode:=4;
+if TrxExistsInLastBlock(OrderInfo.TrfrID) then ErrorCode:=5;
+  if GVTAlreadyTransfered(OrderInfo.Reference) then ErrorCode := 6;
 StrTosign := 'Transfer GVT '+OrderInfo.Reference+' '+OrderInfo.Receiver+OrderInfo.TimeStamp.ToString;
-if not VerifySignedString(StrToSign,OrderInfo.Signature,OrderInfo.Sender ) then Proceder:=7;
-if proceder= 0 then
+if not VerifySignedString(StrToSign,OrderInfo.Signature,OrderInfo.Sender ) then ErrorCode:=7;
+if ErrorCode= 0 then
    begin
-   //ConsoleLinesAdd(Format('Send GVT %s sucessfull!',[OrderInfo.Reference]));
-   //{
-   OpData := GetOpData(TextLine); // Eliminar el encabezado
+   OpData := GetOpData(TextLine); // remove trx header
    AddPendingTxs(OrderInfo);
    if form1.Server.Active then OutgoingMsjsAdd(GetPTCEcn+opdata);
-   //}
-   end
-else
-   begin
-   consolelinesAdd(Format('SendGVT number: %s rejected, error: %d',[OrderInfo.Reference,proceder]));
-   //consolelinesAdd(StrTosign);
    end;
+Result := ErrorCode;
 End;
 
 Procedure PTC_AdminMSG(TextLine:String);
