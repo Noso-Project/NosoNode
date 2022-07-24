@@ -773,9 +773,9 @@ CONST
                             '149.57.226.244 '+
                             '107.172.193.176 '+
                             '66.151.117.247 '+
-                            '192.3.73.184 '+
+                            '149.57.229.81 '+
                             '107.175.24.151 '+
-                            '149.57.137.108 '+
+                            '149.57.138.12 '+
                             '159.196.1.198 '+
                             '101.100.138.125';
 
@@ -788,7 +788,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ab3';
+  SubVersion = 'Ab4';
   OficialRelease = false;
   VersionRequired = '0.3.2Aa7';
   BuildDate = 'July 2022';
@@ -2888,13 +2888,13 @@ if GoAhead then
    else if parameter(LLine,0) = 'NSLORDER' then
       TryCloseServerConnection(AContext,PTC_Order(LLine))
    else if parameter(LLine,0) = 'NSLCUSTOM' then
-      TryCloseServerConnection(AContext,PTC_Custom(LLine).ToString)
+      TryCloseServerConnection(AContext,PTC_Custom(GetOpData(LLine)).ToString)
    else if parameter(LLine,0) = 'NSLSENDGVT' then
       TryCloseServerConnection(AContext,PTC_SendGVT(LLine).ToString)
    else if parameter(LLine,0) = 'GETMIIP' then
       TryCloseServerConnection(AContext,IPUser)
    else if parameter(LLine,0) = 'MNVER' then
-      TryCloseServerConnection(AContext,GetVerificationMNLine)
+      TryCloseServerConnection(AContext,GetVerificationMNLine(IPUser))
    else if parameter(LLine,0) = 'NSLBALANCE' then
       TryCloseServerConnection(AContext,IntToStr(GetAddressAvailable(parameter(LLine,1))))
    else if parameter(LLine,0) = 'BESTHASH' then

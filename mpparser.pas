@@ -993,7 +993,7 @@ for cont := 1 to length(addalias) do
 if procesar then
    begin
    CurrTime := UTCTime;
-   TrfrHash := GetTransferHash(CurrTime+Address+addalias+IntToStr(MyLastblock));
+   TrfrHash := GetTransferHash(CurrTime+Address+addalias);
    OrderHash := GetOrderHash('1'+currtime+TrfrHash);
    AddCriptoOp(2,'Customize this '+address+' '+addalias+'$'+ListaDirecciones[DireccionEsMia(address)].PrivateKey,
            ProtocolLine(9)+    // CUSTOM

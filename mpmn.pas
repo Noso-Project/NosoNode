@@ -44,7 +44,7 @@ Function GetMNodeFromString(const StringData:String; out ToMNode:TMNode):Boolean
 Function IsLegitNewNode(ThisNode:TMNode):Boolean;
 Procedure CheckMNRepo(LineText:String);
 Procedure SendMNsList(Slot:Integer);
-Function GetVerificationMNLine():String;
+Function GetVerificationMNLine(ToIp:String):String;
 
 Procedure CreditMNVerifications();
 
@@ -69,6 +69,7 @@ var
   MNsListCopy : array of TMnode;
   CurrSynctus : string;
   VerifiedNodes : String;
+  UnconfirmedIPs : integer;
   CSVerNodes    : TRTLCriticalSection;
   CSMNsChecks   : TRTLCriticalSection;
   DecVerThreads : TRTLCriticalSection;
@@ -139,6 +140,7 @@ if success then
       // Was not possitive
       end;
    end;
+If Parameter(Linea,3) <> MN_Ip then Inc(UnconfirmedIPs);
 EXCEPT on E:Exception do
    begin
    ToExcLog('CRITICAL MNs VERIFICATION ('+Ip+'): '+E.Message);
@@ -172,6 +174,7 @@ setlength(MNsListCopy,0);
 EnterCriticalSection(CSMNsArray);
 MNsListCopy := copy(MNsList,0,length(MNsList));
 LeaveCriticalSection(CSMNsArray);
+UnconfirmedIPs := 0;
 for counter := 0 to length(MNsListCopy)-1 do
    begin
    if (( MNsListCopy[counter].ip <> MN_Ip) and (IsValidIp(MNsListCopy[counter].ip)) ) then
@@ -191,6 +194,7 @@ Repeat
   Inc(WaitCycles);
 until ( (NoVerificators= 0) or (WaitCycles = 150) );
 ToLog(Format('MNs verification finish: %d launched, %d Open, %d cycles',[Launched,NoVerificators,WaitCycles ]));
+ToLog(Format('Unconfirmed IPs: %d',[UnconfirmedIPs ]));
 if NoVerificators>0 then
    begin
    ToExcLog('*****CRITICAL****'+slinebreak+'Open verificators : '+NoVerificators.ToString);
@@ -538,9 +542,9 @@ if GetMNsListLength>0 then
    end;
 End;
 
-Function GetVerificationMNLine():String;
+Function GetVerificationMNLine(ToIp:String):String;
 Begin
-if IsAllSynced then Result := 'True '+GetSyncTus+' '+MN_Funds
+if IsAllSynced then Result := 'True '+GetSyncTus+' '+MN_Funds+' '+ToIp
 else Result := 'False';
 End;
 

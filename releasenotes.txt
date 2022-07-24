@@ -1,3 +1,11 @@
+Version 0.3.2Ab4
+
+- Adjusted Trfrhash for custom.
+- Fixed NSL support for customization.
+- Restored 2 Seed nodes.
+- MNs check IP confirmation.
+- Fixed MNslist requested too early.
+
 Version 0.3.2Ab3
 
 - GVTs included on nodestatus.

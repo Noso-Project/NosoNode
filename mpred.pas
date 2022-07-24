@@ -1064,7 +1064,7 @@ else if ((MyResumenhash <> NetResumenHash.Value) and (NLBV=mylastblock) and (MyL
    LastTimeRequestResumen := StrToInt64(UTCTime);
    end
 else if ( (StrToIntDef(NetMNsCount.Value,0)>GetMNsListLength) and (LastTimeMNsRequested+5<UTCTime.ToInt64)
-           and (LengthWaitingMNs = 0) ) then
+           and (LengthWaitingMNs = 0) and (BlockAge>30) ) then
    begin
    EnterCriticalSection(CSMNsIPCheck);
    Setlength(ArrayIPsProcessed,0);
