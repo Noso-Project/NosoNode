@@ -1071,7 +1071,7 @@ else if ( (StrToIntDef(NetMNsCount.Value,0)>GetMNsListLength) and (LastTimeMNsRe
    LeaveCriticalSection(CSMNsIPCheck);
    PTC_SendLine(NetMNsCount.Slot,ProtocolLine(11));  // Get MNsList
    LastTimeMNsRequested := UTCTime.ToInt64;
-   ConsoleLinesAdd('Master nodes requested');
+   ConsoleLinesAdd('MNs reports requested');
    end
 else if ((StrToIntDef(NetMNsChecks.Value,0)>GetMNsChecksCount) and (LastTimeChecksRequested+5<UTCTime.ToInt64)) then
    begin

@@ -1,3 +1,8 @@
+Version 0.3.2Ab5
+
+- System mem fixed to 1024 MB max.
+- Seed node adjusted.
+
 Version 0.3.2Ab4
 
 - Adjusted Trfrhash for custom.

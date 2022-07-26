@@ -16,7 +16,7 @@ Type
     end;
 
 Function Sys_HashSpeed(cores:integer=4):int64;
-Function AllocateMem(UpToMb:integer=16384):int64;
+Function AllocateMem(UpToMb:integer=1024):int64;
 Function TestDownloadSpeed():int64;
 
 var
@@ -59,7 +59,7 @@ EndTime := GetTickCount64;
 Result := (cores*10000) div (EndTime-StartTime);
 End;
 
-Function AllocateMem(UpToMb:integer=16384):int64;
+Function AllocateMem(UpToMb:integer=1024):int64;
 var
   counter  : integer;
   MemMb    : array of pointer;
@@ -82,7 +82,7 @@ repeat
          end;
       END;
    inc(counter);
-until ( (finished) or (counter >=16384));
+until ( (finished) or (counter >=UpToMb));
 result := counter;
 for counter := 0 to length(MemMB)-1 do
    FreeMem (MemMb[counter],1048576);

@@ -774,7 +774,7 @@ CONST
                             '107.172.193.176 '+
                             '66.151.117.247 '+
                             '149.57.229.81 '+
-                            '107.175.24.151 '+
+                            '149.57.242.211 '+
                             '149.57.138.12 '+
                             '159.196.1.198 '+
                             '101.100.138.125';
@@ -788,7 +788,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ab4';
+  SubVersion = 'Ab5';
   OficialRelease = false;
   VersionRequired = '0.3.2Aa7';
   BuildDate = 'July 2022';
