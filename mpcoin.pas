@@ -60,6 +60,7 @@ var
   cont : integer;
 Begin
 Result := 0;
+if address = '' then exit;
 for cont := 0 to length(ListaSumario)-1 do
    begin
    if ((address = ListaSumario[cont].Hash) or (address = ListaSumario[cont].Custom)) then
@@ -77,6 +78,7 @@ var
   CopyPendings : array of orderdata;
 Begin
 Result := 0;
+if Address = '' then exit;
 if GetPendingCount>0 then
    begin
    EnterCriticalSection(CSPending);

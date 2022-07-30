@@ -777,7 +777,8 @@ CONST
                             '149.57.242.211 '+
                             '149.57.138.12 '+
                             '159.196.1.198 '+
-                            '101.100.138.125';
+                            '101.100.138.125 '+
+                            '198.46.218.125';
 
   ProgramVersion = '0.3.2';
   {$IFDEF WINDOWS}
@@ -788,7 +789,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ab5';
+  SubVersion = 'Ab6';
   OficialRelease = false;
   VersionRequired = '0.3.2Aa7';
   BuildDate = 'July 2022';
@@ -2904,6 +2905,8 @@ if GoAhead then
       end
    else if parameter(LLine,0) = 'NSLPEND' then
       TryCloseServerConnection(AContext,PendingRawInfo)
+   else if parameter(LLine,0) = 'NSLBLKORD' then
+      TryCloseServerConnection(AContext,GEtNSLBlkOrdInfo(LLine))
    else if parameter(LLine,0) = 'NSLTIME' then
       TryCloseServerConnection(AContext,UTCTime)
    else if parameter(LLine,0) = 'NSLMNS' then

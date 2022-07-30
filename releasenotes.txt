@@ -1,3 +1,9 @@
+Version 0.3.2Ab6
+
+- NSLBlkOrd implemented.
+- Fixed error on GetAddressPendingPays and GetAddressBalance not filtering emptystr.
+- New test seed node.
+
 Version 0.3.2Ab5
 
 - System mem fixed to 1024 MB max.

@@ -27,6 +27,7 @@ Function BlockAge():integer;
 Function NextBlockTimeStamp():Int64;
 Function RemainingTillNextBlock():String;
 Function IsBlockOpen():boolean;
+Function GEtNSLBlkOrdInfo(LineText:String):String;
 
 implementation
 
@@ -650,6 +651,40 @@ Function IsBlockOpen():boolean;
 Begin
 result := true;
 if ( (BlockAge<10) or (BlockAge>585) ) then result := false;
+End;
+
+Function GEtNSLBlkOrdInfo(LineText:String):String;
+var
+  ParamBlock  : String;
+  BlkNumber   : integer;
+  OrdersArray : BlockOrdersArray;
+  Cont     : integer;
+  ThisOrder   : string  = '';
+Begin
+Result := 'NSLBLKORD ';
+ParamBlock := UpperCase(Parameter(LineText,1));
+If paramblock = 'LAST' then BlkNumber := MyLastBlock
+else BlkNumber := StrToIntDef(ParamBlock,-1);
+if ( (BlkNumber<0) or (BlkNumber<MyLastBlock-4000) or (BlkNumber>MyLastBlock) ) then Result := Result+'ERROR'
+else
+   begin
+   Result := Result+BlkNumber.ToString+' ';
+   OrdersArray := Default(BlockOrdersArray);
+   OrdersArray := GetBlockTrxs(BlkNumber);
+   if Length(OrdersArray)>0 then
+      begin
+      For Cont := 0 to LEngth(OrdersArray)-1 do
+         begin
+         if OrdersArray[cont].OrderType='TRFR' then
+            begin
+            ThisOrder := ThisOrder+OrdersArray[Cont].Sender+':'+OrdersArray[Cont].Receiver+':'+OrdersArray[Cont].AmmountTrf.ToString+':'+
+                         OrdersArray[Cont].Reference+':'+OrdersArray[Cont].OrderID+' ';
+            end;
+         end;
+      end;
+   Result := Result+ThisOrder;
+   Result := Trim(Result)
+   end;
 End;
 
 END. // END UNIT
