@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Compiler Value="C:\lazarus\fpc\3.2.0\bin\i386-win32\fpc.exe" Date="1357350198"/>
+  <Params Value=" -MObjFPC -Scghi -O4 -g -gl -l -vewnhibq -FiC:\NosoWallet\Packages\SimpleBaseLib\src\Include -FuC:\NosoWallet\Packages\SimpleBaseLib\src\Bases -FuC:\NosoWallet\Packages\SimpleBaseLib\src\Interfaces -FuC:\NosoWallet\Packages\SimpleBaseLib\src\Utils -FuC:\lazarus\packager\units\i386-win32 -FuC:\NosoWallet\Packages\SimpleBaseLib\src\Packages\FPC\ -FUC:\NosoWallet\Packages\SimpleBaseLib\src\Packages\FPC\lib\i386-win32\ SimpleBaseLib4PascalPackage.pas"/>
+</CONFIG>

@@ -1,0 +1,3 @@
+{"version":1,"strings":[
+{"hash":167737634,"name":"sbpbase58.salphabetnil","sourcebytes":[65,108,112,104,97,98,101,116,32,73,110,115,116,97,110,99,101,32,99,97,110,110,111,116,32,98,101,32,78,105,108,32,34,37,115,34],"value":"Alphabet Instance cannot be Nil \"%s\""}
+]}

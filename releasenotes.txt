@@ -1,3 +1,13 @@
+Version 0.3.2Ab7
+
+- Fixed bug on IsValidJSON.
+- Security blocks adjusted to 4000.
+- Sender added as CSV field on RPC orderinfo method.
+- Sender added as CSV field on RPC blockorders method.
+- GetOrderDetails checks the whole blockchain in FullNode mode.
+- Time filter on node incoming connections activated on block 70000.
+- Wrong time offset is now a warning, but do not close the app.
+
 Version 0.3.2Ab6
 
 - NSLBlkOrd implemented.

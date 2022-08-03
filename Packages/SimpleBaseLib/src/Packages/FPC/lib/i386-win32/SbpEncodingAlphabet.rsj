@@ -1,0 +1,6 @@
+{"version":1,"strings":[
+{"hash":216493342,"name":"sbpencodingalphabet.salphabetnil","sourcebytes":[34,37,115,34,32,67,97,110,110,111,116,32,66,101,32,78,105,108,46],"value":"\"%s\" Cannot Be Nil."},
+{"hash":259350254,"name":"sbpencodingalphabet.salphabetparametermismatch","sourcebytes":[82,101,113,117,105,114,101,100,32,65,108,112,104,97,98,101,116,32,76,101,110,103,116,104,32,105,115,32,34,37,100,34,32,98,117,116,32,80,114,111,118,105,100,101,100,32,65,108,112,104,97,98,101,116,32,105,115,32,34,37,100,34,32,67,104,97,114,97,99,116,101,114,115,32,76,111,110,103,46],"value":"Required Alphabet Length is \"%d\" but Provided Alphabet is \"%d\" Characters Long."},
+{"hash":213171762,"name":"sbpencodingalphabet.sinvalidcharacter","sourcebytes":[65,108,112,104,97,98,101,116,32,67,111,110,116,97,105,110,115,32,67,104,97,114,97,99,116,101,114,32,34,37,115,32,40,37,100,41,34,32,65,98,111,118,101,32,34,37,100,34],"value":"Alphabet Contains Character \"%s (%d)\" Above \"%d\""},
+{"hash":261664786,"name":"sbpencodingalphabet.sinvalidinput","sourcebytes":[73,110,118,97,108,105,100,32,99,104,97,114,97,99,116,101,114,32,118,97,108,117,101,32,105,110,32,105,110,112,117,116,32,34,37,115,34],"value":"Invalid character value in input \"%s\""}
+]}

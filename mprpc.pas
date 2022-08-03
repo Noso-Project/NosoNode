@@ -10,13 +10,14 @@ uses
 Type
 
   TOrderGroup = Packed Record
-     Block : integer;
-     TimeStamp : Int64;
-     OrderID: string[64];
-     OrderType : String[6];
+     Block      : integer;
+     TimeStamp  : Int64;
+     OrderID    : string[64];
+     OrderType  : String[6];
      OrderLines : Integer;
-     Reference : String[64];
-     Receiver : String[40];
+     Reference  : String[64];
+     Sender     : string;
+     Receiver   : String[40];
      AmmountFee : Int64;
      AmmountTrf : Int64;
      end;
@@ -133,10 +134,10 @@ begin
 result := true;
    Try
    MyData := GetJSON(MyJSONstring);
+   Mydata.free;
    except on E:ejsonparser do
       result := false;
    end;
-Mydata.free;
 end;
 
 // Returns the string of each error code
@@ -253,6 +254,7 @@ else if objecttype = 'orderinfo' then
          orderobject.Add('fee',StrToInt64(parameter(mystring,9)));
          if parameter(mystring,10)='null' then orderobject.Add('reference',TJSONNull.Create)
          else orderobject.Add('reference',parameter(mystring,10));
+         orderobject.Add('sender',parameter(mystring,11));
       resultado.Add('order',orderobject)
       end
    else resultado.Add('order',TJSONNull.Create)
@@ -302,15 +304,16 @@ else if objecttype = 'blockorder' then
       for counter := 0 to blockorders-1 do
          begin
          orderobject:=TJSONObject.Create;
-         orderobject.Add('orderid',parameter(mystring,4+(counter*9)));
-         orderobject.Add('timestamp',StrToIntDef(parameter(mystring,5+(counter*9)),0));
-         orderobject.Add('block',StrToIntDef(parameter(mystring,6+(counter*9)),0));
-         orderobject.Add('type',parameter(mystring,7+(counter*9)));
-         orderobject.Add('trfrs',StrToIntDef(parameter(mystring,8+(counter*9)),0));
-         orderobject.Add('receiver',parameter(mystring,9+(counter*9)));
-         orderobject.Add('amount',StrToInt64Def(parameter(mystring,10+(counter*9)),0));
-         orderobject.Add('fee',StrToIntDef(parameter(mystring,11+(counter*9)),0));
-         orderobject.Add('reference',parameter(mystring,12+(counter*9)));
+         orderobject.Add('orderid',parameter(mystring,4+(counter*10)));
+         orderobject.Add('timestamp',StrToIntDef(parameter(mystring,5+(counter*10)),0));
+         orderobject.Add('block',StrToIntDef(parameter(mystring,6+(counter*10)),0));
+         orderobject.Add('type',parameter(mystring,7+(counter*10)));
+         orderobject.Add('trfrs',StrToIntDef(parameter(mystring,8+(counter*10)),0));
+         orderobject.Add('receiver',parameter(mystring,9+(counter*10)));
+         orderobject.Add('amount',StrToInt64Def(parameter(mystring,10+(counter*10)),0));
+         orderobject.Add('fee',StrToIntDef(parameter(mystring,11+(counter*10)),0));
+         orderobject.Add('reference',parameter(mystring,12+(counter*10)));
+         orderobject.Add('sender',parameter(mystring,13+(counter*10)));
          ordersarray.Add(orderobject);
          end;
       end;
@@ -439,11 +442,11 @@ if NosoPParams='' then
    result := format('orderinfo'#127'%s'#127'%s'#127+
                  '%d'#127'%d'#127'%s'#127+
                  '%d'#127'%s'#127'%d'#127+
-                 '%d'#127'%s'#127,
+                 '%d'#127'%s'#127'%s'#127,
                 [validid,NosoPParams,
                 thisor.timestamp,thisor.block,thisor.OrderType,
                 thisor.OrderLines,thisor.Receiver,thisor.AmmountTrf,
-                thisor.AmmountFee,thisor.reference]);
+                thisor.AmmountFee,thisor.reference,thisor.Sender]);
    exit;
    end;
 thisor := GetOrderDetails(NosoPParams);
@@ -451,11 +454,11 @@ if thisor.OrderID = '' then validID := 'false';
 result := format('orderinfo'#127'%s'#127'%s'#127+
                  '%d'#127'%d'#127'%s'#127+
                  '%d'#127'%s'#127'%d'#127+
-                 '%d'#127'%s'#127,
+                 '%d'#127'%s'#127'%s'#127,
                 [validid,NosoPParams,
                 thisor.timestamp,thisor.block,thisor.OrderType,
                 thisor.OrderLines,thisor.Receiver,thisor.AmmountTrf,
-                thisor.AmmountFee,thisor.reference]);
+                thisor.AmmountFee,thisor.reference,thisor.Sender]);
 End;
 
 function RPC_Blockinfo(NosoPParams:string):string;
@@ -520,6 +523,7 @@ var
            begin
            arrayords[cont].AmmountTrf:=arrayords[cont].AmmountTrf+order.AmmountTrf;
            arrayords[cont].AmmountFee:=arrayords[cont].AmmountFee+order.AmmountFee;
+           arrayords[cont].Sender    :=arrayords[cont].Sender+','+order.Address;
            arrayords[cont].OrderLines+=1;
            existed := true;
            break;
@@ -538,6 +542,7 @@ var
      arrayords[length(arrayords)-1].AmmountTrf:=order.AmmountTrf;
      arrayords[length(arrayords)-1].AmmountFee:=order.AmmountFee;
      arrayords[length(arrayords)-1].Reference:=order.Reference;
+     arrayords[length(arrayords)-1].sender:=order.Address;
      end;
   end;
 
@@ -558,10 +563,11 @@ else
       result := result+IntToStr(length(arrayOrds))+#127;
       for counter := 0 to length(arrayOrds)-1 do
          begin
-         thisorderinfo := format('%s'#127'%d'#127'%d'#127'%s'#127'%d'#127'%s'#127'%d'#127'%d'#127'%s'#127,
+         thisorderinfo := format('%s'#127'%d'#127'%d'#127'%s'#127'%d'#127'%s'#127'%d'#127'%d'#127'%s'#127'%s'#127,
             [ arrayOrds[counter].OrderID,arrayOrds[counter].TimeStamp,arrayOrds[counter].Block,
             arrayOrds[counter].OrderType,arrayOrds[counter].OrderLines,arrayOrds[counter].Receiver,
-            arrayOrds[counter].AmmountTrf,arrayOrds[counter].AmmountFee,arrayOrds[counter].Reference ]);
+            arrayOrds[counter].AmmountTrf,arrayOrds[counter].AmmountFee,arrayOrds[counter].Reference,
+            arrayOrds[counter].Sender]);
          result := result+thisorderinfo;
          end;
       end

@@ -114,19 +114,19 @@
     </RunParams>
     <RequiredPackages Count="7">
       <Item1>
-        <PackageName Value="indylaz"/>
+        <PackageName Value="SimpleBaseLib4PascalPackage"/>
       </Item1>
       <Item2>
-        <PackageName Value="lazbarcodes"/>
+        <PackageName Value="indylaz"/>
       </Item2>
       <Item3>
-        <PackageName Value="dcpcrypt"/>
+        <PackageName Value="lazbarcodes"/>
       </Item3>
       <Item4>
-        <PackageName Value="CryptoLib4PascalPackage"/>
+        <PackageName Value="dcpcrypt"/>
       </Item4>
       <Item5>
-        <PackageName Value="SimpleBaseLib4PascalPackage"/>
+        <PackageName Value="CryptoLib4PascalPackage"/>
       </Item5>
       <Item6>
         <PackageName Value="HashLib4PascalPackage"/>

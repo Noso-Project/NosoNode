@@ -486,7 +486,7 @@ if not errored then
       IncClientReadThreads;
       result := Slot;
          TRY
-         CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address+' '+ProgramVersion+subversion);
+         CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address+' '+ProgramVersion+subversion+' '+UTCTime);
          CanalCliente[Slot].IOHandler.WriteLn(ProtocolLine(3));   // Send PING
          EXCEPT on E:Exception do
             begin
@@ -1192,7 +1192,7 @@ var
   orderfound : boolean = false;
   resultorder : orderdata;
   ArrTrxs : BlockOrdersArray;
-  LastBlockToCheck : integer;
+  LastBlockToCheck : integer = 0;
   CopyPendings : array of orderdata;
 Begin
 setmilitime('GetOrderDetails',1);
@@ -1213,6 +1213,9 @@ if GetPendingCount>0 then
          resultorder.reference:=CopyPendings[counter].reference;
          resultorder.TimeStamp:=CopyPendings[counter].TimeStamp;
          resultorder.receiver:= CopyPendings[counter].receiver;
+         if resultorder.Sender = '' then
+            resultorder.Sender  := CopyPendings[counter].address
+         else resultorder.Sender  := resultorder.Sender+','+CopyPendings[counter].address;
          resultorder.AmmountTrf:=resultorder.AmmountTrf+CopyPendings[counter].AmmountTrf;
          resultorder.AmmountFee:=resultorder.AmmountFee+CopyPendings[counter].AmmountFee;
          resultorder.OrderLines+=1;
@@ -1224,7 +1227,8 @@ if GetPendingCount>0 then
 if orderfound then result := resultorder
 else
    begin
-   LastBlockToCheck := mylastblock-4000;
+   if WO_FullNode then LastBlockToCheck := 1
+   else LastBlockToCheck := mylastblock-SecurityBlocks;
    if LastBlockToCheck<1 then LastBlockToCheck := 1;
    for counter := mylastblock downto LastBlockToCheck do
       begin
@@ -1240,6 +1244,9 @@ else
                resultorder.reference:=ArrTrxs[counter2].reference;
                resultorder.TimeStamp:=ArrTrxs[counter2].TimeStamp;
                resultorder.receiver:=ArrTrxs[counter2].receiver;
+               if resultorder.Sender = '' then
+                  resultorder.Sender  :=ArrTrxs[counter2].sender
+               else resultorder.Sender := resultorder.Sender+','+ArrTrxs[counter2].sender;
                resultorder.AmmountTrf:=resultorder.AmmountTrf+ArrTrxs[counter2].AmmountTrf;
                resultorder.AmmountFee:=resultorder.AmmountFee+ArrTrxs[counter2].AmmountFee;
                resultorder.OrderLines+=1;

@@ -789,10 +789,10 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ab6';
+  SubVersion = 'Ab7';
   OficialRelease = false;
   VersionRequired = '0.3.2Aa7';
-  BuildDate = 'July 2022';
+  BuildDate = 'August 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   HasheableChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -830,7 +830,7 @@ CONST
   AvailableMarkets = '/LTC';
   SendDirectToPeer = false;
   SumMarkInterval  = 100;
-  SecurityBlocks   = 1000;
+  SecurityBlocks   = 4000;
 
 var
   UserFontSize : integer = 8;
@@ -2847,6 +2847,7 @@ var
   MemStream   : TMemoryStream;
   ContextData : TServerTipo;
   ThisSlot    : integer;
+  PeerUTC     : int64;
 Begin
 GoAhead := true;
 ContextData := TServerTipo.Create;
@@ -2880,8 +2881,9 @@ EXCEPT on E:Exception do
    GoAhead := false;
    end;
 END{Try};
-MiIp := Parameter(LLine,1);
+MiIp        := Parameter(LLine,1);
 Peerversion := Parameter(LLine,2);
+PeerUTC     := StrToInt64Def(Parameter(LLine,3),0);
 if GoAhead then
    begin
    if parameter(LLine,0) = 'NODESTATUS' then
@@ -2985,6 +2987,12 @@ if GoAhead then
       //ToLog('SERVER: Own connected');
       TryCloseServerConnection(AContext);
       end
+
+   else if ( (Abs(UTCTime.ToInt64-PeerUTC)>5) and (Mylastblock >= 70000) ) then
+      begin
+      TryCloseServerConnection(AContext,'WRONG_TIME');
+      end
+
    else if BotExists(IPUser) then // known bot
       begin
       TryCloseServerConnection(AContext,'BANNED');
