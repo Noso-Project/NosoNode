@@ -288,6 +288,7 @@ else if UpperCase(Command) = 'REQSUM' then RequestSumary()
 else if UpperCase(Command) = 'SAVEADV' then CreateADV(true)
 else if UpperCase(Command) = 'SHOWADVOPT' then ShowAdvOpt()
 else if UpperCase(Command) = 'ORDER' then ShowOrderDetails(LineText)
+else if UpperCase(Command) = 'ORDERSOURCES' then consolelinesAdd(GetOrderSources(Parameter(LineText,1)))
 else if UpperCase(Command) = 'EXPORTADDRESS' then ExportAddress(LineText)
 else if UpperCase(Command) = 'ADDRESS' then ShowAddressInfo(LineText)
 else if UpperCase(Command) = 'HISTORY' then ShowAddressHistory(LineText)
@@ -1637,7 +1638,8 @@ Begin
 if (DireccionEsMia(AdminHash)<0) then ConsoleLinesAdd(LangLine(54)) //Only the Noso developers can do this
 else
    begin
-   Mensaje := parameter(linetext,1);
+   mensaje := copy(linetext,11,length(linetext));
+   //Mensaje := parameter(linetext,1);
    currtime := UTCTime;
    firma := GetStringSigned(currtime+mensaje,ListaDirecciones[DireccionEsMia(AdminHash)].PrivateKey);
    hashmsg := HashMD5String(currtime+mensaje+firma);
@@ -1703,7 +1705,7 @@ Procedure ShowOrderDetails(LineText:string);
 var
   orderid : string;
   orderdetails : string;
-  ThisOrderdata : orderdata;
+  ThisOrderdata : TOrderGroup;
 Begin
 orderid := parameter(LineText,1);
 ThisOrderdata := GetOrderDetails(orderid);
@@ -1711,14 +1713,15 @@ if thisorderdata.AmmountTrf<=0 then
   ConsoleLinesAdd('Order not found')
 else
   begin
-  ConsoleLinesAdd('Time: '+TimestampToDate(IntToStr(ThisOrderdata.TimeStamp)));
+  ConsoleLinesAdd('Time     : '+TimestampToDate(IntToStr(ThisOrderdata.TimeStamp)));
   if ThisOrderdata.Block = -1 then ConsoleLinesAdd('Block: Pending')
-  else ConsoleLinesAdd('Block: '+IntToStr(ThisOrderdata.Block));
-  ConsoleLinesAdd('Type: '+ThisOrderdata.OrderType);
-  ConsoleLinesAdd('Trfrs: '+IntToStr(ThisOrderdata.OrderLines));
-  ConsoleLinesAdd('Receiver: '+ThisOrderdata.receiver);
-  ConsoleLinesAdd('Ammount: '+Int2curr(ThisOrderdata.AmmountTrf));
-  ConsoleLinesAdd('Fee: '+Int2curr(ThisOrderdata.AmmountFee));
+  else ConsoleLinesAdd('Block    : '+IntToStr(ThisOrderdata.Block));
+  ConsoleLinesAdd('Type     : '+ThisOrderdata.OrderType);
+  ConsoleLinesAdd('Trfrs    : '+IntToStr(ThisOrderdata.OrderLines));
+  ConsoleLinesAdd('Sender   : '+ThisOrderdata.sender);
+  ConsoleLinesAdd('Receiver : '+ThisOrderdata.receiver);
+  ConsoleLinesAdd('Ammount  : '+Int2curr(ThisOrderdata.AmmountTrf));
+  ConsoleLinesAdd('Fee      : '+Int2curr(ThisOrderdata.AmmountFee));
   ConsoleLinesAdd('Reference: '+ThisOrderdata.reference);
   end;
 End;

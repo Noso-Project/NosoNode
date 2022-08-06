@@ -7,21 +7,6 @@ interface
 uses
   Classes, SysUtils, mpgui, FPJSON, jsonparser, mpCripto, mpCoin, mpRed, mpBlock;
 
-Type
-
-  TOrderGroup = Packed Record
-     Block      : integer;
-     TimeStamp  : Int64;
-     OrderID    : string[64];
-     OrderType  : String[6];
-     OrderLines : Integer;
-     Reference  : String[64];
-     Sender     : string;
-     Receiver   : String[40];
-     AmmountFee : Int64;
-     AmmountTrf : Int64;
-     end;
-
 Procedure SetRPCPort(LineText:string);
 Procedure setRPCpassword(newpassword:string);
 Procedure SetRPCOn();
@@ -430,12 +415,12 @@ End;
 
 function RPC_OrderInfo(NosoPParams:string):string;
 var
-  thisOr : orderdata;
+  thisOr : TOrderGroup;
   validID : string = 'true';
 Begin
 ToLog('GetOrderDetails requested: '+NosoPParams);
 NosoPParams := Trim(NosoPParams);
-ThisOr := Default(orderdata);
+ThisOr := Default(TOrderGroup);
 if NosoPParams='' then
    begin
    validID := 'false';
@@ -523,7 +508,8 @@ var
            begin
            arrayords[cont].AmmountTrf:=arrayords[cont].AmmountTrf+order.AmmountTrf;
            arrayords[cont].AmmountFee:=arrayords[cont].AmmountFee+order.AmmountFee;
-           arrayords[cont].Sender    :=arrayords[cont].Sender+','+order.Address;
+           arrayords[cont].Sender    :=arrayords[cont].Sender+
+              format('[%s,%d,%d]',[order.Address,order.AmmountTrf,order.AmmountFee]);
            arrayords[cont].OrderLines+=1;
            existed := true;
            break;
@@ -542,7 +528,10 @@ var
      arrayords[length(arrayords)-1].AmmountTrf:=order.AmmountTrf;
      arrayords[length(arrayords)-1].AmmountFee:=order.AmmountFee;
      arrayords[length(arrayords)-1].Reference:=order.Reference;
-     arrayords[length(arrayords)-1].sender:=order.Address;
+     if order.OrderLines=1 then
+        arrayords[length(arrayords)-1].sender:=order.sender
+     else arrayords[length(arrayords)-1].sender:=arrayords[length(arrayords)-1].sender+
+          format('[%s,%d,%d]',[order.Address,order.AmmountTrf,order.AmmountFee]);
      end;
   end;
 

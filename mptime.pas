@@ -38,7 +38,7 @@ if global = -1 then
    gridinicio.RowCount:=gridinicio.RowCount-1;
    OutText('✗ Failed initializing time',false,1);
    G_TimeOffSet := 0;
-   ShowMessage('Unable to synchronize time'+ sLineBreak +
+   ToLog('Unable to synchronize time'+ sLineBreak +
    'Please, make sure your local time is correct');
    Exit;
    end;
@@ -47,7 +47,7 @@ gridinicio.RowCount:=gridinicio.RowCount-1;
 OutText('✓ Time initialized',false,1);
 if Abs(G_TimeOffSet) > 5 then
    begin
-   ShowMessage('Your time is incorrect by '+IntToStr(G_TimeOffSet)+' seconds'+ sLineBreak +
+   ToLog('Your time is incorrect by '+IntToStr(G_TimeOffSet)+' seconds'+ sLineBreak +
    'You should fix it before trying a connection to mainnet');
    end;
 End;

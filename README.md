@@ -33,16 +33,23 @@ The best way to ensure that these packages are the latest version is to install 
 
 The Windows version has been tested on:
 
+- Windows XP
 - Windows 7
 - Windows 8.1
 - Windows 10
+- Windows Server 2012
+- Windows Server 2016
+- Windows Server 2019
 
 ### Linux
 
 The Linux version has been tested on:
 
+- Ubuntu 18.04 64bit
+- Ubuntu 20.04 64bit
 - Ubuntu 21.10 64b with a Light/Dark Theme
 - Debian 11 64bit (Bullseye) with the Adwaita Dark Theme
+- XFCE 4.16
 
 > **Note**
 >

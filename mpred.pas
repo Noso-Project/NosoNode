@@ -44,6 +44,7 @@ function UpdateNetworkMNsCount():NetworkData;
 function UpdateNetworkBestHash():NetworkData;
 function UpdateNetworkMNsChecks():NetworkData;
 function UpdateNetworkGVTsHash():NetworkData;
+function UpdateNetworkCFGHash():NetworkData;
 Procedure UpdateNetworkData();
 Function IsAllSynced():Boolean;
 Procedure UpdateMyData();
@@ -53,7 +54,8 @@ function GetOutGoingConnections():integer;
 function GetIncomingConnections():integer;
 Function GetSeedConnections():integer;
 Procedure SendNetworkRequests(timestamp,direccion:string;block:integer);
-function GetOrderDetails(orderid:string):orderdata;
+function GetOrderDetails(orderid:string):TOrderGroup;
+function GetOrderSources(orderid:string):string;
 Function GetNodeStatusString():string;
 Function IsSafeIP(IP:String):boolean;
 Function GetLastRelease():String;
@@ -929,19 +931,37 @@ if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
 else result := Default(NetworkData);
 End;
 
+function UpdateNetworkCFGHash():NetworkData;
+var
+  contador : integer = 1;
+Begin
+SetLength(ArrayConsenso,0);
+ConsensoValues := 0;
+for contador := 1 to MaxConecciones do
+   Begin
+   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
+      begin
+      UpdateConsenso(conexiones[contador].CFGHash, contador);
+      end;
+   end;
+if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
+else result := Default(NetworkData);
+End;
+
 Procedure UpdateNetworkData();
 Begin
 SetCurrentJob('UpdateNetworkData',true);
 NetLastBlock := UpdateNetworkLastBlock; // Buscar cual es el ultimo bloque por consenso
 NetLastBlockHash := UpdateNetworkLastBlockHash;
-NetSumarioHash := UpdateNetworkSumario; // Busca el hash del sumario por consenso
-NetPendingTrxs := UpdateNetworkPendingTrxs;
-NetResumenHash := UpdateNetworkResumenHash;
-NetMNsHash := UpdateNetworkMNsHash;
-NetMNsCount := UpdateNetworkMNsCOunt;
-NetBestHash := UpdateNetworkBestHash;
-NetMNsChecks := UpdateNetworkMNsChecks;
+NetSumarioHash   := UpdateNetworkSumario; // Busca el hash del sumario por consenso
+NetPendingTrxs   := UpdateNetworkPendingTrxs;
+NetResumenHash   := UpdateNetworkResumenHash;
+NetMNsHash       := UpdateNetworkMNsHash;
+NetMNsCount      := UpdateNetworkMNsCOunt;
+NetBestHash      := UpdateNetworkBestHash;
+NetMNsChecks     := UpdateNetworkMNsChecks;
 NetGVTSHash      := UpdateNetworkGVTsHash;
+NETCFGHash       := UpdateNetworkCFGHash;
 U_DataPanel := true;
 SetCurrentJob('UpdateNetworkData',false);
 End;
@@ -990,7 +1010,7 @@ if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // Req
    SetNMSData('','','');
    ClearMNsChecks();
    ClearMNsList();
-   if ((LastTimeRequestResumen+5 < UTCTime.ToInt64) and (not DownloadHeaders)) then
+   if ((LastTimeRequestResumen+10 < UTCTime.ToInt64) and (not DownloadHeaders)) then
       begin
       if ( (NLBV-mylastblock >= 144) or (ForceCompleteHeadersDownload) ) then
          begin
@@ -1085,6 +1105,13 @@ else if ( (NetMNsHash.value<>Copy(MyMNsHash,1,5)) and (LastTimeMNHashRequestes+5
    PTC_SendLine(NetMNsHash.Slot,ProtocolLine(GetMNsFile));  // Get MNsFile
    LastTimeMNHashRequestes := UTCTime.ToInt64;
    ConsoleLinesAdd('Mns File requested to '+conexiones[NetMNsChecks.Slot].ip);
+   end
+else if ( (NetCFGHash.value<>Copy(HashMd5String(GetNosoCFG),0,5)) and (LasTimeCFGRequest+5<UTCTime.ToInt64) and
+          (NetCFGHash.value<>'') ) then
+   begin
+   PTC_SendLine(NetCFGHash.Slot,ProtocolLine(GetCFG));  // TO BE IMPLEMENTED
+   LasTimeCFGRequest := UTCTime.ToInt64;
+   ConsoleLinesAdd('Noso CFG file requested');
    end
 else if ( (GetNMSData.Diff<>NetBestHash.Value) and (LastTimeBestHashRequested+5<UTCTime.ToInt64) ) then
    begin
@@ -1186,17 +1213,17 @@ UpdateMyRequests(2,timestamp,block, hashreq, hashvalue);
 ConsoleLinesAdd('peers starts in 1');
 End;
 
-function GetOrderDetails(orderid:string):orderdata;
+function GetOrderDetails(orderid:string):TOrderGroup;
 var
   counter,counter2 : integer;
   orderfound : boolean = false;
-  resultorder : orderdata;
+  resultorder : TOrderGroup;
   ArrTrxs : BlockOrdersArray;
   LastBlockToCheck : integer = 0;
   CopyPendings : array of orderdata;
 Begin
 setmilitime('GetOrderDetails',1);
-resultorder := default(orderdata);
+resultorder := default(TOrderGroup);
 result := resultorder;
 if GetPendingCount>0 then
    begin
@@ -1213,9 +1240,10 @@ if GetPendingCount>0 then
          resultorder.reference:=CopyPendings[counter].reference;
          resultorder.TimeStamp:=CopyPendings[counter].TimeStamp;
          resultorder.receiver:= CopyPendings[counter].receiver;
-         if resultorder.Sender = '' then
+         if CopyPendings[counter].OrderLines = 1 then
             resultorder.Sender  := CopyPendings[counter].address
-         else resultorder.Sender  := resultorder.Sender+','+CopyPendings[counter].address;
+         else
+            resultorder.Sender:=resultorder.Sender+format('[%s,%d,%d]',[CopyPendings[counter].Address,CopyPendings[counter].AmmountTrf,CopyPendings[counter].AmmountFee]);
          resultorder.AmmountTrf:=resultorder.AmmountTrf+CopyPendings[counter].AmmountTrf;
          resultorder.AmmountFee:=resultorder.AmmountFee+CopyPendings[counter].AmmountFee;
          resultorder.OrderLines+=1;
@@ -1244,9 +1272,10 @@ else
                resultorder.reference:=ArrTrxs[counter2].reference;
                resultorder.TimeStamp:=ArrTrxs[counter2].TimeStamp;
                resultorder.receiver:=ArrTrxs[counter2].receiver;
-               if resultorder.Sender = '' then
-                  resultorder.Sender  :=ArrTrxs[counter2].sender
-               else resultorder.Sender := resultorder.Sender+','+ArrTrxs[counter2].sender;
+               if ArrTrxs[counter2].OrderLines=1 then
+                  resultorder.Sender := ArrTrxs[counter2].Sender
+               else
+                  resultorder.Sender:=resultorder.Sender+format('[%s,%d,%d]',[ArrTrxs[counter2].Address,ArrTrxs[counter2].AmmountTrf,ArrTrxs[counter2].AmmountFee]);
                resultorder.AmmountTrf:=resultorder.AmmountTrf+ArrTrxs[counter2].AmmountTrf;
                resultorder.AmmountFee:=resultorder.AmmountFee+ArrTrxs[counter2].AmmountFee;
                resultorder.OrderLines+=1;
@@ -1263,24 +1292,57 @@ result := resultorder;
 setmilitime('GetOrderDetails',2);
 End;
 
+function GetOrderSources(orderid:string):string;
+var
+  LastBlockToCheck : integer;
+  Counter          : integer;
+  counter2         : integer;
+  resultorder      : orderdata;
+  ArrTrxs          : BlockOrdersArray;
+  orderfound       : boolean = false;
+Begin
+result := '';
+if WO_FullNode then LastBlockToCheck := 1
+else LastBlockToCheck := mylastblock-SecurityBlocks;
+if LastBlockToCheck<1 then LastBlockToCheck := 1;
+for counter := mylastblock downto mylastblock-4000 do
+   begin
+   ArrTrxs := GetBlockTrxs(counter);
+   if length(ArrTrxs)>0 then
+      begin
+      for counter2 := 0 to length(ArrTrxs)-1 do
+         begin
+         if ArrTrxs[counter2].OrderID = orderid then
+            begin
+            Result := Result+Format('[%s,%d,%d]',[ArrTrxs[counter2].Sender,ArrTrxs[counter2].AmmountTrf,ArrTrxs[counter2].AmmountFee]);
+            orderfound := true;
+            end;
+         end;
+      end;
+   if orderfound then break;
+   SetLength(ArrTrxs,0);
+   end;
+if not orderfound then result := 'Order Not Found';
+End;
+
 Function GetNodeStatusString():string;
 Begin
 //NODESTATUS 1{Peers} 2{LastBlock} 3{Pendings} 4{Delta} 5{headers} 6{version} 7{UTCTime} 8{MNsHash} 9{MNscount}
 //           10{LasBlockHash} 11{BestHashDiff} 12{LastBlockTimeEnd} 13{LBMiner} 14{ChecksCount} 15{LastBlockPoW}
-//           16{LastBlockDiff} 17{summary} 18{GVTs}
+//           16{LastBlockDiff} 17{summary} 18{GVTs} 18{nosoCFG}
 result := {1}IntToStr(GetTotalConexiones)+' '+{2}IntToStr(MyLastBlock)+' '+{3}GetPendingCount.ToString+' '+
           {4}IntToStr(UTCTime.ToInt64-EngineLastUpdate)+' '+{5}copy(myResumenHash,0,5)+' '+
           {6}ProgramVersion+SubVersion+' '+{7}UTCTime+' '+{8}copy(MyMnsHash,0,5)+' '+{9}GetMNsListLength.ToString+' '+
           {10}MyLastBlockHash+' '+{11}GetNMSData.Diff+' '+{12}IntToStr(LastBlockData.TimeEnd)+' '+
           {13}LastBlockData.AccountMiner+' '+{14}GetMNsChecksCount.ToString+' '+{15}Parameter(LastBlockData.Solution,2)+' '+
-          {16}Parameter(LastBlockData.Solution,1)+' '+{17}copy(MySumarioHash,0,5)+' '+{18}copy(MyGVTsHash,0,5);
+          {16}Parameter(LastBlockData.Solution,1)+' '+{17}copy(MySumarioHash,0,5)+' '+{18}copy(MyGVTsHash,0,5)+' '+
+          {19}Copy(HashMD5String(GetNosoCFG),0,5);
 End;
 
 Function IsSafeIP(IP:String):boolean;
 Begin
-if Pos(IP,DefaultNodes)>0 then result:=true
+if Pos(IP,Parameter(GetNosoCFG,1))>0 then result:=true
 else result := false;
-if IP = '107.172.30.204' then result := true;
 End;
 
 Function GetLastRelease():String;

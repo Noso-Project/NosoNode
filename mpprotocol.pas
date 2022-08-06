@@ -44,6 +44,7 @@ Procedure PTC_NetReqs(textline:string);
 function RequestAlreadyexists(reqhash:string):string;
 Procedure UpdateMyRequests(tipo:integer;timestamp:string;bloque:integer;hash,hashvalue:string);
 Function PTC_BestHash(Linea:string):String;
+Procedure PTC_CFGData(Linea:String);
 Procedure PTC_SendUpdateHeaders(Slot:integer;Linea:String);
 Procedure PTC_HeadUpdate(linea:String);
 
@@ -53,6 +54,10 @@ function NodeAlreadyadded(Node:TMasterNode):boolean;
 
 Procedure SetNMSData(diff,hash,miner:string);
 Function GetNMSData():TNMSData;
+
+Procedure AddCFGNode(StrNode:String);
+Procedure DeleteCFGNode(StrNode:String);
+
 
 // CS Incoming
 Procedure AddToIncoming(Index:integer;texto:string);
@@ -83,6 +88,8 @@ CONST
   HeadUpdate = 19;
   GetSumary  = 6;
   GetGVTs    = 20;
+  GetCFG     = 30;
+  SETCFG     = 31;
 
 implementation
 
@@ -223,6 +230,12 @@ if tipo = GetGVTs then
    Resultado := '$GETGVTS';
 if tipo = 21 then
    Resultado := '$SENDGVT ';
+if tipo = GetCFG then
+   Resultado := 'GETCFGDATA';
+if tipo = SETCFG then
+   Resultado := 'SETCFGDATA $';
+
+
 
 Resultado := Encabezado+Resultado;
 Result := resultado;
@@ -323,7 +336,11 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = '$MNCHECK' then PTC_MNCheck(ProcessLine)
       else if UpperCase(LineComando) = '$GETCHECKS' then PTC_SendChecks(contador)
       else if UpperCase(LineComando) = 'GETMNSFILE' then PTC_SendLine(contador,ProtocolLine(MNFILE)+' $'+GetMNsFileData)
+      else if UpperCase(LineComando) = 'GETCFGDATA' then PTC_SendLine(contador,ProtocolLine(SETCFG)+GetNosoCFG)
+
       else if UpperCase(LineComando) = 'MNFILE' then PTC_MNFile(ProcessLine)
+      else if UpperCase(LineComando) = 'SETCFGDATA' then PTC_CFGData(ProcessLine)
+
       else if UpperCase(LineComando) = 'GETHEADUPDATE' then PTC_SendUpdateHeaders(contador,ProcessLine)
       else if UpperCase(LineComando) = 'HEADUPDATE' then PTC_HeadUpdate(ProcessLine)
       else if UpperCase(LineComando) = '$GETSUMARY' then PTC_SendSumary(contador)
@@ -482,6 +499,7 @@ conexiones[slot].MNsCount     :=StrToIntDef(PMNsCount,0);
 conexiones[slot].BestHashDiff := BestHashDiff;
 conexiones[slot].MNChecksCount:=StrToIntDef(MnsCheckCount,0);
 conexiones[slot].GVTsHash     :=Parameter(LineaDeTexto,17);
+conexiones[slot].CFGHash     :=Parameter(LineaDeTexto,18);
 if responder then PTC_SendLine(slot,ProtocolLine(4));
 if responder then G_TotalPings := G_TotalPings+1;
 End;
@@ -504,7 +522,8 @@ result :=IntToStr(GetTotalConexiones())+' '+
          IntToStr(GetMNsListLength)+' '+
          GetNMSData.Diff+' '+
          GetMNsChecksCount.ToString+' '+
-         MyGVTsHash;
+         MyGVTsHash+' '+
+         Copy(HashMD5String(GetNosoCFG),0,5);
 End;
 
 // Envia las TXs pendientes al slot indicado
@@ -1059,8 +1078,8 @@ msgtime := parameter(TextLine,5);
 mensaje := parameter(TextLine,6);
 firma := parameter(TextLine,7);
 hashmsg := parameter(TextLine,8);
-if AnsiContainsStr(MsgsReceived,hashmsg) then errored := true
-else mensaje := StringReplace(mensaje,'_',' ',[rfReplaceAll, rfIgnoreCase]);
+if AnsiContainsStr(MsgsReceived,hashmsg) then errored := true;
+mensaje := StringReplace(mensaje,'_',' ',[rfReplaceAll, rfIgnoreCase]);
 if not VerifySignedString(msgtime+mensaje,firma,AdminPubKey) then
    begin
    ToLog('Directive wrong sign');
@@ -1086,6 +1105,14 @@ if not errored then
          Tolog('DIRECTIVE'+slinebreak+'update '+TParam);
          ConsoleLinesAdd('AutoUpdate directive received');
          end;
+      end;
+   if UpperCase(TCommand) = 'ADDNODE' then
+      begin
+      AddCFGNode(Parameter(mensaje,1));
+      end;
+   if UpperCase(TCommand) = 'DELNODE' then
+      begin
+      DeleteCFGNode(Parameter(mensaje,1));
       end;
    OutgoingMsjsAdd(TextLine);
    end;
@@ -1320,6 +1347,25 @@ else
    end;
 End;
 
+Procedure PTC_CFGData(Linea:String);
+var
+  startpos : integer;
+  content : string;
+Begin
+startpos := Pos('$',Linea);
+Content := Copy(Linea,Startpos+1,Length(linea));
+if Copy(HAshMD5String(Content),0,5) = NetCFGHash.Value then
+   begin
+   SaveNosoCFGFile(content);
+   SetNosoCFG(content);
+   FillNodeList;
+   CargarNTPData;
+   ConsoleLinesAdd('Noso CFG updated');
+   end
+else
+   ConsoleLinesAdd(Format('%s %s',[Copy(HAshMD5String(Content),0,5),NetCFGHash.Value]));
+End;
+
 Procedure PTC_SendUpdateHeaders(Slot:integer;Linea:String);
 var
   Block : integer;
@@ -1381,6 +1427,53 @@ Begin
 EnterCriticalSection(CSNMSData);
 Result := NMSData;
 LeaveCriticalSection(CSNMSData);
+End;
+
+Procedure AddCFGNode(StrNode:String);
+var
+  LOrigin, LFinish : String;
+  CFGHead, CFGNodes, CFGNTPs : String;
+Begin
+StrNode := StringReplace(StrNode,';',' ',[rfReplaceAll, rfIgnoreCase]);
+StrNode := ':'+Parameter(StrNode,0)+';'+StrToIntDef(Parameter(StrNode,1),8080).ToString;
+LOrigin  := GetNosoCFG;
+CFGHead  := Parameter(LOrigin,0);
+CFGNodes := Parameter(LOrigin,1);
+CFGNTPs  := Parameter(LOrigin,2);
+// Add the node
+CFGNodes := CFGNodes+StrNode;
+LFInish := Format('%s %s %s',[CFGHead,CFGNodes,CFGNTPs]);
+LasTimeCFGRequest:= UTCTime.ToInt64+5;
+SaveNosoCFGFile(LFInish);
+SetNosoCFG(LFInish);
+FillNodeList;
+CargarNTPData;
+ConsoleLinesAdd(Format('Node %s added to NosoCFG',[StrNode]));
+End;
+
+Procedure DeleteCFGNode(StrNode:String);
+var
+  LOrigin, LFinish : String;
+  CFGHead, CFGNodes, CFGNTPs : String;
+Begin
+StrNode := StringReplace(StrNode,';',' ',[rfReplaceAll, rfIgnoreCase]);
+StrNode := Parameter(StrNode,0)+';'+StrToIntDef(Parameter(StrNode,1),8080).ToString;
+LOrigin  := GetNosoCFG;
+CFGHead  := Parameter(LOrigin,0);
+CFGNodes := Parameter(LOrigin,1);
+CFGNTPs  := Parameter(LOrigin,2);
+// Delete the node
+CFGNodes := StringReplace(CFGNodes,':',' ',[rfReplaceAll, rfIgnoreCase]);
+CFGNodes := StringReplace(CFGNodes,StrNode,'',[rfReplaceAll, rfIgnoreCase]);
+CFGNodes := Trim(CFGNodes);
+CFGNodes := StringReplace(CFGNodes,' ',':',[rfReplaceAll, rfIgnoreCase]);
+LFInish := Format('%s %s %s',[CFGHead,CFGNodes,CFGNTPs]);
+LasTimeCFGRequest:= UTCTime.ToInt64+5;
+SaveNosoCFGFile(LFInish);
+SetNosoCFG(LFInish);
+FillNodeList;
+CargarNTPData;
+ConsoleLinesAdd(Format('Node %s deleted from NosoCFG',[StrNode]));
 End;
 
 END. // END UNIT

@@ -146,6 +146,7 @@ type
      BestHashDiff : string[32];
      MNChecksCount : integer;
      GVTsHash      : string[32];
+     CFGHash       : string[32];
      end;
 
   WalletData = Packed Record
@@ -199,6 +200,19 @@ type
        AmmountTrf : Int64;
        Signature : String[120];
        TrfrID : String[64];
+     end;
+
+    TOrderGroup = Packed Record
+     Block      : integer;
+     TimeStamp  : Int64;
+     OrderID    : string[64];
+     OrderType  : String[6];
+     OrderLines : Integer;
+     Reference  : String[64];
+     Sender     : string;
+     Receiver   : String[40];
+     AmmountFee : Int64;
+     AmmountTrf : Int64;
      end;
 
   NetworkData = Packed Record
@@ -382,7 +396,6 @@ type
        Hash     : string[64];
        control  : integer;
        end;
-
 
   { TForm1 }
 
@@ -764,14 +777,15 @@ CONST
   ReservedWords : string = 'NULL,DELADDR';
   ValidProtocolCommands : string = '$PING$PONG$GETPENDING$NEWBL$GETRESUMEN$LASTBLOCK$GETCHECKS'+
                                    '$CUSTOMORDERADMINMSGNETREQ$REPORTNODE$GETMNS$BESTHASH$MNREPO$MNCHECK'+
-                                   'GETMNSFILEMNFILEGETHEADUPDATE$GETSUMARY$GETGVTSGVTSFILE$SENDGVT';
+                                   'GETMNSFILEMNFILEGETHEADUPDATE$GETSUMARY$GETGVTSGVTSFILE$SENDGVTGETCFGDATA'+
+                                   'SETCFGDATA';
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
   DefaultNodes : String = 'DefNodes '+
                             '109.230.238.240 '+
-                            '198.144.190.194 '+
+                            '149.57.235.14 '+
                             '149.57.226.244 '+
-                            '107.172.193.176 '+
+                            '81.22.38.101 '+
                             '66.151.117.247 '+
                             '149.57.229.81 '+
                             '149.57.242.211 '+
@@ -779,6 +793,12 @@ CONST
                             '159.196.1.198 '+
                             '101.100.138.125 '+
                             '198.46.218.125';
+
+  DefaultNosoCFG : String = 'nosocfg 109.230.238.240;8080:149.57.235.14;8080:149.57.226.244;8080:81.22.38.101;8080:'+
+                            '66.151.117.247;8080:149.57.229.81;8080:149.57.242.211;8080:149.57.138.12;8080:'+
+                            '159.196.1.198;8080:101.100.138.125;8080:198.46.218.125;8080 ntp.amnic.net:ts2.aco.net:'+
+                            'hora.roa.es:ntp.atomki.mta.hu:time.esa.int:time.stdtime.gov.tw:stratum-1.sjc02.svwh.net:'+
+                            'ntp3.indypl.org:ntp1.sp.se:ntp.ntp-servers.com:1.de.pool.ntp.org';
 
   ProgramVersion = '0.3.2';
   {$IFDEF WINDOWS}
@@ -789,7 +809,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ab7';
+  SubVersion = 'Ab8';
   OficialRelease = false;
   VersionRequired = '0.3.2Aa7';
   BuildDate = 'August 2022';
@@ -978,6 +998,7 @@ var
   AutoRestarted : Boolean = false;
   CurrentLanguage : String = '';
   CurrentJob : String = '';
+  NosoCFGStr : String = '';
   ForcedQuit : boolean = false;
   G_KeepPoolOff : boolean = false;
   LanguageLines : integer = 0;
@@ -1015,9 +1036,11 @@ var
   MyLastBlockHash : String = '';
   MyResumenHash : String = '';
   MyGVTsHash    : string = '';
+  MyCFGHash     : string = '';
   MyPublicIP : String = '';
   OpenReadClientThreads : integer = 0;
   BlockUndoneTime    : int64 = 0;
+
 
   MyMNsHash : String = '';
   ArrayMNsData  : array of TMNsData;
@@ -1063,6 +1086,8 @@ var
   STATUS_Connected : boolean = false;
   NetGVTSHash      : NetworkData;
     LasTimeGVTsRequest : int64 = 0;
+  NetCFGHash       : NetworkData;
+    LasTimeCFGRequest : int64 = 0;
 
   // Variables asociadas al minero
   MyPoolData : PoolData;
@@ -1129,6 +1154,7 @@ var
   CSCurrentJob  : TRTLCriticalSection;
   CSClientReads : TRTLCriticalSection;
   CSGVTsArray   : TRTLCriticalSection;
+  CSNosoCFGStr  : TRTLCriticalSection;
 
   // old system
   CSMNsArray    : TRTLCriticalSection;
@@ -1181,6 +1207,7 @@ var
   ZipSumaryFileName : String = '';
   ZipHeadersFileName : string = '';
   GVTsFilename       : string = '';
+  NosoCFGFilename    : string = '';
 
   MontoIncoming : Int64 = 0;
   MontoOutgoing : Int64 = 0;
@@ -1679,6 +1706,8 @@ InitCriticalSection(CSNMSData);
 InitCriticalSection(CSCurrentJob);
 InitCriticalSection(CSClientReads);
 InitCriticalSection(CSGVTsArray);
+InitCriticalSection(CSNosoCFGStr);
+
 InitCriticalSection(CSIdsProcessed);
 InitCriticalSection(CSNodesList);
 for counter := 1 to MaxConecciones do
@@ -1725,6 +1754,7 @@ DoneCriticalSection(CSNMSData);
 DoneCriticalSection(CSCurrentJob);
 DoneCriticalSection(CSClientReads);
 DoneCriticalSection(CSGVTsArray);
+DoneCriticalSection(CSNosoCFGStr);
 DoneCriticalSection(CSIdsProcessed);
 DoneCriticalSection(CSNodesList);
 for contador := 1 to MaxConecciones do

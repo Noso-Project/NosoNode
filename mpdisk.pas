@@ -30,6 +30,11 @@ Procedure CreateGVTsFile();
 Procedure GetGVTsFileData();
 Procedure SaveGVTs();
 
+// NosoCFG file handling
+Procedure SaveNosoCFGFile(LStr:String);
+Procedure GetCFGFileData();
+Procedure SetNosoCFG(LStr:string);
+Function GetNosoCFG():String;
 
 Procedure CreateTextFile(FileName:String);
 Procedure CreateLog();
@@ -144,10 +149,14 @@ if not FileExists(MasterNodesFilename) then CreateMasterNodesFile;
 GetMNsFileData;
 OutText('✓ Masternodes file ok',false,1);
 
-
 if not FileExists(GVTsFilename) then CreateGVTsFile;
 GetGVTsFileData;
 OutText('✓ GVTs file ok',false,1);
+
+if not FileExists(NosoCFGFilename) then SaveNosoCFGFile(DefaultNosoCFG);
+GetCFGFileData;
+OutText('✓ NosoCFG file ok',false,1);
+
 
 if not FileExists (UserOptions.wallet) then CrearWallet() else CargarWallet(UserOptions.wallet);
 OutText('✓ Wallet file ok',false,1);
@@ -156,7 +165,8 @@ OutText('✓ Bots file ok',false,1);
 
 FillNodeList;  // Fills the hardcoded seed nodes list
 
-if not Fileexists(NTPDataFilename) then CrearNTPData() else CargarNTPData();
+//if not Fileexists(NTPDataFilename) then CrearNTPData() else CargarNTPData();
+CargarNTPData;
 OutText('✓ NTP servers file ok',false,1);
 if not Fileexists(SumarioFilename) then CreateSumario() else LoadSumaryFromFile();
 OutText('✓ Sumary file ok',false,1);
@@ -188,12 +198,15 @@ var
   Thisport  : integer;
   continuar : boolean = true;
   NodeToAdd : NodeData;
+  SourceStr : String = '';
 Begin
-counter := 1;
+counter := 0;
+SourceStr := Parameter(GetNosoCFG,1);
+SourceStr := StringReplace(SourceStr,':',' ',[rfReplaceAll, rfIgnoreCase]);
 SetLength(ListaNodos,0);
 Repeat
-   ThisNode := parameter(DefaultNodes,counter);
-   ThisNode := StringReplace(ThisNode,':',' ',[rfReplaceAll, rfIgnoreCase]);
+   ThisNode := parameter(SourceStr,counter);
+   ThisNode := StringReplace(ThisNode,';',' ',[rfReplaceAll, rfIgnoreCase]);
    ThisPort := StrToIntDef(Parameter(ThisNode,1),8080);
    ThisNode := Parameter(ThisNode,0);
    if thisnode = '' then continuar := false
@@ -212,7 +225,7 @@ End;
 Function IsSeedNode(IP:String):boolean;
 Begin
 Result := false;
-if AnsiContainsStr(DefaultNodes,ip) then result := true;
+if AnsiContainsStr(Parameter(GetNosoCFG,1),ip) then result := true;
 End;
 
 // *** EXCEPTLOG FILE ***
@@ -449,6 +462,56 @@ EXCEPT ON E:Exception do
 END;
 MyGVTsHash := HashMD5File(GVTsFilename);
 LeaveCriticalSection(CSGVTsArray);
+End;
+
+Procedure SaveNosoCFGFile(LStr:String);
+var
+  LFile : Textfile;
+Begin
+Assignfile(LFile, NosoCFGFilename);
+TRY
+   TRY
+   rewrite(LFile);
+   write(Lfile,LStr);
+   EXCEPT on E:Exception do
+      tolog ('Error creating the NosoCFG file');
+   END;
+FINALLY
+Closefile(LFile);
+END; {TRY}
+End;
+
+Procedure GetCFGFileData();
+var
+  LFile : Textfile;
+  LStr  : string = '';
+Begin
+Assignfile(LFile, NosoCFGFilename);
+TRY
+   TRY
+   reset(LFile);
+   ReadLn(Lfile,LStr);
+   SetNosoCFG(LStr);
+   EXCEPT on E:Exception do
+      tolog ('Error loading the NosoCFG file');
+   END;
+FINALLY
+Closefile(LFile);
+END; {TRY}
+End;
+
+Procedure SetNosoCFG(LStr:string);
+Begin
+EnterCriticalSection(CSNosoCFGStr);
+NosoCFGStr := LStr;
+LEaveCriticalSection(CSNosoCFGStr);
+End;
+
+Function GetNosoCFG():String;
+Begin
+EnterCriticalSection(CSNosoCFGStr);
+Result := NosoCFGStr;
+LeaveCriticalSection(CSNosoCFGStr);
 End;
 
 // Creates/Saves Advopt file
@@ -975,20 +1038,25 @@ End;
 Procedure CargarNTPData();
 Var
   contador : integer = 0;
+  NTPsStr  : string = '';
+  ThisNTP  : String = '';
+  Added    : integer = 0;
 Begin
-assignfile(FileNTPData,NTPDataFilename);
-   TRY
-   reset(FileNTPData);
-   setlength(ListaNTP,filesize(FileNTPData));
-   for contador := 0 to filesize(FileNTPData)-1 do
+NTPsStr := Parameter(GetNosoCFG,2);
+NTPsStr := StringReplace(NTPsStr,':',' ',[rfReplaceAll, rfIgnoreCase]);
+setlength(ListaNTP,0);
+Repeat
+   ThisNTP := Parameter(NTPsStr,contador);
+   if ThisNTP <> '' then
       begin
-      seek(FileNTPData,contador);
-      Read(FileNTPData,ListaNTP[contador]);
+      setlength(ListaNTP,length(ListaNTP)+1);
+      ListaNTP[length(ListaNTP)-1] := Default(NTPData);
+      ListaNTP[length(ListaNTP)-1].Host := ThisNTP;
+      Inc(added);
       end;
-   closefile(FileNTPData);
-   EXCEPT on E:Exception do
-      tolog ('Error loading NTP servers');
-   END;{TRY}
+   Inc(Contador);
+until ThisNTP = '';
+ToLog(Format('Added %d NTP servers',[Added]));
 End;
 
 // Saves updates files to disk
@@ -2491,6 +2559,7 @@ PoolPaymentsFilename:= 'NOSODATA'+DirectorySeparator+'poolpays.psk';
 ZipSumaryFileName   := 'NOSODATA'+DirectorySeparator+'sumary.zip';
 ZipHeadersFileName  := 'NOSODATA'+DirectorySeparator+'blchhead.zip';
 GVTsFilename        := 'NOSODATA'+DirectorySeparator+'gvts.psk';
+NosoCFGFilename     := 'NOSODATA'+DirectorySeparator+'nosocfg.psk';
 End;
 
 // Try to delete a file safely

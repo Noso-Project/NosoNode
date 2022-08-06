@@ -1,3 +1,10 @@
+Version 0.3.2Ab8
+
+- GetOrderDetails&GetBlockOrders methods redone.
+- Blocking dialogs removed from unit time at launch.
+- NosoCFG file system implemented.
+- Node handling directives added.
+
 Version 0.3.2Ab7
 
 - Fixed bug on IsValidJSON.

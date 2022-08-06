@@ -57,7 +57,7 @@ var
 implementation
 
 Uses
-  mpParser, mpDisk, mpRed, mpProtocol,mpcoin, mpblock, formexplore, translation, mpMN;
+  mpParser, mpDisk, mpRed, mpProtocol,mpcoin, mpblock, formexplore, translation, mpMN,mpcripto;
 
 // Returns the X percentage of a specified number
 function ThisPercent(percent, thiswidth : integer;RestarBarra : boolean = false):integer;
@@ -121,7 +121,7 @@ Procedure CreateFormSlots();
 Begin
 FormSlots := TFormSlots.Createnew(form1);
 FormSlots.caption := coinname+' Slots Monitor';
-FormSlots.SetBounds(0, 0, 780, 410);
+FormSlots.SetBounds(0, 0, 820, 410);
 FormSlots.BorderStyle := bssingle;
 //FormSlots.Position:=poOwnerFormCenter;
 FormSlots.Top:=1;FormSlots.Left:=1;
@@ -130,9 +130,9 @@ FormSlots.ShowInTaskBar:=sTAlways;
 
 GridMSlots := TStringGrid.Create(FormSlots);GridMSlots.Parent:=FormSlots;
 GridMSlots.Font.Name:='consolas'; GridMSlots.Font.Size:=8;
-GridMSlots.Left:=1;GridMSlots.Top:=1;GridMSlots.Height:=408;GridMSlots.width:=774;
+GridMSlots.Left:=1;GridMSlots.Top:=1;GridMSlots.Height:=408;GridMSlots.width:=814;
 GridMSlots.FixedCols:=0;GridMSlots.FixedRows:=1;
-GridMSlots.rowcount := MaxConecciones+1;GridMSlots.ColCount:=20;
+GridMSlots.rowcount := MaxConecciones+1;GridMSlots.ColCount:=21;
 GridMSlots.ScrollBars:=ssVertical;
 GridMSlots.FocusRectVisible:=false;
 GridMSlots.Options:= GridMSlots.Options-[goRangeSelect];
@@ -142,7 +142,7 @@ GridMSlots.ColWidths[6]:= 40;GridMSlots.ColWidths[7]:= 25;GridMSlots.ColWidths[8
 GridMSlots.ColWidths[9]:= 70;GridMSlots.ColWidths[10]:= 30;GridMSlots.ColWidths[11]:= 25;
 GridMSlots.ColWidths[12]:= 40;GridMSlots.ColWidths[13]:= 25;GridMSlots.ColWidths[14]:= 29;
 GridMSlots.ColWidths[15]:= 40;GridMSlots.ColWidths[16]:= 25;GridMSlots.ColWidths[17]:= 80;
-GridMSlots.ColWidths[18]:= 25;GridMSlots.ColWidths[19]:= 40;
+GridMSlots.ColWidths[18]:= 25;GridMSlots.ColWidths[19]:= 40;GridMSlots.ColWidths[20]:= 40;
 GridMSlots.Enabled := true;
 GridMSlots.Cells[0,0]:='N';GridMSlots.Cells[1,0]:='IP';GridMSlots.Cells[2,0]:='T';
 GridMSlots.Cells[3,0]:='Cx';GridMSlots.Cells[4,0]:='LBl';GridMSlots.Cells[5,0]:='LBlH';
@@ -150,7 +150,7 @@ GridMSlots.Cells[6,0]:='SumH';GridMSlots.Cells[7,0]:='Pen';GridMSlots.Cells[8,0]
 GridMSlots.Cells[9,0]:='Ver';GridMSlots.Cells[10,0]:='LiP';GridMSlots.Cells[11,0]:='Off';
 GridMSlots.Cells[12,0]:='HeaH';GridMSlots.Cells[13,0]:='Sta';GridMSlots.Cells[14,0]:='Ping';
 GridMSlots.Cells[15,0]:='MNs';GridMSlots.Cells[16,0]:='#';GridMSlots.Cells[17,0]:='Besthash';
-GridMSlots.Cells[18,0]:='MNC';GridMSlots.Cells[19,0]:='GVTs';
+GridMSlots.Cells[18,0]:='MNC';GridMSlots.Cells[19,0]:='GVTs';GridMSlots.Cells[20,0]:='CFG';
 GridMSlots.GridLineWidth := 1;
 GridMSlots.OnPrepareCanvas:= @FormSlots.GridMSlotsPrepareCanvas;
 End;
@@ -186,6 +186,7 @@ if CurrentUTC>SlotsLastUpdate then
       GridMSlots.Cells[17,contador]:= Conexiones[contador].BestHashDiff;
       GridMSlots.Cells[18,contador]:= Conexiones[contador].MNChecksCount.ToString;
       GridMSlots.Cells[19,contador]:= copy(Conexiones[contador].GVTsHash,0,5);
+      GridMSlots.Cells[20,contador]:= Conexiones[contador].CFGHash;
       end;
    SlotsLastUpdate := CurrentUTC;
    end;
@@ -347,7 +348,7 @@ form1.DataPanel.Cells[3,0]:=Copy(GetNMSData.Miner,1,10)+'...';
 form1.DataPanel.Cells[3,1]:=BestHashReadeable(GetNMSData.Diff);
 form1.DataPanel.Cells[3,2]:=GEtOutgoingconnections.ToString+'/'+GetClientReadThreads.ToString;
 form1.DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
-form1.DataPanel.Cells[3,4]:='('+IntToStr(Lastblockdata.TimeLast20)+') '+BlockAge.ToString;
+form1.DataPanel.Cells[3,4]:='('+Copy(HashMd5String(GetNosoCFG),0,5)+'/'+NetCFGHash.value+') '+BlockAge.ToString;
 
 
 // update nodes grid
