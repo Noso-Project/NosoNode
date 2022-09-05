@@ -329,6 +329,7 @@ else if UpperCase(Command) = 'NETRATE' then consolelinesadd('Average Mainnet has
 else if UpperCase(Command) = 'MINERS' then ShowMiners(Linetext)
 else if UpperCase(Command) = 'LISTGVT' then ListGVTs()
 else if UpperCase(Command) = 'SYSTEM' then ShowSystemInfo(Linetext)
+else if UpperCase(Command) = 'NOSOCFG' then consolelinesadd(GetNosoCFG)
 
 // 0.2.1 DEBUG
 else if UpperCase(Command) = 'BLOCKPOS' then ShowBlockPos(LineText)
@@ -928,7 +929,9 @@ if fileexists(BlockDirectory+IntToStr(numberblock)+'.blk') then
    ConsoleLinesAdd('Miner:        '+Header.AccountMiner);
    ConsoleLinesAdd('Fees:         '+IntToStr(Header.MinerFee));
    ConsoleLinesAdd('Reward:       '+IntToStr(Header.Reward));
-   end;
+   end
+else
+   ConsoleLinesAdd('Block file do not exists: '+numberblock.ToString);
 End;
 
 Procedure showmd160(linetext:string);

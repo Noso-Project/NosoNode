@@ -1,3 +1,14 @@
+Version 0.3.2Ab9
+
+- Reverification of char '(' on besthashes now produces exitcode = 8.
+- Headers solution fields now separated by '(' for RPC server.
+- RebuildMyTrx definetly removed.
+- Implemented RPC command GetPendingOrders.
+- Added RPC command GetBlockPoS.
+- Added RPC command GetBlockMNS.
+- Fixed RPC command sendfunds.
+- Added directive RESTORECFG
+
 Version 0.3.2Ab8
 
 - GetOrderDetails&GetBlockOrders methods redone.

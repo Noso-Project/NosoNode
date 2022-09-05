@@ -794,8 +794,9 @@ CONST
                             '101.100.138.125 '+
                             '198.46.218.125';
 
-  DefaultNosoCFG : String = 'nosocfg 109.230.238.240;8080:149.57.235.14;8080:149.57.226.244;8080:81.22.38.101;8080:'+
-                            '66.151.117.247;8080:149.57.229.81;8080:149.57.242.211;8080:149.57.138.12;8080:'+
+  DefaultNosoCFG : String = 'nosocfg 149.57.235.14;8080:149.57.226.244;8080:81.22.38.101;8080:'+
+                            '66.151.117.247;8080:149.57.229.81;8080:149.57.138.12;8080:'+
+                            '192.3.85.2;8080:192.3.254.130;8080:'+
                             '159.196.1.198;8080:101.100.138.125;8080:198.46.218.125;8080 ntp.amnic.net:ts2.aco.net:'+
                             'hora.roa.es:ntp.atomki.mta.hu:time.esa.int:time.stdtime.gov.tw:stratum-1.sjc02.svwh.net:'+
                             'ntp3.indypl.org:ntp1.sp.se:ntp.ntp-servers.com:1.de.pool.ntp.org';
@@ -809,10 +810,10 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ab8';
+  SubVersion = 'Ab9';
   OficialRelease = false;
-  VersionRequired = '0.3.2Aa7';
-  BuildDate = 'August 2022';
+  VersionRequired = '0.3.2Ab7';
+  BuildDate = 'September 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   HasheableChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';

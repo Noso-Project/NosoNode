@@ -1922,11 +1922,14 @@ var
   MNsPayouts, MNsEarnings : int64;
   BlockPayouts, BlockEarnings : int64;
 Begin
+{
 if not WO_RebuildTrx then
    begin
    consolelinesAdd('Skipping rebuild transactions');
    exit;
    end;
+}
+Exit;
 SetCurrentJob('RebuildMyTrx',true);
 Existentes := Length(ListaMisTrx);
 if ListaMisTrx[0].Block < blocknumber then

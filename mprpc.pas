@@ -595,9 +595,9 @@ var
   resultado : string;
 Begin
 destination := Parameter(NosoPParams,0);
-amount := StrToIntDef(Parameter(NosoPParams,1),0);
+amount := StrToInt64Def(Parameter(NosoPParams,1),0);
 reference := Parameter(NosoPParams,2); if reference = '' then reference := 'null';
-//consolelinesadd('Send to '+destination+' '+int2curr(amount)+' with reference: '+reference)
+consolelinesadd('Send to '+destination+' '+int2curr(amount)+' with reference: '+reference);
 Resultado := SendFunds('sendto '+destination+' '+IntToStr(amount)+' '+Reference);
 if resultado = '' then
    begin

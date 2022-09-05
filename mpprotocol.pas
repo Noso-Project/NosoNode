@@ -56,6 +56,7 @@ Procedure SetNMSData(diff,hash,miner:string);
 Function GetNMSData():TNMSData;
 
 Procedure AddCFGNode(StrNode:String);
+Procedure RestoreCFGFile();
 Procedure DeleteCFGNode(StrNode:String);
 
 
@@ -1114,6 +1115,10 @@ if not errored then
       begin
       DeleteCFGNode(Parameter(mensaje,1));
       end;
+   if UpperCase(TCommand) = 'RESTORECFG' then
+      begin
+      RestoreCFGFile
+      end;
    OutgoingMsjsAdd(TextLine);
    end;
 End;
@@ -1328,6 +1333,7 @@ if (StrToInt64Def(TimeStamp,0)) mod 600 > 585 then exitcode:=2;
 if not IsValidHashAddress(Miner) then exitcode:=3;
 if Hash+Miner = GetNMSData.Hash+GetNMSData.Miner then exitcode:=4;
 if ((length(hash)<18) or (length(hash)>33)) then exitcode:=7;
+if AnsiContainsStr(Hash,'(') then exitcode:=8;
 if exitcode>0 then
    begin
    Result := Result+' '+Exitcode.ToString;
@@ -1449,6 +1455,16 @@ SetNosoCFG(LFInish);
 FillNodeList;
 CargarNTPData;
 ConsoleLinesAdd(Format('Node %s added to NosoCFG',[StrNode]));
+End;
+
+Procedure RestoreCFGFile();
+Begin
+LasTimeCFGRequest:= UTCTime.ToInt64+5;
+SaveNosoCFGFile(DefaultNosoCFG);
+SetNosoCFG(DefaultNosoCFG);
+FillNodeList;
+CargarNTPData;
+ConsoleLinesAdd('NosoCFG restarted');
 End;
 
 Procedure DeleteCFGNode(StrNode:String);
