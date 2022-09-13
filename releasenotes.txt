@@ -1,3 +1,7 @@
+Version 0.3.2Ac1
+
+- New Seed nodes.
+
 Version 0.3.2Ab9
 
 - Reverification of char '(' on besthashes now produces exitcode = 8.
