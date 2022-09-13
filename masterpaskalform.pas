@@ -797,7 +797,7 @@ CONST
   DefaultNosoCFG : String = 'nosocfg 149.57.235.14;8080:149.57.226.244;8080:81.22.38.101;8080:'+
                             '66.151.117.247;8080:149.57.229.81;8080:149.57.138.12;8080:'+
                             '192.3.85.196;8080:192.3.254.186;8080:'+
-                            '159.196.1.198;8080:101.100.138.125;8080:198.46.218.125;8080 ntp.amnic.net:ts2.aco.net:'+
+                            '101.100.138.125;8080:198.46.218.125;8080 ntp.amnic.net:ts2.aco.net:'+
                             'hora.roa.es:ntp.atomki.mta.hu:time.esa.int:time.stdtime.gov.tw:stratum-1.sjc02.svwh.net:'+
                             'ntp3.indypl.org:ntp1.sp.se:ntp.ntp-servers.com:1.de.pool.ntp.org';
 
