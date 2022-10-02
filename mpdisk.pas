@@ -29,6 +29,7 @@ Procedure SavePoolPays();
 Procedure CreateGVTsFile();
 Procedure GetGVTsFileData();
 Procedure SaveGVTs();
+Function ChangeGVTOwner(Lnumber:integer;OldOwner,NewOWner:String): integer;
 
 // NosoCFG file handling
 Procedure SaveNosoCFGFile(LStr:String);
@@ -462,6 +463,20 @@ EXCEPT ON E:Exception do
 END;
 MyGVTsHash := HashMD5File(GVTsFilename);
 LeaveCriticalSection(CSGVTsArray);
+End;
+
+Function ChangeGVTOwner(Lnumber:integer;OldOwner,NewOWner:String): integer;
+var
+  ErrorCode : integer = 0;
+Begin
+result := ErrorCode;
+if LNumber > 99 then ErrorCode := 1;
+if ArrGVTs[Lnumber].owner <> OldOwner then ErrorCode := 2;
+if not IsValidHashAddress(NewOWner) then ErrorCode := 3;
+if ErrorCode = 0 then
+   begin
+   ArrGVTs[Lnumber].owner := NewOWner;
+   end;
 End;
 
 Procedure SaveNosoCFGFile(LStr:String);

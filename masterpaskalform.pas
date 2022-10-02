@@ -810,7 +810,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ac2';
+  SubVersion = 'Ac3';
   OficialRelease = false;
   VersionRequired = '0.3.2Ab7';
   BuildDate = 'September 2022';

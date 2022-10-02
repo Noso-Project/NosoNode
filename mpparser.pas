@@ -338,6 +338,10 @@ else if UpperCase(Command) = 'BLOCKMNS' then ShowBlockMNs(LineText)
 else if UpperCase(Command) = 'MYIP' then ConsoleLinesAdd(GetMiIP)
 else if UpperCase(Command) = 'CREATEAPPCODE' then ConsoleLinesAdd(CreateAppCode(parameter(linetext,1)))
 else if UpperCase(Command) = 'DECODEAPPCODE' then ConsoleLinesAdd(DecodeAppCode(parameter(linetext,1)))
+else if UpperCase(Command) = 'ADDNODE' then AddCFGNode(parameter(linetext,1))
+else if UpperCase(Command) = 'DELNODE' then DeleteCFGNode(parameter(linetext,1))
+else if UpperCase(Command) = 'RESTORECFG' then RestoreCFGFile()
+
 
 // P2P
 else if UpperCase(Command) = 'PEERS' then ConsoleLinesAdd('Server list: '+IntToStr(form1.ClientsCount)+'/'+IntToStr(GetIncomingConnections))
@@ -1191,6 +1195,12 @@ if GVTOwner=Destination then
    if showOutput then ConsoleLinesAdd('Can not transfer GVT to same address');
    exit;
    end;
+// TEMP FILTER
+if GVTOwner<>ListaDirecciones[0].Hash then
+   begin
+   if showOutput then ConsoleLinesAdd('Actually only project GVTs can be transfered');
+   exit;
+   end;
 OrderTime := UTCTime;
 TrfrHash := GetTransferHash(OrderTime+GVTOwner+Destination);
 OrderHash := GetOrderHash('1'+OrderTime+TrfrHash);
@@ -1213,7 +1223,7 @@ ResultStr := ProtocolLine(21)+ // sndGVT
 OutgoingMsjsAdd(ResultStr);
 if showoutput then
    begin
-   ConsoleLinesAdd('GVT '+GVTNumStr+' transfered to '+Destination);
+   ConsoleLinesAdd('GVT '+GVTNumStr+' transfered from '+ListaDirecciones[DireccionEsMia(GVTOwner)].Hash+' to '+Destination);
    ConsolelinesAdd('Order: '+OrderHash);
    //ConsoleLinesAdd(StrToSign);
    end;

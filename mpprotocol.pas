@@ -1056,6 +1056,8 @@ if TrxExistsInLastBlock(OrderInfo.TrfrID) then ErrorCode:=5;
   if GVTAlreadyTransfered(OrderInfo.Reference) then ErrorCode := 6;
 StrTosign := 'Transfer GVT '+OrderInfo.Reference+' '+OrderInfo.Receiver+OrderInfo.TimeStamp.ToString;
 if not VerifySignedString(StrToSign,OrderInfo.Signature,OrderInfo.Sender ) then ErrorCode:=7;
+// TEMP FILTER
+if OrderInfo.Sender <> AdminPubKey then ErrorCode := 8;
 if ErrorCode= 0 then
    begin
    OpData := GetOpData(TextLine); // remove trx header
@@ -1063,6 +1065,8 @@ if ErrorCode= 0 then
    if form1.Server.Active then OutgoingMsjsAdd(GetPTCEcn+opdata);
    end;
 Result := ErrorCode;
+if ErrorCode > 0 then
+   ToLog('SendGVT error: '+ErrorCode.ToString);
 End;
 
 Procedure PTC_AdminMSG(TextLine:String);
@@ -1106,6 +1110,14 @@ if not errored then
          Tolog('DIRECTIVE'+slinebreak+'update '+TParam);
          ConsoleLinesAdd('AutoUpdate directive received');
          end;
+      end;
+   if UpperCase(TCommand) = 'RESTART' then
+      begin
+      ThDirect := TThreadDirective.Create(true,'restart');
+      ThDirect.FreeOnTerminate:=true;
+      ThDirect.Start;
+      Tolog('DIRECTIVE'+slinebreak+'restart');
+      ConsoleLinesAdd('Restart directive received');
       end;
    if UpperCase(TCommand) = 'ADDNODE' then
       begin

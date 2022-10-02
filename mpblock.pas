@@ -72,6 +72,7 @@ var
   ThisParam : String;
 
   MNsFileText   : String = '';
+  GVTsTransfered : integer = 0;
 
 Begin
 BuildingBlock := Numero;
@@ -175,8 +176,31 @@ if not errored then
          end;
       if PendingTXs[contador].OrderType='SNDGVT' then
          begin
-         ToLog('SNDGVT ignored : '+PendingTXs[contador].Reference);
+         if PendingTXs[contador].Sender <> AdminPubKey then
+            ToLog('GVTs transfers currently available only for project')
+         else
+            begin
+            OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].Sender);
+            minerfee := minerfee+PendingTXs[contador].AmmountFee;
+            if ChangeGVTOwner(StrToIntDef(PendingTXs[contador].Reference,100),OperationAddress,PendingTXs[contador].Receiver)>0 then
+               begin
+               // Change GVT ownerfailed
+               end
+            else
+               begin
+               Inc(GVTsTransfered);
+               UpdateSumario(OperationAddress,Restar(PendingTXs[contador].AmmountFee),0,IntToStr(Numero));
+               PendingTXs[contador].Block:=numero;
+               PendingTXs[contador].Sender:=OperationAddress;
+               insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
+               end;
+            end;
          end;
+      end;
+   if GVTsTransfered>0 then
+      begin
+      SaveGVTs;
+      UpdateMyGVTsList;
       end;
    TRY
       SetLength(PendingTXs,0);
