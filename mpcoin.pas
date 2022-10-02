@@ -59,6 +59,7 @@ function GetAddressBalance(address:string):int64;
 var
   cont : integer;
 Begin
+setmilitime('GetAddressBalance',1);
 Result := 0;
 if address = '' then exit;
 for cont := 0 to length(ListaSumario)-1 do
@@ -69,6 +70,7 @@ for cont := 0 to length(ListaSumario)-1 do
       break;
       end;
    end;
+setmilitime('GetAddressBalance',2);
 End;
 
 // Devuelve el saldo que una direccion ya tiene comprometido en pendientes

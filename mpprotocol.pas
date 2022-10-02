@@ -1441,7 +1441,7 @@ var
   CFGHead, CFGNodes, CFGNTPs : String;
 Begin
 StrNode := StringReplace(StrNode,';',' ',[rfReplaceAll, rfIgnoreCase]);
-StrNode := ':'+Parameter(StrNode,0)+';'+StrToIntDef(Parameter(StrNode,1),8080).ToString;
+StrNode := Parameter(StrNode,0)+';'+StrToIntDef(Parameter(StrNode,1),8080).ToString+':';
 LOrigin  := GetNosoCFG;
 CFGHead  := Parameter(LOrigin,0);
 CFGNodes := Parameter(LOrigin,1);
@@ -1473,7 +1473,7 @@ var
   CFGHead, CFGNodes, CFGNTPs : String;
 Begin
 StrNode := StringReplace(StrNode,';',' ',[rfReplaceAll, rfIgnoreCase]);
-StrNode := Parameter(StrNode,0)+';'+StrToIntDef(Parameter(StrNode,1),8080).ToString;
+StrNode := Parameter(StrNode,0)+';'+StrToIntDef(Parameter(StrNode,1),8080).ToString+' ';
 LOrigin  := GetNosoCFG;
 CFGHead  := Parameter(LOrigin,0);
 CFGNodes := Parameter(LOrigin,1);
@@ -1481,7 +1481,6 @@ CFGNTPs  := Parameter(LOrigin,2);
 // Delete the node
 CFGNodes := StringReplace(CFGNodes,':',' ',[rfReplaceAll, rfIgnoreCase]);
 CFGNodes := StringReplace(CFGNodes,StrNode,'',[rfReplaceAll, rfIgnoreCase]);
-CFGNodes := Trim(CFGNodes);
 CFGNodes := StringReplace(CFGNodes,' ',':',[rfReplaceAll, rfIgnoreCase]);
 LFInish := Format('%s %s %s',[CFGHead,CFGNodes,CFGNTPs]);
 LasTimeCFGRequest:= UTCTime.ToInt64+5;

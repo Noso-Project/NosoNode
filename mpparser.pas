@@ -1065,7 +1065,7 @@ if not IsValidHashAddress(Destination) then
    end;
 monto := StrToInt64Def(amount,-1);
 if reference = '' then reference := 'null';
-if monto<=Comisiontrfr then
+if monto<=10 then
    begin
    if showOutput then ConsoleLinesAdd(LangLine(147)); //'Invalid ammount.'
    Procesar := false;
@@ -2110,14 +2110,14 @@ var
   contador : integer;
 Begin
 numero := StrToIntDef(Parameter(linetext,1),0);
-if ((numero <1) or (numero >100)) then
-  Outtext('Range must be 1-100')
+if ((numero <1) or (numero >2000)) then
+  Outtext('Range must be 1-1000')
 else
   begin
   Randomize;
   for contador := 1 to numero do
      begin
-     Monto := Random(50)+1;
+     Monto := 100000+contador;
      ProcesslinesAdd('SENDTO devteam_donations '+IntToStr(Monto)+' '+contador.ToString);
      end;
   end;

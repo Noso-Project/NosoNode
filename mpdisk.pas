@@ -1323,6 +1323,7 @@ var
   Yaexiste : boolean = false;
   NuevoRegistro : SumarioData;
 Begin
+setmilitime('UpdateSumario',1);
 EnterCriticalSection(CSSumary);
 for contador := 0 to length(ListaSumario)-1 do
    begin
@@ -1352,6 +1353,7 @@ if not YaExiste then
    end;
 S_Sumario := true;
 LeaveCriticalSection(CSSumary);
+setmilitime('UpdateSumario',2);
 if DireccionEsMia(Direccion)>= 0 then UpdateWalletFromSumario();
 End;
 

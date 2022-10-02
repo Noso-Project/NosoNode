@@ -55,6 +55,9 @@ var
   OperationAddress : string = '';
   errored : boolean = false;
   PoWTotalReward : int64;
+  ArrayLastBlockTrxs : BlockOrdersArray;
+  ExistsInLastBlock : boolean;
+  Count2 : integer;
 
   PoScount : integer = 0;
   PosRequired, PosReward: int64;
@@ -109,13 +112,29 @@ if not errored then
    EnterCriticalSection(CSPending);
    SetCurrentJob('NewBLOCK_PENDING',true);
    setmilitime('NewBLOCK_PENDING',1);
+   ArrayLastBlockTrxs := Default(BlockOrdersArray);
+   ArrayLastBlockTrxs := GetBlockTrxs(MyLastBlock);
    for contador := 0 to length(pendingTXs)-1 do
       begin
       // Version 0.2.1Ga1 reverification starts
       if PendingTXs[contador].TimeStamp < LastBlockData.TimeStart then
          continue;
+      //{
+      ExistsInLastBlock := false;
+      for count2 := 0 to length(ArrayLastBlockTrxs)-1 do
+         begin
+         if ArrayLastBlockTrxs[count2].TrfrID = PendingTXs[contador].TrfrID then
+            begin
+            ExistsInLastBlock := true ;
+            break;
+            end;
+         end;
+      if ExistsInLastBlock then continue;
+      //}
+      {
       if TrxExistsInLastBlock(PendingTXs[contador].TrfrID) then
          continue;
+      }
       // Version 0.2.1Ga1 reverification ends
       if PendingTXs[contador].TimeStamp+60 > TimeStamp then
          begin
@@ -142,6 +161,7 @@ if not errored then
       if PendingTXs[contador].OrderType='TRFR' then
          begin
          OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].Sender);
+         //OperationAddress := GetAddressFromPubKey_New(PendingTXs[contador].Sender);
          // nueva adicion para que no incluya las transacciones invalidas
          if GetAddressBalance(OperationAddress) < (PendingTXs[contador].AmmountFee+PendingTXs[contador].AmmountTrf) then continue;
          minerfee := minerfee+PendingTXs[contador].AmmountFee;

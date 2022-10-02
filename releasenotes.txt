@@ -1,3 +1,8 @@
+Version 0.3.2Ac2
+
+- Fixed NosoCDG ":" on nodes
+- Improved block build pending, to load last block trxs just once.
+
 Version 0.3.2Ac1
 
 - New Seed nodes.
