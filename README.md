@@ -51,12 +51,6 @@ The Linux version has been tested on:
 - Debian 11 64bit (Bullseye) with the Adwaita Dark Theme
 - XFCE 4.16
 
-> **Note**
->
-> The Linux version sometimes misbehaves in terms of the User Interface.
-> Apart from that, the network and blockchain code has been known to be working with no problems.
-
-
 ## Donations
 
 BTC: 3H1VzdL3QFQpc62DUhbtCFV5dG4K1yPwVB
