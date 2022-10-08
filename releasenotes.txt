@@ -1,3 +1,11 @@
+Version 0.3.2Ac6
+
+- Fix version.
+
+Version 0.3.2Ac5
+
+- Besthash IP capture fixed.
+
 Version 0.3.2Ac4
 
 - Development upgraded to Lazarus v2.2.4 / FPC 3.2.2
