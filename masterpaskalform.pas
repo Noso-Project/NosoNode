@@ -810,10 +810,10 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ac3';
+  SubVersion = 'Ac4';
   OficialRelease = false;
-  VersionRequired = '0.3.2Ab7';
-  BuildDate = 'September 2022';
+  VersionRequired = '0.3.2Ac3';
+  BuildDate = 'October 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   HasheableChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -2934,7 +2934,7 @@ if GoAhead then
    else if parameter(LLine,0) = 'BESTHASH' then
       begin
       if not IsBlockOpen then TryCloseServerConnection(AContext,'False '+GetNMSData.Diff+' 6')
-      else TryCloseServerConnection(AContext,PTC_BestHash(LLine));
+      else TryCloseServerConnection(AContext,PTC_BestHash(LLine, IPUSer));
       end
    else if parameter(LLine,0) = 'NSLPEND' then
       TryCloseServerConnection(AContext,PendingRawInfo)

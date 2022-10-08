@@ -43,7 +43,7 @@ Procedure PTC_AdminMSG(TextLine:String);
 Procedure PTC_NetReqs(textline:string);
 function RequestAlreadyexists(reqhash:string):string;
 Procedure UpdateMyRequests(tipo:integer;timestamp:string;bloque:integer;hash,hashvalue:string);
-Function PTC_BestHash(Linea:string):String;
+Function PTC_BestHash(Linea:string;IPUser:String):String;
 Procedure PTC_CFGData(Linea:String);
 Procedure PTC_SendUpdateHeaders(Slot:integer;Linea:String);
 Procedure PTC_HeadUpdate(linea:String);
@@ -333,7 +333,11 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = 'NETREQ' then PTC_NetReqs(ProcessLine)
       else if UpperCase(LineComando) = '$REPORTNODE' then PTC_Getnodes(contador) // DEPRECATED
       else if UpperCase(LineComando) = '$MNREPO' then AddWaitingMNs(ProcessLine)//
-      else if UpperCase(LineComando) = '$BESTHASH' then PTC_BestHash(ProcessLine)
+      else if UpperCase(LineComando) = '$BESTHASH' then
+         begin
+         PTC_BestHash(ProcessLine,'1.1.1.1');
+         ConsoleLinesAdd('Debug: Besthash processed via protocol engine');
+         end
       else if UpperCase(LineComando) = '$MNCHECK' then PTC_MNCheck(ProcessLine)
       else if UpperCase(LineComando) = '$GETCHECKS' then PTC_SendChecks(contador)
       else if UpperCase(LineComando) = 'GETMNSFILE' then PTC_SendLine(contador,ProtocolLine(MNFILE)+' $'+GetMNsFileData)
@@ -1056,8 +1060,6 @@ if TrxExistsInLastBlock(OrderInfo.TrfrID) then ErrorCode:=5;
   if GVTAlreadyTransfered(OrderInfo.Reference) then ErrorCode := 6;
 StrTosign := 'Transfer GVT '+OrderInfo.Reference+' '+OrderInfo.Receiver+OrderInfo.TimeStamp.ToString;
 if not VerifySignedString(StrToSign,OrderInfo.Signature,OrderInfo.Sender ) then ErrorCode:=7;
-// TEMP FILTER
-if OrderInfo.Sender <> AdminPubKey then ErrorCode := 8;
 if ErrorCode= 0 then
    begin
    OpData := GetOpData(TextLine); // remove trx header
@@ -1101,7 +1103,7 @@ if not errored then
    TCommand := Parameter(mensaje,0);
    if UpperCase(TCommand) = 'UPDATE' then
       begin
-      if WO_AutoUpdate then
+      if 1=1 {WO_AutoUpdate} then
          begin
          TParam := Parameter(mensaje,1);
          ThDirect := TThreadDirective.Create(true,'update '+TParam);
@@ -1328,7 +1330,7 @@ if length(MNsArray) > 0 then
    end;
 End;
 
-Function PTC_BestHash(Linea:string):String;
+Function PTC_BestHash(Linea:string;IPUser:String):String;
 var
   miner,hash,diff,block : string;
   ResultHash : string;

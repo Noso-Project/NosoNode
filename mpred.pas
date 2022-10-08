@@ -1401,8 +1401,6 @@ result := 'Linux';
 {$IFDEF WINDOWS}
 result := 'Win';
 {$ENDIF}
-if Is32Bit then result := result+'32'
-else result := result+'64';
 End;
 
 Function GetLastVerZipFile(version,LocalOS:string):boolean;

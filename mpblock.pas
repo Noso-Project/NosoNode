@@ -176,24 +176,20 @@ if not errored then
          end;
       if PendingTXs[contador].OrderType='SNDGVT' then
          begin
-         if PendingTXs[contador].Sender <> AdminPubKey then
-            ToLog('GVTs transfers currently available only for project')
+         OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].Sender);
+         if GetAddressBalance(OperationAddress) < PendingTXs[contador].AmmountFee then continue;
+         minerfee := minerfee+PendingTXs[contador].AmmountFee;
+         if ChangeGVTOwner(StrToIntDef(PendingTXs[contador].Reference,100),OperationAddress,PendingTXs[contador].Receiver)>0 then
+            begin
+            // Change GVT ownerfailed
+            end
          else
             begin
-            OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].Sender);
-            minerfee := minerfee+PendingTXs[contador].AmmountFee;
-            if ChangeGVTOwner(StrToIntDef(PendingTXs[contador].Reference,100),OperationAddress,PendingTXs[contador].Receiver)>0 then
-               begin
-               // Change GVT ownerfailed
-               end
-            else
-               begin
-               Inc(GVTsTransfered);
-               UpdateSumario(OperationAddress,Restar(PendingTXs[contador].AmmountFee),0,IntToStr(Numero));
-               PendingTXs[contador].Block:=numero;
-               PendingTXs[contador].Sender:=OperationAddress;
-               insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
-               end;
+            Inc(GVTsTransfered);
+            UpdateSumario(OperationAddress,Restar(PendingTXs[contador].AmmountFee),0,IntToStr(Numero));
+            PendingTXs[contador].Block:=numero;
+            PendingTXs[contador].Sender:=OperationAddress;
+            insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
             end;
          end;
       end;

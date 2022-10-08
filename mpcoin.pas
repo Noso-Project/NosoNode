@@ -264,7 +264,6 @@ if number < 0 then
    result := true;
    exit;
    end;
-EnterCriticalSection(CSGVTsArray);
 for counter := 0 to GetPendingCount-1 do
    begin
    if ((PendingTxs[counter].reference=NumberStr) and (PendingTxs[counter].OrderType = 'SNDGVT')) then
@@ -273,7 +272,6 @@ for counter := 0 to GetPendingCount-1 do
          break;
          end;
    end;
-LeaveCriticalSection(CSGVTsArray);
 End;
 
 // verify if an alias is already registered

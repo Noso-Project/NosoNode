@@ -1583,6 +1583,7 @@ var
   MNsReward   : int64;
   MNsCount    : integer;
   CounterMNs  : integer;
+  GVTsTrfer   : integer = 0;
 Begin
 SetCurrentJob('AddBlockToSumary'+inttostr(BlockNumber),true);
 BlockHeader := Default(BlockHeaderData);
@@ -1597,6 +1598,12 @@ for cont := 0 to length(ArrayOrders)-1 do
       begin
       UpdateSumario(ArrayOrders[cont].Sender,Restar(Customizationfee),0,IntToStr(BlockNumber));
       setcustomalias(ArrayOrders[cont].Sender,ArrayOrders[cont].Receiver,BlockNumber);
+      end;
+   if ArrayOrders[cont].OrderType='SNDGVT' then
+      begin
+      Inc(GVTsTrfer);
+      UpdateSumario(ArrayOrders[cont].Sender,Restar(Customizationfee),0,IntToStr(BlockNumber));
+      ChangeGVTOwner(StrToIntDef(ArrayOrders[cont].Reference,100),ArrayOrders[cont].Sender,ArrayOrders[cont].Receiver);
       end;
    if ArrayOrders[cont].OrderType='TRFR' then
       begin
@@ -1636,6 +1643,11 @@ if ( (SaveAndUpdate) or (BlockNumber mod SumMarkInterval = 0) ) then
    {if not RunningDoctor then} UpdateMyData();
    end;
 LeaveCriticalSection(CSSumary);
+if GVTsTrfer>0 then
+   begin
+   SaveGVTs;
+   UpdateMyGVTsList;
+   end;
 SetCurrentJob('AddBlockToSumary'+inttostr(BlockNumber),false);
 End;
 
@@ -1653,6 +1665,7 @@ var
   MNsReward   : int64;
   MNsCount    : integer;
   CounterMNs  : integer;
+  GVTsTrfer   : integer = 0;
 Begin
 SetCurrentJob('RebuildSumario',true);
 EnterCriticalSection(CSSumary);
@@ -1679,6 +1692,12 @@ for contador := 1 to UntilBlock do
          begin
          UpdateSumario(ArrayOrders[cont].Sender,Restar(Customizationfee),0,IntToStr(contador));
          setcustomalias(ArrayOrders[cont].Sender,ArrayOrders[cont].Receiver,contador);
+         end;
+      if ArrayOrders[cont].OrderType='SNDGVT' then
+         begin
+         Inc(GVTsTrfer);
+         UpdateSumario(ArrayOrders[cont].Sender,Restar(Customizationfee),0,IntToStr(contador));
+         ChangeGVTOwner(StrToIntDef(ArrayOrders[cont].Reference,100),ArrayOrders[cont].Sender,ArrayOrders[cont].Receiver);
          end;
       if ArrayOrders[cont].OrderType='TRFR' then
          begin
@@ -1721,6 +1740,11 @@ for contador := 1 to UntilBlock do
 RebuildingSumary := false;
 LeaveCriticalSection(CSSumary);
 GuardarSumario();
+if GVTsTrfer>0 then
+   begin
+   SaveGVTs;
+   UpdateMyGVTsList;
+   end;
 UpdateMyData();
 SetCurrentJob('RebuildSumario',true);
 ConsoleLinesAdd(LangLine(131));  //'Sumary rebuilded.'
@@ -2508,16 +2532,22 @@ end;
 Function GetWinVer():string;
 Begin
 if WindowsVersion = wv95 then result := 'Windows95'
-  else if WindowsVersion = wvNT4 then result := 'WindowsNTv.4'
-  else if WindowsVersion = wv98 then result := 'Windows98'
-  else if WindowsVersion = wvMe then result := 'WindowsME'
-  else if WindowsVersion = wv2000 then result := 'Windows2000'
-  else if WindowsVersion = wvXP then result := 'WindowsXP'
-  else if WindowsVersion = wvServer2003 then result := 'WindowsServer2003/WindowsXP64'
-  else if WindowsVersion = wvVista then result := 'WindowsVista'
-  else if WindowsVersion = wv7 then result := 'Windows7'
-  else if WindowsVersion = wv10 then result := 'Windows10'
+  else if WindowsVersion = wvNT4 then result := 'Windows NTv.4'
+  else if WindowsVersion = wv98 then result := 'Windows 98'
+  else if WindowsVersion = wvMe then result := 'Windows ME'
+  else if WindowsVersion = wv2000 then result := 'Windows 2000'
+  else if WindowsVersion = wvXP then result := 'Windows XP'
+  else if WindowsVersion = wvServer2003 then result := 'Windows Server 2003 / Windows XP 64'
+  else if WindowsVersion = wvVista then result := 'Windows Vista'
+  else if WindowsVersion = wv7 then result := 'Windows 7'
+  else if WindowsVersion = wv10 then result := 'Windows 10'
   else result := 'WindowsUnknown';
+{$IFDEF WIN32}
+result := Result+'- 32 Bits';
+{$ENDIF}
+{$IFDEF WIN64}
+result := Result+'- 64 Bits';
+{$ENDIF}
 End;
 {$ENDIF}
 

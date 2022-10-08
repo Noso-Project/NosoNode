@@ -1,3 +1,14 @@
+Version 0.3.2Ac4
+
+- Development upgraded to Lazarus v2.2.4 / FPC 3.2.2
+- GetOSVersion function improved.
+- Removed GVT transfers cap.
+- Implemented GVT transfers filter at block time creation.
+- GVTs transfer added to rebuild sumary process.
+- Update directives now mandatory.
+- GetBlockheaders "(" undone to "".
+- Besthash IP capture included.
+
 Version 0.3.2Ac3
 
 - Nodes control test commands included.

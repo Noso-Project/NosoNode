@@ -540,10 +540,12 @@ msgid "Wallet"
 msgstr "Кошелек"
 
 #: translation.rs0001
+#, object-pascal-format
 msgid "TimeOut reading from slot: %s"
 msgstr "Время ожидания чтения из индекса: %s"
 
 #: translation.rs0002
+#, object-pascal-format
 msgid "Error Reading lines from slot: %s"
 msgstr "Ошибка чтения строк из индекса: %s"
 
@@ -552,11 +554,12 @@ msgid "Receiving headers"
 msgstr "Получение заголовков"
 
 #: translation.rs0004
+#, object-pascal-format
 msgid "Error Receiving headers from %s (%s)"
 msgstr "Ошибка получения заголовков от %s(%s)"
 
 #: translation.rs0005
-#, fuzzy
+#, object-pascal-format, fuzzy
 msgctxt "translation.rs0005"
 msgid "Headers file received: %s"
 msgstr "Файл заголовков получен: %s"
@@ -566,14 +569,17 @@ msgid "Receiving blocks"
 msgstr "Получение блоков"
 
 #: translation.rs0007
+#, object-pascal-format
 msgid "Error Receiving blocks from %s (%s)"
 msgstr "Ошибка получения блоков от %s(%s)"
 
 #: translation.rs0008
+#, object-pascal-format
 msgid "Error sending outgoing message: %s"
 msgstr "Ошибка отправки исходящего сообщения: %s"
 
 #: translation.rs0009
+#, object-pascal-format
 msgid "ERROR: Deleting OutGoingMessage-> %s"
 msgstr "ОШИБКА: Удаление исходящего сообщения->%s"
 
@@ -622,6 +628,7 @@ msgid "Noso launcher executed"
 msgstr "Выполнена программа запуска приложений Noso"
 
 #: translation.rs0021
+#, object-pascal-format
 msgid "Blocks received up to %s"
 msgstr "Блоков получено до %s"
 
@@ -642,14 +649,17 @@ msgid "✓ Miner configuration set"
 msgstr "✓ Конфигурация майнера установлена"
 
 #: translation.rs0026
+#, object-pascal-format
 msgid "✓ %s languages available"
 msgstr "✓ Доступно %s языков"
 
 #: translation.rs0027
+#, object-pascal-format
 msgid "Wallet %s%s"
 msgstr "Кошелек %s%s"
 
 #: translation.rs0028
+#, object-pascal-format
 msgid "✓ %s CPUs found"
 msgstr "✓ Найдено ЦП: %s"
 
@@ -662,10 +672,12 @@ msgid "Closing wallet"
 msgstr "Закрытие кошелька"
 
 #: translation.rs0031
+#, object-pascal-format
 msgid "POOL: Error trying close a pool client connection (%s)"
 msgstr "POOL: Ошибка при попытке закрыть соединение с клиентом пула (%s)"
 
 #: translation.rs0032
+#, object-pascal-format
 msgid "POOL: Error sending message to miner (%s)"
 msgstr "POOL: Ошибка отправки сообщения майнеру (%s)"
 
@@ -674,6 +686,7 @@ msgid "POOL: Rejected not registered user"
 msgstr "POOL: отклонен незарегистрированный пользователь"
 
 #: translation.rs0034
+#, object-pascal-format
 msgid "Pool: Error registering a ping-> %s"
 msgstr "POOL: Ошибка при получении ping->%s"
 
@@ -682,36 +695,43 @@ msgid "Pool solution verified!"
 msgstr "Решение пула проверено!"
 
 #: translation.rs0036
+#, object-pascal-format
 msgid "Pool solution FAILED at step %s"
 msgstr "ОШИБКА решения пула на шаге %s"
 
 #: translation.rs0037
+#, object-pascal-format
 msgid "Pool: Error inside CSPoolStep-> %s"
 msgstr "Пул: ошибка внутри CSPoolStep-> %s"
 
 #: translation.rs0038
+#, object-pascal-format
 msgid "POOL: Unexpected command from: %s -> %s"
 msgstr "POOL: Неожиданная команда от: %s -> %s"
 
 #: translation.rs0039
+#, object-pascal-format
 msgid "POOL: Status requested from %s"
 msgstr "POOL: Статус запрашивается у %s"
 
 #: translation.rs0040
+#, object-pascal-format
 msgid "Pool: closed incoming %s (%s)"
 msgstr "Пул: закрытие входа %s (%s)"
 
 #: translation.rs0041
-#, fuzzy,badformat
+#, object-pascal-format, fuzzy, badformat
 #| msgid "Pool: Error inside MinerJoin-> %s"
 msgid "Pool: Error inside MinerJoin (%s) -> %s"
 msgstr "Пул: ошибка внутри MinerJoin->%s"
 
 #: translation.rs0042
+#, object-pascal-format
 msgid "SERVER: Error trying close a server client connection (%s)"
 msgstr "СЕРВЕР: Ошибка при попытке разорвать клиентское соединение (%s)"
 
 #: translation.rs0043
+#, object-pascal-format
 msgid "SERVER: Received a line from a client without and assigned slot: %s"
 msgstr "СЕРВЕР: Получена строка без назначенного индекса: %s"
 
@@ -720,47 +740,58 @@ msgid "SERVER: Timeout reading line from connection"
 msgstr "СЕРВЕР: Тайм-аут чтения строки из подключения"
 
 #: translation.rs0045
+#, object-pascal-format
 msgid "SERVER: Can not read line from connection %s (%s)"
 msgstr "СЕРВЕР: Невозможно прочитать строку из ссылки %s (%s)"
 
 #: translation.rs0046
+#, object-pascal-format
 msgid "SERVER: Server error receiving headers file (%s)"
 msgstr "СЕРВЕР: ошибка сервера при получении файла заголовков (%s)"
 
 #: translation.rs0047
+#, object-pascal-format
 msgctxt "translation.rs0047"
 msgid "Headers file received: %s"
 msgstr "Файл заголовков получен: %s"
 
 #: translation.rs0048
+#, object-pascal-format
 msgid "SERVER: Server error receiving block file (%s)"
 msgstr "SERVER: Oшибка сервера при получении блочного файла (%s)"
 
 #: translation.rs0049
+#, object-pascal-format
 msgid "SERVER: Error creating stream from headers: %s"
 msgstr "SERVER: Oшибка создания потока из заголовков: %s"
 
 #: translation.rs0050
+#, object-pascal-format
 msgid "Headers file sent to: %s"
 msgstr "Файл заголовка отправлен: %s"
 
 #: translation.rs0051
+#, object-pascal-format
 msgid "SERVER: Error sending headers file (%s)"
 msgstr "СЕРВЕР: Ошибка отправки файла заголовка (%s)"
 
 #: translation.rs0052
+#, object-pascal-format
 msgid "SERVER: BlockZip send to %s: %s"
 msgstr "СЕРВЕР: Заблокировать zip-файл, отправленный на %s: %s"
 
 #: translation.rs0053
+#, object-pascal-format
 msgid "SERVER: Error sending ZIP blocks file (%s)"
 msgstr "СЕРВЕР: Ошибка отправки блочного zip-файла (%s)"
 
 #: translation.rs0054
+#, object-pascal-format
 msgid "SERVER: Error adding received line (%s)"
 msgstr "СЕРВЕР: Ошибка добавления полученной строки (%s)"
 
 #: translation.rs0055
+#, object-pascal-format
 msgid "SERVER: Got unexpected line: %s"
 msgstr "СЕРВЕР: Получена непредвиденная строка: %s"
 
@@ -769,10 +800,12 @@ msgid "SERVER: Timeout reading line from new connection"
 msgstr "СЕРВЕР: истекло время ожидания при попытке чтения строки из новой ссылки"
 
 #: translation.rs0057
+#, object-pascal-format
 msgid "SERVER: Can not read line from new connection (%s)"
 msgstr "СЕРВЕР: Невозможно прочитать строку из новой ссылки (%s)"
 
 #: translation.rs0058
+#, object-pascal-format
 msgid "SERVER: Invalid client -> %s"
 msgstr "СЕРВЕР: Неверный клиент -> %s"
 
@@ -781,14 +814,17 @@ msgid "SERVER: Own connected"
 msgstr "СЕРВЕР: Подключен собственный"
 
 #: translation.rs0060
+#, object-pascal-format
 msgid "SERVER: Duplicated connection -> %s"
 msgstr "СЕРВЕР: Двойная привязка -> %s"
 
 #: translation.rs0061
+#, object-pascal-format
 msgid "New Connection from: %s"
 msgstr "Новое подключение от: %s"
 
 #: translation.rs0062
+#, object-pascal-format
 msgid "SERVER: Closed unhandled incoming connection -> %s"
 msgstr "СЕРВЕР: Закрытие необработанной входящей ссылки -> %s"
 
@@ -884,6 +920,7 @@ msgid "You need update the wallet"
 msgstr "Вам необходимо обновить кошелек"
 
 #: translation.rs0084
+#, object-pascal-format
 msgid "Not valid ASCII message received: %s"
 msgstr ""
 
@@ -892,10 +929,12 @@ msgid "Receiving summary file"
 msgstr ""
 
 #: translation.rs0086
+#, object-pascal-format
 msgid "Error Receiving sumary from %s (%s)"
 msgstr ""
 
 #: translation.rs0087
+#, object-pascal-format
 msgid "Sumary file received: %s"
 msgstr ""
 
@@ -908,10 +947,12 @@ msgid "Receiving GVTs file"
 msgstr ""
 
 #: translation.rs0090
+#, object-pascal-format
 msgid "Error Receiving GVTs from %s (%s)"
 msgstr ""
 
 #: translation.rs0091
+#, object-pascal-format
 msgid "SERVER: Error creating stream from GVTs: %s"
 msgstr ""
 
@@ -966,6 +1007,7 @@ msgid "Pending"
 msgstr "В ожидании"
 
 #: translation.rs0512
+#, object-pascal-format
 msgid "Invalid language: %s"
 msgstr "Недопустимый язык: %s"
 
@@ -983,10 +1025,12 @@ msgid "Balance"
 msgstr "Баланс"
 
 #: translation.rs0516
+#, object-pascal-format
 msgid "Masternodes: (%d) %s"
 msgstr "Мастерноды: (%d) %s"
 
 #: translation.rs0517
+#, object-pascal-format
 msgid "(%d)  %d/%s"
 msgstr ""
 
@@ -999,36 +1043,52 @@ msgid "Best Hash"
 msgstr ""
 
 #: translation.rs1000
+#, object-pascal-format
 msgid "Processing block %d (%d %%)"
 msgstr "Обрабатывается блок %d (%d %%)"
 
 #: translation.rs1001
+#, object-pascal-format, fuzzy
+#| msgid ""
+#| "----- ERROR ----\n"
+#| "Block: %d\n"
 msgid ""
 "----- ERROR ----\n"
-"Block: %d\n"
+"Block: %d"
 msgstr ""
 "----- ОШИБКА ----\n"
 "Заблокировать: %d\n"
 
 #: translation.rs1002
+#, object-pascal-format, fuzzy
+#| msgid ""
+#| "Wrong block hash\n"
+#| "File: %s\n"
+#| "Headers: %s\n"
 msgid ""
 "Wrong block hash\n"
 "File: %s\n"
-"Headers: %s\n"
+"Headers: %s"
 msgstr ""
 "Неверный блочный шифр\n"
 "Файл: %s\n"
 "Заголовки: %s\n"
 
 #: translation.rs1003
+#, object-pascal-format
 msgid "File not found: %s"
 msgstr "Файл не найден: %s"
 
 #: translation.rs1004
+#, object-pascal-format, fuzzy
+#| msgid ""
+#| "Wrong summary hash\n"
+#| "Summary: %s\n"
+#| "Headers: %s\n"
 msgid ""
 "Wrong summary hash\n"
 "Summary: %s\n"
-"Headers: %s\n"
+"Headers: %s"
 msgstr ""
 "Неверный итоговый шифр\n"
 "Сводка: %s\n"
@@ -1043,6 +1103,7 @@ msgid "You can not do it while pool is active."
 msgstr "Вы не можете сделать это, пока активен пул."
 
 #: translation.rs1503
+#, object-pascal-format
 msgid "Totals: %d connections, %d IPs"
 msgstr "Всего: %d подключений, %d IP-адресов"
 
@@ -1063,10 +1124,11 @@ msgid "Wallet not updated"
 msgstr "Кошелек не обновлен"
 
 #: translation.rs2002
+#, object-pascal-format
 msgid ""
 "*****CRITICAL*****\n"
 "Error inside VerifyConnectionStatus: %s\n"
-"*****CRITICAL*****\n"
+"*****CRITICAL*****"
 msgstr ""
 
 #: translation.rs2003
@@ -1074,37 +1136,42 @@ msgid "Sumary file requested"
 msgstr ""
 
 #: translation.rs2501
+#, object-pascal-format
 msgid ""
 "*****CRITICAL*****\n"
 "Error type 3 on crypto thread: %s\n"
-"*****CRITICAL*****\n"
+"*****CRITICAL*****"
 msgstr ""
 
 #: translation.rs2502
+#, object-pascal-format
 msgid ""
 "*****CRITICAL*****\n"
 "Error type 4 on crypto thread: %s\n"
-"*****CRITICAL*****\n"
+"*****CRITICAL*****"
 msgstr ""
 
 #: translation.rs2503
+#, object-pascal-format
 msgid ""
 "*****CRITICAL*****\n"
 "Error type 5 on crypto thread: %s\n"
-"*****CRITICAL*****\n"
+"*****CRITICAL*****"
 msgstr ""
 
 #: translation.rs2504
+#, object-pascal-format
 msgid ""
 "*****CRITICAL*****\n"
 "Error type 6 on crypto thread: %s\n"
-"*****CRITICAL*****\n"
+"*****CRITICAL*****"
 msgstr ""
 
 #: translation.rs2505
+#, object-pascal-format
 msgid ""
 "*****CRITICAL*****\n"
 "Error type 7 on crypto thread: %s\n"
-"*****CRITICAL*****\n"
+"*****CRITICAL*****"
 msgstr ""
 
