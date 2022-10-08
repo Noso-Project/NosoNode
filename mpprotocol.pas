@@ -336,7 +336,7 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = '$BESTHASH' then
          begin
          PTC_BestHash(ProcessLine,'1.1.1.1');
-         ConsoleLinesAdd('Debug: Besthash processed via protocol engine');
+         //ConsoleLinesAdd('Debug: Besthash processed via protocol engine');
          end
       else if UpperCase(LineComando) = '$MNCHECK' then PTC_MNCheck(ProcessLine)
       else if UpperCase(LineComando) = '$GETCHECKS' then PTC_SendChecks(contador)
@@ -1360,6 +1360,7 @@ if Diff<GetNMSData.Diff then // Better hash
    SetNMSData(Diff,hash,miner);
    OutgoingMsjsAdd(GetPTCEcn+'$BESTHASH '+Miner+' '+Hash+' '+block+' '+TimeStamp);
    Result:='True '+Diff+' '+ResultHash;
+   if IPUser <>'1.1.1.1' then ConsoleLinesAdd('Besthash received from '+IPUser);
    end
 else
    begin
