@@ -1411,11 +1411,9 @@ var
   Conector : TFPHttpClient;
 Begin
 result := false;
-if Uppercase(localOS) = 'WIN32' then
-   DownLink := 'https://github.com/Noso-Project/NosoWallet/releases/download/v'+version+'/noso-v'+version+'-i386-win32.zip';
-if Uppercase(localOS) = 'WIN64' then
+if Uppercase(localOS) = 'WIN' then
    DownLink := 'https://github.com/Noso-Project/NosoWallet/releases/download/v'+version+'/noso-v'+version+'-x86_64-win64.zip';
-if Uppercase(localOS) = 'LINUX64' then
+if Uppercase(localOS) = 'LINUX' then
    DownLink := 'https://github.com/Noso-Project/NosoWallet/releases/download/v'+version+'/noso-v'+version+'-x86_64-linux.zip';
 MS := TMemoryStream.Create;
 Conector := TFPHttpClient.Create(nil);
