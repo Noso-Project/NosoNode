@@ -1,3 +1,8 @@
+Version 0.3.2Ac8
+
+- Fixed GetBlockheaders. (?)
+- Fixed sendgvt under protocol pending.
+
 Version 0.3.2Ac7
 
 - Fixed GetLastVerZipFile to work with new GetOS function.

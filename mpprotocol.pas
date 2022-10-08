@@ -569,6 +569,10 @@ if GetPendingCount > 0 then
             TextOrder := encab+'ORDER ';
             end;
          end;
+      if (CopyPendingTXs[contador].OrderType='SNDGVT') then
+         begin
+         PTC_SendLine(slot,Encab+'$'+TextLine);
+         end;
       end;
    Tolog('Sent '+IntToStr(Length(CopyPendingTXs))+' pendingTxs to '+conexiones[slot].ip);
    SetLength(CopyPendingTXs,0);
@@ -1035,8 +1039,8 @@ End;
 
 Procedure INC_PTC_SendGVT(TextLine:String;connection:integer);
 Begin
-if not IsOrderIDAlreadyProcessed(TextLine) then
-   AddCriptoOp(7,TextLine,'');
+AddCriptoOp(7,TextLine,'');
+ConsoleLinesAdd('sndgvt received');
 End;
 
 Function PTC_SendGVT(TextLine:String):integer;
@@ -1048,7 +1052,7 @@ var
   StrTosign  : String = '';
 Begin
 OrderInfo := Default(OrderData);
-ConsoleLinesAdd(TextLine);
+//ConsoleLinesAdd(TextLine);
 OrderInfo := GetOrderFromString(TextLine);
 Address := GetAddressFromPublicKey(OrderInfo.Sender);
 if address <> OrderInfo.Address then ErrorCode := 1;

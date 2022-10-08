@@ -532,7 +532,7 @@ if fileexists(BlockDirectory+IntToStr(numberblock)+'.blk') then
    begin
    Header := LoadBlockDataHeader(numberblock);
    blockhash := HashMD5File(BlockDirectory+IntToStr(numberblock)+'.blk');
-   Header.Solution := StringReplace(Header.Solution,' ','(',[rfReplaceAll, rfIgnoreCase]);
+   Header.Solution := StringReplace(Header.Solution,' ',#0,[rfReplaceAll, rfIgnoreCase]);
    Header.LastBlockHash := StringReplace(Header.LastBlockHash,' ','',[rfReplaceAll, rfIgnoreCase]);
    result :=(format('%d'#127'%d'#127'%d'#127'%d'#127'%d'#127'%d'#127'%d'#127'%s'#127'%s'#127'%s'#127'%d'#127'%s'#127'%d'#127'%d'#127'%s',
                     [Header.Number,Header.TimeStart,Header.TimeEnd,Header.TimeTotal,
