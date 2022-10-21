@@ -34,6 +34,7 @@ Procedure PTC_SendBlocks(Slot:integer;TextLine:String);
 Procedure INC_PTC_Custom(TextLine:String;connection:integer);
 Function PTC_Custom(TextLine:String):integer;
 function ValidateTrfr(order:orderdata;Origen:String):integer;
+function IsAddressLocked(LAddress:String):boolean;
 Function IsOrderIDAlreadyProcessed(OrderText:string):Boolean;
 Procedure INC_PTC_Order(TextLine:String;connection:integer);
 Function PTC_Order(TextLine:String):String;
@@ -230,7 +231,7 @@ if tipo = GetSumary then
 if tipo = GetGVTs then
    Resultado := '$GETGVTS';
 if tipo = 21 then
-   Resultado := '$SENDGVT ';
+   Resultado := '$SNDGVT ';
 if tipo = GetCFG then
    Resultado := 'GETCFGDATA';
 if tipo = SETCFG then
@@ -349,7 +350,7 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = 'GETHEADUPDATE' then PTC_SendUpdateHeaders(contador,ProcessLine)
       else if UpperCase(LineComando) = 'HEADUPDATE' then PTC_HeadUpdate(ProcessLine)
       else if UpperCase(LineComando) = '$GETSUMARY' then PTC_SendSumary(contador)
-      else if UpperCase(LineComando) = '$SENDGVT' then INC_PTC_SendGVT(GetOpData(ProcessLine), contador)
+      else if UpperCase(LineComando) = '$SNDGVT' then INC_PTC_SendGVT(GetOpData(ProcessLine), contador)
 
       else
          Begin  // El comando recibido no se reconoce. Verificar protocolos posteriores.
@@ -872,6 +873,12 @@ if ErrorCode = 0 then
 Result := ErrorCode;
 End;
 
+function IsAddressLocked(LAddress:String):boolean;
+Begin
+Result := false;
+if LAddress = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd' then Result := true;
+End;
+
 // Verify a transfer
 function ValidateTrfr(order:orderdata;Origen:String):integer;
 Begin
@@ -898,6 +905,8 @@ else if Not IsValidHashAddress(Origen) then
    result := 9
 else if ( (order.OrderType='TRFR') and  (Not IsValidHashAddress(Order.Receiver)) ) then
    result := 10
+else if IsAddressLocked(Order.Address) then
+   result := 11
 else result := 0;
 End;
 
@@ -1039,8 +1048,8 @@ End;
 
 Procedure INC_PTC_SendGVT(TextLine:String;connection:integer);
 Begin
-AddCriptoOp(7,TextLine,'');
-ConsoleLinesAdd('sndgvt received');
+if not IsOrderIDAlreadyProcessed(TextLine) then
+   AddCriptoOp(7,TextLine,'');
 End;
 
 Function PTC_SendGVT(TextLine:String):integer;
@@ -1064,6 +1073,7 @@ if TrxExistsInLastBlock(OrderInfo.TrfrID) then ErrorCode:=5;
   if GVTAlreadyTransfered(OrderInfo.Reference) then ErrorCode := 6;
 StrTosign := 'Transfer GVT '+OrderInfo.Reference+' '+OrderInfo.Receiver+OrderInfo.TimeStamp.ToString;
 if not VerifySignedString(StrToSign,OrderInfo.Signature,OrderInfo.Sender ) then ErrorCode:=7;
+if OrderInfo.Sender <> AdminPubKey then ErrorCode := 8;
 if ErrorCode= 0 then
    begin
    OpData := GetOpData(TextLine); // remove trx header

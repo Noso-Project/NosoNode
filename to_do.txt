@@ -1,0 +1,36 @@
+Starting at 0.3.2Ac8
+
+Things to be done. (not completely updated yet)
+
+App related.
+
+- Complete/Fix "history" command.
+- Not blocking form for critical exceptions.
+- Re-verification step for GVT transfers.
+- Revisit GetTotalConexiones.
+- Complete translation migration.
+  * Remove old translation system.
+- Complete options system.
+  * Remove old options system.
+- Completely remove minning pool relatives.
+- Implement RPC functions.
+  * RPC_PendingOrders.
+  * RPC_GetBlockPoS.
+  * RPC_GetBlockMNs.
+  * RPC_ConnectedPeers.
+  * RPC_GVTsList.
+- Remove rebuild option (DONE).
+- Remove autoupdate option (DONE).
+- Remove anti freeze. (DONE)
+
+Protocol related.
+
+- Implement multi-sign addresses.
+- Merge MNs with PoS.
+- Improve block creation time.
+- Complete GVTs implementation.
+- Develope GVT control system.
+- Implement NoBiEx.
+- Adjust Minning algo.
+- Implement "lock" and "stop" directives.
+- Adjust fee charges/filters.

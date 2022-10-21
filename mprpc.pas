@@ -36,7 +36,7 @@ function RPC_SendFunds(NosoPParams:string):string;
 implementation
 
 Uses
-  MasterPaskalForm,mpparser, mpDisk;
+  MasterPaskalForm,mpparser, mpDisk, mpProtocol;
 
 // Sets RPC port
 Procedure SetRPCPort(LineText:string);
@@ -267,7 +267,8 @@ else if objecttype = 'mininginfo' then
    begin
    resultado.Add('block',StrToInt(parameter(mystring,1)));
    resultado.Add('target',parameter(mystring,2));
-   resultado.Add('difficulty',StrToInt(parameter(mystring,3)));
+   resultado.Add('miner',parameter(mystring,3));
+   resultado.Add('diff',parameter(mystring,4));
    end
 else if objecttype = 'mainnetinfo' then
    begin
@@ -472,7 +473,7 @@ End;
 
 function RPC_Mininginfo(NosoPParams:string):string;
 Begin
-result := format('mininginfo'#127'%d'#127'%s'#127'%d'#127,[mylastblock+1,MyLastBlockHash,LastBlockData.NxtBlkDiff]);
+result := format('mininginfo'#127'%d'#127'%s'#127'%s'#127'%s'#127,[mylastblock+1,MyLastBlockHash,GetNMSData.miner,GetNMSData.Diff]);
 consolelinesadd('Resultado:'+result);
 End;
 

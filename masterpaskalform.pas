@@ -777,7 +777,7 @@ CONST
   ReservedWords : string = 'NULL,DELADDR';
   ValidProtocolCommands : string = '$PING$PONG$GETPENDING$NEWBL$GETRESUMEN$LASTBLOCK$GETCHECKS'+
                                    '$CUSTOMORDERADMINMSGNETREQ$REPORTNODE$GETMNS$BESTHASH$MNREPO$MNCHECK'+
-                                   'GETMNSFILEMNFILEGETHEADUPDATE$GETSUMARY$GETGVTSGVTSFILE$SENDGVTGETCFGDATA'+
+                                   'GETMNSFILEMNFILEGETHEADUPDATE$GETSUMARY$GETGVTSGVTSFILE$SNDGVTGETCFGDATA'+
                                    'SETCFGDATA';
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
@@ -1834,7 +1834,8 @@ If Protocolo > 0 then
 RestartTimer.Enabled:=false;
 StaTimeLab.Caption:=TimestampToDate(UTCTime)+' ('+IntToStr(UTCTime.ToInt64-EngineLastUpdate)+')';
 //StaTimeLab.Update;
-if ( ((UTCTime.ToInt64 > EngineLastUpdate+WO_AntiFreezeTime) and (WO_AntiFreeze)) or (G_CloseRequested) ) then
+//if ( ((UTCTime.ToInt64 > EngineLastUpdate+WO_AntiFreezeTime) and (WO_AntiFreeze)) or (G_CloseRequested) ) then
+if G_CloseRequested then
    begin
    if 1=1 then
       begin
@@ -2443,8 +2444,6 @@ if GoAhead then
    sleep(100);
    if ((not EarlyRestart) and (RestartNosoAfterQuit)) then RestartNoso;
    form1.Close;
-   //application.Terminate;
-   //Halt(0);
    end;
 End;
 
@@ -2511,7 +2510,7 @@ form1.GridMyTxs.FocusRectVisible:=false;
 
 Form1.imagenes.GetBitMap(54,form1.ImgRotor.picture.BitMap);
 
-form1.LabAbout.Caption:=CoinName+' project'+SLINEBREAK+'Designed by PedroJOR'+SLINEBREAK+
+form1.LabAbout.Caption:=CoinName+' project'+SLINEBREAK+'Designed by bermello'+SLINEBREAK+
 'Crypto routines by Xor-el'+SLINEBREAK+
 'Version '+ProgramVersion+subVersion+SLINEBREAK+'Protocol '+IntToStr(Protocolo)+SLINEBREAK+BuildDate;
 

@@ -174,7 +174,7 @@ if not errored then
          PendingTXs[contador].Sender:=OperationAddress;
          insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
          end;
-      if PendingTXs[contador].OrderType='SNDGVT' then
+      if ( (PendingTXs[contador].OrderType='SNDGVT') and ( PendingTXs[contador].Sender = AdminPubKey) ) then
          begin
          OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].Sender);
          if GetAddressBalance(OperationAddress) < PendingTXs[contador].AmmountFee then continue;

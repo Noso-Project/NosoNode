@@ -1,7 +1,15 @@
 Version 0.3.2Ac8
 
-- Fixed GetBlockheaders. (?)
+- Fixed RPC GetBlockheaders. (?)
 - Fixed sendgvt under protocol pending.
+- Unified SNDGVT as unique protocol identifier.
+- Included To-do file.
+- GVTs transfers restricted.
+- Adjusted & fixed RPC getmininginfo.
+- IsAddressLocked implemented.
+- Removed Rebuild option.
+- Removed autoupdate option.
+- Antifreeze unactive.
 
 Version 0.3.2Ac7
 
