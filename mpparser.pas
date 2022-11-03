@@ -2280,7 +2280,7 @@ else if param = 'MEM' then
   ConsoleLinesadd(Format('Available memory : %d MB',[AllocateMem]))
 else if param = 'DOWNSPEED' then
   ConsoleLinesAdd(Format('Download speed   : %d Kb/s',[TestDownloadSpeed]))
-else consolelinesadd('Invalid parameter: '+Param);
+else consolelinesadd('Invalid parameter: '+Param+slinebreak+'Use: power, mem or downspeed');
 End;
 
 END. // END UNIT

@@ -19,9 +19,6 @@ App related.
   * RPC_GetBlockMNs.
   * RPC_ConnectedPeers.
   * RPC_GVTsList.
-- Remove rebuild option (DONE).
-- Remove autoupdate option (DONE).
-- Remove anti freeze. (DONE)
 
 Protocol related.
 
@@ -34,3 +31,4 @@ Protocol related.
 - Adjust Minning algo.
 - Implement "lock" and "stop" directives.
 - Adjust fee charges/filters.
+- Optimization for headers update process.

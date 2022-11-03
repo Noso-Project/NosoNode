@@ -397,6 +397,12 @@ type
        control  : integer;
        end;
 
+  TBlockSumTrfr = packed record
+       address  : string[32];
+       amount   : int64;
+       score    : int64;
+       end;
+
   { TForm1 }
 
   TForm1 = class(TForm)
@@ -810,7 +816,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ac8';
+  SubVersion = 'Ac9';
   OficialRelease = false;
   VersionRequired = '0.3.2Ac7';
   BuildDate = 'October 2022';
@@ -2287,7 +2293,7 @@ if EngineLastUpdate <> UTCtime.ToInt64 then EngineLastUpdate := UTCtime.ToInt64;
 Form1.Latido.Enabled:=false;
 CheckClipboardForPays();
 if ( (UTCTime.ToInt64 >= BuildNMSBlock) and (BuildNMSBlock>0) and (GetNMSData.Miner<>'') and (MyConStatus=3) ) then
-   CrearNuevoBloque(MyLastBlock+1,BuildNMSBlock,MyLastBlockHash,GetNMSData.Miner,GetNMSData.Hash);
+   BuildNewBlock(MyLastBlock+1,BuildNMSBlock,MyLastBlockHash,GetNMSData.Miner,GetNMSData.Hash);
 setmilitime('ActualizarGUI',1);
 ActualizarGUI();
 setmilitime('ActualizarGUI',2);

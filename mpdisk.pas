@@ -93,6 +93,7 @@ Procedure BuildHeaderFile(untilblock:integer);
 Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
 Function DelBlChHeadLast(Block:integer): boolean;
 Function GetHeadersSize():integer;
+Function GetHeadersLastBlock():integer;
 Function ShowBlockHeaders(BlockNumber:Integer):String;
 Function LastHeaders(FromBlock:integer):String;
 
@@ -1808,6 +1809,28 @@ assignfile(FileResumen,ResumenFilename);
 LeaveCriticalSection(CSHeadAccess);
 End;
 
+Function GetHeadersLastBlock():integer;
+var
+  Dato: ResumenData;
+Begin
+result := 0;
+EnterCriticalSection(CSHeadAccess);
+TRY
+assignfile(FileResumen,ResumenFilename);
+reset(FileResumen);
+Dato := Default(ResumenData);
+if filesize(FileResumen)>0 then
+   begin
+   seek(fileResumen,filesize(FileResumen)-1);
+   Read(fileResumen,dato);
+   result := Dato.block;
+   end;
+EXCEPT on E:Exception do
+   tolog ('Error reading headers');
+END;
+LeaveCriticalSection(CSHeadAccess);
+End;
+
 Function ShowBlockHeaders(BlockNumber:Integer):String;
 var
   Dato: ResumenData;
@@ -1841,7 +1864,7 @@ TRY
 assignfile(FileResumen,ResumenFilename);
 reset(FileResumen);
 Dato := Default(ResumenData);
-seek(fileResumen,FromBlock+1);
+seek(fileResumen,FromBlock-10);
 While not Eof(fileResumen) do
    begin
    Read(fileResumen,dato);

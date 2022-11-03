@@ -64,28 +64,27 @@ var
   counter  : integer;
   MemMb    : array of pointer;
   Finished : boolean = false;
+  h: TFPCHeapStatus;
+  i: cardinal;
+  LastHeapFails: boolean;
+  Z: Pointer;
   {$IFDEF Unix} Info : TSysInfo; {$ENDIF}
 Begin
 result := 0;
 {$IFDEF WINDOWS}
-ReturnNilIfGrowHeapFails := false;
-counter := 0;
-SetLength(MemMb,0);
-repeat
-   SetLength(MemMb,length(MemMb)+1);
-      TRY
-      GetMem(MemMb[counter],1048576);
-      FillChar (MemMb[counter]^,1048576,' ');
-      EXCEPT ON E:Exception do
-         begin
-         finished := true;
-         end;
-      END;
-   inc(counter);
-until ( (finished) or (counter >=UpToMb));
-result := counter;
-for counter := 0 to length(MemMB)-1 do
-   FreeMem (MemMb[counter],1048576);
+Result := 0;
+LastHeapFails := ReturnNilIfGrowHeapFails;
+ReturnNilIfGrowHeapFails := True;
+for i := 1 to $FFFF do
+begin
+  Z := GetMem(i * $10000);
+  if Z = nil then
+    break;
+  h := GetFPCHeapStatus;
+  Result := h.MaxHeapSize div 1048576;
+  Freemem(Z);
+end;
+ReturnNilIfGrowHeapFails := LastHeapFails;
 {$ENDIF}
 {$IFDEF Unix}
 SysInfo(@Info);

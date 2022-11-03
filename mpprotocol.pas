@@ -1418,6 +1418,8 @@ var
   ThisHeader, blockhash, sumhash: String;
   Counter : integer = 0;
   Numero : integer;
+  LastBlockOnSummary : integer;
+  TotalErrors : integer = 0;
 Begin
 if MyResumenHash = NetResumenHash.Value then exit;
 startpos := Pos('$',Linea);
@@ -1430,10 +1432,17 @@ REPEAT
       Numero := StrToIntDef(Parameter(ThisHeader,0),0);
       blockhash := Parameter(ThisHeader,1);
       sumhash := Parameter(ThisHeader,2);
-      AddBlchHead(numero,blockhash,sumhash);
+      LastBlockOnSummary := GetHeadersLastBlock();
+      if numero = LastBlockOnSummary+1 then
+         AddBlchHead(numero,blockhash,sumhash)
+      else
+         begin
+         Inc(TotalErrors);
+         end;
       end;
    inc(counter);
 UNTIL ThisHeader='';
+if TotalErrors>0 then ConsoleLinesAdd(Format('Errors updating headers: %d',[TotalErrors]));
 MyResumenHash := HashMD5File(ResumenFilename);
 if MyResumenHash <> NetResumenHash.Value then
    begin

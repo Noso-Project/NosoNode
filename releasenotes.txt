@@ -1,3 +1,11 @@
+Version 0.3.2Ac9
+
+- Adjustment of system mem routine.
+- Removed get address from key at block creation.
+- ProcessArrPays implemented for block creation.
+- CrearNuevoBloque renamed to BuildNewBlock.
+- Adjusted update headers protocol.
+
 Version 0.3.2Ac8
 
 - Fixed RPC GetBlockheaders. (?)

@@ -474,7 +474,7 @@ End;
 function RPC_Mininginfo(NosoPParams:string):string;
 Begin
 result := format('mininginfo'#127'%d'#127'%s'#127'%s'#127'%s'#127,[mylastblock+1,MyLastBlockHash,GetNMSData.miner,GetNMSData.Diff]);
-consolelinesadd('Resultado:'+result);
+//consolelinesadd('Resultado:'+result);
 End;
 
 function RPC_Mainnetinfo(NosoPParams:string):string;
@@ -598,7 +598,7 @@ Begin
 destination := Parameter(NosoPParams,0);
 amount := StrToInt64Def(Parameter(NosoPParams,1),0);
 reference := Parameter(NosoPParams,2); if reference = '' then reference := 'null';
-consolelinesadd('Send to '+destination+' '+int2curr(amount)+' with reference: '+reference);
+//consolelinesadd('Send to '+destination+' '+int2curr(amount)+' with reference: '+reference);
 Resultado := SendFunds('sendto '+destination+' '+IntToStr(amount)+' '+Reference);
 if resultado = '' then
    begin

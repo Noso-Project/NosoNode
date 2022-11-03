@@ -1425,7 +1425,7 @@ conector.AllowRedirect:=true;
    MS.SaveToFile('NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator+version+'_'+LocalOS+'.zip');
    result := true;
    EXCEPT ON E:Exception do
-      ConsoleLines.Add('Error downloading release: '+E.Message);
+      ConsoleLinesAdd('Error downloading release: '+E.Message);
    END{Try};
 MS.Free;
 conector.free;

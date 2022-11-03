@@ -9,7 +9,7 @@ uses
   mptime, mpMN;
 
 Procedure CrearBloqueCero();
-Procedure CrearNuevoBloque(Numero,TimeStamp: Int64; TargetHash, Minero, Solucion:String);
+Procedure BuildNewBlock(Numero,TimeStamp: Int64; TargetHash, Minero, Solucion:String);
 Function GetDiffHashrate(bestdiff:String):integer;
 Function BestHashReadeable(BestDiff:String):string;
 function GetDiffForNextBlock(UltimoBloque,Last20Average,lastblocktime,previous:integer):integer;
@@ -37,13 +37,13 @@ Uses
 // Crea el bloque CERO con los datos por defecto
 Procedure CrearBloqueCero();
 Begin
-CrearNuevoBloque(0,GenesysTimeStamp,'',adminhash,'');
+BuildNewBlock(0,GenesysTimeStamp,'',adminhash,'');
 if G_Launching then ConsoleLinesAdd(LangLine(88)); //'Block 0 created.'
 if G_Launching then OutText('✓ Block 0 created',false,1);
 End;
 
 // Crea un bloque nuevo con la informacion suministrada
-Procedure CrearNuevoBloque(Numero,TimeStamp: int64; TargetHash, Minero, Solucion:String);
+Procedure BuildNewBlock(Numero,TimeStamp: int64; TargetHash, Minero, Solucion:String);
 var
   BlockHeader : BlockHeaderData;
   StartBlockTime : int64 = 0;
@@ -74,10 +74,46 @@ var
   MNsFileText   : String = '';
   GVTsTransfered : integer = 0;
 
+  ArrayPays : array of TBlockSumTrfr;
+
+  Function AddArrayPay(address:string;amount,score:int64):boolean;
+  var
+    counter : integer;
+    added : boolean = false;
+  Begin
+  for counter := 0 to length(ArrayPays)-1 do
+     begin
+     if ArrayPays[counter].address = address then
+        begin
+        ArrayPays[counter].amount:=ArrayPays[counter].amount+amount;
+        ArrayPays[counter].score:=ArrayPays[counter].score+score;
+        added := true;
+        break;
+        end;
+     end;
+  if not added then
+     begin
+     SetLEngth(ArrayPays,length(ArrayPays)+1);
+     ArrayPays[Length(ArrayPays)-1].address:=address;
+     ArrayPays[Length(ArrayPays)-1].amount:=amount;
+     ArrayPays[Length(ArrayPays)-1].score:=score;
+     end;
+  End;
+
+  Procedure ProcessArrPays(block:string);
+  var
+    counter : integer;
+  Begin
+  for counter := 0 to length(ArrayPays)-1 do
+     begin
+     UpdateSumario(ArrayPays[counter].address,ArrayPays[counter].amount,ArrayPays[counter].score,block);
+     end;
+  End;
+
 Begin
 BuildingBlock := Numero;
-setmilitime('CrearNuevoBloque',1);
-SetCurrentJob('CrearNuevoBloque',true);
+setmilitime('BuildNewBlock',1);
+SetCurrentJob('BuildNewBlock',true);
 if ((numero>0) and (Timestamp < lastblockdata.TimeEnd)) then
    begin
    ConsoleLinesAdd('New block '+IntToStr(numero)+' : Invalid timestamp');
@@ -97,6 +133,7 @@ if not errored then
    FileName := BlockDirectory + IntToStr(Numero)+'.blk';
    SetLength(ListaOrdenes,0);
    SetLength(IgnoredTrxs,0);
+   SetLength(ArrayPays,0);
    // Generate summary copy
    EnterCriticalSection(CSSumary);
    trydeletefile(SumarioFilename+'.bak');
@@ -161,15 +198,18 @@ if not errored then
          end;
       if PendingTXs[contador].OrderType='TRFR' then
          begin
-         OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].Sender);
+         //OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].Sender);
+         OperationAddress := PendingTXs[contador].Address;
          //OperationAddress := GetAddressFromPubKey_New(PendingTXs[contador].Sender);
          // nueva adicion para que no incluya las transacciones invalidas
          if GetAddressBalance(OperationAddress) < (PendingTXs[contador].AmmountFee+PendingTXs[contador].AmmountTrf) then continue;
          minerfee := minerfee+PendingTXs[contador].AmmountFee;
          // restar transferencia y comision de la direccion que envia
-         UpdateSumario(OperationAddress,Restar(PendingTXs[contador].AmmountFee+PendingTXs[contador].AmmountTrf),0,IntToStr(Numero));
+         AddArrayPay(OperationAddress,Restar(PendingTXs[contador].AmmountFee+PendingTXs[contador].AmmountTrf),0);
+            //UpdateSumario(OperationAddress,Restar(PendingTXs[contador].AmmountFee+PendingTXs[contador].AmmountTrf),0,IntToStr(Numero));
          // sumar transferencia al receptor
-         UpdateSumario(PendingTXs[contador].Receiver,PendingTXs[contador].AmmountTrf,0,IntToStr(Numero));
+         AddArrayPay(PendingTXs[contador].Receiver,PendingTXs[contador].AmmountTrf,0);
+            //UpdateSumario(PendingTXs[contador].Receiver,PendingTXs[contador].AmmountTrf,0,IntToStr(Numero));
          PendingTXs[contador].Block:=numero;
          PendingTXs[contador].Sender:=OperationAddress;
          insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
@@ -193,6 +233,7 @@ if not errored then
             end;
          end;
       end;
+   ProcessArrPays(IntToStr(Numero));
    if GVTsTransfered>0 then
       begin
       SaveGVTs;
@@ -347,8 +388,8 @@ if not errored then
    CheckForMyPending;
    if DIreccionEsMia(Minero)>-1 then showglobo('Miner','Block found!');
    U_DataPanel := true;
-   SetCurrentJob('CrearNuevoBloque',false);
-   setmilitime('CrearNuevoBloque',2);
+   SetCurrentJob('BuildNewBlock',false);
+   setmilitime('BuildNewBlock',2);
    end;
 U_PoSGrid := true;
 BuildingBlock := 0;
