@@ -1420,6 +1420,7 @@ var
   Numero : integer;
   LastBlockOnSummary : integer;
   TotalErrors : integer = 0;
+  TotalReceived: integer = 0;
 Begin
 if MyResumenHash = NetResumenHash.Value then exit;
 startpos := Pos('$',Linea);
@@ -1428,6 +1429,7 @@ REPEAT
    ThisHeader := Parameter(Content,counter);
    If thisheader<>'' then
       begin
+      Inc(TotalReceived);
       ThisHeader := StringReplace(ThisHeader,':',' ',[rfReplaceAll, rfIgnoreCase]);
       Numero := StrToIntDef(Parameter(ThisHeader,0),0);
       blockhash := Parameter(ThisHeader,1);
@@ -1438,11 +1440,13 @@ REPEAT
       else
          begin
          Inc(TotalErrors);
+         //ConsoleLinesAdd(Format('Error updating headers: %d not after %d',[numero,LastBlockOnSummary]));
          end;
       end;
    inc(counter);
 UNTIL ThisHeader='';
 if TotalErrors>0 then ConsoleLinesAdd(Format('Errors updating headers: %d',[TotalErrors]));
+if TotalReceived>0 then ConsoleLinesAdd(Format('Headers Received: %d',[TotalReceived]));
 MyResumenHash := HashMD5File(ResumenFilename);
 if MyResumenHash <> NetResumenHash.Value then
    begin

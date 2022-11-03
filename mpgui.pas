@@ -25,6 +25,7 @@ function ThisPercent(percent, thiswidth : integer;RestarBarra : boolean = false)
 Procedure CreateFormInicio();
 Procedure CreateFormSlots();
 Procedure UpdateSlotsGrid();
+Function GetConnectedPeers():String;
 Procedure InicializarGUI();
 Procedure OutText(Texto:String;inctime:boolean = false;canal : integer =0);
 Procedure MostrarLineasDeConsola();
@@ -191,6 +192,21 @@ if CurrentUTC>SlotsLastUpdate then
    SlotsLastUpdate := CurrentUTC;
    end;
 setmilitime('UpdateSlotsGrid',2);
+End;
+
+Function GetConnectedPeers():String;
+var
+  counter : integer;
+Begin
+result := '';
+For counter := 1 to MaxConecciones do
+   begin
+   if ( (Conexiones[counter].ip<>'') and (Conexiones[counter].ConexStatus>=3) ) then
+      begin
+      Result := result+Conexiones[counter].ip+' ';
+      end;
+   end;
+Trim(Result);
 End;
 
 // Inicializa el grid donde se muestran los datos

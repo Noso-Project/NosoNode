@@ -28,6 +28,7 @@ function RPC_Blockinfo(NosoPParams:string):string;
 function RPC_Mininginfo(NosoPParams:string):string;
 function RPC_Mainnetinfo(NosoPParams:string):string;
 function RPC_PendingOrders(NosoPParams:string):string;
+function RPC_GetPeers(NosoPParams:string):string;
 function RPC_BlockOrders(NosoPParams:string):string;
 function RPC_NewAddress(NosoPParams:string):string;
 function RPC_SendFunds(NosoPParams:string):string;
@@ -270,6 +271,29 @@ else if objecttype = 'mininginfo' then
    resultado.Add('miner',parameter(mystring,3));
    resultado.Add('diff',parameter(mystring,4));
    end
+else if objecttype = 'pendingorders' then
+   begin
+   counter := 1;
+   ordersarray := TJSONArray.Create;
+   while parameter(mystring,counter) <> '' do
+      begin
+      ordersarray.Add(parameter(mystring,counter));
+      Inc(Counter);
+      end;
+   resultado.Add('pendings',ordersarray);
+   end
+else if objecttype = 'peers' then
+   begin
+   counter := 1;
+   ordersarray := TJSONArray.Create;
+   while parameter(mystring,counter) <> '' do
+      begin
+      ordersarray.Add(parameter(mystring,counter));
+      Inc(Counter);
+      end;
+   resultado.Add('peers',ordersarray);
+   end
+
 else if objecttype = 'mainnetinfo' then
    begin
    resultado.Add('lastblock',StrToIntDef(parameter(mystring,1),0));
@@ -361,6 +385,7 @@ else
       else if method = 'getmininginfo' then result := GetJSONResponse(RPC_Mininginfo(NosoPParams),jsonid)
       else if method = 'getmainnetinfo' then result := GetJSONResponse(RPC_Mainnetinfo(NosoPParams),jsonid)
       else if method = 'getpendingorders' then result := GetJSONResponse(RPC_PendingOrders(NosoPParams),jsonid)
+      else if method = 'getpeers' then result := GetJSONResponse(RPC_GetPeers(NosoPParams),jsonid)
       else if method = 'getblockorders' then result := GetJSONResponse(RPC_BlockOrders(NosoPParams),jsonid)
       else if method = 'getnewaddress' then result := GetJSONResponse(RPC_NewAddress(NosoPParams),jsonid)
       else if method = 'sendfunds' then result := GetJSONResponse(RPC_SendFunds(NosoPParams),jsonid)
@@ -484,8 +509,21 @@ result := format('mainnetinfo'#127'%s'#127'%s'#127'%s'#127'%s'#127'%s'#127'%d',
 End;
 
 function RPC_PendingOrders(NosoPParams:string):string;
+var
+  LData : String;
 Begin
-result := '';
+LData :=PendingRawInfo;
+LData := StringReplace(LData,' ',#127,[rfReplaceAll, rfIgnoreCase]);
+result := format('pendingorders'#127'%s',[LData]);
+End;
+
+function RPC_GetPeers(NosoPParams:string):string;
+var
+  LData : String;
+Begin
+LData := GetConnectedPeers;
+LData := StringReplace(LData,' ',#127,[rfReplaceAll, rfIgnoreCase]);
+result := format('peers'#127'%s',[LData]);
 End;
 
 function RPC_BlockOrders(NosoPParams:string):string;

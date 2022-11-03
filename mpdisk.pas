@@ -1795,6 +1795,7 @@ End;
 
 Function GetHeadersSize():integer;
 Begin
+result := -1;
 EnterCriticalSection(CSHeadAccess);
 assignfile(FileResumen,ResumenFilename);
    TRY
@@ -1825,6 +1826,7 @@ if filesize(FileResumen)>0 then
    Read(fileResumen,dato);
    result := Dato.block;
    end;
+closefile(FileResumen);
 EXCEPT on E:Exception do
    tolog ('Error reading headers');
 END;
