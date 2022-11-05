@@ -1,3 +1,7 @@
+Version 0.3.2Ad2
+
+- Removed solo minning.
+
 Version 0.3.2Ad1
 
 - Corrected RPC PendingOrders.

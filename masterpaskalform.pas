@@ -816,7 +816,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ad1';
+  SubVersion = 'Ad2';
   OficialRelease = false;
   VersionRequired = '0.3.2Ac7';
   BuildDate = 'October 2022';
@@ -2938,7 +2938,8 @@ if GoAhead then
       TryCloseServerConnection(AContext,IntToStr(GetAddressAvailable(parameter(LLine,1))))
    else if parameter(LLine,0) = 'BESTHASH' then
       begin
-      if not IsBlockOpen then TryCloseServerConnection(AContext,'False '+GetNMSData.Diff+' 6')
+      if ( (not IsBlockOpen) and (not IsSeedNode(IPUSer)) ) then TryCloseServerConnection(AContext,'False '+GetNMSData.Diff+' 6')
+      else if (not IsValidPool(IPUser)) then TryCloseServerConnection(AContext,'False '+GetNMSData.Diff+' 9')
       else TryCloseServerConnection(AContext,PTC_BestHash(LLine, IPUSer));
       end
    else if parameter(LLine,0) = 'NSLPEND' then

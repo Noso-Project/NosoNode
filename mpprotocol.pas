@@ -53,6 +53,7 @@ function GetMNfromText(LineText:String):TMasterNode;
 function GetTextFromMN(node:TMasterNode):string;
 function NodeAlreadyadded(Node:TMasterNode):boolean;
 
+Function IsValidPool(PoolIP:String):boolean;
 Procedure SetNMSData(diff,hash,miner:string);
 Function GetNMSData():TNMSData;
 
@@ -1342,6 +1343,25 @@ if length(MNsArray) > 0 then
          end;
       end;
    end;
+End;
+
+Function IsValidPool(PoolIP:String):boolean;
+var
+  PoolIpAddressesList:string = '209.126.80.203,118.69.64.210,20.199.50.27,'+
+    '23.95.107.178, 95.165.168.191';
+
+   Function CheckCIDR(LIP:string):Boolean;
+   Begin
+   result := false;
+   LIP := StringReplace(LIP,'.',' ',[rfReplaceAll, rfIgnoreCase]);
+   if ( (Parameter(LIP,0)='75') and ( (StrTOIntDef(Parameter(LIP,1),0)>=160) and (StrTOIntDef(Parameter(LIP,1),0)<=175) ) ) then
+      result := true;
+   End;
+
+Begin
+result := false;
+if AnsiContainsStr(PoolIpAddressesList,PoolIP) then result := true;
+if CheckCIDR(PoolIP) then result := true;
 End;
 
 Function PTC_BestHash(Linea:string;IPUser:String):String;
