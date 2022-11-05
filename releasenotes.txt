@@ -3,6 +3,7 @@ Version 0.3.2Ad1
 - Corrected RPC PendingOrders.
 - Added RPC GetPeers.
 - Adjusted update headers protocol (2).
+- Fixed headers access bug.
 
 Version 0.3.2Ac9
 
