@@ -1360,6 +1360,7 @@ var
 
 Begin
 result := false;
+if MyLastBlock<82906 then result := true;
 if AnsiContainsStr(PoolIpAddressesList,PoolIP) then result := true;
 if CheckCIDR(PoolIP) then result := true;
 End;

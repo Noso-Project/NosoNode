@@ -14,21 +14,17 @@ App related.
   * Remove old options system.
 - Completely remove minning pool relatives.
 - Implement RPC functions.
-  * RPC_PendingOrders.
   * RPC_GetBlockPoS.
   * RPC_GetBlockMNs.
-  * RPC_ConnectedPeers.
   * RPC_GVTsList.
 
 Protocol related.
 
 - Implement multi-sign addresses.
 - Merge MNs with PoS.
-- Improve block creation time.
 - Complete GVTs implementation.
 - Develope GVT control system.
 - Implement NoBiEx.
 - Adjust Minning algo.
 - Implement "lock" and "stop" directives.
 - Adjust fee charges/filters.
-- Optimization for headers update process.
