@@ -1395,11 +1395,11 @@ if Diff<GetNMSData.Diff then // Better hash
    SetNMSData(Diff,hash,miner);
    OutgoingMsjsAdd(GetPTCEcn+'$BESTHASH '+Miner+' '+Hash+' '+block+' '+TimeStamp);
    Result:='True '+Diff+' '+ResultHash;
-   if IPUser <>'1.1.1.1' then ConsoleLinesAdd('Besthash received from '+IPUser);
+   if IPUser <>'1.1.1.1' then ConsoleLinesAdd('Besthash received from '+IPUser+'->'+Miner);
    end
 else
    begin
-   Result := Result+' 5';
+   Result := Result+' 5'; // IS not a besthash
    end;
 End;
 
