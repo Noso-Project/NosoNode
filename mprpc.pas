@@ -270,6 +270,7 @@ else if objecttype = 'mininginfo' then
    resultado.Add('target',parameter(mystring,2));
    resultado.Add('miner',parameter(mystring,3));
    resultado.Add('diff',parameter(mystring,4));
+   resultado.Add('hash',parameter(mystring,5));
    end
 else if objecttype = 'pendingorders' then
    begin
@@ -498,7 +499,7 @@ End;
 
 function RPC_Mininginfo(NosoPParams:string):string;
 Begin
-result := format('mininginfo'#127'%d'#127'%s'#127'%s'#127'%s'#127,[mylastblock+1,MyLastBlockHash,GetNMSData.miner,GetNMSData.Diff]);
+result := format('mininginfo'#127'%d'#127'%s'#127'%s'#127'%s'#127'%s'#127,[mylastblock+1,MyLastBlockHash,GetNMSData.miner,GetNMSData.Diff, GetNMSData.Hash]);
 //consolelinesadd('Resultado:'+result);
 End;
 

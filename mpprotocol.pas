@@ -1348,7 +1348,7 @@ End;
 Function IsValidPool(PoolIP:String):boolean;
 var
   PoolIpAddressesList:string = '209.126.80.203,118.69.64.210,20.199.50.27,'+
-    '23.95.107.178, 95.165.168.191';
+    '144.24.45.44, 95.165.168.191';
 
    Function CheckCIDR(LIP:string):Boolean;
    Begin

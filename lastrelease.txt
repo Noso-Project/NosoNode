@@ -1,1 +1,1 @@
-0.3.2Ad3 {win32hash} {win64hash} {linux64hash} {signature}
+0.3.2Ad4 {win32hash} {win64hash} {linux64hash} {signature}
