@@ -53,7 +53,7 @@ function GetMNfromText(LineText:String):TMasterNode;
 function GetTextFromMN(node:TMasterNode):string;
 function NodeAlreadyadded(Node:TMasterNode):boolean;
 
-Function IsValidPool(PoolIP:String):boolean;
+Function IsValidPool(PoolAddress:String):boolean;
 Procedure SetNMSData(diff,hash,miner:string);
 Function GetNMSData():TNMSData;
 
@@ -1345,24 +1345,13 @@ if length(MNsArray) > 0 then
    end;
 End;
 
-Function IsValidPool(PoolIP:String):boolean;
+Function IsValidPool(PoolAddress:String):boolean;
 var
-  PoolIpAddressesList:string = '209.126.80.203,118.69.64.210,20.199.50.27,'+
-    '144.24.45.44, 95.165.168.191';
-
-   Function CheckCIDR(LIP:string):Boolean;
-   Begin
-   result := false;
-   LIP := StringReplace(LIP,'.',' ',[rfReplaceAll, rfIgnoreCase]);
-   if ( (Parameter(LIP,0)='75') and ( (StrTOIntDef(Parameter(LIP,1),0)>=160) and (StrTOIntDef(Parameter(LIP,1),0)<=175) ) ) then
-      result := true;
-   End;
+  PoolAddressesList:string = 'N3ESwXxCAR4jw3GVHgmKiX9zx1ojWEf N2ophUoAzJw9LtgXbYMiB4u5jWWGJF7 N3aXz2RGwj8LAZgtgyyXNRkfQ1EMnFC';
 
 Begin
 result := false;
-if MyLastBlock<82906 then result := true;
-if AnsiContainsStr(PoolIpAddressesList,PoolIP) then result := true;
-if CheckCIDR(PoolIP) then result := true;
+if AnsiContainsStr(PoolAddressesList,PoolAddress) then result := true;
 End;
 
 Function PTC_BestHash(Linea:string;IPUser:String):String;
@@ -1383,6 +1372,7 @@ if not IsValidHashAddress(Miner) then exitcode:=3;
 if Hash+Miner = GetNMSData.Hash+GetNMSData.Miner then exitcode:=4;
 if ((length(hash)<18) or (length(hash)>33)) then exitcode:=7;
 if AnsiContainsStr(Hash,'(') then exitcode:=8;
+if not IsValidPool(Miner) then exitcode := 9;
 if exitcode>0 then
    begin
    Result := Result+' '+Exitcode.ToString;

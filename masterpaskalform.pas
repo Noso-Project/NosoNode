@@ -816,10 +816,10 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ad4';
+  SubVersion = 'Ad5';
   OficialRelease = false;
-  VersionRequired = '0.3.2Ad2';
-  BuildDate = 'October 2022';
+  VersionRequired = '0.3.2Ad5';
+  BuildDate = 'November 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   HasheableChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -2939,7 +2939,7 @@ if GoAhead then
    else if parameter(LLine,0) = 'BESTHASH' then
       begin
       if ( (not IsBlockOpen) and (not IsSeedNode(IPUSer)) ) then TryCloseServerConnection(AContext,'False '+GetNMSData.Diff+' 6')
-      else if (not IsValidPool(IPUser)) then TryCloseServerConnection(AContext,'False '+GetNMSData.Diff+' 9')
+      //else if (not IsValidPool(IPUser)) then TryCloseServerConnection(AContext,'False '+GetNMSData.Diff+' 9')
       else TryCloseServerConnection(AContext,PTC_BestHash(LLine, IPUSer));
       end
    else if parameter(LLine,0) = 'NSLPEND' then
