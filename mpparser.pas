@@ -322,6 +322,7 @@ else if UpperCase(Command) = 'PENDING' then consolelinesadd(PendingRawInfo)
 else if UpperCase(Command) = 'WEBSEED' then consolelinesadd(GetWebSeedNodes)
 else if UpperCase(Command) = 'HEADER' then consolelinesadd(LastHeaders(StrToIntDef(parameter(linetext,1),-1)))
 else if UpperCase(Command) = 'HEADSIZE' then consolelinesadd(GetHeadersSize.ToString)
+else if UpperCase(Command) = 'CHECKSUM' then consolelinesadd(BMDecTo58(BMB58resumen(parameter(linetext,1))))
 
 // CONSULTING
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()

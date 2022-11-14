@@ -875,9 +875,11 @@ Result := ErrorCode;
 End;
 
 function IsAddressLocked(LAddress:String):boolean;
+var
+  LockedAddresses : string = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd,NpryectdevepmentfundsGE';
 Begin
 Result := false;
-if LAddress = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd' then Result := true;
+If AnsiContainsSTR(LockedAddresses, LAddress) then result := true;
 End;
 
 // Verify a transfer
@@ -1347,8 +1349,8 @@ End;
 
 Function IsValidPool(PoolAddress:String):boolean;
 var
-  PoolAddressesList:string = 'N3ESwXxCAR4jw3GVHgmKiX9zx1ojWEf N2ophUoAzJw9LtgXbYMiB4u5jWWGJF7 N3aXz2RGwj8LAZgtgyyXNRkfQ1EMnFC';
-
+  PoolAddressesList:string = 'N3ESwXxCAR4jw3GVHgmKiX9zx1ojWEf N2ophUoAzJw9LtgXbYMiB4u5jWWGJF7 '+
+    'N3aXz2RGwj8LAZgtgyyXNRkfQ1EMnFC N2MVecGnXGHpN8z4RqwJFXSQP6doVDv N2dti2MVscA2XQ1jmhzxjt2ASGmkWFC';
 Begin
 result := false;
 if AnsiContainsStr(PoolAddressesList,PoolAddress) then result := true;

@@ -1,3 +1,10 @@
+Version 0.3.2Ad6
+
+- Address NpryectdevepmentfundsGE protocol locked.
+- Ravifj pool allowed.
+- Rukzuk pool allowed.
+- NSLCFG implemented.
+
 Version 0.3.2Ad5
 
 - Filter for valid pools addresses.

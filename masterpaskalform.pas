@@ -816,9 +816,9 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ad5';
+  SubVersion = 'Ad6';
   OficialRelease = false;
-  VersionRequired = '0.3.2Ad5';
+  VersionRequired = '0.3.2Ad6';
   BuildDate = 'November 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
@@ -2950,6 +2950,8 @@ if GoAhead then
       TryCloseServerConnection(AContext,UTCTime)
    else if parameter(LLine,0) = 'NSLMNS' then
       TryCloseServerConnection(AContext,GetMN_FileText)
+   else if parameter(LLine,0) = 'NSLCFG' then
+      TryCloseServerConnection(AContext,GetNosoCFG)
 
    else if parameter(LLine,0) = 'NSLGVT' then
       begin
