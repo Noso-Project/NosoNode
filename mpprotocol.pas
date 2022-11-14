@@ -1382,7 +1382,7 @@ if exitcode>0 then
    end;
 ResultHash := NosoHash(Hash+Miner);
 Diff := CheckHashDiff(MyLastBlockHash,ResultHash);
-if Diff<GetNMSData.Diff then // Better hash
+if ( (Diff<GetNMSData.Diff) and (Copy(Diff,1,7)<>'0000000') ) then // Better hash
    begin
    SetNMSData(Diff,hash,miner);
    OutgoingMsjsAdd(GetPTCEcn+'$BESTHASH '+Miner+' '+Hash+' '+block+' '+TimeStamp);

@@ -1,3 +1,7 @@
+Version 0.3.2Ad7
+
+- Fixed bug.
+
 Version 0.3.2Ad6
 
 - Address NpryectdevepmentfundsGE protocol locked.

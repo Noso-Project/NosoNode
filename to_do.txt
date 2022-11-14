@@ -28,3 +28,4 @@ Protocol related.
 - Adjust Minning algo.
 - Implement "lock" and "stop" directives.
 - Adjust fee charges/filters.
+- Make allowed pools dynamic.
