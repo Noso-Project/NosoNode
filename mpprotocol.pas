@@ -875,8 +875,6 @@ Result := ErrorCode;
 End;
 
 function IsAddressLocked(LAddress:String):boolean;
-var
-  LockedAddresses : string = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd,NpryectdevepmentfundsGE';
 Begin
 Result := false;
 If AnsiContainsSTR(LockedAddresses, LAddress) then result := true;
@@ -1348,9 +1346,6 @@ if length(MNsArray) > 0 then
 End;
 
 Function IsValidPool(PoolAddress:String):boolean;
-var
-  PoolAddressesList:string = 'N3ESwXxCAR4jw3GVHgmKiX9zx1ojWEf N2ophUoAzJw9LtgXbYMiB4u5jWWGJF7 '+
-    'N3aXz2RGwj8LAZgtgyyXNRkfQ1EMnFC N2MVecGnXGHpN8z4RqwJFXSQP6doVDv N2dti2MVscA2XQ1jmhzxjt2ASGmkWFC';
 Begin
 result := false;
 if AnsiContainsStr(PoolAddressesList,PoolAddress) then result := true;
@@ -1361,6 +1356,7 @@ var
   miner,hash,diff,block : string;
   ResultHash : string;
   TimeStamp : string;
+  PublicKey, Signature : string;
   Exitcode : integer = 0;
 Begin
 Result:= 'False '+GetNMSData.Diff;
@@ -1368,6 +1364,8 @@ Miner := Parameter(Linea,5);
 Hash  := Parameter(Linea,6);
 block  := Parameter(Linea,7);
 TimeStamp  := Parameter(Linea,8);
+PublicKey  := Parameter(Linea,9);
+Signature  := Parameter(Linea,10);
 If StrToIntDef(Block,0)<>LastBlockData.Number+1 then exitcode := 1;
 if (StrToInt64Def(TimeStamp,0)) mod 600 > 585 then exitcode:=2;
 if not IsValidHashAddress(Miner) then exitcode:=3;
@@ -1375,6 +1373,11 @@ if Hash+Miner = GetNMSData.Hash+GetNMSData.Miner then exitcode:=4;
 if ((length(hash)<18) or (length(hash)>33)) then exitcode:=7;
 if AnsiContainsStr(Hash,'(') then exitcode:=8;
 if not IsValidPool(Miner) then exitcode := 9;
+if not VerifySignedString(Miner+Hash+TimeStamp,Signature,PublicKey) then
+   begin
+   Exitcode := 11;
+   ConsoleLinesAdd('Invalid signature from '+miner);
+   end;
 if exitcode>0 then
    begin
    Result := Result+' '+Exitcode.ToString;
@@ -1385,7 +1388,7 @@ Diff := CheckHashDiff(MyLastBlockHash,ResultHash);
 if ( (Diff<GetNMSData.Diff) and (Copy(Diff,1,7)<>'0000000') ) then // Better hash
    begin
    SetNMSData(Diff,hash,miner);
-   OutgoingMsjsAdd(GetPTCEcn+'$BESTHASH '+Miner+' '+Hash+' '+block+' '+TimeStamp);
+   OutgoingMsjsAdd(GetPTCEcn+'$BESTHASH '+Miner+' '+Hash+' '+block+' '+TimeStamp+' '+PublicKey+' '+Signature);
    Result:='True '+Diff+' '+ResultHash;
    if IPUser <>'1.1.1.1' then ConsoleLinesAdd('Besthash received from '+IPUser+'->'+Miner);
    end
@@ -1476,7 +1479,12 @@ End;
 Procedure SetNMSData(diff,hash,miner:string);
 Begin
 EnterCriticalSection(CSNMSData);
-if diff = '' then diff := 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF';
+if diff = '' then
+   begin
+   diff  := 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF1';
+   Hash  := '!!!!!!!!!100000000';
+   miner := 'NpryectdevepmentfundsGE';
+   end;
 NMSData.Diff:= Diff;
 NMSData.Hash:=Hash;
 NMSData.Miner:=Miner;

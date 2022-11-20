@@ -800,7 +800,7 @@ CONST
                             '101.100.138.125 '+
                             '198.46.218.125';
 
-  DefaultNosoCFG : String = 'nosocfg 47.87.181.190;8080:47.87.178.205;8080:81.22.38.101;8080:'+
+  DefaultNosoCFG : String = 'Normal 47.87.181.190;8080:47.87.178.205;8080:81.22.38.101;8080:'+
                             '66.151.117.247;8080:47.87.180.219;8080:47.87.137.96;8080:'+
                             '192.3.85.196;8080:192.3.254.186;8080:'+
                             '101.100.138.125;8080:198.46.218.125;8080: ntp.amnic.net:ts2.aco.net:'+
@@ -816,9 +816,9 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ad7';
+  SubVersion = 'Ad8';
   OficialRelease = false;
-  VersionRequired = '0.3.2Ad7';
+  VersionRequired = '0.3.2Ad8';
   BuildDate = 'November 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
@@ -860,6 +860,11 @@ CONST
   SecurityBlocks   = 4000;
 
 var
+  PoolAddressesList:string = 'N3ESwXxCAR4jw3GVHgmKiX9zx1ojWEf N2ophUoAzJw9LtgXbYMiB4u5jWWGJF7 '+
+    'N3aXz2RGwj8LAZgtgyyXNRkfQ1EMnFC N2MVecGnXGHpN8z4RqwJFXSQP6doVDv N2dti2MVscA2XQ1jmhzxjt2ASGmkWFC';
+
+  LockedAddresses : string = 'NpryectdevepmentfundsGE';
+
   UserFontSize : integer = 8;
   UserRowHeigth : integer = 22;
   ReadTimeOutTIme : integer = 1000;

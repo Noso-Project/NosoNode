@@ -1,3 +1,10 @@
+Version 0.3.2Ad8
+
+- Required signed besthashes.
+- Not pool mined blocks are credited to NpryectdevepmentfundsGE.
+- Locked addresses and valid pools moved to global variables.
+- Implemented "normal" mainnet mode on nosocfg.
+
 Version 0.3.2Ad7
 
 - Fixed bug.
