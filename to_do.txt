@@ -17,6 +17,7 @@ App related.
   * RPC_GetBlockPoS.
   * RPC_GetBlockMNs.
   * RPC_GVTsList.
+- Multiple update trys.
 
 Protocol related.
 
@@ -25,7 +26,6 @@ Protocol related.
 - Complete GVTs implementation.
 - Develope GVT control system.
 - Implement NoBiEx.
-- Adjust Minning algo.
 - Implement "lock" and "stop" directives.
 - Adjust fee charges/filters.
 - Make allowed pools dynamic.

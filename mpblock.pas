@@ -364,7 +364,7 @@ if not errored then
                         MNsReward, MNsCount,MNsAddressess) then
       ToExcLog('*****CRITICAL*****'+slinebreak+'Error building block: '+numero.ToString);
 
-   SetNMSData('','','');
+   SetNMSData('','','','','','');
    BuildNMSBlock := 0;
 
    SetLength(ListaOrdenes,0);
@@ -670,7 +670,7 @@ if MyConStatus = 3 then
    //if Form1.Server.Active then Form1.Server.Active := false;
    ClearMNsChecks();
    ClearMNsList();
-   SetNMSData('','','');
+   SetNMSData('','','','','','');
    ClearAllPending;
    ClearReceivedOrdersIDs;
    end;

@@ -53,8 +53,6 @@ The Linux version has been tested on:
 
 ## Donations
 
-BTC: 3H1VzdL3QFQpc62DUhbtCFV5dG4K1yPwVB
+For support the project, you can send Noso to the following address:
 
-LTC: LUUWwzfeQtJ4dc8A5xJVz3Zacray55f1WH
-
-NosoCoin: devteam_donations
+### NpryectdevepmentfundsGE

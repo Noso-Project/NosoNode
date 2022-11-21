@@ -648,7 +648,7 @@ if ((NumeroConexiones>=MinConexToWork) and (MyConStatus<2) and (not STATUS_Conne
    begin
    STATUS_Connected := true;
    MyConStatus := 2;
-   SetNMSData('','','');
+   SetNMSData('','','','','','');
    ConsoleLinesAdd(LangLine(35));     //Connected
    end;
 if STATUS_Connected then
@@ -660,7 +660,7 @@ if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLa
      and (MySumarioHash=NetSumarioHash.Value) and(MyResumenhash = NetResumenHash.Value) ) then
    begin
    ClearReceivedOrdersIDs;
-   SetNMSData('','','');
+   SetNMSData('','','','','','');
    MyConStatus := 3;
    U_Mytrxs := true;
    ConsoleLinesAdd(LangLine(36));   //Updated!
@@ -1007,7 +1007,7 @@ NLBV := StrToIntDef(NetLastBlock.Value,0);
 if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // Request headers
    begin
    ClearAllPending;
-   SetNMSData('','','');
+   SetNMSData('','','','','','');
    ClearMNsChecks();
    ClearMNsList();
    if ((LastTimeRequestResumen+10 < UTCTime.ToInt64) and (not DownloadHeaders)) then
@@ -1030,7 +1030,7 @@ if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // Req
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  // request up to 100 blocks
    begin
    ClearAllPending;
-   SetNMSData('','','');
+   SetNMSData('','','','','','');
    ClearMNsChecks();
    ClearMNsList();
    if ((LastTimeRequestBlock+5<StrToInt64(UTCTime))and (not DownLoadBlocks)) then
@@ -1078,7 +1078,7 @@ else if ((MyResumenhash <> NetResumenHash.Value) and (NLBV=mylastblock) and (MyL
    and (MySumarioHash=NetSumarioHash.Value) and (not DownloadHeaders) ) then
    begin
    ClearAllPending;
-   SetNMSData('','','');
+   SetNMSData('','','','','','');
    PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
    ConsoleLinesAdd(LangLine(163)); //'Headers file requested'
    LastTimeRequestResumen := StrToInt64(UTCTime);

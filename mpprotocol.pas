@@ -54,7 +54,7 @@ function GetTextFromMN(node:TMasterNode):string;
 function NodeAlreadyadded(Node:TMasterNode):boolean;
 
 Function IsValidPool(PoolAddress:String):boolean;
-Procedure SetNMSData(diff,hash,miner:string);
+Procedure SetNMSData(diff,hash,miner,Timestamp,publicKey,signature:string);
 Function GetNMSData():TNMSData;
 
 Procedure AddCFGNode(StrNode:String);
@@ -545,7 +545,8 @@ Begin
 Encab := GetPTCEcn;
 TextOrder := encab+'ORDER ';
 // Send the current best hash
-PTC_SendLine(slot,GetPTCEcn+'$BESTHASH '+GetNMSData.Miner+' '+GetNMSData.Hash+' '+(MyLastBlock+1).ToString+' '+(LastBlockData.TimeEnd+10).ToString);
+PTC_SendLine(slot,GetPTCEcn+'$BESTHASH '+GetNMSData.Miner+' '+GetNMSData.Hash+' '+(MyLastBlock+1).ToString+' '+GetNMSData.TStamp+ ' '+
+                            GetNMSData.Pkey+' '+GetNMSData.Signat);
 
 if GetPendingCount > 0 then
    begin
@@ -1376,7 +1377,7 @@ if not IsValidPool(Miner) then exitcode := 9;
 if not VerifySignedString(Miner+Hash+TimeStamp,Signature,PublicKey) then
    begin
    Exitcode := 11;
-   ConsoleLinesAdd('Invalid signature from '+miner);
+   If miner <> 'NpryectdevepmentfundsGE' then ToLog('Invalid signature from '+miner);
    end;
 if exitcode>0 then
    begin
@@ -1387,10 +1388,10 @@ ResultHash := NosoHash(Hash+Miner);
 Diff := CheckHashDiff(MyLastBlockHash,ResultHash);
 if ( (Diff<GetNMSData.Diff) and (Copy(Diff,1,7)<>'0000000') ) then // Better hash
    begin
-   SetNMSData(Diff,hash,miner);
+   SetNMSData(Diff,hash,miner,timestamp,publickey,signature);
    OutgoingMsjsAdd(GetPTCEcn+'$BESTHASH '+Miner+' '+Hash+' '+block+' '+TimeStamp+' '+PublicKey+' '+Signature);
    Result:='True '+Diff+' '+ResultHash;
-   if IPUser <>'1.1.1.1' then ConsoleLinesAdd('Besthash received from '+IPUser+'->'+Miner);
+   if IPUser <>'1.1.1.1' then ToLog('Besthash received from '+IPUser+'->'+Miner);
    end
 else
    begin
@@ -1476,18 +1477,24 @@ else
    end;
 End;
 
-Procedure SetNMSData(diff,hash,miner:string);
+Procedure SetNMSData(diff,hash,miner,Timestamp,publicKey,signature:string);
 Begin
 EnterCriticalSection(CSNMSData);
 if diff = '' then
    begin
-   diff  := 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF1';
-   Hash  := '!!!!!!!!!100000000';
-   miner := 'NpryectdevepmentfundsGE';
+   diff      := 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF1';
+   Hash      := '!!!!!!!!!100000000';
+   miner     := 'NpryectdevepmentfundsGE';
+   TimeStamp := (LastBlockData.TimeEnd+10).ToString;
+   PublicKey := '';
+   Signature := '';
    end;
-NMSData.Diff:= Diff;
-NMSData.Hash:=Hash;
-NMSData.Miner:=Miner;
+NMSData.Diff   := Diff;
+NMSData.Hash   := Hash;
+NMSData.Miner  := Miner;
+NMSData.TStamp := TimeStamp;
+NMSData.Pkey   := PublicKey;
+NMSData.Signat := Signature;
 LeaveCriticalSection(CSNMSData);
 End;
 

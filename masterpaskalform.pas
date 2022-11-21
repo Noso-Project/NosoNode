@@ -374,9 +374,12 @@ type
        end;
 
   TNMSData = Packed Record
-       Diff : string;
-       Hash : String;
-       Miner: String;
+       Diff   : string;
+       Hash   : String;
+       Miner  : String;
+       TStamp : string;
+       Pkey   : string;
+       Signat : string;
        end;
 
   TypeAddressCount = Packed Record
@@ -816,7 +819,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ad8';
+  SubVersion = 'Ad9';
   OficialRelease = false;
   VersionRequired = '0.3.2Ad8';
   BuildDate = 'November 2022';
@@ -2087,7 +2090,7 @@ begin
 form1.PageMain.ActivePage := form1.TabWallet;
 form1.TabWalletMain.ActivePage := form1.TabAddresses;
 PanelSend.Visible:=true;
-Form1.EditSCDest.Text:='devteam_donations';
+Form1.EditSCDest.Text:='NpryectdevepmentfundsGE';
 Form1.EditSCMont.Text:=IntToStr(DefaultDonation)+'.00000000';
 Form1.MemoSCCon.Text:='Donation';
 end;

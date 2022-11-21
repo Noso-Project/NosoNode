@@ -1,3 +1,8 @@
+Version 0.3.2Ad9
+
+- Fixed sending current besthash on node synchronization.
+- Default donation changed to project address.
+
 Version 0.3.2Ad8
 
 - Required signed besthashes.
