@@ -364,7 +364,7 @@ form1.DataPanel.Cells[3,0]:=Copy(GetNMSData.Miner,1,10)+'...';
 form1.DataPanel.Cells[3,1]:=BestHashReadeable(GetNMSData.Diff);
 form1.DataPanel.Cells[3,2]:=GEtOutgoingconnections.ToString+'/'+GetClientReadThreads.ToString;
 form1.DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
-form1.DataPanel.Cells[3,4]:='('+Copy(HashMd5String(GetNosoCFG),0,5)+'/'+NetCFGHash.value+') '+BlockAge.ToString;
+form1.DataPanel.Cells[3,4]:='('+Copy(HashMd5String(GetNosoCFGString),0,5)+'/'+NetCFGHash.value+') '+BlockAge.ToString;
 
 
 // update nodes grid

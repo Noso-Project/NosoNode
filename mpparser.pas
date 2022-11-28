@@ -330,7 +330,7 @@ else if UpperCase(Command) = 'NETRATE' then consolelinesadd('Average Mainnet has
 else if UpperCase(Command) = 'MINERS' then ShowMiners(Linetext)
 else if UpperCase(Command) = 'LISTGVT' then ListGVTs()
 else if UpperCase(Command) = 'SYSTEM' then ShowSystemInfo(Linetext)
-else if UpperCase(Command) = 'NOSOCFG' then consolelinesadd(GetNosoCFG)
+else if UpperCase(Command) = 'NOSOCFG' then consolelinesadd(GetNosoCFGString)
 
 // 0.2.1 DEBUG
 else if UpperCase(Command) = 'BLOCKPOS' then ShowBlockPos(LineText)
@@ -341,6 +341,8 @@ else if UpperCase(Command) = 'CREATEAPPCODE' then ConsoleLinesAdd(CreateAppCode(
 else if UpperCase(Command) = 'DECODEAPPCODE' then ConsoleLinesAdd(DecodeAppCode(parameter(linetext,1)))
 else if UpperCase(Command) = 'ADDNODE' then AddCFGNode(parameter(linetext,1))
 else if UpperCase(Command) = 'DELNODE' then DeleteCFGNode(parameter(linetext,1))
+else if UpperCase(Command) = 'ADDPOOL' then AddCFGData(parameter(linetext,1),3)
+else if UpperCase(Command) = 'DELPOOL' then RemoveCFGData(parameter(linetext,1),3)
 else if UpperCase(Command) = 'RESTORECFG' then RestoreCFGFile()
 
 

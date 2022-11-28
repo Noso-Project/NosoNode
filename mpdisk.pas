@@ -15,6 +15,7 @@ Procedure VerificarArchivos();
 // *** New files system
 // Nodes file
 Procedure FillNodeList();
+Procedure LoadAllowedPools();
 Function IsSeedNode(IP:String):boolean;
 // Except log file
 Procedure CreateExceptlog();
@@ -34,8 +35,10 @@ Function ChangeGVTOwner(Lnumber:integer;OldOwner,NewOWner:String): integer;
 // NosoCFG file handling
 Procedure SaveNosoCFGFile(LStr:String);
 Procedure GetCFGFileData();
-Procedure SetNosoCFG(LStr:string);
-Function GetNosoCFG():String;
+Procedure SetNosoCFGString(LStr:string);
+Function GetNosoCFGString():String;
+Procedure SetNosoCFGData(LData:TNosoCFG);
+Function GetNosoCFGData():TNosoCFG;
 
 Procedure CreateTextFile(FileName:String);
 Procedure CreateLog();
@@ -166,6 +169,7 @@ if not Fileexists(BotDataFilename) then CrearBotData() else CargarBotData();
 OutText('✓ Bots file ok',false,1);
 
 FillNodeList;  // Fills the hardcoded seed nodes list
+LoadAllowedPools;
 
 //if not Fileexists(NTPDataFilename) then CrearNTPData() else CargarNTPData();
 CargarNTPData;
@@ -203,7 +207,7 @@ var
   SourceStr : String = '';
 Begin
 counter := 0;
-SourceStr := Parameter(GetNosoCFG,1);
+SourceStr := Parameter(GetNosoCFGString,1);
 SourceStr := StringReplace(SourceStr,':',' ',[rfReplaceAll, rfIgnoreCase]);
 SetLength(ListaNodos,0);
 Repeat
@@ -223,11 +227,21 @@ Repeat
 until not continuar;
 End;
 
+Procedure LoadAllowedPools();
+var
+  Lnosocfg : TNosoCFG;
+  LPools  : string;
+Begin
+Lnosocfg := GetNosoCFGData;
+LPools := StringReplace(LPools,':',' ',[rfReplaceAll, rfIgnoreCase]);
+if LPools <> '' then PoolAddressesList := LPools;
+End;
+
 // If the specified IP a seed node
 Function IsSeedNode(IP:String):boolean;
 Begin
 Result := false;
-if AnsiContainsStr(Parameter(GetNosoCFG,1),ip) then result := true;
+if AnsiContainsStr(Parameter(GetNosoCFGString,1),ip) then result := true;
 End;
 
 // *** EXCEPTLOG FILE ***
@@ -507,7 +521,7 @@ TRY
    TRY
    reset(LFile);
    ReadLn(Lfile,LStr);
-   SetNosoCFG(LStr);
+   SetNosoCFGString(LStr);
    EXCEPT on E:Exception do
       tolog ('Error loading the NosoCFG file');
    END;
@@ -516,17 +530,38 @@ Closefile(LFile);
 END; {TRY}
 End;
 
-Procedure SetNosoCFG(LStr:string);
+Procedure SetNosoCFGString(LStr:string);
 Begin
 EnterCriticalSection(CSNosoCFGStr);
 NosoCFGStr := LStr;
 LEaveCriticalSection(CSNosoCFGStr);
 End;
 
-Function GetNosoCFG():String;
+Function GetNosoCFGString():String;
 Begin
 EnterCriticalSection(CSNosoCFGStr);
 Result := NosoCFGStr;
+LeaveCriticalSection(CSNosoCFGStr);
+End;
+
+Procedure SetNosoCFGData(LData:TNosoCFG);
+var
+  LStr : string;
+Begin
+LStr := Format('%s %s %s %s',[LData.NetStatus,LData.SeedNode,LData.NTPNodes,LData.pools]);
+EnterCriticalSection(CSNosoCFGStr);
+NosoCFGStr := LStr;
+LEaveCriticalSection(CSNosoCFGStr);
+End;
+
+Function GetNosoCFGData():TNosoCFG;
+Begin
+Result := Default(TNosoCFG);
+EnterCriticalSection(CSNosoCFGStr);
+Result.NetStatus := Parameter(NosoCFGStr,0);
+Result.SeedNode  := Parameter(NosoCFGStr,1);
+Result.NTPNodes  := Parameter(NosoCFGStr,2);
+Result.Pools     := Parameter(NosoCFGStr,3);
 LeaveCriticalSection(CSNosoCFGStr);
 End;
 
@@ -1058,7 +1093,7 @@ Var
   ThisNTP  : String = '';
   Added    : integer = 0;
 Begin
-NTPsStr := Parameter(GetNosoCFG,2);
+NTPsStr := Parameter(GetNosoCFGString,2);
 NTPsStr := StringReplace(NTPsStr,':',' ',[rfReplaceAll, rfIgnoreCase]);
 setlength(ListaNTP,0);
 Repeat

@@ -57,6 +57,9 @@ Function IsValidPool(PoolAddress:String):boolean;
 Procedure SetNMSData(diff,hash,miner,Timestamp,publicKey,signature:string);
 Function GetNMSData():TNMSData;
 
+Procedure RemoveCFGData(DataToRemove:String;CFGIndex:Integer);
+Procedure AddCFGData(DataToAdd:String;CFGIndex:Integer);
+
 Procedure AddCFGNode(StrNode:String);
 Procedure RestoreCFGFile();
 Procedure DeleteCFGNode(StrNode:String);
@@ -343,7 +346,7 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = '$MNCHECK' then PTC_MNCheck(ProcessLine)
       else if UpperCase(LineComando) = '$GETCHECKS' then PTC_SendChecks(contador)
       else if UpperCase(LineComando) = 'GETMNSFILE' then PTC_SendLine(contador,ProtocolLine(MNFILE)+' $'+GetMNsFileData)
-      else if UpperCase(LineComando) = 'GETCFGDATA' then PTC_SendLine(contador,ProtocolLine(SETCFG)+GetNosoCFG)
+      else if UpperCase(LineComando) = 'GETCFGDATA' then PTC_SendLine(contador,ProtocolLine(SETCFG)+GetNosoCFGString)
 
       else if UpperCase(LineComando) = 'MNFILE' then PTC_MNFile(ProcessLine)
       else if UpperCase(LineComando) = 'SETCFGDATA' then PTC_CFGData(ProcessLine)
@@ -530,7 +533,7 @@ result :=IntToStr(GetTotalConexiones())+' '+
          GetNMSData.Diff+' '+
          GetMNsChecksCount.ToString+' '+
          MyGVTsHash+' '+
-         Copy(HashMD5String(GetNosoCFG),0,5);
+         Copy(HashMD5String(GetNosoCFGString),0,5);
 End;
 
 // Envia las TXs pendientes al slot indicado
@@ -1145,6 +1148,18 @@ if not errored then
       begin
       DeleteCFGNode(Parameter(mensaje,1));
       end;
+   if UpperCase(TCommand) = 'SETMODE' then
+      begin
+      //;
+      end;
+   if UpperCase(TCommand) = 'ADDPOOL' then
+      begin
+      //AddCFGData(Parameter(mensaje,1),3);
+      end;
+   if UpperCase(TCommand) = 'DELPOOL' then
+      begin
+      RemoveCFGData(Parameter(mensaje,1),3);
+      end;
    if UpperCase(TCommand) = 'RESTORECFG' then
       begin
       RestoreCFGFile
@@ -1409,7 +1424,7 @@ Content := Copy(Linea,Startpos+1,Length(linea));
 if Copy(HAshMD5String(Content),0,5) = NetCFGHash.Value then
    begin
    SaveNosoCFGFile(content);
-   SetNosoCFG(content);
+   SetNosoCFGString(content);
    FillNodeList;
    CargarNTPData;
    ConsoleLinesAdd('Noso CFG updated');
@@ -1505,6 +1520,77 @@ Result := NMSData;
 LeaveCriticalSection(CSNMSData);
 End;
 
+Procedure RemoveCFGData(DataToRemove:String;CFGIndex:Integer);
+var
+  LCFGstr    : String;
+  LArrString : Array of string;
+  DataStr    : String;
+  thisData   : string;
+  Counter    : integer = 0;
+  FinalStr   : string = '';
+Begin
+if ( (Length(DataToRemove)>0) and (DataToRemove[Length(DataToRemove)] <> ':') ) then
+   DataToRemove := DataToRemove+':';
+consolelinesAdd(DataToRemove);
+LCFGStr := GetNosoCFGString();
+SetLength(LArrString,0);
+Repeat
+   ThisData := Parameter(LCFGStr,counter);
+   if ThisData <> '' then
+      begin
+      Insert(ThisData,LArrString,LEngth(LArrString));
+      consolelinesadd(Format('[%d] %s',[counter,ThisData]));
+      end;
+   Inc(Counter);
+until thisData = '';
+DataStr := LArrString[CFGIndex];
+ConsoleLinesAdd(Format('Section: %s [%d]',[DataStr,Pos(DataStr,DataToRemove)]));
+DataStr := StringReplace(DataStr,DataToRemove,'',[rfReplaceAll, rfIgnoreCase]);
+LArrString[CFGIndex] := DataStr;
+For counter := 0 to length(LArrString)-1 do
+   FinalStr := FinalStr+' '+LArrString[counter];
+FinalStr := Trim(FinalStr);
+LasTimeCFGRequest:= UTCTime.ToInt64+5;
+SaveNosoCFGFile(FinalStr);
+SetNosoCFGString(FinalStr);
+FillNodeList;
+CargarNTPData;
+LoadAllowedPools;
+End;
+
+Procedure AddCFGData(DataToAdd:String;CFGIndex:Integer);
+var
+  LCFGstr    : String;
+  LArrString : Array of string;
+  DataStr    : String;
+  thisData   : string;
+  Counter    : integer = 0;
+  FinalStr   : string = '';
+Begin
+if DataToAdd[Length(DataToAdd)] <> ':' then
+   DataToAdd := DataToAdd+':';
+LCFGStr := GetNosoCFGString();
+SetLength(LArrString,0);
+Repeat
+   ThisData := Parameter(LCFGStr,counter);
+   if ThisData <> '' then
+      Insert(ThisData,LArrString,LEngth(LArrString));
+   Inc(Counter);
+until thisData = '';
+DataStr := LArrString[CFGIndex];
+DataStr := DataStr+DataToAdd;
+LArrString[CFGIndex] := DataStr;
+For counter := 0 to length(LArrString)-1 do
+   FinalStr := FinalStr+' '+LArrString[counter];
+FinalStr := Trim(FinalStr);
+LasTimeCFGRequest:= UTCTime.ToInt64+5;
+SaveNosoCFGFile(FinalStr);
+SetNosoCFGString(FinalStr);
+FillNodeList;
+CargarNTPData;
+LoadAllowedPools;
+End;
+
 Procedure AddCFGNode(StrNode:String);
 var
   LOrigin, LFinish : String;
@@ -1512,7 +1598,7 @@ var
 Begin
 StrNode := StringReplace(StrNode,';',' ',[rfReplaceAll, rfIgnoreCase]);
 StrNode := Parameter(StrNode,0)+';'+StrToIntDef(Parameter(StrNode,1),8080).ToString+':';
-LOrigin  := GetNosoCFG;
+LOrigin  := GetNosoCFGString;
 CFGHead  := Parameter(LOrigin,0);
 CFGNodes := Parameter(LOrigin,1);
 CFGNTPs  := Parameter(LOrigin,2);
@@ -1521,7 +1607,7 @@ CFGNodes := CFGNodes+StrNode;
 LFInish := Format('%s %s %s',[CFGHead,CFGNodes,CFGNTPs]);
 LasTimeCFGRequest:= UTCTime.ToInt64+5;
 SaveNosoCFGFile(LFInish);
-SetNosoCFG(LFInish);
+SetNosoCFGString(LFInish);
 FillNodeList;
 CargarNTPData;
 ConsoleLinesAdd(Format('Node %s added to NosoCFG',[StrNode]));
@@ -1531,7 +1617,7 @@ Procedure RestoreCFGFile();
 Begin
 LasTimeCFGRequest:= UTCTime.ToInt64+5;
 SaveNosoCFGFile(DefaultNosoCFG);
-SetNosoCFG(DefaultNosoCFG);
+SetNosoCFGString(DefaultNosoCFG);
 FillNodeList;
 CargarNTPData;
 ConsoleLinesAdd('NosoCFG restarted');
@@ -1544,7 +1630,7 @@ var
 Begin
 StrNode := StringReplace(StrNode,';',' ',[rfReplaceAll, rfIgnoreCase]);
 StrNode := Parameter(StrNode,0)+';'+StrToIntDef(Parameter(StrNode,1),8080).ToString+' ';
-LOrigin  := GetNosoCFG;
+LOrigin  := GetNosoCFGString;
 CFGHead  := Parameter(LOrigin,0);
 CFGNodes := Parameter(LOrigin,1);
 CFGNTPs  := Parameter(LOrigin,2);
@@ -1555,7 +1641,7 @@ CFGNodes := StringReplace(CFGNodes,' ',':',[rfReplaceAll, rfIgnoreCase]);
 LFInish := Format('%s %s %s',[CFGHead,CFGNodes,CFGNTPs]);
 LasTimeCFGRequest:= UTCTime.ToInt64+5;
 SaveNosoCFGFile(LFInish);
-SetNosoCFG(LFInish);
+SetNosoCFGString(LFInish);
 FillNodeList;
 CargarNTPData;
 ConsoleLinesAdd(Format('Node %s deleted from NosoCFG',[StrNode]));

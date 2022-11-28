@@ -406,6 +406,13 @@ type
        score    : int64;
        end;
 
+  TNosoCFG = packed record
+       NetStatus : string;
+       SeedNode  : string;
+       NTPNodes  : string;
+       Pools     : string;
+       end;
+
   { TForm1 }
 
   TForm1 = class(TForm)
@@ -808,7 +815,8 @@ CONST
                             '192.3.85.196;8080:192.3.254.186;8080:'+
                             '101.100.138.125;8080:198.46.218.125;8080: ntp.amnic.net:ts2.aco.net:'+
                             'hora.roa.es:ntp.atomki.mta.hu:time.esa.int:time.stdtime.gov.tw:stratum-1.sjc02.svwh.net:'+
-                            'ntp3.indypl.org:ntp1.sp.se:ntp.ntp-servers.com:1.de.pool.ntp.org';
+                            'ntp3.indypl.org:ntp1.sp.se:ntp.ntp-servers.com:1.de.pool.ntp.org: N3ESwXxCAR4jw3GVHgmKiX9zx1ojWEf:'+
+                            'N2ophUoAzJw9LtgXbYMiB4u5jWWGJF7:N3aXz2RGwj8LAZgtgyyXNRkfQ1EMnFC:N2MVecGnXGHpN8z4RqwJFXSQP6doVDv:';
 
   ProgramVersion = '0.3.2';
   {$IFDEF WINDOWS}
@@ -819,9 +827,9 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ad9';
+  SubVersion = 'Ba1';
   OficialRelease = false;
-  VersionRequired = '0.3.2Ad8';
+  VersionRequired = '0.3.2Ba1';
   BuildDate = 'November 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
@@ -840,7 +848,7 @@ CONST
   HalvingSteps = 10;                // total number of halvings
   Comisiontrfr = 10000;             // ammount/Comisiontrfr = 0.01 % of the ammount
   ComisionCustom = 200000;          // 0.05 % of the Initial reward
-  CoinSimbol = 'NOSO';               // Coin 3 chars
+  CoinSimbol = 'NOSO';               // Coin symbol
   CoinName = 'Noso';                // Coin name
   CoinChar = 'N';                   // Char for addresses
   MinimunFee = 10;                  // Minimun fee for transfer
@@ -864,7 +872,7 @@ CONST
 
 var
   PoolAddressesList:string = 'N3ESwXxCAR4jw3GVHgmKiX9zx1ojWEf N2ophUoAzJw9LtgXbYMiB4u5jWWGJF7 '+
-    'N3aXz2RGwj8LAZgtgyyXNRkfQ1EMnFC N2MVecGnXGHpN8z4RqwJFXSQP6doVDv N2dti2MVscA2XQ1jmhzxjt2ASGmkWFC';
+    'N3aXz2RGwj8LAZgtgyyXNRkfQ1EMnFC N2MVecGnXGHpN8z4RqwJFXSQP6doVDv';
 
   LockedAddresses : string = 'NpryectdevepmentfundsGE';
 
@@ -2959,7 +2967,7 @@ if GoAhead then
    else if parameter(LLine,0) = 'NSLMNS' then
       TryCloseServerConnection(AContext,GetMN_FileText)
    else if parameter(LLine,0) = 'NSLCFG' then
-      TryCloseServerConnection(AContext,GetNosoCFG)
+      TryCloseServerConnection(AContext,GetNosoCFGString)
 
    else if parameter(LLine,0) = 'NSLGVT' then
       begin

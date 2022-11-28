@@ -1106,7 +1106,7 @@ else if ( (NetMNsHash.value<>Copy(MyMNsHash,1,5)) and (LastTimeMNHashRequestes+5
    LastTimeMNHashRequestes := UTCTime.ToInt64;
    ConsoleLinesAdd('Mns File requested to '+conexiones[NetMNsChecks.Slot].ip);
    end
-else if ( (NetCFGHash.value<>Copy(HashMd5String(GetNosoCFG),0,5)) and (LasTimeCFGRequest+5<UTCTime.ToInt64) and
+else if ( (NetCFGHash.value<>Copy(HashMd5String(GetNosoCFGString),0,5)) and (LasTimeCFGRequest+5<UTCTime.ToInt64) and
           (NetCFGHash.value<>'') ) then
    begin
    PTC_SendLine(NetCFGHash.Slot,ProtocolLine(GetCFG));  // TO BE IMPLEMENTED
@@ -1336,12 +1336,12 @@ result := {1}IntToStr(GetTotalConexiones)+' '+{2}IntToStr(MyLastBlock)+' '+{3}Ge
           {10}MyLastBlockHash+' '+{11}GetNMSData.Diff+' '+{12}IntToStr(LastBlockData.TimeEnd)+' '+
           {13}LastBlockData.AccountMiner+' '+{14}GetMNsChecksCount.ToString+' '+{15}Parameter(LastBlockData.Solution,2)+' '+
           {16}Parameter(LastBlockData.Solution,1)+' '+{17}copy(MySumarioHash,0,5)+' '+{18}copy(MyGVTsHash,0,5)+' '+
-          {19}Copy(HashMD5String(GetNosoCFG),0,5);
+          {19}Copy(HashMD5String(GetNosoCFGString),0,5);
 End;
 
 Function IsSafeIP(IP:String):boolean;
 Begin
-if Pos(IP,Parameter(GetNosoCFG,1))>0 then result:=true
+if Pos(IP,Parameter(GetNosoCFGString,1))>0 then result:=true
 else result := false;
 End;
 
