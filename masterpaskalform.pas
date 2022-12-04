@@ -312,14 +312,6 @@ type
        SendSteps : boolean;
        end;
 
-  NetworkRequestData = Packed Record
-       tipo : integer;
-       timestamp : int64;
-       block : integer;
-       hashreq : string[32];
-       hashvalue: string[32];
-       end;
-
   PoolPaymentData = Packed Record
        block : integer;
        address : string[34];
@@ -810,13 +802,10 @@ CONST
                             '101.100.138.125 '+
                             '198.46.218.125';
 
-  DefaultNosoCFG : String = 'Normal 47.87.181.190;8080:47.87.178.205;8080:81.22.38.101;8080:'+
-                            '66.151.117.247;8080:47.87.180.219;8080:47.87.137.96;8080:'+
-                            '192.3.85.196;8080:192.3.254.186;8080:'+
-                            '101.100.138.125;8080:198.46.218.125;8080: ntp.amnic.net:ts2.aco.net:'+
-                            'hora.roa.es:ntp.atomki.mta.hu:time.esa.int:time.stdtime.gov.tw:stratum-1.sjc02.svwh.net:'+
-                            'ntp3.indypl.org:ntp1.sp.se:ntp.ntp-servers.com:1.de.pool.ntp.org: N3ESwXxCAR4jw3GVHgmKiX9zx1ojWEf:'+
-                            'N2ophUoAzJw9LtgXbYMiB4u5jWWGJF7:N3aXz2RGwj8LAZgtgyyXNRkfQ1EMnFC:N2MVecGnXGHpN8z4RqwJFXSQP6doVDv:';
+  DefaultNosoCFG : String = 'Normal '+
+                            '47.87.181.190;8080:47.87.178.205;8080:81.22.38.101;8080:66.151.117.247;8080:47.87.180.219;8080:47.87.137.96;8080:192.3.85.196;8080:192.3.254.186;8080:101.100.138.125;8080:198.46.218.125;8080:63.227.69.162;8080: '+
+                            'ts2.aco.net:hora.roa.es:time.esa.int:time.stdtime.gov.tw:stratum-1.sjc02.svwh.net:ntp1.sp.se:1.de.pool.ntp.org:ntps1.pads.ufrj.br:utcnist2.colorado.edu:tick.usask.ca:ntp1.st.keio.ac.jp: '+
+                            'N3ESwXxCAR4jw3GVHgmKiX9zx1ojWEf:N2ophUoAzJw9LtgXbYMiB4u5jWWGJF7:N3aXz2RGwj8LAZgtgyyXNRkfQ1EMnFC:N2MVecGnXGHpN8z4RqwJFXSQP6doVDv:';
 
   ProgramVersion = '0.3.2';
   {$IFDEF WINDOWS}
@@ -827,10 +816,10 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ba1';
+  SubVersion = 'Ba2';
   OficialRelease = false;
   VersionRequired = '0.3.2Ba1';
-  BuildDate = 'November 2022';
+  BuildDate = 'December 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   HasheableChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -920,6 +909,7 @@ var
   SynchWarnings : integer = 0;
   ConnectedRotor : integer = 0;
   EngineLastUpdate : int64 = 0;
+  UTCLastSyncTime  : int64 = 0;
   StopDoctor : boolean = false;
 
   SendOutMsgsThread : TThreadSendOutMsjs;
@@ -975,8 +965,7 @@ var
   StringAvailableUpdates : String = '';
     U_DataPanel : boolean = true;
     U_PoSGrid : Boolean = true;
-  // Network requests
-  ArrayNetworkRequests : array of NetworkRequestData;
+
      networkhashrate: int64 = 0;
        nethashsend : boolean = false;
      networkpeers : integer;
@@ -1244,7 +1233,7 @@ var
 implementation
 
 Uses
-  mpgui, mpdisk, mpParser, mpRed, mpTime, mpProtocol, mpMiner, mpcripto, mpcoin,
+  mpgui, mpdisk, mpParser, mpRed, nosotime, mpProtocol, mpMiner, mpcripto, mpcoin,
   mpRPC,mpblock, mpMN;
 
 {$R *.lfm}
@@ -1292,7 +1281,7 @@ if Continuar then
    While not CanalCliente[FSlot].IOHandler.InputBufferIsEmpty do
       begin
       Conexiones[fSlot].IsBusy:=true;
-      Conexiones[fSlot].lastping:=UTCTime;
+      Conexiones[fSlot].lastping:=UTCTimeStr;
          TRY
          CanalCliente[FSlot].ReadTimeout:=ReadTimeOutTIme;
          LLine := CanalCliente[FSlot].IOHandler.ReadLn(IndyTextEncoding_UTF8);
@@ -1551,12 +1540,12 @@ Randomize;
 MNsRandomWait := Random(21);
 While not terminated do
    begin
-   if UTCTime.ToInt64 mod 10 = 0 then
+   if UTCTime mod 10 = 0 then
       begin
       if ( (IsValidator(MN_Ip)) and (BlockAge>500+(MNsRandomWait div 4)) and (Not MNVerificationDone) and
-         (BlockAge<575)and(LastRunMNVerification<>UTCTime.ToInt64) and (MyConStatus = 3) and(NoVerificators=0) ) then
+         (BlockAge<575)and(LastRunMNVerification<>UTCTime) and (MyConStatus = 3) and(NoVerificators=0) ) then
          begin
-         LastRunMNVerification := UTCTime.ToInt64;
+         LastRunMNVerification := UTCTime;
          RunMNVerification();
          end;
       end;
@@ -1854,7 +1843,7 @@ If Protocolo > 0 then
    else BuildNMSBlock := 0;
    end;
 RestartTimer.Enabled:=false;
-StaTimeLab.Caption:=TimestampToDate(UTCTime)+' ('+IntToStr(UTCTime.ToInt64-EngineLastUpdate)+')';
+StaTimeLab.Caption:=TimestampToDate(UTCTime)+' ('+IntToStr(UTCTime-EngineLastUpdate)+')';
 //StaTimeLab.Update;
 //if ( ((UTCTime.ToInt64 > EngineLastUpdate+WO_AntiFreezeTime) and (WO_AntiFreeze)) or (G_CloseRequested) ) then
 if G_CloseRequested then
@@ -1932,7 +1921,9 @@ InicializarFormulario();
 OutText(rs0023,false,1); //✓ GUI initialized
 VerificarArchivos();
 InicializarGUI();
-InitTime();
+//InitTime();
+GetTimeOffset(PArameter(GetNosoCFGString,2));
+OutText('✓ Mainnet time synced',false,1);
 UpdateMyData();
 OutText(rs0024,false,1); //'✓ My data updated'
 ResetMinerInfo();
@@ -1986,7 +1977,6 @@ if WO_CloseStart then
    SetLength(ArrayCriptoOp,0);
    Setlength(MilitimeArray,0);
    Setlength(Miner_Thread,0);
-   SetLength(ArrayNetworkRequests,0);
    SetLength(ArrPoolPays,0);
    Setlength(MNsArray,0);
    Setlength(MNsList,0);
@@ -2028,7 +2018,6 @@ FirstShow := true;
 SetLength(ArrayCriptoOp,0);
 Setlength(MilitimeArray,0);
 Setlength(Miner_Thread,0);
-SetLength(ArrayNetworkRequests,0);
 SetLength(ArrPoolPays,0);
 Setlength(MNsArray,0);
 Setlength(MNsList,0);
@@ -2305,10 +2294,10 @@ End;
 // Ejecutar el ladido del timer
 Procedure TForm1.LatidoEjecutar(Sender: TObject);
 Begin
-if EngineLastUpdate <> UTCtime.ToInt64 then EngineLastUpdate := UTCtime.ToInt64;
+if EngineLastUpdate <> UTCtime then EngineLastUpdate := UTCtime;
 Form1.Latido.Enabled:=false;
 CheckClipboardForPays();
-if ( (UTCTime.ToInt64 >= BuildNMSBlock) and (BuildNMSBlock>0) and (GetNMSData.Miner<>'') and (MyConStatus=3) ) then
+if ( (UTCTime >= BuildNMSBlock) and (BuildNMSBlock>0) and (GetNMSData.Miner<>'') and (MyConStatus=3) ) then
    BuildNewBlock(MyLastBlock+1,BuildNMSBlock,MyLastBlockHash,GetNMSData.Miner,GetNMSData.Hash);
 setmilitime('ActualizarGUI',1);
 ActualizarGUI();
@@ -2334,7 +2323,7 @@ setmilitime('VerifyConnectionStatus',2);
 setmilitime('VerifyMiner',1);
 VerifyMiner();
 setmilitime('VerifyMiner',2);
-if ( (KeepServerOn) and (not Form1.Server.Active) and (LastTryServerOn+5<StrToInt64(UTCTime))
+if ( (KeepServerOn) and (not Form1.Server.Active) and (LastTryServerOn+5<UTCTime)
       and (MyConStatus = 3) ) then
    ProcessLinesAdd('serveron');
 if G_CloseRequested then CerrarPrograma();
@@ -2343,7 +2332,12 @@ if form1.SystrayIcon.Visible then
 if FormSlots.Visible then UpdateSlotsGrid();
 ConnectedRotor +=1; if ConnectedRotor>6 then ConnectedRotor := 0;
 UpdateStatusBar;
-if ( (StrToInt64(UTCTime) mod 3600=3590) and (LastBotClear<>UTCTime) and (Form1.Server.Active) ) then ProcessLinesAdd('delbot all');
+if ( (UTCTime mod 3600=3590) and (LastBotClear<>UTCTimeStr) and (Form1.Server.Active) ) then ProcessLinesAdd('delbot all');
+if ( (UTCTime mod 600=10) and (UTCLastSyncTime<>UTCTime) ) then
+   begin
+   UTCLastSyncTime := UTCTime;
+   UpdateOffset(PArameter(GetNosoCFGString,2));
+   end;
 Form1.Latido.Enabled:=true;
 end;
 
@@ -2963,7 +2957,7 @@ if GoAhead then
    else if parameter(LLine,0) = 'NSLBLKORD' then
       TryCloseServerConnection(AContext,GEtNSLBlkOrdInfo(LLine))
    else if parameter(LLine,0) = 'NSLTIME' then
-      TryCloseServerConnection(AContext,UTCTime)
+      TryCloseServerConnection(AContext,UTCTimeStr)
    else if parameter(LLine,0) = 'NSLMNS' then
       TryCloseServerConnection(AContext,GetMN_FileText)
    else if parameter(LLine,0) = 'NSLCFG' then
@@ -3043,7 +3037,7 @@ if GoAhead then
       TryCloseServerConnection(AContext);
       end
 
-   else if ( (Abs(UTCTime.ToInt64-PeerUTC)>5) and (Mylastblock >= 70000) ) then
+   else if ( (Abs(UTCTime-PeerUTC)>5) and (Mylastblock >= 70000) ) then
       begin
       TryCloseServerConnection(AContext,'WRONG_TIME');
       end

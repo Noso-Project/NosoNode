@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, process, strutils, MD5, DCPsha256,
-  mpsignerutils, base64, HlpHashFactory, mpcoin, mptime, translation, SbpBase58,
+  mpsignerutils, base64, HlpHashFactory, mpcoin, nosotime, translation, SbpBase58,
   SbpBase58Alphabet, ClpConverters;
 
 function CreateNewAddress(): WalletData;
@@ -32,7 +32,6 @@ Procedure DeleteCriptoOp();
 Function ProcessCriptoOP(aParam:Pointer):PtrInt;
 function Recursive256(incomingtext:string):string;
 Function GetMNSignature():string;
-function NodeVerified(ThisNode:TMasterNode):boolean;
 Function EncodeCertificate(certificate:string):string;
 Function DecodeCertificate(certificate:string):string;
 Function NosoHash(source:string):string;
@@ -470,7 +469,7 @@ var
 Begin
 setmilitime('GetMNSignature',1);
 result := '';
-CurrentTime := UTCTime;
+CurrentTime := UTCTimeStr;
 TextToSign := CurrentTime+' '+MN_IP+' '+MyLastBlock.ToString+' '+MyLastBlockHash;
 ReportHash := HashMD5String(TextToSign);
 SignAddressIndex := DireccionEsMia(MN_Sign);
@@ -481,37 +480,6 @@ else
    result := CurrentTime+' '+PublicKey+' '+GetStringSigned(TextToSign,ListaDirecciones[SignAddressIndex].PrivateKey)+' '+ReportHash;
    end;
 setmilitime('GetMNSignature',2);
-End;
-
-function NodeVerified(ThisNode:TMasterNode):boolean;
-var
-  StringToSign : string;
-  PosRequired : int64;
-  FilterOn : boolean = false;
-Begin
-setmilitime('NodeVerified',1);
-result := false;
-if uppercase(ThisNode.Ip) = 'LOCALHOST' then FilterOn:= true;
-if not IsValidIP(ThisNode.Ip) then FilterOn:= true;
-if ( (ThisNode.FundAddress='') or (ThisNode.Ip='') or (ThisNode.PublicKey='') or (ThisNode.SignAddress='') or
-   (Thisnode.BlockHash='') or (thisnode.ReportHash='') or (thisnode.Signature='') or (thisnode.Time='')) then FilterOn:= true;
-if GetAddressFromPublicKey(thisnode.PublicKey) <> thisnode.SignAddress then FilterOn:= true;
-If Thisnode.Block <> MyLastBlock then FilterOn:= true;
-if FilterOn then
-   begin
-   setmilitime('NodeVerified',2);
-   exit;
-   end;
-StringToSign := Thisnode.Time+' '+Thisnode.Ip+' '+ThisNode.Block.ToString+' '+thisnode.BlockHash;
-if VerifySignedString(StringToSign,thisnode.Signature,thisnode.PublicKey) then
-   begin
-   PosRequired := (GetSupply(MyLastBlock+1)*PosStackCoins) div 10000;
-   if MyLastBlock+1 < MNBlockStart then PosRequired := 0;
-   if listasumario[AddressSumaryIndex(ThisNode.FundAddress)].Balance >= PosRequired then
-      result := true;
-   end
-else ToExcLog('ERROR: Node not verified: '+GetTextFromMN(ThisNode));
-setmilitime('NodeVerified',2);
 End;
 
 Function EncodeCertificate(certificate:string):string;

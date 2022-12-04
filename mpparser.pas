@@ -5,7 +5,7 @@ unit mpParser;
 interface
 
 uses
-  Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, mpCripto, mpTime, mpblock, mpcoin,
+  Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, mpCripto, nosotime, mpblock, mpcoin,
   dialogs, fileutil, forms, idglobal, strutils, mpRPC, DateUtils, Clipbrd,translation,
   idContext, math, mpMN, MPSysCheck;
 
@@ -74,7 +74,6 @@ Procedure ShowAdvOpt();
 Procedure SendAdminMessage(linetext:string);
 Procedure SetReadTimeOutTIme(LineText:string);
 Procedure SetConnectTimeOutTIme(LineText:string);
-Procedure ShowNetReqs();
 Procedure RequestHeaders();
 Procedure RequestSumary();
 Procedure ShowOrderDetails(LineText:string);
@@ -219,8 +218,8 @@ else if UpperCase(Command) = 'BOTS' then ShowBots()
 else if UpperCase(Command) = 'SLOTS' then ShowSlots()
 else if UpperCase(Command) = 'CONNECT' then ConnectToServers()
 else if UpperCase(Command) = 'DISCONNECT' then CerrarClientes()
-else if UpperCase(Command) = 'OFFSET' then ConsoleLinesAdd('Server: '+G_NTPServer+SLINEBREAK+
-  LangLine(17)+IntToStr(G_TimeOffSet)+slinebreak+'Local Offset: '+IntToStr(G_TIMELocalTimeOffset))
+else if UpperCase(Command) = 'OFFSET' then ConsoleLinesAdd('Server: '+NosoT_LastServer+SLINEBREAK+
+  LangLine(17)+IntToStr(NosoT_TimeOffset)+slinebreak+'Last update : '+TimeSinceStamp(NosoT_LastUpdate))
 else if UpperCase(Command) = 'NEWADDRESS' then NuevaDireccion(linetext)
 else if UpperCase(Command) = 'USEROPTIONS' then ShowUserOptions()
 else if UpperCase(Command) = 'BALANCE' then ConsoleLinesAdd(Int2Curr(GetWalletBalance)+' '+CoinSimbol)
@@ -243,7 +242,7 @@ else if UpperCase(Command) = 'EXPWALLET' then ExportarWallet(LineText)
 else if UpperCase(Command) = 'RESUMEN' then ShowBlchHead(StrToIntDef(Parameter(Linetext,1),MyLastBlock))
 else if UpperCase(Command) = 'SETDEFAULT' then SetDefaultAddress(LineText)
 else if UpperCase(Command) = 'LBINFO' then ShowBlockInfo(MyLastBlock)
-else if UpperCase(Command) = 'TIMESTAMP' then ConsoleLinesAdd(UTCTime)
+else if UpperCase(Command) = 'TIMESTAMP' then ConsoleLinesAdd(UTCTimeStr)
 else if UpperCase(Command) = 'MD160' then showmd160(LineText)
 else if UpperCase(Command) = 'UNDOBLOCK' then UndoneLastBlock()  // to be removed
 else if UpperCase(Command) = 'CUSTOMIZE' then CustomizeAddress(LineText)
@@ -339,11 +338,12 @@ else if UpperCase(Command) = 'BLOCKMNS' then ShowBlockMNs(LineText)
 else if UpperCase(Command) = 'MYIP' then ConsoleLinesAdd(GetMiIP)
 else if UpperCase(Command) = 'CREATEAPPCODE' then ConsoleLinesAdd(CreateAppCode(parameter(linetext,1)))
 else if UpperCase(Command) = 'DECODEAPPCODE' then ConsoleLinesAdd(DecodeAppCode(parameter(linetext,1)))
-else if UpperCase(Command) = 'ADDNODE' then AddCFGNode(parameter(linetext,1))
-else if UpperCase(Command) = 'DELNODE' then DeleteCFGNode(parameter(linetext,1))
+else if UpperCase(Command) = 'SETMODE' then SetCFGData(parameter(linetext,1),0)
+else if UpperCase(Command) = 'ADDNODE' then AddCFGData(parameter(linetext,1),1)
+else if UpperCase(Command) = 'DELNODE' then RemoveCFGData(parameter(linetext,1),1)
 else if UpperCase(Command) = 'ADDPOOL' then AddCFGData(parameter(linetext,1),3)
 else if UpperCase(Command) = 'DELPOOL' then RemoveCFGData(parameter(linetext,1),3)
-else if UpperCase(Command) = 'RESTORECFG' then RestoreCFGFile()
+else if UpperCase(Command) = 'RESTORECFG' then RestoreCFGData()
 
 
 // P2P
@@ -356,7 +356,6 @@ else if UpperCase(Command) = 'RPCOFF' then SetRPCOff()
 
 
 // NETWORK VALUES
-else if UpperCase(Command) = 'NETREQS' then ShowNetReqs()
 else if UpperCase(Command) = 'NETHASH' then ConsoleLinesAdd('Network hashrate: '+IntToStr(networkhashrate))
 else if UpperCase(Command) = 'NETPEERS' then ConsoleLinesAdd('Network peers: '+IntToStr(networkpeers))
 
@@ -923,8 +922,8 @@ if fileexists(BlockDirectory+IntToStr(numberblock)+'.blk') then
    ConsoleLinesAdd('Block info: '+IntToStr(numberblock));
    ConsoleLinesAdd('Hash  :       '+HashMD5File(BlockDirectory+IntToStr(numberblock)+'.blk'));
    ConsoleLinesAdd('Number:       '+IntToStr(Header.Number));
-   ConsoleLinesAdd('Time start:   '+IntToStr(Header.TimeStart)+' ('+TimestampToDate(IntToStr(Header.TimeStart))+')');
-   ConsoleLinesAdd('Time end:     '+IntToStr(Header.TimeEnd)+' ('+TimestampToDate(IntToStr(Header.TimeEnd))+')');
+   ConsoleLinesAdd('Time start:   '+IntToStr(Header.TimeStart)+' ('+TimestampToDate(Header.TimeStart)+')');
+   ConsoleLinesAdd('Time end:     '+IntToStr(Header.TimeEnd)+' ('+TimestampToDate(Header.TimeEnd)+')');
    ConsoleLinesAdd('Time total:   '+IntToStr(Header.TimeTotal));
    ConsoleLinesAdd('L20 average:  '+IntToStr(Header.TimeLast20));
    ConsoleLinesAdd('Transactions: '+IntToStr(Header.TrxTotales));
@@ -1003,7 +1002,7 @@ for cont := 1 to length(addalias) do
    end;
 if procesar then
    begin
-   CurrTime := UTCTime;
+   CurrTime := UTCTimeStr;
    TrfrHash := GetTransferHash(CurrTime+Address+addalias);
    OrderHash := GetOrderHash('1'+currtime+TrfrHash);
    AddCriptoOp(2,'Customize this '+address+' '+addalias+'$'+ListaDirecciones[DireccionEsMia(address)].PrivateKey,
@@ -1094,7 +1093,7 @@ if procesar then
 // empezar proceso
 if procesar then
    begin
-   currtime := UTCTime;
+   currtime := UTCTimeStr;
    Setlength(ArrayTrfrs,0);
    Contador := 0;
    OrderHashString := currtime;
@@ -1204,7 +1203,7 @@ if GVTOwner<>ListaDirecciones[0].Hash then
    if showOutput then ConsoleLinesAdd('Actually only project GVTs can be transfered');
    exit;
    end;
-OrderTime := UTCTime;
+OrderTime := UTCTimeStr;
 TrfrHash := GetTransferHash(OrderTime+GVTOwner+Destination);
 OrderHash := GetOrderHash('1'+OrderTime+TrfrHash);
 StrTosign := 'Transfer GVT '+GVTNumStr+' '+Destination+OrderTime;
@@ -1468,7 +1467,7 @@ if IPBot = '' then
 else if uppercase(IPBot) = 'ALL' then
    begin
    SetLength(ListadoBots,0);
-   LastBotClear := UTCTime;
+   LastBotClear := UTCTimeStr;
    S_BotData := true;
    ConsoleLinesAdd('All bots deleted');
    end
@@ -1548,7 +1547,7 @@ if ( (DireccionEsMia(direccion)<0) or (direccion='') ) then
   end
 else
    begin
-   currtime := UTCTime;
+   currtime := UTCTimeStr;
    ConsoleLinesAdd(direccion+' owner cert'+slinebreak+
       EncodeCertificate(ListaDirecciones[DireccionEsMia(direccion)].PublicKey+':'+currtime+':'+GetStringSigned('I OWN THIS ADDRESS '+direccion+currtime,ListaDirecciones[DireccionEsMia(direccion)].PrivateKey)));
    end;
@@ -1656,7 +1655,7 @@ else
    begin
    mensaje := copy(linetext,11,length(linetext));
    //Mensaje := parameter(linetext,1);
-   currtime := UTCTime;
+   currtime := UTCTimeStr;
    firma := GetStringSigned(currtime+mensaje,ListaDirecciones[DireccionEsMia(AdminHash)].PrivateKey);
    hashmsg := HashMD5String(currtime+mensaje+firma);
    mensaje := StringReplace(mensaje,' ','_',[rfReplaceAll, rfIgnoreCase]);
@@ -1692,21 +1691,6 @@ else
   end;
 End;
 
-Procedure ShowNetReqs();
-var
-  contador : integer;
-Begin
-if length(ArrayNetworkRequests)>0 then
-   begin
-   ConsoleLinesAdd('Tipo TimeStamp Block Hash');
-   for contador := 0 to length(ArrayNetworkRequests)-1 do
-      begin
-      ConsoleLinesAdd(IntToStr(ArrayNetworkRequests[contador].tipo)+' '+IntToStr(ArrayNetworkRequests[contador].timestamp)+' '+
-         IntToStr(ArrayNetworkRequests[contador].block)+' '+ArrayNetworkRequests[contador].hashreq);
-      end;
-   end;
-End;
-
 Procedure RequestHeaders();
 Begin
 PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7));
@@ -1729,7 +1713,7 @@ if thisorderdata.AmmountTrf<=0 then
   ConsoleLinesAdd('Order not found')
 else
   begin
-  ConsoleLinesAdd('Time     : '+TimestampToDate(IntToStr(ThisOrderdata.TimeStamp)));
+  ConsoleLinesAdd('Time     : '+TimestampToDate(ThisOrderdata.TimeStamp));
   if ThisOrderdata.Block = -1 then ConsoleLinesAdd('Block: Pending')
   else ConsoleLinesAdd('Block    : '+IntToStr(ThisOrderdata.Block));
   ConsoleLinesAdd('Type     : '+ThisOrderdata.OrderType);

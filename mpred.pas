@@ -5,7 +5,7 @@ unit mpRed;
 interface
 
 uses
-  Classes, forms, SysUtils, MasterPaskalForm, MPTime, IdContext, IdGlobal, mpGUI, mpDisk,
+  Classes, forms, SysUtils, MasterPaskalForm, nosotime, IdContext, IdGlobal, mpGUI, mpDisk,
   mpBlock, mpMiner, fileutil, graphics,  dialogs, strutils, mpcoin, fphttpclient,
   opensslsockets,translation, IdHTTP, IdComponent, IdSSLOpenSSL, mpmn, IdTCPClient;
 
@@ -53,7 +53,6 @@ Procedure AddNewBot(linea:string);
 function GetOutGoingConnections():integer;
 function GetIncomingConnections():integer;
 Function GetSeedConnections():integer;
-Procedure SendNetworkRequests(timestamp,direccion:string;block:integer);
 function GetOrderDetails(orderid:string):TOrderGroup;
 function GetOrderSources(orderid:string):string;
 Function GetNodeStatusString():string;
@@ -144,7 +143,7 @@ if ToSLot<0 then
          Conexiones[contador].Connections:=0;
          Conexiones[contador].tipo := tipo;
          Conexiones[contador].ip:= ipuser;
-         Conexiones[contador].lastping:=UTCTime;
+         Conexiones[contador].lastping:=UTCTimeStr;
          Conexiones[contador].context:=contextdata;
          Conexiones[contador].Lastblock:='0';
          Conexiones[contador].LastblockHash:='';
@@ -170,7 +169,7 @@ else
    Conexiones[ToSLot].Connections:=0;
    Conexiones[ToSLot].tipo := tipo;
    Conexiones[ToSLot].ip:= ipuser;
-   Conexiones[ToSLot].lastping:=UTCTime;
+   Conexiones[ToSLot].lastping:=UTCTimeStr;
    Conexiones[ToSLot].context:=contextdata;
    Conexiones[ToSLot].Lastblock:='0';
    Conexiones[ToSLot].LastblockHash:='';
@@ -199,12 +198,12 @@ if Form1.Server.Active then
 else
    begin
       TRY
-      LastTryServerOn := StrToInt64(UTCTime);
+      LastTryServerOn := UTCTime;
       Form1.Server.Bindings.Clear;
       Form1.Server.DefaultPort:=PortNumber;//UserOptions.Port;
       Form1.Server.Active:=true;
       ConsoleLinesAdd(LangLine(14)+PortNumber.ToString);   //Server ENABLED. Listening on port
-      ServerStartTime := UTCTime.ToInt64;
+      ServerStartTime := UTCTime;
       U_DataPanel := true;
       EXCEPT on E : Exception do
         ToLog(LangLine(15));       //Unable to start Server
@@ -236,12 +235,12 @@ if Form1.Server.Active then
 else
    begin
       try
-      LastTryServerOn := StrToInt64(UTCTime);
+      LastTryServerOn := UTCTime;
       Form1.Server.Bindings.Clear;
       Form1.Server.DefaultPort:=PortNumber;//UserOptions.Port;
       Form1.Server.Active:=true;
       ConsoleLinesAdd(LangLine(14)+PortNumber.ToString);   //Server ENABLED. Listening on port
-      ServerStartTime := UTCTime.ToInt64;
+      ServerStartTime := UTCTime;
       U_DataPanel := true;
       except
       on E : Exception do
@@ -333,12 +332,12 @@ if proceder then
       //Success := true;
       end;
    intentos+=1;
-   CONNECT_LastTime := IntTOStr(UTCTime.ToInt64+60);
+   CONNECT_LastTime := IntTOStr(UTCTime+60);
    UNTIL ((Success) or (intentos = length(ListaNodos)) or (OutGoing=MaxOutgoingConnections));
    end;
 if  ( (not Form1.Server.Active) and(IsSeedNode(MN_IP)) and (GetOutGoingConnections=0) and (WO_autoserver) )then
    forceserver;
-CONNECT_LastTime := UTCTime();
+CONNECT_LastTime := UTCTimeStr;
 setmilitime('ConnectToServers',2);
 SetCurrentJob('ConnectToServers',false);
 End;
@@ -488,7 +487,7 @@ if not errored then
       IncClientReadThreads;
       result := Slot;
          TRY
-         CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address+' '+ProgramVersion+subversion+' '+UTCTime);
+         CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address+' '+ProgramVersion+subversion+' '+UTCTimeStr);
          CanalCliente[Slot].IOHandler.WriteLn(ProtocolLine(3));   // Send PING
          EXCEPT on E:Exception do
             begin
@@ -565,7 +564,7 @@ for contador := 1 to Maxconecciones do
    begin
    if IsSlotConnected(contador) then
      begin
-     if ( (StrToInt64(UTCTime) > StrToInt64Def(conexiones[contador].lastping,0)+15) and
+     if ( (UTCTime > StrToInt64Def(conexiones[contador].lastping,0)+15) and
         (not conexiones[contador].IsBusy) and (not REbuildingSumary) )then
         begin
         ToLog(LangLine(32)+conexiones[contador].ip);   //Conection closed: Time Out Auth ->
@@ -583,9 +582,9 @@ var
 Begin
 SetCurrentJob('VerifyConnectionStatus',true);
 TRY
-if ( (CONNECT_Try) and (StrToInt64(UTCTime)>StrToInt64Def(CONNECT_LastTime,StrToInt64(UTCTime))+5) ) then
+if ( (CONNECT_Try) and (UTCTime>StrToInt64Def(CONNECT_LastTime,UTCTime)+5) ) then
    begin
-   CONNECT_LastTime := IntTOStr(UTCTime.ToInt64+60);
+   CONNECT_LastTime := IntTOStr(UTCTime+60);
    ConnectToServers;
 
    end;
@@ -632,15 +631,15 @@ if NumeroConexiones = 0 then  // Desconeectado
 if ((NumeroConexiones>0) and (NumeroConexiones<MinConexToWork) and (MyConStatus = 0)) then // Conectando
    begin
    MyConStatus:=1;
-   G_LastPing := StrToInt64(UTCTime);
+   G_LastPing := UTCTime;
    ConsoleLinesAdd(LangLine(34)); //Connecting...
    Form1.imagenes.GetBitmap(2,form1.ConnectButton.Glyph);
    end;
 if MyConStatus > 0 then
    begin
-   if (G_LastPing + 5) < StrToInt64(UTCTime) then
+   if (G_LastPing + 5) < UTCTime then
       begin
-      G_LastPing := StrToInt64(UTCTime);
+      G_LastPing := UTCTime;
       OutgoingMsjsAdd(ProtocolLine(ping));
       end;
    end;
@@ -654,7 +653,7 @@ if ((NumeroConexiones>=MinConexToWork) and (MyConStatus<2) and (not STATUS_Conne
 if STATUS_Connected then
    begin
    UpdateNetworkData();
-   if Last_ActualizarseConLaRed+4<UTCTime.ToInt64 then ActualizarseConLaRed();
+   if Last_ActualizarseConLaRed+4<UTCTime then ActualizarseConLaRed();
    end;
 if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLastBlock.Value)
      and (MySumarioHash=NetSumarioHash.Value) and(MyResumenhash = NetResumenHash.Value) ) then
@@ -674,12 +673,12 @@ if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLa
       and (not CriptoThreadRunning) )} then
       begin
       PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));  // Get pending
-      LastTimePendingRequested := UTCTime.ToInt64;
+      LastTimePendingRequested := UTCTime;
       ConsoleLinesAdd('Pending requested to '+conexiones[NetPendingTrxs.Slot].ip);
       end;
    // Get MNS
    PTC_SendLine(NetMNsHash.Slot,ProtocolLine(11));  // Get MNs
-   LastTimeMNsRequested := UTCTime.ToInt64;
+   LastTimeMNsRequested := UTCTime;
    ConsoleLinesAdd('Master nodes requested');
    OutgoingMsjsAdd(ProtocolLine(ping));
    Form1.imagenes.GetBitmap(0,form1.ConnectButton.Glyph);
@@ -687,20 +686,20 @@ if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLa
 if MyConStatus = 3 then
    begin
    SetCurrentJob('MyConStatus3',true);
-   if ((StrToIntDef(NetPendingTrxs.Value,0)>GetPendingCount) and (LastTimePendingRequested+5<UTCTime.ToInt64) and
+   if ((StrToIntDef(NetPendingTrxs.Value,0)>GetPendingCount) and (LastTimePendingRequested+5<UTCTime) and
       (length(ArrayCriptoOp)=0) ) then
       begin
       ClearReceivedOrdersIDs();
       PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));  // Get pending
-      LastTimePendingRequested := UTCTime.ToInt64;
+      LastTimePendingRequested := UTCTime;
       ConsoleLinesAdd('Pending requested to '+conexiones[NetPendingTrxs.Slot].ip);
       end;
-   if ( (not MyMNIsListed) and (Form1.Server.Active) and (UTCTime.ToInt64>LastTimeReportMyMN+5)
+   if ( (not MyMNIsListed) and (Form1.Server.Active) and (UTCTime>LastTimeReportMyMN+5)
         and (BlockAge>10+MNsRandomWait) and (BlockAge<495) and(1=1) ) then
      begin
      OutGoingMsjsAdd(ProtocolLine(MNReport));
      ToLog('My Masternode reported');
-     LastTimeReportMyMN := UTCTime.ToInt64;
+     LastTimeReportMyMN := UTCTime;
      end;
    SetCurrentJob('MyConStatus3',false);
    end;
@@ -1010,20 +1009,20 @@ if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // Req
    SetNMSData('','','','','','');
    ClearMNsChecks();
    ClearMNsList();
-   if ((LastTimeRequestResumen+10 < UTCTime.ToInt64) and (not DownloadHeaders)) then
+   if ((LastTimeRequestResumen+10 < UTCTime) and (not DownloadHeaders)) then
       begin
       if ( (NLBV-mylastblock >= 144) or (ForceCompleteHeadersDownload) ) then
          begin
          PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
          ConsoleLinesAdd(LangLine(163)); //'Headers file requested'
-         LastTimeRequestResumen := StrToInt64(UTCTime);
+         LastTimeRequestResumen := UTCTime;
          end
       else // If less than 144 block just update heades
          begin
          //PTC_SendLine(NetResumenHash.Slot,ProtocolLine(18)); // GetResumen update
          PTC_SendLine(NetResumenHash.Slot,ProtocolLine(18)); // GetResumen
          ConsoleLinesAdd('Headers update requested'); //'Headers update requested'
-         LastTimeRequestResumen := StrToInt64(UTCTime);
+         LastTimeRequestResumen := UTCTime;
          end;
       end;
    end
@@ -1033,7 +1032,7 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  /
    SetNMSData('','','','','','');
    ClearMNsChecks();
    ClearMNsList();
-   if ((LastTimeRequestBlock+5<StrToInt64(UTCTime))and (not DownLoadBlocks)) then
+   if ((LastTimeRequestBlock+5<UTCTime)and (not DownLoadBlocks)) then
       begin
       PTC_SendLine(NetResumenHash.Slot,ProtocolLine(8)); // lastblock
       if WO_FullNode then ConsoleLinesAdd(LangLine(164)+IntToStr(mylastblock)) //'LastBlock requested from block '
@@ -1043,7 +1042,7 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  /
          if LastDownBlock<MyLastBlock then LastDownBlock:=MyLastBlock;
          ConsoleLinesAdd(LangLine(164)+IntToStr(LastDownBlock));
          end;
-      LastTimeRequestBlock := StrToInt64(UTCTime);
+      LastTimeRequestBlock := UTCTime;
       end;
    end
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
@@ -1051,11 +1050,11 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
    begin  // complete or download summary
    if (ListaSumario[0].LastOP+(2*SumMarkInterval) < mylastblock) then
       begin
-      if ((LastTimeRequestsumary+5 < UTCTime.ToInt64) and (not DownloadSumary) ) then
+      if ((LastTimeRequestsumary+5 < UTCTime) and (not DownloadSumary) ) then
          begin
          PTC_SendLine(NetResumenHash.Slot,ProtocolLine(6)); // Getsumary
          ConsoleLinesAdd(rs2003); //'sumary file requested'
-         LastTimeRequestsumary := StrToInt64(UTCTime);
+         LastTimeRequestsumary := UTCTime;
          end;
       end
    else
@@ -1081,39 +1080,39 @@ else if ((MyResumenhash <> NetResumenHash.Value) and (NLBV=mylastblock) and (MyL
    SetNMSData('','','','','','');
    PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
    ConsoleLinesAdd(LangLine(163)); //'Headers file requested'
-   LastTimeRequestResumen := StrToInt64(UTCTime);
+   LastTimeRequestResumen := UTCTime;
    end
-else if ( (StrToIntDef(NetMNsCount.Value,0)>GetMNsListLength) and (LastTimeMNsRequested+5<UTCTime.ToInt64)
+else if ( (StrToIntDef(NetMNsCount.Value,0)>GetMNsListLength) and (LastTimeMNsRequested+5<UTCTime)
            and (LengthWaitingMNs = 0) and (BlockAge>30) ) then
    begin
    EnterCriticalSection(CSMNsIPCheck);
    Setlength(ArrayIPsProcessed,0);
    LeaveCriticalSection(CSMNsIPCheck);
    PTC_SendLine(NetMNsCount.Slot,ProtocolLine(11));  // Get MNsList
-   LastTimeMNsRequested := UTCTime.ToInt64;
+   LastTimeMNsRequested := UTCTime;
    ConsoleLinesAdd('MNs reports requested');
    end
-else if ((StrToIntDef(NetMNsChecks.Value,0)>GetMNsChecksCount) and (LastTimeChecksRequested+5<UTCTime.ToInt64)) then
+else if ((StrToIntDef(NetMNsChecks.Value,0)>GetMNsChecksCount) and (LastTimeChecksRequested+5<UTCTime)) then
    begin
    PTC_SendLine(NetMNsChecks.Slot,ProtocolLine(GetChecks));  // Get MNsChecks
-   LastTimeChecksRequested := UTCTime.ToInt64;
+   LastTimeChecksRequested := UTCTime;
    ConsoleLinesAdd('Checks requested to '+conexiones[NetMNsChecks.Slot].ip);
    end
-else if ( (NetMNsHash.value<>Copy(MyMNsHash,1,5)) and (LastTimeMNHashRequestes+5<UTCTime.ToInt64) and
+else if ( (NetMNsHash.value<>Copy(MyMNsHash,1,5)) and (LastTimeMNHashRequestes+5<UTCTime) and
           (NetMNsHash.value<>'') ) then
    begin
    PTC_SendLine(NetMNsHash.Slot,ProtocolLine(GetMNsFile));  // Get MNsFile
-   LastTimeMNHashRequestes := UTCTime.ToInt64;
+   LastTimeMNHashRequestes := UTCTime;
    ConsoleLinesAdd('Mns File requested to '+conexiones[NetMNsChecks.Slot].ip);
    end
-else if ( (NetCFGHash.value<>Copy(HashMd5String(GetNosoCFGString),0,5)) and (LasTimeCFGRequest+5<UTCTime.ToInt64) and
+else if ( (NetCFGHash.value<>Copy(HashMd5String(GetNosoCFGString),0,5)) and (LasTimeCFGRequest+5<UTCTime) and
           (NetCFGHash.value<>'') ) then
    begin
    PTC_SendLine(NetCFGHash.Slot,ProtocolLine(GetCFG));  // TO BE IMPLEMENTED
-   LasTimeCFGRequest := UTCTime.ToInt64;
+   LasTimeCFGRequest := UTCTime;
    ConsoleLinesAdd('Noso CFG file requested');
    end
-else if ( (GetNMSData.Diff<>NetBestHash.Value) and (LastTimeBestHashRequested+5<UTCTime.ToInt64) ) then
+else if ( (GetNMSData.Diff<>NetBestHash.Value) and (LastTimeBestHashRequested+5<UTCTime) ) then
    begin
    {
    PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));
@@ -1121,12 +1120,12 @@ else if ( (GetNMSData.Diff<>NetBestHash.Value) and (LastTimeBestHashRequested+5<
    ConsolelinesAdd('Requesting besthash');
    }
    end
-else if ( (NetGVTSHash.Value<>MyGVTsHash) and (LasTimeGVTsRequest+5<UTCTime.ToInt64) and (NetGVTSHash.Value<>'')
+else if ( (NetGVTSHash.Value<>MyGVTsHash) and (LasTimeGVTsRequest+5<UTCTime) and (NetGVTSHash.Value<>'')
         and (not DownloadGVTs) ) then
    begin
    // REQUEST GVTS
    PTC_SendLine(NetGVTSHash.Slot,ProtocolLine(GetGVTs));  // Get MNsFile
-   LasTimeGVTsRequest := UTCTime.ToInt64;
+   LasTimeGVTsRequest := UTCTime;
    ConsoleLinesAdd('GVTs File requested to '+conexiones[NetMNsChecks.Slot].ip);
    end;
 if IsAllSynced then Last_ActualizarseConLaRed := Last_ActualizarseConLaRed+5;
@@ -1187,31 +1186,6 @@ for contador := 1 to MaxConecciones do
       Inc(Result);
    end;
 end;
-
-Procedure SendNetworkRequests(timestamp,direccion:string;block:integer);
-var
-  texttosend: string;
-  hashreq : string;
-  hashvalue : string;
-  tipo : integer;
-Begin
-tipo := 1;  // hashrate
-hashreq := HashMD5String( IntToStr(tipo)+timestamp+direccion+IntToStr(block)+IntToStr(Miner_LastHashRate) );
-hashvalue := HashMD5String(IntToStr(Miner_LastHashRate));
-texttosend := GetPTCEcn+'NETREQ 1 '+timestamp+' '+direccion+' '+IntToStr(block)+' '+
-   hashreq+' '+hashvalue+' '+IntToStr(Miner_LastHashRate);  // tipo 1: hashrate
-OutgoingMsjsAdd(texttosend);
-UpdateMyRequests(1,timestamp,block, hashreq, hashvalue);
-ConsoleLinesAdd('hashrate starts in '+IntToStr(Miner_LastHashRate));
-tipo := 2; // peers
-hashreq := HashMD5String( IntToStr(tipo)+timestamp+direccion+IntToStr(block)+'1');
-hashvalue := HashMD5String('1');
-texttosend := GetPTCEcn+'NETREQ 2 '+timestamp+' '+direccion+' '+IntToStr(block)+' '+
-   hashreq+' '+hashvalue+' '+'1';  // tipo 2: peers
-OutgoingMsjsAdd(texttosend);
-UpdateMyRequests(2,timestamp,block, hashreq, hashvalue);
-ConsoleLinesAdd('peers starts in 1');
-End;
 
 function GetOrderDetails(orderid:string):TOrderGroup;
 var
@@ -1331,8 +1305,8 @@ Begin
 //           10{LasBlockHash} 11{BestHashDiff} 12{LastBlockTimeEnd} 13{LBMiner} 14{ChecksCount} 15{LastBlockPoW}
 //           16{LastBlockDiff} 17{summary} 18{GVTs} 18{nosoCFG}
 result := {1}IntToStr(GetTotalConexiones)+' '+{2}IntToStr(MyLastBlock)+' '+{3}GetPendingCount.ToString+' '+
-          {4}IntToStr(UTCTime.ToInt64-EngineLastUpdate)+' '+{5}copy(myResumenHash,0,5)+' '+
-          {6}ProgramVersion+SubVersion+' '+{7}UTCTime+' '+{8}copy(MyMnsHash,0,5)+' '+{9}GetMNsListLength.ToString+' '+
+          {4}IntToStr(UTCTime-EngineLastUpdate)+' '+{5}copy(myResumenHash,0,5)+' '+
+          {6}ProgramVersion+SubVersion+' '+{7}UTCTimeStr+' '+{8}copy(MyMnsHash,0,5)+' '+{9}GetMNsListLength.ToString+' '+
           {10}MyLastBlockHash+' '+{11}GetNMSData.Diff+' '+{12}IntToStr(LastBlockData.TimeEnd)+' '+
           {13}LastBlockData.AccountMiner+' '+{14}GetMNsChecksCount.ToString+' '+{15}Parameter(LastBlockData.Solution,2)+' '+
           {16}Parameter(LastBlockData.Solution,1)+' '+{17}copy(MySumarioHash,0,5)+' '+{18}copy(MyGVTsHash,0,5)+' '+
@@ -1357,7 +1331,6 @@ TRY
    readedLine := Conector.SimpleGet('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/lastrelease.txt');
    // Binance API example
    //readedLine := Conector.SimpleGet('https://api.binance.com/api/v3/ticker/price?symbol=LTCUSDT');
-
 EXCEPT on E: Exception do
    begin
    Consolelinesadd('ERROR RETRIEVING LAST RELEASE DATA: '+E.Message);
@@ -1474,7 +1447,7 @@ Begin
 if not form1.Server.Active then Result := 'OFF'
 else
    begin
-   Totalseconds := UTCTime.ToInt64-ServerStartTime;
+   Totalseconds := UTCTime-ServerStartTime;
    Days := Totalseconds div 86400;
    remain := Totalseconds mod 86400;
    hours := remain div 3600;

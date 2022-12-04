@@ -5,7 +5,7 @@ unit mpProtocol;
 interface
 
 uses
-  Classes, SysUtils, mpRed, MasterPaskalForm, mpParser, StrUtils, mpDisk, mpTime,mpMiner, mpBlock,
+  Classes, SysUtils, mpRed, MasterPaskalForm, mpParser, StrUtils, mpDisk, nosotime,mpMiner, mpBlock,
   Zipper, mpcoin, mpCripto, mpMn;
 
 function GetPTCEcn():String;
@@ -24,7 +24,6 @@ function GetNodeFromString(NodeDataString: string): NodeData;
 Procedure ProcessPing(LineaDeTexto: string; Slot: integer; Responder:boolean);
 function GetPingString():string;
 procedure PTC_SendPending(Slot:int64);
-Procedure PTC_SendMNs(Slot:int64);
 Procedure PTC_SendResumen(Slot:int64);
 Procedure PTC_SendSumary(Slot:int64);
 Function ZipSumary():boolean;
@@ -41,29 +40,19 @@ Function PTC_Order(TextLine:String):String;
 Procedure INC_PTC_SendGVT(TextLine:String;connection:integer);
 Function PTC_SendGVT(TextLine:String):integer;
 Procedure PTC_AdminMSG(TextLine:String);
-Procedure PTC_NetReqs(textline:string);
-function RequestAlreadyexists(reqhash:string):string;
-Procedure UpdateMyRequests(tipo:integer;timestamp:string;bloque:integer;hash,hashvalue:string);
 Function PTC_BestHash(Linea:string;IPUser:String):String;
 Procedure PTC_CFGData(Linea:String);
 Procedure PTC_SendUpdateHeaders(Slot:integer;Linea:String);
 Procedure PTC_HeadUpdate(linea:String);
 
-function GetMNfromText(LineText:String):TMasterNode;
-function GetTextFromMN(node:TMasterNode):string;
-function NodeAlreadyadded(Node:TMasterNode):boolean;
-
 Function IsValidPool(PoolAddress:String):boolean;
 Procedure SetNMSData(diff,hash,miner,Timestamp,publicKey,signature:string);
 Function GetNMSData():TNMSData;
 
-Procedure RemoveCFGData(DataToRemove:String;CFGIndex:Integer);
+Procedure SetCFGData (DataToSet:String;CFGIndex:Integer);
 Procedure AddCFGData(DataToAdd:String;CFGIndex:Integer);
-
-Procedure AddCFGNode(StrNode:String);
-Procedure RestoreCFGFile();
-Procedure DeleteCFGNode(StrNode:String);
-
+Procedure RemoveCFGData(DataToRemove:String;CFGIndex:Integer);
+Procedure RestoreCFGData();
 
 // CS Incoming
 Procedure AddToIncoming(Index:integer;texto:string);
@@ -105,7 +94,7 @@ uses
 // Devuelve el puro encabezado con espacio en blanco al final
 function GetPTCEcn():String;
 Begin
-result := 'PSK '+IntToStr(protocolo)+' '+ProgramVersion+subversion+' '+UTCTime+' ';
+result := 'PSK '+IntToStr(protocolo)+' '+ProgramVersion+subversion+' '+UTCTimeStr+' ';
 End;
 
 // convierte los datos de la cadena en una order
@@ -182,7 +171,7 @@ var
   TempStr       : string = '';
   LastDownBlock : integer =0;
 Begin
-Encabezado := 'PSK '+IntToStr(protocolo)+' '+ProgramVersion+subversion+' '+UTCTime+' ';
+Encabezado := 'PSK '+IntToStr(protocolo)+' '+ProgramVersion+subversion+' '+UTCTimeStr+' ';
 if tipo = OnlyHeaders then
    resultado := '';
 if tipo = GetNodes then
@@ -335,7 +324,6 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = '$CUSTOM' then INC_PTC_Custom(GetOpData(ProcessLine),contador)
       else if UpperCase(LineComando) = 'ORDER' then INC_PTC_Order(ProcessLine, contador)
       else if UpperCase(LineComando) = 'ADMINMSG' then PTC_AdminMSG(ProcessLine)
-      else if UpperCase(LineComando) = 'NETREQ' then PTC_NetReqs(ProcessLine)
       else if UpperCase(LineComando) = '$REPORTNODE' then PTC_Getnodes(contador) // DEPRECATED
       else if UpperCase(LineComando) = '$MNREPO' then AddWaitingMNs(ProcessLine)//
       else if UpperCase(LineComando) = '$BESTHASH' then
@@ -499,8 +487,8 @@ conexiones[slot].LastblockHash:=PLastBlockHash;
 conexiones[slot].SumarioHash  :=PSumHash;
 conexiones[slot].Pending      :=StrToIntDef(PPending,0);
 conexiones[slot].Protocol     :=StrToIntDef(PProtocol,0);
-conexiones[slot].offset       :=StrToInt64(PTime)-StrToInt64(UTCTime);
-conexiones[slot].lastping     :=UTCTime;
+conexiones[slot].offset       :=StrToInt64(PTime)-UTCTime;
+conexiones[slot].lastping     :=UTCTimeStr;
 conexiones[slot].ResumenHash  :=PResumenHash;
 conexiones[slot].ConexStatus  :=StrToIntDef(PConStatus,0);
 conexiones[slot].ListeningPort:=StrToIntDef(PListenPort,-1);
@@ -582,30 +570,6 @@ if GetPendingCount > 0 then
       end;
    Tolog('Sent '+IntToStr(Length(CopyPendingTXs))+' pendingTxs to '+conexiones[slot].ip);
    SetLength(CopyPendingTXs,0);
-   end;
-End;
-
-Procedure PTC_SendMNs(Slot:int64);
-var
-  contador : integer;
-  Encab : string;
-  Textline : String;
-  TextOrder : String;
-  CopyMNsArray : Array of TMasternode;
-Begin
-Encab := GetPTCEcn;
-TextOrder := encab+'$REPORTNODE ';
-if Length(MNsArray) > 0 then
-   begin
-   //EnterCriticalSection(CSMNsArray);
-   SetLength(CopyMNsArray,0);
-   CopyMNsArray := copy(MNsArray,0,length(MNsArray));
-   //LeaveCriticalSection(CSMNsArray);
-   for contador := 0 to Length(CopyMNsArray)-1 do
-      begin
-      Textline := GetTextFromMN(CopyMNsArray[contador]);
-      PTC_SendLine(slot,TextOrder+TextLine);
-      end;
    end;
 End;
 
@@ -1140,21 +1104,21 @@ if not errored then
       Tolog('DIRECTIVE'+slinebreak+'restart');
       ConsoleLinesAdd('Restart directive received');
       end;
+   if UpperCase(TCommand) = 'SETMODE' then
+      begin
+      SetCFGData(Parameter(mensaje,1),0);
+      end;
    if UpperCase(TCommand) = 'ADDNODE' then
       begin
-      AddCFGNode(Parameter(mensaje,1));
+      AddCFGData(Parameter(mensaje,1),1);
       end;
    if UpperCase(TCommand) = 'DELNODE' then
       begin
-      DeleteCFGNode(Parameter(mensaje,1));
-      end;
-   if UpperCase(TCommand) = 'SETMODE' then
-      begin
-      //;
+      RemoveCFGData(Parameter(mensaje,1),1);
       end;
    if UpperCase(TCommand) = 'ADDPOOL' then
       begin
-      //AddCFGData(Parameter(mensaje,1),3);
+      AddCFGData(Parameter(mensaje,1),3);
       end;
    if UpperCase(TCommand) = 'DELPOOL' then
       begin
@@ -1162,202 +1126,9 @@ if not errored then
       end;
    if UpperCase(TCommand) = 'RESTORECFG' then
       begin
-      RestoreCFGFile
+      RestoreCFGData
       end;
    OutgoingMsjsAdd(TextLine);
-   end;
-End;
-
-Procedure PTC_NetReqs(textline:string);
-var
-  request : integer;
-  timestamp : string;
-  Direccion : string;
-  Bloque: integer;
-  ReqHash, ValueHash : string;
-  valor,newvalor : string;
-  texttosend : string;
-  NewValueHash : string;
-Begin
-request :=  StrToIntDef(parameter(TextLine,5),0);
-timestamp :=  parameter(TextLine,6);
-Direccion :=  parameter(TextLine,7);
-Bloque :=  StrToIntDef(parameter(TextLine,8),0);
-ReqHash :=  parameter(TextLine,9);
-ValueHash :=  parameter(TextLine,10);
-valor  :=  parameter(TextLine,11);
-if request = 1 then // hashrate
-   begin
-   if ( (StrToInt64def(timestamp,0) = LastBlockData.TimeEnd) and
-      (Direccion = LastBlockData.AccountMiner) and (bloque=LastBlockData.Number) and
-      (RequestAlreadyexists(ReqHash)='') ) then
-      begin
-      //ConsoleLinesAdd('NETREQ GOT'+slinebreak+IntToStr(request)+' '+timestamp+' '+direccion+' '+IntTostr(bloque)+' '+
-      //   ReqHash+' '+ValueHash+' '+valor);
-      newvalor := InttoStr(StrToIntDef(valor,0)+Miner_LastHashRate);
-      ConsoleLinesAdd('hashrate set to: '+newvalor);
-      NewValueHash := HashMD5String(newvalor);
-      TextToSend := GetPTCEcn+'NETREQ 1 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+
-         ReqHash+' '+NewValueHash+' '+newvalor;
-      OutgoingMsjsAdd(texttosend);
-      UpdateMyRequests(request,timestamp,bloque, ReqHash,ValueHash );
-      end
-   else if ( (RequestAlreadyexists(ReqHash)<>'') and  (RequestAlreadyexists(ReqHash)<>ValueHash) ) then
-      begin
-      NewValueHash := HashMD5String(valor);
-      TextToSend := GetPTCEcn+'NETREQ 1 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+
-         ReqHash+' '+NewValueHash+' '+valor;
-      OutgoingMsjsAdd(texttosend);
-      ConsoleLinesAdd('Now hashrate: '+valor);
-      UpdateMyRequests(request,timestamp,bloque, ReqHash,NewValueHash );
-      end
-   else
-      begin
-      networkhashrate := StrToInt64def(valor,-1);
-      ConsoleLinesAdd('Final hashrate: '+valor);
-      if nethashsend=false then
-         begin
-         TextToSend := GetPTCEcn+'NETREQ 1 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+
-            ReqHash+' '+ValueHash+' '+valor;
-         OutgoingMsjsAdd(texttosend);
-         nethashsend:= true;
-         end;
-      end;
-   end
-else if request = 2 then // peers
-   begin
-   if ( (StrToInt64def(timestamp,0) = LastBlockData.TimeEnd) and
-      (Direccion = LastBlockData.AccountMiner) and (bloque=LastBlockData.Number) and
-      (RequestAlreadyexists(ReqHash)='') ) then
-      begin
-      newvalor := InttoStr(StrToIntDef(valor,0)+1);
-      ConsoleLinesAdd('peers set to: '+newvalor);
-      NewValueHash := HashMD5String(newvalor);
-      TextToSend := GetPTCEcn+'NETREQ 2 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+
-         ReqHash+' '+NewValueHash+' '+newvalor;
-      OutgoingMsjsAdd(texttosend);
-      UpdateMyRequests(request,timestamp,bloque, ReqHash,ValueHash );
-      end
-   else if ( (RequestAlreadyexists(ReqHash)<>'') and  (RequestAlreadyexists(ReqHash)<>ValueHash) ) then
-      begin
-      NewValueHash := HashMD5String(valor);
-      TextToSend := GetPTCEcn+'NETREQ 2 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+
-         ReqHash+' '+NewValueHash+' '+valor;
-      OutgoingMsjsAdd(texttosend);
-      ConsoleLinesAdd('Now peers: '+valor);
-      UpdateMyRequests(request,timestamp,bloque, ReqHash,NewValueHash );
-      end
-   else
-      begin
-      networkpeers := StrToInt64def(valor,-1);
-      ConsoleLinesAdd('Final peers: '+valor);
-      if netpeerssend=false then
-         begin
-         TextToSend := GetPTCEcn+'NETREQ 2 '+timestamp+' '+direccion+' '+IntToStr(bloque)+' '+
-            ReqHash+' '+ValueHash+' '+valor;
-         OutgoingMsjsAdd(texttosend);
-         netpeerssend:= true;
-         end;
-      end;
-   end;
-End;
-
-function RequestAlreadyexists(reqhash:string):string;
-var
-  contador : integer;
-Begin
-result := '';
-if length(ArrayNetworkRequests) > 0 then
-   begin
-   for contador := 0 to length(ArrayNetworkRequests)-1 do
-      begin
-      if ArrayNetworkRequests[contador].hashreq = reqhash then
-         begin
-         result := ArrayNetworkRequests[contador].hashvalue;
-         break;
-         end;
-      end;
-   end;
-End;
-
-Procedure UpdateMyRequests(tipo:integer;timestamp:string;bloque:integer;hash,hashvalue:string);
-var
-  contador : integer;
-  ExistiaTipo : boolean = false;
-Begin
-if length(ArrayNetworkRequests)>0 then
-   begin
-   for contador := 0 to length(ArrayNetworkRequests)-1 do
-      begin
-      if ArrayNetworkRequests[contador].tipo = tipo then
-         begin
-         ArrayNetworkRequests[contador].timestamp:=StrToInt64(timestamp);
-         ArrayNetworkRequests[contador].block:=bloque;
-         ArrayNetworkRequests[contador].hashreq:=hash;
-         ArrayNetworkRequests[contador].hashvalue:=hashvalue;
-         if tipo = 1 then nethashsend := false;
-         if tipo = 2 then netpeerssend := false;
-         ExistiaTipo := true;
-         end;
-      end;
-   end;
-if not ExistiaTipo then
-   begin
-   SetLength(ArrayNetworkRequests,length(ArrayNetworkRequests)+1);
-   ArrayNetworkRequests[length(ArrayNetworkRequests)-1].tipo := tipo;
-   ArrayNetworkRequests[length(ArrayNetworkRequests)-1].timestamp:=StrToInt64(timestamp);
-   ArrayNetworkRequests[length(ArrayNetworkRequests)-1].block:=bloque;
-   ArrayNetworkRequests[length(ArrayNetworkRequests)-1].hashreq:=hash;
-   ArrayNetworkRequests[length(ArrayNetworkRequests)-1].hashvalue:=hashvalue;
-   end;
-End;
-
-function GetMNfromText(LineText:String):TMasterNode;
-var
-  Resultado : TMasterNode;
-Begin
-Resultado.Ip := Parameter(linetext,1);
-Resultado.Port     := Parameter(linetext,2).ToInteger;
-Resultado.FundAddress     := Parameter(linetext,3);
-Resultado.SignAddress     := Parameter(linetext,4);
-Resultado.Block     := Parameter(linetext,5).ToInteger;
-Resultado.BlockHash     := Parameter(linetext,6);
-Resultado.Time     := Parameter(linetext,7);
-Resultado.PublicKey     := Parameter(linetext,8);
-Resultado.Signature     := Parameter(linetext,9);
-Resultado.ReportHash     := Parameter(linetext,10);
-result := resultado;
-End;
-
-function GetTextFromMN(node:TMasterNode):string;
-Begin
-result := Node.Ip+' '+
-          Node.port.ToString+' '+
-          Node.FundAddress+' '+
-          Node.SignAddress+' '+
-          Node.Block.ToString+' '+
-          Node.BlockHash+' '+
-          Node.Time+' '+
-          Node.PublicKey+' '+
-          Node.Signature+' '+
-          Node.ReportHash;
-End;
-
-function NodeAlreadyadded(Node:TMasterNode):boolean;
-var
-  counter : integer;
-Begin
-result := false;
-if length(MNsArray) > 0 then
-   begin
-   for counter := 0 to length(MNsArray)-1 do
-      begin
-      if MNsArray[counter].ReportHash = node.ReportHash then
-         begin
-         result := true;
-         break;
-         end;
-      end;
    end;
 End;
 
@@ -1520,7 +1291,7 @@ Result := NMSData;
 LeaveCriticalSection(CSNMSData);
 End;
 
-Procedure RemoveCFGData(DataToRemove:String;CFGIndex:Integer);
+Procedure SetCFGData(DataToSet:String;CFGIndex:Integer);
 var
   LCFGstr    : String;
   LArrString : Array of string;
@@ -1529,9 +1300,8 @@ var
   Counter    : integer = 0;
   FinalStr   : string = '';
 Begin
-if ( (Length(DataToRemove)>0) and (DataToRemove[Length(DataToRemove)] <> ':') ) then
-   DataToRemove := DataToRemove+':';
-consolelinesAdd(DataToRemove);
+if ( (Length(DataToSet)>0) and (DataToSet[Length(DataToSet)] <> ':') and (CFGIndex>0) ) then
+   DataToSet := DataToSet+':';
 LCFGStr := GetNosoCFGString();
 SetLength(LArrString,0);
 Repeat
@@ -1539,24 +1309,21 @@ Repeat
    if ThisData <> '' then
       begin
       Insert(ThisData,LArrString,LEngth(LArrString));
-      consolelinesadd(Format('[%d] %s',[counter,ThisData]));
       end;
    Inc(Counter);
 until thisData = '';
-DataStr := LArrString[CFGIndex];
-ConsoleLinesAdd(Format('Section: %s [%d]',[DataStr,Pos(DataStr,DataToRemove)]));
-DataStr := StringReplace(DataStr,DataToRemove,'',[rfReplaceAll, rfIgnoreCase]);
-LArrString[CFGIndex] := DataStr;
+LArrString[CFGIndex] := DataToSet;
 For counter := 0 to length(LArrString)-1 do
    FinalStr := FinalStr+' '+LArrString[counter];
 FinalStr := Trim(FinalStr);
-LasTimeCFGRequest:= UTCTime.ToInt64+5;
+LasTimeCFGRequest:= UTCTime+5;
 SaveNosoCFGFile(FinalStr);
 SetNosoCFGString(FinalStr);
 FillNodeList;
 CargarNTPData;
 LoadAllowedPools;
 End;
+
 
 Procedure AddCFGData(DataToAdd:String;CFGIndex:Integer);
 var
@@ -1583,7 +1350,7 @@ LArrString[CFGIndex] := DataStr;
 For counter := 0 to length(LArrString)-1 do
    FinalStr := FinalStr+' '+LArrString[counter];
 FinalStr := Trim(FinalStr);
-LasTimeCFGRequest:= UTCTime.ToInt64+5;
+LasTimeCFGRequest:= UTCTime+5;
 SaveNosoCFGFile(FinalStr);
 SetNosoCFGString(FinalStr);
 FillNodeList;
@@ -1591,61 +1358,52 @@ CargarNTPData;
 LoadAllowedPools;
 End;
 
-Procedure AddCFGNode(StrNode:String);
+Procedure RemoveCFGData(DataToRemove:String;CFGIndex:Integer);
 var
-  LOrigin, LFinish : String;
-  CFGHead, CFGNodes, CFGNTPs : String;
+  LCFGstr    : String;
+  LArrString : Array of string;
+  DataStr    : String;
+  thisData   : string;
+  Counter    : integer = 0;
+  FinalStr   : string = '';
 Begin
-StrNode := StringReplace(StrNode,';',' ',[rfReplaceAll, rfIgnoreCase]);
-StrNode := Parameter(StrNode,0)+';'+StrToIntDef(Parameter(StrNode,1),8080).ToString+':';
-LOrigin  := GetNosoCFGString;
-CFGHead  := Parameter(LOrigin,0);
-CFGNodes := Parameter(LOrigin,1);
-CFGNTPs  := Parameter(LOrigin,2);
-// Add the node
-CFGNodes := CFGNodes+StrNode;
-LFInish := Format('%s %s %s',[CFGHead,CFGNodes,CFGNTPs]);
-LasTimeCFGRequest:= UTCTime.ToInt64+5;
-SaveNosoCFGFile(LFInish);
-SetNosoCFGString(LFInish);
+if ( (Length(DataToRemove)>0) and (DataToRemove[Length(DataToRemove)] <> ':') ) then
+   DataToRemove := DataToRemove+':';
+LCFGStr := GetNosoCFGString();
+SetLength(LArrString,0);
+Repeat
+   ThisData := Parameter(LCFGStr,counter);
+   if ThisData <> '' then
+      begin
+      Insert(ThisData,LArrString,LEngth(LArrString));
+      end;
+   Inc(Counter);
+until thisData = '';
+DataStr := LArrString[CFGIndex];
+DataStr := StringReplace(DataStr,DataToRemove,'',[rfReplaceAll, rfIgnoreCase]);
+LArrString[CFGIndex] := DataStr;
+For counter := 0 to length(LArrString)-1 do
+   FinalStr := FinalStr+' '+LArrString[counter];
+FinalStr := Trim(FinalStr);
+LasTimeCFGRequest:= UTCTime+5;
+SaveNosoCFGFile(FinalStr);
+SetNosoCFGString(FinalStr);
 FillNodeList;
 CargarNTPData;
-ConsoleLinesAdd(Format('Node %s added to NosoCFG',[StrNode]));
+LoadAllowedPools;
 End;
 
-Procedure RestoreCFGFile();
+Procedure RestoreCFGData();
 Begin
-LasTimeCFGRequest:= UTCTime.ToInt64+5;
+LasTimeCFGRequest:= UTCTime+5;
 SaveNosoCFGFile(DefaultNosoCFG);
 SetNosoCFGString(DefaultNosoCFG);
 FillNodeList;
 CargarNTPData;
+LoadAllowedPools;
 ConsoleLinesAdd('NosoCFG restarted');
 End;
 
-Procedure DeleteCFGNode(StrNode:String);
-var
-  LOrigin, LFinish : String;
-  CFGHead, CFGNodes, CFGNTPs : String;
-Begin
-StrNode := StringReplace(StrNode,';',' ',[rfReplaceAll, rfIgnoreCase]);
-StrNode := Parameter(StrNode,0)+';'+StrToIntDef(Parameter(StrNode,1),8080).ToString+' ';
-LOrigin  := GetNosoCFGString;
-CFGHead  := Parameter(LOrigin,0);
-CFGNodes := Parameter(LOrigin,1);
-CFGNTPs  := Parameter(LOrigin,2);
-// Delete the node
-CFGNodes := StringReplace(CFGNodes,':',' ',[rfReplaceAll, rfIgnoreCase]);
-CFGNodes := StringReplace(CFGNodes,StrNode,'',[rfReplaceAll, rfIgnoreCase]);
-CFGNodes := StringReplace(CFGNodes,' ',':',[rfReplaceAll, rfIgnoreCase]);
-LFInish := Format('%s %s %s',[CFGHead,CFGNodes,CFGNTPs]);
-LasTimeCFGRequest:= UTCTime.ToInt64+5;
-SaveNosoCFGFile(LFInish);
-SetNosoCFGString(LFInish);
-FillNodeList;
-CargarNTPData;
-ConsoleLinesAdd(Format('Node %s deleted from NosoCFG',[StrNode]));
-End;
 
 END. // END UNIT
 

@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils,MasterPaskalForm, mpCripto, mpMiner, fileutil, mpcoin, dialogs,
-  mptime, mpMN;
+  nosotime, mpMN;
 
 Procedure CrearBloqueCero();
 Procedure BuildNewBlock(Numero,TimeStamp: Int64; TargetHash, Minero, Solucion:String);
@@ -117,13 +117,13 @@ SetCurrentJob('BuildNewBlock',true);
 if ((numero>0) and (Timestamp < lastblockdata.TimeEnd)) then
    begin
    ConsoleLinesAdd('New block '+IntToStr(numero)+' : Invalid timestamp');
-   ConsoleLinesAdd('Blocks can not be added until '+TimestampToDate(IntToStr(GenesysTimeStamp)));
+   ConsoleLinesAdd('Blocks can not be added until '+TimestampToDate(GenesysTimeStamp));
    errored := true;
    end;
-if TimeStamp > UTCTime.ToInt64+5 then
+if TimeStamp > UTCTime+5 then
    begin
    ConsoleLinesAdd('New block '+IntToStr(numero)+' : Invalid timestamp');
-   ConsoleLinesAdd('Timestamp '+IntToStr(TimeStamp)+' is '+IntToStr(TimeStamp-UTCTime.ToInt64)+' seconds in the future');
+   ConsoleLinesAdd('Timestamp '+IntToStr(TimeStamp)+' is '+IntToStr(TimeStamp-UTCTime)+' seconds in the future');
    errored := true;
    end;
 if not errored then
@@ -661,7 +661,7 @@ Procedure UndoneLastBlock();
 var
   blocknumber : integer;
 Begin
-if BlockUndoneTime+30>UTCTime.ToInt64 then exit;
+if BlockUndoneTime+30>UTCTime then exit;
 blocknumber:= MyLastBlock;
 if BlockNumber = 0 then exit;
 if MyConStatus = 3 then
@@ -704,12 +704,12 @@ ConsoleLinesAdd(LAngLine(90)+IntToStr(blocknumber)); //'Block undone: '
 ConsoleLinesAdd('****************************');
 Tolog('Block Undone: '+IntToStr(blocknumber));
 U_DataPanel := true;
-BlockUndoneTime := UTCTime.ToInt64;
+BlockUndoneTime := UTCTime;
 End;
 
 Function BlockAge():integer;
 Begin
-Result := (UTCtime.ToInt64-LastBlockData.TimeEnd+1) mod 600;
+Result := (UTCtime-LastBlockData.TimeEnd+1) mod 600;
 End;
 
 Function NextBlockTimeStamp():Int64;
@@ -717,7 +717,7 @@ var
   currTime : int64;
   Remains : int64;
 Begin
-CurrTime := UTCTime.ToInt64;
+CurrTime := UTCTime;
 Remains := 600-(CurrTime mod 600);
 Result := CurrTime+Remains;
 End;
@@ -725,7 +725,7 @@ End;
 Function RemainingTillNextBlock():String;
 Begin
 if BuildNMSBlock = 0 then Result := 'Unknown'
-else result := IntToStr(BuildNMSBlock-UTCTime.ToInt64);
+else result := IntToStr(BuildNMSBlock-UTCTime);
 End;
 
 Function IsBlockOpen():boolean;

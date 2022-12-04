@@ -5,7 +5,7 @@ unit mpGUI;
 interface
 
 uses
-  Classes, SysUtils, MasterPaskalForm, mpTime, graphics, strutils, forms, controls, grids,stdctrls,
+  Classes, SysUtils, MasterPaskalForm, nosotime, graphics, strutils, forms, controls, grids,stdctrls,
   ExtCtrls, buttons, editbtn , menus, Clipbrd, IdContext, LCLTranslator;
 
 type
@@ -162,7 +162,7 @@ var
   CurrentUTC : int64;
 Begin
 setmilitime('UpdateSlotsGrid',1);
-CurrentUTC := UTCTime.ToInt64;
+CurrentUTC := UTCTime;
 if CurrentUTC>SlotsLastUpdate then
    begin
    for contador := 1 to MaxConecciones do
@@ -181,7 +181,7 @@ if CurrentUTC>SlotsLastUpdate then
       GridMSlots.Cells[11,contador]:= IntToStr(Conexiones[contador].offset);
       GridMSlots.Cells[12,contador]:= copy(Conexiones[contador].ResumenHash,0,5);
       GridMSlots.Cells[13,contador]:= IntToStr(Conexiones[contador].ConexStatus);
-      GridMSlots.Cells[14,contador]:= IntToStr(UTCTime.ToInt64-StrToInt64Def(Conexiones[contador].lastping,UTCTime.ToInt64));
+      GridMSlots.Cells[14,contador]:= IntToStr(UTCTime-StrToInt64Def(Conexiones[contador].lastping,UTCTime));
       GridMSlots.Cells[15,contador]:= Conexiones[contador].MNsHash;
       GridMSlots.Cells[16,contador]:= IntToStr(Conexiones[contador].MNsCount);
       GridMSlots.Cells[17,contador]:= Conexiones[contador].BestHashDiff;
@@ -314,7 +314,7 @@ var
   contador : integer = 0;
 Begin
 //Update Monitor Grid
-if ( (form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor) and (LastUpdateMonitor<>UTCTime.ToInt64) ) then
+if ( (form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor) and (LastUpdateMonitor<>UTCTime) ) then
    begin
    setmilitime('UpdateGUIMonitor',1);
    if length(MilitimeArray)>0 then
@@ -334,7 +334,7 @@ if ( (form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor) and (LastUpdateMonit
             end;
          end;
       end;
-   LastUpdateMonitor := UTCTime.ToInt64;
+   LastUpdateMonitor := UTCTime;
    setmilitime('UpdateGUIMonitor',2);
    end;
 
@@ -368,7 +368,7 @@ form1.DataPanel.Cells[3,4]:='('+Copy(HashMd5String(GetNosoCFGString),0,5)+'/'+Ne
 
 
 // update nodes grid
-if ((U_MNsGrid) or (UTCTime.ToInt64>U_MNsGrid_Last+59)) then
+if ((U_MNsGrid) or (UTCTime>U_MNsGrid_Last+59)) then
    begin
    //{
    form1.GridNodes.RowCount:=1;
@@ -386,7 +386,7 @@ if ((U_MNsGrid) or (UTCTime.ToInt64>U_MNsGrid_Last+59)) then
          end;
       end;
    //}
-   U_MNsGrid_Last := UTCTime.ToInt64;
+   U_MNsGrid_Last := UTCTime;
    form1.LabelNodesHash.Caption:='Count: '+GetMNsListLength.ToString;
    U_MNsGrid := false;
    end;
@@ -547,7 +547,7 @@ if Length(ListaMisTrx)>1 then
          end;
       end;
    end;
-LastMyTrxTimeUpdate := StrToInt64(UTCTime);
+LastMyTrxTimeUpdate := UTCTime;
 SetCurrentJob('UpdateMyTrxGrid',false);
 setmilitime('UpdateMyTrxGrid',2);
 End;

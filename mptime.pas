@@ -1,4 +1,4 @@
-unit mpTime;
+unit mptime;
 
 {$mode objfpc}{$H+}
 
@@ -14,7 +14,6 @@ function GetNetworkTimestamp(hostname:string):String;
 function GetLocalTimestamp():string;
 function TimestampToDate(timestamp:string):String;
 function TimeSinceStamp(value:int64):string;
-
 
 
 implementation

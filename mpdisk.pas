@@ -5,7 +5,7 @@ unit mpdisk;
 interface
 
 uses
-  Classes, SysUtils, MasterPaskalForm, Dialogs, Forms, mpTime, FileUtil, LCLType,
+  Classes, SysUtils, MasterPaskalForm, Dialogs, Forms, nosotime, FileUtil, LCLType,
   lclintf, controls, mpCripto, mpBlock, Zipper, mpLang, mpcoin, mpMn,
   {$IFDEF WINDOWS}Win32Proc, {$ENDIF}
   mpminer, translation, strutils;
@@ -220,7 +220,7 @@ Repeat
       begin
       NodeToAdd.ip:=ThisNode;
       NodeToAdd.port:=IntToStr(ThisPort);
-      NodeToAdd.LastConexion:=UTCTime;
+      NodeToAdd.LastConexion:=UTCTimeStr;
       Insert(NodeToAdd,Listanodos,Length(ListaNodos));
       counter+=1;
       end;
@@ -980,7 +980,7 @@ var
   LimiteTiempo : Int64 = 0;
   NodeDeleted : boolean;
 Begin
-LimiteTiempo := CadToNum(UTCTime,0,'Failed converting UTC time on depurarbots')-2592000; // Los menores que esto deben ser eliminados(2592000 un mes)
+LimiteTiempo := CadToNum(UTCTimeStr,0,'Failed converting UTC time on depurarbots')-2592000; // Los menores que esto deben ser eliminados(2592000 un mes)
 While contador < length(ListadoBots)-1 do
    begin
    NodeDeleted := false;
@@ -1006,7 +1006,7 @@ for contador := 0 to length(ListadoBots)-1 do
    begin
    if ListadoBots[Contador].ip = IPUser then
       begin
-      ListadoBots[Contador].LastRefused:=UTCTime;
+      ListadoBots[Contador].LastRefused:=UTCTimeStr;
       Updated := true;
       end;
    end;
@@ -1014,7 +1014,7 @@ if not updated then
    begin
    SetLength(ListadoBots,Length(ListadoBots)+1);
    ListadoBots[Length(listadoBots)-1].ip:=IPUser;
-   ListadoBots[Length(listadoBots)-1].LastRefused:=UTCTime;
+   ListadoBots[Length(listadoBots)-1].LastRefused:=UTCTimeStr;
    end;
 S_BotData := true;
 End;
@@ -1513,7 +1513,7 @@ while contador <= untilblock do
       begin
       info('REBUILDING '+Contador.ToString);  //'Rebuilding sumary block: '
       application.ProcessMessages;
-      EngineLastUpdate := UTCTime.ToInt64;
+      EngineLastUpdate := UTCTime;
       end;
    if ((contador = MyLastBlock) and (contador>0)) then
       LastHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock-1)+'.blk');
@@ -1591,7 +1591,7 @@ for counter := StartBlock to finishblock do
    begin
    info(LangLine(130)+inttoStr(counter));  //'Rebuilding sumary block: '
    application.ProcessMessages;
-   EngineLastUpdate := UTCTime.ToInt64;
+   EngineLastUpdate := UTCTime;
    AddBlockToSumary(counter, false);
    end;
 SetCurrentJob('save',true);
@@ -1714,7 +1714,7 @@ for contador := 1 to UntilBlock do
    if contador mod 10 = 0 then
       begin
       info(LangLine(130)+inttoStr(contador));  //'Rebuilding sumary block: '
-      EngineLastUpdate := UTCTime.ToInt64;
+      EngineLastUpdate := UTCTime;
       application.ProcessMessages;
       end;
    BlockHeader := Default(BlockHeaderData);
@@ -2047,7 +2047,7 @@ if ListaMisTrx[0].Block < blocknumber then
       if Not G_Launching then
          begin
          info(Format('Rebuilding my Trxs: %d',[contador]));
-         EngineLastUpdate := UTCTime.ToInt64;
+         EngineLastUpdate := UTCTime;
          application.ProcessMessages;
          end
       else
@@ -2266,7 +2266,7 @@ for cont := firstB to lastB do
       end;
    form1.LabelDoctor.Caption:=format(rs1000,[cont,((Cont-firstB)*100) div Workload]);
    form1.LabelDoctor.Update;
-   EngineLastUpdate := UTCTime.ToInt64;
+   EngineLastUpdate := UTCTime;
    Application.ProcessMessages;
    if form1.CBBlockexists.Checked then  // check block file
       begin
@@ -2359,7 +2359,7 @@ assignfile(FileResumen,ResumenFilename);
 reset(FileResumen);
 for cont := 0 to lastblock do
    begin
-   EngineLastUpdate := UTCTime.ToInt64;
+   EngineLastUpdate := UTCTime;
    Seek(FileResumen,cont);
    Read(FileResumen,dato);
    gridinicio.RowCount := gridinicio.RowCount-1;

@@ -1,3 +1,11 @@
+Version 0.3.2Ba2
+
+- NTP servers list adjusted.
+- NosoTime unit implemented.
+- Time sinchronization every block.
+- Old MNs system functions deleted.
+- NosoCFG functions improved.
+
 Version 0.3.2Ba1
 
 - Removed rukzuk pool address.
