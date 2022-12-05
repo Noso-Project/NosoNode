@@ -27,4 +27,3 @@ Protocol related.
 - Implement NoBiEx.
 - Implement "lock" and "stop" directives.
 - Adjust fee charges/filters.
-- Make allowed pools dynamic.

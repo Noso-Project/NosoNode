@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, forms, SysUtils, MasterPaskalForm, nosotime, IdContext, IdGlobal, mpGUI, mpDisk,
-  mpBlock, mpMiner, fileutil, graphics,  dialogs, strutils, mpcoin, fphttpclient,
+  mpBlock, fileutil, graphics,  dialogs, strutils, mpcoin, fphttpclient,
   opensslsockets,translation, IdHTTP, IdComponent, IdSSLOpenSSL, mpmn, IdTCPClient;
 
 function GetSlotFromIP(Ip:String):int64;
@@ -200,7 +200,7 @@ else
       TRY
       LastTryServerOn := UTCTime;
       Form1.Server.Bindings.Clear;
-      Form1.Server.DefaultPort:=PortNumber;//UserOptions.Port;
+      Form1.Server.DefaultPort:=PortNumber;
       Form1.Server.Active:=true;
       ConsoleLinesAdd(LangLine(14)+PortNumber.ToString);   //Server ENABLED. Listening on port
       ServerStartTime := UTCTime;
@@ -237,7 +237,7 @@ else
       try
       LastTryServerOn := UTCTime;
       Form1.Server.Bindings.Clear;
-      Form1.Server.DefaultPort:=PortNumber;//UserOptions.Port;
+      Form1.Server.DefaultPort:=PortNumber;
       Form1.Server.Active:=true;
       ConsoleLinesAdd(LangLine(14)+PortNumber.ToString);   //Server ENABLED. Listening on port
       ServerStartTime := UTCTime;
@@ -295,7 +295,7 @@ END;{Try}
 EnterCriticalSection(CSNodesList);
 Conexiones[Slot] := Default(conectiondata);
 LeaveCriticalSection(CSNodesList);
-setmilitime('CerrarSlot',1);
+setmilitime('CerrarSlot',2);
 SetCurrentJob('CerrarSlot',false);
 End;
 
@@ -570,6 +570,7 @@ for contador := 1 to Maxconecciones do
         ToLog(LangLine(32)+conexiones[contador].ip);   //Conection closed: Time Out Auth ->
         CerrarSlot(contador);
         end;
+     if conexiones[contador].IsBusy then conexiones[contador].lastping := UTCTimeStr;
      end;
    end;
 SetCurrentJob('LeerLineasDeClientes',false);
@@ -663,7 +664,6 @@ if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLa
    MyConStatus := 3;
    U_Mytrxs := true;
    ConsoleLinesAdd(LangLine(36));   //Updated!
-   ResetMinerInfo();
    if RPCAuto then  ProcessLinesAdd('RPCON');
    if StrToIntDef(NetPendingTrxs.Value,0)<GetPendingCount then
       begin

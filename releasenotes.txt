@@ -7,6 +7,10 @@ Version 0.3.3Aa1
 - NosoCFG functions improved.
 - Implemented multi-try for update feature.
 - Removed old NTP system references.
+- mpMiner deprecated.
+- mpTime deprecated.
+- mpOptions deprecated.
+- Old options system completely deprecated.
 
 Version 0.3.2Ba1
 

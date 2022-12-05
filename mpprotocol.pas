@@ -5,7 +5,7 @@ unit mpProtocol;
 interface
 
 uses
-  Classes, SysUtils, mpRed, MasterPaskalForm, mpParser, StrUtils, mpDisk, nosotime,mpMiner, mpBlock,
+  Classes, SysUtils, mpRed, MasterPaskalForm, mpParser, StrUtils, mpDisk, nosotime, mpBlock,
   Zipper, mpcoin, mpCripto, mpMn;
 
 function GetPTCEcn():String;
@@ -1114,6 +1114,7 @@ End;
 Function IsValidPool(PoolAddress:String):boolean;
 Begin
 result := false;
+if AnsiContainsStr(GetNosoCFGString(3),PoolAddress) then result := true;
 if AnsiContainsStr(PoolAddressesList,PoolAddress) then result := true;
 End;
 
@@ -1298,7 +1299,6 @@ LasTimeCFGRequest:= UTCTime+5;
 SaveNosoCFGFile(FinalStr);
 SetNosoCFGString(FinalStr);
 FillNodeList;
-LoadAllowedPools;
 End;
 
 
@@ -1330,8 +1330,7 @@ FinalStr := Trim(FinalStr);
 LasTimeCFGRequest:= UTCTime+5;
 SaveNosoCFGFile(FinalStr);
 SetNosoCFGString(FinalStr);
-FillNodeList;
-LoadAllowedPools;
+FillNodeList;;
 End;
 
 Procedure RemoveCFGData(DataToRemove:String;CFGIndex:Integer);
@@ -1365,7 +1364,6 @@ LasTimeCFGRequest:= UTCTime+5;
 SaveNosoCFGFile(FinalStr);
 SetNosoCFGString(FinalStr);
 FillNodeList;
-LoadAllowedPools;
 End;
 
 Procedure RestoreCFGData();
@@ -1374,7 +1372,6 @@ LasTimeCFGRequest:= UTCTime+5;
 SaveNosoCFGFile(DefaultNosoCFG);
 SetNosoCFGString(DefaultNosoCFG);
 FillNodeList;
-LoadAllowedPools;
 ConsoleLinesAdd('NosoCFG restarted');
 End;
 

@@ -22,10 +22,8 @@ Function Parameter(LineText:String;ParamNumber:int64):String;
 Procedure ShowNodes();
 Procedure ShowBots();
 Procedure ShowSlots();
-Procedure ShowUserOptions();
+Procedure ShowUser_Options();
 function GetWalletBalance(): Int64;
-Procedure SetGetNodesON();
-Procedure SetGetNodesOFF();
 Procedure ConnectTo(LineText:string);
 Procedure MinerOn();
 Procedure MinerOff();
@@ -38,8 +36,6 @@ Procedure AutoConnectON();
 Procedure AutoConnectOFF();
 Procedure ShowWallet();
 Procedure EnviarUpdate(LineText:string);
-Procedure AutoUpdateON();
-Procedure AutoUpdateOFF();
 Procedure ImportarWallet(LineText:string);
 Procedure ExportarWallet(LineText:string);
 Procedure ShowBlchHead(number:integer);
@@ -54,14 +50,12 @@ Procedure Parse_SendGVT(LineText:string);
 Function SendGVT(LineText:string;showOutput:boolean=true):string;
 Procedure ShowHalvings();
 Procedure GroupCoins(linetext:string);
-Procedure CreateTraslationFile();
 Procedure ImportLanguage(linetext:string);
 Procedure SetServerPort(LineText:string);
 Procedure Sha256(LineText:string);
 Procedure TestParser(LineText:String);
 Procedure DeleteBot(LineText:String);
 Procedure showCriptoThreadinfo();
-Procedure SetMiningCPUS(LineText:string);
 Procedure Parse_RestartNoso();
 Procedure ShowNetworkDataInfo();
 Procedure GetOwnerHash(LineText:string);
@@ -111,7 +105,7 @@ Procedure DebugTest2(linetext:string);
 implementation
 
 uses
-  mpProtocol, mpMiner;
+  mpProtocol;
 
 // **************************
 // *** CRITICIAL SECTIONS ***
@@ -221,10 +215,8 @@ else if UpperCase(Command) = 'DISCONNECT' then CerrarClientes()
 else if UpperCase(Command) = 'OFFSET' then ConsoleLinesAdd('Server: '+NosoT_LastServer+SLINEBREAK+
   LangLine(17)+IntToStr(NosoT_TimeOffset)+slinebreak+'Last update : '+TimeSinceStamp(NosoT_LastUpdate))
 else if UpperCase(Command) = 'NEWADDRESS' then NuevaDireccion(linetext)
-else if UpperCase(Command) = 'USEROPTIONS' then ShowUserOptions()
+else if UpperCase(Command) = 'USEROPTIONS' then ShowUser_Options()
 else if UpperCase(Command) = 'BALANCE' then ConsoleLinesAdd(Int2Curr(GetWalletBalance)+' '+CoinSimbol)
-else if UpperCase(Command) = 'GETNODESON' then SetGetNodesON()
-else if UpperCase(Command) = 'GETNODESOFF' then SetGetNodesOFF()
 else if UpperCase(Command) = 'CONNECTTO' then ConnectTo(Linetext)
 else if UpperCase(Command) = 'MINERON' then Mineron()
 else if UpperCase(Command) = 'MINEROFF' then Mineroff()
@@ -233,8 +225,6 @@ else if UpperCase(Command) = 'AUTOSERVERON' then AutoServerON()
 else if UpperCase(Command) = 'AUTOSERVEROFF' then AutoServerOFF()
 else if UpperCase(Command) = 'AUTOCONNECTON' then AutoConnectON()
 else if UpperCase(Command) = 'AUTOCONNECTOFF' then AutoConnectOFF()
-else if UpperCase(Command) = 'AUTOUPDATEON' then AutoUpdateON()
-else if UpperCase(Command) = 'AUTOUPDATEOFF' then AutoUpdateOFF()
 else if UpperCase(Command) = 'SHOWWALLET' then ShowWallet()
 else if UpperCase(Command) = 'SENDUPDATE' then EnviarUpdate(LineText)
 else if UpperCase(Command) = 'IMPWALLET' then ImportarWallet(LineText)
@@ -252,10 +242,8 @@ else if UpperCase(Command) = 'HALVING' then ShowHalvings()
 else if UpperCase(Command) = 'REBUILDSUMARY' then RebuildSumario(MyLastBlock)
 else if UpperCase(Command) = 'REBUILDHEADERS' then BuildHeaderFile(MyLastBlock)
 else if UpperCase(Command) = 'GROUPCOINS' then Groupcoins(linetext)
-else if UpperCase(Command) = 'GENLANG' then CreateTraslationFile()
 else if UpperCase(Command) = 'IMPLANG' then ImportLanguage(LineText)
 else if UpperCase(Command) = 'SETPORT' then SetServerPort(LineText)
-else if UpperCase(Command) = 'RESETMINER' then ResetMinerInfo
 else if UpperCase(Command) = 'SHA256' then Sha256(LineText)
 else if UpperCase(Command) = 'MD5' then ConsoleLinesAdd(HashMD5String(Parameter(LineText,1)))
 else if UpperCase(Command) = 'TOTRAYON' then ToTrayON()
@@ -264,7 +252,6 @@ else if UpperCase(Command) = 'CLEAR' then form1.Memoconsola.Lines.clear
 else if UpperCase(Command) = 'TP' then TestParser(LineText)
 else if UpperCase(Command) = 'DELBOT' then DeleteBot(LineText)
 else if UpperCase(Command) = 'CRIPTO' then showCriptoThreadinfo()
-else if UpperCase(Command) = 'CPUMINE' then SetMiningCPUS(LineText)
 else if UpperCase(Command) = 'BLOCK' then ParseShowBlockInfo(LineText)
 else if UpperCase(Command) = 'TESTNET' then TestNetwork(LineText)
 else if UpperCase(Command) = 'RUNDIAG' then RunDiagnostico(LineText)
@@ -473,25 +460,14 @@ for contador := 1 to MaxConecciones do
 end;
 
 // Muestras las opciones del usuario
-Procedure ShowUserOptions();
+Procedure ShowUser_Options();
 Begin
-ConsoleLinesAdd('Language: '+IdiomasDisponibles[Useroptions.language]);
-ConsoleLinesAdd('Server Port: '+IntToStr(UserOptions.Port));
-ConsoleLinesAdd('Get Nodes: '+BoolToStr(UserOptions.GetNodes,true));
-//ConsoleLinesAdd('OpenSSL Path: '+UserOptions.SSLPath);
-ConsoleLinesAdd('Wallet: '+UserOptions.Wallet);
-ConsoleLinesAdd('PoolData: '+UserOptions.PoolInfo);
-ConsoleLinesAdd('AutoServer: '+BoolToStr(UserOptions.AutoServer,true));
-ConsoleLinesAdd('AutoConnect: '+BoolToStr(UserOptions.AutoConnect,true));
-ConsoleLinesAdd('AutoUpdate: '+BoolToStr(UserOptions.Auto_Updater,true));
-ConsoleLinesAdd('Version Page: '+UserOptions.VersionPage);
-ConsoleLinesAdd('Mine to pool: '+BoolToStr(UserOptions.UsePool,true));
-consolelinesadd('NEW SYSTEM');
-ConsoleLinesAdd('AutoConnect : '+BoolToStr(WO_AutoConnect,true));
-ConsoleLinesAdd('AutoServer  : '+BoolToStr(WO_AutoServer,true));
 ConsoleLinesAdd('Language    : '+WO_Language);
+ConsoleLinesAdd('Server Port : '+MN_Port);
+ConsoleLinesAdd('Wallet      : '+WalletFilename);
+ConsoleLinesAdd('AutoServer  : '+BoolToStr(WO_AutoServer,true));
+ConsoleLinesAdd('AutoConnect : '+BoolToStr(WO_AutoConnect,true));
 ConsoleLinesAdd('To Tray     : '+BoolToStr(WO_ToTray,true));
-
 End;
 
 // devuelve el saldo en satoshis de la cartera
@@ -505,24 +481,6 @@ for contador := 0 to length(Listadirecciones)-1 do
    totalEnSumario := totalEnSumario+Listadirecciones[contador].Balance;
    end;
 result := totalEnSumario-MontoOutgoing;
-End;
-
-// activa la opcion de usuario para solicitar nodos la conectarse
-Procedure SetGetNodesON();
-Begin
-UserOptions.GetNodes:=true;
-S_Options := true;
-U_DataPanel := true;
-ConsoleLinesAdd(LangLine(47)+LangLine(48)); //GetNodes option is now  // ACTIVE
-End;
-
-// desactiva la opcion de usuario para solicitar nodos la conectarse
-Procedure SetGetNodesOFF();
-Begin
-UserOptions.GetNodes:=false;
-S_Options := true;
-U_DataPanel := true;
-ConsoleLinesAdd(LangLine(47)+LangLine(49)); //GetNodes option is now  // INACTIVE
 End;
 
 // Conecta a un server especificado
@@ -546,7 +504,6 @@ End;
 
 Procedure ToTrayON();
 Begin
-//UserOptions.ToTray :=true;
 WO_ToTray := true;
 //S_Options := true;
 S_AdvOpt := true;
@@ -558,7 +515,6 @@ End;
 
 Procedure ToTrayOFF();
 Begin
-//UserOptions.ToTray :=false;
 WO_ToTray := false;
 //S_Options := true;
 S_AdvOpt := false;
@@ -654,8 +610,6 @@ End;
 
 Procedure AutoServerON();
 Begin
-UserOptions.Autoserver := true;
-S_Options := true;
 WO_autoserver := true;
 S_AdvOpt := true;
 ConsoleLinesAdd(LangLine(52)+LAngLine(48));   //autoserver //active
@@ -663,8 +617,6 @@ End;
 
 Procedure AutoServerOFF();
 Begin
-UserOptions.Autoserver := false;
-S_Options := true;
 WO_autoserver := false;
 S_AdvOpt := true;
 ConsoleLinesAdd(LangLine(52)+LAngLine(49));   //autoserver //inactive
@@ -672,8 +624,6 @@ End;
 
 Procedure AutoConnectON();
 Begin
-UserOptions.AutoConnect := true;
-S_Options := true;
 WO_AutoConnect := true;
 S_AdvOpt := true;
 ConsoleLinesAdd(LangLine(53)+LAngLine(48));     //autoconnect // active
@@ -681,8 +631,6 @@ End;
 
 Procedure AutoConnectOFF();
 Begin
-UserOptions.AutoConnect := false;
-S_Options := true;
 WO_AutoConnect := false;
 S_AdvOpt := true;
 ConsoleLinesAdd(LangLine(53)+LAngLine(49));    //autoconnect // inactive
@@ -766,20 +714,6 @@ MemStream.Free;
 if envios = 0 then ConsoleLinesAdd(LangLine(56)) else ConsoleLinesAdd(LangLine(57)+intToStr(envios));   //Can not send the update file // Update file sent to peers:
 End;
 
-Procedure AutoUpdateON();
-Begin
-UserOptions.Auto_Updater := true;
-S_Options := true;
-ConsoleLinesAdd(LangLine(58)+LangLine(48));     //autoupdate //active
-End;
-
-Procedure AutoUpdateOFF();
-Begin
-UserOptions.Auto_Updater := false;
-S_Options := true;
-ConsoleLinesAdd(LangLine(58)+LangLine(49));     //autoupdate //inactive
-End;
-
 Procedure ExportarWallet(LineText:string);
 var
   destino : string = '';
@@ -791,7 +725,7 @@ if fileexists(destino+'.pkw') then
    ConsoleLinesAdd('Error: Can not overwrite existing wallets');
    exit;
    end;
-if copyfile(useroptions.Wallet,destino+'.pkw',[]) then
+if copyfile(WalletFilename,destino+'.pkw',[]) then
    begin
    ConsoleLinesAdd('Wallet saved as '+destino+'.pkw');
    end
@@ -1277,32 +1211,6 @@ if uppercase(Proceder) = 'DO' then
    end;
 End;
 
-// Crea un arhivo de texto para exportar para las traducciones
-Procedure CreateTraslationFile();
-var
-  NewFile : textfile;
-  contador : integer;
-Begin
-try
-if fileexists(TranslationFilename) then Deletefile(TranslationFilename);
-assignfile(NewFile,TranslationFilename);
-rewrite(NewFile);
-writeln(NewFile,'**'+coinname+LangLine(155)+'**'); //' wallet translation file'
-writeln(NewFile,'**'+LangLine(156)+'**'); //'Translate each line into the blank line below it'
-writeln(NewFile,'**'+LangLine(157)+'**');
-for contador := 1 to DLSL.Count-1 do
-   begin
-   writeln(NewFile,DLSL[contador]);
-   if contador < DLSL.Count-1 then WriteLn(Newfile)
-   else Write(Newfile,'')
-   end;
-closefile(NewFile);
-ConsoleLinesAdd(LangLine(158)); //'Translation file generated.'
-   except on E:Exception do
-   ConsoleLinesAdd(LangLine(159));  //'Something went wrong'
-   end;
-End;
-
 // Importar un archivo de traduccion
 Procedure ImportLanguage(linetext:string);
 var
@@ -1415,9 +1323,8 @@ if ((StrToIntDef(NewPort,0) < 1) or (StrToIntDef(NewPort,0)>65535)) then
    end
 else
    begin
-   UserOptions.Port :=StrToIntDef(NewPort,0);
+   MN_Port := NewPort;
    OutText('New listening port: '+NewPort,false,2);
-   S_Options := true;
    end;
 End;
 
@@ -1490,33 +1397,6 @@ End;
 Procedure showCriptoThreadinfo();
 Begin
 ConsoleLinesAdd(Booltostr(CriptoThreadRunning,true)+' '+intToStr(length(ArrayCriptoOp)));
-End;
-
-Procedure SetMiningCPUS(LineText:string);
-var
-  numero : integer;
-  errored : boolean = false;
-Begin
-numero := StrToIntDef(Parameter(linetext,1),0);
-if ((numero < 1) or (numero > G_CpuCount)) then
-   begin
-   ConsolelinesAdd('Invalid CPUs number: '+parameter(LineText,1));
-   end
-else
-   begin
-   G_MiningCPUs := numero;
-   outtext('Mining CPUs set to: '+IntToStr(numero),false,2);
-   if G_MiningCPUs > 2 then
-     ConsoleLinesAdd('*** WARNING ***'+slinebreak+'Using more than 2 CPUs to mine is NOT RECOMMENDED'+slinebreak+
-                      'Not support if you decide to mine with '+IntToStr(G_MiningCPUs)+' CPUs'+slinebreak+
-                      '***************');
-   DefCPUs := G_MiningCPUs;
-   ResetMinerInfo;
-   KillAllMiningThreads;
-   Miner_Active := false;
-   if Miner_IsOn then Miner_IsOn := false;
-   U_Datapanel := true;
-   end;
 End;
 
 Procedure Parse_RestartNoso();

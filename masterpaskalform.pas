@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, LCLType,
   Grids, ExtCtrls, Buttons, IdTCPServer, IdContext, IdGlobal, IdTCPClient,
   fileutil, Clipbrd, Menus, formexplore, lclintf, ComCtrls, Spin,
-  strutils, mpoptions, math, IdHTTPServer, IdCustomHTTPServer,
+  strutils, math, IdHTTPServer, IdCustomHTTPServer,
   IdHTTP, fpJSON, Types, DefaultTranslator, LCLTranslator, translation,
   ubarcodes, IdComponent;
 
@@ -70,21 +70,6 @@ type
     public
       Constructor Create(CreateSuspended : boolean);
     end;
-
-  Options = Packed Record
-     language: integer;
-     Port : integer;
-     GetNodes : Boolean;
-     PoolInfo : String[255];
-     Wallet : string[255];
-     AutoServer : boolean;
-     AutoConnect : Boolean;
-     Auto_Updater : boolean;
-     JustUpdated : boolean;
-     VersionPage : String[255];
-     ToTray : boolean;
-     UsePool : Boolean ;
-     end;
 
   TNobiexData = Packed Record
      Request : integer;        //1:CREATE, 2:DELETE, 3:ACCEPT, 4:CANCEL, 5:REPORT
@@ -963,8 +948,6 @@ var
     U_DirPanel : boolean = false;
   FileMyTrx  : File of MyTrxData;
     S_MyTrxs  : boolean = false;
-  FileOptions : file of options;
-    S_Options : Boolean = false;
   FileBotData : File of BotData;
     S_BotData : Boolean = false;
   LastBotClear: string = '';
@@ -991,7 +974,6 @@ var
   PoolServerConex : array of PoolUserConnection;
   PoolTotalHashRate : int64 = 0;
 
-  UserOptions : Options;
   AutoRestarted : Boolean = false;
   CurrentLanguage : String = '';
   CurrentJob : String = '';
@@ -1175,47 +1157,40 @@ var
   FormState_Status : integer;
 
   // Cross OS variables
-  OSFsep : string = '';
-  OptionsFileName : string = '';
-  BotDataFilename : string = '';
-  NodeDataFilename : string = '';
-  WalletFilename : string = '';
-  SumarioFilename : string = '';
-  LanguageFileName : string = '';
-  BlockDirectory : string = '';
-  MarksDirectory : string = '';
-  GVTMarksDirectory : string = '';
-  UpdatesDirectory : string = '';
-  LanguagesDirectory : String = '';
-  LogsDirectory : string = '';
-  ExceptLogFilename : string = '';
-  ResumenFilename: string = '';
-  MyTrxFilename : string = '';
-  TranslationFilename : string = '';
-  ErrorLogFilename : string = '';
-  PoolLogFilename  : String = '';
-  PoolInfoFilename : string = '';
-  PoolMembersFilename : string = '';
-  AdvOptionsFilename : string = '';
-  MasterNodesFilename: string = '';
-  ZipSumaryFileName : String = '';
-  ZipHeadersFileName : string = '';
-  GVTsFilename       : string = '';
-  NosoCFGFilename    : string = '';
+
+  BotDataFilename     :string= 'NOSODATA'+DirectorySeparator+'botdata.psk';
+  WalletFilename      :string= 'NOSODATA'+DirectorySeparator+'wallet.pkw';
+  SumarioFilename     :string= 'NOSODATA'+DirectorySeparator+'sumary.psk';
+  LanguageFileName    :string= 'NOSODATA'+DirectorySeparator+'noso.lng';
+  BlockDirectory      :string= 'NOSODATA'+DirectorySeparator+'BLOCKS'+DirectorySeparator;
+  MarksDirectory      :string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator;
+  GVTMarksDirectory   :string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator+'GVTS'+DirectorySeparator;
+  UpdatesDirectory    :string= 'NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator;
+  LogsDirectory       :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator;
+  ExceptLogFilename   :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'exceptlog.txt';
+  ResumenFilename     :string= 'NOSODATA'+DirectorySeparator+'blchhead.nos';
+  MyTrxFilename       :string= 'NOSODATA'+DirectorySeparator+'mytrx.nos';
+  ErrorLogFilename    :string= 'NOSODATA'+DirectorySeparator+'errorlog.txt';
+  PoolMembersFilename :string= 'NOSODATA'+DirectorySeparator+'poolmembers.dat';
+  AdvOptionsFilename  :string= 'NOSODATA'+DirectorySeparator+'advopt.txt';
+  MasterNodesFilename :string= 'NOSODATA'+DirectorySeparator+'masternodes.txt';
+  ZipSumaryFileName   :string= 'NOSODATA'+DirectorySeparator+'sumary.zip';
+  ZipHeadersFileName  :string= 'NOSODATA'+DirectorySeparator+'blchhead.zip';
+  GVTsFilename        :string= 'NOSODATA'+DirectorySeparator+'gvts.psk';
+  NosoCFGFilename     :string= 'NOSODATA'+DirectorySeparator+'nosocfg.psk';
 
   MontoIncoming : Int64 = 0;
   MontoOutgoing : Int64 = 0;
   U_Mytrxs: boolean = false;
   LastMyTrxTimeUpdate : int64;
   InfoPanelTime : integer = 0;
-  U_PoolConexGrid : boolean = false;
 
   // Nobiex related variables
 
 implementation
 
 Uses
-  mpgui, mpdisk, mpParser, mpRed, nosotime, mpProtocol, mpMiner, mpcripto, mpcoin,
+  mpgui, mpdisk, mpParser, mpRed, nosotime, mpProtocol, mpcripto, mpcoin,
   mpRPC,mpblock, mpMN;
 
 {$R *.lfm}
@@ -1892,12 +1867,10 @@ else // Error retrieving last release data
    OutText(rs0072,false,1);
    end;
 }
-InitCrossValues();
 // A partir de aqui se inicializa todo
 if not directoryexists('NOSODATA') then CreateDir('NOSODATA');
 OutText(rs0022,false,1); //'✓ Data directory ok'
-if not FileExists(OptionsFileName) then CrearArchivoOpciones() else CargarOpciones();
-if not FileExists (LanguageFileName) then CrearIdiomaFile() else CargarIdioma(UserOptions.language);
+if not FileExists (LanguageFileName) then CrearIdiomaFile() else CargarIdioma(0);
 // finalizar la inicializacion
 InicializarFormulario();
 OutText(rs0023,false,1); //✓ GUI initialized
@@ -1908,7 +1881,6 @@ GetTimeOffset(PArameter(GetNosoCFGString,2));
 OutText('✓ Mainnet time synced',false,1);
 UpdateMyData();
 OutText(rs0024,false,1); //'✓ My data updated'
-ResetMinerInfo();
 OutText(rs0025,false,1); //'✓ Miner configuration set'
 // Ajustes a mostrar
 LoadOptionsToPanel();
@@ -1924,13 +1896,6 @@ UpdateMyTrxGrid();
 OutText(rs0068,false,1); // '✓ My transactions grid updated';
 UpdateMyGVTsList;
 OutText(rs0088,false,1); // '✓ My GVTs grid updated';
-if useroptions.JustUpdated then
-   begin
-   ConsoleLinesAdd(LangLine(19)+ProgramVersion);  // Update to version sucessfull:
-   useroptions.JustUpdated := false;
-   S_Options := true;
-   OutText('✓ Just updated to a new version',false,1);
-   end;
 if fileexists(RestartFileName) then
    begin
    Deletefile(RestartFileName);
@@ -2300,9 +2265,6 @@ setmilitime('ParseProtocolLines',2);
 setmilitime('VerifyConnectionStatus',1);
 VerifyConnectionStatus();
 setmilitime('VerifyConnectionStatus',2);
-setmilitime('VerifyMiner',1);
-VerifyMiner();
-setmilitime('VerifyMiner',2);
 if ( (KeepServerOn) and (not Form1.Server.Active) and (LastTryServerOn+5<UTCTime)
       and (MyConStatus = 3) ) then
    ProcessLinesAdd('serveron');
@@ -2926,7 +2888,6 @@ if GoAhead then
    else if parameter(LLine,0) = 'BESTHASH' then
       begin
       if ( (not IsBlockOpen) and (not IsSeedNode(IPUSer)) ) then TryCloseServerConnection(AContext,'False '+GetNMSData.Diff+' 6')
-      //else if (not IsValidPool(IPUser)) then TryCloseServerConnection(AContext,'False '+GetNMSData.Diff+' 9')
       else TryCloseServerConnection(AContext,PTC_BestHash(LLine, IPUSer));
       end
    else if parameter(LLine,0) = 'NSLPEND' then
@@ -3072,7 +3033,7 @@ End;
 procedure TForm1.IdTCPServer1Exception(AContext: TIdContext;AException: Exception);
 Begin
 CerrarSlot(GetSlotFromContext(AContext));
-ToExcLog(LangLine(6)+AException.Message);    //Server Excepcion:
+ToExcLog('Server Excepcion: '+AException.Message);    //Server Excepcion:
 End;
 
 // DOUBLE CLICK TRAY ICON TO RESTORE
@@ -3113,15 +3074,15 @@ if GridMyTxs.Row>0 then
    if GridMyTxs.Cells[2,GridMyTxs.Row] = 'TRFR' then
       Begin
       if GridMyTxs.Cells[10,GridMyTxs.Row] = 'YES' then // Own transaction'
-        extratext :=LangLine(75); //' (OWN)'
+        extratext :=' (OWN)'; //' (OWN)'
       if GridMyTxs.Cells[7,GridMyTxs.Row] <> 'null' then
          referencetoshow := GridMyTxs.Cells[7,GridMyTxs.Row];
       form1.MemoTrxDetails.Text:=
       GridMyTxs.Cells[4,GridMyTxs.Row]+SLINEBREAK+                    //order ID
-      LangLine(76)+AddrText(GridMyTxs.Cells[6,GridMyTxs.Row])+SLINEBREAK+      //'Receiver : '
-      LangLine(77)+GridMyTxs.Cells[3,GridMyTxs.Row]+extratext+SLINEBREAK+  //'Ammount  : '
+      'Receiver : '+AddrText(GridMyTxs.Cells[6,GridMyTxs.Row])+SLINEBREAK+      //'Receiver : '
+      'Ammount  : '+GridMyTxs.Cells[3,GridMyTxs.Row]+extratext+SLINEBREAK+  //'Ammount  : '
       'Reference : '+referencetoshow+SLINEBREAK+    //'reference  : '
-      LangLine(79)+GridMyTxs.Cells[9,GridMyTxs.Row]+SLINEBREAK+      //'Transfers: '
+      'Transfers: '+GridMyTxs.Cells[9,GridMyTxs.Row]+SLINEBREAK+      //'Transfers: '
       GetCommand(GridMyTxs.Cells[8,GridMyTxs.Row])+SLINEBREAK;
       if StrToIntDef(GridMyTxs.Cells[9,GridMyTxs.Row],1)> 1 then // añadir mas trfids
          for cont := 2 to StrToIntDef(GridMyTxs.Cells[9,GridMyTxs.Row],1) do
@@ -3130,16 +3091,16 @@ if GridMyTxs.Row>0 then
    if GridMyTxs.Cells[2,GridMyTxs.Row] = 'MINE' then
       Begin
       form1.MemoTrxDetails.Text:=
-      LangLine(80)+GridMyTxs.Cells[0,GridMyTxs.Row]+SLINEBREAK+ //'Mined    : '
-      LangLine(76)+AddrText(GridMyTxs.Cells[6,GridMyTxs.Row])+SLINEBREAK+   //'Receiver : '
-      LangLine(77)+GridMyTxs.Cells[3,GridMyTxs.Row];   //'Ammount  : '
+      'Mined    : '+GridMyTxs.Cells[0,GridMyTxs.Row]+SLINEBREAK+ //'Mined    : '
+      'Receiver : '+AddrText(GridMyTxs.Cells[6,GridMyTxs.Row])+SLINEBREAK+   //'Receiver : '
+      'Ammount  : '+GridMyTxs.Cells[3,GridMyTxs.Row];   //'Ammount  : '
       end;
    if GridMyTxs.Cells[2,GridMyTxs.Row] = 'CUSTOM' then
       Begin
       form1.MemoTrxDetails.Text:=
-      LangLine(81)+SLINEBREAK+                   //'Address customization'
-      LangLine(82)+ListaDirecciones[DireccionEsMia(GridMyTxs.Cells[6,GridMyTxs.Row])].Hash+SLINEBREAK+//'Address  : '
-      LangLine(83)+ListaDirecciones[DireccionEsMia(GridMyTxs.Cells[6,GridMyTxs.Row])].Custom+SLINEBREAK+//'Alias    : '
+      'Address customization'+SLINEBREAK+                   //'Address customization'
+      'Address  : '+ListaDirecciones[DireccionEsMia(GridMyTxs.Cells[6,GridMyTxs.Row])].Hash+SLINEBREAK+//'Address  : '
+      'Alias    : '+ListaDirecciones[DireccionEsMia(GridMyTxs.Cells[6,GridMyTxs.Row])].Custom+SLINEBREAK+//'Alias    : '
       'Amount   : '+Int2Curr(Customizationfee);
       end;
    if GridMyTxs.Cells[2,GridMyTxs.Row] = 'FEE' then
@@ -3512,13 +3473,13 @@ End;
 // menu principal generar archivo de idioma
 Procedure TForm1.MMNewLang(Sender:TObject);
 Begin
-CreateTraslationFile();
+
 End;
 
 // Abrir pagina web
 Procedure TForm1.MMVerWeb(Sender:TObject);
 Begin
-OpenDocument(UserOptions.VersionPage);
+OpenDocument('https://nosocoin.com');
 End;
 
 // Abrir form slots

@@ -139,7 +139,7 @@
         <PackageName Value="LCL"/>
       </Item7>
     </RequiredPackages>
-    <Units Count="19">
+    <Units Count="18">
       <Unit0>
         <Filename Value="Noso.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -187,53 +187,48 @@
         <UnitName Value="mpBlock"/>
       </Unit8>
       <Unit9>
-        <Filename Value="mpminer.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="mpMiner"/>
-      </Unit9>
-      <Unit10>
         <Filename Value="mplang.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpLang"/>
-      </Unit10>
-      <Unit11>
+      </Unit9>
+      <Unit10>
         <Filename Value="mpcoin.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpCoin"/>
-      </Unit11>
-      <Unit12>
+      </Unit10>
+      <Unit11>
         <Filename Value="mpsignerutils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpSignerUtils"/>
-      </Unit12>
-      <Unit13>
+      </Unit11>
+      <Unit12>
         <Filename Value="mprpc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpRPC"/>
-      </Unit13>
-      <Unit14>
+      </Unit12>
+      <Unit13>
         <Filename Value="translation.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit14>
-      <Unit15>
+      </Unit13>
+      <Unit14>
         <Filename Value="mpmn.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpMN"/>
-      </Unit15>
-      <Unit16>
+      </Unit14>
+      <Unit15>
         <Filename Value="mpsyscheck.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpSysCheck"/>
-      </Unit16>
-      <Unit17>
+      </Unit15>
+      <Unit16>
         <Filename Value="to_do.txt"/>
         <IsPartOfProject Value="True"/>
-      </Unit17>
-      <Unit18>
+      </Unit16>
+      <Unit17>
         <Filename Value="nosotime.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="NosoTime"/>
-      </Unit18>
+      </Unit17>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

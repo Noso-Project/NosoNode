@@ -8,15 +8,15 @@ uses
   Classes, SysUtils, MasterPaskalForm, Dialogs, Forms, nosotime, FileUtil, LCLType,
   lclintf, controls, mpCripto, mpBlock, Zipper, mpLang, mpcoin, mpMn,
   {$IFDEF WINDOWS}Win32Proc, {$ENDIF}
-  mpminer, translation, strutils;
+  translation, strutils;
 
 Procedure VerificarArchivos();
 
 // *** New files system
 // Nodes file
 Procedure FillNodeList();
-Procedure LoadAllowedPools();
 Function IsSeedNode(IP:String):boolean;
+
 // Except log file
 Procedure CreateExceptlog();
 Procedure ToExcLog(Texto:string);
@@ -30,15 +30,12 @@ Function ChangeGVTOwner(Lnumber:integer;OldOwner,NewOWner:String): integer;
 
 // NosoCFG file handling
 Procedure SaveNosoCFGFile(LStr:String);
-Procedure GetCFGFileData();
+Procedure GetCFGDataFromFile();
 Procedure SetNosoCFGString(LStr:string);
-Function GetNosoCFGString():String;
-Procedure SetNosoCFGData(LData:TNosoCFG);
-Function GetNosoCFGData():TNosoCFG;
+Function GetNosoCFGString(LParam:integer=-1):String;
 
 Procedure CreateTextFile(FileName:String);
 Procedure CreateLog();
-Procedure CreatePoolLog();
 Procedure CreateMasterNodesFile();
 Procedure CreateADV(saving:boolean);
 Procedure LoadADV();
@@ -47,9 +44,6 @@ Procedure ExtractPoFiles();
 Procedure CreateFileFromResource(resourcename,filename:string);
 Procedure ToLog(Texto:string);
 Procedure SaveLog();
-Procedure CrearArchivoOpciones();
-Procedure CargarOpciones();
-Procedure GuardarOpciones();
 Procedure CrearIdiomaFile();
 Procedure CargarIdioma(numero:integer);
 Procedure CrearBotData();
@@ -98,8 +92,6 @@ Procedure CreateLauncherFile(IncludeUpdate:boolean = false);
 Procedure RestartNoso();
 Procedure NewDoctor();
 Procedure RunDiagnostico(linea:string);
-Procedure GuardarArchivoPoolInfo();
-function GetPoolInfoFromDisk():PoolInfoData;
 Procedure LoadPoolMembers();
 Procedure CrearArchivoPoolMembers;
 Procedure EjecutarAutoUpdate(version:string);
@@ -110,7 +102,6 @@ function OSVersion: string;
 {$IFDEF WINDOWS} Function GetWinVer():string; {$ENDIF}
 Procedure RestoreBlockChain();
 Procedure RestoreSumary(fromBlock:integer=0);
-Procedure InitCrossValues();
 function TryDeleteFile(filename:string):boolean;
 function TryCopyFile(Source, destination:string):boolean;
 function AppFileName():string;
@@ -153,17 +144,16 @@ GetGVTsFileData;
 OutText('✓ GVTs file ok',false,1);
 
 if not FileExists(NosoCFGFilename) then SaveNosoCFGFile(DefaultNosoCFG);
-GetCFGFileData;
+GetCFGDataFromFile;
 OutText('✓ NosoCFG file ok',false,1);
 
 
-if not FileExists (UserOptions.wallet) then CrearWallet() else CargarWallet(UserOptions.wallet);
+if not FileExists (WalletFilename) then CrearWallet() else CargarWallet(WalletFilename);
 OutText('✓ Wallet file ok',false,1);
 if not Fileexists(BotDataFilename) then CrearBotData() else CargarBotData();
 OutText('✓ Bots file ok',false,1);
 
 FillNodeList;  // Fills the hardcoded seed nodes list
-LoadAllowedPools;
 
 if not Fileexists(SumarioFilename) then CreateSumario() else LoadSumaryFromFile();
 OutText('✓ Sumary file ok',false,1);
@@ -218,21 +208,11 @@ Repeat
 until not continuar;
 End;
 
-Procedure LoadAllowedPools();
-var
-  Lnosocfg : TNosoCFG;
-  LPools  : string;
-Begin
-Lnosocfg := GetNosoCFGData;
-LPools := StringReplace(LPools,':',' ',[rfReplaceAll, rfIgnoreCase]);
-if LPools <> '' then PoolAddressesList := LPools;
-End;
-
 // If the specified IP a seed node
 Function IsSeedNode(IP:String):boolean;
 Begin
 Result := false;
-if AnsiContainsStr(Parameter(GetNosoCFGString,1),ip) then result := true;
+if AnsiContainsStr(GetNosoCFGString(1),ip) then result := true;
 End;
 
 // *** EXCEPTLOG FILE ***
@@ -329,20 +309,6 @@ Begin
    Closefile(archivo);
    Except on E:Exception do
       tolog ('Error creating the log file');
-   end;
-End;
-
-// Creates pool log file
-Procedure CreatePoolLog();
-var
-  archivo : textfile;
-Begin
-   try
-   Assignfile(archivo, PoolLogFilename);
-   rewrite(archivo);
-   Closefile(archivo);
-   Except on E:Exception do
-      tolog ('Error creating the pool log file');
    end;
 End;
 
@@ -447,7 +413,7 @@ Closefile(LFile);
 END; {TRY}
 End;
 
-Procedure GetCFGFileData();
+Procedure GetCFGDataFromFile();
 var
   LFile : Textfile;
   LStr  : string = '';
@@ -473,31 +439,11 @@ NosoCFGStr := LStr;
 LEaveCriticalSection(CSNosoCFGStr);
 End;
 
-Function GetNosoCFGString():String;
+Function GetNosoCFGString(LParam:integer=-1):String;
 Begin
 EnterCriticalSection(CSNosoCFGStr);
-Result := NosoCFGStr;
-LeaveCriticalSection(CSNosoCFGStr);
-End;
-
-Procedure SetNosoCFGData(LData:TNosoCFG);
-var
-  LStr : string;
-Begin
-LStr := Format('%s %s %s %s',[LData.NetStatus,LData.SeedNode,LData.NTPNodes,LData.pools]);
-EnterCriticalSection(CSNosoCFGStr);
-NosoCFGStr := LStr;
-LEaveCriticalSection(CSNosoCFGStr);
-End;
-
-Function GetNosoCFGData():TNosoCFG;
-Begin
-Result := Default(TNosoCFG);
-EnterCriticalSection(CSNosoCFGStr);
-Result.NetStatus := Parameter(NosoCFGStr,0);
-Result.SeedNode  := Parameter(NosoCFGStr,1);
-Result.NTPNodes  := Parameter(NosoCFGStr,2);
-Result.Pools     := Parameter(NosoCFGStr,3);
+if LParam<0 then Result := NosoCFGStr
+else Result := Parameter(NosoCFGStr,LParam);
 LeaveCriticalSection(CSNosoCFGStr);
 End;
 
@@ -735,66 +681,6 @@ else if IOCode = 5 then
 setmilitime('SaveLog',2);
 End;
 
-// Creates options file
-Procedure CrearArchivoOpciones();
-var
-  DefOptions : Options;
-Begin
-   try
-   assignfile(FileOptions,OptionsFileName);
-   rewrite(FileOptions);
-   DefOptions.language:=0;
-   DefOptions.Port:=8080;
-   DefOptions.GetNodes:=false;
-   DefOptions.PoolInfo := '';
-   DefOptions.wallet:= 'NOSODATA'+DirectorySeparator+'wallet.pkw';
-   DefOptions.AutoServer:=false;
-   DefOptions.AutoConnect:=true;
-   DefOptions.Auto_Updater:=false;
-   DefOptions.JustUpdated:=false;
-   DefOptions.VersionPage:='https://nosocoin.com';
-   DefOptions.ToTray:=false;
-   DefOptions.UsePool:=false;
-   write(FileOptions,DefOptions);
-   closefile(FileOptions);
-   UserOptions := DefOptions;
-   OutText('✓ Options file created',false,1);
-   Except on E:Exception do
-      tolog ('Error creating options file');
-   end;
-End;
-
-// Load options from disk
-Procedure CargarOpciones();
-Begin
-   TRY
-   assignfile(FileOptions,OptionsFileName);
-   reset(FileOptions);
-   read(FileOptions,UserOptions);
-   closefile(FileOptions);
-   OutText('✓ Options file loaded',false,1);
-   EXCEPT on E:Exception do
-      tolog ('Error loading user options');
-   END; {TRY}
-End;
-
-// Save Options to disk
-Procedure GuardarOpciones();
-Begin
-setmilitime('GuardarOpciones',1);
-   try
-   assignfile(FileOptions,OptionsFileName);
-   reset(FileOptions);
-   seek(FileOptions,0);
-   write(FileOptions,UserOptions);
-   closefile(FileOptions);
-   S_Options := false;
-   Except on E:Exception do
-      tolog ('Error saving user options');
-   end;
-   setmilitime('GuardarOpciones',2);
-End;
-
 // Creates the default language file
 Procedure CrearIdiomaFile();
 Begin
@@ -856,8 +742,6 @@ Begin
          Form1.BNewAddr.Hint:=LAngLine(64);form1.BCopyAddr.Hint:=LAngLine(65);
 
          end;
-      UserOptions.language:=numero;
-      S_Options := true;
       if G_Launching then OutText('✓ Language file loaded',false,1);
       end
    else // si el archivo no existe
@@ -996,13 +880,11 @@ Procedure SaveUpdatedFiles();
 Begin
 SetCurrentJob('SaveUpdatedFiles',true);
 if S_BotData then SaveBotData();
-if S_Options then GuardarOpciones();
 if S_Wallet then GuardarWallet();
 if ( (S_Sumario) and (BuildingBlock=0) ) then GuardarSumario();
 if S_Log then SaveLog;
 if S_Exc then SaveExceptLog;
 //if S_PoolPays then SavePoolPays;
-if S_PoolInfo then GuardarArchivoPoolInfo;
 if S_AdvOpt then CreateADV(true);
 SetCurrentJob('SaveUpdatedFiles',false);
 End;
@@ -1021,9 +903,7 @@ Begin
       write(FileWallet,listadirecciones[0]);
       closefile(FileWallet);
       end;
-   UserOptions.Wallet:=WalletFilename;
    if FileExists(MyTrxFilename) then DeleteFile(MyTrxFilename);
-   S_Options := true;
    Except on E:Exception do
       tolog ('Error creating wallet file');
    end;
@@ -1064,8 +944,8 @@ var
   IOCode   : integer;
 Begin
 setmilitime('GuardarWallet',1);
-Trycopyfile (UserOptions.Wallet,UserOptions.Wallet+'.bak');
-assignfile(FileWallet,UserOptions.Wallet);
+Trycopyfile (WalletFilename,WalletFilename+'.bak');
+assignfile(FileWallet,WalletFilename);
 {$I-}reset(FileWallet);{$I+}
 IOCode := IOResult;
 If IOCode = 0 then
@@ -2201,7 +2081,6 @@ CloseAllforms();
 CerrarClientes();
 StopServer();
 If Miner_IsOn then Miner_IsON := false;
-KillAllMiningThreads;
 //setlength(CriptoOpsTIPO,0);
 RunningDoctor := true;
 if UpperCase(parameter(linea,1)) = 'FIX' then fixfiles := true;
@@ -2296,39 +2175,6 @@ errores := 0;
 RunningDoctor := false;
 FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
 UpdateMyData();
-End;
-
-// Saves the pool info file
-Procedure GuardarArchivoPoolInfo();
-Begin
-setmilitime('GuardarArchivoPoolInfo',1);
-   try
-   assignfile(FilePool,PoolInfoFilename);
-   rewrite(FilePool);
-   write(filepool,PoolInfo);
-   Closefile(FilePool);
-   Except on E:Exception do
-      tolog('Error saving PoolInfo file:'+E.Message);
-   end;
-S_PoolInfo := false;
-setmilitime('GuardarArchivoPoolInfo',2);
-End;
-
-// Reads pool info from file
-function GetPoolInfoFromDisk():PoolInfoData;
-var
-  dato : PoolInfoData;
-Begin
-try
-assignfile(FilePool,PoolInfoFilename);
-reset(FilePool);
-read(filepool,dato);
-result := dato;
-Closefile(FilePool);
-PoolInfo := Dato;
-Except on E:Exception do
-  tolog('Error loading pool info from disk');
-end;
 End;
 
 // Creates pool members file
@@ -2500,7 +2346,6 @@ CloseAllforms();
 CerrarClientes();
 StopServer();
 If Miner_IsOn then Miner_IsON := false;
-KillAllMiningThreads;
 //setlength(CriptoOpsTIPO,0);
 deletefile(SumarioFilename);
 deletefile(SumarioFilename+'.bak');
@@ -2520,35 +2365,6 @@ else StartMark := Fromblock;
 LoadSumaryFromFile(MarksDirectory+StartMark.ToString+'.bak');
 ConsoleLinesAdd('Restoring sumary from '+StartMark.ToString);
 CompleteSumary;
-End;
-
-Procedure InitCrossValues();
-Begin
-OptionsFileName     := 'NOSODATA'+DirectorySeparator+'options.psk';
-BotDataFilename     := 'NOSODATA'+DirectorySeparator+'botdata.psk';
-NodeDataFilename    := 'NOSODATA'+DirectorySeparator+'nodes.psk';
-WalletFilename      := 'NOSODATA'+DirectorySeparator+'wallet.pkw';
-SumarioFilename     := 'NOSODATA'+DirectorySeparator+'sumary.psk';
-LanguageFileName    := 'NOSODATA'+DirectorySeparator+'noso.lng';
-BlockDirectory      := 'NOSODATA'+DirectorySeparator+'BLOCKS'+DirectorySeparator;
-MarksDirectory      := 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator;
-GVTMarksDirectory   := 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator+'GVTS'+DirectorySeparator;
-UpdatesDirectory    := 'NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator;
-LogsDirectory       := 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator;
-ExceptLogFilename   := 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'exceptlog.txt';
-ResumenFilename     := 'NOSODATA'+DirectorySeparator+'blchhead.nos';
-MyTrxFilename       := 'NOSODATA'+DirectorySeparator+'mytrx.nos';
-TranslationFilename := 'NOSODATA'+DirectorySeparator+'English_empty.txt';
-ErrorLogFilename    := 'NOSODATA'+DirectorySeparator+'errorlog.txt';
-PoolLogFilename     := 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'poollog.txt';
-PoolInfoFilename    := 'NOSODATA'+DirectorySeparator+'poolinfo.dat';
-PoolMembersFilename := 'NOSODATA'+DirectorySeparator+'poolmembers.dat';
-AdvOptionsFilename  := 'NOSODATA'+DirectorySeparator+'advopt.txt';
-MasterNodesFilename := 'NOSODATA'+DirectorySeparator+'masternodes.txt';
-ZipSumaryFileName   := 'NOSODATA'+DirectorySeparator+'sumary.zip';
-ZipHeadersFileName  := 'NOSODATA'+DirectorySeparator+'blchhead.zip';
-GVTsFilename        := 'NOSODATA'+DirectorySeparator+'gvts.psk';
-NosoCFGFilename     := 'NOSODATA'+DirectorySeparator+'nosocfg.psk';
 End;
 
 // Try to delete a file safely
