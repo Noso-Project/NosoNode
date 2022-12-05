@@ -1177,7 +1177,7 @@ if Copy(HAshMD5String(Content),0,5) = NetCFGHash.Value then
    SaveNosoCFGFile(content);
    SetNosoCFGString(content);
    FillNodeList;
-   ConsoleLinesAdd('Noso CFG updated');
+   ConsoleLinesAdd('Noso CFG updated!');
    end
 else
    ConsoleLinesAdd(Format('%s %s',[Copy(HAshMD5String(Content),0,5),NetCFGHash.Value]));
@@ -1228,12 +1228,12 @@ REPEAT
    inc(counter);
 UNTIL ThisHeader='';
 //if TotalErrors>0 then ConsoleLinesAdd(Format('Errors updating headers: %d',[TotalErrors]));
-if TotalReceived>0 then ConsoleLinesAdd(Format('Headers Received: %d',[TotalReceived]));
+//if TotalReceived>0 then ConsoleLinesAdd(Format('Headers Received: %d',[TotalReceived]));
 MyResumenHash := HashMD5File(ResumenFilename);
 if MyResumenHash <> NetResumenHash.Value then
    begin
    ForceCompleteHeadersDownload := true;
-   ConsolelinesAdd('Updated headers failed.');
+   ConsolelinesAdd(Format('Update headers failed: %s <> %s',[MyResumenHash,NetResumenHash.Value]));
    end
 else
    begin

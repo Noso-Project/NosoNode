@@ -25,8 +25,6 @@ Procedure ShowSlots();
 Procedure ShowUser_Options();
 function GetWalletBalance(): Int64;
 Procedure ConnectTo(LineText:string);
-Procedure MinerOn();
-Procedure MinerOff();
 Procedure ToTrayON();
 Procedure ToTrayOFF();
 Procedure ShowSumary();
@@ -64,7 +62,6 @@ Function CreateAppCode(Texto:string):string;
 Function DecodeAppCode(Texto:string):string;
 function AvailableUpdates():string;
 Procedure RunUpdate(linea:string);
-Procedure ShowAdvOpt();
 Procedure SendAdminMessage(linetext:string);
 Procedure SetReadTimeOutTIme(LineText:string);
 Procedure SetConnectTimeOutTIme(LineText:string);
@@ -79,14 +76,12 @@ function ShowPrivKey(linea:String;ToConsole:boolean = false):String;
 Procedure ExecuteRebuildMyTrx();
 Procedure TestNetwork(LineText:string);
 Procedure ShowPendingTrxs();
-Procedure HangWallet();
 Procedure WebWallet();
 Procedure ExportKeys(linea:string);
 
 // CONSULTING
 Procedure ShowDiftory();
 Function MainNetHashrate(blocks:integer = 100):int64;
-Procedure ShowMiners(Linea:string);
 Procedure ListGVTs();
 
 // 0.2.1 DEBUG
@@ -218,8 +213,6 @@ else if UpperCase(Command) = 'NEWADDRESS' then NuevaDireccion(linetext)
 else if UpperCase(Command) = 'USEROPTIONS' then ShowUser_Options()
 else if UpperCase(Command) = 'BALANCE' then ConsoleLinesAdd(Int2Curr(GetWalletBalance)+' '+CoinSimbol)
 else if UpperCase(Command) = 'CONNECTTO' then ConnectTo(Linetext)
-else if UpperCase(Command) = 'MINERON' then Mineron()
-else if UpperCase(Command) = 'MINEROFF' then Mineroff()
 else if UpperCase(Command) = 'SUMARY' then ShowSumary()
 else if UpperCase(Command) = 'AUTOSERVERON' then AutoServerON()
 else if UpperCase(Command) = 'AUTOSERVEROFF' then AutoServerOFF()
@@ -272,23 +265,19 @@ else if UpperCase(Command) = 'RESTORESUMARY' then RestoreSumary(StrToIntDef(Para
 else if UpperCase(Command) = 'REQHEAD' then RequestHeaders()
 else if UpperCase(Command) = 'REQSUM' then RequestSumary()
 else if UpperCase(Command) = 'SAVEADV' then CreateADV(true)
-else if UpperCase(Command) = 'SHOWADVOPT' then ShowAdvOpt()
 else if UpperCase(Command) = 'ORDER' then ShowOrderDetails(LineText)
 else if UpperCase(Command) = 'ORDERSOURCES' then consolelinesAdd(GetOrderSources(Parameter(LineText,1)))
 else if UpperCase(Command) = 'EXPORTADDRESS' then ExportAddress(LineText)
 else if UpperCase(Command) = 'ADDRESS' then ShowAddressInfo(LineText)
 else if UpperCase(Command) = 'HISTORY' then ShowAddressHistory(LineText)
 else if UpperCase(Command) = 'TOTALFEES' then ShowTotalFees()
-else if UpperCase(Command) = 'R256' then consolelinesAdd('R256 : '+Recursive256(parameter(LineText,1)))
 else if UpperCase(Command) = 'SUPPLY' then consolelinesAdd('Current supply: '+Int2Curr(GetSupply(MyLastBlock)))
 else if UpperCase(Command) = 'GMTS' then showgmts(LineText)
 else if UpperCase(Command) = 'SHOWPRIVKEY' then ShowPrivKey(LineText, true)
-else if UpperCase(Command) = 'UNIXTIME' then ConsoleLinesAdd(IntToStr(DateTimeToUnix(now)+G_TIMELocalTimeOffset+G_TimeOffSet))
 else if UpperCase(Command) = 'REBUILDMYTRX' then ExecuteRebuildMyTrx()
 else if UpperCase(Command) = 'SHOWPENDING' then ShowPendingTrxs()
 else if UpperCase(Command) = 'WEBWAL' then WebWallet()
 else if UpperCase(Command) = 'EXPKEYS' then ExportKeys(LineText)
-else if UpperCase(Command) = 'HANG' then HangWallet()
 else if UpperCase(Command) = 'CHECKUPDATES' then ConsoleLinesAdd(GetLastRelease)
 else if UpperCase(Command) = 'ZIPSUMARY' then ZipSumary()
 else if UpperCase(Command) = 'ZIPHEADERS' then ZipHeaders()
@@ -313,7 +302,6 @@ else if UpperCase(Command) = 'CHECKSUM' then consolelinesadd(BMDecTo58(BMB58resu
 // CONSULTING
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()
 else if UpperCase(Command) = 'NETRATE' then consolelinesadd('Average Mainnet hashrate: '+HashrateToShow(MainNetHashrate))
-else if UpperCase(Command) = 'MINERS' then ShowMiners(Linetext)
 else if UpperCase(Command) = 'LISTGVT' then ListGVTs()
 else if UpperCase(Command) = 'SYSTEM' then ShowSystemInfo(Linetext)
 else if UpperCase(Command) = 'NOSOCFG' then consolelinesadd(GetNosoCFGString)
@@ -494,14 +482,6 @@ if StrToIntDef(Port,-1) = -1 then Port := '8080';
 ConnectClient(ip,port);
 End;
 
-// activa el minero
-Procedure MinerOn();
-Begin
-Miner_Active := true;
-U_Datapanel := true;
-ConsoleLinesAdd(LangLine(50)+LAngLine(48));   // miner //active
-End;
-
 Procedure ToTrayON();
 Begin
 WO_ToTray := true;
@@ -522,15 +502,6 @@ G_Launching := true;
 form1.CB_WO_ToTray.Checked:=false;
 G_Launching := false;
 ConsoleLinesAdd('Minimize to tray is now '+LangLine(49)); //GetNodes option is now  // INACTIVE
-End;
-
-// desactiva el minero
-Procedure Mineroff();
-Begin
-Miner_Active := false;
-if Miner_IsOn then Miner_IsOn := false;
-U_Datapanel := true;
-ConsoleLinesAdd(LangLine(50)+LAngLine(49));    // miner //inactive
 End;
 
 // muestra el sumario completo
@@ -1521,11 +1492,6 @@ else
    end
 End;
 
-Procedure ShowAdvOpt();
-Begin
-ConsoleLinesAdd('AutoConnect: '+booltostr(WO_Autoconnect,true));
-End;
-
 Procedure SendAdminMessage(linetext:string);
 var
   mensaje,currtime, firma, hashmsg : string;
@@ -1901,20 +1867,6 @@ for counter := 1 to MyLastBlock do
 ConsoleLinesAdd('Highest ever: '+IntToStr(HighDiff)+' on block '+highblock.ToString);
 End;
 
-// ON DEVELOPMENT
-Procedure ShowMiners(Linea:string);
-var
-  ThisArr : Array of TypeAddressCount;
-  counter : integer;
-Begin
-Setlength(ThisArr,0);
-For counter := mylastblock downto Mylastblock-143 do
-   begin
-
-   end;
-ConsoleLinesAdd('On development...');
-End;
-
 // List all GVTs owners
 Procedure ListGVTs();
 var
@@ -2003,14 +1955,6 @@ End;
 Procedure ShowPendingTrxs();
 Begin
 
-End;
-
-Procedure HangWallet();
-var
-  contador : integer = 0;
-Begin
-Repeat
-until contador = 1;
 End;
 
 Procedure WebWallet();

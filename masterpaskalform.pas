@@ -197,7 +197,7 @@ type
 
   NetworkData = Packed Record
      Value : String[64];   // el valor almacenado
-     Porcentaje : integer; // porcentake de peers que tienen el valor
+     Porcentaje : integer; // porcentaje de peers que tienen el valor
      Count : integer;      // cuantos peers comparten ese valor
      Slot : integer;       // en que slots estan esos peers
      end;
@@ -236,61 +236,6 @@ type
      end;
 
   BlockOrdersArray = Array of OrderData;
-
-  PoolInfoData = Packed Record
-       Name : string[15];
-       Direccion : String[40];
-       Porcentaje : integer;
-       MaxMembers : integer;
-       Port : integer;
-       TipoPago : integer;
-       PassWord : string[10];
-       FeeEarned : int64;
-       end;
-
-  PoolMembersData = Packed Record
-       Direccion : string[40];
-       Prefijo : String[10];
-       Soluciones : integer;
-       Deuda : Int64;
-       LastPago : integer;
-       TotalGanado : Int64;
-       LastSolucion : int64;
-       LastEarned : Int64;
-       end;
-
-  PoolData = Packed Record
-       Name : String[15];
-       Ip : string[15];
-       port : Integer;
-       Direccion : String[40];
-       Prefijo : string[10];
-       MyAddress : String[40];
-       balance : int64;
-       LastPago : integer;
-       Password : String[10];
-       end;
-
-  PoolMinerData = Packed Record
-       Block : integer;
-       Solucion : string[200];
-       steps : Integer;
-       Dificult : Integer;
-       DiffChars : integer;
-       Target : string[64];
-       end;
-
-  PoolUserConnection = Packed Record
-       Ip : String[15];
-       Address : String[40];
-       Context : TIdContext;
-       slot : integer;
-       Hashpower : int64;
-       Version: string[10];
-       LastPing : int64;
-       WrongSteps : integer;
-       SendSteps : boolean;
-       end;
 
   TArrayPos = Packed Record
        address : string[32];
@@ -345,11 +290,6 @@ type
        TStamp : string;
        Pkey   : string;
        Signat : string;
-       end;
-
-  TypeAddressCount = Packed Record
-       address : string;
-       value   : integer;
        end;
 
   TMNsData  = Packed Record
@@ -792,7 +732,7 @@ CONST
   {$ENDIF}
   SubVersion = 'Aa1';
   OficialRelease = false;
-  VersionRequired = '0.3.3Aa1';
+  VersionRequired = '0.3.2Ba1';
   BuildDate = 'December 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
@@ -880,7 +820,6 @@ var
   WO_RebuildTrx    : boolean = true;
   WO_FullNode      : boolean = true;
 
-  SynchWarnings : integer = 0;
   ConnectedRotor : integer = 0;
   EngineLastUpdate : int64 = 0;
   StopDoctor : boolean = false;
@@ -899,7 +838,6 @@ var
   G_MNsPayouts, G_MNsEarnings : int64;
 
 
-  CheckMonitor : boolean = false;
   RunDoctorBeforeClose : boolean = false;
   RestartNosoAfterQuit : boolean = false;
   ConsensoValues : integer = 0;
@@ -907,13 +845,7 @@ var
   MilitimeArray : array of MilitimeData;
   MyCurrentBalance : Int64 = 0;
   G_CpuCount : integer = 1;
-  G_MiningCPUs : Integer = 1;
   Customizationfee : int64 = InitialReward div ComisionCustom;
-  G_TIMELocalTimeOffset : int64 = 0;
-  G_TimeOffSet : Int64 = 0;
-  G_LastLocalTimestamp : int64 = 0;
-  G_NTPServer : String = '';
-  G_OpenSSLPath : String = '';
   MsgsReceived : string = '';
   G_Launching : boolean = true;   // Indica si el programa se esta iniciando
   G_CloseRequested : boolean = false;
@@ -929,11 +861,8 @@ var
   ConsoleLines : TStringList;
   LogLines : TStringList;
     S_Log : boolean = false;
-  PoolLogLines : TStringList;
   ExceptLines : TStringList;
     S_Exc : boolean = false;
-  PoolPaysLines : TStringList;
-    S_PoolPays : boolean = false;
   StringAvailableUpdates : String = '';
     U_DataPanel : boolean = true;
     U_PoSGrid : Boolean = true;
@@ -963,15 +892,8 @@ var
   FileGVTs    : file of TGVT;
   ArrGVTs     : array of TGVT;
 
-  FilePool : File of PoolInfoData;
-    PoolInfo : PoolInfoData;
-    S_PoolInfo : boolean = false;
-  FilePoolMembers : File of PoolMembersData;
-  FilePoolPays : textfile;
-    S_PoolPayments : boolean = false;
   FileAdvOptions : textfile;
     S_AdvOpt : boolean = false;
-  PoolServerConex : array of PoolUserConnection;
   PoolTotalHashRate : int64 = 0;
 
   AutoRestarted : Boolean = false;
@@ -996,8 +918,6 @@ var
   PendingTXs : Array of OrderData;
   OutgoingMsjs : TStringlist;
   ArrayConsenso : array of NetworkData;
-  ArrayPoolMembers : array of PoolMembersData;
-  PoolMembersTotalDeuda : Int64 = 0;
 
   // Variables asociadas a la red
   KeepServerOn : Boolean = false;
@@ -1060,44 +980,12 @@ var
     LastTimeChecksRequested : int64 = 0;
   LastRunMNVerification : int64 = 0;
   // Variables asociadas a mi conexion
-  MyConStatus :  integer = 0;
-  STATUS_Connected : boolean = false;
-  NetGVTSHash      : NetworkData;
+  MyConStatus          :  integer = 0;
+  STATUS_Connected     : boolean = false;
+  NetGVTSHash          : NetworkData;
     LasTimeGVTsRequest : int64 = 0;
-  NetCFGHash       : NetworkData;
-    LasTimeCFGRequest : int64 = 0;
-
-  // Variables asociadas al minero
-  MyPoolData : PoolData;
-    PoolMiner : PoolMinerData;
-  PoolMinerBlockFound : boolean = false;
-  Miner_OwnsAPool : Boolean = false;
-    LastPoolHashRequest : int64;
-    PoolSolutionFails : integer;
-  Miner_PoolHashRate : Int64 = 0;
-  Miner_IsON : Boolean = false;
-  Miner_Active : Boolean = false;
-  Miner_Waiting : int64 = -1;
-  Miner_BlockToMine : integer =0;
-  Miner_Difficult : integer = 0;
-  Miner_DifChars : integer = 0;
-  Miner_Target : String = '';
-  MINER_FoundedSteps : integer = 0;
-  MINER_HashCounter : Integer = 100000000;
-  Miner_HashSeed : String = '!!!!!!!!!';
-  Miner_Thread : array of TThreadID;
-  Miner_Address : string = '';
-  Miner_BlockFOund : boolean = False;
-  Miner_Solution : String = '';
-  Miner_SolutionVerified : boolean = false;
-  Miner_UltimoRecuento : int64 = 100000000;
-  Miner_EsteIntervalo : int64 = 0;
-  Miner_KillThreads : boolean = false;
-  Miner_LastHashRate : int64 = 0;
-  Miner_PoolSharedStep : Array of string;
-  RPC_MinerInfo : String = '';
-  RPC_MinerReward : int64 = 0;
-  Miner_RestartedSolution : string = '';
+  NetCFGHash           : NetworkData;
+    LasTimeCFGRequest  : int64 = 0;
 
   NMSData : TNMSData;
   BuildNMSBlock : int64 = 0;
@@ -1113,21 +1001,14 @@ var
   CSProcessLines: TRTLCriticalSection;
   CSConsoleLines: TRTLCriticalSection;
   CSOutgoingMsjs: TRTLCriticalSection;
-  CSPoolStep    : TRTLCriticalSection; InsidePoolStep:Boolean;
-  CSPoolPay     : TRTLCriticalSection;
   CSHeadAccess  : TRTLCriticalSection;
   CSBlocksAccess: TRTLCriticalSection;
   CSSumary      : TRTLCriticalSection;
   CSPending     : TRTLCriticalSection;
   CSCriptoThread: TRTLCriticalSection;
-  CSPoolMembers : TRTLCriticalSection;
-  CSMinerJoin   : TRTLCriticalSection; InsideMinerJoin:Boolean;
   CSLogLines    : TRTLCriticalSection;
-  CSPoolLog     : TRTLCriticalSection;
   CSExcLogLines : TRTLCriticalSection;
-  CSPoolMiner  : TRTLCriticalSection;
   CSClosingApp  : TRTLCriticalSection;
-  CSMinersConex : TRTLCriticalSection;
   CSNMSData     : TRTLCriticalSection;
   CSCurrentJob  : TRTLCriticalSection;
   CSClientReads : TRTLCriticalSection;
@@ -1642,9 +1523,7 @@ StringListLang     := TStringlist.Create;
 DLSL               := TStringlist.Create;
 IdiomasDisponibles := TStringlist.Create;
 LogLines           := TStringlist.Create;
-PoolLogLines       := TStringlist.Create;
 ExceptLines        := TStringlist.Create;
-PoolPaysLines      := TStringlist.Create;
 ConsoleLines       := TStringlist.Create;
 ProcessLines       := TStringlist.Create;
 OutgoingMsjs       := TStringlist.Create;
@@ -1652,25 +1531,18 @@ Randomize;
 InitCriticalSection(CSProcessLines);
 InitCriticalSection(CSConsoleLines);
 InitCriticalSection(CSOutgoingMsjs);
-InitCriticalSection(CSPoolStep);
-InitCriticalSection(CSPoolPay);
 InitCriticalSection(CSHeadAccess);
 InitCriticalSection(CSBlocksAccess);
 InitCriticalSection(CSSumary);
 InitCriticalSection(CSPending);
 InitCriticalSection(CSCriptoThread);
-InitCriticalSection(CSPoolMembers);
-InitCriticalSection(CSMinerJoin);
 InitCriticalSection(CSLogLines);
-InitCriticalSection(CSPoolLog);
 InitCriticalSection(CSExcLogLines);
-InitCriticalSection(CSPoolMiner);
 InitCriticalSection(CSMNsArray);
 InitCriticalSection(CSWaitingMNs);
 InitCriticalSection(CSMNsList);
 InitCriticalSection(CSMNsChecks);
 InitCriticalSection(CSClosingApp);
-InitCriticalSection(CSMinersConex);
 InitCriticalSection(CSNMSData);
 InitCriticalSection(CSCurrentJob);
 InitCriticalSection(CSClientReads);
@@ -1700,25 +1572,18 @@ begin
 DoneCriticalSection(CSProcessLines);
 DoneCriticalSection(CSConsoleLines);
 DoneCriticalSection(CSOutgoingMsjs);
-DoneCriticalSection(CSPoolStep);
-DoneCriticalSection(CSPoolPay);
 DoneCriticalSection(CSHeadAccess);
 DoneCriticalSection(CSBlocksAccess);
 DoneCriticalSection(CSSumary);
 DoneCriticalSection(CSPending);
 DoneCriticalSection(CSCriptoThread);
-DoneCriticalSection(CSPoolMembers);
-DoneCriticalSection(CSMinerJoin);
 DoneCriticalSection(CSLogLines);
-DoneCriticalSection(CSPoolLog);
 DoneCriticalSection(CSExcLogLines);
-DoneCriticalSection(CSPoolMiner);
 DoneCriticalSection(CSMNsArray);
 DoneCriticalSection(CSWaitingMNs);
 DoneCriticalSection(CSMNsList);
 DoneCriticalSection(CSMNsChecks);
 DoneCriticalSection(CSClosingApp);
-DoneCriticalSection(CSMinersConex);
 DoneCriticalSection(CSNMSData);
 DoneCriticalSection(CSCurrentJob);
 DoneCriticalSection(CSClientReads);
@@ -1906,11 +1771,6 @@ if fileexists('restart.txt') then
    RestartConditions();
    OutText(rs0070,false,1); // '✓ Restart file deleted';
    end;
-if GetEnvironmentVariable('NUMBER_OF_PROCESSORS') = '' then G_CpuCount := 1
-else G_CpuCount := StrToIntDef(GetEnvironmentVariable('NUMBER_OF_PROCESSORS'),1);
-G_CpuCount := 1;
-G_MiningCPUs := G_CpuCount;
-OutText(format(rs0028,[inttostr(G_CpuCount)]),false,1);
 StringAvailableUpdates := AvailableUpdates();
 Form1.Latido.Enabled:=true;
 OutText('Noso is ready',false,1);
@@ -1923,7 +1783,6 @@ if WO_CloseStart then
    FirstShow := true;
    SetLength(ArrayCriptoOp,0);
    Setlength(MilitimeArray,0);
-   Setlength(Miner_Thread,0);
    Setlength(MNsArray,0);
    Setlength(MNsList,0);
    Setlength(ArrMNChecks,0);
@@ -1963,7 +1822,6 @@ FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
 FirstShow := true;
 SetLength(ArrayCriptoOp,0);
 Setlength(MilitimeArray,0);
-Setlength(Miner_Thread,0);
 Setlength(MNsArray,0);
 Setlength(MNsList,0);
 Setlength(ArrMNChecks,0);
@@ -2329,16 +2187,13 @@ if GoAhead then
       else CloseLine('Error closing node server');
       end;
    sleep(100);
-   If Miner_IsOn then Miner_IsON := false;
    If Assigned(StringListLang) then StringListLang.Free;
    If Assigned(ConsoleLines) then ConsoleLines.Free;
    If Assigned(DLSL) then DLSL.Free;
    If Assigned(IdiomasDisponibles) then IdiomasDisponibles.Free;
    If Assigned(LogLines) then LogLines.Free;
-   If Assigned(PoolLogLines) then PoolLogLines.Free;
    If Assigned(ExceptLines) then ExceptLines.Free;
    If Assigned(ProcessLines) then ProcessLines.Free;
-   If Assigned(PoolPaysLines) then PoolPaysLines.Free;
    CloseLine('Componnents freed');
    sleep(100);
    EnterCriticalSection(CSOutgoingMsjs);

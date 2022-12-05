@@ -673,11 +673,6 @@ msgstr ""
 msgid "Pool solution FAILED at step %s"
 msgstr ""
 
-#: translation.rs0037
-#, object-pascal-format
-msgid "Pool: Error inside CSPoolStep-> %s"
-msgstr ""
-
 #: translation.rs0038
 #, object-pascal-format
 msgid "POOL: Unexpected command from: %s -> %s"

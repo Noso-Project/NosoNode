@@ -92,8 +92,6 @@ Procedure CreateLauncherFile(IncludeUpdate:boolean = false);
 Procedure RestartNoso();
 Procedure NewDoctor();
 Procedure RunDiagnostico(linea:string);
-Procedure LoadPoolMembers();
-Procedure CrearArchivoPoolMembers;
 Procedure EjecutarAutoUpdate(version:string);
 Procedure CrearRestartfile();
 Procedure RestartConditions();
@@ -884,7 +882,6 @@ if S_Wallet then GuardarWallet();
 if ( (S_Sumario) and (BuildingBlock=0) ) then GuardarSumario();
 if S_Log then SaveLog;
 if S_Exc then SaveExceptLog;
-//if S_PoolPays then SavePoolPays;
 if S_AdvOpt then CreateADV(true);
 SetCurrentJob('SaveUpdatedFiles',false);
 End;
@@ -2076,11 +2073,9 @@ var
   porcentaje : integer;
   badBlockHashes : string = '';
 Begin
-Miner_KillThreads := true;
 CloseAllforms();
 CerrarClientes();
 StopServer();
-If Miner_IsOn then Miner_IsON := false;
 //setlength(CriptoOpsTIPO,0);
 RunningDoctor := true;
 if UpperCase(parameter(linea,1)) = 'FIX' then fixfiles := true;
@@ -2177,40 +2172,6 @@ FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
 UpdateMyData();
 End;
 
-// Creates pool members file
-Procedure CrearArchivoPoolMembers;
-Begin
-assignfile(FilePoolMembers,PoolMembersFilename);
-rewrite(FilePoolMembers);
-Closefile(FilePoolMembers);
-End;
-
-// Load poolmembers file from disk
-Procedure LoadPoolMembers();
-var
-  contador : integer;
-  dato : PoolMembersData;
-Begin
-// ADD A VERIFICATION BEFORE LOAD IT IN CASE THE FILE IS CORRUPTED?
-TRY
-   assignfile(FilePoolMembers,PoolMembersFilename);
-   reset(FilePoolMembers);
-   setlength(ArrayPoolMembers,filesize(FilePoolMembers));
-   if filesize(FilePoolMembers) > 0 then
-      begin
-      for contador := 0 to filesize(FilePoolMembers)-1 do
-         begin
-         seek(FilePoolMembers,contador);
-         read(FilePoolMembers,dato);
-         ArrayPoolMembers[contador]:= dato;
-         end;
-      end;
-   Closefile(FilePoolMembers);
-EXCEPT on E:Exception do
-   ToLog('Error loading pool members from disk.');
-END;
-End;
-
 // Creates and executes autolauncher.bat  // DEPRECATED
 Procedure EjecutarAutoUpdate(version:string);
 var
@@ -2257,7 +2218,7 @@ Assignfile(archivo, 'restart.txt');
 reset(archivo);
 TRY
 ReadLn(archivo,linea);
-ReadLn(archivo,Miner_RestartedSolution);
+ReadLn(archivo{,Miner_RestartedSolution});
 EXCEPT ON E:Exception do
    begin
 
@@ -2341,11 +2302,9 @@ End;
 // Executes the required steps to restore the blockchain
 Procedure RestoreBlockChain();
 Begin
-Miner_KillThreads := true;
 CloseAllforms();
 CerrarClientes();
 StopServer();
-If Miner_IsOn then Miner_IsON := false;
 //setlength(CriptoOpsTIPO,0);
 deletefile(SumarioFilename);
 deletefile(SumarioFilename+'.bak');

@@ -30,7 +30,6 @@ Procedure AddCriptoOp(tipo:integer;proceso, resultado:string);
 Procedure StartCriptoThread();
 Procedure DeleteCriptoOp();
 Function ProcessCriptoOP(aParam:Pointer):PtrInt;
-function Recursive256(incomingtext:string):string;
 Function GetMNSignature():string;
 Function EncodeCertificate(certificate:string):string;
 Function DecodeCertificate(certificate:string):string;
@@ -422,40 +421,6 @@ until length(ArrayCriptoOp) = 0;
 if NewAddrss > 0 then OutText(IntToStr(NewAddrss)+' new addresses',false,2);
 CriptoThreadRunning := false;
 ProcessCriptoOP := 0;
-End;
-
-function Recursive256(incomingtext:string):string;
-var
-  Resultado : string;
-  contador : integer;
-
-  function ReOrderHash(entrada : string):string;
-  var
-    counter : integer;
-    resultado2 : string = '';
-    chara,charb, charf : integer;
-  Begin
-  for counter := 1 to length(entrada) do
-     begin
-     chara := Hex2Dec(entrada[counter]);
-     if counter < Length(entrada) then charb := Hex2Dec(entrada[counter+1])
-     else charb := Hex2Dec(entrada[1]);
-     charf := chara+charb; if charf>15 then charf := charf-16;
-     resultado2 := resultado2+inttohex(charf,1);
-     end;
-  result := resultado2
-  End;
-
-Begin
-setmilitime('Recursive256',1);
-Resultado := HashSha256String(incomingtext);
-for contador := 1 to 5 do
-   Begin
-   resultado := resultado+ReOrderHash(Resultado);
-   end;
-result := HashSha256String(resultado);
-//result := resultado;
-setmilitime('Recursive256',2);
 End;
 
 // Returns the signature for the masternode report

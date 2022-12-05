@@ -700,11 +700,6 @@ msgstr "Рішення для пулу перевірено!"
 msgid "Pool solution FAILED at step %s"
 msgstr "Рішення пулу НЕ ВІДОМЛЕННО на кроці %s"
 
-#: translation.rs0037
-#, object-pascal-format
-msgid "Pool: Error inside CSPoolStep-> %s"
-msgstr "Пул: помилка всередині CSPoolStep-> %s"
-
 #: translation.rs0038
 #, object-pascal-format
 msgid "POOL: Unexpected command from: %s -> %s"

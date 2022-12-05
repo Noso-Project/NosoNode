@@ -706,11 +706,6 @@ msgstr "Solucion del pool verificada!"
 msgid "Pool solution FAILED at step %s"
 msgstr "Solucion del pool fallo en el paso %s"
 
-#: translation.rs0037
-#, object-pascal-format
-msgid "Pool: Error inside CSPoolStep-> %s"
-msgstr "Pool: Error dentro de CSPoolStep-> %s"
-
 #: translation.rs0038
 #, object-pascal-format
 msgid "POOL: Unexpected command from: %s -> %s"

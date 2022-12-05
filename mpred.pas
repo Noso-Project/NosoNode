@@ -618,7 +618,6 @@ if NumeroConexiones = 0 then  // Desconeectado
       STATUS_Connected := false;
       ConsoleLinesAdd(LangLine(33));       //Disconnected
       G_TotalPings := 0;
-      Miner_IsOn := false;
       NetSumarioHash.Value:='';
       NetLastBlock.Value:='?';
       NetResumenHash.Value:='';

@@ -464,23 +464,15 @@ var
 Begin
 resultado := resultado+'ServerON: '+BoolToStr(Form1.Server.Active,true)+' ';
 resultado := resultado+'CONNECT_Try: '+BoolToStr(CONNECT_Try,true)+slinebreak;
-resultado := resultado+IntToStr(PoolMiner.Block)+' '+IntToStr(PoolMiner.steps)+' '+PoolMiner.Solucion+slinebreak;
 if mode = 1 then
    begin
    resultado := resultado+'Date: '+FormatDateTime('dd MMMM YYYY HH:MM:SS.zzz', Now)+slinebreak;
    resultado := resultado+'MyConStatus: '+IntToStr(myConStatus)+slinebreak;
    Resultado := resultado+'CurrentJob: '+GetCurrentJob+slinebreak;
-   Resultado := resultado+'MinerActive: '+BoolToStr(Miner_Active,true)+slinebreak;
-   Resultado := resultado+'MinerIsOn: '+BoolToStr(Miner_IsON,true)+slinebreak;
-   Resultado := resultado+'CPUs: '+IntToStr(G_CpuCount)+slinebreak;
    Resultado := resultado+'OS: '+OSVersion +slinebreak;
    Resultado := resultado+'WalletVer: '+ProgramVersion+SubVersion+slinebreak;
-   Resultado := resultado+'Minerhashcount: '+IntToStr(MINER_HashCounter)+slinebreak;
-   Resultado := resultado+'Minerhashseed: '+MINER_HashSeed+slinebreak;
    Resultado := resultado+'SendingMsgs: '+BoolToStr(G_SendingMsgs,true)+slinebreak;
    Resultado := resultado+'Autorestarted: '+BoolToStr(AutoRestarted,true)+slinebreak;
-   Resultado := resultado+'InsideMinerJoin: '+BoolToStr(InsideMinerJoin,true)+slinebreak;
-   Resultado := resultado+'InsidePoolStep: '+BoolToStr(InsidePoolStep,true)+slinebreak;
    end;
 result := resultado;
 End;

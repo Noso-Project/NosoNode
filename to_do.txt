@@ -10,8 +10,6 @@ App related.
 - Revisit GetTotalConexiones.
 - Complete translation migration.
   * Remove old translation system.
-- Complete options system.
-  * Remove old options system.
 - Completely remove minning pool relatives.
 - Implement RPC functions.
   * RPC_GetBlockPoS.

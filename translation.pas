@@ -45,7 +45,7 @@ resourcestring
   rs0034 = 'Pool: Error registering a ping-> %s';
   rs0035 = 'Pool solution verified!';
   rs0036 = 'Pool solution FAILED at step %s';
-  rs0037 = 'Pool: Error inside CSPoolStep-> %s';
+
   rs0038 = 'POOL: Unexpected command from: %s -> %s';
   rs0039 = 'POOL: Status requested from %s';
   rs0040 = 'Pool: closed incoming %s (%s)';
