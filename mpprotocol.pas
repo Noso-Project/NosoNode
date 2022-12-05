@@ -1062,7 +1062,17 @@ var
   errored   : boolean = false;
   TCommand  : string;
   TParam    : string;
-  ThDirect  : TThreadDirective;
+
+  Procedure LaunchDirectiveThread(LParameter:String);
+  var
+    ThDirect  : TThreadDirective;
+  Begin
+  ThDirect := TThreadDirective.Create(true,LParameter);
+  ThDirect.FreeOnTerminate:=true;
+  ThDirect.Start;
+  Tolog(Format('Directive: %s',[LParameter]));
+  End;
+
 Begin
 msgtime := parameter(TextLine,5);
 mensaje := parameter(TextLine,6);
@@ -1084,50 +1094,19 @@ if not errored then
    begin
    MsgsReceived :=MsgsReceived+hashmsg;
    TCommand := Parameter(mensaje,0);
-   if UpperCase(TCommand) = 'UPDATE' then
-      begin
-      if 1=1 {WO_AutoUpdate} then
-         begin
-         TParam := Parameter(mensaje,1);
-         ThDirect := TThreadDirective.Create(true,'update '+TParam);
-         ThDirect.FreeOnTerminate:=true;
-         ThDirect.Start;
-         Tolog('DIRECTIVE'+slinebreak+'update '+TParam);
-         ConsoleLinesAdd('AutoUpdate directive received');
-         end;
-      end;
-   if UpperCase(TCommand) = 'RESTART' then
-      begin
-      ThDirect := TThreadDirective.Create(true,'restart');
-      ThDirect.FreeOnTerminate:=true;
-      ThDirect.Start;
-      Tolog('DIRECTIVE'+slinebreak+'restart');
-      ConsoleLinesAdd('Restart directive received');
-      end;
-   if UpperCase(TCommand) = 'SETMODE' then
-      begin
-      SetCFGData(Parameter(mensaje,1),0);
-      end;
-   if UpperCase(TCommand) = 'ADDNODE' then
-      begin
-      AddCFGData(Parameter(mensaje,1),1);
-      end;
-   if UpperCase(TCommand) = 'DELNODE' then
-      begin
-      RemoveCFGData(Parameter(mensaje,1),1);
-      end;
-   if UpperCase(TCommand) = 'ADDPOOL' then
-      begin
-      AddCFGData(Parameter(mensaje,1),3);
-      end;
-   if UpperCase(TCommand) = 'DELPOOL' then
-      begin
-      RemoveCFGData(Parameter(mensaje,1),3);
-      end;
-   if UpperCase(TCommand) = 'RESTORECFG' then
-      begin
-      RestoreCFGData
-      end;
+   TParam   := Parameter(mensaje,1);
+   if UpperCase(TCommand) = 'UPDATE' then LaunchDirectiveThread('update '+TParam);
+   if UpperCase(TCommand) = 'RESTART' then LaunchDirectiveThread('restart');
+   if UpperCase(TCommand) = 'SETMODE' then SetCFGData(TParam,0);
+   if UpperCase(TCommand) = 'ADDNODE' then AddCFGData(TParam,1);
+   if UpperCase(TCommand) = 'DELNODE' then RemoveCFGData(TParam,1);
+   if UpperCase(TCommand) = 'ADDNTP' then AddCFGData(TParam,2);
+   if UpperCase(TCommand) = 'DELNTP' then RemoveCFGData(TParam,2);
+   if UpperCase(TCommand) = 'ADDPOOLADDRESS' then AddCFGData(TParam,3);
+   if UpperCase(TCommand) = 'DELPOOLADDRESS' then RemoveCFGData(TParam,3);
+   if UpperCase(TCommand) = 'ADDPOOLHOST' then AddCFGData(TParam,4);
+   if UpperCase(TCommand) = 'DELPOOLHOST' then RemoveCFGData(TParam,4);
+   if UpperCase(TCommand) = 'RESTORECFG' then RestoreCFGData;
    OutgoingMsjsAdd(TextLine);
    end;
 End;
@@ -1197,7 +1176,6 @@ if Copy(HAshMD5String(Content),0,5) = NetCFGHash.Value then
    SaveNosoCFGFile(content);
    SetNosoCFGString(content);
    FillNodeList;
-   CargarNTPData;
    ConsoleLinesAdd('Noso CFG updated');
    end
 else
@@ -1248,7 +1226,7 @@ REPEAT
       end;
    inc(counter);
 UNTIL ThisHeader='';
-if TotalErrors>0 then ConsoleLinesAdd(Format('Errors updating headers: %d',[TotalErrors]));
+//if TotalErrors>0 then ConsoleLinesAdd(Format('Errors updating headers: %d',[TotalErrors]));
 if TotalReceived>0 then ConsoleLinesAdd(Format('Headers Received: %d',[TotalReceived]));
 MyResumenHash := HashMD5File(ResumenFilename);
 if MyResumenHash <> NetResumenHash.Value then
@@ -1320,7 +1298,6 @@ LasTimeCFGRequest:= UTCTime+5;
 SaveNosoCFGFile(FinalStr);
 SetNosoCFGString(FinalStr);
 FillNodeList;
-CargarNTPData;
 LoadAllowedPools;
 End;
 
@@ -1354,7 +1331,6 @@ LasTimeCFGRequest:= UTCTime+5;
 SaveNosoCFGFile(FinalStr);
 SetNosoCFGString(FinalStr);
 FillNodeList;
-CargarNTPData;
 LoadAllowedPools;
 End;
 
@@ -1389,7 +1365,6 @@ LasTimeCFGRequest:= UTCTime+5;
 SaveNosoCFGFile(FinalStr);
 SetNosoCFGString(FinalStr);
 FillNodeList;
-CargarNTPData;
 LoadAllowedPools;
 End;
 
@@ -1399,7 +1374,6 @@ LasTimeCFGRequest:= UTCTime+5;
 SaveNosoCFGFile(DefaultNosoCFG);
 SetNosoCFGString(DefaultNosoCFG);
 FillNodeList;
-CargarNTPData;
 LoadAllowedPools;
 ConsoleLinesAdd('NosoCFG restarted');
 End;

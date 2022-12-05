@@ -1,13 +1,14 @@
 unit NosoTime;
 
 {
-Nosotime 1.0
-December 3th, 2022
+Nosotime 1.1
+December 5th, 2022
 Noso Time Unit for time synchronization on Noso project.
 Requires indy package. (To-do: remove this dependancy)
 
 Changes:
 - Random use of NTP servers.
+- Async process limited to every 5 seconds.
 }
 
 {$mode ObjFPC}{$H+}
@@ -18,7 +19,7 @@ uses
   Classes, SysUtils, IdSNTP, DateUtils, strutils;
 
 Type
-   TThreadUpdateOffeset = class(TThread)
+   TThreadUpdateOffset = class(TThread)
    private
      Hosts: string;
    protected
@@ -42,13 +43,13 @@ Var
 
 IMPLEMENTATION
 
-constructor TThreadUpdateOffeset.Create(const CreatePaused: Boolean; const THosts:string);
+constructor TThreadUpdateOffset.Create(const CreatePaused: Boolean; const THosts:string);
 begin
   inherited Create(CreatePaused);
   Hosts := THosts;
 end;
 
-procedure TThreadUpdateOffeset.Execute;
+procedure TThreadUpdateOffset.Execute;
 var
   TimeToRun : int64;
   TFinished  : boolean = false;
@@ -56,6 +57,7 @@ Begin
 GetTimeOffset(Hosts);
 End;
 
+{Returns the data from the specified NTP server [Hostname]}
 Function GetNetworkTimestamp(hostname:string):int64;
 var
   NTPClient: TIdSNTP;
@@ -74,11 +76,17 @@ NTPClient := TIdSNTP.Create(nil);
 NTPClient.Free;
 end;
 
+{Returns a UNIX timestamp in a human readeable format}
 function TimestampToDate(timestamp:int64):String;
 begin
 result := DateTimeToStr(UnixToDateTime(TimeStamp));
 end;
 
+{
+Uses a random NTP server from the list provided to set the value of the local variables.
+NTPservers string must use NosoCFG format: server1:server2:server3:....serverX:
+If directly invoked, will block the main thread until finish. (not recommended except on app launchs)
+}
 Function GetTimeOffset(NTPServers:String):int64;
 var
   Counter    : integer = 0;
@@ -107,6 +115,7 @@ For Counter := 0 to length(MyArray)-1 do
 NosoT_TimeOffset := Result;
 End;
 
+{Returns the UTC UNIX timestamp}
 Function UTCTime:Int64;
 Begin
 Result := DateTimeToUnix(Now, False) +NosoT_TimeOffset;
@@ -118,15 +127,21 @@ Begin
 Result := InttoStr(DateTimeToUnix(Now, False) +NosoT_TimeOffset);
 End;
 
+{Implemented to allow an async update of the offset; can be called every 5 seconds max}
 Procedure UpdateOffset(NTPServers:String);
+const
+  LastRun : int64 = 0;
 var
-  LThread : TThreadUpdateOffeset;
+  LThread : TThreadUpdateOffset;
 Begin
-LThread := TThreadUpdateOffeset.Create(true,NTPservers);
+if UTCTime <= LastRun+4 then exit;
+LastRun := UTCTime;
+LThread := TThreadUpdateOffset.Create(true,NTPservers);
 LThread.FreeOnTerminate:=true;
 LThread.Start;
 End;
 
+{Tool: returns a simple string with the time elapsed since the provided timestamp [LValue]}
 function TimeSinceStamp(Lvalue:int64):string;
 var
   Elapsed : Int64 = 0;

@@ -1,10 +1,12 @@
-Version 0.3.2Ba2
+Version 0.3.3Aa1
 
 - NTP servers list adjusted.
 - NosoTime unit implemented.
 - Time sinchronization every block.
 - Old MNs system functions deleted.
 - NosoCFG functions improved.
+- Implemented multi-try for update feature.
+- Removed old NTP system references.
 
 Version 0.3.2Ba1
 

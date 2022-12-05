@@ -1378,10 +1378,10 @@ End;
 
 Function GetLastVerZipFile(version,LocalOS:string):boolean;
 var
-  MS: TMemoryStream;
-  DownLink : String = '';
-  extension : string;
-  Conector : TFPHttpClient;
+  MS        : TMemoryStream;
+  DownLink  : String = '';
+  Conector  : TFPHttpClient;
+  Trys      : Integer = 0;
 Begin
 result := false;
 if Uppercase(localOS) = 'WIN' then
@@ -1393,13 +1393,18 @@ Conector := TFPHttpClient.Create(nil);
 conector.ConnectTimeout:=1000;
 conector.IOTimeout:=1000;
 conector.AllowRedirect:=true;
+Repeat
+Inc(Trys);
    TRY
    Conector.Get(DownLink,MS);
    MS.SaveToFile('NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator+version+'_'+LocalOS+'.zip');
    result := true;
    EXCEPT ON E:Exception do
-      ConsoleLinesAdd('Error downloading release: '+E.Message);
+      begin
+      ConsoleLinesAdd(Format('Error downloading release (Try %d): %s',[Trys,E.Message]));
+      end;
    END{Try};
+until ( (result = true) or (Trys = 3) );
 MS.Free;
 conector.free;
 End;

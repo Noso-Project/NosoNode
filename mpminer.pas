@@ -5,7 +5,7 @@ unit mpMiner;
 interface
 
 uses
-  Classes,SysUtils, MasterPaskalForm, mpCripto, StrUtils, mpTime, dialogs;
+  Classes,SysUtils, MasterPaskalForm, mpCripto, StrUtils, dialogs, NosoTime;
 
 Procedure VerifyMiner();
 Procedure KillAllMiningThreads();
@@ -48,12 +48,12 @@ if ((Miner_BlockFOund) and (not Miner_SolutionVerified)) then
       begin
       if not UserOptions.UsePool then
          begin
-         blocktime := UTCTime;
+         blocktime := UTCTimeStr;
          ConsoleLinesAdd(LangLine(40)+IntToStr(Miner_BlockToMine));  //Miner solution found and Verified for block
          Miner_SolutionVerified := true;
          OutgoingMsjsAdd(ProtocolLine(6)+blocktime+' '+IntToStr(Miner_BlockToMine)+' '+
          Miner_Address+' '+StringReplace(Miner_Solution,' ','_',[rfReplaceAll, rfIgnoreCase]));
-         Miner_Waiting := StrToInt64(UTCTime);
+         Miner_Waiting := StrToInt64(UTCTimeStr);
          //SendNetworkRequests(blocktime,Miner_Address,Miner_BlockToMine);
          end
       else ResetMinerInfo;
@@ -64,7 +64,7 @@ if ((Miner_BlockFOund) and (not Miner_SolutionVerified)) then
       ResetMinerInfo;
       end;
    end;
-If ((Miner_Waiting>-1) and (Miner_Waiting+10<StrToInt64(UTCTime))) then
+If ((Miner_Waiting>-1) and (Miner_Waiting+10<StrToInt64(UTCTimeStr))) then
    ResetMinerInfo();
 End;
 

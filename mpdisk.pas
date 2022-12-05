@@ -21,10 +21,6 @@ Function IsSeedNode(IP:String):boolean;
 Procedure CreateExceptlog();
 Procedure ToExcLog(Texto:string);
 Procedure SaveExceptLog();
-// Pool payments file
-Procedure CreatePoolPayfile();
-Procedure AddPoolPay(Texto:string);
-Procedure SavePoolPays();
 
 // GVTs file handling
 Procedure CreateGVTsFile();
@@ -79,8 +75,6 @@ Procedure SaveMyTrxsLastUpdatedblock(Number:integer;PoSPayouts, PoSEarnings, MNs
 Procedure RebuildMyTrx(blocknumber:integer);
 Procedure SaveMyTrxsToDisk(Cantidad:integer);
 
-Procedure CrearNTPData();
-Procedure CargarNTPData();
 Procedure SaveUpdatedFiles();
 Procedure CrearWallet();
 Procedure CargarWallet(wallet:String);
@@ -171,9 +165,6 @@ OutText('✓ Bots file ok',false,1);
 FillNodeList;  // Fills the hardcoded seed nodes list
 LoadAllowedPools;
 
-//if not Fileexists(NTPDataFilename) then CrearNTPData() else CargarNTPData();
-CargarNTPData;
-OutText('✓ NTP servers file ok',false,1);
 if not Fileexists(SumarioFilename) then CreateSumario() else LoadSumaryFromFile();
 OutText('✓ Sumary file ok',false,1);
 if not Fileexists(ResumenFilename) then CreateResumen();
@@ -305,61 +296,6 @@ If IOCode = 0 then
 else if IOCode = 5 then
    {$I-}Closefile(archivo){$I+};
 setmilitime('SaveExceptLog',2);
-End;
-
-// *** Pool payments file ***
-
-// Creates pool pays file
-Procedure CreatePoolPayfile();
-var
-  archivo : file of PoolPaymentData;
-Begin
-TRY
-Assignfile(archivo, PoolPaymentsFilename);
-rewrite(archivo);
-Closefile(archivo);
-EXCEPT on E:Exception do
-   toexclog ('Error creating pool payments file');
-END;
-End;
-
-// Add Except log line
-Procedure AddPoolPay(Texto:string);
-Begin
-EnterCriticalSection(CSPoolPay);
-SetLength(ArrPoolPays,length(ArrPoolPays)+1);
-ArrPoolPays[length(ArrPoolPays)-1].block:= StrToIntDef(parameter(texto,0),-1);
-ArrPoolPays[length(ArrPoolPays)-1].address:=parameter(texto,1);
-ArrPoolPays[length(ArrPoolPays)-1].amount:= StrToInt64Def(parameter(texto,2),0);
-ArrPoolPays[length(ArrPoolPays)-1].Order:= parameter(texto,3);
-PoolPaysLines.Add(texto);
-LeaveCriticalSection(CSPoolPay);
-S_PoolPays := true;
-End;
-
-// Save pool pays file to disk
-Procedure SavePoolPays();
-var
-  archivo : textfile;
-Begin
-setmilitime('SavePoolPays',1);
-Assignfile(archivo, PoolPaymentsFilename);
-Append(archivo);
-try
-   while PoolPaysLines.Count>0 do
-      begin
-      if StrToIntDef(parameter(PoolPaysLines[0],2),0)>0 then
-         Writeln(archivo, PoolPaysLines[0]);
-      EnterCriticalSection(CSPoolPay);
-      PoolPaysLines.Delete(0);
-      LeaveCriticalSection(CSPoolPay);
-      end;
-   S_PoolPays := false;
-Except on E:Exception do
-   tolog ('Error saving Pool pays file');
-end;
-Closefile(archivo);
-setmilitime('SavePoolPays',2);
 End;
 
 // *** BOTS FILE ***
@@ -1054,61 +990,6 @@ SetCurrentJob('SaveBotData',false);
 setmilitime('SaveBotData',2);
 End;
 
-// Creates NTP servers file
-Procedure CrearNTPData();
-Var
-  contador : integer = 0;
-Begin
-   try
-   assignfile(FileNTPData,NTPDataFilename);
-   setlength(ListaNTP,11);
-   ListaNTP[0].host := 'ntp.amnic.net'; ListaNTP[0].LastUsed:='0';
-   ListaNTP[1].host := 'ts2.aco.net'; ListaNTP[1].LastUsed:='0';
-   ListaNTP[2].host := 'hora.roa.es'; ListaNTP[2].LastUsed:='0';
-   ListaNTP[3].host := 'ntp.atomki.mta.hu'; ListaNTP[3].LastUsed:='0';
-   ListaNTP[4].host := 'time.esa.int'; ListaNTP[4].LastUsed:='0';
-   ListaNTP[5].host := 'time.stdtime.gov.tw'; ListaNTP[5].LastUsed:='0';
-   ListaNTP[6].host := 'stratum-1.sjc02.svwh.net'; ListaNTP[6].LastUsed:='0';
-   ListaNTP[7].host := 'ntp3.indypl.org'; ListaNTP[7].LastUsed:='0';
-   ListaNTP[8].host := 'ntp1.sp.se'; ListaNTP[8].LastUsed:='0';
-   ListaNTP[9].host := 'ntp.ntp-servers.com'; ListaNTP[9].LastUsed:='0';
-   ListaNTP[10].host := '1.de.pool.ntp.org'; ListaNTP[10].LastUsed:='0';
-   rewrite(FileNTPData);
-   for contador := 0 to 10 do
-      begin
-      seek (FileNTPData,contador);
-      write(FileNTPData,ListaNTP[contador]);
-      end;
-   closefile(FileNTPData);
-   Except on E:Exception do
-      tolog ('Error creating NTP servers file');
-   end;
-End;
-
-// Load NTP servers
-Procedure CargarNTPData();
-Var
-  contador : integer = 0;
-  NTPsStr  : string = '';
-  ThisNTP  : String = '';
-  Added    : integer = 0;
-Begin
-NTPsStr := Parameter(GetNosoCFGString,2);
-NTPsStr := StringReplace(NTPsStr,':',' ',[rfReplaceAll, rfIgnoreCase]);
-setlength(ListaNTP,0);
-Repeat
-   ThisNTP := Parameter(NTPsStr,contador);
-   if ThisNTP <> '' then
-      begin
-      setlength(ListaNTP,length(ListaNTP)+1);
-      ListaNTP[length(ListaNTP)-1] := Default(NTPData);
-      ListaNTP[length(ListaNTP)-1].Host := ThisNTP;
-      Inc(added);
-      end;
-   Inc(Contador);
-until ThisNTP = '';
-ToLog(Format('Added %d NTP servers',[Added]));
-End;
 
 // Saves updates files to disk
 Procedure SaveUpdatedFiles();
@@ -2646,7 +2527,6 @@ Begin
 OptionsFileName     := 'NOSODATA'+DirectorySeparator+'options.psk';
 BotDataFilename     := 'NOSODATA'+DirectorySeparator+'botdata.psk';
 NodeDataFilename    := 'NOSODATA'+DirectorySeparator+'nodes.psk';
-NTPDataFilename     := 'NOSODATA'+DirectorySeparator+'ntpservers.psk';
 WalletFilename      := 'NOSODATA'+DirectorySeparator+'wallet.pkw';
 SumarioFilename     := 'NOSODATA'+DirectorySeparator+'sumary.psk';
 LanguageFileName    := 'NOSODATA'+DirectorySeparator+'noso.lng';
@@ -2665,7 +2545,6 @@ PoolInfoFilename    := 'NOSODATA'+DirectorySeparator+'poolinfo.dat';
 PoolMembersFilename := 'NOSODATA'+DirectorySeparator+'poolmembers.dat';
 AdvOptionsFilename  := 'NOSODATA'+DirectorySeparator+'advopt.txt';
 MasterNodesFilename := 'NOSODATA'+DirectorySeparator+'masternodes.txt';
-PoolPaymentsFilename:= 'NOSODATA'+DirectorySeparator+'poolpays.psk';
 ZipSumaryFileName   := 'NOSODATA'+DirectorySeparator+'sumary.zip';
 ZipHeadersFileName  := 'NOSODATA'+DirectorySeparator+'blchhead.zip';
 GVTsFilename        := 'NOSODATA'+DirectorySeparator+'gvts.psk';

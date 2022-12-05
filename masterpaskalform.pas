@@ -117,11 +117,6 @@ type
      LastConexion : string[17];
      end;
 
-  NTPData = Packed Record
-     Host: string[50];
-     LastUsed : string[17];
-     end;
-
   conectiondata = Packed Record
      Autentic: boolean;                 // si la conexion esta autenticada por un ping
      Connections : Integer;             // A cuantos pares esta conectado
@@ -310,13 +305,6 @@ type
        LastPing : int64;
        WrongSteps : integer;
        SendSteps : boolean;
-       end;
-
-  PoolPaymentData = Packed Record
-       block : integer;
-       address : string[34];
-       amount : int64;
-       Order : string[64];
        end;
 
   TArrayPos = Packed Record
@@ -802,12 +790,13 @@ CONST
                             '101.100.138.125 '+
                             '198.46.218.125';
 
-  DefaultNosoCFG : String = 'Normal '+
+  DefaultNosoCFG : String = 'NORMAL '+
                             '47.87.181.190;8080:47.87.178.205;8080:81.22.38.101;8080:66.151.117.247;8080:47.87.180.219;8080:47.87.137.96;8080:192.3.85.196;8080:192.3.254.186;8080:101.100.138.125;8080:198.46.218.125;8080:63.227.69.162;8080: '+
                             'ts2.aco.net:hora.roa.es:time.esa.int:time.stdtime.gov.tw:stratum-1.sjc02.svwh.net:ntp1.sp.se:1.de.pool.ntp.org:ntps1.pads.ufrj.br:utcnist2.colorado.edu:tick.usask.ca:ntp1.st.keio.ac.jp: '+
-                            'N3ESwXxCAR4jw3GVHgmKiX9zx1ojWEf:N2ophUoAzJw9LtgXbYMiB4u5jWWGJF7:N3aXz2RGwj8LAZgtgyyXNRkfQ1EMnFC:N2MVecGnXGHpN8z4RqwJFXSQP6doVDv:';
+                            'N3ESwXxCAR4jw3GVHgmKiX9zx1ojWEf:N2ophUoAzJw9LtgXbYMiB4u5jWWGJF7:N3aXz2RGwj8LAZgtgyyXNRkfQ1EMnFC:N2MVecGnXGHpN8z4RqwJFXSQP6doVDv: '+
+                            'nosofish.xyz;8082:nosopool.estripa.online;8082:pool.nosomn.com;8082:159.196.1.198;8082:';
 
-  ProgramVersion = '0.3.2';
+  ProgramVersion = '0.3.3';
   {$IFDEF WINDOWS}
   RestartFileName = 'launcher.bat';
   updateextension = 'zip';
@@ -816,9 +805,9 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ba2';
+  SubVersion = 'Aa1';
   OficialRelease = false;
-  VersionRequired = '0.3.2Ba1';
+  VersionRequired = '0.3.3Aa1';
   BuildDate = 'December 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
@@ -909,7 +898,6 @@ var
   SynchWarnings : integer = 0;
   ConnectedRotor : integer = 0;
   EngineLastUpdate : int64 = 0;
-  UTCLastSyncTime  : int64 = 0;
   StopDoctor : boolean = false;
 
   SendOutMsgsThread : TThreadSendOutMsjs;
@@ -961,7 +949,6 @@ var
     S_Exc : boolean = false;
   PoolPaysLines : TStringList;
     S_PoolPays : boolean = false;
-  ArrPoolPays : array of PoolPaymentData;
   StringAvailableUpdates : String = '';
     U_DataPanel : boolean = true;
     U_PoSGrid : Boolean = true;
@@ -983,8 +970,6 @@ var
   LastBotClear: string = '';
   FileNodeData : File of NodeData;
     S_NodeData : Boolean = false;
-  FileNTPData : File of NTPData;
-    S_NTPData : boolean = false;
   FileWallet : file of WalletData;
     S_Wallet : boolean = false;
   FileSumario : file of SumarioData;
@@ -1023,7 +1008,6 @@ var
   PoolClientContext : TIdContext;
   ListadoBots :  array of BotData;
   ListaNodos : array of NodeData;
-  ListaNTP : array of NTPData;
   ListaMisTrx : Array of MyTrxData;
   ListaDirecciones : array of walletData; // Wallet addresses
   ListaSumario : array of SumarioData;    // Sumary addresses
@@ -1195,7 +1179,6 @@ var
   OptionsFileName : string = '';
   BotDataFilename : string = '';
   NodeDataFilename : string = '';
-  NTPDataFilename : string = '';
   WalletFilename : string = '';
   SumarioFilename : string = '';
   LanguageFileName : string = '';
@@ -1215,7 +1198,6 @@ var
   PoolMembersFilename : string = '';
   AdvOptionsFilename : string = '';
   MasterNodesFilename: string = '';
-  PoolPaymentsFilename : string = '';
   ZipSumaryFileName : String = '';
   ZipHeadersFileName : string = '';
   GVTsFilename       : string = '';
@@ -1977,7 +1959,6 @@ if WO_CloseStart then
    SetLength(ArrayCriptoOp,0);
    Setlength(MilitimeArray,0);
    Setlength(Miner_Thread,0);
-   SetLength(ArrPoolPays,0);
    Setlength(MNsArray,0);
    Setlength(MNsList,0);
    Setlength(ArrMNChecks,0);
@@ -2018,7 +1999,6 @@ FirstShow := true;
 SetLength(ArrayCriptoOp,0);
 Setlength(MilitimeArray,0);
 Setlength(Miner_Thread,0);
-SetLength(ArrPoolPays,0);
 Setlength(MNsArray,0);
 Setlength(MNsList,0);
 Setlength(ArrMNChecks,0);
@@ -2333,11 +2313,8 @@ if FormSlots.Visible then UpdateSlotsGrid();
 ConnectedRotor +=1; if ConnectedRotor>6 then ConnectedRotor := 0;
 UpdateStatusBar;
 if ( (UTCTime mod 3600=3590) and (LastBotClear<>UTCTimeStr) and (Form1.Server.Active) ) then ProcessLinesAdd('delbot all');
-if ( (UTCTime mod 600=10) and (UTCLastSyncTime<>UTCTime) ) then
-   begin
-   UTCLastSyncTime := UTCTime;
+if ( (UTCTime mod 600>=570) and (UTCTime>NosoT_LastUpdate+599) ) then
    UpdateOffset(PArameter(GetNosoCFGString,2));
-   end;
 Form1.Latido.Enabled:=true;
 end;
 

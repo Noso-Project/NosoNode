@@ -17,7 +17,6 @@ App related.
   * RPC_GetBlockPoS.
   * RPC_GetBlockMNs.
   * RPC_GVTsList.
-- Multiple update trys.
 
 Protocol related.
 
