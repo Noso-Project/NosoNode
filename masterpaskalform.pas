@@ -855,9 +855,6 @@ var
   Form1: TForm1;
   LastCommand : string = '';
   ProcessLines : TStringlist;
-  StringListLang : TStringlist;
-  IdiomasDisponibles : TStringlist;
-  DLSL : TStringlist;                // Default Language String List
   ConsoleLines : TStringList;
   LogLines : TStringList;
     S_Log : boolean = false;
@@ -897,7 +894,6 @@ var
   PoolTotalHashRate : int64 = 0;
 
   AutoRestarted : Boolean = false;
-  CurrentLanguage : String = '';
   CurrentJob : String = '';
   NosoCFGStr : String = '';
   ForcedQuit : boolean = false;
@@ -1519,9 +1515,6 @@ procedure TForm1.FormCreate(Sender: TObject);
 var
   counter : integer;
 begin
-StringListLang     := TStringlist.Create;
-DLSL               := TStringlist.Create;
-IdiomasDisponibles := TStringlist.Create;
 LogLines           := TStringlist.Create;
 ExceptLines        := TStringlist.Create;
 ConsoleLines       := TStringlist.Create;
@@ -1735,7 +1728,6 @@ else // Error retrieving last release data
 // A partir de aqui se inicializa todo
 if not directoryexists('NOSODATA') then CreateDir('NOSODATA');
 OutText(rs0022,false,1); //'✓ Data directory ok'
-if not FileExists (LanguageFileName) then CrearIdiomaFile() else CargarIdioma(0);
 // finalizar la inicializacion
 InicializarFormulario();
 OutText(rs0023,false,1); //✓ GUI initialized
@@ -1751,7 +1743,6 @@ OutText(rs0025,false,1); //'✓ Miner configuration set'
 LoadOptionsToPanel();
 form1.Caption:=coinname+format(rs0027,[ProgramVersion,SubVersion]);
 Application.Title := coinname+format(rs0027,[ProgramVersion,SubVersion]);   // Wallet
-OutText(format(rs0026,[IntToStr(IdiomasDisponibles.count)]),false,1); //'✓ %s languages available'
 ConsoleLinesAdd(coinname+format(rs0027,[ProgramVersion,SubVersion]));
 OutText(rs0066,false,1); // Rebuilding my transactions
 if WO_RebuildTrx then RebuildMyTrx(MyLastBlock);
@@ -2187,10 +2178,7 @@ if GoAhead then
       else CloseLine('Error closing node server');
       end;
    sleep(100);
-   If Assigned(StringListLang) then StringListLang.Free;
    If Assigned(ConsoleLines) then ConsoleLines.Free;
-   If Assigned(DLSL) then DLSL.Free;
-   If Assigned(IdiomasDisponibles) then IdiomasDisponibles.Free;
    If Assigned(LogLines) then LogLines.Free;
    If Assigned(ExceptLines) then ExceptLines.Free;
    If Assigned(ProcessLines) then ProcessLines.Free;
@@ -2961,12 +2949,12 @@ if GridMyTxs.Row>0 then
    if GridMyTxs.Cells[2,GridMyTxs.Row] = 'FEE' then
       begin
       form1.MemoTrxDetails.Text:=
-      LangLine(84)+SLINEBREAK+   //'Maintenance fee'
-      LangLine(82)+GridMyTxs.Cells[6,GridMyTxs.Row]+SLINEBREAK+  //'Address  : '
-      LangLine(85)+GridMyTxs.Cells[7,GridMyTxs.Row]+SLINEBREAK+  //'Interval : '
-      LangLine(77)+GridMyTxs.Cells[3,GridMyTxs.Row]; //'Ammount  : '
+      'Maintenance fee'+SLINEBREAK+   //'Maintenance fee'
+      'Address  : '+GridMyTxs.Cells[6,GridMyTxs.Row]+SLINEBREAK+  //'Address  : '
+      'Interval : '+GridMyTxs.Cells[7,GridMyTxs.Row]+SLINEBREAK+  //'Interval : '
+      'Ammount  : '+GridMyTxs.Cells[3,GridMyTxs.Row]; //'Ammount  : '
       if GridMyTxs.Cells[8,GridMyTxs.Row] = 'YES' then
-        form1.MemoTrxDetails.Text:= form1.MemoTrxDetails.Text+LangLine(86);//' (Address deleted from summary)'
+        form1.MemoTrxDetails.Text:= form1.MemoTrxDetails.Text+' (Address deleted from summary)';//' (Address deleted from summary)'
       end;
    form1.MemoTrxDetails.SelStart:=0;
    end;
@@ -3052,7 +3040,7 @@ Begin
 if ListaDirecciones[DireccionesPanel.Row-1].custom <> '' then
   Clipboard.AsText:= ListaDirecciones[DireccionesPanel.Row-1].custom
 else Clipboard.AsText:= ListaDirecciones[DireccionesPanel.Row-1].Hash;
-info(LangLine(87));//'Copied to clipboard'
+info('Copied to clipboard');//'Copied to clipboard'
 End;
 
 // Abre el panel para enviar coins
@@ -4035,15 +4023,15 @@ if GridMyTxs.Row>0 then
    if GridMyTxs.Cells[2,GridMyTxs.Row] = 'TRFR' then
       Begin
       if GridMyTxs.Cells[10,GridMyTxs.Row] = 'YES' then // Own transaction'
-        extratext :=LangLine(75); //' (OWN)'
+        extratext :=' (OWN)'; //' (OWN)'
       if GridMyTxs.Cells[7,GridMyTxs.Row] <> 'null' then
          referencetoshow := GridMyTxs.Cells[7,GridMyTxs.Row];
       MemoTrxDetails.Text:=
       GridMyTxs.Cells[4,GridMyTxs.Row]+SLINEBREAK+                    //order ID
-      LangLine(76)+AddrText(GridMyTxs.Cells[6,GridMyTxs.Row])+SLINEBREAK+      //'Receiver : '
-      LangLine(77)+GridMyTxs.Cells[3,GridMyTxs.Row]+extratext+SLINEBREAK+  //'Ammount  : '
+      'Receiver : '+AddrText(GridMyTxs.Cells[6,GridMyTxs.Row])+SLINEBREAK+      //'Receiver : '
+      'Ammount  : '+GridMyTxs.Cells[3,GridMyTxs.Row]+extratext+SLINEBREAK+  //'Ammount  : '
       'Reference : '+referencetoshow+SLINEBREAK+    //'reference  : '
-      LangLine(79)+GridMyTxs.Cells[9,GridMyTxs.Row]+SLINEBREAK+      //'Transfers: '
+      'Transfers: '+GridMyTxs.Cells[9,GridMyTxs.Row]+SLINEBREAK+      //'Transfers: '
       GetCommand(GridMyTxs.Cells[8,GridMyTxs.Row])+SLINEBREAK;
       if StrToIntDef(GridMyTxs.Cells[9,GridMyTxs.Row],1)> 1 then // añadir mas trfids
          for cont := 2 to StrToIntDef(GridMyTxs.Cells[9,GridMyTxs.Row],1) do
@@ -4052,27 +4040,27 @@ if GridMyTxs.Row>0 then
    if GridMyTxs.Cells[2,GridMyTxs.Row] = 'MINE' then
       Begin
       MemoTrxDetails.Text:=
-      LangLine(80)+GridMyTxs.Cells[0,GridMyTxs.Row]+SLINEBREAK+ //'Mined    : '
-      LangLine(76)+AddrText(GridMyTxs.Cells[6,GridMyTxs.Row])+SLINEBREAK+   //'Receiver : '
-      LangLine(77)+GridMyTxs.Cells[3,GridMyTxs.Row];   //'Ammount  : '
+      'Mined    : '+GridMyTxs.Cells[0,GridMyTxs.Row]+SLINEBREAK+ //'Mined    : '
+      'Receiver : '+AddrText(GridMyTxs.Cells[6,GridMyTxs.Row])+SLINEBREAK+   //'Receiver : '
+      'Ammount  : '+GridMyTxs.Cells[3,GridMyTxs.Row];   //'Ammount  : '
       end;
    if GridMyTxs.Cells[2,GridMyTxs.Row] = 'CUSTOM' then
       Begin
       MemoTrxDetails.Text:=
-      LangLine(81)+SLINEBREAK+                   //'Address customization'
-      LangLine(82)+ListaDirecciones[DireccionEsMia(GridMyTxs.Cells[6,GridMyTxs.Row])].Hash+SLINEBREAK+//'Address  : '
-      LangLine(83)+ListaDirecciones[DireccionEsMia(GridMyTxs.Cells[6,GridMyTxs.Row])].Custom+SLINEBREAK+//'Alias    : '
+      'Address customization'+SLINEBREAK+                   //'Address customization'
+      'Address  : '+ListaDirecciones[DireccionEsMia(GridMyTxs.Cells[6,GridMyTxs.Row])].Hash+SLINEBREAK+//'Address  : '
+      'Alias    : '+ListaDirecciones[DireccionEsMia(GridMyTxs.Cells[6,GridMyTxs.Row])].Custom+SLINEBREAK+//'Alias    : '
       'Amount   : '+Int2Curr(Customizationfee);
       end;
    if GridMyTxs.Cells[2,GridMyTxs.Row] = 'FEE' then
       begin
       MemoTrxDetails.Text:=
-      LangLine(84)+SLINEBREAK+   //'Maintenance fee'
-      LangLine(82)+GridMyTxs.Cells[6,GridMyTxs.Row]+SLINEBREAK+  //'Address  : '
-      LangLine(85)+GridMyTxs.Cells[7,GridMyTxs.Row]+SLINEBREAK+  //'Interval : '
-      LangLine(77)+GridMyTxs.Cells[3,GridMyTxs.Row]; //'Ammount  : '
+      'Maintenance fee'+SLINEBREAK+   //'Maintenance fee'
+      'Address  : '+GridMyTxs.Cells[6,GridMyTxs.Row]+SLINEBREAK+  //'Address  : '
+      'Interval : '+GridMyTxs.Cells[7,GridMyTxs.Row]+SLINEBREAK+  //'Interval : '
+      'Ammount  : '+GridMyTxs.Cells[3,GridMyTxs.Row]; //'Ammount  : '
       if GridMyTxs.Cells[8,GridMyTxs.Row] = 'YES' then
-        MemoTrxDetails.Text:= MemoTrxDetails.Text+LangLine(86);//' (Address deleted from summary)'
+        MemoTrxDetails.Text:= MemoTrxDetails.Text+' (Address deleted from summary)';//' (Address deleted from summary)'
       end;
    MemoTrxDetails.SelStart:=0;
    end;

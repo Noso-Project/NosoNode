@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, Dialogs, Forms, nosotime, FileUtil, LCLType,
-  lclintf, controls, mpCripto, mpBlock, Zipper, mpLang, mpcoin, mpMn,
+  lclintf, controls, mpCripto, mpBlock, Zipper, mpcoin, mpMn,
   {$IFDEF WINDOWS}Win32Proc, {$ENDIF}
   translation, strutils;
 
@@ -44,8 +44,6 @@ Procedure ExtractPoFiles();
 Procedure CreateFileFromResource(resourcename,filename:string);
 Procedure ToLog(Texto:string);
 Procedure SaveLog();
-Procedure CrearIdiomaFile();
-Procedure CargarIdioma(numero:integer);
 Procedure CrearBotData();
 Procedure DepurarBots();
 Procedure CargarBotData();
@@ -114,7 +112,6 @@ Procedure VerificarArchivos();
 var
   contador : integer;
 Begin
-LoadDefLangList();
 if not directoryexists(BlockDirectory) then CreateDir(BlockDirectory);
 OutText('✓ Block folder ok',false,1);
 if not directoryexists(UpdatesDirectory) then CreateDir(UpdatesDirectory);
@@ -679,79 +676,6 @@ else if IOCode = 5 then
 setmilitime('SaveLog',2);
 End;
 
-// Creates the default language file
-Procedure CrearIdiomaFile();
-Begin
-   try
-   CrearArchivoLang();
-   CargarIdioma(0);
-   ConsoleLinesAdd(LangLine(18));  // Default language file created.
-   OutText('✓ Language file created',false,1);
-   Except on E:Exception do
-      tolog ('Error creating default language file');
-   end;
-End;
-
-// Loads an specified language
-Procedure CargarIdioma(numero:integer);
-var
-  archivo : file of string[255];
-  datoleido : string[255] = '';
-  Idiomas : integer = 0;
-  StartPos : integer = 0;
-  Registros : integer = 0;
-  Lineas : integer = 0;
-  contador : integer = 0;
-Begin
-   try
-   if FileExists(LanguageFileName) then
-      begin
-      AssignFile(Archivo,LanguageFileName);
-      reset(archivo);
-      Registros := filesize(archivo);
-      seek(archivo,0);read(archivo,datoleido);
-      idiomas := CadToNum(Datoleido,1,'Failed Converting language number: '+Datoleido);
-      if numero > Idiomas-1 then // El idioma especificado no existe
-         begin
-         closefile(archivo);
-         exit;
-         end;
-      StringListLang.Clear;
-      IdiomasDisponibles.Clear;
-      for contador := 1 to idiomas do
-         begin
-         seek(archivo,contador);read(archivo,datoleido);
-         IdiomasDisponibles.Add(datoleido);
-         end;
-      seek(archivo,1+numero);read(archivo,datoleido);
-      CurrentLanguage := datoleido;
-      Lineas := (Registros - 1 - idiomas) div idiomas;
-      LanguageLines := lineas;
-      StartPos := (1+idiomas)+(lineas*numero);
-      for contador := 0 to lineas-1 do
-         begin
-         seek(archivo,startpos+contador);read(archivo,datoleido);
-         StringListLang.Add(datoleido);
-         end;
-      closefile(archivo);
-      if not G_Launching then
-         begin
-         InicializarGUI();
-         Form1.BNewAddr.Hint:=LAngLine(64);form1.BCopyAddr.Hint:=LAngLine(65);
-
-         end;
-      if G_Launching then OutText('✓ Language file loaded',false,1);
-      end
-   else // si el archivo no existe
-      begin
-      ConsoleLinesAdd('noso.lng not found');
-      tolog('noso.lng not found');
-      end
-   Except on E:Exception do
-      tolog ('Error loading language file');
-   end;
-End;
-
 // Creates bots file
 Procedure CrearBotData();
 Begin
@@ -1263,7 +1187,7 @@ var
 Begin
 assignfile(FileResumen,ResumenFilename);
 reset(FileResumen);
-ConsoleLinesAdd(LangLine(127)+IntToStr(untilblock)); //'Rebuilding until block '
+ConsoleLinesAdd('Rebuilding until block '+IntToStr(untilblock)); //'Rebuilding until block '
 contador := 0;
 while contador <= untilblock do
    begin
@@ -1275,7 +1199,7 @@ while contador <= untilblock do
       end;
    if ((contador = MyLastBlock) and (contador>0)) then
       LastHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock-1)+'.blk');
-   info(LangLine(127)+IntToStr(contador)); //'Rebuild block: '
+   info('Rebuild block: '+IntToStr(contador)); //'Rebuild block: '
    BlockHeader := LoadBlockDataHeader(contador);
    dato := default(ResumenData);
    seek(FileResumen,contador);
@@ -1324,7 +1248,7 @@ while filesize(FileResumen)> Untilblock+1 do  // cabeceras presenta un numero an
 closefile(FileResumen);
 if newblocks>0 then
    begin
-   ConsoleLinesAdd(IntToStr(newblocks)+LangLine(129)); //' added to headers'
+   ConsoleLinesAdd(IntToStr(newblocks)+' added to headers'); //' added to headers'
    U_Mytrxs := true;
    U_DirPanel := true;
    end;
@@ -1347,7 +1271,7 @@ StartBlock := ListaSumario[0].LastOP+1;
 finishblock := Mylastblock;
 for counter := StartBlock to finishblock do
    begin
-   info(LangLine(130)+inttoStr(counter));  //'Rebuilding sumary block: '
+   info('Rebuilding summary block: '+inttoStr(counter));  //'Rebuilding sumary block: '
    application.ProcessMessages;
    EngineLastUpdate := UTCTime;
    AddBlockToSumary(counter, false);
@@ -1471,7 +1395,7 @@ for contador := 1 to UntilBlock do
    begin
    if contador mod 10 = 0 then
       begin
-      info(LangLine(130)+inttoStr(contador));  //'Rebuilding sumary block: '
+      info('Rebuilding summary block: '+inttoStr(contador));  //'Rebuilding sumary block: '
       EngineLastUpdate := UTCTime;
       application.ProcessMessages;
       end;
@@ -1541,7 +1465,7 @@ if GVTsTrfer>0 then
    end;
 UpdateMyData();
 SetCurrentJob('RebuildSumario',true);
-ConsoleLinesAdd(LangLine(131));  //'Sumary rebuilded.'
+ConsoleLinesAdd('Summary rebuilded.');  //'Sumary rebuilded.'
 end;
 
 // adds a header at the end of headers file

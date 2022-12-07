@@ -193,7 +193,7 @@ KeepServerOn := true;
 PortNumber := StrToIntDef(MN_Port,8080);
 if Form1.Server.Active then
    begin
-   ConsoleLinesAdd(LangLine(160)); //'Server Already active'
+   ConsoleLinesAdd('Server Already active'); //'Server Already active'
    end
 else
    begin
@@ -202,11 +202,11 @@ else
       Form1.Server.Bindings.Clear;
       Form1.Server.DefaultPort:=PortNumber;
       Form1.Server.Active:=true;
-      ConsoleLinesAdd(LangLine(14)+PortNumber.ToString);   //Server ENABLED. Listening on port
+      ConsoleLinesAdd('Server ENABLED. Listening on port '+PortNumber.ToString);   //Server ENABLED. Listening on port
       ServerStartTime := UTCTime;
       U_DataPanel := true;
       EXCEPT on E : Exception do
-        ToLog(LangLine(15));       //Unable to start Server
+        ToLog('Unable to start Server');       //Unable to start Server
       END; {TRY}
    end;
 End;
@@ -230,7 +230,7 @@ if MyConStatus < 3 then
 KeepServerOn := true;
 if Form1.Server.Active then
    begin
-   ConsoleLinesAdd(LangLine(160)); //'Server Already active'
+   ConsoleLinesAdd('Server Already active'); //'Server Already active'
    end
 else
    begin
@@ -239,12 +239,12 @@ else
       Form1.Server.Bindings.Clear;
       Form1.Server.DefaultPort:=PortNumber;
       Form1.Server.Active:=true;
-      ConsoleLinesAdd(LangLine(14)+PortNumber.ToString);   //Server ENABLED. Listening on port
+      ConsoleLinesAdd('Server ENABLED. Listening on port '+PortNumber.ToString);   //Server ENABLED. Listening on port
       ServerStartTime := UTCTime;
       U_DataPanel := true;
       except
       on E : Exception do
-        ToLog(LangLine(15));       //Unable to start Server
+        ToLog('Unable to start Server');       //Unable to start Server
       end;
    end;
 End;
@@ -260,7 +260,7 @@ SetCurrentJob('StopServer',true);
 KeepServerOn := false;
    TRY
    Form1.Server.Active:=false;
-   ConsoleLinesAdd(LangLine(16));             //Server stopped
+   ConsoleLinesAdd('Server stopped');             //Server stopped
    U_DataPanel := true;
    EXCEPT on E:Exception do
       begin
@@ -314,7 +314,7 @@ SetCurrentJob('ConnectToServers',true);
 setmilitime('ConnectToServers',1);
 if not CONNECT_Try then
    begin
-   ToLog(LangLine(162)); //'Trying connection to servers'
+   ToLog('Trying connection to servers'); //'Trying connection to servers'
    CONNECT_Try := true;
    end;
 if OutGoing >= MaxOutgoingConnections then proceder := false;
@@ -441,7 +441,7 @@ ConContext := Default(TIdContext);
 Slot := ReserveSlot();
 if Address = '127.0.0.1' then
    begin
-   ToLog(LangLine(29));    //127.0.0.1 is an invalid server address
+   ToLog('127.0.0.1 is an invalid server address');    //127.0.0.1 is an invalid server address
    SetCurrentJob('ConnectClient',false);
    errored := true;
    end
@@ -480,7 +480,7 @@ if not errored then
    if connectok then
       begin
       SavedSlot := SaveConection('SER',Address,ConContext,slot);
-      ToLog(LangLine(30)+Address);          //Connected TO:
+      ToLog('Connected TO: '+Address);          //Connected TO:
       Conexiones[slot].Thread := TThreadClientRead.Create(true, slot);
       Conexiones[slot].Thread.FreeOnTerminate:=true;
       Conexiones[slot].Thread.Start;
@@ -567,7 +567,7 @@ for contador := 1 to Maxconecciones do
      if ( (UTCTime > StrToInt64Def(conexiones[contador].lastping,0)+15) and
         (not conexiones[contador].IsBusy) and (not REbuildingSumary) )then
         begin
-        ToLog(LangLine(32)+conexiones[contador].ip);   //Conection closed: Time Out Auth ->
+        ToLog('Conection closed: Time Out Auth -> '+conexiones[contador].ip);   //Conection closed: Time Out Auth ->
         CerrarSlot(contador);
         end;
      if conexiones[contador].IsBusy then conexiones[contador].lastping := UTCTimeStr;
@@ -616,7 +616,7 @@ if NumeroConexiones = 0 then  // Desconeectado
    if STATUS_Connected then
       begin
       STATUS_Connected := false;
-      ConsoleLinesAdd(LangLine(33));       //Disconnected
+      ConsoleLinesAdd('Disconnected.');       //Disconnected
       G_TotalPings := 0;
       NetSumarioHash.Value:='';
       NetLastBlock.Value:='?';
@@ -632,7 +632,7 @@ if ((NumeroConexiones>0) and (NumeroConexiones<MinConexToWork) and (MyConStatus 
    begin
    MyConStatus:=1;
    G_LastPing := UTCTime;
-   ConsoleLinesAdd(LangLine(34)); //Connecting...
+   ConsoleLinesAdd('Connecting...'); //Connecting...
    Form1.imagenes.GetBitmap(2,form1.ConnectButton.Glyph);
    end;
 if MyConStatus > 0 then
@@ -648,7 +648,7 @@ if ((NumeroConexiones>=MinConexToWork) and (MyConStatus<2) and (not STATUS_Conne
    STATUS_Connected := true;
    MyConStatus := 2;
    SetNMSData('','','','','','');
-   ConsoleLinesAdd(LangLine(35));     //Connected
+   ConsoleLinesAdd('Connected.');     //Connected
    end;
 if STATUS_Connected then
    begin
@@ -662,7 +662,7 @@ if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLa
    SetNMSData('','','','','','');
    MyConStatus := 3;
    U_Mytrxs := true;
-   ConsoleLinesAdd(LangLine(36));   //Updated!
+   ConsoleLinesAdd('Updated!');   //Updated!
    if RPCAuto then  ProcessLinesAdd('RPCON');
    if StrToIntDef(NetPendingTrxs.Value,0)<GetPendingCount then
       begin
@@ -1013,7 +1013,7 @@ if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // Req
       if ( (NLBV-mylastblock >= 144) or (ForceCompleteHeadersDownload) ) then
          begin
          PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
-         ConsoleLinesAdd(LangLine(163)); //'Headers file requested'
+         ConsoleLinesAdd('Headers file requested'); //'Headers file requested'
          LastTimeRequestResumen := UTCTime;
          end
       else // If less than 144 block just update heades
@@ -1034,12 +1034,12 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  /
    if ((LastTimeRequestBlock+5<UTCTime)and (not DownLoadBlocks)) then
       begin
       PTC_SendLine(NetResumenHash.Slot,ProtocolLine(8)); // lastblock
-      if WO_FullNode then ConsoleLinesAdd(LangLine(164)+IntToStr(mylastblock)) //'LastBlock requested from block '
+      if WO_FullNode then ConsoleLinesAdd('LastBlock requested from block '+IntToStr(mylastblock)) //'LastBlock requested from block '
       else
          begin
          LastDownBlock := NLBV-SecurityBlocks;
          if LastDownBlock<MyLastBlock then LastDownBlock:=MyLastBlock;
-         ConsoleLinesAdd(LangLine(164)+IntToStr(LastDownBlock));
+         ConsoleLinesAdd('LastBlock requested from block '+IntToStr(LastDownBlock));
          end;
       LastTimeRequestBlock := UTCTime;
       end;
@@ -1078,7 +1078,7 @@ else if ((MyResumenhash <> NetResumenHash.Value) and (NLBV=mylastblock) and (MyL
    ClearAllPending;
    SetNMSData('','','','','','');
    PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
-   ConsoleLinesAdd(LangLine(163)); //'Headers file requested'
+   ConsoleLinesAdd('Headers file requested'); //'Headers file requested'
    LastTimeRequestResumen := UTCTime;
    end
 else if ( (StrToIntDef(NetMNsCount.Value,0)>GetMNsListLength) and (LastTimeMNsRequested+5<UTCTime)

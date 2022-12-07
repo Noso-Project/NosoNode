@@ -33,7 +33,6 @@ Procedure AutoServerOFF();
 Procedure AutoConnectON();
 Procedure AutoConnectOFF();
 Procedure ShowWallet();
-Procedure EnviarUpdate(LineText:string);
 Procedure ImportarWallet(LineText:string);
 Procedure ExportarWallet(LineText:string);
 Procedure ShowBlchHead(number:integer);
@@ -48,7 +47,6 @@ Procedure Parse_SendGVT(LineText:string);
 Function SendGVT(LineText:string;showOutput:boolean=true):string;
 Procedure ShowHalvings();
 Procedure GroupCoins(linetext:string);
-Procedure ImportLanguage(linetext:string);
 Procedure SetServerPort(LineText:string);
 Procedure Sha256(LineText:string);
 Procedure TestParser(LineText:String);
@@ -197,8 +195,7 @@ var
 begin
 Command :=GetCommand(Linetext);
 if not AnsiContainsStr(HideCommands,Uppercase(command)) then ConsoleLinesAdd('>> '+Linetext);
-if UpperCase(Command) = 'LANG' then Language(linetext)
-else if UpperCase(Command) = 'VER' then ConsoleLinesAdd(ProgramVersion+SubVersion)
+if UpperCase(Command) = 'VER' then ConsoleLinesAdd(ProgramVersion+SubVersion)
 else if UpperCase(Command) = 'SERVERON' then StartServer()
 else if UpperCase(Command) = 'SERVEROFF' then StopServer()
 else if UpperCase(Command) = 'FORCESERVER' then ForceServer()
@@ -208,7 +205,7 @@ else if UpperCase(Command) = 'SLOTS' then ShowSlots()
 else if UpperCase(Command) = 'CONNECT' then ConnectToServers()
 else if UpperCase(Command) = 'DISCONNECT' then CerrarClientes()
 else if UpperCase(Command) = 'OFFSET' then ConsoleLinesAdd('Server: '+NosoT_LastServer+SLINEBREAK+
-  LangLine(17)+IntToStr(NosoT_TimeOffset)+slinebreak+'Last update : '+TimeSinceStamp(NosoT_LastUpdate))
+  'Time offset seconds: '+IntToStr(NosoT_TimeOffset)+slinebreak+'Last update : '+TimeSinceStamp(NosoT_LastUpdate))
 else if UpperCase(Command) = 'NEWADDRESS' then NuevaDireccion(linetext)
 else if UpperCase(Command) = 'USEROPTIONS' then ShowUser_Options()
 else if UpperCase(Command) = 'BALANCE' then ConsoleLinesAdd(Int2Curr(GetWalletBalance)+' '+CoinSimbol)
@@ -219,7 +216,6 @@ else if UpperCase(Command) = 'AUTOSERVEROFF' then AutoServerOFF()
 else if UpperCase(Command) = 'AUTOCONNECTON' then AutoConnectON()
 else if UpperCase(Command) = 'AUTOCONNECTOFF' then AutoConnectOFF()
 else if UpperCase(Command) = 'SHOWWALLET' then ShowWallet()
-else if UpperCase(Command) = 'SENDUPDATE' then EnviarUpdate(LineText)
 else if UpperCase(Command) = 'IMPWALLET' then ImportarWallet(LineText)
 else if UpperCase(Command) = 'EXPWALLET' then ExportarWallet(LineText)
 else if UpperCase(Command) = 'RESUMEN' then ShowBlchHead(StrToIntDef(Parameter(Linetext,1),MyLastBlock))
@@ -235,7 +231,6 @@ else if UpperCase(Command) = 'HALVING' then ShowHalvings()
 else if UpperCase(Command) = 'REBUILDSUMARY' then RebuildSumario(MyLastBlock)
 else if UpperCase(Command) = 'REBUILDHEADERS' then BuildHeaderFile(MyLastBlock)
 else if UpperCase(Command) = 'GROUPCOINS' then Groupcoins(linetext)
-else if UpperCase(Command) = 'IMPLANG' then ImportLanguage(LineText)
 else if UpperCase(Command) = 'SETPORT' then SetServerPort(LineText)
 else if UpperCase(Command) = 'SHA256' then Sha256(LineText)
 else if UpperCase(Command) = 'MD5' then ConsoleLinesAdd(HashMD5String(Parameter(LineText,1)))
@@ -337,7 +332,7 @@ else if UpperCase(Command) = 'NETPEERS' then ConsoleLinesAdd('Network peers: '+I
 //EXCHANGE
 else if UpperCase(Command) = 'POST' then PostOffer(LineText)
 
-else ConsoleLinesAdd(LangLine(0)+Command);  // Unknow command
+else ConsoleLinesAdd('Unknown command: '+Command);  // Unknow command
 end;
 
 // Obtiene el comando de una linea
@@ -425,7 +420,7 @@ var
 Begin
 for contador := 0 to length(ListadoBots) - 1 do
    ConsoleLinesAdd(IntToStr(contador)+'- '+ListadoBots[contador].ip);
-ConsoleLinesAdd(IntToStr(length(ListadoBots))+LangLine(45));  // bots registered
+ConsoleLinesAdd(IntToStr(length(ListadoBots))+' bots registered.');  // bots registered
 End;
 
 // muestra la informacion de los slots
@@ -433,7 +428,7 @@ Procedure ShowSlots();
 var
   contador : integer = 0;
 Begin
-ConsoleLinesAdd(LangLine(46)); //Number Type ConnectedTo ChannelUsed LinesOnWait SumHash LBHash Offset ConStatus
+ConsoleLinesAdd('Number Type ConnectedTo ChannelUsed LinesOnWait SumHash LBHash Offset ConStatus'); //Number Type ConnectedTo ChannelUsed LinesOnWait SumHash LBHash Offset ConStatus
 for contador := 1 to MaxConecciones do
    begin
    if IsSlotConnected(contador) then
@@ -490,7 +485,7 @@ S_AdvOpt := true;
 G_Launching := true;
 form1.CB_WO_ToTray.Checked:=true;
 G_Launching := false;
-ConsoleLinesAdd('Minimize to tray is now '+LangLine(48)); //GetNodes option is now  // INACTIVE
+ConsoleLinesAdd('Minimize to tray is now '+'ACTIVE'); //GetNodes option is now  // INACTIVE
 End;
 
 Procedure ToTrayOFF();
@@ -501,7 +496,7 @@ S_AdvOpt := false;
 G_Launching := true;
 form1.CB_WO_ToTray.Checked:=false;
 G_Launching := false;
-ConsoleLinesAdd('Minimize to tray is now '+LangLine(49)); //GetNodes option is now  // INACTIVE
+ConsoleLinesAdd('Minimize to tray is now '+'INACTIVE'); //GetNodes option is now  // INACTIVE
 End;
 
 // muestra el sumario completo
@@ -563,7 +558,7 @@ if NotValid>0 then
    ConsoleLinesAdd(NotValidStr);
    end;
 }
-ConsoleLinesAdd(IntToStr(Length(ListaSumario))+langline(51)); //addresses
+ConsoleLinesAdd(IntToStr(Length(ListaSumario))+' addresses.'); //addresses
 ConsoleLinesAdd(IntToStr(EmptyAddresses)+' empty.'); //addresses
 if NegAdds>0 then ConsoleLinesAdd('Possible issues: '+IntToStr(NegAdds));
 if DuplicatedCount>2 then
@@ -583,28 +578,28 @@ Procedure AutoServerON();
 Begin
 WO_autoserver := true;
 S_AdvOpt := true;
-ConsoleLinesAdd(LangLine(52)+LAngLine(48));   //autoserver //active
+ConsoleLinesAdd('AutoServer option is now '+'ACTIVE');   //autoserver //active
 End;
 
 Procedure AutoServerOFF();
 Begin
 WO_autoserver := false;
 S_AdvOpt := true;
-ConsoleLinesAdd(LangLine(52)+LAngLine(49));   //autoserver //inactive
+ConsoleLinesAdd('AutoServer option is now '+'INACTIVE');   //autoserver //inactive
 End;
 
 Procedure AutoConnectON();
 Begin
 WO_AutoConnect := true;
 S_AdvOpt := true;
-ConsoleLinesAdd(LangLine(53)+LAngLine(48));     //autoconnect // active
+ConsoleLinesAdd('Autoconnect option is now '+'ACTIVE');     //autoconnect // active
 End;
 
 Procedure AutoConnectOFF();
 Begin
 WO_AutoConnect := false;
 S_AdvOpt := true;
-ConsoleLinesAdd(LangLine(53)+LAngLine(49));    //autoconnect // inactive
+ConsoleLinesAdd('Autoconnect option is now '+'INACTIVE');    //autoconnect // inactive
 End;
 
 // muestra las direcciones de la cartera
@@ -616,73 +611,8 @@ for contador := 0 to length(ListaDirecciones)-1 do
    begin
    ConsoleLinesAdd(Listadirecciones[contador].Hash);
    end;
-ConsoleLinesAdd(IntToStr(Length(ListaDirecciones))+LangLine(51));
+ConsoleLinesAdd(IntToStr(Length(ListaDirecciones))+' addresses.');
 ConsoleLinesAdd(Int2Curr(GetWalletBalance)+' '+CoinSimbol);
-End;
-
-// enviar archivo de autoupdate
-Procedure EnviarUpdate(LineText:string);
-var
-  Version : string = '';
-  FileName : string = '';
-  FilenameHash : string = '';
-  TextToSend : String = '';
-  Contador : integer = 1;
-  MemStream   : TMemoryStream;
-  ClavePublica : string = '';
-  Firma : string = '';
-  Envios : integer = 0;
-  FileForSize : File Of byte;
-  ByPassed : boolean = false;
-Begin
-ClavePublica := Parameter (linetext,2);
-if GetAddressFromPublicKey(ClavePublica) = Adminhash then
-   begin
-   Bypassed := true;
-   FilenameHash := Parameter (linetext,3);
-   Firma := Parameter (linetext,4);
-   end;
-if ((DireccionEsMia(AdminHash)<0) and(not ByPassed)) then
-   begin
-   ConsoleLinesAdd(LangLine(54)); //Only the Noso developers can do this
-   exit;
-   end;
-version := Parameter (linetext,1);
-FileName := 'nosoupdate'+version+'.zip';
-if not fileexists(UpdatesDirectory+filename) then
-   begin
-   ConsoleLinesAdd(LangLine(55)+filename);   //The specified zip file not exists:
-   exit;
-   end;
-{temporal para probar como obtener el tamaño del archivo}
-Assign (FileForSize,UpdatesDirectory+filename);
-  Reset (FileForSize);
-  ConsoleLinesAdd ('File size in bytes : '+IntToStr(FileSize(FileForSize) div 1024)+' kb');
-  Close (FileForSize);
-{hasta aqui lo temporal}
-if not bypassed then FilenameHash := HashMD5File(UpdatesDirectory+filename);
-if not bypassed then ClavePublica := ListaDirecciones[DireccionEsMia(AdminHash)].PublicKey;
-if not bypassed then Firma := GetStringSigned(version+' '+FilenameHash,ListaDirecciones[DireccionEsMia(AdminHash)].PrivateKey);
-TextToSend := 'UPDATE '+Version+' '+FilenameHash+' '+ClavePublica+' '+firma;
-MemStream := TMemoryStream.Create;
-MemStream.LoadFromFile(UpdatesDirectory+Filename);
-For contador := 1 to maxconecciones do
-   begin
-   if conexiones[contador].tipo='CLI' then
-      begin
-      Conexiones[contador].context.Connection.IOHandler.WriteLn(TextToSend);
-      Conexiones[contador].context.connection.IOHandler.Write(MemStream,0,true);
-      Envios := envios + 1;
-      end;
-   if conexiones[contador].tipo='SER' then
-      begin
-      CanalCliente[contador].IOHandler.WriteLn(TextToSend);
-      CanalCliente[contador].IOHandler.Write(MemStream,0,true);
-      Envios := envios + 1;
-      end;
-   end;
-MemStream.Free;
-if envios = 0 then ConsoleLinesAdd(LangLine(56)) else ConsoleLinesAdd(LangLine(57)+intToStr(envios));   //Can not send the update file // Update file sent to peers:
 End;
 
 Procedure ExportarWallet(LineText:string);
@@ -718,7 +648,7 @@ Cartera := Parameter(linetext,1);
 Cartera := StringReplace(Cartera,'*',' ',[rfReplaceAll, rfIgnoreCase]);
 if not FileExists(cartera) then
    begin
-   ConsoleLinesAdd(langLine(60));//Specified wallet file do not exists.
+   ConsoleLinesAdd('Specified wallet file do not exists.');//Specified wallet file do not exists.
    exit;
    end;
 assignfile(CarteraFile,Cartera);
@@ -745,15 +675,15 @@ for contador := 0 to filesize(CarteraFile)-1 do
    end;
 closefile(CarteraFile);
 except on E:Exception  do
-ConsoleLinesAdd(LangLine(134)); //'The file is not a valid wallet'
+ConsoleLinesAdd('The file is not a valid wallet'); //'The file is not a valid wallet'
 end;
 if nuevos > 0 then
    begin
-   OutText(LangLine(135)+IntToStr(nuevos),false,2); //'Addresses imported: '
+   OutText('Addresses imported: '+IntToStr(nuevos),false,2); //'Addresses imported: '
    UpdateWalletFromSumario;
    ExecuteRebuildMyTrx();
    end
-else ConsoleLinesAdd(LangLine(136));  //'No new addreses found.'
+else ConsoleLinesAdd('No new addreses found.');  //'No new addreses found.'
 End;
 
 Procedure ShowBlchHead(number:integer);
@@ -792,16 +722,16 @@ var
 Begin
 Numero := StrToIntDef(Parameter(linetext,1),-1);
 if ((Numero < 0) or (numero > length(ListaDirecciones)-1)) then
-   OutText(LangLine(137),false,2)  //'Invalid address number.'
+   OutText('Invalid address number.',false,2)  //'Invalid address number.'
 else if numero = 0 then
-   OutText(LangLine(138),false,2) //'Address 0 is already the default.'
+   OutText('Address 0 is already the default.',false,2) //'Address 0 is already the default.'
 else
    begin
    OldData := ListaDirecciones[0];
    NewData := ListaDirecciones[numero];
    ListaDirecciones[numero] := OldData;
    ListaDirecciones[0] := NewData;
-   OutText(LangLine(139)+NewData.Hash,false,2); //'New default address: '
+   OutText('New default address: '+NewData.Hash,false,2); //'New default address: '
    S_Wallet := true;
    U_DirPanel := true;
    end;
@@ -863,32 +793,32 @@ address := Parameter(linetext,1);
 AddAlias := Parameter(linetext,2);
 if DireccionEsMia(address)<0 then
    begin
-   ConsoleLinesAdd(LAngLine(140));  //'Invalid address'
+   ConsoleLinesAdd('Invalid address');  //'Invalid address'
    procesar := false;
    end;
 if ListaDirecciones[DireccionEsMia(address)].Custom <> '' then
    begin
-   ConsoleLinesAdd(LangLine(141)); //'Address already have a custom alias'
+   ConsoleLinesAdd('Address already have a custom alias'); //'Address already have a custom alias'
    procesar := false;
    end;
 if ( (length(AddAlias)<5) or (length(AddAlias)>40) ) then
    begin
-   OutText(LangLine(142),false,2); //'Alias must have between 5 and 40 chars'
+   OutText('Alias must have between 5 and 40 chars',false,2); //'Alias must have between 5 and 40 chars'
    procesar := false;
    end;
 if IsValidHashAddress(addalias) then
    begin
-   ConsoleLinesAdd(LangLine(143)); //'Alias can not be a valid address'
+   ConsoleLinesAdd('Alias can not be a valid address'); //'Alias can not be a valid address'
    procesar := false;
    end;
 if ListaDirecciones[DireccionEsMia(address)].Balance < Customizationfee then
    begin
-   ConsoleLinesAdd(LangLine(144)); //'Insufficient balance'
+   ConsoleLinesAdd('Insufficient balance'); //'Insufficient balance'
    procesar := false;
    end;
 if AddressAlreadyCustomized(Address) then
    begin
-   ConsoleLinesAdd(LangLine(141)); //'Address already have a custom alias'
+   ConsoleLinesAdd('Address already have a custom alias'); //'Address already have a custom alias'
    procesar := false;
    end;
 if AliasAlreadyExists(addalias) then
@@ -961,7 +891,7 @@ amount       := Parameter(Linetext,2);
 reference    := Parameter(Linetext,3);
 if ((Destination='') or (amount='')) then
    begin
-   if showOutput then ConsoleLinesAdd(LAngLine(145)); //'Invalid parameters.'
+   if showOutput then ConsoleLinesAdd('Invalid parameters.'); //'Invalid parameters.'
    Procesar := false;
    end;
 if not IsValidHashAddress(Destination) then
@@ -969,7 +899,7 @@ if not IsValidHashAddress(Destination) then
    AliasIndex:=AddressSumaryIndex(Destination);
    if AliasIndex<0 then
       begin
-      if showOutput then ConsoleLinesAdd(LangLine(146)); //'Invalid destination.'
+      if showOutput then ConsoleLinesAdd('Invalid destination.'); //'Invalid destination.'
       Procesar := false;
       end
    else Destination := ListaSumario[aliasIndex].Hash;
@@ -978,7 +908,7 @@ monto := StrToInt64Def(amount,-1);
 if reference = '' then reference := 'null';
 if monto<=10 then
    begin
-   if showOutput then ConsoleLinesAdd(LangLine(147)); //'Invalid ammount.'
+   if showOutput then ConsoleLinesAdd('Invalid ammount.'); //'Invalid ammount.'
    Procesar := false;
    end;
 if procesar then
@@ -991,7 +921,7 @@ if procesar then
    else CoinsAvailable := GetWalletBalance;
    if Restante > CoinsAvailable then
       begin
-      if showOutput then ConsoleLinesAdd(LAngLine(148)+Int2curr(Monto+comision));//'Insufficient funds. Needed: '
+      if showOutput then ConsoleLinesAdd('Insufficient funds. Needed: '+Int2curr(Monto+comision));//'Insufficient funds. Needed: '
       Procesar := false;
       end;
    end;
@@ -1092,7 +1022,7 @@ if not IsValidHashAddress(Destination) then
    AliasIndex:=AddressSumaryIndex(Destination);
    if AliasIndex<0 then
       begin
-      if showOutput then ConsoleLinesAdd(LangLine(146)); //'Invalid destination.'
+      if showOutput then ConsoleLinesAdd('Invalid destination.'); //'Invalid destination.'
       Exit;
       end
    else Destination := ListaSumario[aliasIndex].Hash;
@@ -1153,12 +1083,12 @@ for contador := 0 to HalvingSteps do
    block2 := (BlockHalvingInterval*(contador+1))-1;
    reward := InitialReward div StrToInt64(BMExponente('2',IntToStr(contador)));
    MarketCap := marketcap+(reward*BlockHalvingInterval);
-   Texto := LangLine(149)+IntToStr(block1)+LangLine(150)+IntToStr(block2)+': '+Int2curr(reward); //'From block '+' until '
+   Texto :='From block '+IntToStr(block1)+' until '+IntToStr(block2)+': '+Int2curr(reward); //'From block '+' until '
    ConsoleLinesAdd(Texto);
    end;
-ConsoleLinesAdd(LangLine(151)+int2curr(0)); //'And then '
+ConsoleLinesAdd('And then '+int2curr(0)); //'And then '
 MarketCap := MarketCap+PremineAmount-InitialReward; // descuenta una recompensa inicial x bloque 0
-ConsoleLinesAdd(LangLine(152)+int2curr(MarketCap)); //'Final supply: '
+ConsoleLinesAdd('Final supply: '+int2curr(MarketCap)); //'Final supply: '
 End;
 
 // Muestra y procesa el monto a agrupar en la direccion principal
@@ -1172,112 +1102,14 @@ Proceder := Parameter(linetext,1);
 if length(listaDirecciones)>0 then
   for cont := 1 to length(listaDirecciones)-1 do
     Total += GetAddressBalance(ListaDirecciones[cont].Hash);
-ConsoleLinesAdd(LangLine(153)+Int2curr(Total)+' '+Coinsimbol); //'Coins to group: '
+ConsoleLinesAdd('Coins to group: '+Int2curr(Total)+' '+Coinsimbol); //'Coins to group: '
 if uppercase(Proceder) = 'DO' then
    begin
    if Total = 0 then
-     ConsoleLinesAdd(LangLine(154)) //'You do not have coins to group.'
+     ConsoleLinesAdd('You do not have coins to group.') //'You do not have coins to group.'
    else
      ProcessLinesAdd('SENDTO '+Listadirecciones[0].Hash+' '+IntToStr(GetMaximunToSend(Total)));
    end;
-End;
-
-// Importar un archivo de traduccion
-Procedure ImportLanguage(linetext:string);
-var
-  Nombrearchivo : string;
-  Archivo : Textfile;
-  Idiomas : integer;
-  Original : string[255];
-  linea : string[255];
-  NombreIdioma : string;
-  arrayofstrings : array of string;
-  archivo2 : file of string[255];
-  contador : integer;
-  ListaDeIdiomas : array of string;
-  LineasViejas : array of string;
-Begin
-ConsoleLinesAdd('Function deprecated');
-{
-Nombrearchivo := parameter(linetext,1);
-Nombrearchivo := StringReplace(Nombrearchivo,'*',' ',[rfReplaceAll, rfIgnoreCase]);
-if ((nombrearchivo='') or (not fileexists(Nombrearchivo))) then
-   begin
-   ConsoleLinesAdd('Invalid file name');
-   exit;
-   end;
-assignfile(archivo,Nombrearchivo);
-reset(archivo);
-readln(archivo);readln(archivo);readln(archivo);readln(archivo);
-// leer nombre del nuevo idioma
-readln(archivo,NombreIdioma);
-if NombreIDioma = '' then
-  begin
-  closefile(archivo);
-  ConsoleLinesAdd('Empty file');
-  exit;
-  end;
-setlength(arrayofstrings,0);
-// leer lineas del nuevo idioma
-while not eof(archivo) do
-   begin
-   ReadLn(archivo,original);
-   ReadLn(archivo,linea);
-   if ((Original[1] = ' ') and (Linea[1] <> ' ')) then
-     linea := ' '+linea;
-   if ((Original[length(original)] = ' ') and (Linea[length(linea)] <> ' ')) then
-     linea := linea+' ';
-   insert(linea,arrayofstrings,length(arrayofstrings));
-   end;
-closefile(archivo);
-if length(arrayofstrings) <> DLSL.Count-2 then
-   begin
-   ConsoleLinesAdd('The file is not valid. Lines/Expected: '+
-                    IntToStr(length(arrayofstrings))+'/'+IntToStr(DLSL.Count-2));
-   exit;
-   end;
-assignfile(archivo2,LanguageFileName);
-reset(archivo2);
-read(archivo2,linea); // leer la cantidad de idiomas ya instalados
-Idiomas := StrToIntDef(linea,1)+1;
-setlength(ListaDeIdiomas,0);
-// leer los idiomas preexistentes
-for contador := 1 to idiomas-1 do
-   begin
-   seek(archivo2,contador);
-   read(archivo2,linea);
-   if linea = NombreIdioma then
-      begin
-      closefile(archivo2);
-      ConsoleLinesAdd(Nombreidioma+' already loaded');
-      exit;
-      end;
-   insert(linea,ListaDeIdiomas,length(ListaDeIdiomas));
-   end;
-insert(NombreIdioma,ListaDeIdiomas,length(ListaDeIdiomas));
-// leer las lineas preexistentes
-Setlength(LineasViejas,0);
-for contador := idiomas to filesize(archivo2)-1 do
-   begin
-   seek(archivo2,contador);
-   read(archivo2,linea);
-   insert(linea,LineasViejas,length(LineasViejas));
-   end;
-closefile(archivo2);
-insert(arrayofstrings,LineasViejas,length(LineasViejas));
-insert(LineasViejas,ListaDeIdiomas,length(ListaDeIdiomas));
-rewrite(archivo2);
-write(archivo2,intToStr(idiomas));
-for contador := 1 to length(ListaDeIdiomas) do
-   begin
-   seek(archivo2,contador);
-   write(archivo2,ListaDeIdiomas[contador-1]);
-   end;
-closefile(archivo2);
-CargarIdioma(idiomas-1);
-InicializarGUI();
-ConsoleLinesAdd('Loaded: '+NombreIdioma);
-}
 End;
 
 // cambia el puerto de escucha
@@ -1496,7 +1328,7 @@ Procedure SendAdminMessage(linetext:string);
 var
   mensaje,currtime, firma, hashmsg : string;
 Begin
-if (DireccionEsMia(AdminHash)<0) then ConsoleLinesAdd(LangLine(54)) //Only the Noso developers can do this
+if (DireccionEsMia(AdminHash)<0) then ConsoleLinesAdd('Only the Noso developers can do this.') //Only the Noso developers can do this
 else
    begin
    mensaje := copy(linetext,11,length(linetext));

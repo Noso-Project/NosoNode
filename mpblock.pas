@@ -38,7 +38,7 @@ Uses
 Procedure CrearBloqueCero();
 Begin
 BuildNewBlock(0,GenesysTimeStamp,'',adminhash,'');
-if G_Launching then ConsoleLinesAdd(LangLine(88)); //'Block 0 created.'
+if G_Launching then ConsoleLinesAdd('Block GENESYS (0) created.'); //'Block 0 created.'
 if G_Launching then OutText('✓ Block 0 created',false,1);
 End;
 
@@ -382,7 +382,7 @@ if not errored then
       begin
       OutgoingMsjsAdd(ProtocolLine(ping));
       end;
-   OutText(LangLine(89)+IntToStr(numero),true);  //'Block builded: '
+   OutText('Block built: '+IntToStr(numero),true);  //'Block builded: '
 
    if Numero > 0 then RebuildMyTrx(Numero);
    CheckForMyPending;
@@ -507,7 +507,7 @@ MemStr := TMemoryStream.Create;
    MemStr.SaveToFile(NombreArchivo);
    EXCEPT On E :Exception do
       begin
-      ConsoleLinesAdd(LangLine(20));           //Error saving block to disk
+      ConsoleLinesAdd('Error saving block to disk: '+E.Message);
       result := false;
       end;
    END{Try};
@@ -700,7 +700,7 @@ MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
 LastBlockData := LoadBlockDataHeader(MyLastBlock);
 MyResumenHash := HashMD5File(ResumenFilename);
 ConsoleLinesAdd('****************************');
-ConsoleLinesAdd(LAngLine(90)+IntToStr(blocknumber)); //'Block undone: '
+ConsoleLinesAdd('Block undone: '+IntToStr(blocknumber)); //'Block undone: '
 ConsoleLinesAdd('****************************');
 Tolog('Block Undone: '+IntToStr(blocknumber));
 U_DataPanel := true;

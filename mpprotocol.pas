@@ -299,7 +299,7 @@ for contador := 1 to MaxConecciones do
       if ((not IsValidProtocol(ProcessLine)) and (not Conexiones[contador].Autentic)) then
          // La linea no es valida y proviene de una conexion no autentificada
          begin
-         ConsoleLinesAdd(LangLine(22)+conexiones[contador].ip+'->'+ProcessLine); //CONNECTION REJECTED: INVALID PROTOCOL ->
+         ConsoleLinesAdd('CONNECTION REJECTED: INVALID PROTOCOL -> '+conexiones[contador].ip+'->'+ProcessLine); //CONNECTION REJECTED: INVALID PROTOCOL ->
          UpdateBotData(conexiones[contador].ip);
          CerrarSlot(contador);
          end
@@ -346,7 +346,7 @@ for contador := 1 to MaxConecciones do
 
       else
          Begin  // El comando recibido no se reconoce. Verificar protocolos posteriores.
-         ConsoleLinesAdd(LangLine(23)+ProcessLine+') '+intToStr(contador)); //Unknown command () in slot: (
+         ConsoleLinesAdd('Unknown command () in slot: ('+ProcessLine+') '+intToStr(contador)); //Unknown command () in slot: (
          end;
       end;
    end;
@@ -609,7 +609,6 @@ if conexiones[slot].tipo='SER' then
    end;
 MemStream.Free;
 SetCurrentJob('PTC_SendResumen',false);
-//ConsoleLinesAdd(LangLine(91));//'Headers file sent'
 End;
 
 Procedure PTC_SendSumary(Slot:int64);
@@ -647,7 +646,6 @@ if conexiones[slot].tipo='SER' then
    end;
 MemStream.Free;
 SetCurrentJob('PTC_SendSumary',false);
-//ConsoleLinesAdd(LangLine(91));//'Headers file sent'
 End;
 
 // Zips the sumary file
@@ -954,7 +952,6 @@ for cont := 0 to NumTransfers-1 do
       end;
    if pos(SendersString,SenderTrx[cont]) > 0 then
       begin
-      //ConsoleLinesAdd(LangLine(94)); //'Duplicate sender in order'
       Proceder:=false; // hay una direccion de envio repetida
       ErrorCode := 99;
       end;

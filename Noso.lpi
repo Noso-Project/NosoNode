@@ -139,7 +139,7 @@
         <PackageName Value="LCL"/>
       </Item7>
     </RequiredPackages>
-    <Units Count="18">
+    <Units Count="17">
       <Unit0>
         <Filename Value="Noso.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -187,48 +187,43 @@
         <UnitName Value="mpBlock"/>
       </Unit8>
       <Unit9>
-        <Filename Value="mplang.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="mpLang"/>
-      </Unit9>
-      <Unit10>
         <Filename Value="mpcoin.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpCoin"/>
-      </Unit10>
-      <Unit11>
+      </Unit9>
+      <Unit10>
         <Filename Value="mpsignerutils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpSignerUtils"/>
-      </Unit11>
-      <Unit12>
+      </Unit10>
+      <Unit11>
         <Filename Value="mprpc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpRPC"/>
-      </Unit12>
-      <Unit13>
+      </Unit11>
+      <Unit12>
         <Filename Value="translation.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit13>
-      <Unit14>
+      </Unit12>
+      <Unit13>
         <Filename Value="mpmn.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpMN"/>
-      </Unit14>
-      <Unit15>
+      </Unit13>
+      <Unit14>
         <Filename Value="mpsyscheck.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpSysCheck"/>
-      </Unit15>
-      <Unit16>
+      </Unit14>
+      <Unit15>
         <Filename Value="to_do.txt"/>
         <IsPartOfProject Value="True"/>
-      </Unit16>
-      <Unit17>
+      </Unit15>
+      <Unit16>
         <Filename Value="nosotime.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="NosoTime"/>
-      </Unit17>
+      </Unit16>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

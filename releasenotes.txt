@@ -13,6 +13,7 @@ Version 0.3.3Aa1
 - Old options system completely deprecated.
 - Busy slots are now keep alive for +15 seconds.
 - Removed old pool controls.
+- Old multi language system completely removed.
 
 Version 0.3.2Ba1
 

@@ -30,8 +30,6 @@ Procedure InicializarGUI();
 Procedure OutText(Texto:String;inctime:boolean = false;canal : integer =0);
 Procedure MostrarLineasDeConsola();
 Procedure ActualizarGUI();
-function LangLine(linea:integer):string;
-Procedure language(linea:string);
 function Int2Curr(Value: int64): string;
 function OrderShowed(OrderID:String):integer;
 Function AddrText(hash:String):String;
@@ -227,16 +225,16 @@ form1.DataPanel.Cells[0,7]:=rs0511;  //'Pending'
 form1.DataPanel.Cells[2,0]:=rs0518;  //'Next Miner'
 form1.DataPanel.Cells[2,1]:=rs0519;  //'Hashing'
 form1.DataPanel.Cells[2,2]:='Clients';  //'Target'
-form1.DataPanel.Cells[2,3]:=LangLine(106);  //'Reward'
-form1.DataPanel.Cells[2,4]:=LangLine(107);  //'Block Time'
+form1.DataPanel.Cells[2,3]:='Reward';  //
+form1.DataPanel.Cells[2,4]:='Block Time';  //
 form1.DataPanel.Cells[2,5]:='GVTs';  //'Pool Balance'
 form1.DataPanel.Cells[2,6]:='Masternodes';     //'mainnet Time'
 form1.DataPanel.Cells[2,7]:='MNs #';     //'Masternodes'
 
-form1.GridMyTxs.Cells[0,0]:=LangLine(108);    //'Block'
-form1.GridMyTxs.Cells[1,0]:=LangLine(109);    //'Time'
-form1.GridMyTxs.Cells[2,0]:=LangLine(110);    //'Type'
-form1.GridMyTxs.Cells[3,0]:=LangLine(111);    //'Amount'
+form1.GridMyTxs.Cells[0,0]:='Block';
+form1.GridMyTxs.Cells[1,0]:='Time';
+form1.GridMyTxs.Cells[2,0]:='Type';
+form1.GridMyTxs.Cells[3,0]:='Amount';
 
 Form1.SGridSC.Cells[0,0]:=rs0501;  //'Destination'
 Form1.SGridSC.Cells[0,1]:=rs0502;  //'Amount'
@@ -427,56 +425,6 @@ if U_Mytrxs then
 //if LastMyTrxTimeUpdate+60<StrToInt64(UTCTime) then UpdateMyTrxGrid();
 End;
 
-// Devuelve Una linea del idioma
-function LangLine(linea:integer):string;
-Begin
-if ((linea <= LanguageLines-1) and (StringListLang[linea]<>'')) then
-   begin
-   result := StringListLang[linea];
-   end
-else result := 'ErrLng: '+IntToStr(linea);
-End;
-
-// Carga el idioma espeficicado o muestra la informacion del idioma  activo
-Procedure language(linea:string);
-var
-  number : string;
-  contador : integer = 0;
-  Disponibles : string = '';
-Begin
-number := Lowercase(parameter(linea,1));
-if not fileexists('locale'+DirectorySeparator+'Noso.'+number+'.po') then
-   ConsoleLinesadd(format(rs0512,[number]))
-else
-   Begin
-   SetDefaultLang(number);
-   outtext(rs0513,false,2);
-   WO_Language := number;
-   S_AdvOpt := true;
-   end;
-{// DEPRECATED LANGUAGE SYSTEM
-number := Parameter(linea,1);
-if number = '' then // mostrar la info
-   begin
-   ConsoleLinesAdd(LangLine(1)+CurrentLanguage);     //Current Language:
-   ConsoleLinesAdd(LangLine(2)+IntToStr(LanguageLines));   // Lines:
-   for contador := 0 to IdiomasDisponibles.Count- 1 do
-      Disponibles := Disponibles+'['+IntToStr(contador)+'] '+IdiomasDisponibles[contador];
-   ConsoleLinesAdd(LangLine(5)+Disponibles);  //Available Languages:
-   end
-else
-   begin
-   if (strToIntDef(number,-1) > -1) and (strToIntDef(number,-1)<=IdiomasDisponibles.Count-1) then
-      begin
-      CargarIdioma(strTointDef(number,0));
-      Outtext(LangLine(3)+IdiomasDisponibles[StrToIntDef(number,0)],false,2); //Language changed to:
-      U_DataPanel := true;
-      end
-   else ConsoleLinesAdd(LangLine(4));   //Invalid language number.
-   end;
-   }
-end;
-
 // Muestra el numero de notoshis como currency
 function Int2Curr(Value: int64): string;
 begin
@@ -589,10 +537,10 @@ var
 Begin
 if sender=form1.ConnectButton then
    begin
-   if MyConStatus = 0 then texto:=LangLine(33); //'Disconnected'
-   if MyConStatus = 1 then texto:=LangLine(34); //'Connecting...'
-   if MyConStatus = 2 then texto:=LangLine(35); //'Connected'
-   if MyConStatus = 3 then texto:=LangLine(122)+IntToStr(GetTotalConexiones)+LangLine(123); //'Updated with '+
+   if MyConStatus = 0 then texto:='Disconnected.'; //'Disconnected'
+   if MyConStatus = 1 then texto:='Connecting...'; //'Connecting...'
+   if MyConStatus = 2 then texto:='Connected.'; //'Connected'
+   if MyConStatus = 3 then texto:='Updated with '+IntToStr(GetTotalConexiones)+' peers'; //'Updated with '+
    form1.ConnectButton.Hint:=texto;
    end;
 if sender=form1.ImageInc then
