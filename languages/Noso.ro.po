@@ -177,10 +177,6 @@ msgstr "Instalează automat noi versiuni oficiale"
 msgid "Send coins only from default address"
 msgstr "Trimite monezi numai de la adresa implicită"
 
-#: tform1.cb_wo_rebuildtrx.caption
-msgid "Rebuild transactions"
-msgstr ""
-
 #: tform1.cb_wo_totray.caption
 msgid "Minimize to tray"
 msgstr "Minimizează pe bară"

@@ -71,7 +71,6 @@ Procedure ShowAddressInfo(LineText:string);
 Procedure ShowAddressHistory(LineText:string);
 Procedure ShowTotalFees();
 function ShowPrivKey(linea:String;ToConsole:boolean = false):String;
-Procedure ExecuteRebuildMyTrx();
 Procedure TestNetwork(LineText:string);
 Procedure ShowPendingTrxs();
 Procedure WebWallet();
@@ -269,7 +268,6 @@ else if UpperCase(Command) = 'TOTALFEES' then ShowTotalFees()
 else if UpperCase(Command) = 'SUPPLY' then consolelinesAdd('Current supply: '+Int2Curr(GetSupply(MyLastBlock)))
 else if UpperCase(Command) = 'GMTS' then showgmts(LineText)
 else if UpperCase(Command) = 'SHOWPRIVKEY' then ShowPrivKey(LineText, true)
-else if UpperCase(Command) = 'REBUILDMYTRX' then ExecuteRebuildMyTrx()
 else if UpperCase(Command) = 'SHOWPENDING' then ShowPendingTrxs()
 else if UpperCase(Command) = 'WEBWAL' then WebWallet()
 else if UpperCase(Command) = 'EXPKEYS' then ExportKeys(LineText)
@@ -681,7 +679,6 @@ if nuevos > 0 then
    begin
    OutText('Addresses imported: '+IntToStr(nuevos),false,2); //'Addresses imported: '
    UpdateWalletFromSumario;
-   ExecuteRebuildMyTrx();
    end
 else ConsoleLinesAdd('No new addreses found.');  //'No new addreses found.'
 End;
@@ -1753,15 +1750,6 @@ else
    result := ListaDirecciones[sumposition].PrivateKey;
    end;
 if ToConsole then ConsoleLinesAdd(Result);
-End;
-
-Procedure ExecuteRebuildMyTrx();
-Begin
-TryDeletefile(MyTrxFilename);
-CrearMistrx();
-CargarMisTrx();
-RebuildMyTrx(MyLastBlock);
-ConsoleLinesAdd('My transactions rebuilded');
 End;
 
 Procedure TestNetwork(LineText:string);

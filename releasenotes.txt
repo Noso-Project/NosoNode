@@ -14,6 +14,10 @@ Version 0.3.3Aa1
 - Busy slots are now keep alive for +15 seconds.
 - Removed old pool controls.
 - Old multi language system completely removed.
+- mpLang deprecated.
+- Poolmanage unit deprecated.
+- Transaction history system completely removed.
+- Removed IdHTTPUpdate.
 
 Version 0.3.2Ba1
 

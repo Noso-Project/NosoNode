@@ -34,7 +34,6 @@ Procedure GetCFGDataFromFile();
 Procedure SetNosoCFGString(LStr:string);
 Function GetNosoCFGString(LParam:integer=-1):String;
 
-Procedure CreateTextFile(FileName:String);
 Procedure CreateLog();
 Procedure CreateMasterNodesFile();
 Procedure CreateADV(saving:boolean);
@@ -59,13 +58,6 @@ Procedure UpdateSumario(Direccion:string;monto:Int64;score:integer;LastOpBlock:s
 Procedure AddBlockToSumary(BlockNumber:integer;SaveAndUpdate:boolean = true);
 Procedure CompleteSumary();
 Procedure RebuildSumario(UntilBlock:integer);
-
-// My transactions
-Procedure CrearMistrx();
-Procedure CargarMisTrx();
-Procedure SaveMyTrxsLastUpdatedblock(Number:integer;PoSPayouts, PoSEarnings, MNsPayouts, MNsEarnings:int64);
-Procedure RebuildMyTrx(blocknumber:integer);
-Procedure SaveMyTrxsToDisk(Cantidad:integer);
 
 Procedure SaveUpdatedFiles();
 Procedure CrearWallet();
@@ -155,8 +147,6 @@ OutText('✓ Sumary file ok',false,1);
 if not Fileexists(ResumenFilename) then CreateResumen();
 OutText('✓ Headers file ok',false,1);
 if not FileExists(BlockDirectory+'0.blk') then CrearBloqueCero();
-if not FileExists(MyTrxFilename) then CrearMistrx() else CargarMisTrx();
-OutText('✓ My transactions file ok',false,1);
 
 MyLastBlock := GetMyLastUpdatedBlock;
 OutText('✓ My last block verified: '+MyLastBlock.ToString,false,1);
@@ -277,21 +267,6 @@ End;
 
 
 // *****************************************************************************
-
-// creates the specified text file
-Procedure CreateTextFile(FileName:String);
-var
-  archivo : textfile;
-Begin
-   try
-   Assignfile(archivo, FileName);
-   rewrite(archivo);
-   Closefile(archivo);
-   Except on E:Exception do
-      toExclog ('Error creating text file: '+filename);
-   end;
-End;
-
 
 // Creates log file
 Procedure CreateLog();
@@ -487,7 +462,6 @@ setmilitime('CreateADV',1);
 
    writeln(FileAdvOptions,'PoolRestart '+BoolToStr(POOL_MineRestart,true));
    writeln(FileAdvOptions,'PoolLBS '+BoolToStr(POOL_LBS,true));
-   writeln(FileAdvOptions,'WO_RebuildTrx '+BoolToStr(WO_RebuildTrx,true));
    writeln(FileAdvOptions,'WO_FullNode '+BoolToStr(WO_FullNode,true));
 
 
@@ -569,7 +543,6 @@ Begin
 
       if parameter(linea,0) ='PoolRestart' then POOL_MineRestart:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='PoolLBS' then POOL_LBS:=StrToBool(Parameter(linea,1));
-      if parameter(linea,0) ='WO_RebuildTrx' then WO_RebuildTrx:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='WO_FullNode' then WO_FullNode:=StrToBool(Parameter(linea,1));
 
       end;
@@ -824,7 +797,6 @@ Begin
       write(FileWallet,listadirecciones[0]);
       closefile(FileWallet);
       end;
-   if FileExists(MyTrxFilename) then DeleteFile(MyTrxFilename);
    Except on E:Exception do
       tolog ('Error creating wallet file');
    end;
@@ -1249,7 +1221,6 @@ closefile(FileResumen);
 if newblocks>0 then
    begin
    ConsoleLinesAdd(IntToStr(newblocks)+' added to headers'); //' added to headers'
-   U_Mytrxs := true;
    U_DirPanel := true;
    end;
 GuardarSumario();
@@ -1283,7 +1254,6 @@ RebuildingSumary := false;
 UpdateMyData();
 ConsoleLinesAdd('Sumary completed from '+IntToStr(StartBlock)+' to '+IntToStr(finishblock));
 SetCurrentJob('CompleteSumary',false);
-RebuildMyTrx(finishblock);
 info('Sumary completed');
 End;
 
@@ -1596,277 +1566,6 @@ EXCEPT on E:Exception do
 END;{TRY}
 LeaveCriticalSection(CSHeadAccess);
 setmilitime('LastHeaders',2);
-End;
-
-// Creates user transactions file
-Procedure CrearMistrx();
-var
-  DefaultOrder : MyTrxData;
-Begin
-   try
-   DefaultOrder := Default(MyTrxData);
-   DefaultOrder.Block:=0;
-   DefaultOrder.receiver:='0 0 0 0';
-   assignfile(FileMyTrx,MyTrxFilename);
-   rewrite(FileMyTrx);
-   write(FileMyTrx,DefaultOrder);
-   closefile(FileMyTrx);
-   SetLength(ListaMisTrx,1);
-   ListaMisTrx[0] := DefaultOrder;
-   Except on E:Exception do
-      toexclog ('Error creating my trx file: '+E.Message);
-   end;
-End;
-
-// Loads user transactions from disk
-Procedure CargarMisTrx();
-var
-  dato : MyTrxData;
-  firsToRead : integer;
-  counter : integer;
-Begin
-setmilitime('CargarMisTrx',1);
-   try
-   assignfile(FileMyTrx,MyTrxFilename);
-   reset(FileMyTrx);
-   setlength(ListaMisTrx,1);
-   seek (FileMyTrx,0);
-   Read(FileMyTrx,dato);
-   ListaMisTrx[0] := dato;
-   //firsToRead := filesize(FileMyTrx)-ShowedOrders;
-   //if firsToRead < 1 then firsToRead := 1;
-   firsToRead := 1;
-   if filesize(FileMyTrx) > 1 then
-      begin
-      for counter := firsToRead to filesize(FileMyTrx)-1 do
-         begin
-         seek (FileMyTrx,counter);
-         Read(FileMyTrx,dato);
-         Insert(dato,ListaMisTrx,length(ListaMisTrx));
-         end;
-      end;
-   closefile(FileMyTrx);
-   G_PoSPayouts := StrToInt64Def(parameter(ListaMisTrx[0].receiver,0),0);
-   G_PoSEarnings := StrToInt64Def(parameter(ListaMisTrx[0].receiver,1),0);
-   G_MNsPayouts := StrToInt64Def(parameter(ListaMisTrx[0].receiver,2),0);
-   G_MNsEarnings := StrToInt64Def(parameter(ListaMisTrx[0].receiver,3),0);
-   if G_Launching then
-      OutText('✓ '+IntToStr(length(ListaMisTrx))+' own transactions',false,1);
-   Except on E:Exception do
-      toexclog ('Error loading my trx from file');
-   end;
-setmilitime('CargarMisTrx',2);
-End;
-
-// Save value of last checked block for user transactions
-Procedure SaveMyTrxsLastUpdatedblock(Number:integer;PoSPayouts, PoSEarnings, MNsPayouts, MNsEarnings:int64);
-var
-  FirstTrx : MyTrxData;
-Begin
-SetCurrentJob('SaveMyTrxsLastUpdatedblock',true);
-TRY
-FirstTrx := Default(MyTrxData);
-FirstTrx.block:=Number;
-FirstTrx.receiver := IntToStr(PoSPayouts)+' '+IntToStr(PoSEarnings)+' '+IntToStr(MNsPayouts)+' '+IntToStr(MNsEarnings);
-assignfile (FileMyTrx,MyTrxFilename);
-reset(FileMyTrx);
-seek(FileMyTrx,0);
-write(FileMyTrx,FirstTrx);
-Closefile(FileMyTrx);
-G_PoSPayouts  := PoSPayouts;
-G_PoSEarnings := PoSEarnings;
-G_MNsPayouts  := MNsPayouts;
-G_MNsEarnings := MNsEarnings;
-ListaMisTrx[0].receiver := IntToStr(PoSPayouts)+' '+IntToStr(PoSEarnings)+' '+IntToStr(MNsPayouts)+' '+IntToStr(MNsEarnings);
-if G_PoSPayouts > 0 then
-   ToLog(Format('Total PoS : %d : %s',[G_PoSPayouts,Int2curr(G_PoSEarnings)]));
-if G_MNsPayouts > 0 then
-   ToLog(Format('Total MNs : %d : %s',[G_MNsPayouts,Int2curr(G_MNsEarnings)]));
-EXCEPT on E:Exception do
-   toExclog ('Error setting last block checked for my trx');
-END;{Try}
-U_PoSGrid := true;
-SetCurrentJob('SaveMyTrxsLastUpdatedblock',false);
-End;
-
-// Rebuilds user transactions  file up to specified block
-Procedure RebuildMyTrx(blocknumber:integer);
-var
-  contador,contador2 : integer;
-  Existentes : integer;
-  Header : BlockHeaderData;
-  NewTrx : MyTrxData;
-  ArrTrxs : BlockOrdersArray;
-  ArrayPos    : BlockArraysPos;
-  PosReward   : int64;
-  PosCount    : integer;
-  CounterPos  : integer;
-  PoSPayouts, PoSEarnings : int64;
-  MNsPayouts, MNsEarnings : int64;
-  BlockPayouts, BlockEarnings : int64;
-Begin
-{
-if not WO_RebuildTrx then
-   begin
-   consolelinesAdd('Skipping rebuild transactions');
-   exit;
-   end;
-}
-Exit;
-SetCurrentJob('RebuildMyTrx',true);
-Existentes := Length(ListaMisTrx);
-if ListaMisTrx[0].Block < blocknumber then
-   begin
-   TRY
-   PoSPayouts := StrToInt64Def(parameter(ListaMisTrx[0].receiver,0),0);
-   PoSEarnings := StrToInt64Def(parameter(ListaMisTrx[0].receiver,1),0);
-   MNsPayouts := StrToInt64Def(parameter(ListaMisTrx[0].receiver,2),0);
-   MNsEarnings := StrToInt64Def(parameter(ListaMisTrx[0].receiver,3),0);
-   NewTrx := Default(MyTrxData);
-   for contador := ListaMisTrx[0].Block+1 to blocknumber do
-      begin
-      NewTrx := Default(MyTrxData);
-      if Not G_Launching then
-         begin
-         info(Format('Rebuilding my Trxs: %d',[contador]));
-         EngineLastUpdate := UTCTime;
-         application.ProcessMessages;
-         end
-      else
-         begin
-         gridinicio.RowCount:=gridinicio.RowCount-1;
-         OutText(Format('Rebuilding my Trxs: %d',[contador]),false,1);
-         end;
-      BlockPayouts := 0;
-      BlockEarnings := 0;
-      Header := LoadBlockDataHeader(contador);
-      if DireccionEsMia(Header.AccountMiner)>=0 then // user is miner
-         begin
-         NewTrx.block:=contador;
-         NewTrx.time :=header.TimeEnd;
-         NewTrx.tipo :='MINE';
-         NewTrx.receiver:=header.AccountMiner;
-         NewTrx.monto   :=header.Reward+header.MinerFee;
-         NewTrx.trfrID  :='';
-         NewTrx.OrderID :='';
-         NewTrx.reference:='';
-         end;
-      ArrTrxs := GetBlockTrxs(contador);
-      if length(ArrTrxs)>0 then
-         begin
-         for contador2 := 0 to length(ArrTrxs)-1 do
-            begin
-            if DireccionEsMia(ArrTrxs[contador2].sender)>=0 then // user is sender
-               begin
-               NewTrx := Default(MyTrxData);
-               NewTrx.block:=contador;
-               NewTrx.time :=header.TimeEnd;
-               NewTrx.tipo :=ArrTrxs[contador2].OrderType;
-               NewTrx.receiver:= ArrTrxs[contador2].Receiver;
-               NewTrx.monto   := Restar(ArrTrxs[contador2].AmmountFee+ArrTrxs[contador2].AmmountTrf);
-               NewTrx.trfrID  := ArrTrxs[contador2].TrfrID;
-               NewTrx.OrderID := ArrTrxs[contador2].OrderID;
-               NewTrx.reference:= ArrTrxs[contador2].reference;
-               insert(NewTrx,ListaMisTrx,length(ListaMisTrx));
-               end;
-            if DireccionEsMia(ArrTrxs[contador2].receiver)>=0 then //user is receiver
-               begin
-               NewTrx := Default(MyTrxData);
-               NewTrx.block:=contador;
-               NewTrx.time :=header.TimeEnd;
-               NewTrx.tipo :=ArrTrxs[contador2].OrderType;
-               NewTrx.receiver:= ArrTrxs[contador2].receiver;
-               NewTrx.monto   := ArrTrxs[contador2].AmmountTrf;
-               NewTrx.trfrID  := ArrTrxs[contador2].TrfrID;
-               NewTrx.OrderID := ArrTrxs[contador2].OrderID;
-               NewTrx.reference:= ArrTrxs[contador2].reference;
-               insert(NewTrx,ListaMisTrx,length(ListaMisTrx));
-               end;
-            end;
-         end;
-      setlength(ArrTrxs,0);
-      if contador >= PoSBlockStart then  // PoS payments
-         begin
-         ArrayPos := GetBlockPoSes(contador);
-         PosReward := StrToIntDef(Arraypos[length(Arraypos)-1].address,0);
-         SetLength(ArrayPos,length(ArrayPos)-1);
-         PosCount := length(ArrayPos);
-         for counterpos := 0 to PosCount-1 do
-            begin
-            if direccionesmia(ArrayPos[counterPos].address)>=0 then
-               begin
-               BlockPayouts+=1;
-               PoSPayouts := PoSPayouts+1;
-               BlockEarnings := BlockEarnings+PosReward;
-               PoSEarnings := PoSEarnings + PosReward;
-               end;
-            end;
-         if BlockPayouts > 0 then
-            ToLog(Format('PoS : %d -> %d : %s',[contador,BlockPayouts,Int2curr(BlockEarnings)]));
-         if NewTrx.tipo ='MINE' then NewTrx.monto :=NewTrx.monto-(PosReward*PosCount);
-         SetLength(ArrayPos,0);
-         end;
-      if contador >= MNBlockStart then  // MNs payments
-         begin
-         BlockPayouts := 0;
-         BlockEarnings := 0;
-         ArrayPos := GetBlockMNs(contador);
-         PosReward := StrToIntDef(Arraypos[length(Arraypos)-1].address,0);
-         SetLength(ArrayPos,length(ArrayPos)-1);
-         PosCount := length(ArrayPos);
-         for counterpos := 0 to PosCount-1 do
-            begin
-            if direccionesmia(ArrayPos[counterPos].address)>=0 then
-               begin
-               BlockPayouts+=1;
-               MNsPayouts := MNsPayouts+1;
-               BlockEarnings := BlockEarnings+PosReward;
-               MNsEarnings := MNsEarnings + PosReward;
-               end;
-            end;
-         if BlockPayouts > 0 then
-            ToLog(Format('MNs : %d -> %d : %s',[contador,BlockPayouts,Int2curr(BlockEarnings)]));
-         if NewTrx.tipo ='MINE' then NewTrx.monto :=NewTrx.monto-(PosReward*PosCount);
-         SetLength(ArrayPos,0);
-         end;
-      if NewTrx.tipo ='MINE' then insert(NewTrx,ListaMisTrx,length(ListaMisTrx));
-      end;
-   ListaMisTrx[0].block:=blocknumber;
-   ListaMisTrx[0].receiver:=IntToStr(PoSPayouts)+' '+IntToStr(PoSEarnings)+' '+IntToStr(MNsPayouts)+' '+IntToStr(MNsEarnings);
-   if length(ListaMisTrx) > Existentes then  // se han añadido transacciones
-      begin
-      SaveMyTrxsToDisk(existentes);
-      U_Mytrxs := true;
-      end;
-   SaveMyTrxsLastUpdatedblock(blocknumber, PoSPayouts, PoSEarnings, MNsPayouts, MNsEarnings);
-   EXCEPT ON E:Exception do
-      ToExcLog('*****CRITICAL***** Error in RebuildMyTrx: '+E.Message);
-   END;{Try}
-   end;
-SetCurrentJob('RebuildMyTrx',false);
-End;
-
-// Save last user transactions to disk
-Procedure SaveMyTrxsToDisk(Cantidad:integer);
-var
-  contador : integer;
-Begin
-setmilitime('SaveMyTrxsToDisk',1);
-SetCurrentJob('SaveMyTrxsToDisk',true);
-TRY
-assignfile (FileMyTrx,MyTrxFilename);
-reset(FileMyTrx);
-for contador := cantidad to length(ListaMisTrx)-1 do
-   begin
-   seek(FileMyTrx,contador);
-   write(FileMyTrx,ListaMisTrx[contador]);
-   end;
-Closefile(FileMyTrx);
-EXCEPT on E:Exception do
-   toExclog ('Error saving my trx to disk');
-END;{Try}
-SetCurrentJob('SaveMyTrxsToDisk',false);
-setmilitime('SaveMyTrxsToDisk',2);
 End;
 
 // Creates a bat file for restart
@@ -2233,7 +1932,6 @@ StopServer();
 deletefile(SumarioFilename);
 deletefile(SumarioFilename+'.bak');
 deletefile(ResumenFilename);
-deletefile(MyTrxFilename);
 if DeleteDirectory(BlockDirectory,True) then
    RemoveDir(BlockDirectory);
 ProcessLinesAdd('restart');

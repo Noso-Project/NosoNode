@@ -384,7 +384,6 @@ if not errored then
       end;
    OutText('Block built: '+IntToStr(numero),true);  //'Block builded: '
 
-   if Numero > 0 then RebuildMyTrx(Numero);
    CheckForMyPending;
    if DIreccionEsMia(Minero)>-1 then showglobo('Miner','Block found!');
    U_DataPanel := true;

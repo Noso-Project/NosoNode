@@ -340,10 +340,8 @@ type
     CBAutoIP: TCheckBox;
     CB_Currentjob: TCheckBox;
     CBRunNodeAlone: TCheckBox;
-    CB_WO_RebuildTrx: TCheckBox;
     ComboBoxLang: TComboBox;
     Edit2: TEdit;
-    IdHTTPUpdate: TIdHTTP;
     Label14: TLabel;
     Label15: TLabel;
     LabelNodesHash: TLabel;
@@ -547,7 +545,6 @@ type
     procedure CB_RPCFilterChange(Sender: TObject);
     procedure CB_WO_AutoupdateChange(Sender: TObject);
     procedure CBAutoIPClick(Sender: TObject);
-    procedure CB_WO_RebuildTrxChange(Sender: TObject);
     procedure CB_FullNodeChange(Sender: TObject);
     procedure ComboBoxLangChange(Sender: TObject);
     procedure ComboBoxLangDrawItem(Control: TWinControl; Index: Integer;
@@ -566,10 +563,6 @@ type
     procedure GridNodesResize(Sender: TObject);
     procedure GridPoSResize(Sender: TObject);
     procedure GVTsGridResize(Sender: TObject);
-    procedure IdHTTPUpdateWork(ASender: TObject; AWorkMode: TWorkMode;
-      AWorkCount: Int64);
-    procedure IdHTTPUpdateWorkBegin(ASender: TObject; AWorkMode: TWorkMode;
-      AWorkCountMax: Int64);
     procedure LE_Rpc_PassEditingDone(Sender: TObject);
     Procedure LoadOptionsToPanel();
     procedure FormShow(Sender: TObject);
@@ -639,10 +632,6 @@ type
     Procedure MMExpWallet(Sender:TObject);
     Procedure MMQuit(Sender:TObject);
     Procedure MMRestart(Sender:TObject);
-    Procedure MMChangeLang(Sender:TObject);
-    Procedure MMRunUpdate(Sender:TObject);
-    Procedure MMImpLang(Sender:TObject);
-    Procedure MMNewLang(Sender:TObject);
     Procedure MMVerWeb(Sender:TObject);
     Procedure MMVerSlots(Sender:TObject);
 
@@ -817,7 +806,6 @@ var
   MN_FileText      : String = '';
   POOL_MineRestart : boolean = false;
   POOL_LBS         : boolean = false;
-  WO_RebuildTrx    : boolean = true;
   WO_FullNode      : boolean = true;
 
   ConnectedRotor : integer = 0;
@@ -1038,7 +1026,6 @@ var
   BotDataFilename     :string= 'NOSODATA'+DirectorySeparator+'botdata.psk';
   WalletFilename      :string= 'NOSODATA'+DirectorySeparator+'wallet.pkw';
   SumarioFilename     :string= 'NOSODATA'+DirectorySeparator+'sumary.psk';
-  LanguageFileName    :string= 'NOSODATA'+DirectorySeparator+'noso.lng';
   BlockDirectory      :string= 'NOSODATA'+DirectorySeparator+'BLOCKS'+DirectorySeparator;
   MarksDirectory      :string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator;
   GVTMarksDirectory   :string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator+'GVTS'+DirectorySeparator;
@@ -1046,9 +1033,7 @@ var
   LogsDirectory       :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator;
   ExceptLogFilename   :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'exceptlog.txt';
   ResumenFilename     :string= 'NOSODATA'+DirectorySeparator+'blchhead.nos';
-  MyTrxFilename       :string= 'NOSODATA'+DirectorySeparator+'mytrx.nos';
   ErrorLogFilename    :string= 'NOSODATA'+DirectorySeparator+'errorlog.txt';
-  PoolMembersFilename :string= 'NOSODATA'+DirectorySeparator+'poolmembers.dat';
   AdvOptionsFilename  :string= 'NOSODATA'+DirectorySeparator+'advopt.txt';
   MasterNodesFilename :string= 'NOSODATA'+DirectorySeparator+'masternodes.txt';
   ZipSumaryFileName   :string= 'NOSODATA'+DirectorySeparator+'sumary.zip';
@@ -1058,8 +1043,6 @@ var
 
   MontoIncoming : Int64 = 0;
   MontoOutgoing : Int64 = 0;
-  U_Mytrxs: boolean = false;
-  LastMyTrxTimeUpdate : int64;
   InfoPanelTime : integer = 0;
 
   // Nobiex related variables
@@ -1744,12 +1727,6 @@ LoadOptionsToPanel();
 form1.Caption:=coinname+format(rs0027,[ProgramVersion,SubVersion]);
 Application.Title := coinname+format(rs0027,[ProgramVersion,SubVersion]);   // Wallet
 ConsoleLinesAdd(coinname+format(rs0027,[ProgramVersion,SubVersion]));
-OutText(rs0066,false,1); // Rebuilding my transactions
-if WO_RebuildTrx then RebuildMyTrx(MyLastBlock);
-gridinicio.RowCount:=gridinicio.RowCount-1;
-OutText(rs0067,false,1); // '✓ My transactions rebuilded';
-UpdateMyTrxGrid();
-OutText(rs0068,false,1); // '✓ My transactions grid updated';
 UpdateMyGVTsList;
 OutText(rs0088,false,1); // '✓ My GVTs grid updated';
 if fileexists(RestartFileName) then
@@ -1856,7 +1833,6 @@ CB_WO_AntiFreeze.Checked:=WO_AntiFreeze;
 CB_WO_Multisend.Checked:=WO_Multisend;
 SE_WO_AntifreezeTime.value := WO_AntifreezeTime;
 CB_WO_Autoupdate.Checked := WO_AutoUpdate;
-CB_WO_RebuildTrx.Checked := WO_RebuildTrx;
 // RPC
 LE_Rpc_Port.Text := IntToStr(RPCPort);
 LE_Rpc_Pass.Text := RPCPass;
@@ -3289,36 +3265,6 @@ Begin
 G_CloseRequested := true;
 End;
 
-// menu principal cambiar idioma
-Procedure Tform1.MMChangeLang(Sender:TObject);
-var
-  valor : integer;
-Begin
-valor := (sender as TMenuItem).MenuIndex;
-ProcessLinesAdd('lang '+IntToStr(valor));
-End;
-
-// Ejecuta un update seleccionado en el menuprincipal
-Procedure Tform1.MMRunUpdate(Sender:TObject);
-var
-  valor : integer;
-Begin
-valor := (sender as TMenuItem).MenuIndex;
-ProcessLinesAdd('update '+parameter(StringAvailableUpdates,valor));
-End;
-
-// menu principal importar idioma
-Procedure TForm1.MMImpLang(Sender:TObject);
-Begin
-ShowExplorer(GetCurrentDir,'Import Language','English_*.txt','implang (-resultado-)',true);
-End;
-
-// menu principal generar archivo de idioma
-Procedure TForm1.MMNewLang(Sender:TObject);
-Begin
-
-End;
-
 // Abrir pagina web
 Procedure TForm1.MMVerWeb(Sender:TObject);
 Begin
@@ -3887,22 +3833,6 @@ if CBAutoIP.Checked then LabeledEdit5.Visible:=false
 else LabeledEdit5.Visible:=true;
 End;
 
-procedure TForm1.CB_WO_RebuildTrxChange(Sender: TObject);
-Begin
-if not G_Launching then
-   begin
-   if CB_WO_RebuildTrx.Checked then
-      begin
-      WO_RebuildTrx := true;
-      end
-   else
-      begin
-      WO_RebuildTrx := false ;
-      end;
-   S_AdvOpt := true;
-   end;
-End;
-
 // Enable/Disable download the whole blockchain
 procedure TForm1.CB_FullNodeChange(Sender: TObject);
 Begin
@@ -3980,34 +3910,6 @@ Begin
 if GVTsGrid.Row > 0 then
    ProcessLinesAdd('sendgvt '+GVTsGrid.Cells[0,GVTsGrid.Row]+' '+edit2.Text);
 End;
-
-// Download the auto update process
-procedure TForm1.IdHTTPUpdateWork(ASender: TObject; AWorkMode: TWorkMode;
-  AWorkCount: Int64);
-var
-  Percent: Integer;
-Begin
-Percent := 100*AWorkCount div UpdateFileSize+1;
-
-if FirstTimeUpChe then
-   begin
-   //OutText('',false,1);
-   FirstTimeUpChe := false;
-   end
-else
-   begin
-   gridinicio.RowCount:=gridinicio.RowCount-1;
-   OutText('Progress: '+IntToStr(percent)+' % / '+IntToStr(UpdateFileSize div 1024)+' Kb',false,1);
-   end;
-End;
-
-procedure TForm1.IdHTTPUpdateWorkBegin(ASender: TObject; AWorkMode: TWorkMode;
-  AWorkCountMax: Int64);
-begin
-//OutText('Size: '+IntToStr(AWorkCountMax div 1024)+' Kb',false,1);
-OutText('',false,1);
-UpdateFileSize := AWorkCountMax;
-end;
 
 // Adjust the trxdetails when a selection is done
 procedure TForm1.GridMyTxsSelection(Sender: TObject; aCol, aRow: Integer);

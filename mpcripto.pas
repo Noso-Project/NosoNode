@@ -468,8 +468,10 @@ Function EncodeCertificate(certificate:string):string;
    End;
 
 Begin
+SetMilitime('EncodeCert',1);
 Certificate := UPPERCASE(XorEncode(HashSha256String('noso'),certificate));
 result := SplitCertificate(certificate);
+SetMilitime('EncodeCert',2);
 End;
 
 Function DecodeCertificate(certificate:string):string;
@@ -497,8 +499,10 @@ Function DecodeCertificate(certificate:string):string;
    End;
 
 Begin
+SetMilitime('DecodeCert',1);
 Certificate := UnSplitCertificate(certificate);
 result := XorDecode(HashSha256String('noso'), Certificate);
+SetMilitime('DecodeCert',2);
 End;
 
 Function NosoHash(source:string):string;

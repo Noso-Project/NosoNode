@@ -50,7 +50,6 @@
 {"hash":90344309,"name":"tform1.label7.caption","sourcebytes":[87,97,108,108,101,116,32,108,97,110,103,117,97,103,101],"value":"Wallet language"},
 {"hash":261628389,"name":"tform1.cbrunnodealone.hint","sourcebytes":[82,117,110,32,97,115,32,117,110,97,116,116,101,110,100,101,100,32,77,97,115,116,101,114,110,111,100,101],"value":"Run as unattended Masternode"},
 {"hash":216076649,"name":"tform1.cbrunnodealone.caption","sourcebytes":[83,116,111,112,32,109,101,109,111,115,32,111,117,116,112,117,116,115,32,40,66,69,84,65,41],"value":"Stop memos outputs (BETA)"},
-{"hash":193890339,"name":"tform1.cb_wo_rebuildtrx.caption","sourcebytes":[82,101,98,117,105,108,100,32,116,114,97,110,115,97,99,116,105,111,110,115],"value":"Rebuild transactions"},
 {"hash":349605,"name":"tform1.tabnodeoptions.caption","sourcebytes":[78,111,100,101],"value":"Node"},
 {"hash":113543317,"name":"tform1.checkbox4.caption","sourcebytes":[82,117,110,32,77,97,115,116,101,114,78,111,100,101],"value":"Run MasterNode"},
 {"hash":1248,"name":"tform1.label8.caption","sourcebytes":[73,80],"value":"IP"},

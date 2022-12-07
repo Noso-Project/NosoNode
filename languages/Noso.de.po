@@ -179,10 +179,6 @@ msgstr "Neue offizielle Versionen automatisch installieren"
 msgid "Send coins only from default address"
 msgstr "Münzen nur von der Standardadresse senden"
 
-#: tform1.cb_wo_rebuildtrx.caption
-msgid "Rebuild transactions"
-msgstr ""
-
 #: tform1.cb_wo_totray.caption
 msgid "Minimize to tray"
 msgstr "In die Ablage minimieren"

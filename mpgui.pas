@@ -33,7 +33,6 @@ Procedure ActualizarGUI();
 function Int2Curr(Value: int64): string;
 function OrderShowed(OrderID:String):integer;
 Function AddrText(hash:String):String;
-Procedure UpdateMyTrxGrid();
 Procedure Info(text:string);
 Procedure Processhint(sender:TObject);
 Procedure ShowGlobo(Titulo,texto:string);
@@ -415,14 +414,6 @@ if U_DirPanel then
    U_DirPanel := false;
    setmilitime('UpdateDirPanel',2);
    end;
-
-if U_Mytrxs then
-   begin
-   UpdateMyTrxGrid();
-   U_Mytrxs := false;
-   end;
-// Actualizar el tiempo de las transacciones ralentiza mucho el GUI
-//if LastMyTrxTimeUpdate+60<StrToInt64(UTCTime) then UpdateMyTrxGrid();
 End;
 
 // Muestra el numero de notoshis como currency
@@ -445,59 +436,6 @@ if form1.GridMyTxs.RowCount> 1 then
    for cont := 1 to form1.GridMyTxs.RowCount-1 do
       if form1.GridMyTxs.Cells[4,cont] = OrderID then result := cont;
    end;
-End;
-
-// Actualiza el grid que contiene mis transacciones
-Procedure UpdateMyTrxGrid();
-var
-  contador : integer;
-  OrdIndex : integer;
-  Linea : integer;
-  PreMonto, nuevomonto : int64;
-  LastToshow : integer;
-Begin
-setmilitime('UpdateMyTrxGrid',1);
-SetCurrentJob('UpdateMyTrxGrid',true);
-form1.GridMyTxs.RowCount:=1;
-if Length(ListaMisTrx)>1 then
-   begin
-   LastToshow := length(ListaMisTrx)-1- ShowedOrders;
-   if  LastToshow<1 then LastToshow := 1;
-   for contador := length(ListaMisTrx)-1 downto LastToshow do
-      begin
-      OrdIndex := OrderShowed(ListaMisTrx[contador].OrderID);
-      if ((ListaMisTrx[contador].tipo='MINE') or (OrdIndex=0)) then // la orden no esta
-         begin
-         form1.GridMyTxs.RowCount:=form1.GridMyTxs.RowCount+1; Linea := form1.GridMyTxs.RowCount-1;
-         form1.GridMyTxs.Cells[0,linea]:=IntToStr(ListaMisTrx[contador].block);     //bloque
-         form1.GridMyTxs.Cells[1,linea]:=TimeSinceStamp(ListaMisTrx[contador].time);// tiempo
-         form1.GridMyTxs.Cells[2,linea]:=ListaMisTrx[contador].tipo;                // tipo
-         form1.GridMyTxs.Cells[3,linea]:=Int2curr(ListaMisTrx[contador].monto);     //monto show
-         form1.GridMyTxs.Cells[4,linea]:=ListaMisTrx[contador].OrderID;             //orderID
-         form1.GridMyTxs.Cells[5,linea]:=IntToStr(ListaMisTrx[contador].monto);   //elmonto puro
-         form1.GridMyTxs.Cells[6,linea]:=ListaMisTrx[contador].receiver;           //address recibe
-         form1.GridMyTxs.Cells[7,linea]:=ListaMisTrx[contador].reference;           // reference
-         form1.GridMyTxs.Cells[8,linea]:=ListaMisTrx[contador].trfrID;            // trfrs ids
-         form1.GridMyTxs.Cells[9,linea]:='1';                                     //numero trfrs
-         end
-      else  // ya hubo otra transfer con este mismo id de orden
-         begin
-         PreMonto := StrToInt64Def(form1.GridMyTxs.Cells[5,linea],0);
-         nuevomonto := ListaMisTrx[contador].monto+Premonto;
-         form1.GridMyTxs.Cells[5,linea]:=IntToStr(NuevoMonto);
-         form1.GridMyTxs.Cells[3,linea]:=Int2curr(NuevoMonto);
-         if not AnsiContainsStr(form1.GridMyTxs.Cells[8,linea],ListaMisTrx[contador].trfrID) then
-            begin
-            form1.GridMyTxs.Cells[8,linea]:=form1.GridMyTxs.Cells[8,linea]+' '+ListaMisTrx[contador].trfrID;
-            form1.GridMyTxs.Cells[9,linea]:=IntToStr(StrToIntDef(form1.GridMyTxs.Cells[9,linea],0)+1);
-            end
-         else form1.GridMyTxs.Cells[10,linea]:='YES'; // Que si es una trfr propia
-         end;
-      end;
-   end;
-LastMyTrxTimeUpdate := UTCTime;
-SetCurrentJob('UpdateMyTrxGrid',false);
-setmilitime('UpdateMyTrxGrid',2);
 End;
 
 // Returns alias or hash if address is not aliased

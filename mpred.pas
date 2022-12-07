@@ -661,7 +661,6 @@ if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLa
    ClearReceivedOrdersIDs;
    SetNMSData('','','','','','');
    MyConStatus := 3;
-   U_Mytrxs := true;
    ConsoleLinesAdd('Updated!');   //Updated!
    if RPCAuto then  ProcessLinesAdd('RPCON');
    if StrToIntDef(NetPendingTrxs.Value,0)<GetPendingCount then

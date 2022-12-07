@@ -1482,7 +1482,7 @@ object Form1: TForm1
           object Panel7: TPanel
             Left = 0
             Height = 28
-            Top = 327
+            Top = 304
             Width = 384
             Align = alTop
             AutoSize = True
@@ -1532,7 +1532,7 @@ object Form1: TForm1
             Left = 8
             Height = 19
             Hint = 'Run as unattended Masternode'
-            Top = 308
+            Top = 285
             Width = 376
             Align = alTop
             BorderSpacing.Left = 8
@@ -1542,19 +1542,6 @@ object Form1: TForm1
             ParentShowHint = False
             ShowHint = True
             TabOrder = 12
-          end
-          object CB_WO_RebuildTrx: TCheckBox
-            Left = 8
-            Height = 19
-            Top = 285
-            Width = 376
-            Align = alTop
-            BorderSpacing.Left = 8
-            BorderSpacing.Top = 4
-            Caption = 'Rebuild transactions'
-            OnChange = CB_WO_RebuildTrxChange
-            TabOrder = 13
-            Visible = False
           end
         end
         object TabNodeOptions: TTabSheet
@@ -3018,7 +3005,7 @@ object Form1: TForm1
   end
   object Imagenes: TImageList
     Left = 64
-    Top = 384
+    Top = 456
     Bitmap = {
       4C7A450000001000000010000000245C00000000000078DAECBD075C14C9D63E
       3C181113E6AC044541C988A212C49C23461473C0C41A11034982590431624454
@@ -3763,7 +3750,7 @@ object Form1: TForm1
   object MainMenu: TMainMenu
     Images = Imagenes
     Left = 112
-    Top = 384
+    Top = 456
     object MenuItem1: TMenuItem
       Caption = 'Network'
       OnClick = CheckMMCaptions
@@ -3810,8 +3797,8 @@ object Form1: TForm1
     end
   end
   object ConsolePopUp2: TPopupMenu
-    Left = 160
-    Top = 392
+    Left = 256
+    Top = 456
     object MenuItem23: TMenuItem
       Caption = 'CLear'
       OnClick = ConsolePopUpClear
@@ -3822,8 +3809,8 @@ object Form1: TForm1
     end
   end
   object ConsoLinePopUp2: TPopupMenu
-    Left = 224
-    Top = 376
+    Left = 312
+    Top = 456
     object MenuItem25: TMenuItem
       Caption = 'Clear'
       OnClick = ConsoLinePopUpClear
@@ -3841,7 +3828,7 @@ object Form1: TForm1
     Height = 32
     Width = 32
     Left = 16
-    Top = 384
+    Top = 456
     Bitmap = {
       4C7A070000002000000020000000990800000000000078DAED9DDB6F146518C6
       8BC1E03D10894AA2A565DBB2504E85420B054D51A16015698A452F0817840BFE
@@ -3914,23 +3901,5 @@ object Form1: TForm1
       AFAC033CBC70B897F621087CDD7780E70FA469FF870F16F375B339B0B6E1034C
       F610D5FDCB84892721FE05B093CFB9
     }
-  end
-  object IdHTTPUpdate: TIdHTTP
-    OnWork = IdHTTPUpdateWork
-    OnWorkBegin = IdHTTPUpdateWorkBegin
-    ProxyParams.BasicAuthentication = False
-    ProxyParams.ProxyPort = 0
-    Request.ContentLength = -1
-    Request.ContentRangeEnd = -1
-    Request.ContentRangeStart = -1
-    Request.ContentRangeInstanceLength = -1
-    Request.Accept = 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-    Request.BasicAuthentication = False
-    Request.UserAgent = 'Mozilla/3.0 (compatible; Indy Library)'
-    Request.Ranges.Units = 'bytes'
-    Request.Ranges = <>
-    HTTPOptions = [hoForceEncodeParams]
-    Left = 296
-    Top = 392
   end
 end
