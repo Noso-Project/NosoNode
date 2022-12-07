@@ -587,10 +587,9 @@ if ( (CONNECT_Try) and (UTCTime>StrToInt64Def(CONNECT_LastTime,UTCTime)+5) ) the
    begin
    CONNECT_LastTime := IntTOStr(UTCTime+60);
    ConnectToServers;
-
    end;
 NumeroConexiones := GetTotalConexiones;
-if NumeroConexiones = 0 then  // Desconeectado
+if NumeroConexiones = 0 then  // Desconectado
    begin
    EnterCriticalSection(CSCriptoThread);
    SetLength(ArrayCriptoOp,0); // Delete operations from crypto thread

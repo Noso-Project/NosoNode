@@ -652,8 +652,9 @@ msgid "✓ %s languages available"
 msgstr "✓ %s 种语言可选择"
 
 #: translation.rs0027
-#, object-pascal-format
-msgid "Wallet %s%s"
+#, object-pascal-format, fuzzy
+#| msgid "Wallet %s%s"
+msgid "Node %s%s"
 msgstr "钱包 %s%s"
 
 #: translation.rs0028

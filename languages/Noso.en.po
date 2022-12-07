@@ -625,7 +625,7 @@ msgstr ""
 
 #: translation.rs0027
 #, object-pascal-format
-msgid "Wallet %s%s"
+msgid "Node %s%s"
 msgstr ""
 
 #: translation.rs0028

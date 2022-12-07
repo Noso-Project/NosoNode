@@ -652,7 +652,8 @@ msgstr "✓ %s bahasa tersedia"
 
 #: translation.rs0027
 #, object-pascal-format, fuzzy, badformat
-msgid "Wallet %s%s"
+#| msgid "Wallet %s%s"
+msgid "Node %s%s"
 msgstr "Dompet %s%"
 
 #: translation.rs0028

@@ -466,12 +466,11 @@ resultado := resultado+'ServerON: '+BoolToStr(Form1.Server.Active,true)+' ';
 resultado := resultado+'CONNECT_Try: '+BoolToStr(CONNECT_Try,true)+slinebreak;
 if mode = 1 then
    begin
-   resultado := resultado+'Date: '+FormatDateTime('dd MMMM YYYY HH:MM:SS.zzz', Now)+slinebreak;
-   resultado := resultado+'MyConStatus: '+IntToStr(myConStatus)+slinebreak;
-   Resultado := resultado+'CurrentJob: '+GetCurrentJob+slinebreak;
-   Resultado := resultado+'OS: '+OSVersion +slinebreak;
-   Resultado := resultado+'WalletVer: '+ProgramVersion+SubVersion+slinebreak;
-   Resultado := resultado+'SendingMsgs: '+BoolToStr(G_SendingMsgs,true)+slinebreak;
+   resultado := resultado+'Date        : '+FormatDateTime('dd MMMM YYYY HH:MM:SS.zzz', Now)+slinebreak;
+   resultado := resultado+'MyConStatus : '+IntToStr(myConStatus)+slinebreak;
+   Resultado := resultado+'CurrentJob  : '+GetCurrentJob+slinebreak;
+   Resultado := resultado+'OS          : '+OSVersion +slinebreak;
+   Resultado := resultado+'WalletVer   : '+ProgramVersion+SubVersion+slinebreak;
    end;
 result := resultado;
 End;

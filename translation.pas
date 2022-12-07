@@ -35,7 +35,7 @@ resourcestring
   rs0024 = '✓ My data updated';
   rs0025 = '✓ Miner configuration set';
   rs0026 = '✓ %s languages available';
-  rs0027 = 'Wallet %s%s';
+  rs0027 = 'Node %s%s';
   rs0028 = '✓ %s CPUs found';
   rs0029 = 'Noso session started';
   rs0030 = 'Closing wallet';

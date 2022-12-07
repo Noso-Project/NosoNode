@@ -82,10 +82,8 @@ Procedure CreateLauncherFile(IncludeUpdate:boolean = false);
 Procedure RestartNoso();
 Procedure NewDoctor();
 Procedure RunDiagnostico(linea:string);
-Procedure EjecutarAutoUpdate(version:string);
 Procedure CrearRestartfile();
 Procedure RestartConditions();
-Procedure CrearCrashInfo();
 function OSVersion: string;
 {$IFDEF WINDOWS} Function GetWinVer():string; {$ENDIF}
 Procedure RestoreBlockChain();
@@ -1783,26 +1781,6 @@ FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
 UpdateMyData();
 End;
 
-// Creates and executes autolauncher.bat  // DEPRECATED
-Procedure EjecutarAutoUpdate(version:string);
-var
-  archivo : textfile;
-Begin
-try
-  Assignfile(archivo, 'nosolauncher.bat');
-  rewrite(archivo);
-  writeln(archivo,'echo Restarting Noso...');
-  writeln(archivo,'TIMEOUT 5');
-  writeln(archivo,'del noso.exe');
-  writeln(archivo,'ren noso'+version+'.exe noso.exe');
-  writeln(archivo,'start noso.exe');
-  Closefile(archivo);
-Except on E:Exception do
-   tolog ('Error creating restart file');
-end;
-RunExternalProgram('nosolauncher.bat');
-End;
-
 // Creates autorestart file
 Procedure CrearRestartfile();
 var
@@ -1829,7 +1807,6 @@ Assignfile(archivo, 'restart.txt');
 reset(archivo);
 TRY
 ReadLn(archivo,linea);
-ReadLn(archivo{,Miner_RestartedSolution});
 EXCEPT ON E:Exception do
    begin
 
@@ -1841,29 +1818,6 @@ connect := StrToBoolDef(parameter(linea,3),WO_AutoConnect);
 if server then ProcessLinesAdd('SERVERON');
 if connect then ProcessLinesAdd('CONNECT');
 tryDeletefile('restart.txt');
-End;
-
-// Creates crashinfofile
-Procedure CrearCrashInfo();
-var
-  archivo : textfile;
-Begin
-Assignfile(archivo, 'crashinfo.txt');
-   try
-   if not fileexists('crashinfo.txt') then rewrite(archivo)
-   else append(archivo);
-   writeln(archivo,GetCurrentStatus(1));
-   {
-   while ExceptLines.Count>0 do
-      begin
-      Writeln(archivo, ExceptLines[0]);
-      ExceptLines.Delete(0);
-      end;
-   }
-   Closefile(archivo);
-   Except on E:Exception do
-      tolog ('Error creating crashinfo file');
-   end;
 End;
 
 // Gets OS version
@@ -1902,10 +1856,10 @@ if WindowsVersion = wv95 then result := 'Windows95'
   else if WindowsVersion = wv10 then result := 'Windows 10'
   else result := 'WindowsUnknown';
 {$IFDEF WIN32}
-result := Result+'- 32 Bits';
+result := Result+' / 32 Bits';
 {$ENDIF}
 {$IFDEF WIN64}
-result := Result+'- 64 Bits';
+result := Result+' / 64 Bits';
 {$ENDIF}
 End;
 {$ENDIF}

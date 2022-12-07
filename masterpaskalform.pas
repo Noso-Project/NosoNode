@@ -678,7 +678,7 @@ CONST
   {$ENDIF}
   SubVersion = 'Aa1';
   OficialRelease = false;
-  VersionRequired = '0.3.2Ba1';
+  VersionRequired = '0.3.3Aa1';
   BuildDate = 'December 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
@@ -758,7 +758,6 @@ var
   StopDoctor : boolean = false;
 
   SendOutMsgsThread : TThreadSendOutMsjs;
-    G_SendingMsgs : boolean = false;
 
   ThreadMNs : TUpdateMNs;
   CryptoThread : TCryptoThread;
@@ -1579,7 +1578,6 @@ if G_CloseRequested then
       if not G_CloseRequested then
          begin
          RestartNosoAfterQuit := true;
-         CrearCrashInfo;
          end;
       cerrarprograma;
       end;
@@ -1593,49 +1591,6 @@ var
   contador : integer;
   LastRelease : String = '';
 Begin
-// Check last release
-{
-OutText(rs0071,false,1); // Checking last release available...
-if WO_AutoUpdate then LastRelease := GetLastRelease;
-if lastrelease <> '' then // Data retrieved
-   begin
-   if Parameter(lastrelease,0) = ProgramVersion+Subversion then
-      begin
-      //gridinicio.RowCount:=gridinicio.RowCount-1;
-      OutText(rs0073,false,1);  //✓ Running last release version
-      end
-   else if Parameter(lastrelease,0) > ProgramVersion+Subversion then
-      begin // new version available
-      //gridinicio.RowCount:=gridinicio.RowCount-1;
-      OutText(rs0074,false,1); //✗ New version available on project repo
-      OutText(Parameter(lastrelease,0)+' > '+ProgramVersion+Subversion,false,1);
-      if WO_AutoUpdate then
-         begin
-         if GetLastVerZipFile(Parameter(lastrelease,0),GetOS) then
-            begin
-            OutText('Last release downloaded!',false,1);
-            if UnZipUpdateFromRepo(Parameter(lastrelease,0),GetOS) then
-               begin
-               OutText('Unzipped!',false,1);
-               CreateLauncherFile(true);
-               RunExternalProgram(RestartFilename);
-               cerrarprograma();
-               end;
-            end;
-         end;
-      end
-   else
-      begin
-      gridinicio.RowCount:=gridinicio.RowCount-1;
-      OutText(rs0075,false,1);  // ✓ Running a development version
-      end;
-   end
-else // Error retrieving last release data
-   begin
-   gridinicio.RowCount:=gridinicio.RowCount-1;
-   OutText(rs0072,false,1);
-   end;
-}
 // A partir de aqui se inicializa todo
 if not directoryexists('NOSODATA') then CreateDir('NOSODATA');
 OutText(rs0022,false,1); //'✓ Data directory ok'
@@ -1649,7 +1604,6 @@ GetTimeOffset(PArameter(GetNosoCFGString,2));
 OutText('✓ Mainnet time synced',false,1);
 UpdateMyData();
 OutText(rs0024,false,1); //'✓ My data updated'
-OutText(rs0025,false,1); //'✓ Miner configuration set'
 // Ajustes a mostrar
 LoadOptionsToPanel();
 form1.Caption:=coinname+format(rs0027,[ProgramVersion,SubVersion]);
