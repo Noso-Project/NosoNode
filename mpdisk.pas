@@ -428,14 +428,10 @@ setmilitime('CreateADV',1);
    writeln(FileAdvOptions,'rtot '+inttoStr(ReadTimeOutTIme));
    writeln(FileAdvOptions,'UserFontSize '+inttoStr(UserFontSize));
    writeln(FileAdvOptions,'UserRowHeigth '+inttoStr(UserRowHeigth));
-   writeln(FileAdvOptions,'CPUs '+inttoStr(DefCPUs));
-   writeln(FileAdvOptions,'PoolExpel '+inttoStr(PoolExpelBlocks));
-   writeln(FileAdvOptions,'PoolShare '+inttoStr(PoolShare));
    writeln(FileAdvOptions,'RPCPort '+inttoStr(RPCPort));
    writeln(FileAdvOptions,'RPCPass '+RPCPass);
    writeln(FileAdvOptions,'ShowedOrders '+IntToStr(ShowedOrders));
    writeln(FileAdvOptions,'MaxPeers '+IntToStr(MaxPeersAllow));
-   writeln(FileAdvOptions,'PoolStepsDeep '+IntToStr(PoolStepsDeep));
    writeln(FileAdvOptions,'AutoConnect '+BoolToStr(WO_AutoConnect,true));
    writeln(FileAdvOptions,'ToTray '+BoolToStr(WO_ToTray,true));
    writeln(FileAdvOptions,'MinConexToWork '+IntToStr(MinConexToWork));
@@ -460,8 +456,6 @@ setmilitime('CreateADV',1);
    writeln(FileAdvOptions,'MNSign '+(MN_Sign));
    writeln(FileAdvOptions,'MNAutoIp '+BoolToStr(MN_AutoIP,true));
 
-   writeln(FileAdvOptions,'PoolRestart '+BoolToStr(POOL_MineRestart,true));
-   writeln(FileAdvOptions,'PoolLBS '+BoolToStr(POOL_LBS,true));
    writeln(FileAdvOptions,'WO_FullNode '+BoolToStr(WO_FullNode,true));
 
 
@@ -490,14 +484,10 @@ Begin
       if parameter(linea,0) ='rtot' then ReadTimeOutTIme:=StrToIntDef(Parameter(linea,1),ReadTimeOutTIme);
       if parameter(linea,0) ='UserFontSize' then UserFontSize:=StrToIntDef(Parameter(linea,1),UserFontSize);
       if parameter(linea,0) ='UserRowHeigth' then UserRowHeigth:=StrToIntDef(Parameter(linea,1),UserRowHeigth);
-      if parameter(linea,0) ='CPUs' then DefCPUs:=StrToIntDef(Parameter(linea,1),DefCPUs);
-      if parameter(linea,0) ='PoolExpel' then PoolExpelBlocks:=StrToIntDef(Parameter(linea,1),PoolExpelBlocks);
-      if parameter(linea,0) ='PoolShare' then PoolShare:=StrToIntDef(Parameter(linea,1),PoolShare);
       if parameter(linea,0) ='RPCPort' then RPCPort:=StrToIntDef(Parameter(linea,1),RPCPort);
       if parameter(linea,0) ='RPCPass' then RPCPass:=Parameter(linea,1);
       if parameter(linea,0) ='ShowedOrders' then ShowedOrders:=StrToIntDef(Parameter(linea,1),ShowedOrders);
       if parameter(linea,0) ='MaxPeers' then MaxPeersAllow:=StrToIntDef(Parameter(linea,1),MaxPeersAllow);
-      if parameter(linea,0) ='PoolStepsDeep' then PoolStepsDeep:=StrToIntDef(Parameter(linea,1),PoolStepsDeep);
       if parameter(linea,0) ='AutoConnect' then WO_AutoConnect:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='ToTray' then WO_ToTray:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='MinConexToWork' then MinConexToWork:=StrToIntDef(Parameter(linea,1),MinConexToWork);
@@ -541,8 +531,6 @@ Begin
       if parameter(linea,0) ='MNSign' then MN_Sign:=Parameter(linea,1);
       if parameter(linea,0) ='MNAutoIp' then MN_AutoIP:=StrToBool(Parameter(linea,1));
 
-      if parameter(linea,0) ='PoolRestart' then POOL_MineRestart:=StrToBool(Parameter(linea,1));
-      if parameter(linea,0) ='PoolLBS' then POOL_LBS:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='WO_FullNode' then WO_FullNode:=StrToBool(Parameter(linea,1));
 
       end;
@@ -786,7 +774,7 @@ End;
 // Creates a new wallet
 Procedure CrearWallet();
 Begin
-   try
+   TRY
    if not fileexists (WalletFilename) then // asegurarse de no borrar una cartera previa
       begin
       assignfile(FileWallet,WalletFilename);
@@ -797,9 +785,9 @@ Begin
       write(FileWallet,listadirecciones[0]);
       closefile(FileWallet);
       end;
-   Except on E:Exception do
+   EXCEPT on E:Exception do
       tolog ('Error creating wallet file');
-   end;
+   END; {TRY}
 End;
 
 // Load a wallet from disk

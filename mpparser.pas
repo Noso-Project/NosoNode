@@ -304,6 +304,7 @@ else if UpperCase(Command) = 'BLOCKPOS' then ShowBlockPos(LineText)
 else if UpperCase(Command) = 'POSSTACK' then showPosrequired(linetext)
 else if UpperCase(Command) = 'BLOCKMNS' then ShowBlockMNs(LineText)
 else if UpperCase(Command) = 'MYIP' then ConsoleLinesAdd(GetMiIP)
+else if UpperCase(Command) = 'SHOWUPDATES' then ConsoleLinesAdd(StringAvailableUpdates)
 else if UpperCase(Command) = 'CREATEAPPCODE' then ConsoleLinesAdd(CreateAppCode(parameter(linetext,1)))
 else if UpperCase(Command) = 'DECODEAPPCODE' then ConsoleLinesAdd(DecodeAppCode(parameter(linetext,1)))
 else if UpperCase(Command) = 'SETMODE' then SetCFGData(parameter(linetext,1),0)
@@ -321,11 +322,6 @@ else if UpperCase(Command) = 'PEERS' then ConsoleLinesAdd('Server list: '+IntToS
 else if UpperCase(Command) = 'SETRPCPORT' then SetRPCPort(LineText)
 else if UpperCase(Command) = 'RPCON' then SetRPCOn()
 else if UpperCase(Command) = 'RPCOFF' then SetRPCOff()
-
-
-// NETWORK VALUES
-else if UpperCase(Command) = 'NETHASH' then ConsoleLinesAdd('Network hashrate: '+IntToStr(networkhashrate))
-else if UpperCase(Command) = 'NETPEERS' then ConsoleLinesAdd('Network peers: '+IntToStr(networkpeers))
 
 //EXCHANGE
 else if UpperCase(Command) = 'POST' then PostOffer(LineText)
@@ -1267,20 +1263,19 @@ function AvailableUpdates():string;
 var
   updatefiles : TStringList;
   contador : integer = 0;
-  resultado :  string = '';
   version : string;
 Begin
+Result := '';
 updatefiles := TStringList.Create;
-FindAllFiles(updatefiles, UpdatesDirectory, 'nosoupdate*.zip', false);
+FindAllFiles(updatefiles, UpdatesDirectory, '*.zip', false);
 while contador < updatefiles.Count do
    begin
-   version :=copy(updatefiles[contador],28,5);
-   if version > ProgramVersion then Resultado := Resultado + version +' ';
-   contador += 1;
+   version :=copy(updatefiles[contador],18,8);
+   Result := result+version+' ';
+   Inc(contador);
    end;
 updatefiles.Free;
-if length(resultado) >0 then setlength(resultado,length(resultado)-1);
-result := resultado;
+Result := Trim(Result);
 End;
 
 // Manual update the app

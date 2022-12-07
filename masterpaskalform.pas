@@ -71,26 +71,6 @@ type
       Constructor Create(CreateSuspended : boolean);
     end;
 
-  TNobiexData = Packed Record
-     Request : integer;        //1:CREATE, 2:DELETE, 3:ACCEPT, 4:CANCEL, 5:REPORT
-     Id      : string[64];     //Unique ID
-     FromAddress : String[50]; //Noso Address sending the request
-     ToAddress   : String[50]; //Noso address buying
-     Ammount : int64;
-     Market : String[4];
-     Price  : int64;
-     Total  : int64;
-     Fee    : int64;
-     Locked : int64;            //Total nosos locked on selling address
-     Wait : int64;              //Max number of blocks to wait for payment
-     PayAddress : String[120];  //External crypto address receiving the payment
-     Block : int64;
-     PublicKey : string[120];
-     Signature  : String[120];
-     Status : integer;          //1:OPEN, 2:DEAL, 3: PAID, 4:DONE
-     Verificator  : String[32]; //Unique ID of the escrow service
-     end;
-
   BotData = Packed Record
      ip: string[15];
      LastRefused : string[17];
@@ -211,17 +191,6 @@ type
   DivResult = packed record
      cociente : string[255];
      residuo : string[255];
-     end;
-
-  MyTrxData = packed record
-     block : integer;
-     time  : int64;
-     tipo  : string[6];
-     receiver : string[64];     // Used for PoS storage on transaction 0
-     monto    : int64;
-     trfrID   : string[64];
-     OrderID  : String[64];
-     reference : String[64];
      end;
 
   MilitimeData = Packed Record
@@ -691,18 +660,6 @@ CONST
                                    'SETCFGDATA';
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
-  DefaultNodes : String = 'DefNodes '+
-                            '109.230.238.240 '+
-                            '149.57.235.14 '+
-                            '149.57.226.244 '+
-                            '81.22.38.101 '+
-                            '66.151.117.247 '+
-                            '149.57.229.81 '+
-                            '149.57.242.211 '+
-                            '149.57.138.12 '+
-                            '159.196.1.198 '+
-                            '101.100.138.125 '+
-                            '198.46.218.125';
 
   DefaultNosoCFG : String = 'NORMAL '+
                             '47.87.181.190;8080:47.87.178.205;8080:81.22.38.101;8080:66.151.117.247;8080:47.87.180.219;8080:47.87.137.96;8080:192.3.85.196;8080:192.3.254.186;8080:101.100.138.125;8080:198.46.218.125;8080:63.227.69.162;8080: '+
@@ -725,12 +682,9 @@ CONST
   BuildDate = 'December 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
-  HasheableChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
   DefaultServerPort = 8080;
   MaxConecciones  = 99;
   Protocolo = 2;
-  Miner_Steps = 10;
-  Pool_Max_Members = 1000;
   DefaultDonation = 10;
   // Custom values for coin
   SecondsPerBlock = 600;            // 10 minutes
@@ -754,9 +708,6 @@ CONST
   MNBlockStart  : integer = 48010;  // First block with MNpayments
   InitialBlockDiff = 60;            // Dificultad durante los 20 primeros bloques
   GenesysTimeStamp = 1615132800;    // 1615132800;
-  FileFormatVer = 'NFF2';
-  NPLS = '<NOS>';
-  NPLE = '<END>';
   AvailableMarkets = '/LTC';
   SendDirectToPeer = false;
   SumMarkInterval  = 100;
@@ -772,14 +723,10 @@ var
   UserRowHeigth : integer = 22;
   ReadTimeOutTIme : integer = 1000;
   ConnectTimeOutTime : integer = 1000;
-  DefCPUs : integer = 1;
-  PoolExpelBlocks :integer = 0;
-  PoolShare : integer = 100;
   RPCPort : integer = 8078;
   RPCPass : string = 'default';
   ShowedOrders : integer = 100;
   MaxPeersAllow : integer = 50;
-  PoolStepsDeep : integer = 2;
   WO_AutoConnect   : boolean = false;
   WO_AutoServer    : boolean = false;
   WO_ToTray        : boolean = false;
@@ -804,8 +751,6 @@ var
   MN_Sign          : string = '';
   MN_AutoIP        : Boolean = false;
   MN_FileText      : String = '';
-  POOL_MineRestart : boolean = false;
-  POOL_LBS         : boolean = false;
   WO_FullNode      : boolean = true;
 
   ConnectedRotor : integer = 0;
@@ -832,7 +777,6 @@ var
   RebuildingSumary : boolean = false;
   MilitimeArray : array of MilitimeData;
   MyCurrentBalance : Int64 = 0;
-  G_CpuCount : integer = 1;
   Customizationfee : int64 = InitialReward div ComisionCustom;
   MsgsReceived : string = '';
   G_Launching : boolean = true;   // Indica si el programa se esta iniciando
@@ -852,21 +796,12 @@ var
     U_DataPanel : boolean = true;
     U_PoSGrid : Boolean = true;
 
-     networkhashrate: int64 = 0;
-       nethashsend : boolean = false;
-     networkpeers : integer;
-       netpeerssend : boolean = false;
-
   ArrayOrderIDsProcessed : array of string;
 
     U_DirPanel : boolean = false;
-  FileMyTrx  : File of MyTrxData;
-    S_MyTrxs  : boolean = false;
   FileBotData : File of BotData;
     S_BotData : Boolean = false;
   LastBotClear: string = '';
-  FileNodeData : File of NodeData;
-    S_NodeData : Boolean = false;
   FileWallet : file of WalletData;
     S_Wallet : boolean = false;
   FileSumario : file of SumarioData;
@@ -881,27 +816,22 @@ var
     S_AdvOpt : boolean = false;
   PoolTotalHashRate : int64 = 0;
 
-  AutoRestarted : Boolean = false;
   CurrentJob : String = '';
   NosoCFGStr : String = '';
   ForcedQuit : boolean = false;
-  G_KeepPoolOff : boolean = false;
-  LanguageLines : integer = 0;
   NewLogLines : integer = 0;
   NewExclogLines : integer = 0;
   Conexiones : array [1..MaxConecciones] of conectiondata;
   SlotLines : array [1..MaxConecciones] of TStringList;
   CanalCliente : array [1..MaxConecciones] of TIdTCPClient;
-    PoolClientLastPing : int64;
-  PoolClientContext : TIdContext;
-  ListadoBots :  array of BotData;
-  ListaNodos : array of NodeData;
-  ListaMisTrx : Array of MyTrxData;
+
+  ListadoBots      :  array of BotData;
+  ListaNodos       : array of NodeData;
   ListaDirecciones : array of walletData; // Wallet addresses
-  ListaSumario : array of SumarioData;    // Sumary addresses
-  PendingTXs : Array of OrderData;
-  OutgoingMsjs : TStringlist;
-  ArrayConsenso : array of NetworkData;
+  ListaSumario     : array of SumarioData;    // Sumary addresses
+  PendingTXs       : Array of OrderData;
+  OutgoingMsjs     : TStringlist;
+  ArrayConsenso    : array of NetworkData;
 
   // Variables asociadas a la red
   KeepServerOn : Boolean = false;
@@ -1021,7 +951,7 @@ var
   FormState_Width  : integer;
   FormState_Status : integer;
 
-  // Cross OS variables
+  // Filename variables
 
   BotDataFilename     :string= 'NOSODATA'+DirectorySeparator+'botdata.psk';
   WalletFilename      :string= 'NOSODATA'+DirectorySeparator+'wallet.pkw';
@@ -1045,9 +975,7 @@ var
   MontoOutgoing : Int64 = 0;
   InfoPanelTime : integer = 0;
 
-  // Nobiex related variables
-
-implementation
+IMPLEMENTATION
 
 Uses
   mpgui, mpdisk, mpParser, mpRed, nosotime, mpProtocol, mpcripto, mpcoin,

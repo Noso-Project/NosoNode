@@ -472,7 +472,6 @@ if mode = 1 then
    Resultado := resultado+'OS: '+OSVersion +slinebreak;
    Resultado := resultado+'WalletVer: '+ProgramVersion+SubVersion+slinebreak;
    Resultado := resultado+'SendingMsgs: '+BoolToStr(G_SendingMsgs,true)+slinebreak;
-   Resultado := resultado+'Autorestarted: '+BoolToStr(AutoRestarted,true)+slinebreak;
    end;
 result := resultado;
 End;

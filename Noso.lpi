@@ -139,7 +139,7 @@
         <PackageName Value="LCL"/>
       </Item7>
     </RequiredPackages>
-    <Units Count="17">
+    <Units Count="18">
       <Unit0>
         <Filename Value="Noso.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -224,6 +224,10 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="NosoTime"/>
       </Unit16>
+      <Unit17>
+        <Filename Value="nosodebug.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit17>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
