@@ -34,10 +34,8 @@ type
 Procedure BeginPerformance(Tag:String);
 Procedure EndPerformance(Tag:String);
 Procedure CreateNewLog(LogName: string; LogFileName:String = '');
-Procedure AddToLog(LogTag,NewLine : String);
+Procedure AddLineToDebugLog(LogTag,NewLine : String);
 Function GetLogLine(LogTag:string):String;
-{Debug only}
-Function GetLogsData():String;
 
 var
   ArrPerformance : array of TPerformance;
@@ -149,7 +147,7 @@ Begin
   Insert(NewData,ArrNDLogs,length(ArrNDLogs));
 End;
 
-Procedure AddToLog(LogTag,NewLine : String);
+Procedure AddLineToDebugLog(LogTag,NewLine : String);
 var
   counter : integer;
 Begin
@@ -187,17 +185,7 @@ Begin
     end;
 End;
 
-{This funciton is only for debug purposes}
-Function GetLogsData():String;
-var
-  counter : integer;
-Begin
-  result := '';
-  for counter := 0 to length(ArrNDLogs)-1 do
-    result := result+counter.ToString+' '+ArrNDLogs[counter].tag+' '+ArrNDLogs[counter].Count.ToString+slinebreak;
-  result := trim(result);
-End;
-
+{Free all data at close}
 Procedure FreeAllLogs;
 var
   counter : integer;

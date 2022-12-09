@@ -47,14 +47,14 @@ Begin
 value := StrToIntDef(parameter(LineText,1),0);
 if ((value <=0) or (value >65535)) then
    begin
-   AddToLog('console','Invalid value');
+   AddLineToDebugLog('console','Invalid value');
    end
 else if Form1.RPCServer.Active then
-   AddToLog('console','Can not change the RPC port when it is active')
+   AddLineToDebugLog('console','Can not change the RPC port when it is active')
 else
    begin
    RPCPort := value;
-   AddToLog('console','RPC port set to: '+IntToStr(value));
+   AddLineToDebugLog('console','RPC port set to: '+IntToStr(value));
    S_AdvOpt := true;
    end;
 End;
@@ -81,17 +81,17 @@ if not Form1.RPCServer.Active then
       G_Launching := true;
       form1.CB_RPC_ON.Checked:=true;
       G_Launching := false;
-      AddToLog('console','RPC server ENABLED');
+      AddLineToDebugLog('console','RPC server ENABLED');
       EXCEPT on E:Exception do
          begin
-         AddToLog('console','Unable to start RPC port');
+         AddLineToDebugLog('console','Unable to start RPC port');
          G_Launching := true;
          form1.CB_RPC_ON.Checked:=false;
          G_Launching := false;
          end;
       END; {TRY}
    end
-else AddToLog('console','RPC server already ENABLED');
+else AddLineToDebugLog('console','RPC server already ENABLED');
 End;
 
 // Turns off RPC server
@@ -100,12 +100,12 @@ Begin
 if Form1.RPCServer.Active then
    begin
    Form1.RPCServer.Active:=false;
-   AddToLog('console','RPC server DISABLED');
+   AddLineToDebugLog('console','RPC server DISABLED');
    G_Launching := true;
    form1.CB_RPC_ON.Checked:=false;
    G_Launching := false;
    end
-else AddToLog('console','RPC server already DISABLED');
+else AddLineToDebugLog('console','RPC server already DISABLED');
 End;
 
 // ***************************
@@ -377,8 +377,8 @@ else
       for counter := 0 to params.Count-1 do
          NosoPParams:= NosoPParams+' '+params[counter].AsString;
       NosoPParams:= Trim(NosoPParams);
-      //AddToLog('console',jsonreceived);
-      //AddToLog('console','NosoPParams: '+NosoPParams);
+      //AddLineToDebugLog('console',jsonreceived);
+      //AddLineToDebugLog('console','NosoPParams: '+NosoPParams);
       if method = 'test' then result := GetJSONResponse('test',jsonid)
       else if method = 'getaddressbalance' then result := GetJSONResponse(RPC_AddressBalance(NosoPParams),jsonid)
       else if method = 'getorderinfo' then result := GetJSONResponse(RPC_OrderInfo(NosoPParams),jsonid)
@@ -445,7 +445,7 @@ var
   thisOr : TOrderGroup;
   validID : string = 'true';
 Begin
-ToLog('GetOrderDetails requested: '+NosoPParams);
+AddLineToDebugLog('events',TimeToStr(now)+'GetOrderDetails requested: '+NosoPParams);
 NosoPParams := Trim(NosoPParams);
 ThisOr := Default(TOrderGroup);
 if NosoPParams='' then
@@ -500,7 +500,7 @@ End;
 function RPC_Mininginfo(NosoPParams:string):string;
 Begin
 result := format('mininginfo'#127'%d'#127'%s'#127'%s'#127'%s'#127'%s'#127,[mylastblock+1,MyLastBlockHash,GetNMSData.miner,GetNMSData.Diff, GetNMSData.Hash]);
-//AddToLog('console','Resultado:'+result);
+//AddLineToDebugLog('console','Resultado:'+result);
 End;
 
 function RPC_Mainnetinfo(NosoPParams:string):string;
@@ -613,7 +613,7 @@ var
 Begin
 TotalNumber := StrToIntDef(NosoPParams,1);
 if TotalNumber > 100 then TotalNumber := 100;
-//AddToLog('console','TotalNewAddresses: '+IntToStr(TotalNumber));
+//AddLineToDebugLog('console','TotalNewAddresses: '+IntToStr(TotalNumber));
 result := 'newaddress'#127'true'#127+IntToStr(TotalNumber)+#127;
 for counter := 1 to totalnumber do
    begin
@@ -625,7 +625,7 @@ for counter := 1 to totalnumber do
 trim(result);
 S_Wallet := true;
 U_DirPanel := true;
-//AddToLog('console',result);
+//AddLineToDebugLog('console',result);
 End;
 
 function RPC_SendFunds(NosoPParams:string):string;
@@ -637,7 +637,7 @@ Begin
 destination := Parameter(NosoPParams,0);
 amount := StrToInt64Def(Parameter(NosoPParams,1),0);
 reference := Parameter(NosoPParams,2); if reference = '' then reference := 'null';
-//AddToLog('console','Send to '+destination+' '+int2curr(amount)+' with reference: '+reference);
+//AddLineToDebugLog('console','Send to '+destination+' '+int2curr(amount)+' with reference: '+reference);
 Resultado := SendFunds('sendto '+destination+' '+IntToStr(amount)+' '+Reference);
 if resultado = '' then
    begin

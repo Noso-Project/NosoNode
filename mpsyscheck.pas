@@ -5,7 +5,7 @@ unit mpSysCheck;
 interface
 
 uses
-  Classes, SysUtils, mpcripto, fphttpclient, mpdisk{$IFDEF Unix} ,Linux {$ENDIF} ;
+  Classes, SysUtils, mpcripto, fphttpclient, mpdisk{$IFDEF Unix} ,Linux {$ENDIF},nosodebug ;
 
 Type
   TThreadHashtest = class(TThread)
@@ -117,7 +117,7 @@ timeStart := GetTickCount64;
    //DeleteFile('NOSODATA'+DirectorySeparator+'1mb.dat');
    Sucess := true;
    EXCEPT ON E:Exception do
-    tolog(e.Message);
+    AddLineToDebugLog('events',TimeToStr(now)+e.Message);
    END{Try};
 Inc(Trys);
 UNTIL ( (sucess) or (trys=5) );

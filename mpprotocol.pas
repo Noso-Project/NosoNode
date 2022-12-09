@@ -284,7 +284,7 @@ for contador := 1 to MaxConecciones do
    begin
    if ( (LengthIncoming(contador) > 200) and (not IsSeedNode(Conexiones[contador].ip)) ) then
       begin
-      AddToLog('console','POSSIBLE ATTACK FROM: '+Conexiones[contador].ip);
+      AddLineToDebugLog('console','POSSIBLE ATTACK FROM: '+Conexiones[contador].ip);
       UpdateBotData(conexiones[contador].ip);
       CerrarSlot(contador);
       continue;
@@ -299,18 +299,18 @@ for contador := 1 to MaxConecciones do
       if ((not IsValidProtocol(ProcessLine)) and (not Conexiones[contador].Autentic)) then
          // La linea no es valida y proviene de una conexion no autentificada
          begin
-         AddToLog('console','CONNECTION REJECTED: INVALID PROTOCOL -> '+conexiones[contador].ip+'->'+ProcessLine); //CONNECTION REJECTED: INVALID PROTOCOL ->
+         AddLineToDebugLog('console','CONNECTION REJECTED: INVALID PROTOCOL -> '+conexiones[contador].ip+'->'+ProcessLine); //CONNECTION REJECTED: INVALID PROTOCOL ->
          UpdateBotData(conexiones[contador].ip);
          CerrarSlot(contador);
          end
       else if UpperCase(LineComando) = 'DUPLICATED' then
          begin
-         AddToLog('Console','You are already connected to '+conexiones[contador].ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
+         AddLineToDebugLog('Console','You are already connected to '+conexiones[contador].ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
          CerrarSlot(contador);
          end
       else if UpperCase(LineComando) = 'OLDVERSION' then
          begin
-         AddToLog('Console','You need update your wallet to connect to '+conexiones[contador].ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
+         AddLineToDebugLog('Console','You need update your wallet to connect to '+conexiones[contador].ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
          CerrarSlot(contador);
          end
       else if UpperCase(LineComando) = '$GETNODES' then PTC_Getnodes(contador)
@@ -329,7 +329,7 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = '$BESTHASH' then
          begin
          PTC_BestHash(ProcessLine,'1.1.1.1');
-         //AddToLog('console','Debug: Besthash processed via protocol engine');
+         //AddLineToDebugLog('console','Debug: Besthash processed via protocol engine');
          end
       else if UpperCase(LineComando) = '$MNCHECK' then PTC_MNCheck(ProcessLine)
       else if UpperCase(LineComando) = '$GETCHECKS' then PTC_SendChecks(contador)
@@ -346,7 +346,7 @@ for contador := 1 to MaxConecciones do
 
       else
          Begin  // El comando recibido no se reconoce. Verificar protocolos posteriores.
-         AddToLog('Console','Unknown command () in slot: ('+ProcessLine+') '+intToStr(contador)); //Unknown command () in slot: (
+         AddLineToDebugLog('Console','Unknown command () in slot: ('+ProcessLine+') '+intToStr(contador)); //Unknown command () in slot: (
          end;
       end;
    end;
@@ -396,7 +396,7 @@ if slot <= length(conexiones)-1 then
          Conexiones[Slot].context.Connection.IOHandler.WriteLn(Message);
          EXCEPT On E :Exception do
             begin
-            AddToLog('Console',E.Message);
+            AddLineToDebugLog('Console',E.Message);
             ToExcLog('Error sending line: '+E.Message);
             CerrarSlot(Slot);
             end;
@@ -415,7 +415,7 @@ if slot <= length(conexiones)-1 then
       CanalCliente[Slot].IOHandler.WriteLn(Message);
       EXCEPT On E :Exception do
          begin
-         AddToLog('Console',E.Message);
+         AddLineToDebugLog('Console',E.Message);
          ToExcLog('Error sending line: '+E.Message);
          CerrarSlot(Slot);
          end;
@@ -568,7 +568,7 @@ if GetPendingCount > 0 then
          PTC_SendLine(slot,Encab+'$'+TextLine);
          end;
       end;
-   Tolog('Sent '+IntToStr(Length(CopyPendingTXs))+' pendingTxs to '+conexiones[slot].ip);
+   AddLineToDebugLog('events',TimeToStr(now)+'Sent '+IntToStr(Length(CopyPendingTXs))+' pendingTxs to '+conexiones[slot].ip);
    SetLength(CopyPendingTXs,0);
    end;
 End;
@@ -756,7 +756,7 @@ var
   FileSentOk : Boolean = false;
   ZipFileName:String;
 Begin
-AddToLog('Console','********** DEBUG CHECK **********');
+AddLineToDebugLog('Console','********** DEBUG CHECK **********');
 SetCurrentJob('PTC_SendBlocks',true);
 FirstBlock := StrToIntDef(Parameter(textline,5),-1)+1;
 ZipFileName := CreateZipBlockfile(FirstBlock);
@@ -948,7 +948,7 @@ for cont := 0 to NumTransfers-1 do
       begin
       proceder := false;
       ErrorCode := 97;
-      //AddToLog('console',format('error: %s <> %s',[senderTrx[cont],TrxArray[cont].Address ]))
+      //AddLineToDebugLog('console',format('error: %s <> %s',[senderTrx[cont],TrxArray[cont].Address ]))
       end;
    if pos(sendersString,senderTrx[cont]) > 0 then
       begin
@@ -962,18 +962,18 @@ for cont := 0 to NumTransfers-1 do
 GenOrderID := GetOrderHash(GenOrderID);
 if TotalFee >= GetFee(TotalSent) then
    begin
-   //AddToLog('console',Format('Order fees match : %d >= %d',[TotalFee,GetFee(TotalSent)]))
+   //AddLineToDebugLog('console',Format('Order fees match : %d >= %d',[TotalFee,GetFee(TotalSent)]))
    end
 else
    begin
-   //AddToLog('console',Format('WRONG ORDER FEES : %d >= %d',[TotalFee,GetFee(TotalSent)]));
+   //AddLineToDebugLog('console',Format('WRONG ORDER FEES : %d >= %d',[TotalFee,GetFee(TotalSent)]));
    TodoValido := false;
    ErrorCode := 100;
    end;
 if RecOrderId<>GenOrderID then
    begin
-   //AddToLog('console','<-'+RecOrderId);
-   //AddToLog('console','->'+GenOrderID);
+   //AddLineToDebugLog('console','<-'+RecOrderId);
+   //AddLineToDebugLog('console','->'+GenOrderID);
    if mylastblock >= 56000 then TodoValido := false;
    if mylastblock >= 56000 then ErrorCode := 101;
    end;
@@ -1007,7 +1007,7 @@ else
    end;
 EXCEPT ON E:EXCEPTION DO
    begin
-   AddToLog('Console','****************************************'+slinebreak+'PTC_Order:'+E.Message);
+   AddLineToDebugLog('Console','****************************************'+slinebreak+'PTC_Order:'+E.Message);
    end;
 END; {TRY}
 End;
@@ -1027,7 +1027,7 @@ var
   StrTosign  : String = '';
 Begin
 OrderInfo := Default(OrderData);
-//AddToLog('console',TextLine);
+//AddLineToDebugLog('console',TextLine);
 OrderInfo := GetOrderFromString(TextLine);
 Address := GetAddressFromPublicKey(OrderInfo.sender);
 if address <> OrderInfo.Address then ErrorCode := 1;
@@ -1048,7 +1048,7 @@ if ErrorCode= 0 then
    end;
 Result := ErrorCode;
 if ErrorCode > 0 then
-   ToLog('SendGVT error: '+ErrorCode.ToString);
+   AddLineToDebugLog('events',TimeToStr(now)+'SendGVT error: '+ErrorCode.ToString);
 End;
 
 Procedure PTC_AdminMSG(TextLine:String);
@@ -1067,7 +1067,7 @@ var
   ThDirect := TThreadDirective.Create(true,LParameter);
   ThDirect.FreeOnTerminate:=true;
   ThDirect.Start;
-  Tolog(Format('Directive: %s',[LParameter]));
+  AddLineToDebugLog('events',TimeToStr(now)+Format('Directive: %s',[LParameter]));
   End;
 
 Begin
@@ -1079,12 +1079,12 @@ if AnsiContainsStr(MsgsReceived,hashmsg) then errored := true;
 mensaje := StringReplace(mensaje,'_',' ',[rfReplaceAll, rfIgnoreCase]);
 if not VerifySignedString(msgtime+mensaje,firma,AdminPubKey) then
    begin
-   ToLog('Directive wrong sign');
+   AddLineToDebugLog('events',TimeToStr(now)+'Directive wrong sign');
    errored := true;
    end;
 if HashMD5String(msgtime+mensaje+firma) <> Hashmsg then
    begin
-   ToLog('Directive wrong hash');
+   AddLineToDebugLog('events',TimeToStr(now)+'Directive wrong hash');
    errored :=true;
    end;
 if not errored then
@@ -1140,7 +1140,7 @@ if not IsValidPool(Miner) then exitcode := 9;
 if not VerifySignedString(Miner+Hash+TimeStamp,Signature,PublicKey) then
    begin
    Exitcode := 11;
-   If miner <> 'NpryectdevepmentfundsGE' then ToLog('Invalid signature from '+miner);
+   If miner <> 'NpryectdevepmentfundsGE' then AddLineToDebugLog('events',TimeToStr(now)+'Invalid signature from '+miner);
    end;
 if exitcode>0 then
    begin
@@ -1154,7 +1154,7 @@ if ( (Diff<GetNMSData.Diff) and (Copy(Diff,1,7)<>'0000000') ) then // Better has
    SetNMSData(Diff,hash,miner,timestamp,publickey,signature);
    OutgoingMsjsAdd(GetPTCEcn+'$BESTHASH '+Miner+' '+Hash+' '+block+' '+TimeStamp+' '+PublicKey+' '+Signature);
    Result:='True '+Diff+' '+ResultHash;
-   if IPUser <>'1.1.1.1' then ToLog('Besthash received from '+IPUser+'->'+Miner);
+   if IPUser <>'1.1.1.1' then AddLineToDebugLog('events',TimeToStr(now)+'Besthash received from '+IPUser+'->'+Miner);
    end
 else
    begin
@@ -1174,10 +1174,10 @@ if Copy(HAshMD5String(Content),0,5) = NetCFGHash.Value then
    SaveNosoCFGFile(content);
    SetNosoCFGString(content);
    FillNodeList;
-   AddToLog('Console','Noso CFG updated!');
+   AddLineToDebugLog('Console','Noso CFG updated!');
    end
 else
-   AddToLog('Console',Format('%s %s',[Copy(HAshMD5String(Content),0,5),NetCFGHash.Value]));
+   AddLineToDebugLog('Console',Format('%s %s',[Copy(HAshMD5String(Content),0,5),NetCFGHash.Value]));
 End;
 
 Procedure PTC_SendUpdateHeaders(Slot:integer;Linea:String);
@@ -1186,8 +1186,8 @@ var
 Begin
 Block := StrToIntDef(Parameter(Linea,5),0);
 PTC_SendLine(slot,ProtocolLine(headupdate)+' $'+LastHeaders(Block));
-//AddToLog('console',Format('Blockheaders update sent to %s (%d)',[Conexiones[slot].ip,Block]));
-//AddToLog('console','Blockheaders update sent to '+Conexiones[slot].ip);
+//AddLineToDebugLog('console',Format('Blockheaders update sent to %s (%d)',[Conexiones[slot].ip,Block]));
+//AddLineToDebugLog('console','Blockheaders update sent to '+Conexiones[slot].ip);
 End;
 
 Procedure PTC_HeadUpdate(linea:String);
@@ -1219,22 +1219,22 @@ REPEAT
       else
          begin
          Inc(TotalErrors);
-         //AddToLog('console',Format('Error updating headers: %d not after %d',[numero,LastBlockOnSummary]));
+         //AddLineToDebugLog('console',Format('Error updating headers: %d not after %d',[numero,LastBlockOnSummary]));
          end;
       end;
    inc(counter);
 UNTIL ThisHeader='';
-//if TotalErrors>0 then AddToLog('console',Format('Errors updating headers: %d',[TotalErrors]));
-//if TotalReceived>0 then AddToLog('console',Format('Headers Received: %d',[TotalReceived]));
+//if TotalErrors>0 then AddLineToDebugLog('console',Format('Errors updating headers: %d',[TotalErrors]));
+//if TotalReceived>0 then AddLineToDebugLog('console',Format('Headers Received: %d',[TotalReceived]));
 MyResumenHash := HashMD5File(ResumenFilename);
 if MyResumenHash <> NetResumenHash.Value then
    begin
    ForceCompleteHeadersDownload := true;
-   AddToLog('Console',Format('Update headers failed: %s <> %s',[MyResumenHash,NetResumenHash.Value]));
+   AddLineToDebugLog('Console',Format('Update headers failed: %s <> %s',[MyResumenHash,NetResumenHash.Value]));
    end
 else
    begin
-   AddToLog('Console','Headers Updated!');
+   AddLineToDebugLog('Console','Headers Updated!');
    ForceCompleteHeadersDownload := false;
    end;
 End;
@@ -1369,7 +1369,7 @@ LasTimeCFGRequest:= UTCTime+5;
 SaveNosoCFGFile(DefaultNosoCFG);
 SetNosoCFGString(DefaultNosoCFG);
 FillNodeList;
-AddToLog('Console','NosoCFG restarted');
+AddLineToDebugLog('Console','NosoCFG restarted');
 End;
 
 

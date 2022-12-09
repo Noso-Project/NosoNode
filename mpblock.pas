@@ -38,7 +38,7 @@ Uses
 Procedure CrearBloqueCero();
 Begin
 BuildNewBlock(0,GenesysTimeStamp,'',adminhash,'');
-if G_Launching then AddToLog('console','Block GENESYS (0) created.'); //'Block 0 created.'
+if G_Launching then AddLineToDebugLog('console','Block GENESYS (0) created.'); //'Block 0 created.'
 if G_Launching then OutText('✓ Block 0 created',false,1);
 End;
 
@@ -116,14 +116,14 @@ BeginPerformance('BuildNewBlock');
 SetCurrentJob('BuildNewBlock',true);
 if ((numero>0) and (Timestamp < lastblockdata.TimeEnd)) then
    begin
-   AddToLog('console','New block '+IntToStr(numero)+' : Invalid timestamp');
-   AddToLog('console','Blocks can not be added until '+TimestampToDate(GenesysTimeStamp));
+   AddLineToDebugLog('console','New block '+IntToStr(numero)+' : Invalid timestamp');
+   AddLineToDebugLog('console','Blocks can not be added until '+TimestampToDate(GenesysTimeStamp));
    errored := true;
    end;
 if TimeStamp > UTCTime+5 then
    begin
-   AddToLog('console','New block '+IntToStr(numero)+' : Invalid timestamp');
-   AddToLog('console','Timestamp '+IntToStr(TimeStamp)+' is '+IntToStr(TimeStamp-UTCTime)+' seconds in the future');
+   AddLineToDebugLog('console','New block '+IntToStr(numero)+' : Invalid timestamp');
+   AddLineToDebugLog('console','Timestamp '+IntToStr(TimeStamp)+' is '+IntToStr(TimeStamp-UTCTime)+' seconds in the future');
    errored := true;
    end;
 if not errored then
@@ -506,7 +506,7 @@ MemStr := TMemoryStream.Create;
    MemStr.SaveToFile(NombreArchivo);
    EXCEPT On E :Exception do
       begin
-      AddToLog('console','Error saving block to disk: '+E.Message);
+      AddLineToDebugLog('console','Error saving block to disk: '+E.Message);
       result := false;
       end;
    END{Try};
@@ -531,7 +531,7 @@ MemStr := TMemoryStream.Create;
    MemStr.Read(Header, SizeOf(Header));
    EXCEPT ON E:Exception do
       begin
-      AddToLog('console','Error loading Header from block '+IntToStr(BlockNumber)+':'+E.Message);
+      AddLineToDebugLog('console','Error loading Header from block '+IntToStr(BlockNumber)+':'+E.Message);
       end;
    END{Try};
 MemStr.Free;
@@ -698,10 +698,10 @@ MyLastBlock := GetMyLastUpdatedBlock;
 MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
 LastBlockData := LoadBlockDataHeader(MyLastBlock);
 MyResumenHash := HashMD5File(ResumenFilename);
-AddToLog('console','****************************');
-AddToLog('console','Block undone: '+IntToStr(blocknumber)); //'Block undone: '
-AddToLog('console','****************************');
-Tolog('Block Undone: '+IntToStr(blocknumber));
+AddLineToDebugLog('console','****************************');
+AddLineToDebugLog('console','Block undone: '+IntToStr(blocknumber)); //'Block undone: '
+AddLineToDebugLog('console','****************************');
+AddLineToDebugLog('events',TimeToStr(now)+'Block Undone: '+IntToStr(blocknumber));
 U_DataPanel := true;
 BlockUndoneTime := UTCTime;
 End;

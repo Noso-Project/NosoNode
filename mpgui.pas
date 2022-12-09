@@ -270,7 +270,7 @@ End;
 Procedure OutText(Texto:String;inctime:boolean = false;canal : integer =0);
 Begin
 if inctime then texto := timetostr(now)+' '+texto;
-if canal = 0 then AddToLog('console',texto);
+if canal = 0 then AddLineToDebugLog('console',texto);
 if canal = 1 then  // Salida al grid de inicio
    begin
    gridinicio.RowCount:=gridinicio.RowCount+1;
@@ -281,7 +281,7 @@ if canal = 1 then  // Salida al grid de inicio
    end;
 if canal = 2 then // A consola y label info
    begin
-   AddToLog('console',texto);
+   AddLineToDebugLog('console',texto);
    info(texto);
    end;
 End;

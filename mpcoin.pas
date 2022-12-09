@@ -433,7 +433,7 @@ Begin
    Except on E:Exception do
       begin
       result := pordefecto;
-      tolog(erroroutput);
+      AddLineToDebugLog('events',TimeToStr(now)+erroroutput);
       if copy(erroroutput,1,9) = '**CRITICAL:' then
          raise exception.Create(erroroutput+SLINEBREAK+'We recomend to restart the program after this');
       end;

@@ -188,13 +188,13 @@ for counter := 0 to length(MNsListCopy)-1 do
 EnterCriticalSection(DecVerThreads);
 OpenVerificators := Launched;
 LeaveCriticalSection(DecVerThreads);
-ToLog(Format('MNs verification Launched: %d to verify',[Launched]));
+AddLineToDebugLog('events',TimeToStr(now)+Format('MNs verification Launched: %d to verify',[Launched]));
 Repeat
   sleep(100);
   Inc(WaitCycles);
 until ( (NoVerificators= 0) or (WaitCycles = 150) );
-ToLog(Format('MNs verification finish: %d launched, %d Open, %d cycles',[Launched,NoVerificators,WaitCycles ]));
-ToLog(Format('Unconfirmed IPs: %d',[UnconfirmedIPs ]));
+AddLineToDebugLog('events',TimeToStr(now)+Format('MNs verification finish: %d launched, %d Open, %d cycles',[Launched,NoVerificators,WaitCycles ]));
+AddLineToDebugLog('events',TimeToStr(now)+Format('Unconfirmed IPs: %d',[UnconfirmedIPs ]));
 if NoVerificators>0 then
    begin
    ToExcLog('*****CRITICAL****'+slinebreak+'Open verificators : '+NoVerificators.ToString);
@@ -280,16 +280,16 @@ if not VerifySignedString(CheckData.ValidNodes,CheckData.Signature,CheckData.Pub
 if ErrorCode = 0 then
    begin
    AddMNCheck(CheckData);
-   //ToLog(CheckData.ValidNodes);
+   //AddLineToDebugLog('events',TimeToStr(now)+CheckData.ValidNodes);
    if form1.Server.Active then
       outGOingMsjsAdd(GetPTCEcn+ReportInfo);
-   //AddToLog('console','Check received from '+CheckData.validnodes);
-   //ToLog('Good check : (('+Linea+'))');
+   //AddLineToDebugLog('console','Check received from '+CheckData.validnodes);
+   //AddLineToDebugLog('events',TimeToStr(now)+'Good check : (('+Linea+'))');
    end
 else
    begin
-   //AddToLog('console','Wrong check from '+CheckData.ValidatorIP+'->'+ErrorCode.ToString);
-   //ToLog('Wrong MNCheck: (-('+Linea+')-)');
+   //AddLineToDebugLog('console','Wrong check from '+CheckData.ValidatorIP+'->'+ErrorCode.ToString);
+   //AddLineToDebugLog('events',TimeToStr(now)+'Wrong MNCheck: (-('+Linea+')-)');
    end;
 End;
 
@@ -449,7 +449,7 @@ else if ToMNode.hash <> HashMD5String(ToMNode.Ip+IntToStr(ToMNode.Port)+ToMNode.
 if ErrCode>0 then
    begin
    Result := false;
-   //AddToLog('console','MASTERNODE REJECTED ERROR: '+ErrCode.ToString);
+   //AddLineToDebugLog('console','MASTERNODE REJECTED ERROR: '+ErrCode.ToString);
    end;
 End;
 
@@ -516,12 +516,12 @@ if GetMNodeFromString(ReportInfo,NewNode) then
       end
    else
       begin
-      //AddToLog('console','NO LEGIT Masternode: '+Reportinfo);
+      //AddLineToDebugLog('console','NO LEGIT Masternode: '+Reportinfo);
       end;
    end
 else
    begin
-   //AddToLog('console','REJECTED Masternode: '+Reportinfo);
+   //AddLineToDebugLog('console','REJECTED Masternode: '+Reportinfo);
    end;
 End;
 
@@ -605,7 +605,7 @@ Readln(Archivo,Linea);
 Closefile(archivo);
 EXCEPT on E:Exception do
    begin
-   tolog ('Error Saving masternodes file');
+   AddLineToDebugLog('events',TimeToStr(now)+'Error Saving masternodes file');
    Linea := '';
    end;
 END {TRY};
@@ -757,7 +757,7 @@ for counter := 0 to length(ArrMNChecks)-1 do
    begin
    NodesString := ArrMNChecks[counter].ValidNodes;
    NodesString := StringReplace(NodesString,':',' ',[rfReplaceAll]);
-   //AddToLog('console',NodesString);
+   //AddLineToDebugLog('console',NodesString);
    IPIndex := 0;
    REPEAT
       begin

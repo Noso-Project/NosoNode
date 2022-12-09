@@ -74,6 +74,7 @@ type
   TUpdateLogs = class(TThread)
     private
       procedure UpdateConsole;
+      procedure UpdateEvents;
     protected
       procedure Execute; override;
     public
@@ -674,7 +675,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa1';
+  SubVersion = 'Aa2';
   OficialRelease = false;
   VersionRequired = '0.3.3Aa1';
   BuildDate = 'December 2022';
@@ -785,8 +786,6 @@ var
   Form1: TForm1;
   LastCommand : string = '';
   ProcessLines : TStringlist;
-  LogLines : TStringList;
-    S_Log : boolean = false;
   ExceptLines : TStringList;
     S_Exc : boolean = false;
   StringAvailableUpdates : String = '';
@@ -958,7 +957,7 @@ var
   LogsDirectory       :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator;
   ExceptLogFilename   :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'exceptlog.txt';
   ResumenFilename     :string= 'NOSODATA'+DirectorySeparator+'blchhead.nos';
-  ErrorLogFilename    :string= 'NOSODATA'+DirectorySeparator+'errorlog.txt';
+  EventLogFilename    :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'eventlog.txt';
   AdvOptionsFilename  :string= 'NOSODATA'+DirectorySeparator+'advopt.txt';
   MasterNodesFilename :string= 'NOSODATA'+DirectorySeparator+'masternodes.txt';
   ZipSumaryFileName   :string= 'NOSODATA'+DirectorySeparator+'sumary.zip';
@@ -1002,15 +1001,24 @@ Begin
 form1.MemoConsola.Lines.Add(LastLogLine);
 End;
 
+procedure TUpdateLogs.UpdateEvents();
+Begin
+form1.MemoLog.Lines.Add(LastLogLine);
+End;
+
 procedure TUpdateLogs.Execute;
 Begin
 While not terminated do
   begin
   sleep(1);
-  //Repeat
+  Repeat
     LastLogLine := GetLogLine('console');
     if LastLogLine <> '' then Synchronize(@UpdateConsole);
-  //until LastLogLine = '';
+  until LastLogLine = '';
+  Repeat
+    LastLogLine := GetLogLine('events');
+    if LastLogLine <> '' then Synchronize(@UpdateEvents);
+  until LastLogLine = '';
   end;
 End;
 
@@ -1071,8 +1079,8 @@ if Continuar then
          if GetCommand(LLine) = 'RESUMENFILE' then
             begin
             DownloadHeaders := true;
-            ToLog(rs0003); //'Receiving headers'
-            AddToLog('console',rs0003); //'Receiving headers'
+            AddLineToDebugLog('events',TimeToStr(now)+rs0003); //'Receiving headers'
+            AddLineToDebugLog('console',rs0003); //'Receiving headers'
             MemStream := TMemoryStream.Create;
             CanalCliente[FSlot].ReadTimeout:=10000;
                TRY
@@ -1101,7 +1109,7 @@ if Continuar then
                end;
             if Downloaded and not errored then
                begin
-               AddToLog('console',format(rs0005,[copy(HashMD5File(ResumenFilename),1,5)])); //'Headers file received'
+               AddLineToDebugLog('console',format(rs0005,[copy(HashMD5File(ResumenFilename),1,5)])); //'Headers file received'
                LastTimeRequestResumen := 0;
                UpdateMyData();
                end;
@@ -1111,8 +1119,8 @@ if Continuar then
          else if GetCommand(LLine) = 'SUMARYFILE' then
             begin
             DownloadSumary := true;
-            ToLog(rs0085); //'Receiving sumary'
-            AddToLog('console',rs0085); //'Receiving sumary'
+            AddLineToDebugLog('events',TimeToStr(now)+rs0085); //'Receiving sumary'
+            AddLineToDebugLog('console',rs0085); //'Receiving sumary'
             MemStream := TMemoryStream.Create;
             CanalCliente[FSlot].ReadTimeout:=10000;
                TRY
@@ -1141,7 +1149,7 @@ if Continuar then
                end;
             if Downloaded and not errored then
                begin
-               AddToLog('console',format(rs0087,[copy(HashMD5File(SumarioFilename),1,5)])); //'Sumary file received'
+               AddLineToDebugLog('console',format(rs0087,[copy(HashMD5File(SumarioFilename),1,5)])); //'Sumary file received'
                EnterCriticalSection(CSSumary);
                LoadSumaryFromFile();
                UpdateWalletFromSumario;
@@ -1157,8 +1165,8 @@ if Continuar then
          else if GetCommand(LLine) = 'GVTSFILE' then
             begin
             DownloadGVTs := true;
-            ToLog(rs0089); //'Receiving GVTs'
-            AddToLog('console',rs0089); //'Receiving GVTs'
+            AddLineToDebugLog('events',TimeToStr(now)+rs0089); //'Receiving GVTs'
+            AddLineToDebugLog('console',rs0089); //'Receiving GVTs'
             MemStream := TMemoryStream.Create;
             CanalCliente[FSlot].ReadTimeout:=10000;
                TRY
@@ -1187,7 +1195,7 @@ if Continuar then
                end;
             if Downloaded and not errored then
                begin
-               AddToLog('console','GVTS file downloaded');
+               AddLineToDebugLog('console','GVTS file downloaded');
                GetGVTsFileData;
                UpdateMyGVTsList;
                end;
@@ -1197,7 +1205,7 @@ if Continuar then
 
          else if LLine = 'BLOCKZIP' then
             begin  // START RECEIVING BLOCKS
-            ToLog(rs0006); //'Receiving blocks'
+            AddLineToDebugLog('events',TimeToStr(now)+rs0006); //'Receiving blocks'
             BlockZipName := BlockDirectory+'blocks.zip';
             TryDeleteFile(BlockZipName);
             MemStream := TMemoryStream.Create;
@@ -1219,7 +1227,7 @@ if Continuar then
                   begin
                   MyLastBlock := GetMyLastUpdatedBlock();
                   MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
-                  ToLog(format(rs0021,[IntToStr(MyLastBlock)])); //'Blocks received up to '+IntToStr(MyLastBlock));
+                  AddLineToDebugLog('events',TimeToStr(now)+format(rs0021,[IntToStr(MyLastBlock)])); //'Blocks received up to '+IntToStr(MyLastBlock));
                   LastTimeRequestBlock := 0;
                   UpdateMyData();
                   end;
@@ -1446,7 +1454,6 @@ procedure TForm1.FormCreate(sender: TObject);
 var
   counter : integer;
 begin
-LogLines           := TStringlist.Create;
 ExceptLines        := TStringlist.Create;
 ProcessLines       := TStringlist.Create;
 OutgoingMsjs       := TStringlist.Create;
@@ -1616,6 +1623,8 @@ UpdateLogsThread := TUpdateLogs.Create(true);
 UpdateLogsThread.FreeOnTerminate:=true;
 UpdateLogsThread.Start;
 CreateNewLog('console');
+CreateNewLog('events',EventLogFilename);
+CreateNewLog('exceps',ExceptLogFilename);
 if not directoryexists('NOSODATA') then CreateDir('NOSODATA');
 OutText(rs0022,false,1); //'✓ Data directory ok'
 // finalizar la inicializacion
@@ -1632,7 +1641,7 @@ OutText(rs0024,false,1); //'✓ My data updated'
 LoadOptionsToPanel();
 form1.Caption:=coinname+format(rs0027,[ProgramVersion,SubVersion]);
 Application.Title := coinname+format(rs0027,[ProgramVersion,SubVersion]);   // Wallet
-AddToLog('console',coinname+format(rs0027,[ProgramVersion,SubVersion]));
+AddLineToDebugLog('console',coinname+format(rs0027,[ProgramVersion,SubVersion]));
 UpdateMyGVTsList;
 OutText(rs0088,false,1); // '✓ My GVTs grid updated';
 if fileexists(RestartFileName) then
@@ -1670,7 +1679,7 @@ if WO_CloseStart then
       SendOutMsgsThread := TThreadSendOutMsjs.Create(true);
       SendOutMsgsThread.FreeOnTerminate:=true;
       SendOutMsgsThread.Start;
-   Tolog(rs0029); NewLogLines := NewLogLines-1; //'Noso session started'
+   AddLineToDebugLog('events',TimeToStr(now)+rs0029); NewLogLines := NewLogLines-1; //'Noso session started'
    info(rs0029);  //'Noso session started'
    infopanel.BringToFront;
    SetCurrentJob('Main',true);
@@ -1708,7 +1717,7 @@ Setlength(WaitingMNs,0);
    SendOutMsgsThread := TThreadSendOutMsjs.Create(true);
    SendOutMsgsThread.FreeOnTerminate:=true;
    SendOutMsgsThread.Start;
-Tolog(rs0029); NewLogLines := NewLogLines-1; //'Noso session started'
+AddLineToDebugLog('events',TimeToStr(now)+rs0029); NewLogLines := NewLogLines-1; //'Noso session started'
 info(rs0029);  //'Noso session started'
 form1.infopanel.BringToFront;
 SetCurrentJob('Main',true);
@@ -1850,25 +1859,25 @@ if Key=VK_ESCAPE then
 if ((Shift = [ssCtrl]) and (Key = VK_I)) then
    begin
    UserRowHeigth := UserRowHeigth+1;
-   AddToLog('console','UserRowHeigth:'+inttostr(UserRowHeigth));
+   AddLineToDebugLog('console','UserRowHeigth:'+inttostr(UserRowHeigth));
    UpdateRowHeigth();
    end;
 if ((Shift = [ssCtrl]) and (Key = VK_K)) then
    begin
    UserRowHeigth := UserRowHeigth-1;
-   AddToLog('console','UserRowHeigth:'+inttostr(UserRowHeigth));
+   AddLineToDebugLog('console','UserRowHeigth:'+inttostr(UserRowHeigth));
    UpdateRowHeigth();
    end;
 if ((Shift = [ssCtrl]) and (Key = VK_O)) then
    begin
    UserFontSize := UserFontSize+1;
-   AddToLog('console','UserFontSize:'+inttostr(UserFontSize));
+   AddLineToDebugLog('console','UserFontSize:'+inttostr(UserFontSize));
    UpdateRowHeigth();
    end;
 if ((Shift = [ssCtrl]) and (Key = VK_L)) then
    begin
    UserFontSize := UserFontSize-1;
-   AddToLog('console','UserFontSize:'+inttostr(UserFontSize));
+   AddLineToDebugLog('console','UserFontSize:'+inttostr(UserFontSize));
    UpdateRowHeigth();
    end;
 if ((Shift = [ssCtrl, ssAlt]) and (Key = VK_D)) then
@@ -1878,13 +1887,13 @@ if ((Shift = [ssCtrl, ssAlt]) and (Key = VK_D)) then
       Form1.PageMain.ActivePage:= Form1.TabMonitor;
       Form1.TabDoctor.TabVisible:= True;
       Form1.PCMonitor.ActivePage:= Form1.TabDoctor;
-      AddToLog('console','Doctor available');
+      AddLineToDebugLog('console','Doctor available');
       end
    else
       begin
       Form1.PCMonitor.ActivePage:= Form1.TabDebug_Log;
       Form1.TabDoctor.TabVisible:= False;
-      AddToLog('console','Doctor closed');
+      AddLineToDebugLog('console','Doctor closed');
       end;
    end;
 end;
@@ -2055,7 +2064,6 @@ if GoAhead then
       else CloseLine('Error closing node server');
       end;
    sleep(100);
-   If Assigned(LogLines) then LogLines.Free;
    If Assigned(ExceptLines) then ExceptLines.Free;
    If Assigned(ProcessLines) then ProcessLines.Free;
    CloseLine('Componnents freed');
@@ -2406,7 +2414,7 @@ if GoAhead then
          EnterCriticalSection(CSHeadAccess);
             TRY
             MemStream.SaveToFile(ResumenFilename);
-            AddToLog('console',Format(rs0047,[copy(HashMD5File(ResumenFilename),1,5)]));//'Headers file received'
+            AddLineToDebugLog('console',Format(rs0047,[copy(HashMD5File(ResumenFilename),1,5)]));//'Headers file received'
             EXCEPT ON E:EXCEPTION do
                ToExcLog('Error saving Headers received on server: '+E.Message)
             END; {TRY};
@@ -2440,7 +2448,7 @@ if GoAhead then
             begin
             MyLastBlock := GetMyLastUpdatedBlock();
             LastTimeRequestBlock := 0;
-            ToLog(format(rs0021,[IntToStr(MyLastBlock)])); //'Blocks received up to '+IntToStr(MyLastBlock));
+            AddLineToDebugLog('events',TimeToStr(now)+format(rs0021,[IntToStr(MyLastBlock)])); //'Blocks received up to '+IntToStr(MyLastBlock));
             end
          end;
       MemStream.Free;
@@ -2493,7 +2501,7 @@ if GoAhead then
                TRY
                Acontext.Connection.IOHandler.WriteLn('BLOCKZIP');
                Acontext.connection.IOHandler.Write(MemStream,0,true);
-               ToLog(Format(rs0052,[IPUser,BlockZipName])); //SERVER: BlockZip send to '+IPUser+':'+BlockZipName);
+               AddLineToDebugLog('events',TimeToStr(now)+Format(rs0052,[IPUser,BlockZipName])); //SERVER: BlockZip send to '+IPUser+':'+BlockZipName);
                EXCEPT ON E:Exception do
                   begin
                   Form1.TryCloseServerConnection(Conexiones[Slot].context);
@@ -2693,7 +2701,7 @@ if GoAhead then
 
    else if Copy(LLine,1,4) <> 'PSK ' then  // invalid protocol
       begin
-      ToLog(format(rs0058,[IPUser])); //ToLog('SERVER: Invalid client->'+IPUser);
+      AddLineToDebugLog('events',TimeToStr(now)+format(rs0058,[IPUser])); //AddLineToDebugLog('events',TimeToStr(now)+'SERVER: Invalid client->'+IPUser);
       TryCloseServerConnection(AContext,'WRONG_PROTOCOL');
       UpdateBotData(IPUser);
       end
@@ -2705,8 +2713,8 @@ if GoAhead then
 
    else if IPUser = MyPublicIP then
       begin
-      ToLog(rs0059);
-      //ToLog('SERVER: Own connected');
+      AddLineToDebugLog('events',TimeToStr(now)+rs0059);
+      //AddLineToDebugLog('events',TimeToStr(now)+'SERVER: Own connected');
       TryCloseServerConnection(AContext);
       end
 
@@ -2721,8 +2729,8 @@ if GoAhead then
       end
    else if GetSlotFromIP(IPUser) > 0 then
       begin
-      ToLog(Format(rs0060,[IPUser]));
-      //ToLog('SERVER: Duplicated connection->'+IPUser);
+      AddLineToDebugLog('events',TimeToStr(now)+Format(rs0060,[IPUser]));
+      //AddLineToDebugLog('events',TimeToStr(now)+'SERVER: Duplicated connection->'+IPUser);
       TryCloseServerConnection(AContext,GetPTCEcn+'DUPLICATED');
       UpdateBotData(IPUser);
       end
@@ -2737,7 +2745,7 @@ if GoAhead then
          TryCloseServerConnection(AContext)
       else
          begin
-         ToLog(format(rs0061,[IPUser])); //New Connection from:
+         AddLineToDebugLog('events',TimeToStr(now)+format(rs0061,[IPUser])); //New Connection from:
          ContextData.Slot:=ThisSlot;
          AContext.Data:=ContextData;
          MyPublicIP := MiIp;
@@ -2747,8 +2755,8 @@ if GoAhead then
       end
    else
       begin
-      ToLog(Format(rs0062,[IPUser]));
-      //ToLog('SERVER: Closed unhandled incoming connection->'+IPUser);
+      AddLineToDebugLog('events',TimeToStr(now)+Format(rs0062,[IPUser]));
+      //AddLineToDebugLog('events',TimeToStr(now)+'SERVER: Closed unhandled incoming connection->'+IPUser);
       TryCloseServerConnection(AContext);
       end;
    end;
@@ -3375,7 +3383,7 @@ if WO_AutoUpdate then
    begin
    {$IFDEF WINDOWS}
    if ( (not fileexists('libeay32.dll')) or (not fileexists('ssleay32.dll')) ) then
-      AddToLog('console','Warning: SSL files missed. Auto directive update will not work properly');
+      AddLineToDebugLog('console','Warning: SSL files missed. Auto directive update will not work properly');
 
    {$ENDIF}
    end;
