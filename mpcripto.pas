@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, MasterPaskalForm, process, strutils, MD5, DCPsha256,
   mpsignerutils, base64, HlpHashFactory, mpcoin, nosotime, translation, SbpBase58,
-  SbpBase58Alphabet, ClpConverters;
+  SbpBase58Alphabet, ClpConverters, nosodebug;
 
 function CreateNewAddress(): WalletData;
 function GetAddressFromPublicKey(PubKey:String):String;
@@ -66,7 +66,7 @@ var
   Address: String;
   KeysPair: TKeyPair;
 Begin
-setmilitime('CreateNewAddress',1);
+BeginPerformance('CreateNewAddress');
 KeysPair := TSignerUtils.GenerateECKeyPair(TKeyType.SECP256K1);
 Address := GetAddressFromPublicKey(KeysPair.PublicKey);
 MyData.Hash:=Address;
@@ -78,7 +78,7 @@ MyData.Pending:=0;
 MyData.Score:=0;
 MyData.LastOP:= 0;
 Result := MyData;
-setmilitime('CreateNewAddress',2);
+EndPerformance('CreateNewAddress');
 End;
 
 // RETURNS AN ADDRESS FROM A PUBLIC LEY
@@ -87,7 +87,7 @@ var
   PubSHAHashed,Hash1,Hash2,clave:String;
   sumatoria : string;
 Begin
-setmilitime('GetAddressFromPublicKey',1);
+BeginPerformance('GetAddressFromPublicKey');
 PubSHAHashed := HashSha256String(PubKey);
 Hash1 := HashMD160String(PubSHAHashed);
 hash1 := BMHexTo58(Hash1,58);
@@ -96,7 +96,7 @@ sumatoria := BMB58resumen(Hash1);
 clave := BMDecTo58(sumatoria);
 hash2 := hash1+clave;
 Result := CoinChar+hash2;
-setmilitime('GetAddressFromPublicKey',2);
+EndPerformance('GetAddressFromPublicKey');
 End;
 
 function GetAddressFromPubKey_New(const PubKey: String): String;
@@ -432,7 +432,7 @@ var
   CurrentTime : string;
   ReportHash : string;
 Begin
-setmilitime('GetMNSignature',1);
+BeginPerformance('GetMNSignature');
 result := '';
 CurrentTime := UTCTimeStr;
 TextToSign := CurrentTime+' '+MN_IP+' '+MyLastBlock.ToString+' '+MyLastBlockHash;
@@ -444,7 +444,7 @@ else
    PublicKey := ListaDirecciones[SignAddressIndex].PublicKey;
    result := CurrentTime+' '+PublicKey+' '+GetStringSigned(TextToSign,ListaDirecciones[SignAddressIndex].PrivateKey)+' '+ReportHash;
    end;
-setmilitime('GetMNSignature',2);
+EndPerformance('GetMNSignature');
 End;
 
 Function EncodeCertificate(certificate:string):string;
@@ -468,10 +468,10 @@ Function EncodeCertificate(certificate:string):string;
    End;
 
 Begin
-SetMilitime('EncodeCert',1);
+BeginPerformance('EncodeCert');
 Certificate := UPPERCASE(XorEncode(HashSha256String('noso'),certificate));
 result := SplitCertificate(certificate);
-SetMilitime('EncodeCert',2);
+EndPerformance('EncodeCert');
 End;
 
 Function DecodeCertificate(certificate:string):string;
@@ -499,10 +499,10 @@ Function DecodeCertificate(certificate:string):string;
    End;
 
 Begin
-SetMilitime('DecodeCert',1);
+BeginPerformance('DecodeCert');
 Certificate := UnSplitCertificate(certificate);
 result := XorDecode(HashSha256String('noso'), Certificate);
-SetMilitime('DecodeCert',2);
+EndPerformance('DecodeCert');
 End;
 
 Function NosoHash(source:string):string;
@@ -808,7 +808,7 @@ var
   Resultado : string = '';
   AlpahbetUsed : String;
 Begin
-setmilitime('BMHexTo58',1);
+BeginPerformance('BMHexTo58');
 AlpahbetUsed := B58Alphabet;
 if alphabetnumber=36 then AlpahbetUsed := B36Alphabet;
 decimalvalue := BMHexToDec(numerohex);
@@ -828,7 +828,7 @@ if StrToInt(decimalValue) >= alphabetnumber then
    end;
 if StrToInt(decimalvalue) > 0 then resultado := AlpahbetUsed[StrToInt(decimalvalue)+1]+resultado;
 result := resultado;
-setmilitime('BMHexTo58',2);
+EndPerformance('BMHexTo58');
 End;
 
 // RETURN THE SUMATORY OF A BASE58

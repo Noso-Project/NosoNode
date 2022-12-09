@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, Dialogs, Forms, nosotime, FileUtil, LCLType,
-  lclintf, controls, mpCripto, mpBlock, Zipper, mpcoin, mpMn,
+  lclintf, controls, mpCripto, mpBlock, Zipper, mpcoin, mpMn, nosodebug,
   {$IFDEF WINDOWS}Win32Proc, {$ENDIF}
   translation, strutils;
 
@@ -233,7 +233,7 @@ var
   archivo : textfile;
   IOCode : integer;
 Begin
-setmilitime('SaveExceptLog',1);
+BeginPerformance('SaveExceptLog');
 Assignfile(archivo, ExceptLogFilename);
 {$I-}Append(archivo){$I+};
 IOCode := IOResult;
@@ -246,7 +246,6 @@ If IOCode = 0 then
          Writeln(archivo, ExceptLines[0]);
          if not WO_OmmitMemos then
             form1.MemoExceptLog.Lines.Add( ExceptLines[0]);
-         NewExclogLines +=1;
          ExceptLines.Delete(0);
          end;
       S_Exc := false;
@@ -258,7 +257,7 @@ If IOCode = 0 then
    end
 else if IOCode = 5 then
    {$I-}Closefile(archivo){$I+};
-setmilitime('SaveExceptLog',2);
+EndPerformance('SaveExceptLog');
 End;
 
 // *** BOTS FILE ***
@@ -418,7 +417,7 @@ End;
 // Creates/Saves Advopt file
 Procedure CreateADV(saving:boolean);
 Begin
-setmilitime('CreateADV',1);
+BeginPerformance('CreateADV');
    try
    Assignfile(FileAdvOptions, AdvOptionsFilename);
    rewrite(FileAdvOptions);
@@ -464,7 +463,7 @@ setmilitime('CreateADV',1);
    Except on E:Exception do
       toexclog ('Error creating/saving AdvOpt file: '+E.Message);
    end;
-   setmilitime('CreateADV',2);
+   EndPerformance('CreateADV');
 End;
 
 // Loads Advopt values
@@ -608,7 +607,7 @@ var
   archivo : textfile;
   IOCode : integer;
 Begin
-setmilitime('SaveLog',1);
+BeginPerformance('SaveLog');
 Assignfile(archivo, ErrorLogFilename);
 {$I-}Append(archivo);{$I+}
 IOCode := IOResult;
@@ -632,7 +631,7 @@ if IOCode = 0 then
    end
 else if IOCode = 5 then
    {$I-}Closefile(archivo){$I+};
-setmilitime('SaveLog',2);
+EndPerformance('SaveLog');
 End;
 
 // Creates bots file
@@ -726,7 +725,7 @@ Var
   contador  : integer = 0;
   ErrorCode : integer = 0;
 Begin
-setmilitime('SaveBotData',1);
+BeginPerformance('SaveBotData');
 SetCurrentJob('SaveBotData',true);
 contador := 0;
 assignfile (FileBotData,BotDataFilename);
@@ -752,7 +751,7 @@ if ErrorCode = 0 then
    end;
 {$I-}closefile(FileBotData);{$I+};
 SetCurrentJob('SaveBotData',false);
-setmilitime('SaveBotData',2);
+EndPerformance('SaveBotData');
 End;
 
 
@@ -822,7 +821,7 @@ var
   previous : int64;
   IOCode   : integer;
 Begin
-setmilitime('GuardarWallet',1);
+BeginPerformance('GuardarWallet');
 Trycopyfile (WalletFilename,WalletFilename+'.bak');
 assignfile(FileWallet,WalletFilename);
 {$I-}reset(FileWallet);{$I+}
@@ -847,7 +846,7 @@ If IOCode = 0 then
 IOCode := IOResult;
 if IOCode>0 then
    ToExcLog('Unable to close wallet file, error= '+IOCode.ToString );
-setmilitime('GuardarWallet',2);
+EndPerformance('GuardarWallet');
 End;
 
 // Updates wallet addresses balance from sumary
@@ -908,7 +907,7 @@ else
    if not FileExists(Source) then
       begin
       source := SumarioFilename;
-      ConsoleLinesAdd('Can not find '+source+slinebreak+'Loading sumary from default');
+      AddToLog('console','Can not find '+source+slinebreak+'Loading sumary from default');
       end;
    end;
    TRY
@@ -934,7 +933,7 @@ var
   CurrentBlock : integer;
   IOCode       : integer;
 Begin
-setmilitime('GuardarSumario',1);
+BeginPerformance('GuardarSumario');
 SetCurrentJob('GuardarSumario',true);
 assignfile(FileSumario,SumarioFilename);
 EnterCriticalSection(CSSumary);
@@ -974,7 +973,7 @@ if ( (Listasumario[0].LastOP mod SumMarkInterval = 0) and (Listasumario[0].LastO
    LeaveCriticalSection(CSGVTsArray);
    end;
 SetCurrentJob('GuardarSumario',false);
-setmilitime('GuardarSumario',2);
+EndPerformance('GuardarSumario');
 End;
 
 // Returns the last downloaded block
@@ -1014,7 +1013,7 @@ var
   Yaexiste : boolean = false;
   NuevoRegistro : SumarioData;
 Begin
-setmilitime('UpdateSumario',1);
+BeginPerformance('UpdateSumario');
 EnterCriticalSection(CSSumary);
 for contador := 0 to length(ListaSumario)-1 do
    begin
@@ -1044,7 +1043,7 @@ if not YaExiste then
    end;
 S_Sumario := true;
 LeaveCriticalSection(CSSumary);
-setmilitime('UpdateSumario',2);
+EndPerformance('UpdateSumario');
 if DireccionEsMia(Direccion)>= 0 then UpdateWalletFromSumario();
 End;
 
@@ -1145,7 +1144,7 @@ var
 Begin
 assignfile(FileResumen,ResumenFilename);
 reset(FileResumen);
-ConsoleLinesAdd('Rebuilding until block '+IntToStr(untilblock)); //'Rebuilding until block '
+AddToLog('console','Rebuilding until block '+IntToStr(untilblock)); //'Rebuilding until block '
 contador := 0;
 while contador <= untilblock do
    begin
@@ -1206,7 +1205,7 @@ while filesize(FileResumen)> Untilblock+1 do  // cabeceras presenta un numero an
 closefile(FileResumen);
 if newblocks>0 then
    begin
-   ConsoleLinesAdd(IntToStr(newblocks)+' added to headers'); //' added to headers'
+   AddToLog('console',IntToStr(newblocks)+' added to headers'); //' added to headers'
    U_DirPanel := true;
    end;
 GuardarSumario();
@@ -1238,7 +1237,7 @@ GuardarSumario();
 SetCurrentJob('save',false);
 RebuildingSumary := false;
 UpdateMyData();
-ConsoleLinesAdd('Sumary completed from '+IntToStr(StartBlock)+' to '+IntToStr(finishblock));
+AddToLog('console','Sumary completed from '+IntToStr(StartBlock)+' to '+IntToStr(finishblock));
 SetCurrentJob('CompleteSumary',false);
 info('Sumary completed');
 End;
@@ -1270,18 +1269,18 @@ for cont := 0 to length(ArrayOrders)-1 do
    begin
    if ArrayOrders[cont].OrderType='CUSTOM' then
       begin
-      UpdateSumario(ArrayOrders[cont].Sender,Restar(Customizationfee),0,IntToStr(BlockNumber));
-      setcustomalias(ArrayOrders[cont].Sender,ArrayOrders[cont].Receiver,BlockNumber);
+      UpdateSumario(ArrayOrders[cont].sender,Restar(Customizationfee),0,IntToStr(BlockNumber));
+      setcustomalias(ArrayOrders[cont].sender,ArrayOrders[cont].Receiver,BlockNumber);
       end;
    if ArrayOrders[cont].OrderType='SNDGVT' then
       begin
       Inc(GVTsTrfer);
-      UpdateSumario(ArrayOrders[cont].Sender,Restar(Customizationfee),0,IntToStr(BlockNumber));
-      ChangeGVTOwner(StrToIntDef(ArrayOrders[cont].Reference,100),ArrayOrders[cont].Sender,ArrayOrders[cont].Receiver);
+      UpdateSumario(ArrayOrders[cont].sender,Restar(Customizationfee),0,IntToStr(BlockNumber));
+      ChangeGVTOwner(StrToIntDef(ArrayOrders[cont].Reference,100),ArrayOrders[cont].sender,ArrayOrders[cont].Receiver);
       end;
    if ArrayOrders[cont].OrderType='TRFR' then
       begin
-      UpdateSumario(ArrayOrders[cont].Sender,Restar(ArrayOrders[cont].AmmountFee+ArrayOrders[cont].AmmountTrf),0,IntToStr(BlockNumber));
+      UpdateSumario(ArrayOrders[cont].sender,Restar(ArrayOrders[cont].AmmountFee+ArrayOrders[cont].AmmountTrf),0,IntToStr(BlockNumber));
       UpdateSumario(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,0,IntToStr(BlockNumber));
       end;
    end;
@@ -1364,18 +1363,18 @@ for contador := 1 to UntilBlock do
       begin
       if ArrayOrders[cont].OrderType='CUSTOM' then
          begin
-         UpdateSumario(ArrayOrders[cont].Sender,Restar(Customizationfee),0,IntToStr(contador));
-         setcustomalias(ArrayOrders[cont].Sender,ArrayOrders[cont].Receiver,contador);
+         UpdateSumario(ArrayOrders[cont].sender,Restar(Customizationfee),0,IntToStr(contador));
+         setcustomalias(ArrayOrders[cont].sender,ArrayOrders[cont].Receiver,contador);
          end;
       if ArrayOrders[cont].OrderType='SNDGVT' then
          begin
          Inc(GVTsTrfer);
-         UpdateSumario(ArrayOrders[cont].Sender,Restar(Customizationfee),0,IntToStr(contador));
-         ChangeGVTOwner(StrToIntDef(ArrayOrders[cont].Reference,100),ArrayOrders[cont].Sender,ArrayOrders[cont].Receiver);
+         UpdateSumario(ArrayOrders[cont].sender,Restar(Customizationfee),0,IntToStr(contador));
+         ChangeGVTOwner(StrToIntDef(ArrayOrders[cont].Reference,100),ArrayOrders[cont].sender,ArrayOrders[cont].Receiver);
          end;
       if ArrayOrders[cont].OrderType='TRFR' then
          begin
-         UpdateSumario(ArrayOrders[cont].Sender,Restar(ArrayOrders[cont].AmmountFee+ArrayOrders[cont].AmmountTrf),0,IntToStr(contador));
+         UpdateSumario(ArrayOrders[cont].sender,Restar(ArrayOrders[cont].AmmountFee+ArrayOrders[cont].AmmountTrf),0,IntToStr(contador));
          UpdateSumario(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,0,IntToStr(contador));
          end;
       end;
@@ -1421,7 +1420,7 @@ if GVTsTrfer>0 then
    end;
 UpdateMyData();
 SetCurrentJob('RebuildSumario',true);
-ConsoleLinesAdd('Summary rebuilded.');  //'Sumary rebuilded.'
+AddToLog('console','Summary rebuilded.');  //'Sumary rebuilded.'
 end;
 
 // adds a header at the end of headers file
@@ -1533,7 +1532,7 @@ var
 Begin
 result := '';
 if FromBlock<MyLastBlock-1008 then exit;
-setmilitime('LastHeaders',1);
+BeginPerformance('LastHeaders');
 EnterCriticalSection(CSHeadAccess);
 TRY
 assignfile(FileResumen,ResumenFilename);
@@ -1551,7 +1550,7 @@ EXCEPT on E:Exception do
 
 END;{TRY}
 LeaveCriticalSection(CSHeadAccess);
-setmilitime('LastHeaders',2);
+EndPerformance('LastHeaders');
 End;
 
 // Creates a bat file for restart
@@ -1886,7 +1885,7 @@ Begin
 if fromblock = 0 then StartMark := ((GetMyLastUpdatedBlock div SumMarkInterval)-1)*SumMarkInterval
 else StartMark := Fromblock;
 LoadSumaryFromFile(MarksDirectory+StartMark.ToString+'.bak');
-ConsoleLinesAdd('Restoring sumary from '+StartMark.ToString);
+AddToLog('console','Restoring sumary from '+StartMark.ToString);
 CompleteSumary;
 End;
 

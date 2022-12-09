@@ -7,7 +7,7 @@ interface
 uses
   Classes, forms, SysUtils, MasterPaskalForm, nosotime, IdContext, IdGlobal, mpGUI, mpDisk,
   mpBlock, fileutil, graphics,  dialogs, strutils, mpcoin, fphttpclient,
-  opensslsockets,translation, IdHTTP, IdComponent, IdSSLOpenSSL, mpmn, IdTCPClient;
+  opensslsockets,translation, IdHTTP, IdComponent, IdSSLOpenSSL, mpmn, IdTCPClient, nosodebug;
 
 function GetSlotFromIP(Ip:String):int64;
 function GetSlotFromContext(Context:TidContext):int64;
@@ -193,7 +193,7 @@ KeepServerOn := true;
 PortNumber := StrToIntDef(MN_Port,8080);
 if Form1.Server.Active then
    begin
-   ConsoleLinesAdd('Server Already active'); //'Server Already active'
+   AddToLog('console','Server Already active'); //'Server Already active'
    end
 else
    begin
@@ -202,7 +202,7 @@ else
       Form1.Server.Bindings.Clear;
       Form1.Server.DefaultPort:=PortNumber;
       Form1.Server.Active:=true;
-      ConsoleLinesAdd('Server ENABLED. Listening on port '+PortNumber.ToString);   //Server ENABLED. Listening on port
+      AddToLog('console','Server ENABLED. Listening on port '+PortNumber.ToString);   //Server ENABLED. Listening on port
       ServerStartTime := UTCTime;
       U_DataPanel := true;
       EXCEPT on E : Exception do
@@ -219,18 +219,18 @@ Begin
 PortNumber := StrToIntDef(MN_Port,8080);
 if DireccionEsMia(MN_Sign)<0 then
    begin
-   ConsoleLinesAdd(rs2000); //Sign address not valid
+   AddToLog('console',rs2000); //Sign address not valid
    exit;
    end;
 if MyConStatus < 3 then
    begin
-   consolelinesadd(rs2001);
+   AddToLog('console',rs2001);
    exit;
    end;
 KeepServerOn := true;
 if Form1.Server.Active then
    begin
-   ConsoleLinesAdd('Server Already active'); //'Server Already active'
+   AddToLog('console','Server Already active'); //'Server Already active'
    end
 else
    begin
@@ -239,7 +239,7 @@ else
       Form1.Server.Bindings.Clear;
       Form1.Server.DefaultPort:=PortNumber;
       Form1.Server.Active:=true;
-      ConsoleLinesAdd('Server ENABLED. Listening on port '+PortNumber.ToString);   //Server ENABLED. Listening on port
+      AddToLog('console','Server ENABLED. Listening on port '+PortNumber.ToString);   //Server ENABLED. Listening on port
       ServerStartTime := UTCTime;
       U_DataPanel := true;
       except
@@ -260,7 +260,7 @@ SetCurrentJob('StopServer',true);
 KeepServerOn := false;
    TRY
    Form1.Server.Active:=false;
-   ConsoleLinesAdd('Server stopped');             //Server stopped
+   AddToLog('console','Server stopped');             //Server stopped
    U_DataPanel := true;
    EXCEPT on E:Exception do
       begin
@@ -274,7 +274,7 @@ end;
 Procedure CerrarSlot(Slot:integer);
 Begin
 SetCurrentJob('CerrarSlot',true);
-setmilitime('CerrarSlot',1);
+BeginPerformance('CerrarSlot');
 TRY
 if conexiones[Slot].tipo='CLI' then
    begin
@@ -295,7 +295,7 @@ END;{Try}
 EnterCriticalSection(CSNodesList);
 Conexiones[Slot] := Default(conectiondata);
 LeaveCriticalSection(CSNodesList);
-setmilitime('CerrarSlot',2);
+EndPerformance('CerrarSlot');
 SetCurrentJob('CerrarSlot',false);
 End;
 
@@ -311,7 +311,7 @@ var
 Begin
 OutGoing := GetOutGoingConnections;
 SetCurrentJob('ConnectToServers',true);
-setmilitime('ConnectToServers',1);
+BeginPerformance('ConnectToServers');
 if not CONNECT_Try then
    begin
    ToLog('Trying connection to servers'); //'Trying connection to servers'
@@ -338,7 +338,7 @@ if proceder then
 if  ( (not Form1.Server.Active) and(IsSeedNode(MN_IP)) and (GetOutGoingConnections=0) and (WO_autoserver) )then
    forceserver;
 CONNECT_LastTime := UTCTimeStr;
-setmilitime('ConnectToServers',2);
+EndPerformance('ConnectToServers');
 SetCurrentJob('ConnectToServers',false);
 End;
 
@@ -519,11 +519,11 @@ function GetTotalConexiones():integer;
 var
   counter:integer;
 Begin
-setmilitime('GetTotalConexiones',1);
+BeginPerformance('GetTotalConexiones');
 result := 0;
 for counter := 1 to MaxConecciones do
    if IsSlotConnected(Counter) then result := result + 1;
-setmilitime('GetTotalConexiones',2);
+EndPerformance('GetTotalConexiones');
 End;
 
 // Cierra todas las conexiones salientes
@@ -615,7 +615,7 @@ if NumeroConexiones = 0 then  // Desconectado
    if STATUS_Connected then
       begin
       STATUS_Connected := false;
-      ConsoleLinesAdd('Disconnected.');       //Disconnected
+      AddToLog('console','Disconnected.');       //Disconnected
       G_TotalPings := 0;
       NetSumarioHash.Value:='';
       NetLastBlock.Value:='?';
@@ -631,7 +631,7 @@ if ((NumeroConexiones>0) and (NumeroConexiones<MinConexToWork) and (MyConStatus 
    begin
    MyConStatus:=1;
    G_LastPing := UTCTime;
-   ConsoleLinesAdd('Connecting...'); //Connecting...
+   AddToLog('console','Connecting...'); //Connecting...
    Form1.imagenes.GetBitmap(2,form1.ConnectButton.Glyph);
    end;
 if MyConStatus > 0 then
@@ -647,7 +647,7 @@ if ((NumeroConexiones>=MinConexToWork) and (MyConStatus<2) and (not STATUS_Conne
    STATUS_Connected := true;
    MyConStatus := 2;
    SetNMSData('','','','','','');
-   ConsoleLinesAdd('Connected.');     //Connected
+   AddToLog('console','Connected.');     //Connected
    end;
 if STATUS_Connected then
    begin
@@ -660,7 +660,7 @@ if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLa
    ClearReceivedOrdersIDs;
    SetNMSData('','','','','','');
    MyConStatus := 3;
-   ConsoleLinesAdd('Updated!');   //Updated!
+   AddToLog('console','Updated!');   //Updated!
    if RPCAuto then  ProcessLinesAdd('RPCON');
    if StrToIntDef(NetPendingTrxs.Value,0)<GetPendingCount then
       begin
@@ -671,12 +671,12 @@ if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLa
       begin
       PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));  // Get pending
       LastTimePendingRequested := UTCTime;
-      ConsoleLinesAdd('Pending requested to '+conexiones[NetPendingTrxs.Slot].ip);
+      AddToLog('console','Pending requested to '+conexiones[NetPendingTrxs.Slot].ip);
       end;
    // Get MNS
    PTC_SendLine(NetMNsHash.Slot,ProtocolLine(11));  // Get MNs
    LastTimeMNsRequested := UTCTime;
-   ConsoleLinesAdd('Master nodes requested');
+   AddToLog('console','Master nodes requested');
    OutgoingMsjsAdd(ProtocolLine(ping));
    Form1.imagenes.GetBitmap(0,form1.ConnectButton.Glyph);
    end;
@@ -689,7 +689,7 @@ if MyConStatus = 3 then
       ClearReceivedOrdersIDs();
       PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));  // Get pending
       LastTimePendingRequested := UTCTime;
-      ConsoleLinesAdd('Pending requested to '+conexiones[NetPendingTrxs.Slot].ip);
+      AddToLog('console','Pending requested to '+conexiones[NetPendingTrxs.Slot].ip);
       end;
    if ( (not MyMNIsListed) and (Form1.Server.Active) and (UTCTime>LastTimeReportMyMN+5)
         and (BlockAge>10+MNsRandomWait) and (BlockAge<495) and(1=1) ) then
@@ -1011,14 +1011,14 @@ if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // Req
       if ( (NLBV-mylastblock >= 144) or (ForceCompleteHeadersDownload) ) then
          begin
          PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
-         ConsoleLinesAdd('Headers file requested'); //'Headers file requested'
+         AddToLog('console','Headers file requested'); //'Headers file requested'
          LastTimeRequestResumen := UTCTime;
          end
       else // If less than 144 block just update heades
          begin
          //PTC_SendLine(NetResumenHash.Slot,ProtocolLine(18)); // GetResumen update
          PTC_SendLine(NetResumenHash.Slot,ProtocolLine(18)); // GetResumen
-         ConsoleLinesAdd('Headers update requested'); //'Headers update requested'
+         AddToLog('console','Headers update requested'); //'Headers update requested'
          LastTimeRequestResumen := UTCTime;
          end;
       end;
@@ -1032,12 +1032,12 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  /
    if ((LastTimeRequestBlock+5<UTCTime)and (not DownLoadBlocks)) then
       begin
       PTC_SendLine(NetResumenHash.Slot,ProtocolLine(8)); // lastblock
-      if WO_FullNode then ConsoleLinesAdd('LastBlock requested from block '+IntToStr(mylastblock)) //'LastBlock requested from block '
+      if WO_FullNode then AddToLog('console','LastBlock requested from block '+IntToStr(mylastblock)) //'LastBlock requested from block '
       else
          begin
          LastDownBlock := NLBV-SecurityBlocks;
          if LastDownBlock<MyLastBlock then LastDownBlock:=MyLastBlock;
-         ConsoleLinesAdd('LastBlock requested from block '+IntToStr(LastDownBlock));
+         AddToLog('console','LastBlock requested from block '+IntToStr(LastDownBlock));
          end;
       LastTimeRequestBlock := UTCTime;
       end;
@@ -1050,7 +1050,7 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
       if ((LastTimeRequestsumary+5 < UTCTime) and (not DownloadSumary) ) then
          begin
          PTC_SendLine(NetResumenHash.Slot,ProtocolLine(6)); // Getsumary
-         ConsoleLinesAdd(rs2003); //'sumary file requested'
+         AddToLog('console',rs2003); //'sumary file requested'
          LastTimeRequestsumary := UTCTime;
          end;
       end
@@ -1066,7 +1066,7 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
 else if ( (mylastblock = NLBV) and ( (MyResumenhash <> NetResumenHash.Value) or
    (MyLastBlockHash<>NetLastBlockHash.value) ) ) then
    begin
-   ConsoleLinesAdd(MyLastBlockHash+' '+MyLastBlockHash);
+   AddToLog('console',MyLastBlockHash+' '+MyLastBlockHash);
    UndoneLastBlock();
    end
 // Update headers
@@ -1076,7 +1076,7 @@ else if ((MyResumenhash <> NetResumenHash.Value) and (NLBV=mylastblock) and (MyL
    ClearAllPending;
    SetNMSData('','','','','','');
    PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
-   ConsoleLinesAdd('Headers file requested'); //'Headers file requested'
+   AddToLog('console','Headers file requested'); //'Headers file requested'
    LastTimeRequestResumen := UTCTime;
    end
 else if ( (StrToIntDef(NetMNsCount.Value,0)>GetMNsListLength) and (LastTimeMNsRequested+5<UTCTime)
@@ -1087,34 +1087,34 @@ else if ( (StrToIntDef(NetMNsCount.Value,0)>GetMNsListLength) and (LastTimeMNsRe
    LeaveCriticalSection(CSMNsIPCheck);
    PTC_SendLine(NetMNsCount.Slot,ProtocolLine(11));  // Get MNsList
    LastTimeMNsRequested := UTCTime;
-   ConsoleLinesAdd('MNs reports requested');
+   AddToLog('console','MNs reports requested');
    end
 else if ((StrToIntDef(NetMNsChecks.Value,0)>GetMNsChecksCount) and (LastTimeChecksRequested+5<UTCTime)) then
    begin
    PTC_SendLine(NetMNsChecks.Slot,ProtocolLine(GetChecks));  // Get MNsChecks
    LastTimeChecksRequested := UTCTime;
-   ConsoleLinesAdd('Checks requested to '+conexiones[NetMNsChecks.Slot].ip);
+   AddToLog('console','Checks requested to '+conexiones[NetMNsChecks.Slot].ip);
    end
 else if ( (NetMNsHash.value<>Copy(MyMNsHash,1,5)) and (LastTimeMNHashRequestes+5<UTCTime) and
           (NetMNsHash.value<>'') ) then
    begin
    PTC_SendLine(NetMNsHash.Slot,ProtocolLine(GetMNsFile));  // Get MNsFile
    LastTimeMNHashRequestes := UTCTime;
-   ConsoleLinesAdd('Mns File requested to '+conexiones[NetMNsChecks.Slot].ip);
+   AddToLog('console','Mns File requested to '+conexiones[NetMNsChecks.Slot].ip);
    end
 else if ( (NetCFGHash.value<>Copy(HashMd5String(GetNosoCFGString),0,5)) and (LasTimeCFGRequest+5<UTCTime) and
           (NetCFGHash.value<>'') ) then
    begin
    PTC_SendLine(NetCFGHash.Slot,ProtocolLine(GetCFG));  // TO BE IMPLEMENTED
    LasTimeCFGRequest := UTCTime;
-   ConsoleLinesAdd('Noso CFG file requested');
+   AddToLog('console','Noso CFG file requested');
    end
 else if ( (GetNMSData.Diff<>NetBestHash.Value) and (LastTimeBestHashRequested+5<UTCTime) ) then
    begin
    {
    PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));
    LastTimeBestHashRequested := UTCTime.ToInt64;
-   ConsolelinesAdd('Requesting besthash');
+   AddToLog('console','Requesting besthash');
    }
    end
 else if ( (NetGVTSHash.Value<>MyGVTsHash) and (LasTimeGVTsRequest+5<UTCTime) and (NetGVTSHash.Value<>'')
@@ -1123,7 +1123,7 @@ else if ( (NetGVTSHash.Value<>MyGVTsHash) and (LasTimeGVTsRequest+5<UTCTime) and
    // REQUEST GVTS
    PTC_SendLine(NetGVTSHash.Slot,ProtocolLine(GetGVTs));  // Get MNsFile
    LasTimeGVTsRequest := UTCTime;
-   ConsoleLinesAdd('GVTs File requested to '+conexiones[NetMNsChecks.Slot].ip);
+   AddToLog('console','GVTs File requested to '+conexiones[NetMNsChecks.Slot].ip);
    end;
 if IsAllSynced then Last_ActualizarseConLaRed := Last_ActualizarseConLaRed+5;
 SetCurrentJob('ActualizarseConLaRed',false);
@@ -1136,7 +1136,7 @@ Begin
 IpToAdd := Parameter(Linea,1);
 if not IsValidIP(IpToAdd) then
    begin
-   ConsoleLinesAdd('Invalid IP');
+   AddToLog('console','Invalid IP');
    end
 else
    begin
@@ -1193,7 +1193,7 @@ var
   LastBlockToCheck : integer = 0;
   CopyPendings : array of orderdata;
 Begin
-setmilitime('GetOrderDetails',1);
+BeginPerformance('GetOrderDetails');
 resultorder := default(TOrderGroup);
 result := resultorder;
 if GetPendingCount>0 then
@@ -1212,9 +1212,9 @@ if GetPendingCount>0 then
          resultorder.TimeStamp:=CopyPendings[counter].TimeStamp;
          resultorder.receiver:= CopyPendings[counter].receiver;
          if CopyPendings[counter].OrderLines = 1 then
-            resultorder.Sender  := CopyPendings[counter].address
+            resultorder.sender  := CopyPendings[counter].address
          else
-            resultorder.Sender:=resultorder.Sender+format('[%s,%d,%d]',[CopyPendings[counter].Address,CopyPendings[counter].AmmountTrf,CopyPendings[counter].AmmountFee]);
+            resultorder.sender:=resultorder.sender+format('[%s,%d,%d]',[CopyPendings[counter].Address,CopyPendings[counter].AmmountTrf,CopyPendings[counter].AmmountFee]);
          resultorder.AmmountTrf:=resultorder.AmmountTrf+CopyPendings[counter].AmmountTrf;
          resultorder.AmmountFee:=resultorder.AmmountFee+CopyPendings[counter].AmmountFee;
          resultorder.OrderLines+=1;
@@ -1244,9 +1244,9 @@ else
                resultorder.TimeStamp:=ArrTrxs[counter2].TimeStamp;
                resultorder.receiver:=ArrTrxs[counter2].receiver;
                if ArrTrxs[counter2].OrderLines=1 then
-                  resultorder.Sender := ArrTrxs[counter2].Sender
+                  resultorder.sender := ArrTrxs[counter2].sender
                else
-                  resultorder.Sender:=resultorder.Sender+format('[%s,%d,%d]',[ArrTrxs[counter2].Address,ArrTrxs[counter2].AmmountTrf,ArrTrxs[counter2].AmmountFee]);
+                  resultorder.sender:=resultorder.sender+format('[%s,%d,%d]',[ArrTrxs[counter2].Address,ArrTrxs[counter2].AmmountTrf,ArrTrxs[counter2].AmmountFee]);
                resultorder.AmmountTrf:=resultorder.AmmountTrf+ArrTrxs[counter2].AmmountTrf;
                resultorder.AmmountFee:=resultorder.AmmountFee+ArrTrxs[counter2].AmmountFee;
                resultorder.OrderLines+=1;
@@ -1260,7 +1260,7 @@ else
       end;
    end;
 result := resultorder;
-setmilitime('GetOrderDetails',2);
+EndPerformance('GetOrderDetails');
 End;
 
 function GetOrderSources(orderid:string):string;
@@ -1285,7 +1285,7 @@ for counter := mylastblock downto mylastblock-4000 do
          begin
          if ArrTrxs[counter2].OrderID = orderid then
             begin
-            Result := Result+Format('[%s,%d,%d]',[ArrTrxs[counter2].Sender,ArrTrxs[counter2].AmmountTrf,ArrTrxs[counter2].AmmountFee]);
+            Result := Result+Format('[%s,%d,%d]',[ArrTrxs[counter2].sender,ArrTrxs[counter2].AmmountTrf,ArrTrxs[counter2].AmmountFee]);
             orderfound := true;
             end;
          end;
@@ -1330,7 +1330,7 @@ TRY
    //readedLine := Conector.SimpleGet('https://api.binance.com/api/v3/ticker/price?symbol=LTCUSDT');
 EXCEPT on E: Exception do
    begin
-   Consolelinesadd('ERROR RETRIEVING LAST RELEASE DATA: '+E.Message);
+   AddToLog('console','ERROR RETRIEVING LAST RELEASE DATA: '+E.Message);
    end;
 END;//TRY
 Conector.Free;
@@ -1349,7 +1349,7 @@ TRY
    readedLine := Conector.SimpleGet('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/seednodes.txt');
 EXCEPT on E: Exception do
    begin
-   Consolelinesadd('ERROR RETRIEVING WebSeedNodes: '+E.Message);
+   AddToLog('console','ERROR RETRIEVING WebSeedNodes: '+E.Message);
    end;
 END;//TRY
 Conector.Free;
@@ -1398,7 +1398,7 @@ Inc(Trys);
    result := true;
    EXCEPT ON E:Exception do
       begin
-      ConsoleLinesAdd(Format('Error downloading release (Try %d): %s',[Trys,E.Message]));
+      AddToLog('console',Format('Error downloading release (Try %d): %s',[Trys,E.Message]));
       end;
    END{Try};
 until ( (result = true) or (Trys = 3) );
@@ -1413,7 +1413,7 @@ TRY
 Result := MyLastBlock.ToString+Copy(MyResumenHash,1,3)+Copy(MySumarioHash,1,3)+Copy(MyLastBlockHash,1,3);
 EXCEPT ON E:EXCEPTION do
    begin
-   ConsolelinesAdd('****************************************'+slinebreak+'GetSyncTus:'+e.Message);
+   AddToLog('console','****************************************'+slinebreak+'GetSyncTus:'+e.Message);
    end;
 END; {TRY}
 End;

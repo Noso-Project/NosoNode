@@ -7,10 +7,9 @@ interface
 uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, mpCripto, nosotime, mpblock, mpcoin,
   dialogs, fileutil, forms, idglobal, strutils, mpRPC, DateUtils, Clipbrd,translation,
-  idContext, math, mpMN, MPSysCheck;
+  idContext, math, mpMN, MPSysCheck, nosodebug;
 
 procedure ProcessLinesAdd(const ALine: String);
-procedure ConsoleLinesAdd(const ALine: String);
 procedure OutgoingMsjsAdd(const ALine: String);
 function OutgoingMsjsGet(): String;
 
@@ -115,18 +114,6 @@ EnterCriticalSection(CSProcessLines);
 LeaveCriticalSection(CSProcessLines);
 End;
 
-// Adds a line to ConsoleLines thread safe
-Procedure ConsoleLinesAdd(const ALine: String);
-Begin
-EnterCriticalSection(CSConsoleLines);
-   TRY
-   ConsoleLines.Add(ALine);
-   EXCEPT ON E:Exception do
-      ToExcLog('Error on ConsoleLinesAdd: '+E.Message);
-   END; {TRY};
-LeaveCriticalSection(CSConsoleLines);
-end;
-
 // Adds a line to OutgoingMsjs thread safe
 procedure OutgoingMsjsAdd(const ALine: String);
 Begin
@@ -193,8 +180,8 @@ var
   Command : String;
 begin
 Command :=GetCommand(Linetext);
-if not AnsiContainsStr(HideCommands,Uppercase(command)) then ConsoleLinesAdd('>> '+Linetext);
-if UpperCase(Command) = 'VER' then ConsoleLinesAdd(ProgramVersion+SubVersion)
+if not AnsiContainsStr(HideCommands,Uppercase(command)) then AddToLog('Console','>> '+Linetext);
+if UpperCase(Command) = 'VER' then AddToLog('console',ProgramVersion+SubVersion)
 else if UpperCase(Command) = 'SERVERON' then StartServer()
 else if UpperCase(Command) = 'SERVEROFF' then StopServer()
 else if UpperCase(Command) = 'FORCESERVER' then ForceServer()
@@ -203,11 +190,11 @@ else if UpperCase(Command) = 'BOTS' then ShowBots()
 else if UpperCase(Command) = 'SLOTS' then ShowSlots()
 else if UpperCase(Command) = 'CONNECT' then ConnectToServers()
 else if UpperCase(Command) = 'DISCONNECT' then CerrarClientes()
-else if UpperCase(Command) = 'OFFSET' then ConsoleLinesAdd('Server: '+NosoT_LastServer+SLINEBREAK+
+else if UpperCase(Command) = 'OFFSET' then AddToLog('console','Server: '+NosoT_LastServer+SLINEBREAK+
   'Time offset seconds: '+IntToStr(NosoT_TimeOffset)+slinebreak+'Last update : '+TimeSinceStamp(NosoT_LastUpdate))
 else if UpperCase(Command) = 'NEWADDRESS' then NuevaDireccion(linetext)
 else if UpperCase(Command) = 'USEROPTIONS' then ShowUser_Options()
-else if UpperCase(Command) = 'BALANCE' then ConsoleLinesAdd(Int2Curr(GetWalletBalance)+' '+CoinSimbol)
+else if UpperCase(Command) = 'BALANCE' then AddToLog('console',Int2Curr(GetWalletBalance)+' '+CoinSimbol)
 else if UpperCase(Command) = 'CONNECTTO' then ConnectTo(Linetext)
 else if UpperCase(Command) = 'SUMARY' then ShowSumary()
 else if UpperCase(Command) = 'AUTOSERVERON' then AutoServerON()
@@ -220,7 +207,7 @@ else if UpperCase(Command) = 'EXPWALLET' then ExportarWallet(LineText)
 else if UpperCase(Command) = 'RESUMEN' then ShowBlchHead(StrToIntDef(Parameter(Linetext,1),MyLastBlock))
 else if UpperCase(Command) = 'SETDEFAULT' then SetDefaultAddress(LineText)
 else if UpperCase(Command) = 'LBINFO' then ShowBlockInfo(MyLastBlock)
-else if UpperCase(Command) = 'TIMESTAMP' then ConsoleLinesAdd(UTCTimeStr)
+else if UpperCase(Command) = 'TIMESTAMP' then AddToLog('console',UTCTimeStr)
 else if UpperCase(Command) = 'MD160' then showmd160(LineText)
 else if UpperCase(Command) = 'UNDOBLOCK' then UndoneLastBlock()  // to be removed
 else if UpperCase(Command) = 'CUSTOMIZE' then CustomizeAddress(LineText)
@@ -232,7 +219,7 @@ else if UpperCase(Command) = 'REBUILDHEADERS' then BuildHeaderFile(MyLastBlock)
 else if UpperCase(Command) = 'GROUPCOINS' then Groupcoins(linetext)
 else if UpperCase(Command) = 'SETPORT' then SetServerPort(LineText)
 else if UpperCase(Command) = 'SHA256' then Sha256(LineText)
-else if UpperCase(Command) = 'MD5' then ConsoleLinesAdd(HashMD5String(Parameter(LineText,1)))
+else if UpperCase(Command) = 'MD5' then AddToLog('console',HashMD5String(Parameter(LineText,1)))
 else if UpperCase(Command) = 'TOTRAYON' then ToTrayON()
 else if UpperCase(Command) = 'TOTRAYOFF' then ToTrayOFF()
 else if UpperCase(Command) = 'CLEAR' then form1.Memoconsola.Lines.clear
@@ -244,13 +231,13 @@ else if UpperCase(Command) = 'TESTNET' then TestNetwork(LineText)
 else if UpperCase(Command) = 'RUNDIAG' then RunDiagnostico(LineText)
 else if UpperCase(Command) = 'RESTART' then Parse_RestartNoso()
 else if UpperCase(Command) = 'SND' then ShowNetworkDataInfo()
-else if UpperCase(Command) = 'OSVERSION' then ConsoleLinesAdd(OsVersion)
+else if UpperCase(Command) = 'OSVERSION' then AddToLog('console',OsVersion)
 else if UpperCase(Command) = 'DIRECTIVE' then SendAdminMessage(linetext)
-else if UpperCase(Command) = 'MYHASH' then ConsoleLinesAdd(HashMD5File('noso.exe'))
+else if UpperCase(Command) = 'MYHASH' then AddToLog('console',HashMD5File('noso.exe'))
 else if UpperCase(Command) = 'ADDBOT' then AddNewBot(LineText)
 else if UpperCase(Command) = 'SETRTOT' then SetReadTimeOutTIme(LineText)
 else if UpperCase(Command) = 'SETCTOT' then SetConnectTimeOutTIme(LineText)
-else if UpperCase(Command) = 'STATUS' then ConsoleLinesAdd(GetCurrentStatus(1))
+else if UpperCase(Command) = 'STATUS' then AddToLog('console',GetCurrentStatus(1))
 else if UpperCase(Command) = 'OWNER' then GetOwnerHash(LineText)
 else if UpperCase(Command) = 'CHECKOWNER' then CheckOwnerHash(LineText)
 else if UpperCase(Command) = 'UPDATE' then RunUpdate(LineText)
@@ -260,63 +247,65 @@ else if UpperCase(Command) = 'REQHEAD' then RequestHeaders()
 else if UpperCase(Command) = 'REQSUM' then RequestSumary()
 else if UpperCase(Command) = 'SAVEADV' then CreateADV(true)
 else if UpperCase(Command) = 'ORDER' then ShowOrderDetails(LineText)
-else if UpperCase(Command) = 'ORDERSOURCES' then consolelinesAdd(GetOrderSources(Parameter(LineText,1)))
+else if UpperCase(Command) = 'ORDERSOURCES' then AddToLog('console',GetOrderSources(Parameter(LineText,1)))
 else if UpperCase(Command) = 'EXPORTADDRESS' then ExportAddress(LineText)
 else if UpperCase(Command) = 'ADDRESS' then ShowAddressInfo(LineText)
 else if UpperCase(Command) = 'HISTORY' then ShowAddressHistory(LineText)
 else if UpperCase(Command) = 'TOTALFEES' then ShowTotalFees()
-else if UpperCase(Command) = 'SUPPLY' then consolelinesAdd('Current supply: '+Int2Curr(GetSupply(MyLastBlock)))
+else if UpperCase(Command) = 'SUPPLY' then AddToLog('console','Current supply: '+Int2Curr(GetSupply(MyLastBlock)))
 else if UpperCase(Command) = 'GMTS' then showgmts(LineText)
 else if UpperCase(Command) = 'SHOWPRIVKEY' then ShowPrivKey(LineText, true)
 else if UpperCase(Command) = 'SHOWPENDING' then ShowPendingTrxs()
 else if UpperCase(Command) = 'WEBWAL' then WebWallet()
 else if UpperCase(Command) = 'EXPKEYS' then ExportKeys(LineText)
-else if UpperCase(Command) = 'CHECKUPDATES' then ConsoleLinesAdd(GetLastRelease)
+else if UpperCase(Command) = 'CHECKUPDATES' then AddToLog('console',GetLastRelease)
 else if UpperCase(Command) = 'ZIPSUMARY' then ZipSumary()
 else if UpperCase(Command) = 'ZIPHEADERS' then ZipHeaders()
-else if UpperCase(Command) = 'GETPOS' then Consolelinesadd( GetPoSPercentage(StrToIntdef(Parameter(linetext,1),Mylastblock)).ToString )
-else if UpperCase(Command) = 'GETMNS' then Consolelinesadd( GetMNsPercentage(StrToIntdef(Parameter(linetext,1),Mylastblock)).ToString )
+else if UpperCase(Command) = 'GETPOS' then AddToLog('console', GetPoSPercentage(StrToIntdef(Parameter(linetext,1),Mylastblock)).ToString )
+else if UpperCase(Command) = 'GETMNS' then AddToLog('console', GetMNsPercentage(StrToIntdef(Parameter(linetext,1),Mylastblock)).ToString )
 else if UpperCase(Command) = 'CLOSESTARTON' then WO_CloseStart := true
 else if UpperCase(Command) = 'CLOSESTARTOFF' then WO_CloseStart := false
 else if UpperCase(Command) = 'DT' then DebugTest(LineText)
 else if UpperCase(Command) = 'TT' then DebugTest2(LineText)
-else if UpperCase(Command) = 'BASE58SUM' then consolelinesadd(BMB58resumen(parameter(linetext,1)))
-else if UpperCase(Command) = 'DECTO58' then consolelinesadd(BMDecTo58(parameter(linetext,1)))
-else if UpperCase(Command) = 'HEXTO58' then consolelinesadd(BMHexTo58(parameter(linetext,1),58))
-else if UpperCase(Command) = '58TODEC' then consolelinesadd(BM58ToDec(parameter(linetext,1)))
-else if UpperCase(Command) = 'DECTOHEX' then consolelinesadd(BMDectoHex(parameter(linetext,1)))
-else if UpperCase(Command) = 'NOSOHASH' then consolelinesadd(Nosohash(parameter(linetext,1)))
-else if UpperCase(Command) = 'PENDING' then consolelinesadd(PendingRawInfo)
-else if UpperCase(Command) = 'WEBSEED' then consolelinesadd(GetWebSeedNodes)
-else if UpperCase(Command) = 'HEADER' then consolelinesadd(LastHeaders(StrToIntDef(parameter(linetext,1),-1)))
-else if UpperCase(Command) = 'HEADSIZE' then consolelinesadd(GetHeadersSize.ToString)
-else if UpperCase(Command) = 'CHECKSUM' then consolelinesadd(BMDecTo58(BMB58resumen(parameter(linetext,1))))
+else if UpperCase(Command) = 'BASE58SUM' then AddToLog('console',BMB58resumen(parameter(linetext,1)))
+else if UpperCase(Command) = 'DECTO58' then AddToLog('console',BMDecTo58(parameter(linetext,1)))
+else if UpperCase(Command) = 'HEXTO58' then AddToLog('console',BMHexTo58(parameter(linetext,1),58))
+else if UpperCase(Command) = '58TODEC' then AddToLog('console',BM58ToDec(parameter(linetext,1)))
+else if UpperCase(Command) = 'DECTOHEX' then AddToLog('console',BMDectoHex(parameter(linetext,1)))
+else if UpperCase(Command) = 'NOSOHASH' then AddToLog('console',Nosohash(parameter(linetext,1)))
+else if UpperCase(Command) = 'PENDING' then AddToLog('console',PendingRawInfo)
+else if UpperCase(Command) = 'WEBSEED' then AddToLog('console',GetWebSeedNodes)
+else if UpperCase(Command) = 'HEADER' then AddToLog('console',LastHeaders(StrToIntDef(parameter(linetext,1),-1)))
+else if UpperCase(Command) = 'HEADSIZE' then AddToLog('console',GetHeadersSize.ToString)
+else if UpperCase(Command) = 'CHECKSUM' then AddToLog('console',BMDecTo58(BMB58resumen(parameter(linetext,1))))
 
 // CONSULTING
 else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()
-else if UpperCase(Command) = 'NETRATE' then consolelinesadd('Average Mainnet hashrate: '+HashrateToShow(MainNetHashrate))
+else if UpperCase(Command) = 'NETRATE' then AddToLog('console','Average Mainnet hashrate: '+HashrateToShow(MainNetHashrate))
 else if UpperCase(Command) = 'LISTGVT' then ListGVTs()
 else if UpperCase(Command) = 'SYSTEM' then ShowSystemInfo(Linetext)
-else if UpperCase(Command) = 'NOSOCFG' then consolelinesadd(GetNosoCFGString)
+else if UpperCase(Command) = 'NOSOCFG' then AddToLog('console',GetNosoCFGString)
+else if UpperCase(Command) = 'FUNDS' then AddToLog('console','Project funds: '+Int2curr(GetAddressAvailable('NpryectdevepmentfundsGE')))
 
 // 0.2.1 DEBUG
 else if UpperCase(Command) = 'BLOCKPOS' then ShowBlockPos(LineText)
 else if UpperCase(Command) = 'POSSTACK' then showPosrequired(linetext)
 else if UpperCase(Command) = 'BLOCKMNS' then ShowBlockMNs(LineText)
-else if UpperCase(Command) = 'MYIP' then ConsoleLinesAdd(GetMiIP)
-else if UpperCase(Command) = 'SHOWUPDATES' then ConsoleLinesAdd(StringAvailableUpdates)
-else if UpperCase(Command) = 'CREATEAPPCODE' then ConsoleLinesAdd(CreateAppCode(parameter(linetext,1)))
-else if UpperCase(Command) = 'DECODEAPPCODE' then ConsoleLinesAdd(DecodeAppCode(parameter(linetext,1)))
+else if UpperCase(Command) = 'MYIP' then AddToLog('console',GetMiIP)
+else if UpperCase(Command) = 'SHOWUPDATES' then AddToLog('console',StringAvailableUpdates)
+else if UpperCase(Command) = 'CREATEAPPCODE' then AddToLog('console',CreateAppCode(parameter(linetext,1)))
+else if UpperCase(Command) = 'DECODEAPPCODE' then AddToLog('console',DecodeAppCode(parameter(linetext,1)))
 else if UpperCase(Command) = 'SETMODE' then SetCFGData(parameter(linetext,1),0)
 else if UpperCase(Command) = 'ADDNODE' then AddCFGData(parameter(linetext,1),1)
 else if UpperCase(Command) = 'DELNODE' then RemoveCFGData(parameter(linetext,1),1)
 else if UpperCase(Command) = 'ADDPOOL' then AddCFGData(parameter(linetext,1),3)
 else if UpperCase(Command) = 'DELPOOL' then RemoveCFGData(parameter(linetext,1),3)
 else if UpperCase(Command) = 'RESTORECFG' then RestoreCFGData()
+else if UpperCase(Command) = 'LOGSDATA' then AddToLog('console',GetLogsData)
 
 
 // P2P
-else if UpperCase(Command) = 'PEERS' then ConsoleLinesAdd('Server list: '+IntToStr(form1.ClientsCount)+'/'+IntToStr(GetIncomingConnections))
+else if UpperCase(Command) = 'PEERS' then AddToLog('console','Server list: '+IntToStr(form1.ClientsCount)+'/'+IntToStr(GetIncomingConnections))
 
 // RPC
 else if UpperCase(Command) = 'SETRPCPORT' then SetRPCPort(LineText)
@@ -326,7 +315,7 @@ else if UpperCase(Command) = 'RPCOFF' then SetRPCOff()
 //EXCHANGE
 else if UpperCase(Command) = 'POST' then PostOffer(LineText)
 
-else ConsoleLinesAdd('Unknown command: '+Command);  // Unknow command
+else AddToLog('console','Unknown command: '+Command);  // Unknow command
 end;
 
 // Obtiene el comando de una linea
@@ -403,7 +392,7 @@ var
   contador : integer = 0;
 Begin
 for contador := 0 to length(ListaNodos) - 1 do
-   ConsoleLinesAdd(IntToStr(contador)+'- '+Listanodos[contador].ip+':'+Listanodos[contador].port+
+   AddToLog('console',IntToStr(contador)+'- '+Listanodos[contador].ip+':'+Listanodos[contador].port+
    ' '+TimeSinceStamp(CadToNum(Listanodos[contador].LastConexion,0,'STI fails on shownodes')));
 End;
 
@@ -413,8 +402,8 @@ var
   contador : integer = 0;
 Begin
 for contador := 0 to length(ListadoBots) - 1 do
-   ConsoleLinesAdd(IntToStr(contador)+'- '+ListadoBots[contador].ip);
-ConsoleLinesAdd(IntToStr(length(ListadoBots))+' bots registered.');  // bots registered
+   AddToLog('console',IntToStr(contador)+'- '+ListadoBots[contador].ip);
+AddToLog('console',IntToStr(length(ListadoBots))+' bots registered.');  // bots registered
 End;
 
 // muestra la informacion de los slots
@@ -422,12 +411,12 @@ Procedure ShowSlots();
 var
   contador : integer = 0;
 Begin
-ConsoleLinesAdd('Number Type ConnectedTo ChannelUsed LinesOnWait SumHash LBHash Offset ConStatus'); //Number Type ConnectedTo ChannelUsed LinesOnWait SumHash LBHash Offset ConStatus
+AddToLog('console','Number Type ConnectedTo ChannelUsed LinesOnWait SumHash LBHash Offset ConStatus'); //Number Type ConnectedTo ChannelUsed LinesOnWait SumHash LBHash Offset ConStatus
 for contador := 1 to MaxConecciones do
    begin
    if IsSlotConnected(contador) then
       begin
-      ConsoleLinesAdd(IntToStr(contador)+' '+conexiones[contador].tipo+
+      AddToLog('console',IntToStr(contador)+' '+conexiones[contador].tipo+
       ' '+conexiones[contador].ip+
       ' '+BoolToStr(CanalCliente[contador].connected,true)+' '+IntToStr(LengthIncoming(contador))+
       ' '+conexiones[contador].SumarioHash+' '+conexiones[contador].LastblockHash+' '+
@@ -439,12 +428,12 @@ end;
 // Muestras las opciones del usuario
 Procedure ShowUser_Options();
 Begin
-ConsoleLinesAdd('Language    : '+WO_Language);
-ConsoleLinesAdd('Server Port : '+MN_Port);
-ConsoleLinesAdd('Wallet      : '+WalletFilename);
-ConsoleLinesAdd('AutoServer  : '+BoolToStr(WO_AutoServer,true));
-ConsoleLinesAdd('AutoConnect : '+BoolToStr(WO_AutoConnect,true));
-ConsoleLinesAdd('To Tray     : '+BoolToStr(WO_ToTray,true));
+AddToLog('console','Language    : '+WO_Language);
+AddToLog('console','Server Port : '+MN_Port);
+AddToLog('console','Wallet      : '+WalletFilename);
+AddToLog('console','AutoServer  : '+BoolToStr(WO_AutoServer,true));
+AddToLog('console','AutoConnect : '+BoolToStr(WO_AutoConnect,true));
+AddToLog('console','To Tray     : '+BoolToStr(WO_ToTray,true));
 End;
 
 // devuelve el saldo en satoshis de la cartera
@@ -479,7 +468,7 @@ S_AdvOpt := true;
 G_Launching := true;
 form1.CB_WO_ToTray.Checked:=true;
 G_Launching := false;
-ConsoleLinesAdd('Minimize to tray is now '+'ACTIVE'); //GetNodes option is now  // INACTIVE
+AddToLog('console','Minimize to tray is now '+'ACTIVE'); //GetNodes option is now  // INACTIVE
 End;
 
 Procedure ToTrayOFF();
@@ -490,7 +479,7 @@ S_AdvOpt := false;
 G_Launching := true;
 form1.CB_WO_ToTray.Checked:=false;
 G_Launching := false;
-ConsoleLinesAdd('Minimize to tray is now '+'INACTIVE'); //GetNodes option is now  // INACTIVE
+AddToLog('console','Minimize to tray is now '+'INACTIVE'); //GetNodes option is now  // INACTIVE
 End;
 
 // muestra el sumario completo
@@ -523,7 +512,7 @@ For contador := 0 to length(ListaSumario)-1 do
    if ListaSumario[contador].custom ='' then ThisCustom := 'NULL'
       else ThisCustom := ListaSumario[contador].custom;
    {
-   ConsoleLinesAdd(ListaSumario[contador].Hash+' '+Int2Curr(ListaSumario[contador].Balance)+' '+
+   AddToLog('console',ListaSumario[contador].Hash+' '+Int2Curr(ListaSumario[contador].Balance)+' '+
       ThisCustom+' '+
       IntToStr(ListaSumario[contador].LastOP)+' '+IntToStr(ListaSumario[contador].Score));
    EngineLastUpdate := UTCTime.ToInt64;
@@ -548,23 +537,23 @@ For contador := 0 to length(ListaSumario)-1 do
 {
 if NotValid>0 then
    begin
-   ConsoleLinesAdd(Format('Not Valid: %d [%s]',[NotValid,Int2Curr(NotValidBalance)]));
-   ConsoleLinesAdd(NotValidStr);
+   AddToLog('console',Format('Not Valid: %d [%s]',[NotValid,Int2Curr(NotValidBalance)]));
+   AddToLog('console',NotValidStr);
    end;
 }
-ConsoleLinesAdd(IntToStr(Length(ListaSumario))+' addresses.'); //addresses
-ConsoleLinesAdd(IntToStr(EmptyAddresses)+' empty.'); //addresses
-if NegAdds>0 then ConsoleLinesAdd('Possible issues: '+IntToStr(NegAdds));
+AddToLog('console',IntToStr(Length(ListaSumario))+' addresses.'); //addresses
+AddToLog('console',IntToStr(EmptyAddresses)+' empty.'); //addresses
+if NegAdds>0 then AddToLog('console','Possible issues: '+IntToStr(NegAdds));
 if DuplicatedCount>2 then
    begin
-   ConsoleLinesAdd('Duplicated alias: '+DuplicatedCount.ToString);
-   ConsoleLinesAdd(DuplicatedCustoms);
+   AddToLog('console','Duplicated alias: '+DuplicatedCount.ToString);
+   AddToLog('console',DuplicatedCustoms);
    end;
 if TotalCoins = GetSupply(MyLastBlock) then AsExpected := '✓'
 else AsExpected := '✗ '+Int2curr(TotalCoins-GetSupply(MyLastBlock));
-ConsoleLinesAdd(Int2Curr(Totalcoins)+' '+CoinSimbol+' '+AsExpected);
-ConsoleLinesAdd('Bigger : '+BiggerAddress);
-ConsoleLinesAdd('Balance: '+Int2curr(BiggerAmmount));
+AddToLog('console',Int2Curr(Totalcoins)+' '+CoinSimbol+' '+AsExpected);
+AddToLog('console','Bigger : '+BiggerAddress);
+AddToLog('console','Balance: '+Int2curr(BiggerAmmount));
 LeaveCriticalSection(CSSumary);
 End;
 
@@ -572,28 +561,28 @@ Procedure AutoServerON();
 Begin
 WO_autoserver := true;
 S_AdvOpt := true;
-ConsoleLinesAdd('AutoServer option is now '+'ACTIVE');   //autoserver //active
+AddToLog('console','AutoServer option is now '+'ACTIVE');   //autoserver //active
 End;
 
 Procedure AutoServerOFF();
 Begin
 WO_autoserver := false;
 S_AdvOpt := true;
-ConsoleLinesAdd('AutoServer option is now '+'INACTIVE');   //autoserver //inactive
+AddToLog('console','AutoServer option is now '+'INACTIVE');   //autoserver //inactive
 End;
 
 Procedure AutoConnectON();
 Begin
 WO_AutoConnect := true;
 S_AdvOpt := true;
-ConsoleLinesAdd('Autoconnect option is now '+'ACTIVE');     //autoconnect // active
+AddToLog('console','Autoconnect option is now '+'ACTIVE');     //autoconnect // active
 End;
 
 Procedure AutoConnectOFF();
 Begin
 WO_AutoConnect := false;
 S_AdvOpt := true;
-ConsoleLinesAdd('Autoconnect option is now '+'INACTIVE');    //autoconnect // inactive
+AddToLog('console','Autoconnect option is now '+'INACTIVE');    //autoconnect // inactive
 End;
 
 // muestra las direcciones de la cartera
@@ -603,10 +592,10 @@ var
 Begin
 for contador := 0 to length(ListaDirecciones)-1 do
    begin
-   ConsoleLinesAdd(Listadirecciones[contador].Hash);
+   AddToLog('console',Listadirecciones[contador].Hash);
    end;
-ConsoleLinesAdd(IntToStr(Length(ListaDirecciones))+' addresses.');
-ConsoleLinesAdd(Int2Curr(GetWalletBalance)+' '+CoinSimbol);
+AddToLog('console',IntToStr(Length(ListaDirecciones))+' addresses.');
+AddToLog('console',Int2Curr(GetWalletBalance)+' '+CoinSimbol);
 End;
 
 Procedure ExportarWallet(LineText:string);
@@ -617,16 +606,16 @@ destino := Parameter(linetext,1);
 destino := StringReplace(destino,'*',' ',[rfReplaceAll, rfIgnoreCase]);
 if fileexists(destino+'.pkw') then
    begin
-   ConsoleLinesAdd('Error: Can not overwrite existing wallets');
+   AddToLog('console','Error: Can not overwrite existing wallets');
    exit;
    end;
 if copyfile(WalletFilename,destino+'.pkw',[]) then
    begin
-   ConsoleLinesAdd('Wallet saved as '+destino+'.pkw');
+   AddToLog('console','Wallet saved as '+destino+'.pkw');
    end
 else
    begin
-   ConsoleLinesAdd('Failed');
+   AddToLog('console','Failed');
    end;
 End;
 
@@ -642,7 +631,7 @@ Cartera := Parameter(linetext,1);
 Cartera := StringReplace(Cartera,'*',' ',[rfReplaceAll, rfIgnoreCase]);
 if not FileExists(cartera) then
    begin
-   ConsoleLinesAdd('Specified wallet file do not exists.');//Specified wallet file do not exists.
+   AddToLog('console','Specified wallet file do not exists.');//Specified wallet file do not exists.
    exit;
    end;
 assignfile(CarteraFile,Cartera);
@@ -653,7 +642,7 @@ Read(CarteraFile,DatoLeido);
 if not IsValidHashAddress(DatoLeido.Hash) then
    begin
    closefile(CarteraFile);
-   ConsoleLinesAdd('The file is not a valid wallet');
+   AddToLog('console','The file is not a valid wallet');
    exit;
    end;
 for contador := 0 to filesize(CarteraFile)-1 do
@@ -669,14 +658,14 @@ for contador := 0 to filesize(CarteraFile)-1 do
    end;
 closefile(CarteraFile);
 except on E:Exception  do
-ConsoleLinesAdd('The file is not a valid wallet'); //'The file is not a valid wallet'
+AddToLog('console','The file is not a valid wallet'); //'The file is not a valid wallet'
 end;
 if nuevos > 0 then
    begin
    OutText('Addresses imported: '+IntToStr(nuevos),false,2); //'Addresses imported: '
    UpdateWalletFromSumario;
    end
-else ConsoleLinesAdd('No new addreses found.');  //'No new addreses found.'
+else AddToLog('console','No new addreses found.');  //'No new addreses found.'
 End;
 
 Procedure ShowBlchHead(number:integer);
@@ -696,13 +685,13 @@ Seek(FileResumen,StartBlock);
    read(fileresumen, dato);
    if Dato.block= number then
       begin
-      ConsoleLinesAdd(IntToStr(dato.block)+' '+copy(dato.blockhash,1,5)+' '+copy(dato.SumHash,1,5));
+      AddToLog('console',IntToStr(dato.block)+' '+copy(dato.blockhash,1,5)+' '+copy(dato.SumHash,1,5));
       Found := true;
       end;
    UNTIL ((Found) or (eof(FileResumen)) );
 closefile(FileResumen);
 EXCEPT ON E:Exception do
-   ConsoleLinesAdd('Error: '+E.Message)
+   AddToLog('console','Error: '+E.Message)
 END;{TRY}
 LeaveCriticalSection(CSHeadAccess);
 End;
@@ -747,25 +736,25 @@ Begin
 if fileexists(BlockDirectory+IntToStr(numberblock)+'.blk') then
    begin
    Header := LoadBlockDataHeader(numberblock);
-   ConsoleLinesAdd('Block info: '+IntToStr(numberblock));
-   ConsoleLinesAdd('Hash  :       '+HashMD5File(BlockDirectory+IntToStr(numberblock)+'.blk'));
-   ConsoleLinesAdd('Number:       '+IntToStr(Header.Number));
-   ConsoleLinesAdd('Time start:   '+IntToStr(Header.TimeStart)+' ('+TimestampToDate(Header.TimeStart)+')');
-   ConsoleLinesAdd('Time end:     '+IntToStr(Header.TimeEnd)+' ('+TimestampToDate(Header.TimeEnd)+')');
-   ConsoleLinesAdd('Time total:   '+IntToStr(Header.TimeTotal));
-   ConsoleLinesAdd('L20 average:  '+IntToStr(Header.TimeLast20));
-   ConsoleLinesAdd('Transactions: '+IntToStr(Header.TrxTotales));
-   ConsoleLinesAdd('Difficult:    '+IntToStr(Header.Difficult));
-   ConsoleLinesAdd('Target:       '+Header.TargetHash);
-   ConsoleLinesAdd('Solution:     '+Header.Solution);
-   ConsoleLinesAdd('Last Hash:    '+Header.LastBlockHash);
-   ConsoleLinesAdd('Next Diff:    '+IntToStr(Header.NxtBlkDiff));
-   ConsoleLinesAdd('Miner:        '+Header.AccountMiner);
-   ConsoleLinesAdd('Fees:         '+IntToStr(Header.MinerFee));
-   ConsoleLinesAdd('Reward:       '+IntToStr(Header.Reward));
+   AddToLog('console','Block info: '+IntToStr(numberblock));
+   AddToLog('console','Hash  :       '+HashMD5File(BlockDirectory+IntToStr(numberblock)+'.blk'));
+   AddToLog('console','Number:       '+IntToStr(Header.Number));
+   AddToLog('console','Time start:   '+IntToStr(Header.TimeStart)+' ('+TimestampToDate(Header.TimeStart)+')');
+   AddToLog('console','Time end:     '+IntToStr(Header.TimeEnd)+' ('+TimestampToDate(Header.TimeEnd)+')');
+   AddToLog('console','Time total:   '+IntToStr(Header.TimeTotal));
+   AddToLog('console','L20 average:  '+IntToStr(Header.TimeLast20));
+   AddToLog('console','Transactions: '+IntToStr(Header.TrxTotales));
+   AddToLog('console','Difficult:    '+IntToStr(Header.Difficult));
+   AddToLog('console','Target:       '+Header.TargetHash);
+   AddToLog('console','Solution:     '+Header.Solution);
+   AddToLog('console','Last Hash:    '+Header.LastBlockHash);
+   AddToLog('console','Next Diff:    '+IntToStr(Header.NxtBlkDiff));
+   AddToLog('console','Miner:        '+Header.AccountMiner);
+   AddToLog('console','Fees:         '+IntToStr(Header.MinerFee));
+   AddToLog('console','Reward:       '+IntToStr(Header.Reward));
    end
 else
-   ConsoleLinesAdd('Block file do not exists: '+numberblock.ToString);
+   AddToLog('console','Block file do not exists: '+numberblock.ToString);
 End;
 
 Procedure showmd160(linetext:string);
@@ -773,7 +762,7 @@ var
   tohash : string;
 Begin
 tohash := Parameter(linetext,1);
-ConsoleLinesAdd(HashMD160String(tohash));
+AddToLog('console',HashMD160String(tohash));
 End;
 
 Procedure CustomizeAddress(linetext:string);
@@ -786,12 +775,12 @@ address := Parameter(linetext,1);
 AddAlias := Parameter(linetext,2);
 if DireccionEsMia(address)<0 then
    begin
-   ConsoleLinesAdd('Invalid address');  //'Invalid address'
+   AddToLog('console','Invalid address');  //'Invalid address'
    procesar := false;
    end;
 if ListaDirecciones[DireccionEsMia(address)].Custom <> '' then
    begin
-   ConsoleLinesAdd('Address already have a custom alias'); //'Address already have a custom alias'
+   AddToLog('console','Address already have a custom alias'); //'Address already have a custom alias'
    procesar := false;
    end;
 if ( (length(AddAlias)<5) or (length(AddAlias)>40) ) then
@@ -801,29 +790,29 @@ if ( (length(AddAlias)<5) or (length(AddAlias)>40) ) then
    end;
 if IsValidHashAddress(addalias) then
    begin
-   ConsoleLinesAdd('Alias can not be a valid address'); //'Alias can not be a valid address'
+   AddToLog('console','Alias can not be a valid address'); //'Alias can not be a valid address'
    procesar := false;
    end;
 if ListaDirecciones[DireccionEsMia(address)].Balance < Customizationfee then
    begin
-   ConsoleLinesAdd('Insufficient balance'); //'Insufficient balance'
+   AddToLog('console','Insufficient balance'); //'Insufficient balance'
    procesar := false;
    end;
 if AddressAlreadyCustomized(Address) then
    begin
-   ConsoleLinesAdd('Address already have a custom alias'); //'Address already have a custom alias'
+   AddToLog('console','Address already have a custom alias'); //'Address already have a custom alias'
    procesar := false;
    end;
 if AliasAlreadyExists(addalias) then
    begin
-   ConsoleLinesAdd('Alias already exists');
+   AddToLog('console','Alias already exists');
    procesar := false;
    end;
 for cont := 1 to length(addalias) do
    begin
    if pos(addalias[cont],CustomValid)=0 then
       begin
-      ConsoleLinesAdd('Invalid character in alias: '+addalias[cont]);
+      AddToLog('console','Invalid character in alias: '+addalias[cont]);
       info('Invalid character in alias: '+addalias[cont]);
       procesar := false;
       end;
@@ -878,13 +867,13 @@ var
   CoinsAvailable : int64;
 Begin
 result := '';
-setmilitime('SendFunds',1);
+BeginPerformance('SendFunds');
 Destination := Parameter(Linetext,1);
 amount       := Parameter(Linetext,2);
 reference    := Parameter(Linetext,3);
 if ((Destination='') or (amount='')) then
    begin
-   if showOutput then ConsoleLinesAdd('Invalid parameters.'); //'Invalid parameters.'
+   if showOutput then AddToLog('console','Invalid parameters.'); //'Invalid parameters.'
    Procesar := false;
    end;
 if not IsValidHashAddress(Destination) then
@@ -892,7 +881,7 @@ if not IsValidHashAddress(Destination) then
    AliasIndex:=AddressSumaryIndex(Destination);
    if AliasIndex<0 then
       begin
-      if showOutput then ConsoleLinesAdd('Invalid destination.'); //'Invalid destination.'
+      if showOutput then AddToLog('console','Invalid destination.'); //'Invalid destination.'
       Procesar := false;
       end
    else Destination := ListaSumario[aliasIndex].Hash;
@@ -901,7 +890,7 @@ monto := StrToInt64Def(amount,-1);
 if reference = '' then reference := 'null';
 if monto<=10 then
    begin
-   if showOutput then ConsoleLinesAdd('Invalid ammount.'); //'Invalid ammount.'
+   if showOutput then AddToLog('console','Invalid ammount.'); //'Invalid ammount.'
    Procesar := false;
    end;
 if procesar then
@@ -914,7 +903,7 @@ if procesar then
    else CoinsAvailable := GetWalletBalance;
    if Restante > CoinsAvailable then
       begin
-      if showOutput then ConsoleLinesAdd('Insufficient funds. Needed: '+Int2curr(Monto+comision));//'Insufficient funds. Needed: '
+      if showOutput then AddToLog('console','Insufficient funds. Needed: '+Int2curr(Monto+comision));//'Insufficient funds. Needed: '
       Procesar := false;
       end;
    end;
@@ -927,7 +916,7 @@ if procesar then
    OrderHashString := currtime;
    while monto > 0 do
       begin
-      setmilitime('SendFundsVerify',1);
+      BeginPerformance('SendFundsVerify');
       if ListaDirecciones[contador].Balance-GetAddressPendingPays(ListaDirecciones[contador].Hash) > 0 then
          begin
          trxLinea := TrxLinea+1;
@@ -939,7 +928,7 @@ if procesar then
          OrderHashString := OrderHashString+ArrayTrfrs[length(arraytrfrs)-1].TrfrID;
          end;
       Contador := contador +1;
-      setmilitime('SendFundsVerify',2);
+      EndPerformance('SendFundsVerify');
       end;
    for contador := 0 to length(ArrayTrfrs)-1 do
       begin
@@ -947,7 +936,7 @@ if procesar then
       ArrayTrfrs[contador].OrderLines:=trxLinea;
       end;
    ResultOrderID := GetOrderHash(IntToStr(trxLinea)+OrderHashString);
-   if showOutput then ConsoleLinesAdd('Send to: '+Destination+slinebreak+
+   if showOutput then AddToLog('console','Send to: '+Destination+slinebreak+
                     'Send '+Int2Curr(montoToShow)+' fee '+Int2Curr(comisionToShow)+slinebreak+
                     'Order ID: '+ResultOrderID);
    result := ResultOrderID;
@@ -959,11 +948,11 @@ if procesar then
       end;
    Setlength(orderstring,length(orderstring)-2);
    OutgoingMsjsAdd(OrderString);
-   setmilitime('SendFunds',2);
+   EndPerformance('SendFunds');
    end // End procesar
 else
    begin
-   if showOutput then ConsoleLinesAdd('Syntax: sendto {destination} {ammount} {reference}');
+   if showOutput then AddToLog('console','Syntax: sendto {destination} {ammount} {reference}');
    end;
 End;
 
@@ -990,24 +979,24 @@ var
   StrTosign   : String = '';
 Begin
 result := '';
-setmilitime('SendGVT',1);
+BeginPerformance('SendGVT');
 GVTNumber:= StrToIntDef(Parameter(Linetext,1),-1);
 Destination := Parameter(Linetext,2);
 if ( (GVTnumber<0) or (GVTnumber>length(ArrGVTs)-1) ) then
    begin
-   if showOutput then ConsoleLinesAdd('Invalid GVT number');
+   if showOutput then AddToLog('console','Invalid GVT number');
    exit;
    end;
 GVTNumStr := ArrGVTs[GVTnumber].number;
 GVTOwner := ArrGVTs[GVTnumber].owner;
 If DireccionEsMia(GVTOwner)<0 then
    begin
-   if showOutput then ConsoleLinesAdd('You do not own that GVT');
+   if showOutput then AddToLog('console','You do not own that GVT');
    exit;
    end;
 if GetAddressAvailable(GVTOwner)<Customizationfee then
    begin
-   if showOutput then ConsoleLinesAdd('Inssuficient funds');
+   if showOutput then AddToLog('console','Inssuficient funds');
    exit;
    end;
 if not IsValidHashAddress(Destination) then
@@ -1015,20 +1004,20 @@ if not IsValidHashAddress(Destination) then
    AliasIndex:=AddressSumaryIndex(Destination);
    if AliasIndex<0 then
       begin
-      if showOutput then ConsoleLinesAdd('Invalid destination.'); //'Invalid destination.'
+      if showOutput then AddToLog('console','Invalid destination.'); //'Invalid destination.'
       Exit;
       end
    else Destination := ListaSumario[aliasIndex].Hash;
    end;
 if GVTOwner=Destination then
    begin
-   if showOutput then ConsoleLinesAdd('Can not transfer GVT to same address');
+   if showOutput then AddToLog('console','Can not transfer GVT to same address');
    exit;
    end;
 // TEMP FILTER
 if GVTOwner<>ListaDirecciones[0].Hash then
    begin
-   if showOutput then ConsoleLinesAdd('Actually only project GVTs can be transfered');
+   if showOutput then AddToLog('console','Actually only project GVTs can be transfered');
    exit;
    end;
 OrderTime := UTCTimeStr;
@@ -1053,11 +1042,11 @@ ResultStr := ProtocolLine(21)+ // sndGVT
 OutgoingMsjsAdd(ResultStr);
 if showoutput then
    begin
-   ConsoleLinesAdd('GVT '+GVTNumStr+' transfered from '+ListaDirecciones[DireccionEsMia(GVTOwner)].Hash+' to '+Destination);
-   ConsolelinesAdd('Order: '+OrderHash);
-   //ConsoleLinesAdd(StrToSign);
+   AddToLog('console','GVT '+GVTNumStr+' transfered from '+ListaDirecciones[DireccionEsMia(GVTOwner)].Hash+' to '+Destination);
+   AddToLog('console','Order: '+OrderHash);
+   //AddToLog('console',StrToSign);
    end;
-setmilitime('SendGVT',2);
+EndPerformance('SendGVT');
 End;
 
 // Muestra la escala de halvings
@@ -1077,11 +1066,11 @@ for contador := 0 to HalvingSteps do
    reward := InitialReward div StrToInt64(BMExponente('2',IntToStr(contador)));
    MarketCap := marketcap+(reward*BlockHalvingInterval);
    Texto :='From block '+IntToStr(block1)+' until '+IntToStr(block2)+': '+Int2curr(reward); //'From block '+' until '
-   ConsoleLinesAdd(Texto);
+   AddToLog('console',Texto);
    end;
-ConsoleLinesAdd('And then '+int2curr(0)); //'And then '
+AddToLog('console','And then '+int2curr(0)); //'And then '
 MarketCap := MarketCap+PremineAmount-InitialReward; // descuenta una recompensa inicial x bloque 0
-ConsoleLinesAdd('Final supply: '+int2curr(MarketCap)); //'Final supply: '
+AddToLog('console','Final supply: '+int2curr(MarketCap)); //'Final supply: '
 End;
 
 // Muestra y procesa el monto a agrupar en la direccion principal
@@ -1095,11 +1084,11 @@ Proceder := Parameter(linetext,1);
 if length(listaDirecciones)>0 then
   for cont := 1 to length(listaDirecciones)-1 do
     Total += GetAddressBalance(ListaDirecciones[cont].Hash);
-ConsoleLinesAdd('Coins to group: '+Int2curr(Total)+' '+Coinsimbol); //'Coins to group: '
+AddToLog('console','Coins to group: '+Int2curr(Total)+' '+Coinsimbol); //'Coins to group: '
 if uppercase(Proceder) = 'DO' then
    begin
    if Total = 0 then
-     ConsoleLinesAdd('You do not have coins to group.') //'You do not have coins to group.'
+     AddToLog('console','You do not have coins to group.') //'You do not have coins to group.'
    else
      ProcessLinesAdd('SENDTO '+Listadirecciones[0].Hash+' '+IntToStr(GetMaximunToSend(Total)));
    end;
@@ -1110,12 +1099,12 @@ Procedure SetServerPort(LineText:string);
 var
   NewPort:string = '';
 Begin
-ConsoleLinesAdd('Deprecated');
+AddToLog('console','Deprecated');
 Exit;
 NewPort := parameter(linetext,1);
 if ((StrToIntDef(NewPort,0) < 1) or (StrToIntDef(NewPort,0)>65535)) then
    begin
-   ConsoleLinesAdd('Invalid Port');
+   AddToLog('console','Invalid Port');
    end
 else
    begin
@@ -1130,7 +1119,7 @@ var
   TextToSha : string = '';
 Begin
 TextToSha :=  parameter(linetext,1);
-ConsoleLinesAdd(HashSha256String(TextToSha));
+AddToLog('console',HashSha256String(TextToSha));
 End;
 
 // prueba la lectura de parametros de la linea de comandos
@@ -1140,7 +1129,7 @@ var
   continuar : boolean;
   parametro : string;
 Begin
-ConsoleLinesAdd(Parameter(linetext,0));
+AddToLog('console',Parameter(linetext,0));
 continuar := true;
 repeat
    begin
@@ -1148,7 +1137,7 @@ repeat
    if parametro = '' then continuar := false
    else
      begin
-     ConsoleLinesAdd(inttostr(contador)+' '+parametro);
+     AddToLog('console',inttostr(contador)+' '+parametro);
      contador := contador+1;
      end;
    end;
@@ -1165,14 +1154,14 @@ Begin
 IPBot := Parameter(linetext,1);
 if IPBot = '' then
    begin
-   ConsoleLinesAdd('Invalid IP');
+   AddToLog('console','Invalid IP');
    end
 else if uppercase(IPBot) = 'ALL' then
    begin
    SetLength(ListadoBots,0);
    LastBotClear := UTCTimeStr;
    S_BotData := true;
-   ConsoleLinesAdd('All bots deleted');
+   AddToLog('console','All bots deleted');
    end
 else
    begin
@@ -1182,17 +1171,17 @@ else
          begin
          Delete(ListadoBots,Contador,1);
          S_BotData := true;
-         ConsoleLinesAdd(IPBot+' deleted from bot list');
+         AddToLog('console',IPBot+' deleted from bot list');
          IPDeleted := true;
          end;
       end;
-   if not IPDeleted then ConsoleLinesAdd('IP do not exists in Bot list');
+   if not IPDeleted then AddToLog('console','IP do not exists in Bot list');
    end;
 End;
 
 Procedure showCriptoThreadinfo();
 Begin
-ConsoleLinesAdd(Booltostr(CriptoThreadRunning,true)+' '+intToStr(length(ArrayCriptoOp)));
+AddToLog('console',Booltostr(CriptoThreadRunning,true)+' '+intToStr(length(ArrayCriptoOp)));
 End;
 
 Procedure Parse_RestartNoso();
@@ -1205,11 +1194,11 @@ End;
 // Este procedimiento debe amppliarse para que muestre la informacion solicitada
 Procedure ShowNetworkDataInfo();
 Begin
-ConsoleLinesAdd('Network last block');
-ConsoleLinesAdd('Value: '+NetLastBlock.Value);
-ConsoleLinesAdd('Count: '+IntToStr(NetLastBlock.Count));
-ConsoleLinesAdd('Percent: '+IntToStr(NetLastBlock.porcentaje));
-ConsoleLinesAdd('Slot: '+IntToStr(NetLastBlock.slot));
+AddToLog('console','Network last block');
+AddToLog('console','Value: '+NetLastBlock.Value);
+AddToLog('console','Count: '+IntToStr(NetLastBlock.Count));
+AddToLog('console','Percent: '+IntToStr(NetLastBlock.porcentaje));
+AddToLog('console','Slot: '+IntToStr(NetLastBlock.slot));
 End;
 
 Procedure GetOwnerHash(LineText:string);
@@ -1219,12 +1208,12 @@ Begin
 direccion := parameter(linetext,1);
 if ( (DireccionEsMia(direccion)<0) or (direccion='') ) then
   begin
-  ConsoleLinesAdd('Invalid address');
+  AddToLog('console','Invalid address');
   end
 else
    begin
    currtime := UTCTimeStr;
-   ConsoleLinesAdd(direccion+' owner cert'+slinebreak+
+   AddToLog('console',direccion+' owner cert'+slinebreak+
       EncodeCertificate(ListaDirecciones[DireccionEsMia(direccion)].PublicKey+':'+currtime+':'+GetStringSigned('I OWN THIS ADDRESS '+direccion+currtime,ListaDirecciones[DireccionEsMia(direccion)].PrivateKey)));
    end;
 End;
@@ -1233,7 +1222,7 @@ Procedure CheckOwnerHash(LineText:string);
 var
   data, pubkey, direc,firmtime,firma : string;
 Begin
-setmilitime('CheckOwnerHash',1);
+BeginPerformance('CheckOwnerHash');
 data := parameter(LineText,1);
 data := DecodeCertificate(Data);
 data := StringReplace(data,':',' ',[rfReplaceAll, rfIgnoreCase]);
@@ -1243,9 +1232,9 @@ firma := Parameter(data,2);
 direc := GetAddressFromPublicKey(pubkey);
 if ListaSumario[AddressSumaryIndex(direc)].custom <> '' then direc := ListaSumario[AddressSumaryIndex(direc)].custom;
 if VerifySignedString('I OWN THIS ADDRESS '+direc+firmtime,firma,pubkey) then
-   ConsoleLinesAdd(direc+' verified '+TimeSinceStamp(StrToInt64(firmtime))+' ago.')
-else ConsoleLinesAdd('Invalid verification');
-setmilitime('CheckOwnerHash',2);
+   AddToLog('console',direc+' verified '+TimeSinceStamp(StrToInt64(firmtime))+' ago.')
+else AddToLog('console','Invalid verification');
+EndPerformance('CheckOwnerHash');
 End;
 
 Function CreateAppCode(Texto:string):string;
@@ -1289,20 +1278,20 @@ Tversion := parameter(linea,1);
 if Tversion = '' then Tversion := Parameter(GetLastRelease,0);
 TArch    := Uppercase(parameter(linea,2));
 if TArch = '' then TArch := GetOS;
-ConsolelinesAdd(Format('Trying upgrade to version %s (%s)',[TVersion,TArch]));
+AddToLog('console',Format('Trying upgrade to version %s (%s)',[TVersion,TArch]));
 if ansicontainsstr(linea,' /or') then overRule := true;
 Application.ProcessMessages;
 if ( (Tversion = ProgramVersion+Subversion) and (not overRule) ) then
    begin
-   ConsolelinesAdd('Version '+TVersion+' already installed');
+   AddToLog('console','Version '+TVersion+' already installed');
    exit;
    end;
 if GetLastVerZipFile(Tversion,TArch) then
    begin
-   ConsoleLinesAdd('Version '+Tversion+' downloaded');
+   AddToLog('console','Version '+Tversion+' downloaded');
    if UnZipUpdateFromRepo(Tversion,TArch) then
      begin
-     consolelinesadd('Unzipped !');
+     AddToLog('console','Unzipped !');
      {$IFDEF WINDOWS}Trycopyfile('NOSODATA/UPDATES/Noso.exe','nosonew');{$ENDIF}
      {$IFDEF UNIX}Trycopyfile('NOSODATA/UPDATES/Noso','Nosonew');{$ENDIF}
      CreateLauncherFile(true);
@@ -1312,7 +1301,7 @@ if GetLastVerZipFile(Tversion,TArch) then
    end
 else
    begin
-   ConsoleLinesAdd('Update Failed');
+   AddToLog('console','Update Failed');
    end
 End;
 
@@ -1320,7 +1309,7 @@ Procedure SendAdminMessage(linetext:string);
 var
   mensaje,currtime, firma, hashmsg : string;
 Begin
-if (DireccionEsMia(AdminHash)<0) then ConsoleLinesAdd('Only the Noso developers can do this.') //Only the Noso developers can do this
+if (DireccionEsMia(AdminHash)<0) then AddToLog('console','Only the Noso developers can do this.') //Only the Noso developers can do this
 else
    begin
    mensaje := copy(linetext,11,length(linetext));
@@ -1331,7 +1320,7 @@ else
    mensaje := StringReplace(mensaje,' ','_',[rfReplaceAll, rfIgnoreCase]);
    OutgoingMsjsAdd(GetPTCEcn+'ADMINMSG '+currtime+' '+mensaje+' '+firma+' '+hashmsg);
    mensaje := StringReplace(mensaje,'_',' ',[rfReplaceAll, rfIgnoreCase]);
-   ConsoleLinesAdd('Directive sent: '+mensaje);
+   AddToLog('console','Directive sent: '+mensaje);
    end;
 End;
 
@@ -1340,11 +1329,11 @@ var
   newvalue : integer;
 Begin
 newvalue := StrToIntDef(parameter(LineText,1),-1);
-if newvalue < 0 then ConsoleLinesAdd('ReadTimeOutTime= '+IntToStr(ReadTimeOutTIme))
+if newvalue < 0 then AddToLog('console','ReadTimeOutTime= '+IntToStr(ReadTimeOutTIme))
 else
   begin
   ReadTimeOutTIme := newvalue;
-  ConsoleLinesAdd('ReadTimeOutTime set to '+IntToStr(newvalue));
+  AddToLog('console','ReadTimeOutTime set to '+IntToStr(newvalue));
   end;
 End;
 
@@ -1353,11 +1342,11 @@ var
   newvalue : integer;
 Begin
 newvalue := StrToIntDef(parameter(LineText,1),-1);
-if newvalue < 0 then ConsoleLinesAdd('ConnectTimeOutTime= '+IntToStr(ConnectTimeOutTIme))
+if newvalue < 0 then AddToLog('console','ConnectTimeOutTime= '+IntToStr(ConnectTimeOutTIme))
 else
   begin
   ConnectTimeOutTIme := newvalue;
-  ConsoleLinesAdd('ConnectTimeOutTime set to '+IntToStr(newvalue));
+  AddToLog('console','ConnectTimeOutTime set to '+IntToStr(newvalue));
   end;
 End;
 
@@ -1380,19 +1369,19 @@ Begin
 orderid := parameter(LineText,1);
 ThisOrderdata := GetOrderDetails(orderid);
 if thisorderdata.AmmountTrf<=0 then
-  ConsoleLinesAdd('Order not found')
+  AddToLog('console','Order not found')
 else
   begin
-  ConsoleLinesAdd('Time     : '+TimestampToDate(ThisOrderdata.TimeStamp));
-  if ThisOrderdata.Block = -1 then ConsoleLinesAdd('Block: Pending')
-  else ConsoleLinesAdd('Block    : '+IntToStr(ThisOrderdata.Block));
-  ConsoleLinesAdd('Type     : '+ThisOrderdata.OrderType);
-  ConsoleLinesAdd('Trfrs    : '+IntToStr(ThisOrderdata.OrderLines));
-  ConsoleLinesAdd('Sender   : '+ThisOrderdata.sender);
-  ConsoleLinesAdd('Receiver : '+ThisOrderdata.receiver);
-  ConsoleLinesAdd('Ammount  : '+Int2curr(ThisOrderdata.AmmountTrf));
-  ConsoleLinesAdd('Fee      : '+Int2curr(ThisOrderdata.AmmountFee));
-  ConsoleLinesAdd('Reference: '+ThisOrderdata.reference);
+  AddToLog('console','Time     : '+TimestampToDate(ThisOrderdata.TimeStamp));
+  if ThisOrderdata.Block = -1 then AddToLog('console','Block: Pending')
+  else AddToLog('console','Block    : '+IntToStr(ThisOrderdata.Block));
+  AddToLog('console','Type     : '+ThisOrderdata.OrderType);
+  AddToLog('console','Trfrs    : '+IntToStr(ThisOrderdata.OrderLines));
+  AddToLog('console','sender   : '+ThisOrderdata.sender);
+  AddToLog('console','Receiver : '+ThisOrderdata.receiver);
+  AddToLog('console','Ammount  : '+Int2curr(ThisOrderdata.AmmountTrf));
+  AddToLog('console','Fee      : '+Int2curr(ThisOrderdata.AmmountFee));
+  AddToLog('console','Reference: '+ThisOrderdata.reference);
   end;
 End;
 
@@ -1411,9 +1400,9 @@ if DireccionEsMia(addresshash) >= 0 then
   Data := ListaDirecciones[DireccionEsMia(addresshash)];
   write(newfile,data);
   closefile(newfile);
-  ConsoleLinesAdd('Address exported to tempwallet.pkw');
+  AddToLog('console','Address exported to tempwallet.pkw');
   end
-else ConsoleLinesAdd('Address not found in wallet');
+else AddToLog('console','Address not found in wallet');
 End;
 
 // Shows all the info of a specified address
@@ -1426,12 +1415,12 @@ Begin
 addtoshow := parameter(LineText,1);
 sumposition := AddressSumaryIndex(addtoshow);
 if sumposition<0 then
-   ConsoleLinesAdd('Address do not exists in sumary.')
+   AddToLog('console','Address do not exists in sumary.')
 else
    begin
    onsumary := GetAddressBalance(addtoshow);
    pending := GetAddressPendingPays(addtoshow);
-   ConsoleLinesAdd('Address  : '+ListaSumario[sumposition].Hash+' ('+IntToStr(sumposition)+')'+slinebreak+
+   AddToLog('console','Address  : '+ListaSumario[sumposition].Hash+' ('+IntToStr(sumposition)+')'+slinebreak+
                     'Alias    : '+ListaSumario[sumposition].Custom+slinebreak+
                     'Sumary   : '+Int2curr(onsumary)+slinebreak+
                     'Incoming : '+Int2Curr(GetAddressIncomingpays(ListaSumario[sumposition].Hash))+slinebreak+
@@ -1517,25 +1506,25 @@ for counter := MyLastBlock downto MyLastBlock- BlockCount do
       end;
    end;
 inbalance := GetAddressBalance(addtoshow);
-ConsoleLinesAdd('Last block : '+inttostr(MyLastBlock));
-ConsoleLinesAdd('Address    : '+addtoshow);
-ConsoleLinesAdd('INCOMINGS');
-ConsoleLinesAdd('  Mined        : '+IntToStr(minedblocks));
-ConsoleLinesAdd('  Mined blocks : '+MinedBlocksStr);
-ConsoleLinesAdd('  Transactions : '+IntToStr(incomingtrx));
-ConsoleLinesAdd('  Coins        : '+Int2Curr(inccoins));
-ConsoleLinesAdd('  PoS Payments : '+IntToStr(PosPAyments));
-ConsoleLinesAdd('  PoS Earnings : '+Int2Curr(PosEarnings));
-ConsoleLinesAdd('OUTGOINGS');
-ConsoleLinesAdd('  Transactions : '+IntToStr(outgoingtrx));
-ConsoleLinesAdd('  Coins        : '+Int2Curr(outcoins));
-ConsoleLinesAdd('TOTAL  : '+Int2Curr(inccoins-outcoins+PoSearnings));
-ConsoleLinesAdd('SUMARY : '+Int2Curr(inbalance));
-ConsoleLinesAdd('');
-ConsoleLinesAdd('Transactions');
+AddToLog('console','Last block : '+inttostr(MyLastBlock));
+AddToLog('console','Address    : '+addtoshow);
+AddToLog('console','INCOMINGS');
+AddToLog('console','  Mined        : '+IntToStr(minedblocks));
+AddToLog('console','  Mined blocks : '+MinedBlocksStr);
+AddToLog('console','  Transactions : '+IntToStr(incomingtrx));
+AddToLog('console','  Coins        : '+Int2Curr(inccoins));
+AddToLog('console','  PoS Payments : '+IntToStr(PosPAyments));
+AddToLog('console','  PoS Earnings : '+Int2Curr(PosEarnings));
+AddToLog('console','OUTGOINGS');
+AddToLog('console','  Transactions : '+IntToStr(outgoingtrx));
+AddToLog('console','  Coins        : '+Int2Curr(outcoins));
+AddToLog('console','TOTAL  : '+Int2Curr(inccoins-outcoins+PoSearnings));
+AddToLog('console','SUMARY : '+Int2Curr(inbalance));
+AddToLog('console','');
+AddToLog('console','Transactions');
 While TransSL.Count >0 do
    begin
-   ConsoleLinesAdd(TransSL[0]);
+   AddToLog('console',TransSL[0]);
    TransSL.Delete(0);
    end;
 TransSL.Free;
@@ -1558,8 +1547,8 @@ for counter := 1 to MyLastBlock do
      application.ProcessMessages;
      end;
    end;
-ConsoleLinesAdd('Blockchain total fees: '+Int2curr(totalcoins));
-ConsoleLinesAdd('Block average        : '+Int2curr(totalcoins div MyLastBlock));
+AddToLog('console','Blockchain total fees: '+Int2curr(totalcoins));
+AddToLog('console','Block average        : '+Int2curr(totalcoins div MyLastBlock));
 End;
 
 // *******************
@@ -1576,7 +1565,7 @@ Begin
 number := StrToIntDef(parameter(linetext,1),0);
 if ((number < PoSBlockStart) or (number > MyLastBlock))then
    begin
-   ConsolelinesAdd('Invalid block number: '+number.ToString);
+   AddToLog('console','Invalid block number: '+number.ToString);
    end
 else
    begin
@@ -1585,11 +1574,11 @@ else
    SetLength(ArrayPos,length(ArrayPos)-1);
    PosCount := length(ArrayPos);
    for counterpos := 0 to PosCount-1 do
-      consolelinesadd(ArrayPos[counterPos].address+': '+int2curr(PosReward));
-   ConsoleLinesAdd('Block:   : '+inttostr(number));
-   ConsoleLinesAdd('Addresses: '+IntToStr(PosCount));
-   ConsolelinesAdd('Reward   : '+int2curr(PosReward));
-   ConsolelinesAdd('Total    : '+int2curr(PosCount*PosReward));
+      AddToLog('console',ArrayPos[counterPos].address+': '+int2curr(PosReward));
+   AddToLog('console','Block:   : '+inttostr(number));
+   AddToLog('console','Addresses: '+IntToStr(PosCount));
+   AddToLog('console','Reward   : '+int2curr(PosReward));
+   AddToLog('console','Total    : '+int2curr(PosCount*PosReward));
    SetLength(ArrayPos,0);
    end;
 End;
@@ -1604,7 +1593,7 @@ Begin
 number := StrToIntDef(parameter(linetext,1),0);
 if ((number < MNBlockStart) or (number > MyLastBlock))then
    begin
-   ConsolelinesAdd('Invalid block number: '+number.ToString);
+   AddToLog('console','Invalid block number: '+number.ToString);
    end
 else
    begin
@@ -1613,11 +1602,11 @@ else
    SetLength(ArrayMNs,length(ArrayMNs)-1);
    MNSCount := length(ArrayMNs);
    for counterMNs := 0 to MNsCount-1 do
-      consolelinesadd(ArrayMNs[counterMNs].address);
-   ConsoleLinesAdd('MNs Block : '+inttostr(number));
-   ConsoleLinesAdd('Addresses : '+IntToStr(MNsCount));
-   ConsolelinesAdd('Reward    : '+int2curr(MNsReward));
-   ConsolelinesAdd('Total     : '+int2curr(MNsCount*MNsReward));
+      AddToLog('console',ArrayMNs[counterMNs].address);
+   AddToLog('console','MNs Block : '+inttostr(number));
+   AddToLog('console','Addresses : '+IntToStr(MNsCount));
+   AddToLog('console','Reward    : '+int2curr(MNsReward));
+   AddToLog('console','Total     : '+int2curr(MNsCount*MNsReward));
    SetLength(ArrayMNs,0);
    end;
 End;
@@ -1635,14 +1624,14 @@ for contador := 0 to length(ListaSumario)-1 do
       if listasumario[contador].Balance >= PosRequired then
          begin
          Cantidad +=1;
-         consolelinesadd(listasumario[contador].Hash+': '+Int2curr(listasumario[contador].Balance));
+         AddToLog('console',listasumario[contador].Hash+': '+Int2curr(listasumario[contador].Balance));
          TotalStacked := TotalStacked +listasumario[contador].Balance;
          end;
       end;
-consolelinesAdd('Pos At block          : '+inttostr(Mylastblock));
-consolelinesAdd('PoS required Stake    : '+Int2Curr(PosRequired));
-ConsoleLinesAdd('Current PoS addresses : '+inttostr(Cantidad));
-ConsoleLinesAdd('Total Staked          : '+Int2Curr(TotalStacked));
+AddToLog('console','Pos At block          : '+inttostr(Mylastblock));
+AddToLog('console','PoS required Stake    : '+Int2Curr(PosRequired));
+AddToLog('console','Current PoS addresses : '+inttostr(Cantidad));
+AddToLog('console','Total Staked          : '+Int2Curr(TotalStacked));
 End;
 
 Procedure showgmts(LineText:string);
@@ -1659,11 +1648,11 @@ if monto <= MinimunFee then
    gmts := 0;
    fee  := 0;
    end;
-consolelinesadd('Ammount         : '+Int2Curr(monto));
-consolelinesadd('Maximun to send : '+Int2Curr(gmts));
-consolelinesadd('Fee paid        : '+Int2Curr(fee));
-if gmts+fee = monto then ConsolelinesAdd('✓ Match')
-else ConsolelinesAdd('✗ Error')
+AddToLog('console','Ammount         : '+Int2Curr(monto));
+AddToLog('console','Maximun to send : '+Int2Curr(gmts));
+AddToLog('console','Fee paid        : '+Int2Curr(fee));
+if gmts+fee = monto then AddToLog('console','✓ Match')
+else AddToLog('console','✗ Error')
 End;
 
 Procedure ShowDiftory();
@@ -1681,14 +1670,14 @@ for counter := 1 to MyLastBlock do
       info ('Difftory '+counter.ToString);
       application.ProcessMessages;
       end;
-   //consolelinesAdd(inttostr(counter)+','+IntToStr(Header.Difficult));
+   //AddToLog('console',inttostr(counter)+','+IntToStr(Header.Difficult));
    if Header.Difficult > HighDiff then
       begin
       HighDiff := Header.Difficult;
       highblock := counter;
       end;
    end;
-ConsoleLinesAdd('Highest ever: '+IntToStr(HighDiff)+' on block '+highblock.ToString);
+AddToLog('console','Highest ever: '+IntToStr(HighDiff)+' on block '+highblock.ToString);
 End;
 
 // List all GVTs owners
@@ -1696,9 +1685,9 @@ Procedure ListGVTs();
 var
   counter : integer;
 Begin
-consolelinesadd('Existing: '+Length(arrgvts).ToString);
+AddToLog('console','Existing: '+Length(arrgvts).ToString);
 for counter := 0 to length(arrgvts)-1 do
-   consolelinesadd(Format('%.2d %s',[counter,arrgvts[counter].owner]));
+   AddToLog('console',Format('%.2d %s',[counter,arrgvts[counter].owner]));
 UpdateMyGVTsList
 End;
 
@@ -1721,9 +1710,9 @@ For counter:= MyLastblock downto Mylastblock-(TotalBlocksCalculated-1) do
    TotalRate := TotalRate+(ThisBlockValue/100);
    ResultStr := ResultStr+Format('[%s]-',[FormatFloat('0.00',ThisBlockValue/100)]);
    end;
-//ConsoleLinesAdd(ResultStr);
+//AddToLog('console',ResultStr);
 TotalRate := TotalRate/TotalBlocksCalculated;
-//ConsoleLinesAdd(format('Average: %s',[FormatFloat('0.00',TotalRate)]));
+//AddToLog('console',format('Average: %s',[FormatFloat('0.00',TotalRate)]));
 TotalRate := Power(16,TotalRate);
 Result := Round(TotalRate/575);
 End;
@@ -1738,13 +1727,13 @@ addtoshow := parameter(linea,1);
 sumposition := DireccionEsMia(addtoshow);
 if sumposition<0 then
    begin
-   if ToConsole then ConsoleLinesAdd(rs1504);
+   if ToConsole then AddToLog('console',rs1504);
    end
 else
    begin
    result := ListaDirecciones[sumposition].PrivateKey;
    end;
-if ToConsole then ConsoleLinesAdd(Result);
+if ToConsole then AddToLog('console',Result);
 End;
 
 Procedure TestNetwork(LineText:string);
@@ -1783,7 +1772,7 @@ for contador := 0 to length(ListaDirecciones)-1 do
    end;
 Setlength(ToClipboard,length(ToClipboard)-1);
 Clipboard.AsText := ToClipboard;
-ConsoleLinesadd('Web wallet data copied to clipboard');
+AddToLog('console','Web wallet data copied to clipboard');
 End;
 
 Procedure ExportKeys(linea:string);
@@ -1796,13 +1785,13 @@ addtoshow := parameter(linea,1);
 sumposition := DireccionEsMia(addtoshow);
 if sumposition<0 then
    begin
-   ConsoleLinesAdd(rs1504);
+   AddToLog('console',rs1504);
    end
 else
    begin
    Resultado := ListaDirecciones[sumposition].PublicKey+' '+ListaDirecciones[sumposition].PrivateKey;
    Clipboard.AsText := Resultado;
-   ConsoleLinesAdd(rs1505);
+   AddToLog('console',rs1505);
    end;
 end;
 
@@ -1848,18 +1837,18 @@ if errorcode = 2 then ErrorMessage := 'Invalid Ammount';
 if errorcode = 3 then ErrorMessage := 'Invalid market';
 if errorcode = 4 then ErrorMessage := 'Invalid price';
 
-If ErrorMessage <> '' then ConsoleLinesAdd(ErrorMessage)
+If ErrorMessage <> '' then AddToLog('console',ErrorMessage)
 else
    begin
-   ConsolelinesAdd('Post Exchange Offer');
-   ConsolelinesAdd('From Address: '+FromAddress);
-   ConsolelinesAdd('Ammount     : '+Int2Curr(amount)+' '+CoinSimbol);
-   ConsolelinesAdd('Market      : '+Market);
-   ConsolelinesAdd('Price       : '+Int2Curr(price)+' '+Market);
-   ConsolelinesAdd('Total       : '+Int2Curr(TotalPost)+' '+Market);
-   ConsolelinesAdd('Pay to      : '+PayAddress);
-   ConsolelinesAdd('Duration    : '+IntToStr(Duration)+' blocks');
-   ConsolelinesAdd('Fee         : ('+IntToStr(Feetramos)+') '+Int2Curr(FeeTotal)+' '+CoinSimbol);
+   AddToLog('console','Post Exchange Offer');
+   AddToLog('console','From Address: '+FromAddress);
+   AddToLog('console','Ammount     : '+Int2Curr(amount)+' '+CoinSimbol);
+   AddToLog('console','Market      : '+Market);
+   AddToLog('console','Price       : '+Int2Curr(price)+' '+Market);
+   AddToLog('console','Total       : '+Int2Curr(TotalPost)+' '+Market);
+   AddToLog('console','Pay to      : '+PayAddress);
+   AddToLog('console','Duration    : '+IntToStr(Duration)+' blocks');
+   AddToLog('console','Fee         : ('+IntToStr(Feetramos)+') '+Int2Curr(FeeTotal)+' '+CoinSimbol);
 
    end;
 
@@ -1872,14 +1861,14 @@ Begin
 {
 if Myconstatus<3 then
   begin
-  ConsoleLinesAdd('Must be synced');
+  AddToLog('console','Must be synced');
   exit;
   end;
 Texto := GetMNsFileData;
-if AnsiContainsStr(Texto,MN_Funds) then consolelinesAdd(MN_Funds+' got MN Reward on block '+MyLastBlock.ToString)
-else consolelinesAdd(MN_Funds+' not paid')
+if AnsiContainsStr(Texto,MN_Funds) then AddToLog('console',MN_Funds+' got MN Reward on block '+MyLastBlock.ToString)
+else AddToLog('console',MN_Funds+' not paid')
 }
-ConsoleLinesAdd(GetDiffHashrate('0000001').ToString);
+AddToLog('console',GetDiffHashrate('0000001').ToString);
 End;
 
 Procedure DebugTest2(linetext:string);
@@ -1890,10 +1879,10 @@ var
 Begin
 Total := Length(ArrayMNsData);
 verifis := (total div 10)+3;
-consolelinesAdd('Masternodes  : '+IntToStr(total));
-consolelinesadd('Verificators : '+IntToStr(verifis));
+AddToLog('console','Masternodes  : '+IntToStr(total));
+AddToLog('console','Verificators : '+IntToStr(verifis));
 for counter := 0 to verifis-1 do
-   consolelinesadd(format('%s %s %d',[ArrayMNsData[counter].ipandport,copy(arrayMNsData[counter].address,1,5),ArrayMNsData[counter].age]));
+   AddToLog('console',format('%s %s %d',[ArrayMNsData[counter].ipandport,copy(arrayMNsData[counter].address,1,5),ArrayMNsData[counter].age]));
 End;
 
 Procedure ShowSystemInfo(Linetext:string);
@@ -1904,12 +1893,12 @@ Begin
 if MyConStatus > 0 then exit;
 Param := Uppercase(Parameter(Linetext,1));
 if param = 'POWER' then
-  consolelinesadd(Format('Processing       : %d Trx/s',[Sys_HashSpeed]))
+  AddToLog('console',Format('Processing       : %d Trx/s',[Sys_HashSpeed]))
 else if param = 'MEM' then
-  ConsoleLinesadd(Format('Available memory : %d MB',[AllocateMem]))
+  AddToLog('console',Format('Available memory : %d MB',[AllocateMem]))
 else if param = 'DOWNSPEED' then
-  ConsoleLinesAdd(Format('Download speed   : %d Kb/s',[TestDownloadSpeed]))
-else consolelinesadd('Invalid parameter: '+Param+slinebreak+'Use: power, mem or downspeed');
+  AddToLog('console',Format('Download speed   : %d Kb/s',[TestDownloadSpeed]))
+else AddToLog('console','Invalid parameter: '+Param+slinebreak+'Use: power, mem or downspeed');
 End;
 
 END. // END UNIT

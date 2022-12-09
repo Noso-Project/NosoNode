@@ -1,3 +1,9 @@
+Version 0.3.3Aa2
+
+- Funds command implemented.
+- SetMilitime replaced with debug functions.
+- Console log moved to debug.
+
 Version 0.3.3Aa1
 
 - NTP servers list adjusted.
@@ -153,8 +159,8 @@ Version 0.3.2Ab7
 
 - Fixed bug on IsValidJSON.
 - Security blocks adjusted to 4000.
-- Sender added as CSV field on RPC orderinfo method.
-- Sender added as CSV field on RPC blockorders method.
+- sender added as CSV field on RPC orderinfo method.
+- sender added as CSV field on RPC blockorders method.
 - GetOrderDetails checks the whole blockchain in FullNode mode.
 - Time filter on node incoming connections activated on block 70000.
 - Wrong time offset is now a warning, but do not close the app.

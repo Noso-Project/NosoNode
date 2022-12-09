@@ -5,7 +5,7 @@ unit mpRPC;
 interface
 
 uses
-  Classes, SysUtils, mpgui, FPJSON, jsonparser, mpCripto, mpCoin, mpRed, mpBlock;
+  Classes, SysUtils, mpgui, FPJSON, jsonparser, mpCripto, mpCoin, mpRed, mpBlock,nosodebug;
 
 Procedure SetRPCPort(LineText:string);
 Procedure setRPCpassword(newpassword:string);
@@ -47,14 +47,14 @@ Begin
 value := StrToIntDef(parameter(LineText,1),0);
 if ((value <=0) or (value >65535)) then
    begin
-   ConsoleLinesAdd('Invalid value');
+   AddToLog('console','Invalid value');
    end
 else if Form1.RPCServer.Active then
-   consolelinesadd('Can not change the RPC port when it is active')
+   AddToLog('console','Can not change the RPC port when it is active')
 else
    begin
    RPCPort := value;
-   ConsoleLinesAdd('RPC port set to: '+IntToStr(value));
+   AddToLog('console','RPC port set to: '+IntToStr(value));
    S_AdvOpt := true;
    end;
 End;
@@ -81,17 +81,17 @@ if not Form1.RPCServer.Active then
       G_Launching := true;
       form1.CB_RPC_ON.Checked:=true;
       G_Launching := false;
-      ConsoleLinesAdd('RPC server ENABLED');
+      AddToLog('console','RPC server ENABLED');
       EXCEPT on E:Exception do
          begin
-         ConsoleLinesAdd('Unable to start RPC port');
+         AddToLog('console','Unable to start RPC port');
          G_Launching := true;
          form1.CB_RPC_ON.Checked:=false;
          G_Launching := false;
          end;
       END; {TRY}
    end
-else ConsoleLinesAdd('RPC server already ENABLED');
+else AddToLog('console','RPC server already ENABLED');
 End;
 
 // Turns off RPC server
@@ -100,12 +100,12 @@ Begin
 if Form1.RPCServer.Active then
    begin
    Form1.RPCServer.Active:=false;
-   ConsoleLinesAdd('RPC server DISABLED');
+   AddToLog('console','RPC server DISABLED');
    G_Launching := true;
    form1.CB_RPC_ON.Checked:=false;
    G_Launching := false;
    end
-else ConsoleLinesAdd('RPC server already DISABLED');
+else AddToLog('console','RPC server already DISABLED');
 End;
 
 // ***************************
@@ -377,8 +377,8 @@ else
       for counter := 0 to params.Count-1 do
          NosoPParams:= NosoPParams+' '+params[counter].AsString;
       NosoPParams:= Trim(NosoPParams);
-      //consolelinesadd(jsonreceived);
-      //consolelinesadd('NosoPParams: '+NosoPParams);
+      //AddToLog('console',jsonreceived);
+      //AddToLog('console','NosoPParams: '+NosoPParams);
       if method = 'test' then result := GetJSONResponse('test',jsonid)
       else if method = 'getaddressbalance' then result := GetJSONResponse(RPC_AddressBalance(NosoPParams),jsonid)
       else if method = 'getorderinfo' then result := GetJSONResponse(RPC_OrderInfo(NosoPParams),jsonid)
@@ -458,7 +458,7 @@ if NosoPParams='' then
                 [validid,NosoPParams,
                 thisor.timestamp,thisor.block,thisor.OrderType,
                 thisor.OrderLines,thisor.Receiver,thisor.AmmountTrf,
-                thisor.AmmountFee,thisor.reference,thisor.Sender]);
+                thisor.AmmountFee,thisor.reference,thisor.sender]);
    exit;
    end;
 thisor := GetOrderDetails(NosoPParams);
@@ -470,7 +470,7 @@ result := format('orderinfo'#127'%s'#127'%s'#127+
                 [validid,NosoPParams,
                 thisor.timestamp,thisor.block,thisor.OrderType,
                 thisor.OrderLines,thisor.Receiver,thisor.AmmountTrf,
-                thisor.AmmountFee,thisor.reference,thisor.Sender]);
+                thisor.AmmountFee,thisor.reference,thisor.sender]);
 End;
 
 function RPC_Blockinfo(NosoPParams:string):string;
@@ -500,7 +500,7 @@ End;
 function RPC_Mininginfo(NosoPParams:string):string;
 Begin
 result := format('mininginfo'#127'%d'#127'%s'#127'%s'#127'%s'#127'%s'#127,[mylastblock+1,MyLastBlockHash,GetNMSData.miner,GetNMSData.Diff, GetNMSData.Hash]);
-//consolelinesadd('Resultado:'+result);
+//AddToLog('console','Resultado:'+result);
 End;
 
 function RPC_Mainnetinfo(NosoPParams:string):string;
@@ -548,7 +548,7 @@ var
            begin
            arrayords[cont].AmmountTrf:=arrayords[cont].AmmountTrf+order.AmmountTrf;
            arrayords[cont].AmmountFee:=arrayords[cont].AmmountFee+order.AmmountFee;
-           arrayords[cont].Sender    :=arrayords[cont].Sender+
+           arrayords[cont].sender    :=arrayords[cont].sender+
               format('[%s,%d,%d]',[order.Address,order.AmmountTrf,order.AmmountFee]);
            arrayords[cont].OrderLines+=1;
            existed := true;
@@ -596,7 +596,7 @@ else
             [ arrayOrds[counter].OrderID,arrayOrds[counter].TimeStamp,arrayOrds[counter].Block,
             arrayOrds[counter].OrderType,arrayOrds[counter].OrderLines,arrayOrds[counter].Receiver,
             arrayOrds[counter].AmmountTrf,arrayOrds[counter].AmmountFee,arrayOrds[counter].Reference,
-            arrayOrds[counter].Sender]);
+            arrayOrds[counter].sender]);
          result := result+thisorderinfo;
          end;
       end
@@ -613,7 +613,7 @@ var
 Begin
 TotalNumber := StrToIntDef(NosoPParams,1);
 if TotalNumber > 100 then TotalNumber := 100;
-//consolelinesAdd('TotalNewAddresses: '+IntToStr(TotalNumber));
+//AddToLog('console','TotalNewAddresses: '+IntToStr(TotalNumber));
 result := 'newaddress'#127'true'#127+IntToStr(TotalNumber)+#127;
 for counter := 1 to totalnumber do
    begin
@@ -625,7 +625,7 @@ for counter := 1 to totalnumber do
 trim(result);
 S_Wallet := true;
 U_DirPanel := true;
-//consolelinesAdd(result);
+//AddToLog('console',result);
 End;
 
 function RPC_SendFunds(NosoPParams:string):string;
@@ -637,7 +637,7 @@ Begin
 destination := Parameter(NosoPParams,0);
 amount := StrToInt64Def(Parameter(NosoPParams,1),0);
 reference := Parameter(NosoPParams,2); if reference = '' then reference := 'null';
-//consolelinesadd('Send to '+destination+' '+int2curr(amount)+' with reference: '+reference);
+//AddToLog('console','Send to '+destination+' '+int2curr(amount)+' with reference: '+reference);
 Resultado := SendFunds('sendto '+destination+' '+IntToStr(amount)+' '+Reference);
 if resultado = '' then
    begin

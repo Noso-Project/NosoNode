@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, mpCripto, MasterPaskalform, mpcoin, mpgui, IdTCPClient, IdGlobal,
-  strutils;
+  strutils, nosodebug;
 
 Type
 
@@ -283,12 +283,12 @@ if ErrorCode = 0 then
    //ToLog(CheckData.ValidNodes);
    if form1.Server.Active then
       outGOingMsjsAdd(GetPTCEcn+ReportInfo);
-   //ConsoleLinesAdd('Check received from '+CheckData.validnodes);
+   //AddToLog('console','Check received from '+CheckData.validnodes);
    //ToLog('Good check : (('+Linea+'))');
    end
 else
    begin
-   //consolelinesadd('Wrong check from '+CheckData.ValidatorIP+'->'+ErrorCode.ToString);
+   //AddToLog('console','Wrong check from '+CheckData.ValidatorIP+'->'+ErrorCode.ToString);
    //ToLog('Wrong MNCheck: (-('+Linea+')-)');
    end;
 End;
@@ -449,7 +449,7 @@ else if ToMNode.hash <> HashMD5String(ToMNode.Ip+IntToStr(ToMNode.Port)+ToMNode.
 if ErrCode>0 then
    begin
    Result := false;
-   //ConsoleLinesAdd('MASTERNODE REJECTED ERROR: '+ErrCode.ToString);
+   //AddToLog('console','MASTERNODE REJECTED ERROR: '+ErrCode.ToString);
    end;
 End;
 
@@ -516,12 +516,12 @@ if GetMNodeFromString(ReportInfo,NewNode) then
       end
    else
       begin
-      //ConsoleLinesAdd('NO LEGIT Masternode: '+Reportinfo);
+      //AddToLog('console','NO LEGIT Masternode: '+Reportinfo);
       end;
    end
 else
    begin
-   //ConsoleLinesAdd('REJECTED Masternode: '+Reportinfo);
+   //AddToLog('console','REJECTED Masternode: '+Reportinfo);
    end;
 End;
 
@@ -635,7 +635,7 @@ var
   TempArray : array of TMNsData;
   Added     : boolean = false;
 Begin
-setmilitime('FillMNsArray',1);
+BeginPerformance('FillMNsArray');
 SetLength(ArrayMNsData,0);
 SetLength(TempArray,0);
 Repeat
@@ -670,7 +670,7 @@ for counter := 0 to length(TempArray)-1 do
       if not added then Insert(ThisMN,ArrayMNsData,length(ArrayMNsData));
       end;
    end;
-setmilitime('FillMNsArray',2);
+EndPerformance('FillMNsArray');
 End;
 
 Procedure SetMN_FileText(Tvalue:String);
@@ -757,7 +757,7 @@ for counter := 0 to length(ArrMNChecks)-1 do
    begin
    NodesString := ArrMNChecks[counter].ValidNodes;
    NodesString := StringReplace(NodesString,':',' ',[rfReplaceAll]);
-   //ConsoleLinesAdd(NodesString);
+   //AddToLog('console',NodesString);
    IPIndex := 0;
    REPEAT
       begin

@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils,MasterPaskalForm, mpCripto, fileutil, mpcoin, dialogs,
-  nosotime, mpMN;
+  nosotime, mpMN, nosodebug;
 
 Procedure CrearBloqueCero();
 Procedure BuildNewBlock(Numero,TimeStamp: Int64; TargetHash, Minero, Solucion:String);
@@ -38,7 +38,7 @@ Uses
 Procedure CrearBloqueCero();
 Begin
 BuildNewBlock(0,GenesysTimeStamp,'',adminhash,'');
-if G_Launching then ConsoleLinesAdd('Block GENESYS (0) created.'); //'Block 0 created.'
+if G_Launching then AddToLog('console','Block GENESYS (0) created.'); //'Block 0 created.'
 if G_Launching then OutText('✓ Block 0 created',false,1);
 End;
 
@@ -112,18 +112,18 @@ var
 
 Begin
 BuildingBlock := Numero;
-setmilitime('BuildNewBlock',1);
+BeginPerformance('BuildNewBlock');
 SetCurrentJob('BuildNewBlock',true);
 if ((numero>0) and (Timestamp < lastblockdata.TimeEnd)) then
    begin
-   ConsoleLinesAdd('New block '+IntToStr(numero)+' : Invalid timestamp');
-   ConsoleLinesAdd('Blocks can not be added until '+TimestampToDate(GenesysTimeStamp));
+   AddToLog('console','New block '+IntToStr(numero)+' : Invalid timestamp');
+   AddToLog('console','Blocks can not be added until '+TimestampToDate(GenesysTimeStamp));
    errored := true;
    end;
 if TimeStamp > UTCTime+5 then
    begin
-   ConsoleLinesAdd('New block '+IntToStr(numero)+' : Invalid timestamp');
-   ConsoleLinesAdd('Timestamp '+IntToStr(TimeStamp)+' is '+IntToStr(TimeStamp-UTCTime)+' seconds in the future');
+   AddToLog('console','New block '+IntToStr(numero)+' : Invalid timestamp');
+   AddToLog('console','Timestamp '+IntToStr(TimeStamp)+' is '+IntToStr(TimeStamp-UTCTime)+' seconds in the future');
    errored := true;
    end;
 if not errored then
@@ -149,7 +149,7 @@ if not errored then
    // Processs pending orders
    EnterCriticalSection(CSPending);
    SetCurrentJob('NewBLOCK_PENDING',true);
-   setmilitime('NewBLOCK_PENDING',1);
+   BeginPerformance('NewBLOCK_PENDING');
    ArrayLastBlockTrxs := Default(BlockOrdersArray);
    ArrayLastBlockTrxs := GetBlockTrxs(MyLastBlock);
    for contador := 0 to length(pendingTXs)-1 do
@@ -183,7 +183,7 @@ if not errored then
       if PendingTXs[contador].OrderType='CUSTOM' then
          begin
          minerfee := minerfee+PendingTXs[contador].AmmountFee;
-         OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].Sender);
+         OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].sender);
          if not SetCustomAlias(OperationAddress,PendingTXs[contador].Receiver,Numero) then
             begin
             // CRITICAL ERROR: NO SE PUDO ASIGNAR EL ALIAS
@@ -192,15 +192,15 @@ if not errored then
             begin
             UpdateSumario(OperationAddress,Restar(PendingTXs[contador].AmmountFee),0,IntToStr(Numero));
             PendingTXs[contador].Block:=numero;
-            PendingTXs[contador].Sender:=OperationAddress;
+            PendingTXs[contador].sender:=OperationAddress;
             insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
             end;
          end;
       if PendingTXs[contador].OrderType='TRFR' then
          begin
-         //OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].Sender);
+         //OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].sender);
          OperationAddress := PendingTXs[contador].Address;
-         //OperationAddress := GetAddressFromPubKey_New(PendingTXs[contador].Sender);
+         //OperationAddress := GetAddressFromPubKey_New(PendingTXs[contador].sender);
          // nueva adicion para que no incluya las transacciones invalidas
          if GetAddressBalance(OperationAddress) < (PendingTXs[contador].AmmountFee+PendingTXs[contador].AmmountTrf) then continue;
          minerfee := minerfee+PendingTXs[contador].AmmountFee;
@@ -211,12 +211,12 @@ if not errored then
          AddArrayPay(PendingTXs[contador].Receiver,PendingTXs[contador].AmmountTrf,0);
             //UpdateSumario(PendingTXs[contador].Receiver,PendingTXs[contador].AmmountTrf,0,IntToStr(Numero));
          PendingTXs[contador].Block:=numero;
-         PendingTXs[contador].Sender:=OperationAddress;
+         PendingTXs[contador].sender:=OperationAddress;
          insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
          end;
-      if ( (PendingTXs[contador].OrderType='SNDGVT') and ( PendingTXs[contador].Sender = AdminPubKey) ) then
+      if ( (PendingTXs[contador].OrderType='SNDGVT') and ( PendingTXs[contador].sender = AdminPubKey) ) then
          begin
-         OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].Sender);
+         OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].sender);
          if GetAddressBalance(OperationAddress) < PendingTXs[contador].AmmountFee then continue;
          minerfee := minerfee+PendingTXs[contador].AmmountFee;
          if ChangeGVTOwner(StrToIntDef(PendingTXs[contador].Reference,100),OperationAddress,PendingTXs[contador].Receiver)>0 then
@@ -228,7 +228,7 @@ if not errored then
             Inc(GVTsTransfered);
             UpdateSumario(OperationAddress,Restar(PendingTXs[contador].AmmountFee),0,IntToStr(Numero));
             PendingTXs[contador].Block:=numero;
-            PendingTXs[contador].Sender:=OperationAddress;
+            PendingTXs[contador].sender:=OperationAddress;
             insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
             end;
          end;
@@ -248,13 +248,13 @@ if not errored then
       end;
    END; {TRY}
    SetLength(IgnoredTrxs,0);
-   setmilitime('NewBLOCK_PENDING',2);
+   EndPerformance('NewBLOCK_PENDING');
    SetCurrentJob('NewBLOCK_PENDING',false);
    LeaveCriticalSection(CSPending);
 
    //PoS payment
    SetCurrentJob('NewBLOCK_PoS',true);
-   setmilitime('NewBLOCK_PoS',1);
+   BeginPerformance('NewBLOCK_PoS');
    if numero >= PoSBlockStart then
       begin
       SetLength(PoSAddressess,0);
@@ -278,11 +278,11 @@ if not errored then
       for contador := 0 to length(PoSAddressess)-1 do
          UpdateSumario(PoSAddressess[contador].address,PosReward,0,IntToStr(Numero));
       end;
-   setmilitime('NewBLOCK_PoS',2);
+   EndPerformance('NewBLOCK_PoS');
    SetCurrentJob('NewBLOCK_PoS',false);
 
    // Masternodes processing
-   setmilitime('NewBLOCK_MNs',1);
+   BeginPerformance('NewBLOCK_MNs');
    CreditMNVerifications();
    MNsFileText := GetMNsAddresses();
    SaveMNsFile(MNsFileText);
@@ -316,7 +316,7 @@ if not errored then
          UpdateSumario(MNsAddressess[contador].address,MNsReward,0,IntToStr(Numero));
          end;
 
-      setmilitime('NewBLOCK_MNs',2);
+      EndPerformance('NewBLOCK_MNs');
       end;// End of MNS payment procecessing
 
    // ***END MASTERNODES PROCESSING***
@@ -329,9 +329,9 @@ if not errored then
    UpdateSumario(Minero,PoWTotalReward,0,IntToStr(numero));
    // Actualizar el ultimo bloque añadido al sumario
    // Guardar el sumario
-   setmilitime('NewBLOCK_SaveSum',1);
+   BeginPerformance('NewBLOCK_SaveSum');
    GuardarSumario();
-   setmilitime('NewBLOCK_SaveSum',2);
+   EndPerformance('NewBLOCK_SaveSum');
    // Limpiar las pendientes
    for contador := 0 to length(ListaDirecciones)-1 do
       ListaDirecciones[contador].Pending:=0;
@@ -388,7 +388,7 @@ if not errored then
    if DIreccionEsMia(Minero)>-1 then showglobo('Miner','Block found!');
    U_DataPanel := true;
    SetCurrentJob('BuildNewBlock',false);
-   setmilitime('BuildNewBlock',2);
+   EndPerformance('BuildNewBlock');
    end;
 U_PoSGrid := true;
 BuildingBlock := 0;
@@ -480,7 +480,7 @@ var
 Begin
 result := true;
 SetCurrentJob('GuardarBloque',true);
-setmilitime('GuardarBloque',1);
+BeginPerformance('GuardarBloque');
 NumeroOrdenes := Cabezera.TrxTotales;
 MemStr := TMemoryStream.Create;
    TRY
@@ -506,12 +506,12 @@ MemStr := TMemoryStream.Create;
    MemStr.SaveToFile(NombreArchivo);
    EXCEPT On E :Exception do
       begin
-      ConsoleLinesAdd('Error saving block to disk: '+E.Message);
+      AddToLog('console','Error saving block to disk: '+E.Message);
       result := false;
       end;
    END{Try};
 MemStr.Free;
-setmilitime('GuardarBloque',2);
+EndPerformance('GuardarBloque');
 SetCurrentJob('GuardarBloque',false);
 End;
 
@@ -531,7 +531,7 @@ MemStr := TMemoryStream.Create;
    MemStr.Read(Header, SizeOf(Header));
    EXCEPT ON E:Exception do
       begin
-      ConsoleLinesAdd('Error loading Header from block '+IntToStr(BlockNumber)+':'+E.Message);
+      AddToLog('console','Error loading Header from block '+IntToStr(BlockNumber)+':'+E.Message);
       end;
    END{Try};
 MemStr.Free;
@@ -698,9 +698,9 @@ MyLastBlock := GetMyLastUpdatedBlock;
 MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
 LastBlockData := LoadBlockDataHeader(MyLastBlock);
 MyResumenHash := HashMD5File(ResumenFilename);
-ConsoleLinesAdd('****************************');
-ConsoleLinesAdd('Block undone: '+IntToStr(blocknumber)); //'Block undone: '
-ConsoleLinesAdd('****************************');
+AddToLog('console','****************************');
+AddToLog('console','Block undone: '+IntToStr(blocknumber)); //'Block undone: '
+AddToLog('console','****************************');
 Tolog('Block Undone: '+IntToStr(blocknumber));
 U_DataPanel := true;
 BlockUndoneTime := UTCTime;
@@ -757,7 +757,7 @@ else
          begin
          if OrdersArray[cont].OrderType='TRFR' then
             begin
-            ThisOrder := ThisOrder+OrdersArray[Cont].Sender+':'+OrdersArray[Cont].Receiver+':'+OrdersArray[Cont].AmmountTrf.ToString+':'+
+            ThisOrder := ThisOrder+OrdersArray[Cont].sender+':'+OrdersArray[Cont].Receiver+':'+OrdersArray[Cont].AmmountTrf.ToString+':'+
                          OrdersArray[Cont].Reference+':'+OrdersArray[Cont].OrderID+' ';
             end;
          end;

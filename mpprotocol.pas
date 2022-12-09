@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, mpRed, MasterPaskalForm, mpParser, StrUtils, mpDisk, nosotime, mpBlock,
-  Zipper, mpcoin, mpCripto, mpMn;
+  Zipper, mpcoin, mpCripto, mpMn, nosodebug;
 
 function GetPTCEcn():String;
 Function GetOrderFromString(textLine:String):OrderData;
@@ -110,7 +110,7 @@ OrderInfo.OrderType  := Parameter(textline,3);
 OrderInfo.TimeStamp  := StrToInt64(Parameter(textline,4));
 OrderInfo.reference  := Parameter(textline,5);
 OrderInfo.TrxLine    := StrToInt(Parameter(textline,6));
-OrderInfo.Sender     := Parameter(textline,7);
+OrderInfo.sender     := Parameter(textline,7);
 OrderInfo.Address    := Parameter(textline,8);
 OrderInfo.Receiver   := Parameter(textline,9);
 OrderInfo.AmmountFee := StrToInt64(Parameter(textline,10));
@@ -135,7 +135,7 @@ result:= Order.OrderType+' '+
          IntToStr(Order.TimeStamp)+' '+
          Order.reference+' '+
          IntToStr(order.TrxLine)+' '+
-         order.Sender+' '+
+         order.sender+' '+
          Order.Address+' '+
          Order.Receiver+' '+
          IntToStr(Order.AmmountFee)+' '+
@@ -284,7 +284,7 @@ for contador := 1 to MaxConecciones do
    begin
    if ( (LengthIncoming(contador) > 200) and (not IsSeedNode(Conexiones[contador].ip)) ) then
       begin
-      Consolelinesadd('POSSIBLE ATTACK FROM: '+Conexiones[contador].ip);
+      AddToLog('console','POSSIBLE ATTACK FROM: '+Conexiones[contador].ip);
       UpdateBotData(conexiones[contador].ip);
       CerrarSlot(contador);
       continue;
@@ -299,18 +299,18 @@ for contador := 1 to MaxConecciones do
       if ((not IsValidProtocol(ProcessLine)) and (not Conexiones[contador].Autentic)) then
          // La linea no es valida y proviene de una conexion no autentificada
          begin
-         ConsoleLinesAdd('CONNECTION REJECTED: INVALID PROTOCOL -> '+conexiones[contador].ip+'->'+ProcessLine); //CONNECTION REJECTED: INVALID PROTOCOL ->
+         AddToLog('console','CONNECTION REJECTED: INVALID PROTOCOL -> '+conexiones[contador].ip+'->'+ProcessLine); //CONNECTION REJECTED: INVALID PROTOCOL ->
          UpdateBotData(conexiones[contador].ip);
          CerrarSlot(contador);
          end
       else if UpperCase(LineComando) = 'DUPLICATED' then
          begin
-         ConsoleLinesAdd('You are already connected to '+conexiones[contador].ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
+         AddToLog('Console','You are already connected to '+conexiones[contador].ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
          CerrarSlot(contador);
          end
       else if UpperCase(LineComando) = 'OLDVERSION' then
          begin
-         ConsoleLinesAdd('You need update your wallet to connect to '+conexiones[contador].ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
+         AddToLog('Console','You need update your wallet to connect to '+conexiones[contador].ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
          CerrarSlot(contador);
          end
       else if UpperCase(LineComando) = '$GETNODES' then PTC_Getnodes(contador)
@@ -329,7 +329,7 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = '$BESTHASH' then
          begin
          PTC_BestHash(ProcessLine,'1.1.1.1');
-         //ConsoleLinesAdd('Debug: Besthash processed via protocol engine');
+         //AddToLog('console','Debug: Besthash processed via protocol engine');
          end
       else if UpperCase(LineComando) = '$MNCHECK' then PTC_MNCheck(ProcessLine)
       else if UpperCase(LineComando) = '$GETCHECKS' then PTC_SendChecks(contador)
@@ -346,7 +346,7 @@ for contador := 1 to MaxConecciones do
 
       else
          Begin  // El comando recibido no se reconoce. Verificar protocolos posteriores.
-         ConsoleLinesAdd('Unknown command () in slot: ('+ProcessLine+') '+intToStr(contador)); //Unknown command () in slot: (
+         AddToLog('Console','Unknown command () in slot: ('+ProcessLine+') '+intToStr(contador)); //Unknown command () in slot: (
          end;
       end;
    end;
@@ -396,7 +396,7 @@ if slot <= length(conexiones)-1 then
          Conexiones[Slot].context.Connection.IOHandler.WriteLn(Message);
          EXCEPT On E :Exception do
             begin
-            ConsoleLinesAdd(E.Message);
+            AddToLog('Console',E.Message);
             ToExcLog('Error sending line: '+E.Message);
             CerrarSlot(Slot);
             end;
@@ -415,7 +415,7 @@ if slot <= length(conexiones)-1 then
       CanalCliente[Slot].IOHandler.WriteLn(Message);
       EXCEPT On E :Exception do
          begin
-         ConsoleLinesAdd(E.Message);
+         AddToLog('Console',E.Message);
          ToExcLog('Error sending line: '+E.Message);
          CerrarSlot(Slot);
          end;
@@ -756,7 +756,7 @@ var
   FileSentOk : Boolean = false;
   ZipFileName:String;
 Begin
-ConsoleLinesAdd('********** DEBUG CHECK **********');
+AddToLog('Console','********** DEBUG CHECK **********');
 SetCurrentJob('PTC_SendBlocks',true);
 FirstBlock := StrToIntDef(Parameter(textline,5),-1)+1;
 ZipFileName := CreateZipBlockfile(FirstBlock);
@@ -821,7 +821,7 @@ Begin
 Result := 0;
 OrderInfo := Default(OrderData);
 OrderInfo := GetOrderFromString(TextLine);
-Address := GetAddressFromPublicKey(OrderInfo.Sender);
+Address := GetAddressFromPublicKey(OrderInfo.sender);
 if address <> OrderInfo.Address then ErrorCode := 1;
 // La direccion no dispone de fondos
 if GetAddressBalance(Address)-GetAddressPendingPays(Address) < Customizationfee then ErrorCode:=2;
@@ -830,7 +830,7 @@ if OrderInfo.TimeStamp < LastBlockData.TimeStart then ErrorCode:=4;
 if TrxExistsInLastBlock(OrderInfo.TrfrID) then ErrorCode:=5;
 if AddressAlreadyCustomized(Address) then ErrorCode:=6;
 If AliasAlreadyExists(OrderInfo.Receiver) then ErrorCode:=7;
-if not VerifySignedString('Customize this '+Address+' '+OrderInfo.Receiver,OrderInfo.Signature,OrderInfo.Sender ) then ErrorCode:=8;
+if not VerifySignedString('Customize this '+Address+' '+OrderInfo.Receiver,OrderInfo.Signature,OrderInfo.sender ) then ErrorCode:=8;
 if ErrorCode = 0 then
    begin
    OpData := GetOpData(TextLine); // Eliminar el encabezado
@@ -862,7 +862,7 @@ else if TrxExistsInLastBlock(Order.TrfrID) then
    result:=5
 else if not VerifySignedString(IntToStr(order.TimeStamp)+origen+order.Receiver+IntToStr(order.AmmountTrf)+
    IntToStr(order.AmmountFee)+IntToStr(order.TrxLine),
-   Order.Signature,Order.Sender ) then
+   Order.Signature,Order.sender ) then
    result:=6
 else if Order.AmmountTrf<0 then
    result := 7
@@ -911,10 +911,10 @@ Function PTC_Order(TextLine:String):String;
 var
   NumTransfers  : integer;
   TrxArray      : Array of orderdata;
-  SenderTrx     : array of string;
+  senderTrx     : array of string;
   cont          : integer;
   Textbak       : string;
-  SendersString : String = '';
+  sendersString : String = '';
   TodoValido    : boolean = true;
   Proceder      : boolean = true;
   ErrorCode     : integer = -1;
@@ -929,10 +929,10 @@ NumTransfers := StrToInt(Parameter(TextLine,5));
 RecOrderId   := Parameter(TextLine,7);
 GenOrderID   := Parameter(TextLine,5)+Parameter(TextLine,10);
 Textbak := GetOpData(TextLine);
-SetLength(TrxArray,0);SetLength(SenderTrx,0);
+SetLength(TrxArray,0);SetLength(senderTrx,0);
 for cont := 0 to NumTransfers-1 do
    begin
-   SetLength(TrxArray,length(TrxArray)+1);SetLength(SenderTrx,length(SenderTrx)+1);
+   SetLength(TrxArray,length(TrxArray)+1);SetLength(senderTrx,length(senderTrx)+1);
    TrxArray[cont] := default (orderdata);
    TrxArray[cont] := GetOrderFromString(Textbak);
    Inc(TotalSent,TrxArray[cont].AmmountTrf);
@@ -943,37 +943,37 @@ for cont := 0 to NumTransfers-1 do
       Proceder := false;
       ErrorCode := 98;
       end;
-   SenderTrx[cont] := GetAddressFromPublicKey(TrxArray[cont].Sender);
-   if SenderTrx[cont] <> TrxArray[cont].Address then
+   senderTrx[cont] := GetAddressFromPublicKey(TrxArray[cont].sender);
+   if senderTrx[cont] <> TrxArray[cont].Address then
       begin
       proceder := false;
       ErrorCode := 97;
-      //ConsoleLinesAdd(format('error: %s <> %s',[SenderTrx[cont],TrxArray[cont].Address ]))
+      //AddToLog('console',format('error: %s <> %s',[senderTrx[cont],TrxArray[cont].Address ]))
       end;
-   if pos(SendersString,SenderTrx[cont]) > 0 then
+   if pos(sendersString,senderTrx[cont]) > 0 then
       begin
       Proceder:=false; // hay una direccion de envio repetida
       ErrorCode := 99;
       end;
-   SendersString := SendersString + SenderTrx[cont];
+   sendersString := sendersString + senderTrx[cont];
    Textbak := copy(textBak,2,length(textbak));
    Textbak := GetOpData(Textbak);
    end;
 GenOrderID := GetOrderHash(GenOrderID);
 if TotalFee >= GetFee(TotalSent) then
    begin
-   //ConsoleLinesAdd(Format('Order fees match : %d >= %d',[TotalFee,GetFee(TotalSent)]))
+   //AddToLog('console',Format('Order fees match : %d >= %d',[TotalFee,GetFee(TotalSent)]))
    end
 else
    begin
-   //ConsoleLinesAdd(Format('WRONG ORDER FEES : %d >= %d',[TotalFee,GetFee(TotalSent)]));
+   //AddToLog('console',Format('WRONG ORDER FEES : %d >= %d',[TotalFee,GetFee(TotalSent)]));
    TodoValido := false;
    ErrorCode := 100;
    end;
 if RecOrderId<>GenOrderID then
    begin
-   //ConsoleLinesAdd('<-'+RecOrderId);
-   //ConsoleLinesAdd('->'+GenOrderID);
+   //AddToLog('console','<-'+RecOrderId);
+   //AddToLog('console','->'+GenOrderID);
    if mylastblock >= 56000 then TodoValido := false;
    if mylastblock >= 56000 then ErrorCode := 101;
    end;
@@ -981,7 +981,7 @@ if TodoValido then
    begin
    for cont := 0 to NumTransfers-1 do
       begin
-      ErrorCode := ValidateTrfr(TrxArray[cont],SenderTrx[cont]);
+      ErrorCode := ValidateTrfr(TrxArray[cont],senderTrx[cont]);
       if ErrorCode>0 then
          begin
          TodoValido := false;
@@ -1007,7 +1007,7 @@ else
    end;
 EXCEPT ON E:EXCEPTION DO
    begin
-   ConsoleLinesAdd('****************************************'+slinebreak+'PTC_Order:'+E.Message);
+   AddToLog('Console','****************************************'+slinebreak+'PTC_Order:'+E.Message);
    end;
 END; {TRY}
 End;
@@ -1027,9 +1027,9 @@ var
   StrTosign  : String = '';
 Begin
 OrderInfo := Default(OrderData);
-//ConsoleLinesAdd(TextLine);
+//AddToLog('console',TextLine);
 OrderInfo := GetOrderFromString(TextLine);
-Address := GetAddressFromPublicKey(OrderInfo.Sender);
+Address := GetAddressFromPublicKey(OrderInfo.sender);
 if address <> OrderInfo.Address then ErrorCode := 1;
 // La direccion no dispone de fondos
 if GetAddressBalance(Address)-GetAddressPendingPays(Address) < Customizationfee then ErrorCode:=2;
@@ -1038,8 +1038,8 @@ if OrderInfo.TimeStamp < LastBlockData.TimeStart then ErrorCode:=4;
 if TrxExistsInLastBlock(OrderInfo.TrfrID) then ErrorCode:=5;
   if GVTAlreadyTransfered(OrderInfo.Reference) then ErrorCode := 6;
 StrTosign := 'Transfer GVT '+OrderInfo.Reference+' '+OrderInfo.Receiver+OrderInfo.TimeStamp.ToString;
-if not VerifySignedString(StrToSign,OrderInfo.Signature,OrderInfo.Sender ) then ErrorCode:=7;
-if OrderInfo.Sender <> AdminPubKey then ErrorCode := 8;
+if not VerifySignedString(StrToSign,OrderInfo.Signature,OrderInfo.sender ) then ErrorCode:=7;
+if OrderInfo.sender <> AdminPubKey then ErrorCode := 8;
 if ErrorCode= 0 then
    begin
    OpData := GetOpData(TextLine); // remove trx header
@@ -1174,10 +1174,10 @@ if Copy(HAshMD5String(Content),0,5) = NetCFGHash.Value then
    SaveNosoCFGFile(content);
    SetNosoCFGString(content);
    FillNodeList;
-   ConsoleLinesAdd('Noso CFG updated!');
+   AddToLog('Console','Noso CFG updated!');
    end
 else
-   ConsoleLinesAdd(Format('%s %s',[Copy(HAshMD5String(Content),0,5),NetCFGHash.Value]));
+   AddToLog('Console',Format('%s %s',[Copy(HAshMD5String(Content),0,5),NetCFGHash.Value]));
 End;
 
 Procedure PTC_SendUpdateHeaders(Slot:integer;Linea:String);
@@ -1186,8 +1186,8 @@ var
 Begin
 Block := StrToIntDef(Parameter(Linea,5),0);
 PTC_SendLine(slot,ProtocolLine(headupdate)+' $'+LastHeaders(Block));
-//ConsoleLinesAdd(Format('Blockheaders update sent to %s (%d)',[Conexiones[slot].ip,Block]));
-//ConsoleLinesAdd('Blockheaders update sent to '+Conexiones[slot].ip);
+//AddToLog('console',Format('Blockheaders update sent to %s (%d)',[Conexiones[slot].ip,Block]));
+//AddToLog('console','Blockheaders update sent to '+Conexiones[slot].ip);
 End;
 
 Procedure PTC_HeadUpdate(linea:String);
@@ -1219,22 +1219,22 @@ REPEAT
       else
          begin
          Inc(TotalErrors);
-         //ConsoleLinesAdd(Format('Error updating headers: %d not after %d',[numero,LastBlockOnSummary]));
+         //AddToLog('console',Format('Error updating headers: %d not after %d',[numero,LastBlockOnSummary]));
          end;
       end;
    inc(counter);
 UNTIL ThisHeader='';
-//if TotalErrors>0 then ConsoleLinesAdd(Format('Errors updating headers: %d',[TotalErrors]));
-//if TotalReceived>0 then ConsoleLinesAdd(Format('Headers Received: %d',[TotalReceived]));
+//if TotalErrors>0 then AddToLog('console',Format('Errors updating headers: %d',[TotalErrors]));
+//if TotalReceived>0 then AddToLog('console',Format('Headers Received: %d',[TotalReceived]));
 MyResumenHash := HashMD5File(ResumenFilename);
 if MyResumenHash <> NetResumenHash.Value then
    begin
    ForceCompleteHeadersDownload := true;
-   ConsolelinesAdd(Format('Update headers failed: %s <> %s',[MyResumenHash,NetResumenHash.Value]));
+   AddToLog('Console',Format('Update headers failed: %s <> %s',[MyResumenHash,NetResumenHash.Value]));
    end
 else
    begin
-   ConsolelinesAdd('Headers Updated!');
+   AddToLog('Console','Headers Updated!');
    ForceCompleteHeadersDownload := false;
    end;
 End;
@@ -1369,7 +1369,7 @@ LasTimeCFGRequest:= UTCTime+5;
 SaveNosoCFGFile(DefaultNosoCFG);
 SetNosoCFGString(DefaultNosoCFG);
 FillNodeList;
-ConsoleLinesAdd('NosoCFG restarted');
+AddToLog('Console','NosoCFG restarted');
 End;
 
 

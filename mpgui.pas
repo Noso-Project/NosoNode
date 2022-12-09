@@ -6,11 +6,11 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, nosotime, graphics, strutils, forms, controls, grids,stdctrls,
-  ExtCtrls, buttons, editbtn , menus, Clipbrd, IdContext, LCLTranslator;
+  ExtCtrls, buttons, editbtn , menus, Clipbrd, IdContext, LCLTranslator, nosodebug;
 
 type
   TFormInicio = class(Tform)
-    procedure closeFormInicio(Sender: TObject; var CanClose: boolean);
+    procedure closeFormInicio(sender: TObject; var CanClose: boolean);
     private
     public
     end;
@@ -28,7 +28,6 @@ Procedure UpdateSlotsGrid();
 Function GetConnectedPeers():String;
 Procedure InicializarGUI();
 Procedure OutText(Texto:String;inctime:boolean = false;canal : integer =0);
-Procedure MostrarLineasDeConsola();
 Procedure ActualizarGUI();
 function Int2Curr(Value: int64): string;
 function OrderShowed(OrderID:String):integer;
@@ -36,7 +35,6 @@ Function AddrText(hash:String):String;
 Procedure Info(text:string);
 Procedure Processhint(sender:TObject);
 Procedure ShowGlobo(Titulo,texto:string);
-Procedure SetMiliTime(Name:string;tipo:integer);
 Procedure SetCurrentJob(CurrJob:String;status:boolean);
 Function GetCurrentJob():String;
 Procedure CloseAllForms();
@@ -90,7 +88,7 @@ GridInicio.GridLineWidth := 0;
 End;
 
 // Al cerrar el formulario de inicio
-Procedure TFormInicio.closeFormInicio(Sender: TObject; var CanClose: boolean);
+Procedure TFormInicio.closeFormInicio(sender: TObject; var CanClose: boolean);
 Begin
 if G_launching then
   begin
@@ -110,7 +108,7 @@ procedure TFormSlots.GridMSlotsPrepareCanvas(sender: TObject; aCol, aRow: Intege
 Begin
 if ( (Arow>0) and (conexiones[Arow].IsBusy) ) then
   begin
-  (Sender as TStringGrid).Canvas.Brush.Color :=  clmoneygreen;
+  (sender as TStringGrid).Canvas.Brush.Color :=  clmoneygreen;
   end;
 End;
 
@@ -158,7 +156,7 @@ var
   contador : integer;
   CurrentUTC : int64;
 Begin
-setmilitime('UpdateSlotsGrid',1);
+BeginPerformance('UpdateSlotsGrid');
 CurrentUTC := UTCTime;
 if CurrentUTC>SlotsLastUpdate then
    begin
@@ -188,7 +186,7 @@ if CurrentUTC>SlotsLastUpdate then
       end;
    SlotsLastUpdate := CurrentUTC;
    end;
-setmilitime('UpdateSlotsGrid',2);
+EndPerformance('UpdateSlotsGrid');
 End;
 
 Function GetConnectedPeers():String;
@@ -272,7 +270,7 @@ End;
 Procedure OutText(Texto:String;inctime:boolean = false;canal : integer =0);
 Begin
 if inctime then texto := timetostr(now)+' '+texto;
-if canal = 0 then ConsoleLinesAdd(texto);
+if canal = 0 then AddToLog('console',texto);
 if canal = 1 then  // Salida al grid de inicio
    begin
    gridinicio.RowCount:=gridinicio.RowCount+1;
@@ -283,25 +281,8 @@ if canal = 1 then  // Salida al grid de inicio
    end;
 if canal = 2 then // A consola y label info
    begin
-   ConsoleLinesAdd(texto);
+   AddToLog('console',texto);
    info(texto);
-   end;
-End;
-
-// Show lines to Console
-Procedure MostrarLineasDeConsola();
-Begin
-While ConsoleLines.Count > 0 do
-   begin
-   if not WO_OmmitMemos then
-      form1.Memoconsola.Lines.Add(ConsoleLines[0]);
-   EnterCriticalSection(CSConsoleLines);
-      TRY
-      ConsoleLines.Delete(0);
-      EXCEPT ON E:Exception do
-         ToLog('Error showing lines to console');
-      END; {TRY}
-   LeaveCriticalSection(CSConsoleLines);
    end;
 End;
 
@@ -313,26 +294,26 @@ Begin
 //Update Monitor Grid
 if ( (form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor) and (LastUpdateMonitor<>UTCTime) ) then
    begin
-   setmilitime('UpdateGUIMonitor',1);
-   if length(MilitimeArray)>0 then
+   BeginPerformance('UpdateGUIMonitor');
+   if length(ArrPerformance)>0 then
       begin
-      Form1.SG_Monitor.RowCount:=Length(MilitimeArray)+1;
-      for contador := 0 to Length(MilitimeArray)-1 do
+      Form1.SG_Monitor.RowCount:=Length(ArrPerformance)+1;
+      for contador := 0 to high(ArrPerformance) do
          begin
             try
-            Form1.SG_Monitor.Cells[0,contador+1]:=MilitimeArray[contador].Name;
-            Form1.SG_Monitor.Cells[1,contador+1]:=IntToStr(MilitimeArray[contador].Count);
-            Form1.SG_Monitor.Cells[2,contador+1]:=IntToStr(MilitimeArray[contador].maximo);
-            Form1.SG_Monitor.Cells[3,contador+1]:=IntToStr(MilitimeArray[contador].Total div MilitimeArray[contador].Count);
+            Form1.SG_Monitor.Cells[0,contador+1]:=ArrPerformance[contador].tag;
+            Form1.SG_Monitor.Cells[1,contador+1]:=IntToStr(ArrPerformance[contador].Count);
+            Form1.SG_Monitor.Cells[2,contador+1]:=IntToStr(ArrPerformance[contador].max);
+            Form1.SG_Monitor.Cells[3,contador+1]:=IntToStr(ArrPerformance[contador].Average);
             Except on E:Exception do
                begin
-               ToExcLog(format('Error showing milimite data(%s): %s',[MilitimeArray[contador].Name,E.Message]));
+               ToExcLog(format('Error showing ArrPerformance data(%s): %s',[ArrPerformance[contador].tag,E.Message]));
                end;
             end;
          end;
       end;
    LastUpdateMonitor := UTCTime;
-   setmilitime('UpdateGUIMonitor',2);
+   EndPerformance('UpdateGUIMonitor');
    end;
 
 if U_DataPanel then
@@ -390,18 +371,18 @@ if ((U_MNsGrid) or (UTCTime>U_MNsGrid_Last+59)) then
 
 // Esta se muestra siempre aparte ya que la funcion GetTotalConexiones es la que permite
 // verificar si los clientes siguen conectados
-setmilitime('UpdateGUITime',1);
+BeginPerformance('UpdateGUITime');
 form1.DataPanel.Cells[1,2]:=IntToStr(GetTotalConexiones)+' ('+IntToStr(MyConStatus)+') ['+IntToStr(G_TotalPings)+']';
 form1.DataPanel.Cells[1,7]:= format(rs0517,[length(ArrayCriptoOp),GetPendingCount,NetPendingTrxs.Value]);
 form1.DataPanel.Cells[1,0]:= Int2Curr(GetWalletBalance)+' '+CoinSimbol;
 form1.DataPanel.Cells[3,5]:= Copy(MyGVTsHash,0,5)+'/'+Copy(NetGVTSHash.Value,0,5);//GVTs data
 form1.DataPanel.Cells[3,6]:= Copy(MyMNsHash,0,5)+'/'+NetMNsHash.Value;
 form1.DataPanel.Cells[3,7]:= format('(%d)  %d/%s (%d)',[GetMNsChecksCount,GetMNsListLength,NetMNsCount.Value,LengthWaitingMNs]);
-setmilitime('UpdateGUITime',2);
+EndPerformance('UpdateGUITime');
 
 if U_DirPanel then
    begin
-   setmilitime('UpdateDirPanel',1);
+   BeginPerformance('UpdateDirPanel');
    form1.Direccionespanel.RowCount:=length(listadirecciones)+1;
    for contador := 0 to length(ListaDirecciones)-1 do
       begin
@@ -412,7 +393,7 @@ if U_DirPanel then
       end;
    form1.LabelBigBalance.Caption := form1.DataPanel.Cells[1,0];
    U_DirPanel := false;
-   setmilitime('UpdateDirPanel',2);
+   EndPerformance('UpdateDirPanel');
    end;
 End;
 
@@ -500,56 +481,6 @@ if Form1.SystrayIcon.Visible then
    Form1.SystrayIcon.BalloonHint:=Texto;
    form1.SystrayIcon.BalloonTimeout:=3000;
    form1.SystrayIcon.ShowBalloonHint;
-   end;
-End;
-
-// El procemiento para llevar el control del monitoreo del tiempo
-Procedure SetMiliTime(Name:string;tipo:integer);
-var
-  count : integer;
-  addnew : boolean = true;
-Begin
-if ((tipo = 1) and (length(MilitimeArray)>0)) then // tipo iniciar
-   begin
-   for count := 0 to length(MilitimeArray) -1 do
-      begin
-      if name = MilitimeArray[count].Name then
-         begin
-         MilitimeArray[count].Start:=GetTickCount64;
-         MilitimeArray[count].Count+=1;
-         addnew := false;
-         break;
-         end;
-      end;
-   end;
-if tipo= 2 then
-   begin
-   for count := 0 to length(MilitimeArray) -1 do
-      begin
-      if name = MilitimeArray[count].Name then
-         begin
-         MilitimeArray[count].finish:=GetTickCount64;
-         MilitimeArray[count].duration:=MilitimeArray[count].finish-MilitimeArray[count].Start;
-         MilitimeArray[count].Total:=MilitimeArray[count].Total+MilitimeArray[count].duration;
-         if MilitimeArray[count].duration>MilitimeArray[count].Maximo then
-            MilitimeArray[count].Maximo := MilitimeArray[count].duration;
-         if MilitimeArray[count].duration<MilitimeArray[count].Minimo then
-            MilitimeArray[count].Minimo := MilitimeArray[count].duration;
-         addnew := false;
-         if MilitimeArray[count].duration>1000 then
-            ToExcLog('Performance: Process '+name+' last '+IntToStr(MilitimeArray[count].duration));
-         break;
-         end;
-      end;
-   end;
-if addnew then
-   begin
-   setlength(MilitimeArray,length(MilitimeArray)+1);
-   MilitimeArray[length(MilitimeArray)-1] := default(MilitimeData);
-   MilitimeArray[length(MilitimeArray)-1].Name:=name;
-   MilitimeArray[length(MilitimeArray)-1].Minimo:=9999;
-   MilitimeArray[length(MilitimeArray)-1].Start:=GetTickCount64;
-   MilitimeArray[length(MilitimeArray)-1].Count:=1;
    end;
 End;
 

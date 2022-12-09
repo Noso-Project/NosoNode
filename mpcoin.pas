@@ -5,7 +5,7 @@ unit mpCoin;
 interface
 
 uses
-  Classes, SysUtils,MasterPaskalForm,mpgui,Clipbrd, strutils;
+  Classes, SysUtils,MasterPaskalForm,mpgui,Clipbrd, strutils, nosodebug;
 
 function GetAddressAvailable(address:string):int64;
 function GetAddressBalance(address:string):int64;
@@ -59,7 +59,7 @@ function GetAddressBalance(address:string):int64;
 var
   cont : integer;
 Begin
-setmilitime('GetAddressBalance',1);
+BeginPerformance('GetAddressBalance');
 Result := 0;
 if address = '' then exit;
 for cont := 0 to length(ListaSumario)-1 do
@@ -70,7 +70,7 @@ for cont := 0 to length(ListaSumario)-1 do
       break;
       end;
    end;
-setmilitime('GetAddressBalance',2);
+EndPerformance('GetAddressBalance');
 End;
 
 // Devuelve el saldo que una direccion ya tiene comprometido en pendientes
@@ -159,7 +159,7 @@ var
   insertar : boolean = false;
   resultado : integer = 0;
 Begin
-setmilitime('AddPendingTxs',1);
+BeginPerformance('AddPendingTxs');
 //if order.OrderType='FEE' then exit;
 if order.TimeStamp < LastBlockData.TimeStart then exit;
 if TrxExistsInLastBlock(order.TrfrID) then exit;
@@ -200,7 +200,7 @@ if not TranxAlreadyPending(order.TrfrID) then
    result := true;
    VerifyIfPendingIsMine(order);
    end;
-setmilitime('AddPendingTxs',2);
+EndPerformance('AddPendingTxs');
 End;
 
 // Verifica si una orden especifica es del usuario
@@ -341,7 +341,7 @@ var
   MontoDisponible, Montotrfr, comisionTrfr : int64;
   OrderInfo : orderdata;
 Begin
-setmilitime('SendFundsFromAddress',1);
+BeginPerformance('SendFundsFromAddress');
 MontoDisponible := ListaDirecciones[DireccionEsMia(origen)].Balance-GetAddressPendingPays(Origen);
 if MontoDisponible>comision then ComisionTrfr := Comision
 else comisiontrfr := montodisponible;
@@ -355,7 +355,7 @@ OrderInfo.OrderType  := 'TRFR';
 OrderInfo.TimeStamp  := StrToInt64(OrderTime);
 OrderInfo.reference    := reference;
 OrderInfo.TrxLine    := linea;
-OrderInfo.Sender     := ListaDirecciones[DireccionEsMia(origen)].PublicKey;
+OrderInfo.sender     := ListaDirecciones[DireccionEsMia(origen)].PublicKey;
 OrderInfo.Address    := ListaDirecciones[DireccionEsMia(origen)].Hash;
 OrderInfo.Receiver   := Destino;
 OrderInfo.AmmountFee := ComisionTrfr;
@@ -365,7 +365,7 @@ OrderInfo.Signature  := GetStringSigned(ordertime+origen+destino+IntToStr(montot
                      ListaDirecciones[DireccionEsMia(origen)].PrivateKey);
 OrderInfo.TrfrID     := GetTransferHash(ordertime+origen+destino+IntToStr(monto)+IntToStr(MyLastblock));
 Result := OrderInfo;
-setmilitime('SendFundsFromAddress',2);
+EndPerformance('SendFundsFromAddress');
 End;
 
 // verifica si en las transaccione pendientes hay alguna de nuestra cartera
@@ -639,7 +639,7 @@ var
   validMN : integer = 0;
   CopyArray : Array of Tmasternode;
 Begin
-setmilitime('GetMNsHash',1);
+BeginPerformance('GetMNsHash');
 
 //EnterCriticalSection(CSMNsArray);
 SetLength(CopyArray,0);
@@ -665,7 +665,7 @@ else
    result := HashMD5string(Trim(Hashstr));
    myMNsCount := ValidMN;
    end;
-setmilitime('GetMNsHash',2);
+EndPerformance('GetMNsHash');
 End;
 
 END. // END UNIT
