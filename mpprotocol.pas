@@ -119,7 +119,7 @@ OrderInfo.Signature  := Parameter(textline,12);
 OrderInfo.TrfrID     := Parameter(textline,13);
 EXCEPT ON E:Exception do
    begin
-   ToExcLog('Error GetOrderFromString : '+E.Message);
+   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error GetOrderFromString : '+E.Message);
    end;
 END;{TRY}
 Result := OrderInfo;
@@ -397,7 +397,7 @@ if slot <= length(conexiones)-1 then
          EXCEPT On E :Exception do
             begin
             AddLineToDebugLog('Console',E.Message);
-            ToExcLog('Error sending line: '+E.Message);
+            AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error sending line: '+E.Message);
             CerrarSlot(Slot);
             end;
          END;{TRY}
@@ -416,13 +416,13 @@ if slot <= length(conexiones)-1 then
       EXCEPT On E :Exception do
          begin
          AddLineToDebugLog('Console',E.Message);
-         ToExcLog('Error sending line: '+E.Message);
+         AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error sending line: '+E.Message);
          CerrarSlot(Slot);
          end;
       END;{TRY}
       end;
    end
-else ToExcLog('Invalid PTC_SendLine slot: '+IntToStr(slot));
+else AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Invalid PTC_SendLine slot: '+IntToStr(slot));
 end;
 
 Procedure ClearOutTextToSlot(slot:integer);
@@ -591,7 +591,7 @@ if conexiones[slot].tipo='CLI' then
       EXCEPT on E:Exception do
          begin
          Form1.TryCloseServerConnection(Conexiones[Slot].context);
-         ToExcLog('SERVER: Error sending headers file ('+E.Message+')');
+         AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Error sending headers file ('+E.Message+')');
          end;
       END; {TRY}
    end;
@@ -602,7 +602,7 @@ if conexiones[slot].tipo='SER' then
       CanalCliente[slot].IOHandler.Write(MemStream,0,true);
       EXCEPT on E:Exception do
          begin
-         ToExcLog('CLIENT: Error sending Headers file ('+E.Message+')');
+         AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'CLIENT: Error sending Headers file ('+E.Message+')');
          CerrarSlot(slot);
          end;
       END;{TRY}
@@ -628,7 +628,7 @@ if conexiones[slot].tipo='CLI' then
       EXCEPT on E:Exception do
          begin
          Form1.TryCloseServerConnection(Conexiones[Slot].context);
-         ToExcLog('SERVER: Error sending sumary file ('+E.Message+')');
+         AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Error sending sumary file ('+E.Message+')');
          end;
       END; {TRY}
    end;
@@ -639,7 +639,7 @@ if conexiones[slot].tipo='SER' then
       CanalCliente[slot].IOHandler.Write(MemStream,0,true);
       EXCEPT on E:Exception do
          begin
-         ToExcLog('CLIENT: Error sending Sumary file ('+E.Message+')');
+         AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'CLIENT: Error sending Sumary file ('+E.Message+')');
          CerrarSlot(slot);
          end;
       END;{TRY}
@@ -671,7 +671,7 @@ EnterCriticalSection(CSSumary);
    result := true;
    EXCEPT ON E:Exception do
       begin
-      ToExcLog('Error zipping summary: '+E.Message);
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error zipping summary: '+E.Message);
       end;
    END{Try};
 MyZipFile.Free;
@@ -700,7 +700,7 @@ EnterCriticalSection(CSHeadAccess);
    MyZipFile.ZipAllFiles;
    result := true;
    EXCEPT ON E:Exception do
-      ToExcLog('Error on Zip Headers file: '+E.Message);
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error on Zip Headers file: '+E.Message);
    END{Try};
 MyZipFile.Free;
 LeaveCriticalSection(CSHeadAccess);
@@ -737,7 +737,7 @@ EnterCriticalSection(CSBlocksAccess);
    result := ZipFileName;
    EXCEPT ON E:Exception do
       begin
-      ToExcLog('Error zipping block files: '+E.Message);
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error zipping block files: '+E.Message);
       end;
    end;
 LeaveCriticalSection(CSBlocksAccess);
@@ -767,7 +767,7 @@ MemStream := TMemoryStream.Create;
    EXCEPT on E:Exception do
       begin
       GetFileOk := false;
-      ToExcLog('Error on PTC_SendBlocks: '+E.Message);
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error on PTC_SendBlocks: '+E.Message);
       end;
    END; {TRY}
    if GetFileOk then
@@ -781,7 +781,7 @@ MemStream := TMemoryStream.Create;
             EXCEPT on E:Exception do
                begin
                Form1.TryCloseServerConnection(Conexiones[Slot].context);
-               ToExcLog('SERVER: Error sending ZIP blocks file ('+E.Message+')');
+               AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Error sending ZIP blocks file ('+E.Message+')');
                end;
             END; {TRY}
          end;
@@ -793,7 +793,7 @@ MemStream := TMemoryStream.Create;
             FileSentOk := true;
             EXCEPT on E:Exception do
                begin
-               ToExcLog('CLIENT: Error sending ZIP blocks file ('+E.Message+')');
+               AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'CLIENT: Error sending ZIP blocks file ('+E.Message+')');
                CerrarSlot(slot);
                END; {TRY}
             end;

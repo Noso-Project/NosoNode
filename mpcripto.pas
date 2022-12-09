@@ -172,7 +172,7 @@ result := Uppercase('d41d8cd98f00b204e9800998ecf8427e');  // empty string
 TRY
 result := UpperCase(MD5Print(MD5File(FileToHash)));
 EXCEPT ON E:Exception do
-   ToExcLog('File not found for MD5 hash: '+filetohash);
+   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'File not found for MD5 hash: '+filetohash);
 END;
 End;
 
@@ -254,7 +254,7 @@ Process := TProcess.Create(nil);
    {$ENDIF}
    Process.Execute;
    EXCEPT ON E:Exception do
-      ToExcLog('Error RunExternalProgram='+ProgramToRun+' Error:'+E.Message);
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error RunExternalProgram='+ProgramToRun+' Error:'+E.Message);
    END; {TRY}
 Process.Free;
 End;
@@ -272,7 +272,7 @@ Signature := TSignerUtils.SignMessage(MessageAsBytes, StrToByte(DecodeStringBase
 Result := EncodeStringBase64(ByteToString(Signature));
 EXCEPT ON E:Exception do
    begin
-   ToExcLog('ERROR Signing message');
+   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'ERROR Signing message');
    end;
 END{Try};
 End;
@@ -290,7 +290,7 @@ Result := TSignerUtils.VerifySignature(Signature, MessageAsBytes,
       StrToByte(DecodeStringBase64(PublicKey)), TKeyType.SECP256K1);
 EXCEPT ON E:Exception do
    begin
-   ToExcLog('ERROR Verifying signature');
+   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'ERROR Verifying signature');
    end;
 END{Try};
 End;
@@ -333,7 +333,7 @@ TRY
 Insert(NewOp,ArrayCriptoOp,length(ArrayCriptoOp));
 
 EXCEPT ON E:Exception do
-   ToExcLog('Error adding Operation to crypto thread:'+proceso);
+   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error adding Operation to crypto thread:'+proceso);
 END{Try};
 LeaveCriticalSection(CSCriptoThread);
 End;
@@ -354,7 +354,7 @@ if Length(ArrayCriptoOp) > 0 then
    Delete(ArrayCriptoOp,0,1);
    EXCEPT ON E:Exception do
       begin
-      ToExcLog('Error removing Operation from crypto thread:'+E.Message);
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error removing Operation from crypto thread:'+E.Message);
       end;
    END{Try};
    end;
@@ -396,7 +396,7 @@ Repeat
       TRY
       Sendfunds(ArrayCriptoOp[0].data);
       EXCEPT ON E:Exception do
-         ToExclog(format(rs2501,[E.Message]));
+         AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2501,[E.Message]));
       END{Try};
       end
     else if ArrayCriptoOp[0].tipo = 4 then // recibir customizacion
@@ -404,7 +404,7 @@ Repeat
       TRY
       PTC_Custom(ArrayCriptoOp[0].data);
       EXCEPT ON E:Exception do
-         ToExclog(format(rs2502,[E.Message]));
+         AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2502,[E.Message]));
       END{Try};
       end
     else if ArrayCriptoOp[0].tipo = 5 then // recibir transferencia
@@ -412,7 +412,7 @@ Repeat
       TRY
       PTC_Order(ArrayCriptoOp[0].data);
       EXCEPT ON E:Exception do
-         ToExclog(format(rs2503,[E.Message]));
+         AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2503,[E.Message]));
       END{Try};
       end;
    DeleteCriptoOp();

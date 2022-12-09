@@ -244,7 +244,7 @@ if not errored then
       PendingTXs := copy(IgnoredTrxs,0,length(IgnoredTrxs));
    EXCEPT on E:Exception do
       begin
-      ToExcLog('Error asigning pending to Ignored');
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error asigning pending to Ignored');
       end;
    END; {TRY}
    SetLength(IgnoredTrxs,0);
@@ -362,7 +362,7 @@ if not errored then
    // Guardar bloque al disco
    if not GuardarBloque(FileName,BlockHeader,ListaOrdenes,PosReward,PosCount,PoSAddressess,
                         MNsReward, MNsCount,MNsAddressess) then
-      ToExcLog('*****CRITICAL*****'+slinebreak+'Error building block: '+numero.ToString);
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'*****CRITICAL*****'+slinebreak+'Error building block: '+numero.ToString);
 
    SetNMSData('','','','','','');
    BuildNMSBlock := 0;
@@ -649,7 +649,7 @@ MemStr := TMemoryStream.Create;
    SetLength(resultado,totalMNs+1);
    resultado[length(resultado)-1].address := IntToStr(MNReward);
    EXCEPT on E: Exception do // nothing, the block is not founded
-      ToExcLog('EXCEPTION on MNs file data:'+E.Message)
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'EXCEPTION on MNs file data:'+E.Message)
    END; {TRY}
 MemStr.Free;
 Result := resultado;

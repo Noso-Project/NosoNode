@@ -109,7 +109,7 @@ EnterCriticalSection(CSProcessLines);
    TRY
    ProcessLines.Add(ALine);
    EXCEPT ON E:Exception do
-      ToExcLog('Error on PROCESSLINESADD: '+E.Message);
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error on PROCESSLINESADD: '+E.Message);
    END; {TRY}
 LeaveCriticalSection(CSProcessLines);
 End;
@@ -121,7 +121,7 @@ EnterCriticalSection(CSOutgoingMsjs);
    TRY
    OutgoingMsjs.Add(ALine);
    EXCEPT ON E:Exception do
-      ToExcLog('Error on OutgoingMsjsAdd: '+E.Message);
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error on OutgoingMsjsAdd: '+E.Message);
    END{Try};
 LeaveCriticalSection(CSOutgoingMsjs);
 End;
@@ -137,7 +137,7 @@ TRY
 Linea := OutgoingMsjs[0];
 OutgoingMsjs.Delete(0);
 EXCEPT ON E:Exception do
-   ToExcLog('Error extracting outgoing line: '+E.Message);
+   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error extracting outgoing line: '+E.Message);
 END{Try};
 LeaveCriticalSection(CSOutgoingMsjs);
 result := linea;

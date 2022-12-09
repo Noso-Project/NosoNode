@@ -143,7 +143,7 @@ if success then
 If Parameter(Linea,3) <> MN_Ip then Inc(UnconfirmedIPs);
 EXCEPT on E:Exception do
    begin
-   ToExcLog('CRITICAL MNs VERIFICATION ('+Ip+'): '+E.Message);
+   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'CRITICAL MNs VERIFICATION ('+Ip+'): '+E.Message);
    end;
 END{BIG TRY};
 EnterCriticalSection(DecVerThreads);
@@ -197,7 +197,7 @@ AddLineToDebugLog('events',TimeToStr(now)+Format('MNs verification finish: %d la
 AddLineToDebugLog('events',TimeToStr(now)+Format('Unconfirmed IPs: %d',[UnconfirmedIPs ]));
 if NoVerificators>0 then
    begin
-   ToExcLog('*****CRITICAL****'+slinebreak+'Open verificators : '+NoVerificators.ToString);
+   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'*****CRITICAL****'+slinebreak+'Open verificators : '+NoVerificators.ToString);
    EnterCriticalSection(DecVerThreads);
    OpenVerificators := 0;
    LeaveCriticalSection(DecVerThreads);
@@ -701,7 +701,7 @@ Closefile(archivo);
 SetMN_FileText(GotText);
 EXCEPT on E:Exception do
    begin
-   toExclog ('Error Saving masternodes file');
+   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error Saving masternodes file');
    SetMN_FileText('');
    end;
 END {TRY};

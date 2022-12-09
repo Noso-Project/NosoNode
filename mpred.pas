@@ -290,7 +290,7 @@ if conexiones[Slot].tipo='SER' then
    CanalCliente[Slot].Disconnect;
    end;
 EXCEPT on E:Exception do
-  ToExcLog('Error: Closing slot '+IntToStr(Slot)+SLINEBREAK+E.Message);
+  AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error: Closing slot '+IntToStr(Slot)+SLINEBREAK+E.Message);
 END;{Try}
 EnterCriticalSection(CSNodesList);
 Conexiones[Slot] := Default(conectiondata);
@@ -401,7 +401,7 @@ if Conexiones[number].tipo ='RES' then
    end
 else
    begin
-   ToExcLog('Error un-reserving slot '+number.ToString);
+   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error un-reserving slot '+number.ToString);
    end;
 End;
 
@@ -504,7 +504,7 @@ if not errored then
    {
    EXCEPT on E:Exception do
       begin
-      ToExcLog('Error Connecting to '+Address+': '+E.Message);
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error Connecting to '+Address+': '+E.Message);
       UnReserveSlot(Slot);
       end;
    END;{Try}
@@ -542,7 +542,7 @@ SetCurrentJob('CerrarClientes',true);
    Result := 'Clients connections closed'
    EXCEPT on E:EXCEPTION do
       begin
-      ToExcLog('Error closing client');
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error closing client');
       Result := 'Error closing clients';
       end;
    END; {TRY}
@@ -702,7 +702,7 @@ if MyConStatus = 3 then
    end;
 EXCEPT ON E:Exception do
    begin
-   ToExcLog(format(rs2002,[E.Message])+' '+CurrentJob);
+   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2002,[E.Message])+' '+CurrentJob);
    end;
 END{Try};
 SetCurrentJob('VerifyConnectionStatus',false);
@@ -1437,7 +1437,7 @@ TCPclient.IOHandler.WriteLn('GETMIIP');
 Result := TCPclient.IOHandler.ReadLn(IndyTextEncoding_UTF8);
 TCPclient.Disconnect();
 EXCEPT on E:Exception do
-   ToExcLog('Error on GetMiIP: '+E.Message)
+   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error on GetMiIP: '+E.Message)
 END{try};
 TCPClient.Free;
 End;

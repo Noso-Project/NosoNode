@@ -307,7 +307,7 @@ if ( (form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor) and (LastUpdateMonit
             Form1.SG_Monitor.Cells[3,contador+1]:=IntToStr(ArrPerformance[contador].Average);
             Except on E:Exception do
                begin
-               ToExcLog(format('Error showing ArrPerformance data(%s): %s',[ArrPerformance[contador].tag,E.Message]));
+               AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format('Error showing ArrPerformance data(%s): %s',[ArrPerformance[contador].tag,E.Message]));
                end;
             end;
          end;

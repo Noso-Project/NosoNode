@@ -75,6 +75,7 @@ type
     private
       procedure UpdateConsole;
       procedure UpdateEvents;
+      procedure UpdateExceps;
     protected
       procedure Execute; override;
     public
@@ -786,8 +787,6 @@ var
   Form1: TForm1;
   LastCommand : string = '';
   ProcessLines : TStringlist;
-  ExceptLines : TStringList;
-    S_Exc : boolean = false;
   StringAvailableUpdates : String = '';
     U_DataPanel : boolean = true;
     U_PoSGrid : Boolean = true;
@@ -914,8 +913,6 @@ var
   CSSumary      : TRTLCriticalSection;
   CSPending     : TRTLCriticalSection;
   CSCriptoThread: TRTLCriticalSection;
-  CSLogLines    : TRTLCriticalSection;
-  CSExcLogLines : TRTLCriticalSection;
   CSClosingApp  : TRTLCriticalSection;
   CSNMSData     : TRTLCriticalSection;
   CSCurrentJob  : TRTLCriticalSection;
@@ -1006,6 +1003,11 @@ Begin
 form1.MemoLog.Lines.Add(LastLogLine);
 End;
 
+procedure TUpdateLogs.UpdateExceps();
+Begin
+form1.MemoExceptLog.Lines.Add(LastLogLine);
+End;
+
 procedure TUpdateLogs.Execute;
 Begin
 While not terminated do
@@ -1018,6 +1020,10 @@ While not terminated do
   Repeat
     LastLogLine := GetLogLine('events');
     if LastLogLine <> '' then Synchronize(@UpdateEvents);
+  until LastLogLine = '';
+  Repeat
+    LastLogLine := GetLogLine('exceps');
+    if LastLogLine <> '' then Synchronize(@UpdateExceps);
   until LastLogLine = '';
   end;
 End;
@@ -1060,15 +1066,15 @@ if Continuar then
          LLine := CanalCliente[FSlot].IOHandler.ReadLn(IndyTextEncoding_UTF8);
          if CanalCliente[FSlot].IOHandler.ReadLnTimedout then
             begin
-            ToExcLog(Format(rs0001,[conexiones[Fslot].ip]));
-            //ToExcLog('TimeOut reading from slot: '+conexiones[Fslot].ip);
+            AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0001,[conexiones[Fslot].ip]));
+            //AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'TimeOut reading from slot: '+conexiones[Fslot].ip);
             TruncateLine := TruncateLine+LLine;
             Conexiones[fSlot].IsBusy:=false;
             continue;
             end;
          EXCEPT on E:Exception do
             begin
-            ToExcLog(Format(rs0002,[IntToStr(Fslot)+slinebreak+E.Message]));
+            AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0002,[IntToStr(Fslot)+slinebreak+E.Message]));
             //tolog ('Error Reading lines from slot: '+IntToStr(Fslot)+slinebreak+E.Message);
             Conexiones[fSlot].IsBusy:=false;
             continue;
@@ -1088,7 +1094,7 @@ if Continuar then
                downloaded := True;
                EXCEPT ON E:Exception do
                   begin
-                  toExcLog(format(rs0004,[conexiones[fSlot].ip,E.Message])); //'Error Receiving headers from
+                  AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs0004,[conexiones[fSlot].ip,E.Message])); //'Error Receiving headers from
                   downloaded := false;
                   end;
                END; {TRY}
@@ -1102,7 +1108,7 @@ if Continuar then
                   EXCEPT on E:Exception do
                      begin
                      Errored := true;
-                     toExcLog('Error saving headers to file: '+E.Message);
+                     AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error saving headers to file: '+E.Message);
                      end;
                   END; {TRY}
                LeaveCriticalSection(CSHeadAccess);
@@ -1128,7 +1134,7 @@ if Continuar then
                downloaded := True;
                EXCEPT ON E:Exception do
                   begin
-                  toExcLog(format(rs0086,[conexiones[fSlot].ip,E.Message])); //'Error Receiving sumary from
+                  AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs0086,[conexiones[fSlot].ip,E.Message])); //'Error Receiving sumary from
                   downloaded := false;
                   end;
                END; {TRY}
@@ -1142,7 +1148,7 @@ if Continuar then
                   EXCEPT on E:Exception do
                      begin
                      Errored := true;
-                     toExcLog('Error saving sumary to file: '+E.Message);
+                     AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error saving sumary to file: '+E.Message);
                      end;
                   END; {TRY}
                LeaveCriticalSection(CSSumary);
@@ -1174,7 +1180,7 @@ if Continuar then
                downloaded := True;
                EXCEPT ON E:Exception do
                   begin
-                  toExcLog(format(rs0090,[conexiones[fSlot].ip,E.Message])); //'Error Receiving GVTs from
+                  AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs0090,[conexiones[fSlot].ip,E.Message])); //'Error Receiving GVTs from
                   downloaded := false;
                   end;
                END; {TRY}
@@ -1188,7 +1194,7 @@ if Continuar then
                   EXCEPT on E:Exception do
                      begin
                      Errored := true;
-                     toExcLog('Error saving GVTs to file: '+E.Message);
+                     AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error saving GVTs to file: '+E.Message);
                      end;
                   END; {TRY}
                LeaveCriticalSection(CSGVTsArray);
@@ -1217,7 +1223,7 @@ if Continuar then
                Errored := false;
                EXCEPT ON E:Exception do
                   begin
-                  ToExcLog(format(rs0007,[conexiones[fSlot].ip,E.Message])); //'Error Receiving blocks from %s (%s)',[conexiones[fSlot].ip,E.Message]));
+                  AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs0007,[conexiones[fSlot].ip,E.Message])); //'Error Receiving blocks from %s (%s)',[conexiones[fSlot].ip,E.Message]));
                   Errored := true;
                   end;
                END; {TRY}
@@ -1246,7 +1252,7 @@ if Continuar then
 
 EXCEPT ON E:Exception do
    begin
-   ToExcLog('*****CRITICAL**** Error inside Client thread: '+E.Message);
+   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'*****CRITICAL**** Error inside Client thread: '+E.Message);
    if AnsiContainsStr(E.Message,'Error # 10053') then KillIt := true;
    end;
 END; {TRY}
@@ -1372,7 +1378,7 @@ While not terminated do
          TRY
          Sendfunds(ArrayCriptoOp[0].data);
          EXCEPT ON E:Exception do
-            ToExclog(format(rs2501,[E.Message]));
+            AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2501,[E.Message]));
          END{Try};
          end
       else if ArrayCriptoOp[0].tipo = 4 then // recibir customizacion
@@ -1380,7 +1386,7 @@ While not terminated do
          TRY
          PTC_Custom(ArrayCriptoOp[0].data);
          EXCEPT ON E:Exception do
-            ToExclog(format(rs2502,[E.Message]));
+            AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2502,[E.Message]));
          END{Try};
          end
        else if ArrayCriptoOp[0].tipo = 5 then // recibir transferencia
@@ -1388,7 +1394,7 @@ While not terminated do
           TRY
           PTC_Order(ArrayCriptoOp[0].data);
           EXCEPT ON E:Exception do
-            ToExclog(format(rs2503,[E.Message]));
+            AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2503,[E.Message]));
           END{Try};
           end
        else if ArrayCriptoOp[0].tipo = 6 then // Send GVT
@@ -1396,7 +1402,7 @@ While not terminated do
           TRY
           SendGVT(ArrayCriptoOp[0].data);
           EXCEPT ON E:Exception do
-            ToExclog(format(rs2504,[E.Message]));
+            AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2504,[E.Message]));
           END{Try};
           end
        else if ArrayCriptoOp[0].tipo = 7 then // Send GVT
@@ -1404,7 +1410,7 @@ While not terminated do
           TRY
           PTC_SendGVT(ArrayCriptoOp[0].data);
           EXCEPT ON E:Exception do
-            ToExclog(format(rs2505,[E.Message]));
+            AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2505,[E.Message]));
           END{Try};
           end;
       DeleteCriptoOp();
@@ -1434,8 +1440,8 @@ While not terminated do
             TRY
             if IsSlotConnected(slot) then PTC_SendLine(Slot,linea);
             EXCEPT on E:Exception do
-                ToExclog(format(rs0008,[E.Message]));
-               //ToExclog('Error sending outgoing message: '+E.Message);
+                AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs0008,[E.Message]));
+               //AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error sending outgoing message: '+E.Message);
             END{Try};
             end;
          end;
@@ -1454,7 +1460,6 @@ procedure TForm1.FormCreate(sender: TObject);
 var
   counter : integer;
 begin
-ExceptLines        := TStringlist.Create;
 ProcessLines       := TStringlist.Create;
 OutgoingMsjs       := TStringlist.Create;
 Randomize;
@@ -1465,8 +1470,6 @@ InitCriticalSection(CSBlocksAccess);
 InitCriticalSection(CSSumary);
 InitCriticalSection(CSPending);
 InitCriticalSection(CSCriptoThread);
-InitCriticalSection(CSLogLines);
-InitCriticalSection(CSExcLogLines);
 InitCriticalSection(CSMNsArray);
 InitCriticalSection(CSWaitingMNs);
 InitCriticalSection(CSMNsList);
@@ -1505,8 +1508,6 @@ DoneCriticalSection(CSBlocksAccess);
 DoneCriticalSection(CSSumary);
 DoneCriticalSection(CSPending);
 DoneCriticalSection(CSCriptoThread);
-DoneCriticalSection(CSLogLines);
-DoneCriticalSection(CSExcLogLines);
 DoneCriticalSection(CSMNsArray);
 DoneCriticalSection(CSWaitingMNs);
 DoneCriticalSection(CSMNsList);
@@ -1622,6 +1623,7 @@ NosoDebug_UsePerformance := true;
 UpdateLogsThread := TUpdateLogs.Create(true);
 UpdateLogsThread.FreeOnTerminate:=true;
 UpdateLogsThread.Start;
+if not directoryexists(LogsDirectory) then CreateDir(LogsDirectory);
 CreateNewLog('console');
 CreateNewLog('events',EventLogFilename);
 CreateNewLog('exceps',ExceptLogFilename);
@@ -2064,7 +2066,6 @@ if GoAhead then
       else CloseLine('Error closing node server');
       end;
    sleep(100);
-   If Assigned(ExceptLines) then ExceptLines.Free;
    If Assigned(ProcessLines) then ProcessLines.Free;
    CloseLine('Componnents freed');
    sleep(100);
@@ -2289,7 +2290,7 @@ else if ARequestInfo.Command = 'POST' then
       PostString := ReadStringFromStream(StreamString,-1,IndyTextEncoding_UTF8);
       end;
    EXCEPT ON E:EXCEPTION DO
-      ToExcLog('Error on Http server: '+E.Message);
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error on Http server: '+E.Message);
    END; {TRY}
    AResponseInfo.ContentText:= ParseRPCJSON(PostString);
    StreamString.Free;
@@ -2309,7 +2310,7 @@ Clients:= server.Contexts.LockList;
    TRY
    Result := Clients.Count ;
    EXCEPT ON E:Exception do
-      ToExcLog('Error getting server list count: '+E.Message);
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error getting server list count: '+E.Message);
    END; {TRY}
 server.Contexts.UnlockList;
 End ;
@@ -2336,8 +2337,8 @@ try
    AContext.Connection.Disconnect();
    Acontext.Connection.IOHandler.InputBuffer.Clear;
 Except on E:Exception do
-   ToExcLog(format(rs0042,[E.Message]));
-   //ToExcLog('SERVER: Error trying close a server client connection ('+E.Message+')');
+   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs0042,[E.Message]));
+   //AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Error trying close a server client connection ('+E.Message+')');
 end;
 End;
 
@@ -2387,8 +2388,8 @@ LLine := AContext.Connection.IOHandler.ReadLn(IndyTextEncoding_UTF8);
 EXCEPT on E:Exception do
    begin
    TryCloseServerConnection(AContext);
-   ToExcLog(format(rs0045,[IPUser,E.Message]));
-   //ToExcLog('SERVER: Can not read line from connection '+IPUser+'('+E.Message+')');
+   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs0045,[IPUser,E.Message]));
+   //AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Can not read line from connection '+IPUser+'('+E.Message+')');
    GoAhead := false;
    end;
 END{Try};
@@ -2404,7 +2405,7 @@ if GoAhead then
          GetFileOk := true;
          EXCEPT ON E:EXCEPTION do
             begin
-            //ToExcLog(Format(rs0046,[E.Message])); //'SERVER: Server error receiving headers file ('+E.Message+')');
+            //AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0046,[E.Message])); //'SERVER: Server error receiving headers file ('+E.Message+')');
             TryCloseServerConnection(AContext);
             GetFileOk := false;
             end;
@@ -2416,7 +2417,7 @@ if GoAhead then
             MemStream.SaveToFile(ResumenFilename);
             AddLineToDebugLog('console',Format(rs0047,[copy(HashMD5File(ResumenFilename),1,5)]));//'Headers file received'
             EXCEPT ON E:EXCEPTION do
-               ToExcLog('Error saving Headers received on server: '+E.Message)
+               AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error saving Headers received on server: '+E.Message)
             END; {TRY};
          LeaveCriticalSection(CSHeadAccess);
          end;
@@ -2437,7 +2438,7 @@ if GoAhead then
          GetFileOk := true;
          EXCEPT ON E:Exception do
             begin
-            //ToExcLog(Format(rs0048,[E.Message])); // Server error receiving block file ('+E.Message+')');
+            //AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0048,[E.Message])); // Server error receiving block file ('+E.Message+')');
             GetFileOk := false;
             TryCloseServerConnection(AContext);
             end;
@@ -2465,7 +2466,7 @@ if GoAhead then
          EXCEPT on E:Exception do
             begin
             GetFileOk := false;
-            //ToExcLog(Format(rs0049,[E.Message]));//SERVER: Error creating stream from headers: %s',[E.Message]));
+            //AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0049,[E.Message]));//SERVER: Error creating stream from headers: %s',[E.Message]));
             end;
          END; {TRY}
       if GetFileOk then
@@ -2476,7 +2477,7 @@ if GoAhead then
             EXCEPT on E:Exception do
                begin
                Form1.TryCloseServerConnection(Conexiones[Slot].context);
-               //ToExcLog(Format(rs0051,[E.Message]));
+               //AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0051,[E.Message]));
                end;
             END; {TRY}
          end;
@@ -2505,7 +2506,7 @@ if GoAhead then
                EXCEPT ON E:Exception do
                   begin
                   Form1.TryCloseServerConnection(Conexiones[Slot].context);
-                  //ToExcLog(Format(rs0053,[E.Message])); //'SERVER: Error sending ZIP blocks file ('+E.Message+')');
+                  //AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0053,[E.Message])); //'SERVER: Error sending ZIP blocks file ('+E.Message+')');
                   end
                END; {TRY}
             end;
@@ -2525,7 +2526,7 @@ if GoAhead then
             EXCEPT on E:Exception do
                begin
                GetFileOk := false;
-               //ToExcLog(Format(rs0049,[E.Message]));//SERVER: Error creating stream from headers: %s',[E.Message]));
+               //AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0049,[E.Message]));//SERVER: Error creating stream from headers: %s',[E.Message]));
                end;
             END; {TRY}
          if GetFileOk then
@@ -2536,7 +2537,7 @@ if GoAhead then
                EXCEPT on E:Exception do
                   begin
                   Form1.TryCloseServerConnection(Conexiones[Slot].context);
-                  //ToExcLog(Format(rs0051,[E.Message]));
+                  //AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0051,[E.Message]));
                   end;
                END; {TRY}
             end;
@@ -2549,15 +2550,15 @@ if GoAhead then
          AddToIncoming(slot,LLine);
          EXCEPT
          On E :Exception do
-            ToExcLog(Format(rs0054,[E.Message]));
-            //ToExcLog('SERVER: Server error adding received line ('+E.Message+')');
+            AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0054,[E.Message]));
+            //AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Server error adding received line ('+E.Message+')');
          END; {TRY}
       end
    else
       begin
       TryCloseServerConnection(AContext);
-      ToExcLog(Format(rs0055,[LLine]));
-      //ToExcLog('SERVER: Got unexpected line: '+LLine);
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0055,[LLine]));
+      //AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Got unexpected line: '+LLine);
       end;
    conexiones[slot].IsBusy:=false;
    end;
@@ -2597,15 +2598,15 @@ TRY
    if AContext.Connection.IOHandler.ReadLnTimedout then
       begin
       TryCloseServerConnection(AContext);
-      ToExcLog(rs0056);
-      //ToExcLog('SERVER: Timeout reading line from new connection');
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+rs0056);
+      //AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Timeout reading line from new connection');
       GoAhead := false;
       end;
 EXCEPT on E:Exception do
    begin
    TryCloseServerConnection(AContext);
-   ToExcLog(format(rs0057,[E.Message]));
-   //ToExcLog('SERVER: Can not read line from new connection ('+E.Message+')');
+   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs0057,[E.Message]));
+   //AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Can not read line from new connection ('+E.Message+')');
    GoAhead := false;
    end;
 END{Try};
@@ -2654,7 +2655,7 @@ if GoAhead then
          EXCEPT on E:Exception do
             begin
             GetFileOk := false;
-            ToExcLog(Format(rs0091,[E.Message])); //'SERVER: Error creating stream from GVTs: %s',[E.Message]));
+            AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0091,[E.Message])); //'SERVER: Error creating stream from GVTs: %s',[E.Message]));
             end;
          END; {TRY}
       LeaveCriticalSection(CSGVTsArray);
@@ -2681,7 +2682,7 @@ if GoAhead then
          EXCEPT on E:Exception do
             begin
             GetFileOk := false;
-            ToExcLog(Format(rs0049,[E.Message])); //'SERVER: Error creating stream from headers: %s',[E.Message]));
+            AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0049,[E.Message])); //'SERVER: Error creating stream from headers: %s',[E.Message]));
             end;
          END; {TRY}
       LeaveCriticalSection(CSSumary);
@@ -2776,7 +2777,7 @@ End;
 procedure TForm1.IdTCPServer1Exception(AContext: TIdContext;AException: Exception);
 Begin
 CerrarSlot(GetSlotFromContext(AContext));
-ToExcLog('Server Excepcion: '+AException.Message);    //Server Excepcion:
+AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Server Excepcion: '+AException.Message);    //Server Excepcion:
 End;
 
 // DOUBLE CLICK TRAY ICON TO RESTORE
@@ -3701,7 +3702,7 @@ LineResult := Client.IOHandler.ReadLn(IndyTextEncoding_UTF8);
 EXCEPT on E:Exception do
    begin
    info('Cant connect to '+IPToUse);
-   ToExcLog('Error testing masternode: '+E.Message);
+   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error testing masternode: '+E.Message);
    client.Free;
    if ServerActivated then form1.Server.Active := false;
    exit;

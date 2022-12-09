@@ -155,7 +155,7 @@ JSONErrorObj  := TJSONObject.Create;
    JSONResultado.Add('error',JSONErrorObj);
    JSONResultado.Add('id', TJSONIntegerNumber.Create(JSONIdNumber));
    EXCEPT ON E:Exception do
-      ToExcLog('Error on GetJSONErrorCode: '+E.Message)
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error on GetJSONErrorCode: '+E.Message)
    END; {TRY}
 result := JSONResultado.AsJSON;
 JSONResultado.Free;
@@ -191,7 +191,7 @@ JSONResultado := TJSONObject.Create;
       JSONResultado.Free;
       paramsarray.Free;
       Errored := true;
-      ToExcLog('Error on GetJSONResponse: '+E.Message);
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error on GetJSONResponse: '+E.Message);
       end;
    END; {TRY}
 if not errored then result := JSONResultado.AsJSON;
@@ -392,7 +392,7 @@ else
       else if method = 'sendfunds' then result := GetJSONResponse(RPC_SendFunds(NosoPParams),jsonid)
       else result := GetJSONErrorCode(402,-1);
       Except on E:Exception do
-         ToExcLog('JSON RPC error: '+E.Message);
+         AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'JSON RPC error: '+E.Message);
       end;
    jData.Free;
    end;

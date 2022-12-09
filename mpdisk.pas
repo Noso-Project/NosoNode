@@ -17,11 +17,6 @@ Procedure VerificarArchivos();
 Procedure FillNodeList();
 Function IsSeedNode(IP:String):boolean;
 
-// Except log file
-Procedure CreateExceptlog();
-Procedure ToExcLog(Texto:string);
-Procedure SaveExceptLog();
-
 // GVTs file handling
 Procedure CreateGVTsFile();
 Procedure GetGVTsFileData();
@@ -108,10 +103,6 @@ OutText('✓ Marks folder ok',false,1);
 if not directoryexists(GVTMarksDirectory) then CreateDir(GVTMarksDirectory);
 OutText('✓ GVTs Marks folder ok',false,1);
 
-if not directoryexists(LogsDirectory) then CreateDir(LogsDirectory);
-if not FileExists (ExceptLogFilename) then CreateExceptlog;
-OutText('✓ Except Log file ok',false,1);
-
 if not FileExists (AdvOptionsFilename) then CreateADV(false) else LoadADV();
 OutText('✓ Advanced options loaded',false,1);
 
@@ -193,67 +184,6 @@ Result := false;
 if AnsiContainsStr(GetNosoCFGString(1),ip) then result := true;
 End;
 
-// *** EXCEPTLOG FILE ***
-
-// Creates except log file
-Procedure CreateExceptlog();
-var
-  archivo : textfile;
-Begin
-   try
-   Assignfile(archivo, ExceptLogFilename);
-   rewrite(archivo);
-   Closefile(archivo);
-   Except on E:Exception do
-      AddLineToDebugLog('events',TimeToStr(now)+'Error creating the log file');
-   end;
-End;
-
-// Add Except log line
-Procedure ToExcLog(Texto:string);
-Begin
-EnterCriticalSection(CSExcLogLines);
-   TRY
-   if copy(texto,1,7)<>'SERVER:' then
-     ExceptLines.Add(FormatDateTime('dd MMMM YYYY HH:MM:SS.zzz', Now)+' -> '+texto);
-   EXCEPT on E:Exception do begin end;
-   END;{TRY}
-LeaveCriticalSection(CSExcLogLines);
-S_Exc := true;
-End;
-
-// Save Except log file to disk
-Procedure SaveExceptLog();
-var
-  archivo : textfile;
-  IOCode : integer;
-Begin
-BeginPerformance('SaveExceptLog');
-Assignfile(archivo, ExceptLogFilename);
-{$I-}Append(archivo){$I+};
-IOCode := IOResult;
-If IOCode = 0 then
-   begin
-   EnterCriticalSection(CSExcLogLines);
-      TRY
-      while ExceptLines.Count>0 do
-         begin
-         Writeln(archivo, ExceptLines[0]);
-         if not WO_OmmitMemos then
-            form1.MemoExceptLog.Lines.Add( ExceptLines[0]);
-         ExceptLines.Delete(0);
-         end;
-      S_Exc := false;
-      Except on E:Exception do
-         AddLineToDebugLog('events',TimeToStr(now)+'Error saving the Except log file: '+E.Message);
-      end;
-   Closefile(archivo);
-   LeaveCriticalSection(CSExcLogLines);
-   end
-else if IOCode = 5 then
-   {$I-}Closefile(archivo){$I+};
-EndPerformance('SaveExceptLog');
-End;
 
 // *** BOTS FILE ***
 
@@ -442,7 +372,7 @@ BeginPerformance('CreateADV');
    if saving then AddLineToDebugLog('events',TimeToStr(now)+'Options file saved');
    S_AdvOpt := false;
    Except on E:Exception do
-      toexclog ('Error creating/saving AdvOpt file: '+E.Message);
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error creating/saving AdvOpt file: '+E.Message);
    end;
    EndPerformance('CreateADV');
 End;
@@ -695,7 +625,6 @@ SetCurrentJob('SaveUpdatedFiles',true);
 if S_BotData then SaveBotData();
 if S_Wallet then GuardarWallet();
 if ( (S_Sumario) and (BuildingBlock=0) ) then GuardarSumario();
-if S_Exc then SaveExceptLog;
 if S_AdvOpt then CreateADV(true);
 SetCurrentJob('SaveUpdatedFiles',false);
 End;
@@ -771,13 +700,13 @@ If IOCode = 0 then
       end;
    S_Wallet := false;
    EXCEPT on E:Exception do
-      ToExcLog ('Error saving wallet to disk ('+E.Message+')');
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error saving wallet to disk ('+E.Message+')');
    END; {TRY}
    end;
 {$I-}closefile(FileWallet);{$I+}
 IOCode := IOResult;
 if IOCode>0 then
-   ToExcLog('Unable to close wallet file, error= '+IOCode.ToString );
+   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Unable to close wallet file, error= '+IOCode.ToString );
 EndPerformance('GuardarWallet');
 End;
 
@@ -884,12 +813,12 @@ If IOCode = 0 then
    S_Sumario := false;
    U_DataPanel := true;
    EXCEPT on E:Exception do
-      ToExcLog ('Error saving summary file: '+e.Message);
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error saving summary file: '+e.Message);
    END; {TRY}
    end
 else
    begin
-   ToExcLog('Error opening summary: '+IOCode.ToString );
+   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error opening summary: '+IOCode.ToString );
    {$I-}CloseFile(FileSumario);{$I+};
    end;
 {$I-}CloseFile(FileSumario);{$I+};
@@ -998,7 +927,7 @@ for cont := 0 to length(ListaSumario)-1 do
    end;
 LeaveCriticalSection(CSSumary);
 if ((result=false) and (block > 10429)) then
-   toexclog('Error assigning custom alias to address: '+Address+' -> '+addalias);
+   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error assigning custom alias to address: '+Address+' -> '+addalias);
 End;
 
 // Unzip a zip file and (optional) delete it
@@ -1016,7 +945,7 @@ UnZipper := TUnZipper.Create;
    EXCEPT on E:Exception do
       begin
       Result := false;
-      ToExcLog ('Error unzipping block file '+filename+': '+E.Message);
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error unzipping block file '+filename+': '+E.Message);
       end;
    END; {TRY}
 if delfile then Trydeletefile(filename);
@@ -1132,7 +1061,7 @@ while filesize(FileResumen)> Untilblock+1 do  // cabeceras presenta un numero an
    begin
    seek(FileResumen,Untilblock+1);
    truncate(fileResumen);
-   toexclog ('Readjusted headers size');
+   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Readjusted headers size');
    end;
 closefile(FileResumen);
 if newblocks>0 then
@@ -1830,7 +1759,7 @@ result := true;
    EXCEPT on E:Exception do
       begin
       result := false;
-      ToExcLog('Error deleting file ('+filename+') :'+E.Message);
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error deleting file ('+filename+') :'+E.Message);
       end;
    END;{TRY}
 End;
@@ -1844,7 +1773,7 @@ result := true;
    EXCEPT on E:Exception do
       begin
       result := false;
-      ToExcLog('Error copying file ('+Source+') :'+E.Message);
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error copying file ('+Source+') :'+E.Message);
       end;
    END; {TRY}
 End;
