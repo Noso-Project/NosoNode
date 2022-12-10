@@ -274,7 +274,6 @@ else if UpperCase(Command) = '58TODEC' then AddLineToDebugLog('console',BM58ToDe
 else if UpperCase(Command) = 'DECTOHEX' then AddLineToDebugLog('console',BMDectoHex(parameter(linetext,1)))
 else if UpperCase(Command) = 'NOSOHASH' then AddLineToDebugLog('console',Nosohash(parameter(linetext,1)))
 else if UpperCase(Command) = 'PENDING' then AddLineToDebugLog('console',PendingRawInfo)
-else if UpperCase(Command) = 'WEBSEED' then AddLineToDebugLog('console',GetWebSeedNodes)
 else if UpperCase(Command) = 'HEADER' then AddLineToDebugLog('console',LastHeaders(StrToIntDef(parameter(linetext,1),-1)))
 else if UpperCase(Command) = 'HEADSIZE' then AddLineToDebugLog('console',GetHeadersSize.ToString)
 else if UpperCase(Command) = 'CHECKSUM' then AddLineToDebugLog('console',BMDecTo58(BMB58resumen(parameter(linetext,1))))
@@ -301,6 +300,7 @@ else if UpperCase(Command) = 'DELNODE' then RemoveCFGData(parameter(linetext,1),
 else if UpperCase(Command) = 'ADDPOOL' then AddCFGData(parameter(linetext,1),3)
 else if UpperCase(Command) = 'DELPOOL' then RemoveCFGData(parameter(linetext,1),3)
 else if UpperCase(Command) = 'RESTORECFG' then RestoreCFGData()
+else if UpperCase(Command) = 'ISALLSYNCED' then AddLineToDebugLog('console',IsAllsynced.ToString)
 
 
 // P2P
@@ -730,7 +730,12 @@ End;
 
 Procedure ShowBlockInfo(numberblock:integer);
 var
-  Header : BlockHeaderData;
+  Header  : BlockHeaderData;
+  LOrders : BlockOrdersArray;
+  LPOSes  : BlockArraysPos;
+  PosReward : int64;
+  PosCount  : integer;
+  Counter : integer;
 Begin
 if fileexists(BlockDirectory+IntToStr(numberblock)+'.blk') then
    begin
@@ -751,6 +756,31 @@ if fileexists(BlockDirectory+IntToStr(numberblock)+'.blk') then
    AddLineToDebugLog('console','Miner:        '+Header.AccountMiner);
    AddLineToDebugLog('console','Fees:         '+IntToStr(Header.MinerFee));
    AddLineToDebugLog('console','Reward:       '+IntToStr(Header.Reward));
+   LOrders := GetBlockTrxs(numberblock);
+   if length(LOrders)>0 then
+      begin
+      AddLineToDebugLog('console','TRANSACTIONS');
+      For Counter := 0 to length(LOrders)-1 do
+         begin
+         AddLineToDebugLog('console',Format('%-35s -> %-35s : %s',[LOrders[counter].sender,LOrders[counter].Receiver,int2curr(LOrders[counter].AmmountTrf)]));
+         end;
+      end;
+   if numberblock>PoSBlockStart then
+      begin
+      LPoSes := GetBlockPoSes(numberblock);
+      PosReward := StrToInt64Def(LPoSes[length(LPoSes)-1].address,0);
+      SetLength(LPoSes,length(LPoSes)-1);
+      PosCount := length(LPoSes);
+      AddLineToDebugLog('console',Format('PoS Reward: %s  /  Addresses: %d  /  Total: %s',[int2curr(PosReward),PosCount,int2curr(PosReward*PosCount)]));
+      end;
+   if numberblock>MNBlockStart then
+      begin
+      LPoSes := GetBlockMNs(numberblock);
+      PosReward := StrToInt64Def(LPoSes[length(LPoSes)-1].address,0);
+      SetLength(LPoSes,length(LPoSes)-1);
+      PosCount := length(LPoSes);
+      AddLineToDebugLog('console',Format('MNs Reward: %s  /  Addresses: %d  /  Total: %s',[int2curr(PosReward),PosCount,int2curr(PosReward*PosCount)]));
+      end;
    end
 else
    AddLineToDebugLog('console','Block file do not exists: '+numberblock.ToString);
@@ -1419,12 +1449,14 @@ else
    begin
    onsumary := GetAddressBalance(addtoshow);
    pending := GetAddressPendingPays(addtoshow);
-   AddLineToDebugLog('console','Address  : '+ListaSumario[sumposition].Hash+' ('+IntToStr(sumposition)+')'+slinebreak+
-                    'Alias    : '+ListaSumario[sumposition].Custom+slinebreak+
-                    'Sumary   : '+Int2curr(onsumary)+slinebreak+
-                    'Incoming : '+Int2Curr(GetAddressIncomingpays(ListaSumario[sumposition].Hash))+slinebreak+
-                    'Outgoing : '+Int2curr(pending)+slinebreak+
-                    'Available: '+int2curr(onsumary-pending));
+   AddLineToDebugLog('console','Address   : '+ListaSumario[sumposition].Hash+' ('+IntToStr(sumposition)+')'+slinebreak+
+                    'Alias     : '+ListaSumario[sumposition].Custom+slinebreak+
+                    'Sumary    : '+Int2curr(onsumary)+slinebreak+
+                    'Incoming  : '+Int2Curr(GetAddressIncomingpays(ListaSumario[sumposition].Hash))+slinebreak+
+                    'Outgoing  : '+Int2curr(pending)+slinebreak+
+                    'Available : '+int2curr(onsumary-pending));
+   if AnsiContainsStr(GetMN_FileText,addtoshow) then
+      AddLineToDebugLog('console','Masternode: Active');
    end;
 End;
 

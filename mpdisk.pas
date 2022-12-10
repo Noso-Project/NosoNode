@@ -1144,6 +1144,10 @@ for cont := 0 to length(ArrayOrders)-1 do
       UpdateSumario(ArrayOrders[cont].sender,Restar(ArrayOrders[cont].AmmountFee+ArrayOrders[cont].AmmountTrf),0,IntToStr(BlockNumber));
       UpdateSumario(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,0,IntToStr(BlockNumber));
       end;
+   if ArrayOrders[cont].OrderType='PROJCT' then
+      begin
+      UpdateSumario(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,0,IntToStr(BlockNumber));
+      end;
    end;
 setlength(ArrayOrders,0);
 if blocknumber >= PoSBlockStart then
@@ -1238,12 +1242,16 @@ for contador := 1 to UntilBlock do
          UpdateSumario(ArrayOrders[cont].sender,Restar(ArrayOrders[cont].AmmountFee+ArrayOrders[cont].AmmountTrf),0,IntToStr(contador));
          UpdateSumario(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,0,IntToStr(contador));
          end;
+      if ArrayOrders[cont].OrderType='PROJCT' then
+         begin
+         UpdateSumario(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,0,IntToStr(contador));
+         end;
       end;
    setlength(ArrayOrders,0);
    if contador >= PoSBlockStart then
       begin
       ArrayPos := GetBlockPoSes(contador);
-      PosReward := StrToIntDef(Arraypos[length(Arraypos)-1].address,0);
+      PosReward := StrToInt64Def(Arraypos[length(Arraypos)-1].address,0);
       SetLength(ArrayPos,length(ArrayPos)-1);
       PosCount := length(ArrayPos);
       for counterpos := 0 to PosCount-1 do

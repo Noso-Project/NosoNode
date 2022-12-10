@@ -3,6 +3,15 @@ Version 0.3.3Aa2
 - Funds command implemented.
 - SetMilitime replaced with debug functions.
 - Console log moved to debug.
+- Events log moved to debug.
+- Exceptions log moved to debug.
+- Implemented Project coinbase payment.
+- Deprecated PoS passive payments.
+- Improved command lbinfo.
+- Adjusted blockage function.
+- Console log implemented.
+- Deprecated GetWebSeedNodes function.
+- IsAllSynced modified.
 
 Version 0.3.3Aa1
 

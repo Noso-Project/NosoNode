@@ -8,9 +8,6 @@ App related.
 - Not blocking form for critical exceptions.
 - Re-verification step for GVT transfers.
 - Revisit GetTotalConexiones.
-- Complete translation migration.
-  * Remove old translation system.
-- Completely remove minning pool relatives.
 - Implement RPC functions.
   * RPC_GetBlockPoS.
   * RPC_GetBlockMNs.

@@ -36,6 +36,7 @@ function ValidRPCHost(hoststr:string):boolean;
 function PendingRawInfo():String;
 Function GetPendingCount():integer;
 Procedure ClearAllPending();
+Function GetDevPercentage(block:integer):integer;
 Function GetPoSPercentage(block:integer):integer;
 Function GetMNsPercentage(block:integer):integer;
 Function GetStackRequired(block:integer):int64;
@@ -593,6 +594,12 @@ SetLength(PendingTXs,0);
 LeaveCriticalSection(CSPending);
 End;
 
+Function GetDevPercentage(block:integer):integer;
+Begin
+result := 0;
+if block >= PoSBlockEnd then result := 1000;
+End;
+
 // Returns the PoS percentage for the specified block (0 to 10000)
 Function GetPoSPercentage(block:integer):integer;
 Begin
@@ -603,6 +610,7 @@ if block >= 40000 then
    result := PoSPercentage + (((block-39000) div 1000) * 100);
    if result > 2000 then result := 2000;
    end;
+if block >= PoSBlockEnd then result := 0;
 End;
 
 // Returns the MNs percentage for the specified block (0 to 10000)
@@ -612,6 +620,7 @@ result := 0;
 if block >= MNBlockStart then
    begin
    result := MNsPercentage + (((block-MNBlockStart) div 4000) * 100); // MNsPercentage := 2000
+   if block >= PoSBlockEnd then Inc(Result,1000);
    if result > 6000 then result := 6000;
    end;
 End;

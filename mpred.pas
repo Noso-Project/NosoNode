@@ -46,7 +46,7 @@ function UpdateNetworkMNsChecks():NetworkData;
 function UpdateNetworkGVTsHash():NetworkData;
 function UpdateNetworkCFGHash():NetworkData;
 Procedure UpdateNetworkData();
-Function IsAllSynced():Boolean;
+Function IsAllSynced():integer;
 Procedure UpdateMyData();
 Procedure ActualizarseConLaRed();
 Procedure AddNewBot(linea:string);
@@ -58,7 +58,6 @@ function GetOrderSources(orderid:string):string;
 Function GetNodeStatusString():string;
 Function IsSafeIP(IP:String):boolean;
 Function GetLastRelease():String;
-Function GetWebSeedNodes():String;
 Function GetOS():string;
 Function GetLastVerZipFile(version,LocalOS:string):boolean;
 Function GetSyncTus():String;
@@ -962,18 +961,16 @@ U_DataPanel := true;
 SetCurrentJob('UpdateNetworkData',false);
 End;
 
-Function IsAllSynced():Boolean;
+Function IsAllSynced():integer;
 Begin
-result := true;
-if MyLastBlock <> StrToIntDef(NetLastBlock.Value,0) then result := false;
-if MyLastBlockHash <> NetLastBlockHash.Value then result := false;
-if MySumarioHash <> NetSumarioHash.Value then result := false;
-if MyResumenHash <> NetResumenHash.Value then result := false;
-//if GetPendingCount <> StrToIntDef(NetPendingTrxs.Value,0) then result := false;
-if GetMNsListLength <> StrToIntDef(NetMNsCount.Value,0) then result := false;
-//if NetBestHash.Value <> GetNMSData.Diff then result := false;
-//if GetMNsChecksCount <> StrToIntDef(NetMNsChecks.Value,0) then result := false;
-if NetMNsHash.value <>  Copy(MyMNsHash,1,5) then result := false;
+result := 0;
+if MyLastBlock <> StrToIntDef(NetLastBlock.Value,0) then result := 1;
+if MyLastBlockHash <> NetLastBlockHash.Value then result := 2;
+if MySumarioHash <> NetSumarioHash.Value then result := 3;
+if MyResumenHash <> NetResumenHash.Value then result := 4;
+if Copy(MyMNsHash,1,5) <>  NetMNsHash.value then result := 5;
+if MyGVTsHash <> NetGVTSHash.Value then result := 6;
+if MyCFGHash <> NETCFGHash.Value then result := 7;
 End;
 
 // Actualiza mi informacion para compoartirla en la red
@@ -984,8 +981,9 @@ MySumarioHash := HashMD5File(SumarioFilename);
 MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
 LastBlockData := LoadBlockDataHeader(MyLastBlock);
 MyResumenHash := HashMD5File(ResumenFilename);
-if MyResumenHash = NetResumenHash.Value then ForceCompleteHeadersDownload := false;
+  if MyResumenHash = NetResumenHash.Value then ForceCompleteHeadersDownload := false;
 MyMNsHash     := HashMD5File(MasterNodesFilename);
+MyCFGHash     := Copy(HAshMD5String(GetNosoCFGString),1,5);
 U_PoSGrid := true;
 SetCurrentJob('UpdateMyData',false);
 End;
@@ -1125,7 +1123,7 @@ else if ( (NetGVTSHash.Value<>MyGVTsHash) and (LasTimeGVTsRequest+5<UTCTime) and
    LasTimeGVTsRequest := UTCTime;
    AddLineToDebugLog('console','GVTs File requested to '+conexiones[NetMNsChecks.Slot].ip);
    end;
-if IsAllSynced then Last_ActualizarseConLaRed := Last_ActualizarseConLaRed+5;
+if IsAllSynced=0 then Last_ActualizarseConLaRed := Last_ActualizarseConLaRed+5;
 SetCurrentJob('ActualizarseConLaRed',false);
 End;
 
@@ -1331,25 +1329,6 @@ TRY
 EXCEPT on E: Exception do
    begin
    AddLineToDebugLog('console','ERROR RETRIEVING LAST RELEASE DATA: '+E.Message);
-   end;
-END;//TRY
-Conector.Free;
-result := readedLine;
-End;
-
-Function GetWebSeedNodes():String;
-var
-  readedLine : string = '';
-  Conector : TFPHttpClient;
-Begin
-Conector := TFPHttpClient.Create(nil);
-conector.ConnectTimeout:=1000;
-conector.IOTimeout:=1000;
-TRY
-   readedLine := Conector.SimpleGet('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/seednodes.txt');
-EXCEPT on E: Exception do
-   begin
-   AddLineToDebugLog('console','ERROR RETRIEVING WebSeedNodes: '+E.Message);
    end;
 END;//TRY
 Conector.Free;

@@ -25,7 +25,6 @@ Function GetBlockPoSes(BlockNumber:integer): BlockArraysPos;
 Function GetBlockMNs(BlockNumber:integer): BlockArraysPos;
 Function BlockAge():integer;
 Function NextBlockTimeStamp():Int64;
-Function RemainingTillNextBlock():String;
 Function IsBlockOpen():boolean;
 Function GEtNSLBlkOrdInfo(LineText:String):String;
 
@@ -34,7 +33,28 @@ implementation
 Uses
   mpDisk,mpProtocol, mpGui, mpparser, mpRed;
 
-// Crea el bloque CERO con los datos por defecto
+Function CreateDevPaymentOrder(number:integer;timestamp,amount:int64):OrderData;
+Begin
+Result := Default(OrderData);
+
+Result.Block      := number;
+//Result.OrderID    :='';
+Result.OrderLines := 1;
+Result.OrderType  := 'PROJCT';
+Result.TimeStamp  := timestamp-1;
+Result.Reference  := 'null';
+Result.TrxLine    :=1;
+Result.sender     := 'COINBASE';
+Result.Address    := 'COINBASE';
+Result.Receiver   := 'NpryectdevepmentfundsGE';
+Result.AmmountFee := 0;
+Result.AmmountTrf := amount;
+Result.Signature  := 'COINBASE';
+Result.TrfrID     := GetTransferHash(Result.TimeStamp.ToString+'COINBASE'+'NpryectdevepmentfundsGE'+IntToStr(amount)+IntToStr(MyLastblock));
+Result.OrderID    := '1'+Result.TrfrID;
+End;
+
+// Build the default block 0
 Procedure CrearBloqueCero();
 Begin
 BuildNewBlock(0,GenesysTimeStamp,'',adminhash,'');
@@ -58,6 +78,9 @@ var
   ArrayLastBlockTrxs : BlockOrdersArray;
   ExistsInLastBlock : boolean;
   Count2 : integer;
+
+  DevsTotalReward : int64 = 0;
+  DevOrder        : OrderData;
 
   PoScount : integer = 0;
   PosRequired, PosReward: int64;
@@ -233,6 +256,14 @@ if not errored then
             end;
          end;
       end;
+   // Project funds payment
+   if numero >= PoSBlockEnd then
+      begin
+      DevsTotalReward := ((GetBlockReward(Numero)+MinerFee)*GetDevPercentage(Numero)) div 10000;
+      DevORder := CreateDevPaymentOrder(numero,TimeStamp,DevsTotalReward);
+      UpdateSumario('NpryectdevepmentfundsGE',DevsTotalReward,0,IntToStr(Numero));
+      insert(DevORder,ListaOrdenes,length(listaordenes));
+      end;
    ProcessArrPays(IntToStr(Numero));
    if GVTsTransfered>0 then
       begin
@@ -258,25 +289,31 @@ if not errored then
    if numero >= PoSBlockStart then
       begin
       SetLength(PoSAddressess,0);
-      PosRequired := (GetSupply(numero)*PosStackCoins) div 10000;
-      EnterCriticalSection(CSSumary);
-      for contador := 0 to length(ListaSumario)-1 do
+      PoSReward := 0;
+      PosCount := 0;
+      PosTotalReward := 0;
+      if numero < PosBlockEnd then
          begin
-         if listasumario[contador].Balance >= PosRequired then
+         PosRequired := (GetSupply(numero)*PosStackCoins) div 10000;
+         EnterCriticalSection(CSSumary);
+         for contador := 0 to length(ListaSumario)-1 do
             begin
-            SetLength(PoSAddressess,length(PoSAddressess)+1);
-            PoSAddressess[length(PoSAddressess)-1].address:=listasumario[contador].Hash;
+            if listasumario[contador].Balance >= PosRequired then
+               begin
+               SetLength(PoSAddressess,length(PoSAddressess)+1);
+               PoSAddressess[length(PoSAddressess)-1].address:=listasumario[contador].Hash;
+               end;
             end;
+         ListaSumario[0].LastOP:=numero;  // Actualizar el ultimo bloque añadido al sumario
+         LeaveCriticalSection(CSSumary);
+         PoScount := length(PoSAddressess);
+         PosTotalReward := ((GetBlockReward(Numero)+MinerFee)*GetPoSPercentage(Numero)) div 10000;
+         PosReward := PosTotalReward div PoScount;
+         PosTotalReward := PoSCount * PosReward;
+         //pay POS
+         for contador := 0 to length(PoSAddressess)-1 do
+            UpdateSumario(PoSAddressess[contador].address,PosReward,0,IntToStr(Numero));
          end;
-      ListaSumario[0].LastOP:=numero;  // Actualizar el ultimo bloque añadido al sumario
-      LeaveCriticalSection(CSSumary);
-      PoScount := length(PoSAddressess);
-      PosTotalReward := ((GetBlockReward(Numero)+MinerFee)*GetPoSPercentage(Numero)) div 10000;
-      PosReward := PosTotalReward div PoScount;
-      PosTotalReward := PoSCount * PosReward;
-      //pay POS
-      for contador := 0 to length(PoSAddressess)-1 do
-         UpdateSumario(PoSAddressess[contador].address,PosReward,0,IntToStr(Numero));
       end;
    EndPerformance('NewBLOCK_PoS');
    SetCurrentJob('NewBLOCK_PoS',false);
@@ -315,7 +352,6 @@ if not errored then
          begin
          UpdateSumario(MNsAddressess[contador].address,MNsReward,0,IntToStr(Numero));
          end;
-
       EndPerformance('NewBLOCK_MNs');
       end;// End of MNS payment procecessing
 
@@ -325,7 +361,7 @@ if not errored then
    ClearReceivedOrdersIDs;
 
    // Pago del minero
-   PoWTotalReward := (GetBlockReward(Numero)+MinerFee)-PosTotalReward-MNsTotalReward;
+   PoWTotalReward := (GetBlockReward(Numero)+MinerFee)-PosTotalReward-MNsTotalReward-DevsTotalReward;
    UpdateSumario(Minero,PoWTotalReward,0,IntToStr(numero));
    // Actualizar el ultimo bloque añadido al sumario
    // Guardar el sumario
@@ -389,6 +425,10 @@ if not errored then
    U_DataPanel := true;
    SetCurrentJob('BuildNewBlock',false);
    EndPerformance('BuildNewBlock');
+   end
+else
+   begin
+   OutText('Failed to build the block',true);
    end;
 U_PoSGrid := true;
 BuildingBlock := 0;
@@ -595,7 +635,7 @@ MemStr := TMemoryStream.Create;
       MemStr.Read(resultado[Counter].address,Sizeof(resultado[Counter]));
    SetLength(resultado,totalposes+1);
    resultado[length(resultado)-1].address := IntToStr(posreward);
-   Except on E: Exception do // nothing, the block is not founded
+   Except on E: Exception do // nothing, the block is not found
    end;
 MemStr.Free;
 Result := resultado;
@@ -708,7 +748,7 @@ End;
 
 Function BlockAge():integer;
 Begin
-Result := (UTCtime-LastBlockData.TimeEnd+1) mod 600;
+Result := UTCtime mod 600;
 End;
 
 Function NextBlockTimeStamp():Int64;
@@ -719,12 +759,6 @@ Begin
 CurrTime := UTCTime;
 Remains := 600-(CurrTime mod 600);
 Result := CurrTime+Remains;
-End;
-
-Function RemainingTillNextBlock():String;
-Begin
-if BuildNMSBlock = 0 then Result := 'Unknown'
-else result := IntToStr(BuildNMSBlock-UTCTime);
 End;
 
 Function IsBlockOpen():boolean;

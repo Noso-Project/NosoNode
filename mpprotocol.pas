@@ -1140,7 +1140,7 @@ if not IsValidPool(Miner) then exitcode := 9;
 if not VerifySignedString(Miner+Hash+TimeStamp,Signature,PublicKey) then
    begin
    Exitcode := 11;
-   If miner <> 'NpryectdevepmentfundsGE' then AddLineToDebugLog('events',TimeToStr(now)+'Invalid signature from '+miner);
+   //If miner <> 'NpryectdevepmentfundsGE' then AddLineToDebugLog('events',TimeToStr(now)+'Invalid signature from '+miner);
    end;
 if exitcode>0 then
    begin

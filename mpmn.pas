@@ -544,7 +544,7 @@ End;
 
 Function GetVerificationMNLine(ToIp:String):String;
 Begin
-if IsAllSynced then Result := 'True '+GetSyncTus+' '+MN_Funds+' '+ToIp
+if IsAllSynced=0 then Result := 'True '+GetSyncTus+' '+MN_Funds+' '+ToIp
 else Result := 'False';
 End;
 

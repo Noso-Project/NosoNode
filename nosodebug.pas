@@ -35,7 +35,7 @@ Procedure BeginPerformance(Tag:String);
 Procedure EndPerformance(Tag:String);
 Procedure CreateNewLog(LogName: string; LogFileName:String = '');
 Procedure AddLineToDebugLog(LogTag,NewLine : String);
-Function GetLogLine(LogTag:string):String;
+Function GetLogLine(LogTag:string;out LineContent:string):boolean;
 
 var
   ArrPerformance : array of TPerformance;
@@ -46,6 +46,7 @@ var
 
 IMPLEMENTATION
 
+{Starts a performance measure}
 Procedure BeginPerformance(Tag:String);
 var
   counter : integer;
@@ -69,6 +70,7 @@ Begin
   Insert(NewData,ArrPerformance,length(ArrPerformance));
 End;
 
+{Ends a performance}
 Procedure EndPerformance(Tag:String);
 var
   counter  : integer;
@@ -91,6 +93,7 @@ Begin
     end;
 End;
 
+{private: verify that the file for the log exists}
 Procedure InitializeLogFile(Filename:String);
 var
   LFile : textfile;
@@ -107,6 +110,7 @@ Begin
     end;
 End;
 
+{private: if enabled, saves the line to the log file}
 Procedure SaveTextToDisk(TextLine, Filename:String);
 var
   LFile  : textfile;
@@ -128,6 +132,7 @@ Begin
    {$I-}Closefile(LFile){$I+};
 End;
 
+{creates a new block and assigns an optional file to save it}
 Procedure CreateNewLog(LogName: string; LogFileName:String = '');
 var
   NewData : TLogND;
@@ -147,6 +152,7 @@ Begin
   Insert(NewData,ArrNDLogs,length(ArrNDLogs));
 End;
 
+{Adds one line to the specified log}
 Procedure AddLineToDebugLog(LogTag,NewLine : String);
 var
   counter : integer;
@@ -163,11 +169,12 @@ Begin
     end;
 End;
 
-Function GetLogLine(LogTag:string):String;
+{Retireves the oldest line in the specified log, assigning value to LineContent}
+Function GetLogLine(LogTag:string;out LineContent:string):boolean;
 var
   counter : integer;
 Begin
-  Result:= '';
+  Result:= False;
   For counter := 0 to length(ArrNDLogs)-1 do
     begin
     if ArrNDLogs[counter].tag = Uppercase(LogTag) then
@@ -175,9 +182,10 @@ Begin
       if ArrNDSLs[counter].Count>0 then
         begin
         EnterCriticalSection(ArrNDCSs[counter]);
-        result := ArrNDSLs[counter][0];
+        LineContent := ArrNDSLs[counter][0];
+        Result := true;
         ArrNDSLs[counter].Delete(0);
-        if ArrNDLogs[counter].ToDisk then SaveTextToDisk(result,ArrNDLogs[counter].Filename);
+        if ArrNDLogs[counter].ToDisk then SaveTextToDisk(LineContent,ArrNDLogs[counter].Filename);
         LeaveCriticalSection(ArrNDCSs[counter]);
         break;
         end;
@@ -185,7 +193,7 @@ Begin
     end;
 End;
 
-{Free all data at close}
+{Private: Free all data at close}
 Procedure FreeAllLogs;
 var
   counter : integer;

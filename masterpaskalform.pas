@@ -705,6 +705,7 @@ CONST
   MNsPercentage = 2000;
   PosStackCoins = 20;               // PoS stack ammoount: supply*20 / PoSStack
   PoSBlockStart : integer = 8425;   // first block with PoSPayment
+  PoSBlockEnd   : integer = 90000;
   MNBlockStart  : integer = 48010;  // First block with MNpayments
   InitialBlockDiff = 60;            // Dificultad durante los 20 primeros bloques
   GenesysTimeStamp = 1615132800;    // 1615132800;
@@ -953,6 +954,7 @@ var
   UpdatesDirectory    :string= 'NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator;
   LogsDirectory       :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator;
   ExceptLogFilename   :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'exceptlog.txt';
+  ConsoleLogFilename  :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'console.txt';
   ResumenFilename     :string= 'NOSODATA'+DirectorySeparator+'blchhead.nos';
   EventLogFilename    :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'eventlog.txt';
   AdvOptionsFilename  :string= 'NOSODATA'+DirectorySeparator+'advopt.txt';
@@ -1012,19 +1014,10 @@ procedure TUpdateLogs.Execute;
 Begin
 While not terminated do
   begin
-  sleep(1);
-  Repeat
-    LastLogLine := GetLogLine('console');
-    if LastLogLine <> '' then Synchronize(@UpdateConsole);
-  until LastLogLine = '';
-  Repeat
-    LastLogLine := GetLogLine('events');
-    if LastLogLine <> '' then Synchronize(@UpdateEvents);
-  until LastLogLine = '';
-  Repeat
-    LastLogLine := GetLogLine('exceps');
-    if LastLogLine <> '' then Synchronize(@UpdateExceps);
-  until LastLogLine = '';
+  sleep(10);
+  if GetLogLine('console',lastlogline) then Synchronize(@UpdateConsole);
+  if GetLogLine('events',lastlogline) then Synchronize(@UpdateEvents);
+  if GetLogLine('exceps',lastlogline) then Synchronize(@UpdateExceps);
   end;
 End;
 
@@ -1589,14 +1582,15 @@ If Protocolo > 0 then
    begin
    If ((BlockAge<590) and (GetNMSData.Miner<> '')) then
       begin
-      if BuildNMSBlock = 0 then BuildNMSBlock := NextBlockTimeStamp;
+      if BuildNMSBlock = 0 then
+         begin
+         BuildNMSBlock := NextBlockTimeStamp;
+         AddLineToDebugLog('console','Next block time set to: '+TimeStampToDate(BuildNMSBlock));
+         end;
       end
-   else BuildNMSBlock := 0;
    end;
 RestartTimer.Enabled:=false;
-StaTimeLab.Caption:=TimestampToDate(UTCTime)+' ('+IntToStr(UTCTime-EngineLastUpdate)+')';
-//StaTimeLab.Update;
-//if ( ((UTCTime.ToInt64 > EngineLastUpdate+WO_AntiFreezeTime) and (WO_AntiFreeze)) or (G_CloseRequested) ) then
+StaTimeLab.Caption:=TimestampToDate(UTCTime);
 if G_CloseRequested then
    begin
    if 1=1 then
@@ -1624,7 +1618,7 @@ UpdateLogsThread := TUpdateLogs.Create(true);
 UpdateLogsThread.FreeOnTerminate:=true;
 UpdateLogsThread.Start;
 if not directoryexists(LogsDirectory) then CreateDir(LogsDirectory);
-CreateNewLog('console');
+CreateNewLog('console',ConsoleLogFilename);
 CreateNewLog('events',EventLogFilename);
 CreateNewLog('exceps',ExceptLogFilename);
 if not directoryexists('NOSODATA') then CreateDir('NOSODATA');
@@ -1982,8 +1976,11 @@ Begin
 if EngineLastUpdate <> UTCtime then EngineLastUpdate := UTCtime;
 Form1.Latido.Enabled:=false;
 CheckClipboardForPays();
-if ( (UTCTime >= BuildNMSBlock) and (BuildNMSBlock>0) and (GetNMSData.Miner<>'') and (MyConStatus=3) ) then
+if ( (UTCTime >= BuildNMSBlock) and (BuildNMSBlock>0) and (MyConStatus=3) ) then
+   begin
+   AddLineToDebugLog('console','Starting construction of block '+(MyLastBlock+1).ToString);
    BuildNewBlock(MyLastBlock+1,BuildNMSBlock,MyLastBlockHash,GetNMSData.Miner,GetNMSData.Hash);
+   end;
 BeginPerformance('ActualizarGUI');
 ActualizarGUI();
 EndPerformance('ActualizarGUI');

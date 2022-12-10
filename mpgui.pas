@@ -288,6 +288,8 @@ End;
 
 // Actualiza los datos en el grid
 Procedure ActualizarGUI();
+Const
+  LocalLastUpdate : integer = 0;
 var
   contador : integer = 0;
 Begin
@@ -315,6 +317,9 @@ if ( (form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor) and (LastUpdateMonit
    LastUpdateMonitor := UTCTime;
    EndPerformance('UpdateGUIMonitor');
    end;
+
+if LocalLastUpdate = UTCTime then exit;
+LocalLastUpdate := UTCTime;
 
 if U_DataPanel then
    begin
