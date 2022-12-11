@@ -5,7 +5,7 @@ unit mpCoin;
 interface
 
 uses
-  Classes, SysUtils,MasterPaskalForm,mpgui,Clipbrd, strutils, nosodebug;
+  Classes, SysUtils,MasterPaskalForm,mpgui,Clipbrd, strutils, nosodebug,nosogeneral;
 
 function GetAddressAvailable(address:string):int64;
 function GetAddressBalance(address:string):int64;
@@ -25,10 +25,7 @@ Function SendFundsFromAddress(Origen, Destino:String; monto, comision:int64; ref
   ordertime:String;linea:integer):OrderData;
 Procedure CheckForMyPending();
 function GetMaximunToSend(monto:int64):int64;
-function cadtonum(cadena:string;pordefecto:int64;erroroutput:string):int64;
-Function IsValidIP(IpString:String):boolean;
 function GetCurrentStatus(mode:integer):String;
-function GetSupply(untilblock:integer):int64;
 function GetMyPosAddressesCount():integer;
 function ShowHashrate(hashrate:int64):string;
 function GetBlockHeaders(numberblock:integer):string;
@@ -426,39 +423,6 @@ Diferencia := Disponible-envio;
 result     := maximo+diferencia;
 End;
 
-// Convierte una cadena a un numero y devuelve un error si se llega a generar
-function cadtonum(cadena:string;pordefecto:int64;erroroutput:string):int64;
-Begin
-   try
-   result := strtoint64(cadena)
-   Except on E:Exception do
-      begin
-      result := pordefecto;
-      AddLineToDebugLog('events',TimeToStr(now)+erroroutput);
-      if copy(erroroutput,1,9) = '**CRITICAL:' then
-         raise exception.Create(erroroutput+SLINEBREAK+'We recomend to restart the program after this');
-      end;
-   end;
-End;
-
-Function IsValidIP(IpString:String):boolean;
-var
-  valor1,valor2,valor3,valor4: integer;
-Begin
-result := true;
-IPString := StringReplace(IPString,'.',' ',[rfReplaceAll, rfIgnoreCase]);
-valor1 := StrToIntDef(GetCommand(IPString),-1);
-valor2 := StrToIntDef(Parameter(IPString,1),-1);
-valor3 := StrToIntDef(Parameter(IPString,2),-1);
-valor4 := StrToIntDef(Parameter(IPString,3),-1);
-if ((valor1 <0) or (valor1>255)) then result := false;
-if ((valor2 <0) or (valor2>255)) then result := false;
-if ((valor3 <0) or (valor3>255)) then result := false;
-if ((valor4 <0) or (valor4>255)) then result := false;
-if ((valor1=192) and (valor2=168)) then result := false;
-if ((valor1=127) and (valor2=0)) then result := false;
-End;
-
 function GetCurrentStatus(mode:integer):String;
 var
   Resultado : string = '';
@@ -475,12 +439,6 @@ if mode = 1 then
    end;
 result := resultado;
 End;
-
-function GetSupply(untilblock:integer):int64;
-Begin
-result := (untilblock*5000000000)+1030390730000;
-End;
-
 
 function GetMyPosAddressesCount():integer;
 var

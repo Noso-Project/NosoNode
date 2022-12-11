@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, mpCripto, nosotime, mpblock, mpcoin,
   dialogs, fileutil, forms, idglobal, strutils, mpRPC, DateUtils, Clipbrd,translation,
-  idContext, math, mpMN, MPSysCheck, nosodebug;
+  idContext, math, mpMN, MPSysCheck, nosodebug, nosogeneral;
 
 procedure ProcessLinesAdd(const ALine: String);
 procedure OutgoingMsjsAdd(const ALine: String);
@@ -16,8 +16,6 @@ function OutgoingMsjsGet(): String;
 Procedure ProcesarLineas();
 function GetOpData(textLine:string):String;
 Procedure ParseCommandLine(LineText:string);
-Function GetCommand(LineText:String):String;
-Function Parameter(LineText:String;ParamNumber:int64):String;
 Procedure ShowNodes();
 Procedure ShowBots();
 Procedure ShowSlots();
@@ -38,7 +36,6 @@ Procedure ShowBlchHead(number:integer);
 Procedure SetDefaultAddress(linetext:string);
 Procedure ParseShowBlockInfo(LineText:string);
 Procedure ShowBlockInfo(numberblock:integer);
-Procedure showmd160(linetext:string);
 Procedure CustomizeAddress(linetext:string);
 Procedure Parse_SendFunds(LineText:string);
 function SendFunds(LineText:string;showOutput:boolean=true):string;
@@ -47,7 +44,6 @@ Function SendGVT(LineText:string;showOutput:boolean=true):string;
 Procedure ShowHalvings();
 Procedure GroupCoins(linetext:string);
 Procedure SetServerPort(LineText:string);
-Procedure Sha256(LineText:string);
 Procedure TestParser(LineText:String);
 Procedure DeleteBot(LineText:String);
 Procedure showCriptoThreadinfo();
@@ -55,8 +51,6 @@ Procedure Parse_RestartNoso();
 Procedure ShowNetworkDataInfo();
 Procedure GetOwnerHash(LineText:string);
 Procedure CheckOwnerHash(LineText:string);
-Function CreateAppCode(Texto:string):string;
-Function DecodeAppCode(Texto:string):string;
 function AvailableUpdates():string;
 Procedure RunUpdate(linea:string);
 Procedure SendAdminMessage(linetext:string);
@@ -76,7 +70,6 @@ Procedure WebWallet();
 Procedure ExportKeys(linea:string);
 
 // CONSULTING
-Procedure ShowDiftory();
 Function MainNetHashrate(blocks:integer = 100):int64;
 Procedure ListGVTs();
 
@@ -179,7 +172,7 @@ Procedure ParseCommandLine(LineText:string);
 var
   Command : String;
 begin
-Command :=GetCommand(Linetext);
+Command :=Parameter(Linetext,0);
 if not AnsiContainsStr(HideCommands,Uppercase(command)) then AddLineToDebugLog('Console','>> '+Linetext);
 if UpperCase(Command) = 'VER' then AddLineToDebugLog('console',ProgramVersion+SubVersion)
 else if UpperCase(Command) = 'SERVERON' then StartServer()
@@ -208,7 +201,6 @@ else if UpperCase(Command) = 'RESUMEN' then ShowBlchHead(StrToIntDef(Parameter(L
 else if UpperCase(Command) = 'SETDEFAULT' then SetDefaultAddress(LineText)
 else if UpperCase(Command) = 'LBINFO' then ShowBlockInfo(MyLastBlock)
 else if UpperCase(Command) = 'TIMESTAMP' then AddLineToDebugLog('console',UTCTimeStr)
-else if UpperCase(Command) = 'MD160' then showmd160(LineText)
 else if UpperCase(Command) = 'UNDOBLOCK' then UndoneLastBlock()  // to be removed
 else if UpperCase(Command) = 'CUSTOMIZE' then CustomizeAddress(LineText)
 else if UpperCase(Command) = 'SENDTO' then Parse_SendFunds(LineText)
@@ -218,8 +210,9 @@ else if UpperCase(Command) = 'REBUILDSUMARY' then RebuildSumario(MyLastBlock)
 else if UpperCase(Command) = 'REBUILDHEADERS' then BuildHeaderFile(MyLastBlock)
 else if UpperCase(Command) = 'GROUPCOINS' then Groupcoins(linetext)
 else if UpperCase(Command) = 'SETPORT' then SetServerPort(LineText)
-else if UpperCase(Command) = 'SHA256' then Sha256(LineText)
+else if UpperCase(Command) = 'SHA256' then AddLineToDebugLog('console',HashSha256String(Parameter(LineText,1)))
 else if UpperCase(Command) = 'MD5' then AddLineToDebugLog('console',HashMD5String(Parameter(LineText,1)))
+else if UpperCase(Command) = 'MD160' then AddLineToDebugLog('console',HashMD160String(Parameter(LineText,1)))
 else if UpperCase(Command) = 'TOTRAYON' then ToTrayON()
 else if UpperCase(Command) = 'TOTRAYOFF' then ToTrayOFF()
 else if UpperCase(Command) = 'CLEAR' then form1.Memoconsola.Lines.clear
@@ -279,7 +272,6 @@ else if UpperCase(Command) = 'HEADSIZE' then AddLineToDebugLog('console',GetHead
 else if UpperCase(Command) = 'CHECKSUM' then AddLineToDebugLog('console',BMDecTo58(BMB58resumen(parameter(linetext,1))))
 
 // CONSULTING
-else if UpperCase(Command) = 'DIFTORY' then ShowDiftory()
 else if UpperCase(Command) = 'NETRATE' then AddLineToDebugLog('console','Average Mainnet hashrate: '+HashrateToShow(MainNetHashrate))
 else if UpperCase(Command) = 'LISTGVT' then ListGVTs()
 else if UpperCase(Command) = 'SYSTEM' then ShowSystemInfo(Linetext)
@@ -292,8 +284,6 @@ else if UpperCase(Command) = 'POSSTACK' then showPosrequired(linetext)
 else if UpperCase(Command) = 'BLOCKMNS' then ShowBlockMNs(LineText)
 else if UpperCase(Command) = 'MYIP' then AddLineToDebugLog('console',GetMiIP)
 else if UpperCase(Command) = 'SHOWUPDATES' then AddLineToDebugLog('console',StringAvailableUpdates)
-else if UpperCase(Command) = 'CREATEAPPCODE' then AddLineToDebugLog('console',CreateAppCode(parameter(linetext,1)))
-else if UpperCase(Command) = 'DECODEAPPCODE' then AddLineToDebugLog('console',DecodeAppCode(parameter(linetext,1)))
 else if UpperCase(Command) = 'SETMODE' then SetCFGData(parameter(linetext,1),0)
 else if UpperCase(Command) = 'ADDNODE' then AddCFGData(parameter(linetext,1),1)
 else if UpperCase(Command) = 'DELNODE' then RemoveCFGData(parameter(linetext,1),1)
@@ -317,74 +307,6 @@ else if UpperCase(Command) = 'POST' then PostOffer(LineText)
 else AddLineToDebugLog('console','Unknown command: '+Command);  // Unknow command
 end;
 
-// Obtiene el comando de una linea
-Function GetCommand(LineText:String):String;
-var
-  Temp : String = '';
-  ThisChar : Char;
-  Contador : int64 = 1;
-Begin
-while contador <= Length(LineText) do
-   begin
-   ThisChar := Linetext[contador];
-   if  ThisChar = ' ' then break
-   else temp := temp+ ThisChar;
-   contador := contador+1;
-   end;
-Result := Temp;
-End;
-
-// Devuelve un parametro del texto
-Function Parameter(LineText:String;ParamNumber:int64):String;
-var
-  Temp : String = '';
-  ThisChar : Char;
-  Contador : int64 = 1;
-  WhiteSpaces : int64 = 0;
-  parentesis : boolean = false;
-Begin
-while contador <= Length(LineText) do
-   begin
-   ThisChar := Linetext[contador];
-   if ((thischar = '(') and (not parentesis)) then parentesis := true
-   else if ((thischar = '(') and (parentesis)) then
-      begin
-      result := '';
-      exit;
-      end
-   else if ((ThisChar = ')') and (parentesis)) then
-      begin
-      if WhiteSpaces = ParamNumber then
-         begin
-         result := temp;
-         exit;
-         end
-      else
-         begin
-         parentesis := false;
-         temp := '';
-         end;
-      end
-   else if ((ThisChar = ' ') and (not parentesis)) then
-      begin
-      WhiteSpaces := WhiteSpaces +1;
-      if WhiteSpaces > Paramnumber then
-         begin
-         result := temp;
-         exit;
-         end;
-      end
-   else if ((ThisChar = ' ') and (parentesis) and (WhiteSpaces = ParamNumber)) then
-      begin
-      temp := temp+ ThisChar;
-      end
-   else if WhiteSpaces = ParamNumber then temp := temp+ ThisChar;
-   contador := contador+1;
-   end;
-if temp = ' ' then temp := '';
-Result := Temp;
-End;
-
 // muestra los nodos
 Procedure ShowNodes();
 var
@@ -392,7 +314,7 @@ var
 Begin
 for contador := 0 to length(ListaNodos) - 1 do
    AddLineToDebugLog('console',IntToStr(contador)+'- '+Listanodos[contador].ip+':'+Listanodos[contador].port+
-   ' '+TimeSinceStamp(CadToNum(Listanodos[contador].LastConexion,0,'STI fails on shownodes')));
+   ' '+TimeSinceStamp(StrToInt64Def(Listanodos[contador].LastConexion,0)));
 End;
 
 // muestra los Bots
@@ -786,14 +708,6 @@ else
    AddLineToDebugLog('console','Block file do not exists: '+numberblock.ToString);
 End;
 
-Procedure showmd160(linetext:string);
-var
-  tohash : string;
-Begin
-tohash := Parameter(linetext,1);
-AddLineToDebugLog('console',HashMD160String(tohash));
-End;
-
 Procedure CustomizeAddress(linetext:string);
 var
   address, AddAlias, TrfrHash, OrderHash, CurrTime : String;
@@ -866,7 +780,6 @@ if procesar then
            '0'+' '+                         // amount trfr
            '[[RESULT]] '+//GetStringSigned('Customize this '+address+' '+addalias,ListaDirecciones[DireccionEsMia(address)].PrivateKey)+' '+
            TrfrHash);      // trfrhash
-   StartCriptoThread();
    end;
 End;
 
@@ -874,7 +787,6 @@ End;
 Procedure Parse_SendFunds(LineText:string);
 Begin
 AddCriptoOp(3,linetext,'');
-StartCriptoThread();
 End;
 
 // Ejecuta una orden de transferencia
@@ -989,7 +901,6 @@ End;
 Procedure Parse_SendGVT(LineText:string);
 Begin
 AddCriptoOp(6,linetext,'');
-StartCriptoThread();
 End;
 
 Function SendGVT(LineText:string;showOutput:boolean=true):string;
@@ -1094,7 +1005,8 @@ for contador := 0 to HalvingSteps do
    block2 := (BlockHalvingInterval*(contador+1))-1;
    reward := InitialReward div StrToInt64(BMExponente('2',IntToStr(contador)));
    MarketCap := marketcap+(reward*BlockHalvingInterval);
-   Texto :='From block '+IntToStr(block1)+' until '+IntToStr(block2)+': '+Int2curr(reward); //'From block '+' until '
+   Texto := Format('From block %7d until %7d : %11s',[block1,block2,Int2curr(reward)]);
+   //Texto :='From block '+IntToStr(block1)+' until '+IntToStr(block2)+': '+Int2curr(reward); //'From block '+' until '
    AddLineToDebugLog('console',Texto);
    end;
 AddLineToDebugLog('console','And then '+int2curr(0)); //'And then '
@@ -1140,15 +1052,6 @@ else
    MN_Port := NewPort;
    OutText('New listening port: '+NewPort,false,2);
    end;
-End;
-
-// regresa el sha256 de una cadena
-Procedure Sha256(LineText:string);
-var
-  TextToSha : string = '';
-Begin
-TextToSha :=  parameter(linetext,1);
-AddLineToDebugLog('console',HashSha256String(TextToSha));
 End;
 
 // prueba la lectura de parametros de la linea de comandos
@@ -1264,16 +1167,6 @@ if VerifySignedString('I OWN THIS ADDRESS '+direc+firmtime,firma,pubkey) then
    AddLineToDebugLog('console',direc+' verified '+TimeSinceStamp(StrToInt64(firmtime))+' ago.')
 else AddLineToDebugLog('console','Invalid verification');
 EndPerformance('CheckOwnerHash');
-End;
-
-Function CreateAppCode(Texto:string):string;
-Begin
-result := UPPERCASE(XorEncode(HashSha256String('nosoapp'),Texto));
-End;
-
-Function DecodeAppCode(Texto:string):string;
-Begin
-result := XorDecode(HashSha256String('nosoapp'), texto);
 End;
 
 // devuelve una cadena con los updates disponibles
@@ -1437,12 +1330,15 @@ End;
 // Shows all the info of a specified address
 Procedure ShowAddressInfo(LineText:string);
 var
-  addtoshow : string;
+  addtoshow, addhash, addalias : string;
   sumposition : integer;
   onsumary, pending : int64;
+  counter : integer;
+  OwnedGVTs : string = '';
 Begin
 addtoshow := parameter(LineText,1);
 sumposition := AddressSumaryIndex(addtoshow);
+addhash := ListaSumario[sumposition].Hash;
 if sumposition<0 then
    AddLineToDebugLog('console','Address do not exists in sumary.')
 else
@@ -1455,8 +1351,20 @@ else
                     'Incoming  : '+Int2Curr(GetAddressIncomingpays(ListaSumario[sumposition].Hash))+slinebreak+
                     'Outgoing  : '+Int2curr(pending)+slinebreak+
                     'Available : '+int2curr(onsumary-pending));
-   if AnsiContainsStr(GetMN_FileText,addtoshow) then
+   if AnsiContainsStr(GetMN_FileText,addhash) then
       AddLineToDebugLog('console','Masternode: Active');
+   EnterCriticalSection(CSGVTsArray);
+   for counter := 0 to length(ArrGVTs)-1 do
+      begin
+      if ArrGVTs[counter].owner = addhash then
+         begin
+         OwnedGVTs := OwnedGVTs+counter.ToString+' ';
+         end;
+      end;
+   LeaveCriticalSection(CSGVTsArray);
+   OwnedGVTs := Trim(OwnedGVTs);
+   if OwnedGVTs <> '' then
+      AddLineToDebugLog('console','GVTs      : '+OwnedGVTs);
    end;
 End;
 
@@ -1572,7 +1480,7 @@ for counter := 1 to MyLastBlock do
    begin
    Header := LoadBlockDataHeader(counter);
    totalcoins := totalcoins+ header.MinerFee;
-   if counter mod 1000 = 0 then
+   if counter mod 100 = 0 then
      Begin
      info('TOTAL FEES '+counter.ToString);
      application.ProcessMessages;
@@ -1684,31 +1592,6 @@ AddLineToDebugLog('console','Maximun to send : '+Int2Curr(gmts));
 AddLineToDebugLog('console','Fee paid        : '+Int2Curr(fee));
 if gmts+fee = monto then AddLineToDebugLog('console','✓ Match')
 else AddLineToDebugLog('console','✗ Error')
-End;
-
-Procedure ShowDiftory();
-var
-  counter : integer;
-  Header : BlockHeaderData;
-  highDiff : integer = 0;
-  highblock : integer = 0;
-Begin
-for counter := 1 to MyLastBlock do
-   begin
-   Header := LoadBlockDataHeader(counter);
-   if counter mod 100 = 0 then
-      begin
-      info ('Difftory '+counter.ToString);
-      application.ProcessMessages;
-      end;
-   //AddLineToDebugLog('console',inttostr(counter)+','+IntToStr(Header.Difficult));
-   if Header.Difficult > HighDiff then
-      begin
-      HighDiff := Header.Difficult;
-      highblock := counter;
-      end;
-   end;
-AddLineToDebugLog('console','Highest ever: '+IntToStr(HighDiff)+' on block '+highblock.ToString);
 End;
 
 // List all GVTs owners

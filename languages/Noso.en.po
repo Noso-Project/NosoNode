@@ -153,7 +153,7 @@ msgstr ""
 
 #: tform1.cb_wo_autoupdate.caption
 msgctxt "tform1.cb_wo_autoupdate.caption"
-msgid "Update automatically with directives"
+msgid "Update automatically (Recommended)"
 msgstr ""
 
 #: tform1.cb_wo_multisend.caption

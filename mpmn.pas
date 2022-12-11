@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, mpCripto, MasterPaskalform, mpcoin, mpgui, IdTCPClient, IdGlobal,
-  strutils, nosodebug;
+  strutils, nosodebug, nosogeneral;
 
 Type
 

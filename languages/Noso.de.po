@@ -172,7 +172,7 @@ msgstr "Automatische Verbindung beim Start"
 #, fuzzy
 #| msgid "Install automatically new official releases"
 msgctxt "tform1.cb_wo_autoupdate.caption"
-msgid "Update automatically with directives"
+msgid "Update automatically (Recommended)"
 msgstr "Neue offizielle Versionen automatisch installieren"
 
 #: tform1.cb_wo_multisend.caption

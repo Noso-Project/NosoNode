@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, MasterPaskalForm, process, strutils, MD5, DCPsha256,
   mpsignerutils, base64, HlpHashFactory, mpcoin, nosotime, translation, SbpBase58,
-  SbpBase58Alphabet, ClpConverters, nosodebug;
+  SbpBase58Alphabet, ClpConverters, nosodebug, nosogeneral;
 
 function CreateNewAddress(): WalletData;
 function GetAddressFromPublicKey(PubKey:String):String;
@@ -24,12 +24,9 @@ Procedure RunExternalProgram(ProgramToRun:String);
 function GetStringSigned(StringtoSign, PrivateKey:String):String;
 function VerifySignedString(StringToVerify,B64String,PublicKey:String):boolean;
 function GetTransferHash(TextLine:string):String;
-Function GetTrfrHashText(Order:OrderData):String;
 function GetOrderHash(TextLine:string):String;
 Procedure AddCriptoOp(tipo:integer;proceso, resultado:string);
-Procedure StartCriptoThread();
 Procedure DeleteCriptoOp();
-Function ProcessCriptoOP(aParam:Pointer):PtrInt;
 Function GetMNSignature():string;
 Function EncodeCertificate(certificate:string):string;
 Function DecodeCertificate(certificate:string):string;
@@ -133,15 +130,13 @@ end;
 // RETURNS THE SHA256 OF A STRING
 function HashSha256String(StringToHash:string):string;
 begin
-result :=
-THashFactory.TCrypto.CreateSHA2_256().ComputeString(StringToHash, TEncoding.UTF8).ToString();
+result := THashFactory.TCrypto.CreateSHA2_256().ComputeString(StringToHash, TEncoding.UTF8).ToString();
 end;
 
 // RETURNS HASH MD160 OF A STRING
 function HashMD160String(StringToHash:string):String;
 Begin
-result :=
-THashFactory.TCrypto.CreateRIPEMD160().ComputeString(StringToHash, TEncoding.UTF8).ToString();
+result := THashFactory.TCrypto.CreateRIPEMD160().ComputeString(StringToHash, TEncoding.UTF8).ToString();
 End;
 
 // RETURNS THE MD5 HASH OF A STRING
@@ -162,7 +157,6 @@ for cont := 1 to cantidad do
    begin
    AddCRiptoOp(1,'','');
    end;
-StartCriptoThread();
 End;
 
 // Devuelve el hash MD5 de un archivo
@@ -308,11 +302,6 @@ clave := BMDecTo58(sumatoria);
 Result := 'tR'+Resultado+clave;
 End;
 
-Function GetTrfrHashText(Order:OrderData):String;
-Begin
-Result := '';
-End;
-
 // Devuelve el hash de una orden
 function GetOrderHash(TextLine:string):String;
 Begin
@@ -338,12 +327,6 @@ END{Try};
 LeaveCriticalSection(CSCriptoThread);
 End;
 
-// Indica que se pueden empezar a realizar las operaciones del cripto thread
-Procedure StartCriptoThread(); // deprecated
-Begin
-
-End;
-
 // Elimina la operacion cripto
 Procedure DeleteCriptoOp();
 Begin
@@ -359,68 +342,6 @@ if Length(ArrayCriptoOp) > 0 then
    END{Try};
    end;
 LeaveCriticalSection(CSCriptoThread);
-End;
-
-// Procesa las operaciones criptograficas en segundo plano
-Function ProcessCriptoOP(aParam:Pointer):PtrInt;
-var
-  NewAddrss : integer = 0;
-  PosRef : integer; cadena,claveprivada,firma, resultado:string;
-Begin
-Repeat
-   begin
-   if ArrayCriptoOp[0].tipo = 0 then // actualizar balance
-      begin
-      //MyCurrentBalance := GetWalletBalance();
-      end
-   else if ArrayCriptoOp[0].tipo = 1 then // Crear direccion
-      begin
-      SetLength(ListaDirecciones,Length(ListaDirecciones)+1);
-      ListaDirecciones[Length(ListaDirecciones)-1] := CreateNewAddress;
-      S_Wallet := true;
-      U_DirPanel := true;
-      NewAddrss := NewAddrss + 1;
-      end
-   else if ArrayCriptoOp[0].tipo = 2 then // customizar
-      begin
-      posRef := pos('$',ArrayCriptoOp[0].data);
-      cadena := copy(ArrayCriptoOp[0].data,1,posref-1);
-      claveprivada := copy (ArrayCriptoOp[0].data,posref+1,length(ArrayCriptoOp[0].data));
-      firma := GetStringSigned(cadena,claveprivada);
-      resultado := StringReplace(ArrayCriptoOp[0].result,'[[RESULT]]',firma,[rfReplaceAll, rfIgnoreCase]);
-      OutgoingMsjsAdd(resultado);
-      OutText('Customization sent',false,2);
-      end
-    else if ArrayCriptoOp[0].tipo = 3 then // enviar fondos
-      begin
-      TRY
-      Sendfunds(ArrayCriptoOp[0].data);
-      EXCEPT ON E:Exception do
-         AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2501,[E.Message]));
-      END{Try};
-      end
-    else if ArrayCriptoOp[0].tipo = 4 then // recibir customizacion
-      begin
-      TRY
-      PTC_Custom(ArrayCriptoOp[0].data);
-      EXCEPT ON E:Exception do
-         AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2502,[E.Message]));
-      END{Try};
-      end
-    else if ArrayCriptoOp[0].tipo = 5 then // recibir transferencia
-      begin
-      TRY
-      PTC_Order(ArrayCriptoOp[0].data);
-      EXCEPT ON E:Exception do
-         AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2503,[E.Message]));
-      END{Try};
-      end;
-   DeleteCriptoOp();
-   end;
-until length(ArrayCriptoOp) = 0;
-if NewAddrss > 0 then OutText(IntToStr(NewAddrss)+' new addresses',false,2);
-CriptoThreadRunning := false;
-ProcessCriptoOP := 0;
 End;
 
 // Returns the signature for the masternode report

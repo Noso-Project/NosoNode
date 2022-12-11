@@ -12,6 +12,8 @@ Version 0.3.3Aa2
 - Console log implemented.
 - Deprecated GetWebSeedNodes function.
 - IsAllSynced modified.
+- Reimplemented auto-update option with warning.
+- Commented advopt.txt file.
 
 Version 0.3.3Aa1
 

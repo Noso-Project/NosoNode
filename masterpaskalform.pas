@@ -10,7 +10,7 @@ uses
   fileutil, Clipbrd, Menus, formexplore, lclintf, ComCtrls, Spin,
   strutils, math, IdHTTPServer, IdCustomHTTPServer,
   IdHTTP, fpJSON, Types, DefaultTranslator, LCLTranslator, translation, nosodebug,
-  ubarcodes, IdComponent;
+  ubarcodes, IdComponent,nosogeneral;
 
 type
 
@@ -705,7 +705,7 @@ CONST
   MNsPercentage = 2000;
   PosStackCoins = 20;               // PoS stack ammoount: supply*20 / PoSStack
   PoSBlockStart : integer = 8425;   // first block with PoSPayment
-  PoSBlockEnd   : integer = 90000;
+  PoSBlockEnd   : integer = 90000;  // Not definitive yetttt
   MNBlockStart  : integer = 48010;  // First block with MNpayments
   InitialBlockDiff = 60;            // Dificultad durante los 20 primeros bloques
   GenesysTimeStamp = 1615132800;    // 1615132800;
@@ -1068,14 +1068,13 @@ if Continuar then
          EXCEPT on E:Exception do
             begin
             AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0002,[IntToStr(Fslot)+slinebreak+E.Message]));
-            //tolog ('Error Reading lines from slot: '+IntToStr(Fslot)+slinebreak+E.Message);
             Conexiones[fSlot].IsBusy:=false;
             continue;
             end;
          END; {TRY}
       if continuar then
          begin
-         if GetCommand(LLine) = 'RESUMENFILE' then
+         if Parameter(LLine,0) = 'RESUMENFILE' then
             begin
             DownloadHeaders := true;
             AddLineToDebugLog('events',TimeToStr(now)+rs0003); //'Receiving headers'
@@ -1115,7 +1114,7 @@ if Continuar then
             MemStream.Free;
             DownloadHeaders := false;
             end
-         else if GetCommand(LLine) = 'SUMARYFILE' then
+         else if Parameter(LLine,0) = 'SUMARYFILE' then
             begin
             DownloadSumary := true;
             AddLineToDebugLog('events',TimeToStr(now)+rs0085); //'Receiving sumary'
@@ -1161,7 +1160,7 @@ if Continuar then
             DownloadSumary := false;
             end
 
-         else if GetCommand(LLine) = 'GVTSFILE' then
+         else if Parameter(LLine,0) = 'GVTSFILE' then
             begin
             DownloadGVTs := true;
             AddLineToDebugLog('events',TimeToStr(now)+rs0089); //'Receiving GVTs'
@@ -1585,7 +1584,7 @@ If Protocolo > 0 then
       if BuildNMSBlock = 0 then
          begin
          BuildNMSBlock := NextBlockTimeStamp;
-         AddLineToDebugLog('console','Next block time set to: '+TimeStampToDate(BuildNMSBlock));
+         //AddLineToDebugLog('console','Next block time set to: '+TimeStampToDate(BuildNMSBlock));
          end;
       end
    end;
@@ -1978,7 +1977,7 @@ Form1.Latido.Enabled:=false;
 CheckClipboardForPays();
 if ( (UTCTime >= BuildNMSBlock) and (BuildNMSBlock>0) and (MyConStatus=3) ) then
    begin
-   AddLineToDebugLog('console','Starting construction of block '+(MyLastBlock+1).ToString);
+   //AddLineToDebugLog('console','Starting construction of block '+(MyLastBlock+1).ToString);
    BuildNewBlock(MyLastBlock+1,BuildNMSBlock,MyLastBlockHash,GetNMSData.Miner,GetNMSData.Hash);
    end;
 BeginPerformance('ActualizarGUI');
@@ -2393,7 +2392,7 @@ END{Try};
 if GoAhead then
    begin
    conexiones[slot].IsBusy:=true;
-   if GetCommand(LLine) = 'RESUMENFILE' then
+   if Parameter(LLine,0) = 'RESUMENFILE' then
       begin
       MemStream := TMemoryStream.Create;
       DownloadHeaders := true;
@@ -2824,7 +2823,7 @@ if GridMyTxs.Row>0 then
       'Ammount  : '+GridMyTxs.Cells[3,GridMyTxs.Row]+extratext+SLINEBREAK+  //'Ammount  : '
       'Reference : '+referencetoshow+SLINEBREAK+    //'reference  : '
       'Transfers: '+GridMyTxs.Cells[9,GridMyTxs.Row]+SLINEBREAK+      //'Transfers: '
-      GetCommand(GridMyTxs.Cells[8,GridMyTxs.Row])+SLINEBREAK;
+      Parameter(GridMyTxs.Cells[8,GridMyTxs.Row],0)+SLINEBREAK;
       if StrToIntDef(GridMyTxs.Cells[9,GridMyTxs.Row],1)> 1 then // añadir mas trfids
          for cont := 2 to StrToIntDef(GridMyTxs.Cells[9,GridMyTxs.Row],1) do
            form1.MemoTrxDetails.lines.add(parameter(GridMyTxs.Cells[8,GridMyTxs.Row],cont-1));
@@ -3090,7 +3089,7 @@ if ( ( ((AddressSumaryIndex(EditSCDest.Text)>=0) or (IsValidHashAddress(EditSCDe
    (StrToInt64Def(StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase]),-1)>0) and
    (StrToInt64Def(StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase]),-1)<=GetMaximunToSend(GetWalletBalance)) ) then
    begin
-   MemoSCCon.Text:=GetCommand(MemoSCCon.text);
+   MemoSCCon.Text:=Parameter(MemoSCCon.text,0);
    EditSCDest.Enabled:=false;
    EditSCMont.Enabled:=false;
    MemoSCCon.Enabled:=false;
@@ -3382,8 +3381,11 @@ if WO_AutoUpdate then
    {$IFDEF WINDOWS}
    if ( (not fileexists('libeay32.dll')) or (not fileexists('ssleay32.dll')) ) then
       AddLineToDebugLog('console','Warning: SSL files missed. Auto directive update will not work properly');
-
    {$ENDIF}
+   end
+else
+   begin
+   AddLineToDebugLog('console','Auto-update option is disabled. This could cause your node to become inactive on mandatory updates.');
    end;
 End;
 
@@ -3856,7 +3858,7 @@ if GridMyTxs.Row>0 then
       'Ammount  : '+GridMyTxs.Cells[3,GridMyTxs.Row]+extratext+SLINEBREAK+  //'Ammount  : '
       'Reference : '+referencetoshow+SLINEBREAK+    //'reference  : '
       'Transfers: '+GridMyTxs.Cells[9,GridMyTxs.Row]+SLINEBREAK+      //'Transfers: '
-      GetCommand(GridMyTxs.Cells[8,GridMyTxs.Row])+SLINEBREAK;
+      Parameter(GridMyTxs.Cells[8,GridMyTxs.Row],0)+SLINEBREAK;
       if StrToIntDef(GridMyTxs.Cells[9,GridMyTxs.Row],1)> 1 then // añadir mas trfids
          for cont := 2 to StrToIntDef(GridMyTxs.Cells[9,GridMyTxs.Row],1) do
            MemoTrxDetails.lines.add(parameter(GridMyTxs.Cells[8,GridMyTxs.Row],cont-1));

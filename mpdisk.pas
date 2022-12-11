@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, MasterPaskalForm, Dialogs, Forms, nosotime, FileUtil, LCLType,
   lclintf, controls, mpCripto, mpBlock, Zipper, mpcoin, mpMn, nosodebug,
   {$IFDEF WINDOWS}Win32Proc, {$ENDIF}
-  translation, strutils;
+  translation, strutils,nosogeneral;
 
 Procedure VerificarArchivos();
 
@@ -36,7 +36,6 @@ Function GetLanguage():string;
 Procedure ExtractPoFiles();
 Procedure CreateFileFromResource(resourcename,filename:string);
 Procedure CrearBotData();
-Procedure DepurarBots();
 Procedure CargarBotData();
 Procedure UpdateBotData(IPUser:String);
 Procedure SaveBotData();
@@ -332,41 +331,73 @@ BeginPerformance('CreateADV');
    try
    Assignfile(FileAdvOptions, AdvOptionsFilename);
    rewrite(FileAdvOptions);
-   writeln(FileAdvOptions,'ctot '+inttoStr(ConnectTimeOutTime));
-   writeln(FileAdvOptions,'rtot '+inttoStr(ReadTimeOutTIme));
-   writeln(FileAdvOptions,'UserFontSize '+inttoStr(UserFontSize));
-   writeln(FileAdvOptions,'UserRowHeigth '+inttoStr(UserRowHeigth));
-   writeln(FileAdvOptions,'RPCPort '+inttoStr(RPCPort));
-   writeln(FileAdvOptions,'RPCPass '+RPCPass);
-   writeln(FileAdvOptions,'ShowedOrders '+IntToStr(ShowedOrders));
-   writeln(FileAdvOptions,'MaxPeers '+IntToStr(MaxPeersAllow));
-   writeln(FileAdvOptions,'AutoConnect '+BoolToStr(WO_AutoConnect,true));
-   writeln(FileAdvOptions,'ToTray '+BoolToStr(WO_ToTray,true));
-   writeln(FileAdvOptions,'MinConexToWork '+IntToStr(MinConexToWork));
-   writeln(FileAdvOptions,'PosWarning '+IntToStr(WO_PosWarning));
-   writeln(FileAdvOptions,'AntiFreeze '+BoolToStr(WO_AntiFreeze,true));
-   writeln(FileAdvOptions,'MultiSend '+BoolToStr(WO_MultiSend,true));
-   writeln(FileAdvOptions,'AntifreezeTime '+IntToStr(WO_AntifreezeTime));
-   writeln(FileAdvOptions,'RPCFilter '+BoolToStr(RPCFilter,true));
-   writeln(FileAdvOptions,'RPCWhiteList '+RPCWhitelist);
-   writeln(FileAdvOptions,'RPCAuto '+BoolToStr(RPCAuto,true));
-   writeln(FileAdvOptions,'Language '+(WO_Language));
-   writeln(FileAdvOptions,'Autoserver '+BoolToStr(WO_AutoServer,true));
-   writeln(FileAdvOptions,'PoUpdate '+(WO_LastPoUpdate));
-   writeln(FileAdvOptions,'Closestart '+BoolToStr(WO_CloseStart,true));
-   writeln(FileAdvOptions,'Autoupdate '+BoolToStr(WO_AutoUpdate,true));
-   writeln(FileAdvOptions,Format('FormState %d %d %d %d %d',[Form1.Top,form1.Left,form1.Width,form1.Height,form1.WindowState]));
+   writeln(FileAdvOptions,'---NosoNode config file.---');
+   writeln(FileAdvOptions,'');
 
+   writeln(FileAdvOptions,'---Wallet related.---');
+   writeln(FileAdvOptions,'//Connect time-out in miliseconds');
+   writeln(FileAdvOptions,'ctot '+inttoStr(ConnectTimeOutTime));
+   writeln(FileAdvOptions,'//Read time-out in miliseconds');
+   writeln(FileAdvOptions,'rtot '+inttoStr(ReadTimeOutTIme));
+   writeln(FileAdvOptions,'//Connect automatically to mainnet at start');
+   writeln(FileAdvOptions,'AutoConnect '+BoolToStr(WO_AutoConnect,true));
+   writeln(FileAdvOptions,'//Minimize to system tray');
+   writeln(FileAdvOptions,'ToTray '+BoolToStr(WO_ToTray,true));
+   writeln(FileAdvOptions,'//Minimum connections to work');
+   writeln(FileAdvOptions,'MinConexToWork '+IntToStr(MinConexToWork));
+   writeln(FileAdvOptions,'//Use all addresses to send funds');
+   writeln(FileAdvOptions,'MultiSend '+BoolToStr(WO_MultiSend,true));
+   writeln(FileAdvOptions,'//Po files language code');
+   writeln(FileAdvOptions,'Language '+(WO_Language));
+   writeln(FileAdvOptions,'//Po files last update');
+   writeln(FileAdvOptions,'PoUpdate '+(WO_LastPoUpdate));
+   writeln(FileAdvOptions,'//Close the launch form automatically');
+   writeln(FileAdvOptions,'Closestart '+BoolToStr(WO_CloseStart,true));
+   writeln(FileAdvOptions,'//Mainform coordinates. Do not manually change this values');
+   writeln(FileAdvOptions,Format('FormState %d %d %d %d %d',[Form1.Top,form1.Left,form1.Width,form1.Height,form1.WindowState]));
+   writeln(FileAdvOptions,'');
+
+   writeln(FileAdvOptions,'---Masternode---');
+   writeln(FileAdvOptions,'//Enable node server at start');
+   writeln(FileAdvOptions,'Autoserver '+BoolToStr(WO_AutoServer,true));
+   writeln(FileAdvOptions,'//Run autoupdate directives');
+   writeln(FileAdvOptions,'Autoupdate '+BoolToStr(WO_AutoUpdate,true));
+   writeln(FileAdvOptions,'//Download the complete blockchain');
+   writeln(FileAdvOptions,'WO_FullNode '+BoolToStr(WO_FullNode,true));
+   writeln(FileAdvOptions,'//Masternode static IP');
    writeln(FileAdvOptions,'MNIP '+(MN_IP));
+   writeln(FileAdvOptions,'//Masternode port');
    writeln(FileAdvOptions,'MNPort '+(MN_Port));
+   writeln(FileAdvOptions,'//Masternode funds address');
    writeln(FileAdvOptions,'MNFunds '+(MN_Funds));
    if MN_Sign = '' then MN_Sign := ListaDirecciones[0].Hash;
+   writeln(FileAdvOptions,'//Masternode sign address');
    writeln(FileAdvOptions,'MNSign '+(MN_Sign));
+   writeln(FileAdvOptions,'//Use automatic IP detection for masternode');
    writeln(FileAdvOptions,'MNAutoIp '+BoolToStr(MN_AutoIP,true));
+   writeln(FileAdvOptions,'');
 
-   writeln(FileAdvOptions,'WO_FullNode '+BoolToStr(WO_FullNode,true));
+   writeln(FileAdvOptions,'---RPC server---');
+   writeln(FileAdvOptions,'//RPC server port');
+   writeln(FileAdvOptions,'RPCPort '+inttoStr(RPCPort));
+   writeln(FileAdvOptions,'//RPC server password');
+   writeln(FileAdvOptions,'RPCPass '+RPCPass);
+   writeln(FileAdvOptions,'//RPC IP filter active/inactive');
+   writeln(FileAdvOptions,'RPCFilter '+BoolToStr(RPCFilter,true));
+   writeln(FileAdvOptions,'//RPC whitelisted IPs');
+   writeln(FileAdvOptions,'RPCWhiteList '+RPCWhitelist);
+   writeln(FileAdvOptions,'//Enable RPC server at start');
+   writeln(FileAdvOptions,'RPCAuto '+BoolToStr(RPCAuto,true));
+   writeln(FileAdvOptions,'');
 
-
+   writeln(FileAdvOptions,'---Deprecated. To be removed.---');
+   writeln(FileAdvOptions,'UserFontSize '+inttoStr(UserFontSize));
+   writeln(FileAdvOptions,'UserRowHeigth '+inttoStr(UserRowHeigth));
+   writeln(FileAdvOptions,'ShowedOrders '+IntToStr(ShowedOrders));
+   writeln(FileAdvOptions,'MaxPeers '+IntToStr(MaxPeersAllow));
+   writeln(FileAdvOptions,'PosWarning '+IntToStr(WO_PosWarning));
+   writeln(FileAdvOptions,'AntiFreeze '+BoolToStr(WO_AntiFreeze,true));
+   writeln(FileAdvOptions,'AntifreezeTime '+IntToStr(WO_AntifreezeTime));
 
    Closefile(FileAdvOptions);
    if saving then AddLineToDebugLog('events',TimeToStr(now)+'Options file saved');
@@ -530,32 +561,9 @@ Begin
       contador := contador + 1;
       end;
    closefile(FileBotData);
-   //DepurarBots();
    Except on E:Exception do
       AddLineToDebugLog('events',TimeToStr(now)+'Error loading bot data');
    end;
-End;
-
-// Bot info debug
-Procedure DepurarBots();
-var
-  contador : integer = 0;
-  LimiteTiempo : Int64 = 0;
-  NodeDeleted : boolean;
-Begin
-LimiteTiempo := CadToNum(UTCTimeStr,0,'Failed converting UTC time on depurarbots')-2592000; // Los menores que esto deben ser eliminados(2592000 un mes)
-While contador < length(ListadoBots)-1 do
-   begin
-   NodeDeleted := false;
-   if CadToNum(ListadoBots[contador].LastRefused,999999999999,'Failed converting last refused on depurarbots: '+ListadoBots[contador].LastRefused) < LimiteTiempo then
-      Begin
-      Delete(ListadoBots,Contador,1);
-      contador := contador-1;
-      NodeDeleted := true;
-      end;
-   if not NodeDeleted then contador := contador+1;
-   end;
-S_BotData := true;
 End;
 
 // Modifica la hora del ultimo intento del bot, o lo añade si es la primera vez
@@ -851,9 +859,9 @@ BlockFiles := TStringList.Create;
    while contador < BlockFiles.Count do
       begin
       OnlyNumbers := copy(BlockFiles[contador], 17, length(BlockFiles[contador])-20);
-      if CadToNum(OnlyNumbers,0,'Failed converting block to number:'+OnlyNumbers) > Lastblock then
-         LastBlock := CadToNum(OnlyNumbers,0,'Failed converting block to number:'+OnlyNumbers);
-      contador := contador+1;
+      if StrToInt64Def(OnlyNumbers,0) > Lastblock then
+         LastBlock := StrToInt64Def(OnlyNumbers,0);
+      Inc(contador);
       end;
    Result := LastBlock;
    EXCEPT on E:Exception do
@@ -885,7 +893,7 @@ for contador := 0 to length(ListaSumario)-1 do
       NuevoRegistro.Custom:=ListaSumario[contador].Custom;
       NuevoRegistro.Balance:=ListaSumario[contador].Balance+Monto;
       NuevoRegistro.Score:=ListaSumario[contador].Score+score;;
-      NuevoRegistro.LastOP:=CadToNum(LastOpBlock,0,'**CRITICAL: STI fail lastop on update sumario:'+LastOpBlock);
+      NuevoRegistro.LastOP:=StrToInt64def(LastOpBlock,0);
       ListaSumario[contador] := NuevoRegistro;
       Yaexiste := true;
       break;
@@ -899,7 +907,7 @@ if not YaExiste then
    NuevoRegistro.Custom:='';
    NuevoRegistro.Balance:=Monto;
    NuevoRegistro.Score:=0;
-   NuevoRegistro.LastOP:=CadToNum(LastOpBlock,0,'**CRITICAL: STI fail lastop on update sumario:'+LastOpBlock);
+   NuevoRegistro.LastOP:=StrToInt64def(LastOpBlock,0);
    ListaSumario[length(listasumario)-1] := NuevoRegistro;
    end;
 S_Sumario := true;

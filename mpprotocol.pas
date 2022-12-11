@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, mpRed, MasterPaskalForm, mpParser, StrUtils, mpDisk, nosotime, mpBlock,
-  Zipper, mpcoin, mpCripto, mpMn, nosodebug;
+  Zipper, mpcoin, mpCripto, mpMn, nosodebug, nosogeneral;
 
 function GetPTCEcn():String;
 Function GetOrderFromString(textLine:String):OrderData;
@@ -20,7 +20,6 @@ function GetNodesString():string;
 Procedure PTC_SendLine(Slot:int64;Message:String);
 Procedure ClearOutTextToSlot(slot:integer);
 Function GetTextToSlot(slot:integer):string;
-function GetNodeFromString(NodeDataString: string): NodeData;
 Procedure ProcessPing(LineaDeTexto: string; Slot: integer; Responder:boolean);
 function GetPingString():string;
 procedure PTC_SendPending(Slot:int64);
@@ -447,17 +446,6 @@ if ( (Slot>1) and (slot<=MaxConecciones) ) then
    end;
 End;
 
-// Devuelve la info de un nodo a partir de una cadena pre-tratada
-function GetNodeFromString(NodeDataString: string): NodeData;
-var
-  Resultado : NodeData;
-Begin
-Resultado.ip:= GetCommand(NodeDataString);
-Resultado.port:=Parameter(NodeDataString,1);
-Resultado.LastConexion:=Parameter(NodeDataString,2);
-Result := Resultado;
-End;
-
 // Procesa un ping recibido y envia el PONG si corresponde.
 Procedure ProcessPing(LineaDeTexto: string; Slot: integer; Responder:boolean);
 var
@@ -807,7 +795,6 @@ End;
 Procedure INC_PTC_Custom(TextLine:String;connection:integer);
 Begin
 AddCriptoOp(4,TextLine,'');
-StartCriptoThread();
 End;
 
 // Procesa una solicitud de customizacion
@@ -904,7 +891,6 @@ Procedure INC_PTC_Order(TextLine:String;connection:integer);
 Begin
 if not IsOrderIDAlreadyProcessed(TextLine) then
    AddCriptoOp(5,TextLine,'');
-StartCriptoThread();
 End;
 
 Function PTC_Order(TextLine:String):String;
@@ -1064,6 +1050,7 @@ var
   var
     ThDirect  : TThreadDirective;
   Begin
+  if not WO_AutoUpdate then exit;
   ThDirect := TThreadDirective.Create(true,LParameter);
   ThDirect.FreeOnTerminate:=true;
   ThDirect.Start;

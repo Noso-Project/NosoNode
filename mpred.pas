@@ -7,7 +7,8 @@ interface
 uses
   Classes, forms, SysUtils, MasterPaskalForm, nosotime, IdContext, IdGlobal, mpGUI, mpDisk,
   mpBlock, fileutil, graphics,  dialogs, strutils, mpcoin, fphttpclient,
-  opensslsockets,translation, IdHTTP, IdComponent, IdSSLOpenSSL, mpmn, IdTCPClient, nosodebug;
+  opensslsockets,translation, IdHTTP, IdComponent, IdSSLOpenSSL, mpmn, IdTCPClient,
+  nosodebug,nosogeneral;
 
 function GetSlotFromIP(Ip:String):int64;
 function GetSlotFromContext(Context:TidContext):int64;
@@ -670,7 +671,7 @@ if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLa
       begin
       PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));  // Get pending
       LastTimePendingRequested := UTCTime;
-      AddLineToDebugLog('console','Pending requested to '+conexiones[NetPendingTrxs.Slot].ip);
+      //AddLineToDebugLog('console','Pending requested to '+conexiones[NetPendingTrxs.Slot].ip);
       end;
    // Get MNS
    PTC_SendLine(NetMNsHash.Slot,ProtocolLine(11));  // Get MNs
@@ -688,7 +689,7 @@ if MyConStatus = 3 then
       ClearReceivedOrdersIDs();
       PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));  // Get pending
       LastTimePendingRequested := UTCTime;
-      AddLineToDebugLog('console','Pending requested to '+conexiones[NetPendingTrxs.Slot].ip);
+      //AddLineToDebugLog('console','Pending requested to '+conexiones[NetPendingTrxs.Slot].ip);
       end;
    if ( (not MyMNIsListed) and (Form1.Server.Active) and (UTCTime>LastTimeReportMyMN+5)
         and (BlockAge>10+MNsRandomWait) and (BlockAge<495) and(1=1) ) then
@@ -1337,12 +1338,6 @@ End;
 
 // Retrieves the OS for download the lastest version
 Function GetOS():string;
-
-  Function Is32Bit: Boolean;
-  Begin
-  Result:= SizeOf(Pointer) <= 4;
-  End;
-
 Begin
 {$IFDEF UNIX}
 result := 'Linux';

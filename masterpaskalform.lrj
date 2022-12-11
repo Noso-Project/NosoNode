@@ -46,7 +46,7 @@
 {"hash":129089465,"name":"tform1.cb_wo_antifreeze.caption","sourcebytes":[65,110,116,105,32,102,114,101,101,122,101,32,40,115,41],"value":"Anti freeze (s)"},
 {"hash":166688179,"name":"tform1.cb_wo_multisend.caption","sourcebytes":[83,101,110,100,32,99,111,105,110,115,32,111,110,108,121,32,102,114,111,109,32,100,101,102,97,117,108,116,32,97,100,100,114,101,115,115],"value":"Send coins only from default address"},
 {"hash":253404910,"name":"tform1.cb_fullnode.caption","sourcebytes":[68,111,119,110,108,111,97,100,32,99,111,109,112,108,101,116,101,32,98,108,111,99,107,99,104,97,105,110],"value":"Download complete blockchain"},
-{"hash":85220803,"name":"tform1.cb_wo_autoupdate.caption","sourcebytes":[85,112,100,97,116,101,32,97,117,116,111,109,97,116,105,99,97,108,108,121,32,119,105,116,104,32,100,105,114,101,99,116,105,118,101,115],"value":"Update automatically with directives"},
+{"hash":63647993,"name":"tform1.cb_wo_autoupdate.caption","sourcebytes":[85,112,100,97,116,101,32,97,117,116,111,109,97,116,105,99,97,108,108,121,32,40,82,101,99,111,109,109,101,110,100,101,100,41],"value":"Update automatically (Recommended)"},
 {"hash":90344309,"name":"tform1.label7.caption","sourcebytes":[87,97,108,108,101,116,32,108,97,110,103,117,97,103,101],"value":"Wallet language"},
 {"hash":261628389,"name":"tform1.cbrunnodealone.hint","sourcebytes":[82,117,110,32,97,115,32,117,110,97,116,116,101,110,100,101,100,32,77,97,115,116,101,114,110,111,100,101],"value":"Run as unattended Masternode"},
 {"hash":216076649,"name":"tform1.cbrunnodealone.caption","sourcebytes":[83,116,111,112,32,109,101,109,111,115,32,111,117,116,112,117,116,115,32,40,66,69,84,65,41],"value":"Stop memos outputs (BETA)"},
