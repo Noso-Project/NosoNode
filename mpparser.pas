@@ -86,6 +86,8 @@ Procedure PostOffer(LineText:String);
 Procedure DebugTest(linetext:string);
 Procedure DebugTest2(linetext:string);
 
+Function Fest(): int64;
+
 implementation
 
 uses
@@ -291,7 +293,7 @@ else if UpperCase(Command) = 'ADDPOOL' then AddCFGData(parameter(linetext,1),3)
 else if UpperCase(Command) = 'DELPOOL' then RemoveCFGData(parameter(linetext,1),3)
 else if UpperCase(Command) = 'RESTORECFG' then RestoreCFGData()
 else if UpperCase(Command) = 'ISALLSYNCED' then AddLineToDebugLog('console',IsAllsynced.ToString)
-
+else if UpperCase(Command) = 'FEST' then Fest()
 
 // P2P
 else if UpperCase(Command) = 'PEERS' then AddLineToDebugLog('console','Server list: '+IntToStr(form1.ClientsCount)+'/'+IntToStr(GetIncomingConnections))
@@ -1813,6 +1815,10 @@ else if param = 'MEM' then
 else if param = 'DOWNSPEED' then
   AddLineToDebugLog('console',Format('Download speed   : %d Kb/s',[TestDownloadSpeed]))
 else AddLineToDebugLog('console','Invalid parameter: '+Param+slinebreak+'Use: power, mem or downspeed');
+End;
+
+Function Fest(): int64;
+Begin
 End;
 
 

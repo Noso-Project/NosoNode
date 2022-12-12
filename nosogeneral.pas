@@ -79,11 +79,11 @@ var
   valor1,valor2,valor3,valor4: integer;
 Begin
   result := true;
-  //IPString := StringReplace(IPString,'.',' ',[rfReplaceAll, rfIgnoreCase]);
-  valor1 := StrToIntDef(Parameter(IPString,0,'.'),-1);
-  valor2 := StrToIntDef(Parameter(IPString,1,'.'),-1);
-  valor3 := StrToIntDef(Parameter(IPString,2,'.'),-1);
-  valor4 := StrToIntDef(Parameter(IPString,3,'.'),-1);
+  IPString := StringReplace(IPString,'.',' ',[rfReplaceAll, rfIgnoreCase]);
+  valor1 := StrToIntDef(Parameter(IPString,0),-1);
+  valor2 := StrToIntDef(Parameter(IPString,1),-1);
+  valor3 := StrToIntDef(Parameter(IPString,2),-1);
+  valor4 := StrToIntDef(Parameter(IPString,3),-1);
   if ((valor1 <0) or (valor1>255)) then result := false;
   if ((valor2 <0) or (valor2>255)) then result := false;
   if ((valor3 <0) or (valor3>255)) then result := false;
