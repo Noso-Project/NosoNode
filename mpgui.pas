@@ -39,7 +39,6 @@ Procedure SetCurrentJob(CurrJob:String;status:boolean);
 Function GetCurrentJob():String;
 Procedure CloseAllForms();
 Procedure UpdateRowHeigth();
-Function HashrateToShow(speed:int64):String;
 
 var
   FormInicio : TFormInicio;
@@ -540,14 +539,6 @@ for contador := 0 to form1.datapanel.RowCount-1 do
    begin
    form1.DataPanel.RowHeights[contador]:=UserRowHeigth;
    end;
-End;
-
-Function HashrateToShow(speed:int64):String;
-Begin
-if speed>1000000000 then result := FormatFloat('0.00',speed/1000000000)+' Gh/s'
-else if speed>1000000 then result := FormatFloat('0.00',speed/1000000)+' Mh/s'
-else if speed>1000 then result := FormatFloat('0.00',speed/1000)+' Kh/s'
-else result := speed.ToString+' h/s'
 End;
 
 END. // END UNIT

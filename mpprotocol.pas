@@ -861,6 +861,9 @@ else if ( (order.OrderType='TRFR') and  (Not IsValidHashAddress(Order.Receiver))
    result := 10
 else if IsAddressLocked(Order.Address) then
    result := 11
+else if AnsiContainsStr(GetNosoCFGString(5),Origen) then
+   result := 17
+
 else result := 0;
 End;
 
@@ -1090,6 +1093,8 @@ if not errored then
    if UpperCase(TCommand) = 'DELPOOLADDRESS' then RemoveCFGData(TParam,3);
    if UpperCase(TCommand) = 'ADDPOOLHOST' then AddCFGData(TParam,4);
    if UpperCase(TCommand) = 'DELPOOLHOST' then RemoveCFGData(TParam,4);
+   if UpperCase(TCommand) = 'ADDLOCKED' then AddCFGData(TParam,5);
+   if UpperCase(TCommand) = 'DELLOCKED' then RemoveCFGData(TParam,5);
    if UpperCase(TCommand) = 'RESTORECFG' then RestoreCFGData;
    OutgoingMsjsAdd(TextLine);
    end;

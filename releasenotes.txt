@@ -14,6 +14,10 @@ Version 0.3.3Aa2
 - IsAllSynced modified.
 - Reimplemented auto-update option with warning.
 - Commented advopt.txt file.
+- Implemented unit nosogeneral.
+- Fixed timestamp creation block bug.
+- Improved address command.
+- Added locked to nosocfg.
 
 Version 0.3.3Aa1
 

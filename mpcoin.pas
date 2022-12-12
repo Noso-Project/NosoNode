@@ -18,7 +18,6 @@ Procedure VerifyIfPendingIsMine(order:orderdata);
 function AddressAlreadyCustomized(address:string):boolean;
 Function GVTAlreadyTransfered(NumberStr:String):boolean;
 function AliasAlreadyExists(Addalias:string):boolean;
-function Restar(number:int64):int64;
 function AddressSumaryIndex(Address:string):integer;
 function GetFee(monto:int64):Int64;
 Function SendFundsFromAddress(Origen, Destino:String; monto, comision:int64; reference,
@@ -297,13 +296,6 @@ if not result then
          end;
       end;
    end;
-End;
-
-// Regresa el valor en negativo para las actualizaciones de saldo
-function Restar(number:int64):int64;
-Begin
-if number > 0 then Result := number-(Number*2)
-else Result := number;
 End;
 
 // Devuelve el indice de la direccion o alias en el sumario, o -1 si no existe

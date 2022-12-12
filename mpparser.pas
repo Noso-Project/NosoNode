@@ -1815,5 +1815,6 @@ else if param = 'DOWNSPEED' then
 else AddLineToDebugLog('console','Invalid parameter: '+Param+slinebreak+'Use: power, mem or downspeed');
 End;
 
+
 END. // END UNIT
 

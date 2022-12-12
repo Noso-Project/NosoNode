@@ -528,7 +528,6 @@ type
     procedure FormResize(sender: TObject);
     procedure FormWindowStateChange(sender: TObject);
     procedure GridMyTxsResize(sender: TObject);
-    procedure GridMyTxsSelection(sender: TObject; aCol, aRow: Integer);
     procedure GridNodesResize(sender: TObject);
     procedure GridPoSResize(sender: TObject);
     procedure GVTsGridResize(sender: TObject);
@@ -553,7 +552,6 @@ type
     procedure SpeedButton2Click(sender: TObject);
     procedure SpeedButton3Click(sender: TObject);
     procedure StaConLabDblClick(sender: TObject);
-    procedure TabHistoryShow(sender: TObject);
     procedure TabNodeOptionsShow(sender: TObject);
     procedure TabSheet9Resize(sender: TObject);
     Procedure TryCloseServerConnection(AContext: TIdContext; closemsg:string='');
@@ -585,7 +583,6 @@ type
     Procedure SCBitCancelOnClick(sender:TObject);
     Procedure SCBitConfOnClick(sender:TObject);
     Procedure ResetearValoresEnvio(sender:TObject);
-    Procedure CheckClipboardForPays();
 
     // NODE SERVER
     Function TryMessageToNode(AContext: TIdContext;message:string):boolean;
@@ -661,11 +658,12 @@ CONST
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
 
-  DefaultNosoCFG : String = 'NORMAL '+
-                            '47.87.181.190;8080:47.87.178.205;8080:81.22.38.101;8080:66.151.117.247;8080:47.87.180.219;8080:47.87.137.96;8080:192.3.85.196;8080:192.3.254.186;8080:101.100.138.125;8080:198.46.218.125;8080:63.227.69.162;8080: '+
-                            'ts2.aco.net:hora.roa.es:time.esa.int:time.stdtime.gov.tw:stratum-1.sjc02.svwh.net:ntp1.sp.se:1.de.pool.ntp.org:ntps1.pads.ufrj.br:utcnist2.colorado.edu:tick.usask.ca:ntp1.st.keio.ac.jp: '+
-                            'N3ESwXxCAR4jw3GVHgmKiX9zx1ojWEf:N2ophUoAzJw9LtgXbYMiB4u5jWWGJF7:N3aXz2RGwj8LAZgtgyyXNRkfQ1EMnFC:N2MVecGnXGHpN8z4RqwJFXSQP6doVDv: '+
-                            'nosofish.xyz;8082:nosopool.estripa.online;8082:pool.nosomn.com;8082:159.196.1.198;8082:';
+  DefaultNosoCFG : String = {0}'NORMAL '+
+                            {1}'47.87.181.190;8080:47.87.178.205;8080:81.22.38.101;8080:66.151.117.247;8080:47.87.180.219;8080:47.87.137.96;8080:192.3.85.196;8080:192.3.254.186;8080:101.100.138.125;8080:198.46.218.125;8080:63.227.69.162;8080: '+
+                            {2}'ts2.aco.net:hora.roa.es:time.esa.int:time.stdtime.gov.tw:stratum-1.sjc02.svwh.net:ntp1.sp.se:1.de.pool.ntp.org:ntps1.pads.ufrj.br:utcnist2.colorado.edu:tick.usask.ca:ntp1.st.keio.ac.jp: '+
+                            {3}'N3ESwXxCAR4jw3GVHgmKiX9zx1ojWEf:N2ophUoAzJw9LtgXbYMiB4u5jWWGJF7:N3aXz2RGwj8LAZgtgyyXNRkfQ1EMnFC:N2MVecGnXGHpN8z4RqwJFXSQP6doVDv: '+
+                            {4}'nosofish.xyz;8082:nosopool.estripa.online;8082:pool.nosomn.com;8082:159.196.1.198;8082: '+
+                            {5}'NpryectdevepmentfundsGE:';
 
   ProgramVersion = '0.3.3';
   {$IFDEF WINDOWS}
@@ -678,7 +676,7 @@ CONST
   {$ENDIF}
   SubVersion = 'Aa2';
   OficialRelease = false;
-  VersionRequired = '0.3.3Aa1';
+  VersionRequired = '0.3.3Aa2';
   BuildDate = 'December 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
@@ -1939,6 +1937,11 @@ if (ACol=1)  then
       (sender as TStringGrid).Canvas.font.Color :=  clblack;
       end
    end;
+if ( (ACol = 0) and (AnsiContainsStr(GetNosoCFGString(5),ListaDirecciones[aRow-1].Hash)) ) then
+   begin
+   (sender as TStringGrid).Canvas.Brush.Color :=  clRed;
+   (sender as TStringGrid).Canvas.font.Color :=  clblack;
+   end;
 end;
 
 // Para colorear adecuadamente al grid de mis transacciones
@@ -1974,10 +1977,9 @@ Procedure TForm1.LatidoEjecutar(sender: TObject);
 Begin
 if EngineLastUpdate <> UTCtime then EngineLastUpdate := UTCtime;
 Form1.Latido.Enabled:=false;
-CheckClipboardForPays();
 if ( (UTCTime >= BuildNMSBlock) and (BuildNMSBlock>0) and (MyConStatus=3) ) then
    begin
-   //AddLineToDebugLog('console','Starting construction of block '+(MyLastBlock+1).ToString);
+   AddLineToDebugLog('events','Starting construction of block '+(MyLastBlock+1).ToString);
    BuildNewBlock(MyLastBlock+1,BuildNMSBlock,MyLastBlockHash,GetNMSData.Miner,GetNMSData.Hash);
    end;
 BeginPerformance('ActualizarGUI');
@@ -3601,12 +3603,6 @@ form1.SG_Monitor.ColWidths[2]:= thispercent(20,GridWidth);
 form1.SG_Monitor.ColWidths[3]:= thispercent(20,GridWidth,true);
 End;
 
-// Fill the transaction details when Tab is selected
-procedure TForm1.TabHistoryShow(sender: TObject);
-begin
-GridMyTxsSelection(form1,GridMyTxs.Col,GridMyTxs.Row)
-end;
-
 // Load Masternode options when TAB is selected
 procedure TForm1.TabNodeOptionsShow(sender: TObject);
 begin
@@ -3835,63 +3831,6 @@ if GVTsGrid.Row > 0 then
    ProcessLinesAdd('sendgvt '+GVTsGrid.Cells[0,GVTsGrid.Row]+' '+edit2.Text);
 End;
 
-// Adjust the trxdetails when a selection is done
-procedure TForm1.GridMyTxsSelection(sender: TObject; aCol, aRow: Integer);
-var
-  cont : integer;
-  extratext :string = '';
-  referencetoshow : string = '';
-Begin
-if GridMyTxs.Row>0 then
-   begin
-   PanelTrxDetails.visible := true;
-   MemoTrxDetails.Lines.Clear;
-   if GridMyTxs.Cells[2,GridMyTxs.Row] = 'TRFR' then
-      Begin
-      if GridMyTxs.Cells[10,GridMyTxs.Row] = 'YES' then // Own transaction'
-        extratext :=' (OWN)'; //' (OWN)'
-      if GridMyTxs.Cells[7,GridMyTxs.Row] <> 'null' then
-         referencetoshow := GridMyTxs.Cells[7,GridMyTxs.Row];
-      MemoTrxDetails.Text:=
-      GridMyTxs.Cells[4,GridMyTxs.Row]+SLINEBREAK+                    //order ID
-      'Receiver : '+AddrText(GridMyTxs.Cells[6,GridMyTxs.Row])+SLINEBREAK+      //'Receiver : '
-      'Ammount  : '+GridMyTxs.Cells[3,GridMyTxs.Row]+extratext+SLINEBREAK+  //'Ammount  : '
-      'Reference : '+referencetoshow+SLINEBREAK+    //'reference  : '
-      'Transfers: '+GridMyTxs.Cells[9,GridMyTxs.Row]+SLINEBREAK+      //'Transfers: '
-      Parameter(GridMyTxs.Cells[8,GridMyTxs.Row],0)+SLINEBREAK;
-      if StrToIntDef(GridMyTxs.Cells[9,GridMyTxs.Row],1)> 1 then // añadir mas trfids
-         for cont := 2 to StrToIntDef(GridMyTxs.Cells[9,GridMyTxs.Row],1) do
-           MemoTrxDetails.lines.add(parameter(GridMyTxs.Cells[8,GridMyTxs.Row],cont-1));
-      end;
-   if GridMyTxs.Cells[2,GridMyTxs.Row] = 'MINE' then
-      Begin
-      MemoTrxDetails.Text:=
-      'Mined    : '+GridMyTxs.Cells[0,GridMyTxs.Row]+SLINEBREAK+ //'Mined    : '
-      'Receiver : '+AddrText(GridMyTxs.Cells[6,GridMyTxs.Row])+SLINEBREAK+   //'Receiver : '
-      'Ammount  : '+GridMyTxs.Cells[3,GridMyTxs.Row];   //'Ammount  : '
-      end;
-   if GridMyTxs.Cells[2,GridMyTxs.Row] = 'CUSTOM' then
-      Begin
-      MemoTrxDetails.Text:=
-      'Address customization'+SLINEBREAK+                   //'Address customization'
-      'Address  : '+ListaDirecciones[DireccionEsMia(GridMyTxs.Cells[6,GridMyTxs.Row])].Hash+SLINEBREAK+//'Address  : '
-      'Alias    : '+ListaDirecciones[DireccionEsMia(GridMyTxs.Cells[6,GridMyTxs.Row])].Custom+SLINEBREAK+//'Alias    : '
-      'Amount   : '+Int2Curr(Customizationfee);
-      end;
-   if GridMyTxs.Cells[2,GridMyTxs.Row] = 'FEE' then
-      begin
-      MemoTrxDetails.Text:=
-      'Maintenance fee'+SLINEBREAK+   //'Maintenance fee'
-      'Address  : '+GridMyTxs.Cells[6,GridMyTxs.Row]+SLINEBREAK+  //'Address  : '
-      'Interval : '+GridMyTxs.Cells[7,GridMyTxs.Row]+SLINEBREAK+  //'Interval : '
-      'Ammount  : '+GridMyTxs.Cells[3,GridMyTxs.Row]; //'Ammount  : '
-      if GridMyTxs.Cells[8,GridMyTxs.Row] = 'YES' then
-        MemoTrxDetails.Text:= MemoTrxDetails.Text+' (Address deleted from summary)';//' (Address deleted from summary)'
-      end;
-   MemoTrxDetails.SelStart:=0;
-   end;
-End;
-
 procedure TForm1.MemoRPCWhitelistEditingDone(sender: TObject);
 var
   newlist : string;
@@ -3905,23 +3844,6 @@ if ( (not G_Launching) and (MemoRPCWhitelist.Text<>RPCWhitelist) ) then
    S_AdvOpt := true;
    end;
 end;
-
-Procedure TForm1.CheckClipboardForPays();
-var
-  Intexto : string = '';
-Begin
-Intexto := Clipboard.AsText;
-If (parameter(InTexto,0)) ='<NOSOPAY>' then
-   begin
-   form1.PageMain.ActivePage := form1.tabwallet;
-   form1.tabwalletmain.ActivePage:=form1.TabAddresses;
-   EditSCDest.Text:=parameter(InTexto,1);
-   EditSCMont.Text:=int2curr(StrToIntDef(parameter(InTexto,2),0));
-   MemoSCCon.Text:=parameter(InTexto,3);;
-   form1.BringToFront;
-   Clipboard.AsText := '';
-   end;
-End;
 
 END. // END PROGRAM
 
