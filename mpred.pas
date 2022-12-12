@@ -969,9 +969,11 @@ if MyLastBlock <> StrToIntDef(NetLastBlock.Value,0) then result := 1;
 if MyLastBlockHash <> NetLastBlockHash.Value then result := 2;
 if MySumarioHash <> NetSumarioHash.Value then result := 3;
 if MyResumenHash <> NetResumenHash.Value then result := 4;
+{
 if Copy(MyMNsHash,1,5) <>  NetMNsHash.value then result := 5;
 if MyGVTsHash <> NetGVTSHash.Value then result := 6;
 if MyCFGHash <> NETCFGHash.Value then result := 7;
+}
 End;
 
 // Actualiza mi informacion para compoartirla en la red
