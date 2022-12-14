@@ -9,7 +9,7 @@ uses
   Interfaces, // this includes the LCL widgetset
   Forms, MasterPaskalForm, mpGUI, mpdisk, mpParser, mpRed, mpCripto, mpProtocol,
   mpBlock, mpCoin, mpsignerutils, mpRPC, translation, indylaz, sysutils,
-  LCLTranslator, mpmn, mpsyscheck, NosoTime, nosodebug, nosogeneral;
+  LCLTranslator, mpmn, mpsyscheck, NosoTime, nosodebug, nosogeneral, nosocrypto;
 
 {$R *.res}
 var

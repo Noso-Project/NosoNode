@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, MasterPaskalForm, Dialogs, Forms, nosotime, FileUtil, LCLType,
   lclintf, controls, mpCripto, mpBlock, Zipper, mpcoin, mpMn, nosodebug,
   {$IFDEF WINDOWS}Win32Proc, {$ENDIF}
-  translation, strutils,nosogeneral;
+  translation, strutils,nosogeneral, nosocrypto;
 
 Procedure VerificarArchivos();
 
@@ -639,6 +639,9 @@ End;
 
 // Creates a new wallet
 Procedure CrearWallet();
+var
+  NewAddress : WalletData;
+  PubKey,PriKey : string;
 Begin
    TRY
    if not fileexists (WalletFilename) then // asegurarse de no borrar una cartera previa
@@ -646,7 +649,11 @@ Begin
       assignfile(FileWallet,WalletFilename);
       setlength(ListaDirecciones,1);
       rewrite(FileWallet);
-      listadirecciones[0] := CreateNewAddress();
+      NewAddress := Default(WalletData);
+      NewAddress.Hash:=GenerateNewAddress(PubKey,PriKey);
+      NewAddress.PublicKey:=pubkey;
+      NewAddress.PrivateKey:=PriKey;
+      listadirecciones[0] := NewAddress;
       seek(FileWallet,0);
       write(FileWallet,listadirecciones[0]);
       closefile(FileWallet);

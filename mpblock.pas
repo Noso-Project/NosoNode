@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils,MasterPaskalForm, mpCripto, fileutil, mpcoin, dialogs,
-  nosotime, mpMN, nosodebug,nosogeneral;
+  nosotime, mpMN, nosodebug,nosogeneral,nosocrypto;
 
 Procedure CrearBloqueCero();
 Procedure BuildNewBlock(Numero,TimeStamp: Int64; TargetHash, Minero, Solucion:String);
@@ -23,9 +23,6 @@ function GetBlockTrxs(BlockNumber:integer):BlockOrdersArray;
 Procedure UndoneLastBlock();
 Function GetBlockPoSes(BlockNumber:integer): BlockArraysPos;
 Function GetBlockMNs(BlockNumber:integer): BlockArraysPos;
-Function BlockAge():integer;
-Function NextBlockTimeStamp():Int64;
-Function IsBlockOpen():boolean;
 Function GEtNSLBlkOrdInfo(LineText:String):String;
 
 implementation
@@ -744,27 +741,6 @@ AddLineToDebugLog('console','****************************');
 AddLineToDebugLog('events',TimeToStr(now)+'Block Undone: '+IntToStr(blocknumber));
 U_DataPanel := true;
 BlockUndoneTime := UTCTime;
-End;
-
-Function BlockAge():integer;
-Begin
-Result := UTCtime mod 600;
-End;
-
-Function NextBlockTimeStamp():Int64;
-var
-  currTime : int64;
-  Remains : int64;
-Begin
-CurrTime := UTCTime;
-Remains := 600-(CurrTime mod 600);
-Result := CurrTime+Remains;
-End;
-
-Function IsBlockOpen():boolean;
-Begin
-result := true;
-if ( (BlockAge<10) or (BlockAge>585) ) then result := false;
 End;
 
 Function GEtNSLBlkOrdInfo(LineText:String):String;

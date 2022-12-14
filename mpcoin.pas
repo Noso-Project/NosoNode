@@ -5,7 +5,8 @@ unit mpCoin;
 interface
 
 uses
-  Classes, SysUtils,MasterPaskalForm,mpgui,Clipbrd, strutils, nosodebug,nosogeneral;
+  Classes, SysUtils,MasterPaskalForm,mpgui,Clipbrd, strutils, nosodebug,nosogeneral,
+  nosocrypto;
 
 function GetAddressAvailable(address:string):int64;
 function GetAddressBalance(address:string):int64;
@@ -14,6 +15,7 @@ function GetAddressIncomingpays(Address:string):int64;
 function TranxAlreadyPending(TrxHash:string):boolean;
 function TrxExistsInLastBlock(trfrhash:String):boolean;
 function AddPendingTxs(order:OrderData):boolean;
+function DireccionEsMia(direccion:string):integer;
 Procedure VerifyIfPendingIsMine(order:orderdata);
 function AddressAlreadyCustomized(address:string):boolean;
 Function GVTAlreadyTransfered(NumberStr:String):boolean;
@@ -36,10 +38,6 @@ Function GetDevPercentage(block:integer):integer;
 Function GetPoSPercentage(block:integer):integer;
 Function GetMNsPercentage(block:integer):integer;
 Function GetStackRequired(block:integer):int64;
-// Masternodes
-Function IsValidMNReport(Node:Tmasternode):Boolean;
-function GetMNsHash():string;
-
 
 implementation
 
@@ -198,6 +196,24 @@ if not TranxAlreadyPending(order.TrfrID) then
    VerifyIfPendingIsMine(order);
    end;
 EndPerformance('AddPendingTxs');
+End;
+
+// Verifica si la direccion enviada esta en la cartera del usuario
+function DireccionEsMia(direccion:string):integer;
+var
+  contador : integer = 0;
+Begin
+Result := -1;
+if ((direccion ='') or (length(direccion)<5)) then exit;
+for contador := 0 to length(Listadirecciones)-1 do
+   begin
+   if ((ListaDirecciones[contador].Hash = direccion) or (ListaDirecciones[contador].Custom = direccion )) then
+      begin
+      result := contador;
+      break;
+      end;
+   end;
+if ( (not IsValidHashAddress(direccion)) and (AddressSumaryIndex(direccion)<0) ) then result := -1;
 End;
 
 // Verifica si una orden especifica es del usuario
@@ -580,52 +596,6 @@ Begin
 result := (GetSupply(block)*PosStackCoins) div 10000;
 End;
 
-// ***********
-// MASTERNODES
-// ***********
-
-Function IsValidMNReport(Node:Tmasternode):Boolean;
-Begin
-result := false;
-if ( (node.Block = Mylastblock) and (node.BlockHash=MyLastBlockHash) ) then
-   result := true;
-End;
-
-function GetMNsHash():string;
-var
-  counter:integer;
-  Hashstr : string = '';
-  validMN : integer = 0;
-  CopyArray : Array of Tmasternode;
-Begin
-BeginPerformance('GetMNsHash');
-
-//EnterCriticalSection(CSMNsArray);
-SetLength(CopyArray,0);
-CopyArray := copy(MNsArray,0,length(MNsArray));
-//LeaveCriticalSection(CSMNsArray);
-
-if Length(CopyArray) = 0 then
-   begin
-   result := 'EMPTY';
-   myMNsCount := 0;
-   end
-else
-   begin
-   for counter := 0 to Length(CopyArray)-1 do
-      begin
-      if ( (IsValidMNReport(CopyArray[counter])) and
-         (not AnsiContainsStr(Hashstr,CopyArray[counter].FundAddress)) ) then
-         begin
-         Hashstr := Hashstr+CopyArray[counter].FundAddress+' ';
-         validMN := validMN+1;
-         end;
-      end;
-   result := HashMD5string(Trim(Hashstr));
-   myMNsCount := ValidMN;
-   end;
-EndPerformance('GetMNsHash');
-End;
 
 END. // END UNIT
 

@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, mpgui, FPJSON, jsonparser, mpCripto, mpCoin, mpRed, mpBlock,nosodebug,
-  nosogeneral;
+  nosogeneral, nosocrypto;
 
 Procedure SetRPCPort(LineText:string);
 Procedure setRPCpassword(newpassword:string);
@@ -610,7 +610,8 @@ function RPC_NewAddress(NosoPParams:string):string;
 var
   TotalNumber : integer;
   counter : integer;
-  ThisWallet : WalletData;
+  NewAddress : WalletData;
+  PubKey,PriKey : string;
 Begin
 TotalNumber := StrToIntDef(NosoPParams,1);
 if TotalNumber > 100 then TotalNumber := 100;
@@ -619,9 +620,12 @@ result := 'newaddress'#127'true'#127+IntToStr(TotalNumber)+#127;
 for counter := 1 to totalnumber do
    begin
    SetLength(ListaDirecciones,Length(ListaDirecciones)+1);
-   ThisWallet := CreateNewAddress;
-   ListaDirecciones[Length(ListaDirecciones)-1] := ThisWallet;
-   Result := result+ThisWallet.Hash+#127;
+   NewAddress := Default(WalletData);
+   NewAddress.Hash:=GenerateNewAddress(PubKey,PriKey);
+   NewAddress.PublicKey:=pubkey;
+   NewAddress.PrivateKey:=PriKey;
+   ListaDirecciones[Length(ListaDirecciones)-1] := NewAddress;
+   Result := result+NewAddress.Hash+#127;
    end;
 trim(result);
 S_Wallet := true;

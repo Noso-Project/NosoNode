@@ -8,7 +8,7 @@ uses
   Classes, forms, SysUtils, MasterPaskalForm, nosotime, IdContext, IdGlobal, mpGUI, mpDisk,
   mpBlock, fileutil, graphics,  dialogs, strutils, mpcoin, fphttpclient,
   opensslsockets,translation, IdHTTP, IdComponent, IdSSLOpenSSL, mpmn, IdTCPClient,
-  nosodebug,nosogeneral;
+  nosodebug,nosogeneral, nosocrypto;
 
 function GetSlotFromIP(Ip:String):int64;
 function GetSlotFromContext(Context:TidContext):int64;
@@ -1433,8 +1433,8 @@ else
    minutes := remain div 60;
    remain := remain mod 60;
    seconds := remain;
-   if Days > 0 then Result:= Format('%dd %.2d:%.2d:%.2d', [Days, Hours, Minutes, Seconds])
-   else Result:= Format('%.2d:%.2d:%.2d', [Hours, Minutes, Seconds]);
+   if Days > 0 then Result:= Format('[%d] %dd %.2d:%.2d:%.2d', [G_MNVerifications, Days, Hours, Minutes, Seconds])
+   else Result:= Format('[%d] %.2d:%.2d:%.2d', [G_MNVerifications,Hours, Minutes, Seconds]);
    end;
 End;
 

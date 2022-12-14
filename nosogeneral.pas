@@ -12,13 +12,14 @@ Requires: Not dependencyes
 INTERFACE
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, process;
 
 Function Parameter(LineText:String;ParamNumber:int64;de_limit:string=' '):String;
 Function IsValidIP(IpString:String):boolean;
 Function GetSupply(block:integer):int64;
 Function Restar(number:int64):int64;
 Function HashrateToShow(speed:int64):String;
+Procedure RunExternalProgram(ProgramToRun:String);
 
 IMPLEMENTATION
 
@@ -79,11 +80,11 @@ var
   valor1,valor2,valor3,valor4: integer;
 Begin
   result := true;
-  IPString := StringReplace(IPString,'.',' ',[rfReplaceAll, rfIgnoreCase]);
-  valor1 := StrToIntDef(Parameter(IPString,0),-1);
-  valor2 := StrToIntDef(Parameter(IPString,1),-1);
-  valor3 := StrToIntDef(Parameter(IPString,2),-1);
-  valor4 := StrToIntDef(Parameter(IPString,3),-1);
+  //IPString := StringReplace(IPString,'.',' ',[rfReplaceAll, rfIgnoreCase]);
+  valor1 := StrToIntDef(Parameter(IPString,0,'.'),-1);
+  valor2 := StrToIntDef(Parameter(IPString,1,'.'),-1);
+  valor3 := StrToIntDef(Parameter(IPString,2,'.'),-1);
+  valor4 := StrToIntDef(Parameter(IPString,3,'.'),-1);
   if ((valor1 <0) or (valor1>255)) then result := false;
   if ((valor2 <0) or (valor2>255)) then result := false;
   if ((valor3 <0) or (valor3>255)) then result := false;
@@ -113,6 +114,33 @@ Begin
   else if speed>1000000 then result := FormatFloat('0.00',speed/1000000)+' Mh/s'
   else if speed>1000 then result := FormatFloat('0.00',speed/1000)+' Kh/s'
   else result := speed.ToString+' h/s'
+End;
+
+{Runs an external program}
+Procedure RunExternalProgram(ProgramToRun:String);
+var
+  Process: TProcess;
+  I: Integer;
+Begin
+  Process := TProcess.Create(nil);
+    TRY
+    Process.InheritHandles := False;
+    Process.Options := [];
+    Process.ShowWindow := swoShow;
+    for I := 1 to GetEnvironmentVariableCount do
+      Process.Environment.Add(GetEnvironmentString(I));
+    {$IFDEF UNIX}
+    process.Executable := 'bash';
+    process.Parameters.Add(ProgramToRun);
+    {$ENDIF}
+    {$IFDEF WINDOWS}
+    Process.Executable := ProgramToRun;
+    {$ENDIF}
+    Process.Execute;
+    EXCEPT ON E:Exception do
+
+    END; {TRY}
+  Process.Free;
 End;
 
 END.{UNIT}

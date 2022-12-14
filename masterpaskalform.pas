@@ -10,7 +10,7 @@ uses
   fileutil, Clipbrd, Menus, formexplore, lclintf, ComCtrls, Spin,
   strutils, math, IdHTTPServer, IdCustomHTTPServer,
   IdHTTP, fpJSON, Types, DefaultTranslator, LCLTranslator, translation, nosodebug,
-  ubarcodes, IdComponent,nosogeneral;
+  ubarcodes, IdComponent,nosogeneral,nosocrypto;
 
 type
 
@@ -674,7 +674,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa3';
+  SubVersion = 'Aa4';
   OficialRelease = false;
   VersionRequired = '0.3.3Aa3';
   BuildDate = 'December 2022';
@@ -713,11 +713,6 @@ CONST
   SecurityBlocks   = 4000;
 
 var
-  PoolAddressesList:string = 'N3ESwXxCAR4jw3GVHgmKiX9zx1ojWEf N2ophUoAzJw9LtgXbYMiB4u5jWWGJF7 '+
-    'N3aXz2RGwj8LAZgtgyyXNRkfQ1EMnFC N2MVecGnXGHpN8z4RqwJFXSQP6doVDv';
-
-  LockedAddresses : string = 'NpryectdevepmentfundsGE';
-
   UserFontSize : integer = 8;
   UserRowHeigth : integer = 22;
   ReadTimeOutTIme : integer = 1000;
@@ -782,6 +777,7 @@ var
   G_CloseRequested : boolean = false;
   G_LastPing  : int64;            // El segundo del ultimo ping
   G_TotalPings : Int64 = 0;
+  G_MNVerifications : integer = 0;
   G_ClosingAPP : Boolean = false;
   Form1: TForm1;
   LastCommand : string = '';
@@ -1013,9 +1009,9 @@ Begin
 While not terminated do
   begin
   sleep(10);
-  if GetLogLine('console',lastlogline) then Synchronize(@UpdateConsole);
-  if GetLogLine('events',lastlogline) then Synchronize(@UpdateEvents);
-  if GetLogLine('exceps',lastlogline) then Synchronize(@UpdateExceps);
+  while GetLogLine('console',lastlogline) do Synchronize(@UpdateConsole);
+  while GetLogLine('events',lastlogline) do Synchronize(@UpdateEvents);
+  while GetLogLine('exceps',lastlogline) do Synchronize(@UpdateExceps);
   end;
 End;
 
@@ -1335,6 +1331,8 @@ procedure TCryptoThread.Execute;
 var
   NewAddrss : integer = 0;
   PosRef : integer; cadena,claveprivada,firma, resultado:string;
+  NewAddress : WalletData;
+  PubKey,PriKey : string;
 Begin
 While not terminated do
    begin
@@ -1343,15 +1341,19 @@ While not terminated do
       begin
       if ArrayCriptoOp[0].tipo = 0 then // actualizar balance
          begin
-         //MyCurrentBalance := GetWalletBalance();
+         //MyCurrentBalance := GetWalletBalance(); DEPRECATED
          end
       else if ArrayCriptoOp[0].tipo = 1 then // Crear direccion
          begin
+         NewAddress := Default(WalletData);
+         NewAddress.Hash:=GenerateNewAddress(PubKey,PriKey);
+         NewAddress.PublicKey:=pubkey;
+         NewAddress.PrivateKey:=PriKey;
          SetLength(ListaDirecciones,Length(ListaDirecciones)+1);
-         ListaDirecciones[Length(ListaDirecciones)-1] := CreateNewAddress;
+         ListaDirecciones[Length(ListaDirecciones)-1] := NewAddress;
          S_Wallet := true;
          U_DirPanel := true;
-         NewAddrss := NewAddrss + 1;
+         Inc(NewAddrss);
          end
       else if ArrayCriptoOp[0].tipo = 2 then // customizar
          begin
@@ -1402,12 +1404,16 @@ While not terminated do
           EXCEPT ON E:Exception do
             AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2505,[E.Message]));
           END{Try};
+          end
+       else
+          begin
+             AddLineToDebugLog('exceps','Invalid cryptoop: '+ArrayCriptoOp[0].tipo.ToString);
           end;
       DeleteCriptoOp();
       sleep(1);
       end;
    if NewAddrss > 0 then OutText(IntToStr(NewAddrss)+' new addresses',false,2);
-   Sleep(1);
+   Sleep(10);
    end;
 End;
 
@@ -1579,10 +1585,10 @@ If Protocolo > 0 then
    begin
    If ((BlockAge<590) and (GetNMSData.Miner<> '')) then
       begin
-      if BuildNMSBlock = 0 then
+      if BuildNMSBlock < UTCTime then
          begin
          BuildNMSBlock := NextBlockTimeStamp;
-         //AddLineToDebugLog('console','Next block time set to: '+TimeStampToDate(BuildNMSBlock));
+         AddLineToDebugLog('events','Next block time set to: '+TimeStampToDate(BuildNMSBlock));
          end;
       end
    end;
@@ -1739,6 +1745,7 @@ CB_WO_AntiFreeze.Checked:=WO_AntiFreeze;
 CB_WO_Multisend.Checked:=WO_Multisend;
 SE_WO_AntifreezeTime.value := WO_AntifreezeTime;
 CB_WO_Autoupdate.Checked := WO_AutoUpdate;
+CB_FullNode.Checked := WO_FullNode;
 // RPC
 LE_Rpc_Port.Text := IntToStr(RPCPort);
 LE_Rpc_Pass.Text := RPCPass;
@@ -1937,7 +1944,7 @@ if (ACol=1)  then
       (sender as TStringGrid).Canvas.font.Color :=  clblack;
       end
    end;
-if ( (ACol = 0) and (AnsiContainsStr(GetNosoCFGString(5),ListaDirecciones[aRow-1].Hash)) ) then
+if ( (ACol = 0) and (ARow>0) and (AnsiContainsStr(GetNosoCFGString(5),ListaDirecciones[aRow-1].Hash)) ) then
    begin
    (sender as TStringGrid).Canvas.Brush.Color :=  clRed;
    (sender as TStringGrid).Canvas.font.Color :=  clblack;
@@ -1981,6 +1988,7 @@ if ( (UTCTime >= BuildNMSBlock) and (BuildNMSBlock>0) and (MyConStatus=3) ) then
    begin
    AddLineToDebugLog('events','Starting construction of block '+(MyLastBlock+1).ToString);
    BuildNewBlock(MyLastBlock+1,BuildNMSBlock,MyLastBlockHash,GetNMSData.Miner,GetNMSData.Hash);
+   G_MNVerifications := 0;
    end;
 BeginPerformance('ActualizarGUI');
 ActualizarGUI();

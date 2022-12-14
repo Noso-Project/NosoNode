@@ -5,7 +5,8 @@ unit mpSysCheck;
 interface
 
 uses
-  Classes, SysUtils, mpcripto, fphttpclient, mpdisk{$IFDEF Unix} ,Linux {$ENDIF},nosodebug ;
+  Classes, SysUtils, mpcripto, fphttpclient, mpdisk{$IFDEF Unix} ,Linux {$ENDIF},nosodebug,
+  nosocrypto;
 
 Type
   TThreadHashtest = class(TThread)

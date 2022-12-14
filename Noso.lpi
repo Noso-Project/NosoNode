@@ -185,7 +185,7 @@
     <RunParams>
       <FormatVersion Value="2"/>
     </RunParams>
-    <RequiredPackages Count="7">
+    <RequiredPackages Count="5">
       <Item1>
         <PackageName Value="SimpleBaseLib4PascalPackage"/>
       </Item1>
@@ -196,19 +196,13 @@
         <PackageName Value="lazbarcodes"/>
       </Item3>
       <Item4>
-        <PackageName Value="dcpcrypt"/>
+        <PackageName Value="CryptoLib4PascalPackage"/>
       </Item4>
       <Item5>
-        <PackageName Value="CryptoLib4PascalPackage"/>
-      </Item5>
-      <Item6>
-        <PackageName Value="HashLib4PascalPackage"/>
-      </Item6>
-      <Item7>
         <PackageName Value="LCL"/>
-      </Item7>
+      </Item5>
     </RequiredPackages>
-    <Units Count="19">
+    <Units Count="20">
       <Unit0>
         <Filename Value="Noso.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -301,6 +295,10 @@
         <Filename Value="nosogeneral.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit18>
+      <Unit19>
+        <Filename Value="nosocrypto.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit19>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

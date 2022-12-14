@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, nosotime, graphics, strutils, forms, controls, grids,stdctrls,
-  ExtCtrls, buttons, editbtn , menus, Clipbrd, IdContext, LCLTranslator, nosodebug, nosogeneral;
+  ExtCtrls, buttons, editbtn , menus, Clipbrd, IdContext, LCLTranslator, nosodebug, nosogeneral,
+  nosocrypto;
 
 type
   TFormInicio = class(Tform)
@@ -322,9 +323,7 @@ LocalLastUpdate := UTCTime;
 
 if U_DataPanel then
    begin
-   //form1.DataPanel.Cells[1,1]:=Booltostr(form1.Server.Active, true)+'('+IntToStr(Form1.Server.DefaultPort)+')';
    form1.DataPanel.Cells[1,1]:=NodeServerInfo;
-
    form1.DataPanel.Cells[1,3]:=copy(myResumenHash,0,5)+'/'+copy(NetResumenHash.Value,0,5)+'('+IntToStr(NetResumenHash.Porcentaje)+')';
    form1.DataPanel.Cells[1,4]:=Copy(MySumarioHash,0,5)+'/'+Copy(NetSumarioHash.Value,0,5)+'('+IntToStr(NetSumarioHash.Porcentaje)+')';
    form1.DataPanel.Cells[1,6]:=IntToStr(MyLastBlock)+'/'+NetLastBlock.Value+'('+IntToStr(NetLastBlock.Porcentaje)+')';

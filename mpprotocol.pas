@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, mpRed, MasterPaskalForm, mpParser, StrUtils, mpDisk, nosotime, mpBlock,
-  Zipper, mpcoin, mpCripto, mpMn, nosodebug, nosogeneral;
+  Zipper, mpcoin, mpCripto, mpMn, nosodebug, nosogeneral, nosocrypto;
 
 function GetPTCEcn():String;
 Function GetOrderFromString(textLine:String):OrderData;
@@ -58,6 +58,9 @@ Procedure AddToIncoming(Index:integer;texto:string);
 Function GetIncoming(Index:integer):String;
 Function LengthIncoming(Index:integer):integer;
 Procedure ClearIncoming(Index:integer);
+
+Procedure AddCriptoOp(tipo:integer;proceso, resultado:string);
+Procedure DeleteCriptoOp();
 
 
 CONST
@@ -830,7 +833,7 @@ End;
 function IsAddressLocked(LAddress:String):boolean;
 Begin
 Result := false;
-If AnsiContainsSTR(LockedAddresses, LAddress) then result := true;
+If AnsiContainsSTR(GetNosoCFGString(5), LAddress) then result := true;
 End;
 
 // Verify a transfer
@@ -861,8 +864,6 @@ else if ( (order.OrderType='TRFR') and  (Not IsValidHashAddress(Order.Receiver))
    result := 10
 else if IsAddressLocked(Order.Address) then
    result := 11
-else if AnsiContainsStr(GetNosoCFGString(5),Origen) then
-   result := 17
 
 else result := 0;
 End;
@@ -1104,7 +1105,6 @@ Function IsValidPool(PoolAddress:String):boolean;
 Begin
 result := false;
 if AnsiContainsStr(GetNosoCFGString(3),PoolAddress) then result := true;
-if AnsiContainsStr(PoolAddressesList,PoolAddress) then result := true;
 End;
 
 Function PTC_BestHash(Linea:string;IPUser:String):String;
@@ -1169,7 +1169,7 @@ if Copy(HAshMD5String(Content),0,5) = NetCFGHash.Value then
    AddLineToDebugLog('Console','Noso CFG updated!');
    end
 else
-   AddLineToDebugLog('Console',Format('%s %s',[Copy(HAshMD5String(Content),0,5),NetCFGHash.Value]));
+   AddLineToDebugLog('Console',Format('Failed CFG: %s <> %s',[Copy(HAshMD5String(Content),0,5),NetCFGHash.Value]));
 End;
 
 Procedure PTC_SendUpdateHeaders(Slot:integer;Linea:String);
@@ -1362,6 +1362,41 @@ SaveNosoCFGFile(DefaultNosoCFG);
 SetNosoCFGString(DefaultNosoCFG);
 FillNodeList;
 AddLineToDebugLog('Console','NosoCFG restarted');
+End;
+
+// Añade una operacion a la espera de cripto
+Procedure AddCriptoOp(tipo:integer;proceso, resultado:string);
+var
+  NewOp: TArrayCriptoOp;
+Begin
+NewOp.tipo := tipo;
+NewOp.data:=proceso;
+NewOp.result:=resultado;
+EnterCriticalSection(CSCriptoThread);
+TRY
+Insert(NewOp,ArrayCriptoOp,length(ArrayCriptoOp));
+
+EXCEPT ON E:Exception do
+   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error adding Operation to crypto thread:'+proceso);
+END{Try};
+LeaveCriticalSection(CSCriptoThread);
+End;
+
+// Elimina la operacion cripto
+Procedure DeleteCriptoOp();
+Begin
+EnterCriticalSection(CSCriptoThread);
+if Length(ArrayCriptoOp) > 0 then
+   begin
+   TRY
+   Delete(ArrayCriptoOp,0,1);
+   EXCEPT ON E:Exception do
+      begin
+      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error removing Operation from crypto thread:'+E.Message);
+      end;
+   END{Try};
+   end;
+LeaveCriticalSection(CSCriptoThread);
 End;
 
 

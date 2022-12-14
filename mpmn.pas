@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, mpCripto, MasterPaskalform, mpcoin, mpgui, IdTCPClient, IdGlobal,
-  strutils, nosodebug, nosogeneral;
+  strutils, nosodebug, nosogeneral, nosocrypto, nosotime;
 
 Type
 
@@ -60,6 +60,7 @@ Procedure PTC_MNFile(Linea:String);
 
 Function LengthWaitingMNs():Integer;
 Function IsIPMNAlreadyProcessed(OrderText:string):Boolean;
+Function GetMNSignature():string;
 Procedure AddWaitingMNs(Linea:String);
 Function GetWaitingMNs():String;
 
@@ -542,9 +543,14 @@ if GetMNsListLength>0 then
    end;
 End;
 
+{Returns the response to the validators request}
 Function GetVerificationMNLine(ToIp:String):String;
 Begin
-if IsAllSynced=0 then Result := 'True '+GetSyncTus+' '+MN_Funds+' '+ToIp
+if IsAllSynced=0 then
+   begin
+   Result := 'True '+GetSyncTus+' '+MN_Funds+' '+ToIp;
+   Inc(G_MNVerifications);
+   end
 else Result := 'False';
 End;
 
@@ -804,6 +810,30 @@ if length(ArrayIPsProcessed) > 0 then
    end;
 if result = false then Insert(ThisIP,ArrayIPsProcessed,length(ArrayIPsProcessed));
 LeaveCriticalSection(CSMNsIPCheck);
+End;
+
+// Returns the signature for the masternode report
+Function GetMNSignature():string;
+var
+  TextToSign : string = '';
+  SignAddressIndex : integer;
+  PublicKey : string;
+  CurrentTime : string;
+  ReportHash : string;
+Begin
+BeginPerformance('GetMNSignature');
+result := '';
+CurrentTime := UTCTimeStr;
+TextToSign := CurrentTime+' '+MN_IP+' '+MyLastBlock.ToString+' '+MyLastBlockHash;
+ReportHash := HashMD5String(TextToSign);
+SignAddressIndex := DireccionEsMia(MN_Sign);
+if SignAddressIndex<0 then result := ''
+else
+   begin
+   PublicKey := ListaDirecciones[SignAddressIndex].PublicKey;
+   result := CurrentTime+' '+PublicKey+' '+GetStringSigned(TextToSign,ListaDirecciones[SignAddressIndex].PrivateKey)+' '+ReportHash;
+   end;
+EndPerformance('GetMNSignature');
 End;
 
 Procedure AddWaitingMNs(Linea:String);

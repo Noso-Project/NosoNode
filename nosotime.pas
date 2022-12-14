@@ -1,14 +1,15 @@
 unit NosoTime;
 
 {
-Nosotime 1.1
-December 5th, 2022
+Nosotime 1.2
+December 12th, 2022
 Noso Time Unit for time synchronization on Noso project.
 Requires indy package. (To-do: remove this dependancy)
 
 Changes:
 - Random use of NTP servers.
 - Async process limited to every 5 seconds.
+- Block time related functions.
 }
 
 {$mode ObjFPC}{$H+}
@@ -35,6 +36,9 @@ Function UTCTime:Int64;
 Function UTCTimeStr:String;
 Procedure UpdateOffset(NTPServers:String);
 function TimeSinceStamp(Lvalue:int64):string;
+Function BlockAge():integer;
+Function NextBlockTimeStamp():Int64;
+Function IsBlockOpen():boolean;
 
 Var
   NosoT_TimeOffset : int64 = 0;
@@ -154,6 +158,30 @@ else if Elapsed div 2592000 < 1 then result := IntToStr(Elapsed div 86400)+'d'
 else if Elapsed div 31536000 < 1 then result := IntToStr(Elapsed div 2592000)+'M'
 else result := IntToStr(Elapsed div 31536000)+' Y';
 end;
+
+{Return the current block age}
+Function BlockAge():integer;
+Begin
+Result := UTCtime mod 600;
+End;
+
+{Returns the expected timestamp for next block}
+Function NextBlockTimeStamp():Int64;
+var
+  currTime : int64;
+  Remains : int64;
+Begin
+CurrTime := UTCTime;
+Remains := 600-(CurrTime mod 600);
+Result := CurrTime+Remains;
+End;
+
+{Returns if the current block is in operation period}
+Function IsBlockOpen():boolean;
+Begin
+result := true;
+if ( (BlockAge<10) or (BlockAge>585) ) then result := false;
+End;
 
 END. // END UNIT
 
