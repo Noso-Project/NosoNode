@@ -5,7 +5,7 @@ unit mpRPC;
 interface
 
 uses
-  Classes, SysUtils, mpgui, FPJSON, jsonparser, mpCripto, mpCoin, mpRed, mpBlock,nosodebug,
+  Classes, SysUtils, mpgui, FPJSON, jsonparser, mpCoin, mpRed, mpBlock,nosodebug,
   nosogeneral, nosocrypto;
 
 Procedure SetRPCPort(LineText:string);

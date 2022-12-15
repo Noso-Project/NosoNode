@@ -69,7 +69,7 @@ Procedure ClearReceivedOrdersIDs();
 implementation
 
 Uses
-  mpParser, mpProtocol, mpCripto;
+  mpParser, mpProtocol;
 
 // RETURNS THE SLOT OF THE GIVEN IP
 function GetSlotFromIP(Ip:String):int64;

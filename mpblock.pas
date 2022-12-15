@@ -5,7 +5,7 @@ unit mpBlock;
 interface
 
 uses
-  Classes, SysUtils,MasterPaskalForm, mpCripto, fileutil, mpcoin, dialogs,
+  Classes, SysUtils,MasterPaskalForm, fileutil, mpcoin, dialogs,
   nosotime, mpMN, nosodebug,nosogeneral,nosocrypto;
 
 Procedure CrearBloqueCero();

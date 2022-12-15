@@ -5,7 +5,7 @@ unit mpMN;
 interface
 
 uses
-  Classes, SysUtils, mpCripto, MasterPaskalform, mpcoin, mpgui, IdTCPClient, IdGlobal,
+  Classes, SysUtils, MasterPaskalform, mpcoin, mpgui, IdTCPClient, IdGlobal,
   strutils, nosodebug, nosogeneral, nosocrypto, nosotime;
 
 Type

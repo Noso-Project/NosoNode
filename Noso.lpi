@@ -202,7 +202,7 @@
         <PackageName Value="LCL"/>
       </Item5>
     </RequiredPackages>
-    <Units Count="20">
+    <Units Count="19">
       <Unit0>
         <Filename Value="Noso.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -235,70 +235,65 @@
         <UnitName Value="mpRed"/>
       </Unit5>
       <Unit6>
-        <Filename Value="mpcripto.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="mpCripto"/>
-      </Unit6>
-      <Unit7>
         <Filename Value="mpprotocol.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpProtocol"/>
-      </Unit7>
-      <Unit8>
+      </Unit6>
+      <Unit7>
         <Filename Value="mpblock.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpBlock"/>
-      </Unit8>
-      <Unit9>
+      </Unit7>
+      <Unit8>
         <Filename Value="mpcoin.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpCoin"/>
-      </Unit9>
-      <Unit10>
+      </Unit8>
+      <Unit9>
         <Filename Value="mpsignerutils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpSignerUtils"/>
-      </Unit10>
-      <Unit11>
+      </Unit9>
+      <Unit10>
         <Filename Value="mprpc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpRPC"/>
-      </Unit11>
-      <Unit12>
+      </Unit10>
+      <Unit11>
         <Filename Value="translation.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit12>
-      <Unit13>
+      </Unit11>
+      <Unit12>
         <Filename Value="mpmn.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpMN"/>
-      </Unit13>
-      <Unit14>
+      </Unit12>
+      <Unit13>
         <Filename Value="mpsyscheck.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mpSysCheck"/>
-      </Unit14>
-      <Unit15>
+      </Unit13>
+      <Unit14>
         <Filename Value="to_do.txt"/>
         <IsPartOfProject Value="True"/>
-      </Unit15>
-      <Unit16>
+      </Unit14>
+      <Unit15>
         <Filename Value="nosotime.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="NosoTime"/>
+      </Unit15>
+      <Unit16>
+        <Filename Value="nosodebug.pas"/>
+        <IsPartOfProject Value="True"/>
       </Unit16>
       <Unit17>
-        <Filename Value="nosodebug.pas"/>
+        <Filename Value="nosogeneral.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit17>
       <Unit18>
-        <Filename Value="nosogeneral.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit18>
-      <Unit19>
         <Filename Value="nosocrypto.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit19>
+      </Unit18>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

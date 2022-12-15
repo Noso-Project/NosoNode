@@ -42,7 +42,7 @@ Function GetStackRequired(block:integer):int64;
 implementation
 
 Uses
-  mpblock, Mpred, mpcripto, mpparser,mpdisk, mpProtocol;
+  mpblock, Mpred, mpparser,mpdisk, mpProtocol;
 
 function GetAddressAvailable(address:string):int64;
 Begin

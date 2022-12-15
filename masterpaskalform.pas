@@ -965,7 +965,7 @@ var
 IMPLEMENTATION
 
 Uses
-  mpgui, mpdisk, mpParser, mpRed, nosotime, mpProtocol, mpcripto, mpcoin,
+  mpgui, mpdisk, mpParser, mpRed, nosotime, mpProtocol, mpcoin,
   mpRPC,mpblock, mpMN;
 
 {$R *.lfm}
@@ -1667,7 +1667,6 @@ if WO_CloseStart then
    Setlength(MNsArray,0);
    Setlength(MNsList,0);
    Setlength(ArrMNChecks,0);
-
    Setlength(WaitingMNs,0);
       ThreadMNs := TUpdateMNs.Create(true);
       ThreadMNs.FreeOnTerminate:=true;

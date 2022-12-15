@@ -7,9 +7,9 @@ uses
   cthreads,
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, MasterPaskalForm, mpGUI, mpdisk, mpParser, mpRed, mpCripto, mpProtocol,
+  Forms, MasterPaskalForm, mpGUI, mpdisk, mpParser, mpRed, mpProtocol,
   mpBlock, mpCoin, mpsignerutils, mpRPC, translation, indylaz, sysutils,
-  LCLTranslator, mpmn, mpsyscheck, NosoTime, nosodebug, nosogeneral, nosocrypto;
+  LCLTranslator, mpMN, mpsyscheck, NosoTime, nosodebug, nosogeneral, nosocrypto;
 
 {$R *.res}
 var

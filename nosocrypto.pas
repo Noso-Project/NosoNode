@@ -12,7 +12,7 @@ Requires: cryptohashlib , mpsignerutils
 INTERFACE
 
 uses
-  Classes, SysUtils,
+  Classes, SysUtils, strutils,
   HlpHashFactory, md5,
   ClpConverters,ClpBigInteger,SbpBase58,
   mpsignerutils, base64;
@@ -38,6 +38,11 @@ function GetAddressFromPublicKey(PubKey:String):String;
 Function GenerateNewAddress(out pubkey:String;out privkey:String):String;
 Function IsValidHashAddress(Address:String):boolean;
 Function GetTransferHash(TextLine:string):String;
+function GetOrderHash(TextLine:string):String;
+Function GetCertificate(Pubkey,privkey,currtime:string):string;
+Function CheckCertificate(certificate:string;out TimeStamp:String):string;
+Function CheckHashDiff(Target,ThisHash:String):string;
+Function NosoHash(source:string):string;
 
 {New base conversion functions}
 function B10ToB16(const sVal: String): String;
@@ -190,6 +195,186 @@ Begin
   Resultado := HashSHA256String(TextLine);
   Resultado := B16toB58(Resultado);
   Result := 'tR'+Resultado+ B10toB58(BMB58resumen(Resultado)) ;
+End;
+
+{Returns the Order hash, base36; needs to be adapted to new system}
+function GetOrderHash(TextLine:string):String;
+Begin
+Result := HashSHA256String(TextLine);
+Result := 'OR'+BMHexTo58(Result,36);
+End;
+
+{Returns the Address certificate for the submitted data}
+Function GetCertificate(Pubkey,privkey,currtime:string):string;
+var
+  Certificate : String;
+  Address     : String;
+  Signature   : String;
+
+   Function SplitCertificate(TextData:String):String;
+   var
+     InpuntLength, Tramos, counter: integer;
+     ThisTramo, This58 : string;
+   Begin
+     result :='';
+     InpuntLength := length(TextData);
+     if InpuntLength < 100 then exit;
+     Tramos := InpuntLength div 32;
+     if InpuntLength mod 32 > 0 then tramos := tramos+1;
+     for counter := 0 to tramos-1 do
+       begin
+       ThisTramo := '1'+Copy(TextData,1+(counter*32),32);
+       This58 := B16ToB58(ThisTramo);
+       Result := Result+This58+'0';
+       end;
+   End;
+
+Begin
+  Result      := '';
+  TRY
+    Address     := GetAddressFromPublicKey(Pubkey);
+    Signature   := GetStringSigned('I OWN THIS ADDRESS '+Address+currtime,PrivKey);
+    Certificate := Pubkey+':'+Currtime+':'+signature;
+    Certificate := UPPERCASE(XorEncode(HashSha256String('noso'),certificate));
+    result      := SplitCertificate(certificate);
+  EXCEPT Exit;
+  END; {TRY}
+End;
+
+{Verify if a given certificate is valid and returns the address and timestamp}
+Function CheckCertificate(certificate:string;out TimeStamp:String):string;
+var
+  DataArray    : array of string;
+  Address      : String;
+  CertTime     : String;
+  Signature    : String;
+
+   Function UnSplitCertificate(TextData:String):String;
+   var
+     counter   :integer;
+     TrunkStr  :string = '';
+   Begin
+     result := '';
+     for counter := 1 to length(TextData) do
+       begin
+       if TextData[counter]<>'0' then TrunkStr := TrunkStr+TextData[counter]
+       else
+         begin
+         TrunkStr := B58toB16(TrunkStr);
+         Delete(TrunkStr,1,1);
+         Result := result+TrunkStr;
+         TrunkStr := '';
+         end;
+       end;
+   End;
+
+Begin
+  Result      := '';
+  TRY
+    Certificate := UnSplitCertificate(certificate);
+    Certificate := XorDecode(HashSha256String('noso'), Certificate);
+    DataArray   := SplitString(Certificate,':');
+    Address     := GetAddressFromPublicKey(DataArray[0]);
+    CertTime    := DataArray[1];
+    Signature   := DataArray[2];
+    if VerifySignedString('I OWN THIS ADDRESS '+Address+CertTime,Signature,DataArray[0]) then
+      {Verified certificate}
+      begin
+      TimeStamp := CertTime;
+      Result    := Address;
+      end;
+  EXCEPT Exit;
+  END; {TRY}
+End;
+
+{Verify the difference between MD5 hashes}
+Function CheckHashDiff(Target,ThisHash:String):string;
+var
+   ThisChar : string = '';
+   counter : integer;
+   ValA, ValB, Diference : Integer;
+   ResChar : String;
+   Resultado : String = '';
+Begin
+result := 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF';
+if Length(Target) < 32 then SetLength(Target,32);
+if Length(ThisHash) < 32 then SetLength(ThisHash,32);
+for counter := 1 to 32 do
+   begin
+   ValA := Hex2Dec(ThisHash[counter]);
+   ValB := Hex2Dec(Target[counter]);
+   Diference := Abs(ValA - ValB);
+   ResChar := UPPERCASE(IntToHex(Diference,1));
+   Resultado := Resultado+ResChar
+   end;
+Result := Resultado;
+End;
+
+{Returns the nosohash of the specified address}
+Function NosoHash(source:string):string;
+var
+  counter : integer;
+  FirstChange : array[1..128] of string;
+  finalHASH : string;
+  ThisSum : integer;
+  charA,charB,charC,charD, CharE, CharF, CharG, CharH:integer;
+  Filler : string = '%)+/5;=CGIOSYaegk';
+
+  Function GetClean(number:integer):integer;
+  Begin
+  result := number;
+  if result > 126 then
+     begin
+     repeat
+       result := result-95;
+     until result <= 126;
+     end;
+  End;
+
+  function RebuildHash(incoming : string):string;
+  var
+    counter : integer;
+    resultado2 : string = '';
+    chara,charb, charf : integer;
+  Begin
+  for counter := 1 to length(incoming) do
+     begin
+     chara := Ord(incoming[counter]);
+       if counter < Length(incoming) then charb := Ord(incoming[counter+1])
+       else charb := Ord(incoming[1]);
+     charf := chara+charb; CharF := GetClean(CharF);
+     resultado2 := resultado2+chr(charf);
+     end;
+  result := resultado2
+  End;
+
+Begin
+result := '';
+for counter := 1 to length(source) do
+   if ((Ord(source[counter])>126) or (Ord(source[counter])<33)) then
+      begin
+      source := '';
+      break
+      end;
+if length(source)>63 then source := '';
+repeat source := source+filler;
+until length(source) >= 128;
+source := copy(source,0,128);
+FirstChange[1] := RebuildHash(source);
+for counter := 2 to 128 do FirstChange[counter]:= RebuildHash(firstchange[counter-1]);
+finalHASH := FirstChange[128];
+for counter := 0 to 31 do
+   begin
+   charA := Ord(finalHASH[(counter*4)+1]);
+   charB := Ord(finalHASH[(counter*4)+2]);
+   charC := Ord(finalHASH[(counter*4)+3]);
+   charD := Ord(finalHASH[(counter*4)+4]);
+   thisSum := CharA+charB+charC+charD;
+   ThisSum := GetClean(ThisSum);
+   Thissum := ThisSum mod 16;
+   result := result+IntToHex(ThisSum,1);
+   end;
+Result := HashMD5String(Result);
 End;
 
 {** New base conversion functions **}
@@ -584,7 +769,7 @@ for count := 0 to length(sumandos)-1 do
 result := ClearLeadingCeros(TotalSuma);
 End;
 
-// DIVIDES TO NUMBERS
+// DIVIDES TWO INTEGERS
 Function BMDividir(Numero1,Numero2:string):DivResult;
 var
   counter : integer;

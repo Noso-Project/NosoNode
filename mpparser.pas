@@ -5,7 +5,7 @@ unit mpParser;
 interface
 
 uses
-  Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, mpCripto, nosotime, mpblock, mpcoin,
+  Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, nosotime, mpblock, mpcoin,
   dialogs, fileutil, forms, idglobal, strutils, mpRPC, DateUtils, Clipbrd,translation,
   idContext, math, mpMN, MPSysCheck, nosodebug, nosogeneral, nosocrypto;
 
@@ -236,8 +236,8 @@ else if UpperCase(Command) = 'ADDBOT' then AddNewBot(LineText)
 else if UpperCase(Command) = 'SETRTOT' then SetReadTimeOutTIme(LineText)
 else if UpperCase(Command) = 'SETCTOT' then SetConnectTimeOutTIme(LineText)
 else if UpperCase(Command) = 'STATUS' then AddLineToDebugLog('console',GetCurrentStatus(1))
-else if UpperCase(Command) = 'OWNER' then GetOwnerHash(LineText)
-else if UpperCase(Command) = 'CHECKOWNER' then CheckOwnerHash(LineText)
+else if UpperCase(Command) = 'GETCERT' then GetOwnerHash(LineText)
+else if UpperCase(Command) = 'CHECKCERT' then CheckOwnerHash(LineText)
 else if UpperCase(Command) = 'UPDATE' then RunUpdate(LineText)
 else if UpperCase(Command) = 'RESTOREBLOCKCHAIN' then RestoreBlockChain()
 else if UpperCase(Command) = 'RESTORESUMARY' then RestoreSumary(StrToIntDef(Parameter(LineText,1),0))
@@ -296,7 +296,6 @@ else if UpperCase(Command) = '58TOHEX' then
   AddLineToDebugLog('console',BM58toHex(parameter(linetext,1)));
   AddLineToDebugLog('console',B58toB16(parameter(linetext,1)));
   end
-else if UpperCase(Command) = 'NCT' then RunNewCryptoTest
 else if UpperCase(Command) = 'NOSOHASH' then AddLineToDebugLog('console',Nosohash(parameter(linetext,1)))
 else if UpperCase(Command) = 'PENDING' then AddLineToDebugLog('console',PendingRawInfo)
 else if UpperCase(Command) = 'HEADER' then AddLineToDebugLog('console',LastHeaders(StrToIntDef(parameter(linetext,1),-1)))
@@ -1179,38 +1178,42 @@ End;
 
 Procedure GetOwnerHash(LineText:string);
 var
-  direccion, currtime : string;
+  Direccion, Pubkey, privkey, currtime, Certificate : string;
+  AddIndex : integer;
 Begin
 direccion := parameter(linetext,1);
-if ( (DireccionEsMia(direccion)<0) or (direccion='') ) then
+AddIndex  := DireccionEsMia(direccion);
+if ( (AddIndex<0) or (direccion='') ) then
   begin
   AddLineToDebugLog('console','Invalid address');
   end
 else
    begin
    currtime := UTCTimeStr;
-   AddLineToDebugLog('console',direccion+' owner cert'+slinebreak+
-      EncodeCertificate(ListaDirecciones[DireccionEsMia(direccion)].PublicKey+':'+currtime+':'+
-      GetStringSigned('I OWN THIS ADDRESS '+direccion+currtime,ListaDirecciones[DireccionEsMia(direccion)].PrivateKey)));
+   Pubkey   := ListaDirecciones[AddIndex].PublicKey;
+   Privkey  := ListaDirecciones[AddIndex].PrivateKey;
+   Certificate := GetCertificate(Pubkey,privkey,currtime);
+   AddLineToDebugLog('console',direccion+' owner cert: '+slinebreak+Certificate);
    end;
 End;
 
 Procedure CheckOwnerHash(LineText:string);
 var
-  data, pubkey, direc,firmtime,firma : string;
+  data, firmtime, Address, Lalias : string;
 Begin
 BeginPerformance('CheckOwnerHash');
 data := parameter(LineText,1);
-data := DecodeCertificate(Data);
-data := StringReplace(data,':',' ',[rfReplaceAll, rfIgnoreCase]);
-pubkey := Parameter(data,0);
-firmtime := Parameter(data,1);
-firma := Parameter(data,2);
-direc := GetAddressFromPublicKey(pubkey);
-if ListaSumario[AddressSumaryIndex(direc)].custom <> '' then direc := ListaSumario[AddressSumaryIndex(direc)].custom;
-if VerifySignedString('I OWN THIS ADDRESS '+direc+firmtime,firma,pubkey) then
-   AddLineToDebugLog('console',direc+' verified '+TimeSinceStamp(StrToInt64(firmtime))+' ago.')
-else AddLineToDebugLog('console','Invalid verification');
+Address := CheckCertificate(Data,firmtime);
+if Address <> '' then
+  begin
+  if ListaSumario[AddressSumaryIndex(Address)].custom <> '' then
+    Address := Format('%s [%s]',[Address,ListaSumario[AddressSumaryIndex(Address)].custom]);
+  AddLineToDebugLog('console',Address+' verified '+TimeSinceStamp(StrToInt64(firmtime))+' ago.')
+  end
+else
+  begin
+  AddLineToDebugLog('console','Invalid verification');
+  end;
 EndPerformance('CheckOwnerHash');
 End;
 
