@@ -396,8 +396,6 @@ BeginPerformance('CreateADV');
    writeln(FileAdvOptions,'ShowedOrders '+IntToStr(ShowedOrders));
    writeln(FileAdvOptions,'MaxPeers '+IntToStr(MaxPeersAllow));
    writeln(FileAdvOptions,'PosWarning '+IntToStr(WO_PosWarning));
-   writeln(FileAdvOptions,'AntiFreeze '+BoolToStr(WO_AntiFreeze,true));
-   writeln(FileAdvOptions,'AntifreezeTime '+IntToStr(WO_AntifreezeTime));
 
    Closefile(FileAdvOptions);
    if saving then AddLineToDebugLog('events',TimeToStr(now)+'Options file saved');
@@ -431,9 +429,7 @@ Begin
       if parameter(linea,0) ='ToTray' then WO_ToTray:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='MinConexToWork' then MinConexToWork:=StrToIntDef(Parameter(linea,1),MinConexToWork);
       if parameter(linea,0) ='PosWarning' then WO_PosWarning:=StrToIntDef(Parameter(linea,1),WO_PosWarning);
-      if parameter(linea,0) ='AntiFreeze' then WO_AntiFreeze:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='MultiSend' then WO_MultiSend:=StrToBool(Parameter(linea,1));
-      if parameter(linea,0) ='AntifreezeTime' then WO_AntifreezeTime:=StrToIntDef(Parameter(linea,1),WO_AntifreezeTime);
       if parameter(linea,0) ='RPCFilter' then RPCFilter:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='RPCWhiteList' then RPCWhiteList:=Parameter(linea,1);
       if parameter(linea,0) ='RPCAuto' then RPCAuto:=StrToBool(Parameter(linea,1));
@@ -597,7 +593,6 @@ Var
   ErrorCode : integer = 0;
 Begin
 BeginPerformance('SaveBotData');
-SetCurrentJob('SaveBotData',true);
 contador := 0;
 assignfile (FileBotData,BotDataFilename);
 {$I-}reset (FileBotData){$I+};
@@ -621,7 +616,6 @@ if ErrorCode = 0 then
    END; {TRY}
    end;
 {$I-}closefile(FileBotData);{$I+};
-SetCurrentJob('SaveBotData',false);
 EndPerformance('SaveBotData');
 End;
 
@@ -629,12 +623,10 @@ End;
 // Saves updates files to disk
 Procedure SaveUpdatedFiles();
 Begin
-SetCurrentJob('SaveUpdatedFiles',true);
 if S_BotData then SaveBotData();
 if S_Wallet then GuardarWallet();
 if ( (S_Sumario) and (BuildingBlock=0) ) then GuardarSumario();
 if S_AdvOpt then CreateADV(true);
-SetCurrentJob('SaveUpdatedFiles',false);
 End;
 
 // Creates a new wallet
@@ -810,7 +802,6 @@ var
   IOCode       : integer;
 Begin
 BeginPerformance('GuardarSumario');
-SetCurrentJob('GuardarSumario',true);
 assignfile(FileSumario,SumarioFilename);
 EnterCriticalSection(CSSumary);
 {$I-}Reset(FileSumario);{$I+};
@@ -848,7 +839,6 @@ if ( (Listasumario[0].LastOP mod SumMarkInterval = 0) and (Listasumario[0].LastO
    Trycopyfile(GVTsFilename,GVTMarksDirectory+Listasumario[0].LastOP.ToString+'.bak');
    LeaveCriticalSection(CSGVTsArray);
    end;
-SetCurrentJob('GuardarSumario',false);
 EndPerformance('GuardarSumario');
 End;
 
@@ -1097,7 +1087,6 @@ var
   StartBlock, finishblock : integer;
   counter : integer;
 Begin
-SetCurrentJob('CompleteSumary',true);
 RebuildingSumary := true;
 StartBlock := ListaSumario[0].LastOP+1;
 finishblock := Mylastblock;
@@ -1108,13 +1097,10 @@ for counter := StartBlock to finishblock do
    EngineLastUpdate := UTCTime;
    AddBlockToSumary(counter, false);
    end;
-SetCurrentJob('save',true);
 GuardarSumario();
-SetCurrentJob('save',false);
 RebuildingSumary := false;
 UpdateMyData();
 AddLineToDebugLog('console','Sumary completed from '+IntToStr(StartBlock)+' to '+IntToStr(finishblock));
-SetCurrentJob('CompleteSumary',false);
 info('Sumary completed');
 End;
 
@@ -1134,7 +1120,6 @@ var
   CounterMNs  : integer;
   GVTsTrfer   : integer = 0;
 Begin
-SetCurrentJob('AddBlockToSumary'+inttostr(BlockNumber),true);
 BlockHeader := Default(BlockHeaderData);
 BlockHeader := LoadBlockDataHeader(BlockNumber);
 EnterCriticalSection(CSSumary);
@@ -1201,7 +1186,6 @@ if GVTsTrfer>0 then
    SaveGVTs;
    UpdateMyGVTsList;
    end;
-SetCurrentJob('AddBlockToSumary'+inttostr(BlockNumber),false);
 End;
 
 // Rebuilds totally sumary
@@ -1220,7 +1204,6 @@ var
   CounterMNs  : integer;
   GVTsTrfer   : integer = 0;
 Begin
-SetCurrentJob('RebuildSumario',true);
 EnterCriticalSection(CSSumary);
 RebuildingSumary := true;
 SetLength(ListaSumario,0);
@@ -1303,7 +1286,6 @@ if GVTsTrfer>0 then
    UpdateMyGVTsList;
    end;
 UpdateMyData();
-SetCurrentJob('RebuildSumario',true);
 AddLineToDebugLog('console','Summary rebuilded.');  //'Sumary rebuilded.'
 end;
 

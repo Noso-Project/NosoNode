@@ -21,23 +21,22 @@ function AddressAlreadyCustomized(address:string):boolean;
 Function GVTAlreadyTransfered(NumberStr:String):boolean;
 function AliasAlreadyExists(Addalias:string):boolean;
 function AddressSumaryIndex(Address:string):integer;
-function GetFee(monto:int64):Int64;
+//function GetFee(monto:int64):Int64;
 Function SendFundsFromAddress(Origen, Destino:String; monto, comision:int64; reference,
   ordertime:String;linea:integer):OrderData;
 Procedure CheckForMyPending();
-function GetMaximunToSend(monto:int64):int64;
+//function GetMaximunToSend(monto:int64):int64;
 function GetCurrentStatus(mode:integer):String;
 function GetMyPosAddressesCount():integer;
-function ShowHashrate(hashrate:int64):string;
 function GetBlockHeaders(numberblock:integer):string;
 function ValidRPCHost(hoststr:string):boolean;
 function PendingRawInfo():String;
 Function GetPendingCount():integer;
 Procedure ClearAllPending();
-Function GetDevPercentage(block:integer):integer;
-Function GetPoSPercentage(block:integer):integer;
-Function GetMNsPercentage(block:integer):integer;
-Function GetStackRequired(block:integer):int64;
+//Function GetDevPercentage(block:integer):integer;
+//Function GetPoSPercentage(block:integer):integer;
+//Function GetMNsPercentage(block:integer):integer;
+//Function GetStackRequired(block:integer):int64;
 
 implementation
 
@@ -441,7 +440,6 @@ if mode = 1 then
    begin
    resultado := resultado+'Date        : '+FormatDateTime('dd MMMM YYYY HH:MM:SS.zzz', Now)+slinebreak;
    resultado := resultado+'MyConStatus : '+IntToStr(myConStatus)+slinebreak;
-   Resultado := resultado+'CurrentJob  : '+GetCurrentJob+slinebreak;
    Resultado := resultado+'OS          : '+OSVersion +slinebreak;
    Resultado := resultado+'WalletVer   : '+ProgramVersion+SubVersion+slinebreak;
    end;
@@ -457,26 +455,6 @@ result := 0;
 PosRequired := (GetSupply(MyLastBlock+1)*PosStackCoins) div 10000;
 for contador := 0 to length(ListaDirecciones)-1 do
    if ListaDirecciones[contador].Balance > PosRequired then result +=1;
-End;
-
-function ShowHashrate(hashrate:int64):string;
-var
-  divisions : integer = 0;
-  HRStr : string;
-Begin
-if hashrate >= 10000 then
-   begin
-   repeat
-      Hashrate := Hashrate div 1000;
-      divisions +=1;
-   until hashrate < 10000;
-   end;
-if divisions = 0 then HRstr := ' Kh/s'
-else if divisions = 1 then HRstr := ' Mh/s'
-else if divisions = 2 then HRstr := ' Gh/s'
-else if divisions = 3 then HRstr := ' Th/s'
-else if divisions = 4 then HRstr := ' Ph/s';
-result := InttoStr(Hashrate)+ HRstr;
 End;
 
 function GetBlockHeaders(numberblock:integer):string;

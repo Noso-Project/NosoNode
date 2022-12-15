@@ -130,7 +130,6 @@ var
   Slot     : int64 = 0;
   FoundSlot: boolean = false;
 begin
-SetCurrentJob('SaveConection',true);
 if ToSLot<0 then
    begin
    EnterCriticalSection(CSNodesList);
@@ -182,7 +181,6 @@ else
    result := ToSLot;
    LeaveCriticalSection(CSNodesList);
    end;
-SetCurrentJob('SaveConection',false);
 end;
 
 Procedure ForceServer();
@@ -256,7 +254,6 @@ var
 Begin
 result := true;
 if not Form1.Server.Active then exit;
-SetCurrentJob('StopServer',true);
 KeepServerOn := false;
    TRY
    Form1.Server.Active:=false;
@@ -267,13 +264,11 @@ KeepServerOn := false;
       result := false;
       end;
    END{Try};
-SetCurrentJob('StopServer',false);
 end;
 
 // Cierra la conexion del slot especificado
 Procedure CerrarSlot(Slot:integer);
 Begin
-SetCurrentJob('CerrarSlot',true);
 BeginPerformance('CerrarSlot');
 TRY
 if conexiones[Slot].tipo='CLI' then
@@ -296,7 +291,6 @@ EnterCriticalSection(CSNodesList);
 Conexiones[Slot] := Default(conectiondata);
 LeaveCriticalSection(CSNodesList);
 EndPerformance('CerrarSlot');
-SetCurrentJob('CerrarSlot',false);
 End;
 
 // Intenta conectar a los nodos
@@ -310,7 +304,6 @@ var
   OutGoing  : integer;
 Begin
 OutGoing := GetOutGoingConnections;
-SetCurrentJob('ConnectToServers',true);
 BeginPerformance('ConnectToServers');
 if not CONNECT_Try then
    begin
@@ -339,7 +332,6 @@ if  ( (not Form1.Server.Active) and(IsSeedNode(MN_IP)) and (GetOutGoingConnectio
    forceserver;
 CONNECT_LastTime := UTCTimeStr;
 EndPerformance('ConnectToServers');
-SetCurrentJob('ConnectToServers',false);
 End;
 
 Function IsSlotFree(number:integer):Boolean;
@@ -435,19 +427,16 @@ var
   SavedSlot : integer;
   ConnectOk : boolean = false;
 Begin
-SetCurrentJob('ConnectClient',true);
 result := 0;
 ConContext := Default(TIdContext);
 Slot := ReserveSlot();
 if Address = '127.0.0.1' then
    begin
    AddLineToDebugLog('events',TimeToStr(now)+'127.0.0.1 is an invalid server address');    //127.0.0.1 is an invalid server address
-   SetCurrentJob('ConnectClient',false);
    errored := true;
    end
 else if Slot = 0 then // No free slots
    begin
-   SetCurrentJob('ConnectClient',false);
    errored := true;
    end;
 if not errored then
@@ -511,7 +500,6 @@ if not errored then
    }
    end
 else UnReserveSlot(Slot);
-SetCurrentJob('ConnectClient',false);
 End;
 
 // Retuns the number of active peers connections
@@ -533,7 +521,6 @@ var
 Begin
 result := '';
 CONNECT_Try := false;
-SetCurrentJob('CerrarClientes',true);
    TRY
    for contador := 1 to MaxConecciones do
       begin
@@ -550,7 +537,6 @@ if ServerToo then
    begin
    if form1.Server.active then ProcessLinesAdd('SERVEROFF');
    end;
-SetCurrentJob('CerrarClientes',false);
 End;
 
 // Verifica todas las conexiones tipo SER y lee las lineas entrantes que puedan tener
@@ -559,7 +545,6 @@ Procedure LeerLineasDeClientes();
 var
   contador : integer = 0;
 Begin
-SetCurrentJob('LeerLineasDeClientes',true);
 for contador := 1 to Maxconecciones do
    begin
    if IsSlotConnected(contador) then
@@ -573,7 +558,6 @@ for contador := 1 to Maxconecciones do
      if conexiones[contador].IsBusy then conexiones[contador].lastping := UTCTimeStr;
      end;
    end;
-SetCurrentJob('LeerLineasDeClientes',false);
 End;
 
 // Checks the current connection status (0-3)
@@ -581,7 +565,6 @@ Procedure VerifyConnectionStatus();
 var
   NumeroConexiones : integer = 0;
 Begin
-SetCurrentJob('VerifyConnectionStatus',true);
 TRY
 if ( (CONNECT_Try) and (UTCTime>StrToInt64Def(CONNECT_LastTime,UTCTime)+5) ) then
    begin
@@ -682,7 +665,6 @@ if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLa
    end;
 if MyConStatus = 3 then
    begin
-   SetCurrentJob('MyConStatus3',true);
    if ((StrToIntDef(NetPendingTrxs.Value,0)>GetPendingCount) and (LastTimePendingRequested+5<UTCTime) and
       (length(ArrayCriptoOp)=0) ) then
       begin
@@ -698,14 +680,12 @@ if MyConStatus = 3 then
      AddLineToDebugLog('events',TimeToStr(now)+'My Masternode reported');
      LastTimeReportMyMN := UTCTime;
      end;
-   SetCurrentJob('MyConStatus3',false);
    end;
 EXCEPT ON E:Exception do
    begin
-   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2002,[E.Message])+' '+CurrentJob);
+   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2002,[E.Message]));
    end;
 END{Try};
-SetCurrentJob('VerifyConnectionStatus',false);
 End;
 
 // Rellena el array consenso
@@ -946,7 +926,6 @@ End;
 
 Procedure UpdateNetworkData();
 Begin
-SetCurrentJob('UpdateNetworkData',true);
 NetLastBlock := UpdateNetworkLastBlock; // Buscar cual es el ultimo bloque por consenso
 NetLastBlockHash := UpdateNetworkLastBlockHash;
 NetSumarioHash   := UpdateNetworkSumario; // Busca el hash del sumario por consenso
@@ -959,7 +938,6 @@ NetMNsChecks     := UpdateNetworkMNsChecks;
 NetGVTSHash      := UpdateNetworkGVTsHash;
 NETCFGHash       := UpdateNetworkCFGHash;
 U_DataPanel := true;
-SetCurrentJob('UpdateNetworkData',false);
 End;
 
 Function IsAllSynced():integer;
@@ -979,7 +957,6 @@ End;
 // Actualiza mi informacion para compoartirla en la red
 Procedure UpdateMyData();
 Begin
-SetCurrentJob('UpdateMyData',true);
 MySumarioHash := HashMD5File(SumarioFilename);
 MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
 LastBlockData := LoadBlockDataHeader(MyLastBlock);
@@ -987,8 +964,6 @@ MyResumenHash := HashMD5File(ResumenFilename);
   if MyResumenHash = NetResumenHash.Value then ForceCompleteHeadersDownload := false;
 MyMNsHash     := HashMD5File(MasterNodesFilename);
 MyCFGHash     := Copy(HAshMD5String(GetNosoCFGString),1,5);
-U_PoSGrid := true;
-SetCurrentJob('UpdateMyData',false);
 End;
 
 // Request necessary files/info to update
@@ -999,7 +974,6 @@ var
 Begin
 if BuildingBlock>0 then exit;
 if ((BlockAge <10) or (blockAge>595)) then exit;
-SetCurrentJob('ActualizarseConLaRed',true);
 NLBV := StrToIntDef(NetLastBlock.Value,0);
 if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // Request headers
    begin
@@ -1127,7 +1101,6 @@ else if ( (NetGVTSHash.Value<>MyGVTsHash) and (LasTimeGVTsRequest+5<UTCTime) and
    AddLineToDebugLog('console','GVTs File requested to '+conexiones[NetMNsChecks.Slot].ip);
    end;
 if IsAllSynced=0 then Last_ActualizarseConLaRed := Last_ActualizarseConLaRed+5;
-SetCurrentJob('ActualizarseConLaRed',false);
 End;
 
 Procedure AddNewBot(linea:string);

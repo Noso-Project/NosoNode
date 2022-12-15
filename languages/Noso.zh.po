@@ -137,14 +137,6 @@ msgstr "摘要哈希"
 msgid "Active JSON-RPC server at launch"
 msgstr "运行 JSON-RPC 服务器"
 
-#: tform1.cb_currentjob.caption
-msgid "Disabled"
-msgstr ""
-
-#: tform1.cb_currentjob.hint
-msgid "Show current job (BETA)"
-msgstr ""
-
 #: tform1.cb_fullnode.caption
 #, fuzzy
 #| msgid "Download blockchain"
@@ -159,10 +151,6 @@ msgstr "只接受白名单请求"
 #: tform1.cb_rpc_on.caption
 msgid "Enable JSON-RPC server"
 msgstr "启用 JSON-RPC 服务器"
-
-#: tform1.cb_wo_antifreeze.caption
-msgid "Anti freeze (s)"
-msgstr "Anti freeze (s)"
 
 #: tform1.cb_wo_autoconnect.caption
 msgid "Auto connect at start"
@@ -206,10 +194,6 @@ msgstr "0.00000000"
 #: tform1.lababout.caption
 msgid "About message"
 msgstr "关于留言"
-
-#: tform1.label1.caption
-msgid "Post offer"
-msgstr "发布报价"
 
 #: tform1.label10.caption
 msgctxt "tform1.label10.caption"
@@ -284,23 +268,9 @@ msgstr "0 NOS"
 msgid "Waiting"
 msgstr "等待"
 
-#: tform1.labelnobiexaverage.caption
-msgctxt "tform1.labelnobiexaverage.caption"
-msgid "Average: -.-"
-msgstr "平均数： -。-"
-
-#: tform1.labelnobiexlast.caption
-msgctxt "tform1.labelnobiexlast.caption"
-msgid "Last: -.-"
-msgstr "最新区块"
-
 #: tform1.labelnodeshash.caption
 msgid "Count: "
 msgstr ""
-
-#: tform1.labeltransactiondetails.caption
-msgid "Transaction details"
-msgstr "交易明细"
 
 #: tform1.lsctop.caption
 msgid "Send coins"
@@ -400,10 +370,6 @@ msgctxt "tform1.scbitsend1.caption"
 msgid "Transfer"
 msgstr ""
 
-#: tform1.speedbutton1.hint
-msgid "Copy Order ID"
-msgstr "订单"
-
 #: tform1.speedbutton2.caption
 msgid "A"
 msgstr ""
@@ -459,22 +425,10 @@ msgstr "日志"
 msgid "Doctor"
 msgstr "修复"
 
-#: tform1.tabexbuy.caption
-msgid "LTC"
-msgstr "LTC"
-
-#: tform1.tabexchange.caption
-msgid "NoBiEx"
-msgstr "内置交易所"
-
 #: tform1.tabgvts.caption
 msgctxt "tform1.tabgvts.caption"
 msgid "GVTs"
 msgstr ""
-
-#: tform1.tabhistory.caption
-msgid "History"
-msgstr "历史订单"
 
 #: tform1.tabmonitor.caption
 #, fuzzy
@@ -1118,10 +1072,9 @@ msgid "Wallet not updated"
 msgstr ""
 
 #: translation.rs2002
-#, object-pascal-format
 msgid ""
 "*****CRITICAL*****\n"
-"Error inside VerifyConnectionStatus: %s\n"
+"Error inside VerifyConnectionStatus\n"
 "*****CRITICAL*****"
 msgstr ""
 

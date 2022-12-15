@@ -135,14 +135,6 @@ msgstr "Rezumat Hash"
 msgid "Active JSON-RPC server at launch"
 msgstr "Server JSON-RPC activ la lansare"
 
-#: tform1.cb_currentjob.caption
-msgid "Disabled"
-msgstr ""
-
-#: tform1.cb_currentjob.hint
-msgid "Show current job (BETA)"
-msgstr ""
-
 #: tform1.cb_fullnode.caption
 #, fuzzy
 #| msgid "Download blockchain"
@@ -157,10 +149,6 @@ msgstr "Acceptă numai cererile din lista albă"
 #: tform1.cb_rpc_on.caption
 msgid "Enable JSON-RPC server"
 msgstr "Activează serverul JSON-RPC"
-
-#: tform1.cb_wo_antifreeze.caption
-msgid "Anti freeze (s)"
-msgstr "Anti-blocare (i)"
 
 #: tform1.cb_wo_autoconnect.caption
 msgid "Auto connect at start"
@@ -204,10 +192,6 @@ msgstr "0.00000000"
 #: tform1.lababout.caption
 msgid "About message"
 msgstr "Despre mesaj"
-
-#: tform1.label1.caption
-msgid "Post offer"
-msgstr "Postează oferta"
 
 #: tform1.label10.caption
 msgctxt "tform1.label10.caption"
@@ -282,23 +266,9 @@ msgstr "0 NOS"
 msgid "Waiting"
 msgstr "În aşteptare"
 
-#: tform1.labelnobiexaverage.caption
-msgctxt "tform1.labelnobiexaverage.caption"
-msgid "Average: -.-"
-msgstr "Medie: -.-"
-
-#: tform1.labelnobiexlast.caption
-msgctxt "tform1.labelnobiexlast.caption"
-msgid "Last: -.-"
-msgstr "Ultimul: -.-"
-
 #: tform1.labelnodeshash.caption
 msgid "Count: "
 msgstr ""
-
-#: tform1.labeltransactiondetails.caption
-msgid "Transaction details"
-msgstr "Detalii tranzacție"
 
 #: tform1.lsctop.caption
 msgid "Send coins"
@@ -398,10 +368,6 @@ msgctxt "tform1.scbitsend1.caption"
 msgid "Transfer"
 msgstr ""
 
-#: tform1.speedbutton1.hint
-msgid "Copy Order ID"
-msgstr "Copiază ID-ul comenzii"
-
 #: tform1.speedbutton2.caption
 msgid "A"
 msgstr ""
@@ -457,22 +423,10 @@ msgstr "Log"
 msgid "Doctor"
 msgstr "Doctor"
 
-#: tform1.tabexbuy.caption
-msgid "LTC"
-msgstr "LTC"
-
-#: tform1.tabexchange.caption
-msgid "NoBiEx"
-msgstr "NoBiEx"
-
 #: tform1.tabgvts.caption
 msgctxt "tform1.tabgvts.caption"
 msgid "GVTs"
 msgstr ""
-
-#: tform1.tabhistory.caption
-msgid "History"
-msgstr "Istoric"
 
 #: tform1.tabmonitor.caption
 #, fuzzy
@@ -1116,10 +1070,9 @@ msgid "Wallet not updated"
 msgstr ""
 
 #: translation.rs2002
-#, object-pascal-format
 msgid ""
 "*****CRITICAL*****\n"
-"Error inside VerifyConnectionStatus: %s\n"
+"Error inside VerifyConnectionStatus\n"
 "*****CRITICAL*****"
 msgstr ""
 

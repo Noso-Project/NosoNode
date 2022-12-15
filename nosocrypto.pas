@@ -1,8 +1,8 @@
 UNIT nosocrypto;
 
 {
-Unit nosocrypto 1.0
-December 11th, 2022
+Unit nosocrypto 1.1
+December 15th, 2022
 Noso Unit for crypto functions
 Requires: cryptohashlib , mpsignerutils
 }

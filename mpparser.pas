@@ -879,7 +879,7 @@ if monto<=10 then
    end;
 if procesar then
    begin
-   Comision := GetFee(Monto);
+   Comision := GetMinimumFee(Monto);
    montoToShow := Monto;
    comisionToShow := Comision;
    Restante := monto+comision;
@@ -1783,12 +1783,12 @@ PayAddress := Parameter(LineText,5);
 Duration := StrToInt64Def(Parameter(LineText,6),100);
 if duration > 1000 then duration := 1000;
 Feetramos := duration div 100; if duration mod 100 > 0 then feetramos +=1;
-FeeTotal := GetFee(amount)*feetramos;
+FeeTotal := GetMinimumFee(amount)*feetramos;
 
 
 if FromAddress = '' then ErrorCode := -1
 else if direccionEsMia(FromAddress) < 0 then ErrorCode := 1
-else if ((amount = 0) or (amount+GetFee(amount)>GetAddressAvailable(FromAddress))) then ErrorCode := 2
+else if ((amount = 0) or (amount+GetMinimumFee(amount)>GetAddressAvailable(FromAddress))) then ErrorCode := 2
 else if not AnsiContainsStr(AvailableMarkets,market) then ErrorCode := 3
 else if price <= 0 then ErrorCode := 4;
 

@@ -122,14 +122,6 @@ msgstr ""
 msgid "Active JSON-RPC server at launch"
 msgstr ""
 
-#: tform1.cb_currentjob.caption
-msgid "Disabled"
-msgstr ""
-
-#: tform1.cb_currentjob.hint
-msgid "Show current job (BETA)"
-msgstr ""
-
 #: tform1.cb_fullnode.caption
 msgctxt "tform1.cb_fullnode.caption"
 msgid "Download complete blockchain"
@@ -141,10 +133,6 @@ msgstr ""
 
 #: tform1.cb_rpc_on.caption
 msgid "Enable JSON-RPC server"
-msgstr ""
-
-#: tform1.cb_wo_antifreeze.caption
-msgid "Anti freeze (s)"
 msgstr ""
 
 #: tform1.cb_wo_autoconnect.caption
@@ -186,10 +174,6 @@ msgstr ""
 
 #: tform1.lababout.caption
 msgid "About message"
-msgstr ""
-
-#: tform1.label1.caption
-msgid "Post offer"
 msgstr ""
 
 #: tform1.label10.caption
@@ -264,22 +248,8 @@ msgstr ""
 msgid "Waiting"
 msgstr ""
 
-#: tform1.labelnobiexaverage.caption
-msgctxt "tform1.labelnobiexaverage.caption"
-msgid "Average: -.-"
-msgstr ""
-
-#: tform1.labelnobiexlast.caption
-msgctxt "tform1.labelnobiexlast.caption"
-msgid "Last: -.-"
-msgstr ""
-
 #: tform1.labelnodeshash.caption
 msgid "Count: "
-msgstr ""
-
-#: tform1.labeltransactiondetails.caption
-msgid "Transaction details"
 msgstr ""
 
 #: tform1.lsctop.caption
@@ -380,10 +350,6 @@ msgctxt "tform1.scbitsend1.caption"
 msgid "Transfer"
 msgstr ""
 
-#: tform1.speedbutton1.hint
-msgid "Copy Order ID"
-msgstr ""
-
 #: tform1.speedbutton2.caption
 msgid "A"
 msgstr ""
@@ -438,21 +404,9 @@ msgstr ""
 msgid "Doctor"
 msgstr ""
 
-#: tform1.tabexbuy.caption
-msgid "LTC"
-msgstr ""
-
-#: tform1.tabexchange.caption
-msgid "NoBiEx"
-msgstr ""
-
 #: tform1.tabgvts.caption
 msgctxt "tform1.tabgvts.caption"
 msgid "GVTs"
-msgstr ""
-
-#: tform1.tabhistory.caption
-msgid "History"
 msgstr ""
 
 #: tform1.tabmonitor.caption
@@ -1063,10 +1017,9 @@ msgid "Wallet not updated"
 msgstr ""
 
 #: translation.rs2002
-#, object-pascal-format
 msgid ""
 "*****CRITICAL*****\n"
-"Error inside VerifyConnectionStatus: %s\n"
+"Error inside VerifyConnectionStatus\n"
 "*****CRITICAL*****"
 msgstr ""
 

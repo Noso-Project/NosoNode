@@ -318,7 +318,7 @@ object Form1: TForm1
     Height = 468
     Top = 38
     Width = 400
-    ActivePage = TabWallet
+    ActivePage = tabOptions
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
     Font.CharSet = ANSI_CHARSET
@@ -327,7 +327,7 @@ object Form1: TForm1
     Font.Pitch = fpVariable
     Font.Quality = fqDraft
     ParentFont = False
-    TabIndex = 0
+    TabIndex = 2
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
@@ -745,138 +745,6 @@ object Form1: TForm1
             end
           end
         end
-        object TabHistory: TTabSheet
-          Caption = 'History'
-          ClientHeight = 412
-          ClientWidth = 384
-          object GridMyTxs: TStringGrid
-            Left = 0
-            Height = 190
-            Top = 0
-            Width = 384
-            Align = alClient
-            ColCount = 11
-            FixedCols = 0
-            Font.CharSet = ANSI_CHARSET
-            Font.Height = -13
-            Font.Name = 'Consolas'
-            Font.Pitch = fpFixed
-            Font.Quality = fqDraft
-            ParentFont = False
-            RowCount = 1
-            ScrollBars = ssVertical
-            TabOrder = 0
-            OnPrepareCanvas = GridMyTxsPrepareCanvas
-            OnResize = GridMyTxsResize
-          end
-          object PanelTrxDetails: TPanel
-            Left = 0
-            Height = 150
-            Top = 262
-            Width = 384
-            Align = alBottom
-            BevelColor = clBlack
-            ClientHeight = 150
-            ClientWidth = 384
-            Font.CharSet = ANSI_CHARSET
-            Font.Height = -19
-            Font.Name = 'Consolas'
-            Font.Pitch = fpFixed
-            Font.Quality = fqDraft
-            ParentFont = False
-            TabOrder = 1
-            OnContextPopup = DisablePopUpMenu
-            object MemoTrxDetails: TMemo
-              Left = 1
-              Height = 118
-              Top = 31
-              Width = 382
-              Align = alClient
-              BorderStyle = bsNone
-              Font.CharSet = ANSI_CHARSET
-              Font.Height = -13
-              Font.Name = 'Consolas'
-              Font.Pitch = fpFixed
-              Font.Quality = fqDraft
-              OnContextPopup = DisablePopUpMenu
-              ParentFont = False
-              ReadOnly = True
-              TabOrder = 0
-            end
-            object Panel8: TPanel
-              Left = 1
-              Height = 30
-              Top = 1
-              Width = 382
-              Align = alTop
-              AutoSize = True
-              BevelOuter = bvNone
-              ClientHeight = 30
-              ClientWidth = 382
-              TabOrder = 1
-              object LAbelTransactionDetails: TLabel
-                Left = 8
-                Height = 22
-                Top = 4
-                Width = 190
-                Align = alLeft
-                BorderSpacing.Left = 8
-                BorderSpacing.Top = 4
-                BorderSpacing.Bottom = 4
-                Caption = 'Transaction details'
-                ParentColor = False
-              end
-              object SpeedButton1: TSpeedButton
-                Left = 206
-                Height = 22
-                Hint = 'Copy Order ID'
-                Top = 4
-                Width = 20
-                Align = alLeft
-                AutoSize = True
-                BorderSpacing.Left = 8
-                BorderSpacing.Top = 4
-                BorderSpacing.Bottom = 4
-                Images = Imagenes
-                ImageIndex = 7
-                OnClick = TrxDetailsPopUpCopyOrder
-                ShowHint = True
-                ParentShowHint = False
-              end
-            end
-          end
-          object PanelPoSMNs: TPanel
-            Left = 0
-            Height = 72
-            Top = 190
-            Width = 384
-            Align = alBottom
-            BevelColor = clBlack
-            ClientHeight = 72
-            ClientWidth = 384
-            TabOrder = 2
-            object GridPoS: TStringGrid
-              Left = 1
-              Height = 70
-              Top = 1
-              Width = 382
-              Align = alClient
-              ColCount = 2
-              Enabled = False
-              FixedRows = 0
-              Font.CharSet = ANSI_CHARSET
-              Font.Height = -13
-              Font.Name = 'Consolas'
-              Font.Pitch = fpFixed
-              Font.Quality = fqDraft
-              ParentFont = False
-              RowCount = 3
-              ScrollBars = ssNone
-              TabOrder = 0
-              OnResize = GridPoSResize
-            end
-          end
-        end
         object TabGVTs: TTabSheet
           Caption = 'GVTs'
           ClientHeight = 412
@@ -1049,114 +917,6 @@ object Form1: TForm1
         TabOrder = 2
         OnPrepareCanvas = Grid1PrepareCanvas
         OnResize = DataPanelResize
-      end
-    end
-    object TabExchange: TTabSheet
-      Caption = 'NoBiEx'
-      ClientHeight = 440
-      ClientWidth = 392
-      TabVisible = False
-      object PageControl2: TPageControl
-        Left = 0
-        Height = 256
-        Top = 0
-        Width = 392
-        ActivePage = tabExBuy
-        Align = alClient
-        TabIndex = 0
-        TabOrder = 0
-        object tabExBuy: TTabSheet
-          Caption = 'LTC'
-          ClientHeight = 228
-          ClientWidth = 384
-          object GridExLTC: TStringGrid
-            Left = 0
-            Height = 228
-            Top = 0
-            Width = 384
-            Align = alClient
-            ColCount = 3
-            DefaultColWidth = 118
-            FixedCols = 0
-            Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSelect, goSmoothScroll]
-            RowCount = 1
-            ScrollBars = ssVertical
-            TabOrder = 0
-            OnResize = GridExLTCResize
-            Cells = (
-              3
-              0
-              0
-              'Price'
-              1
-              0
-              'Amount'
-              2
-              0
-              'Remaining'
-            )
-          end
-        end
-      end
-      object PanelNobiex: TPanel
-        Left = 0
-        Height = 34
-        Top = 256
-        Width = 392
-        Align = alBottom
-        ClientHeight = 34
-        ClientWidth = 392
-        Color = clLime
-        ParentColor = False
-        TabOrder = 1
-        object LabelNobiexAverage: TLabel
-          Left = 1
-          Height = 32
-          Top = 1
-          Width = 62
-          Align = alLeft
-          Caption = 'Average: -.-'
-          Layout = tlCenter
-          ParentColor = False
-        end
-        object LabelNobiexLast: TLabel
-          AnchorSideLeft.Control = LabelNobiexAverage
-          Left = 63
-          Height = 32
-          Top = 1
-          Width = 40
-          Align = alLeft
-          Alignment = taCenter
-          Anchors = [akLeft]
-          Caption = 'Last: -.-'
-          Layout = tlCenter
-          ParentColor = False
-        end
-      end
-      object PanelPostOffer: TPanel
-        AnchorSideBottom.Control = LabelNobiexAverage
-        Left = 0
-        Height = 150
-        Top = 290
-        Width = 392
-        Align = alBottom
-        ClientHeight = 150
-        ClientWidth = 392
-        TabOrder = 2
-        object Label1: TLabel
-          Left = 4
-          Height = 15
-          Top = 8
-          Width = 70
-          Caption = 'Post offer'
-          Font.CharSet = ANSI_CHARSET
-          Font.Height = -13
-          Font.Name = 'Consolas'
-          Font.Pitch = fpFixed
-          Font.Quality = fqDraft
-          ParentColor = False
-          ParentFont = False
-        end
       end
     end
     object tabOptions: TTabSheet
@@ -1400,48 +1160,18 @@ object Form1: TForm1
           end
           object Panel6: TPanel
             Left = 0
-            Height = 27
+            Height = 0
             Top = 185
             Width = 384
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 27
-            ClientWidth = 384
             TabOrder = 9
-            object CB_WO_AntiFreeze: TCheckBox
-              AnchorSideTop.Control = SE_WO_AntifreezeTime
-              AnchorSideTop.Side = asrCenter
-              Left = 8
-              Height = 19
-              Top = 6
-              Width = 92
-              BorderSpacing.Left = 8
-              BorderSpacing.Top = 4
-              Caption = 'Anti freeze (s)'
-              OnChange = CB_WO_AntiFreezeChange
-              TabOrder = 0
-            end
-            object SE_WO_AntifreezeTime: TSpinEdit
-              AnchorSideLeft.Control = CB_WO_AntiFreeze
-              AnchorSideLeft.Side = asrBottom
-              Left = 108
-              Height = 23
-              Top = 4
-              Width = 52
-              BorderSpacing.Left = 8
-              BorderSpacing.Top = 4
-              MaxValue = 30
-              MinValue = 5
-              OnChange = SE_WO_AntifreezeTimeChange
-              TabOrder = 1
-              Value = 10
-            end
           end
           object CB_WO_Multisend: TCheckBox
             Left = 8
             Height = 19
-            Top = 216
+            Top = 189
             Width = 376
             Align = alTop
             BorderSpacing.Left = 8
@@ -1453,7 +1183,7 @@ object Form1: TForm1
           object CB_FullNode: TCheckBox
             Left = 8
             Height = 19
-            Top = 239
+            Top = 212
             Width = 376
             Align = alTop
             BorderSpacing.Left = 8
@@ -1467,7 +1197,7 @@ object Form1: TForm1
           object CB_WO_Autoupdate: TCheckBox
             Left = 8
             Height = 19
-            Top = 262
+            Top = 235
             Width = 376
             Align = alTop
             BorderSpacing.Left = 8
@@ -1479,7 +1209,7 @@ object Form1: TForm1
           object Panel7: TPanel
             Left = 0
             Height = 28
-            Top = 304
+            Top = 277
             Width = 384
             Align = alTop
             AutoSize = True
@@ -1529,7 +1259,7 @@ object Form1: TForm1
             Left = 8
             Height = 19
             Hint = 'Run as unattended Masternode'
-            Top = 285
+            Top = 258
             Width = 376
             Align = alTop
             BorderSpacing.Left = 8
@@ -2418,9 +2148,9 @@ object Form1: TForm1
         Height = 440
         Top = 0
         Width = 392
-        ActivePage = TabNodes
+        ActivePage = TabMonitorMonitor
         Align = alClient
-        TabIndex = 4
+        TabIndex = 2
         TabOrder = 0
         object TabDebug_Log: TTabSheet
           Caption = 'Log'
@@ -2520,8 +2250,8 @@ object Form1: TForm1
           ClientWidth = 384
           object SG_Monitor: TStringGrid
             Left = 0
-            Height = 386
-            Top = 26
+            Height = 412
+            Top = 0
             Width = 384
             Align = alClient
             ColCount = 4
@@ -2550,41 +2280,6 @@ object Form1: TForm1
               0
               'Average'
             )
-          end
-          object Panel22: TPanel
-            Left = 0
-            Height = 26
-            Top = 0
-            Width = 384
-            Align = alTop
-            BevelOuter = bvNone
-            ClientHeight = 26
-            ClientWidth = 384
-            ParentColor = False
-            TabOrder = 1
-            object CB_Currentjob: TCheckBox
-              Left = 5
-              Height = 26
-              Hint = 'Show current job (BETA)'
-              Top = 0
-              Width = 76
-              Align = alLeft
-              BorderSpacing.Left = 5
-              Caption = 'Disabled'
-              Color = clDefault
-              Font.CharSet = ANSI_CHARSET
-              Font.Color = 7171437
-              Font.Height = -12
-              Font.Name = 'Consolas'
-              Font.Pitch = fpFixed
-              Font.Quality = fqDraft
-              OnChange = CB_CurrentjobChange
-              ParentColor = False
-              ParentFont = False
-              ParentShowHint = False
-              ShowHint = True
-              TabOrder = 0
-            end
           end
         end
         object TabSheet10: TTabSheet

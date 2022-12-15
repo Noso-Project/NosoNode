@@ -1,6 +1,10 @@
 Version 0.3.3Aa4
 
 - Unit nosocrypto created.
+- mpcripto deprecated.
+- Removed history tab and dependencyes.
+- Removed current job and all dependencyes.
+- Removed nobiex tab.
 
 Version 0.3.3Aa3
 

@@ -281,7 +281,6 @@ var
   Linecomando : string = '';
   ProcessLine : String;
 Begin
-SetCurrentJob('ParseProtocolLines',true);
 for contador := 1 to MaxConecciones do
    begin
    if ( (LengthIncoming(contador) > 200) and (not IsSeedNode(Conexiones[contador].ip)) ) then
@@ -352,7 +351,6 @@ for contador := 1 to MaxConecciones do
          end;
       end;
    end;
-SetCurrentJob('ParseProtocolLines',false);
 End;
 
 // Verifica si una linea recibida en una conexion es una linea valida de protocolo
@@ -569,7 +567,6 @@ Procedure PTC_SendResumen(Slot:int64);
 var
   MemStream   : TMemoryStream;
 Begin
-SetCurrentJob('PTC_SendResumen',true);
 MemStream := TMemoryStream.Create;
 EnterCriticalSection(CSHeadAccess);
 MemStream.LoadFromFile(ResumenFilename);
@@ -599,14 +596,12 @@ if conexiones[slot].tipo='SER' then
       END;{TRY}
    end;
 MemStream.Free;
-SetCurrentJob('PTC_SendResumen',false);
 End;
 
 Procedure PTC_SendSumary(Slot:int64);
 var
   MemStream   : TMemoryStream;
 Begin
-SetCurrentJob('PTC_SendSumary',true);
 MemStream := TMemoryStream.Create;
 EnterCriticalSection(CSSumary);
 MemStream.LoadFromFile(SumarioFilename);
@@ -636,7 +631,6 @@ if conexiones[slot].tipo='SER' then
       END;{TRY}
    end;
 MemStream.Free;
-SetCurrentJob('PTC_SendSumary',false);
 End;
 
 // Zips the sumary file
@@ -748,7 +742,6 @@ var
   ZipFileName:String;
 Begin
 AddLineToDebugLog('Console','********** DEBUG CHECK **********');
-SetCurrentJob('PTC_SendBlocks',true);
 FirstBlock := StrToIntDef(Parameter(textline,5),-1)+1;
 ZipFileName := CreateZipBlockfile(FirstBlock);
 MemStream := TMemoryStream.Create;
@@ -792,7 +785,6 @@ MemStream := TMemoryStream.Create;
       end;
 MemStream.Free;
 Trydeletefile(ZipFileName);
-SetCurrentJob('PTC_SendBlocks',false);
 End;
 
 Procedure INC_PTC_Custom(TextLine:String;connection:integer);
@@ -950,7 +942,7 @@ for cont := 0 to NumTransfers-1 do
    Textbak := GetOpData(Textbak);
    end;
 GenOrderID := GetOrderHash(GenOrderID);
-if TotalFee >= GetFee(TotalSent) then
+if TotalFee >= GetMinimumFee(TotalSent) then
    begin
    //AddLineToDebugLog('console',Format('Order fees match : %d >= %d',[TotalFee,GetFee(TotalSent)]))
    end

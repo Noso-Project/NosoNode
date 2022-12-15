@@ -199,10 +199,12 @@ type
      SumHash : String[32];
      end;
 
+  {
   DivResult = packed record
      cociente : string[255];
      residuo : string[255];
      end;
+  }
 
   BlockOrdersArray = Array of OrderData;
 
@@ -307,7 +309,6 @@ type
     CBBlockhash: TCheckBox;
     CBSummaryhash: TCheckBox;
     CBAutoIP: TCheckBox;
-    CB_Currentjob: TCheckBox;
     CBRunNodeAlone: TCheckBox;
     ComboBoxLang: TComboBox;
     Edit2: TEdit;
@@ -327,7 +328,6 @@ type
     Label8: TLabel;
     Label9: TLabel;
     LabeledEdit5: TEdit;
-    Label1: TLabel;
     Label7: TLabel;
     MemoDoctor: TMemo;
     Panel10: TPanel;
@@ -342,16 +342,13 @@ type
     Panel19: TPanel;
     Panel20: TPanel;
     Panel21: TPanel;
-    Panel22: TPanel;
     Panel23: TPanel;
     PanelTransferGVT: TPanel;
     PanelNodesHeaders: TPanel;
     PanelDoctor: TPanel;
     Panel7: TPanel;
-    Panel8: TPanel;
     Panel9: TPanel;
     PanelQRImg: TPanel;
-    PanelPostOffer: TPanel;
     SCBitSend1: TBitBtn;
     SpeedButton2: TSpeedButton;
     SpeedButton3: TSpeedButton;
@@ -375,7 +372,6 @@ type
     CB_WO_ToTray: TCheckBox;
     CB_FullNode: TCheckBox;
     CB_WO_Multisend: TCheckBox;
-    CB_WO_AntiFreeze: TCheckBox;
     CheckBox4: TCheckBox;
     CB_RPC_ON: TCheckBox;
     CB_RPCFilter: TCheckBox;
@@ -395,15 +391,12 @@ type
     ImageInc: TImage;
     Imagenes: TImageList;
     LSCTop: TLabel;
-    LAbelTransactionDetails: TLabel;
-    LabelNobiexLast: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
     Label5: TLabel;
     Label6: TLabel;
     LabAbout: TLabel;
-    LabelNobiexAverage: TLabel;
     LabelBigBalance: TLabel;
     Latido : TTimer;
     InfoTimer : TTimer;
@@ -411,7 +404,6 @@ type
     ConnectButton: TSpeedButton;
     MainMenu: TMainMenu;
     MemoSCCon: TMemo;
-    MemoTrxDetails: TMemo;
     MemoConsola: TMemo;
     DataPanel: TStringGrid;
     MenuItem1: TMenuItem;
@@ -431,18 +423,13 @@ type
     DireccionesPanel: TStringGrid;
     InfoPanel: TPanel;
     PanelCustom: TPanel;
-    PanelPoSMNs: TPanel;
-    PanelTrxDetails: TPanel;
     PanelSend: TPanel;
-    GridMyTxs: TStringGrid;
     ConsolePopUp2: TPopupMenu;
     ConsoLinePopUp2: TPopupMenu;
     SCBitCancel: TBitBtn;
     SCBitConf: TBitBtn;
-    SpeedButton1: TSpeedButton;
     BDefAddr: TSpeedButton;
     BCustomAddr: TSpeedButton;
-    GridPoS: TStringGrid;
     BCopyAddr: TSpeedButton;
     BNewAddr: TSpeedButton;
     BOkCustom: TSpeedButton;
@@ -450,7 +437,6 @@ type
     SBSCPaste: TSpeedButton;
     SBSCMax: TSpeedButton;
     TabAddresses: TTabSheet;
-    TabHistory: TTabSheet;
     TabNodes: TTabSheet;
     TabWalletMain: TPageControl;
     Panel1: TPanel;
@@ -459,7 +445,6 @@ type
     Panel4: TPanel;
     Panel5: TPanel;
     Panel6: TPanel;
-    PanelNobiex: TPanel;
     TopPanel: TPanel;
     StatusPanel: TPanel;
     RestartTimer : Ttimer;
@@ -468,20 +453,17 @@ type
     MemoLog: TMemo;
     MemoExceptLog: TMemo;
     PageControl1: TPageControl;
-    PageControl2: TPageControl;
     PCMonitor: TPageControl;
     PageMain: TPageControl;
     Server: TIdTCPServer;
     {PoolServer : TIdTCPServer;}
     RPCServer : TIdHTTPServer;
-    SE_WO_AntifreezeTime: TSpinEdit;
     SE_WO_RTOT: TSpinEdit;
     SE_WO_MinPeers: TSpinEdit;
     SE_WO_CTOT: TSpinEdit;
     SE_WO_ShowOrders: TSpinEdit;
     SE_WO_PosWarning: TSpinEdit;
     SG_Monitor: TStringGrid;
-    GridExLTC: TStringGrid;
     SystrayIcon: TTrayIcon;
     tabOptions: TTabSheet;
     TabOpt_Wallet: TTabSheet;
@@ -489,9 +471,7 @@ type
     TabNodeOptions: TTabSheet;
     TabSheet3: TTabSheet;
     TabSheet5: TTabSheet;
-    TabExchange: TTabSheet;
     TabMonitor: TTabSheet;
-    tabExBuy: TTabSheet;
     TabDebug_Log: TTabSheet;
     TabSheet8: TTabSheet;
     TabMonitorMonitor: TTabSheet;
@@ -510,7 +490,6 @@ type
     procedure Button1Click(sender: TObject);
     procedure Button2Click(sender: TObject);
     procedure CBRunNodeAloneChange(sender: TObject);
-    procedure CB_CurrentjobChange(sender: TObject);
     procedure CB_RPCFilterChange(sender: TObject);
     procedure CB_WO_AutoupdateChange(sender: TObject);
     procedure CBAutoIPClick(sender: TObject);
@@ -527,9 +506,7 @@ type
     procedure FormDestroy(sender: TObject);
     procedure FormResize(sender: TObject);
     procedure FormWindowStateChange(sender: TObject);
-    procedure GridMyTxsResize(sender: TObject);
     procedure GridNodesResize(sender: TObject);
-    procedure GridPoSResize(sender: TObject);
     procedure GVTsGridResize(sender: TObject);
     procedure LE_Rpc_PassEditingDone(sender: TObject);
     Procedure LoadOptionsToPanel();
@@ -541,13 +518,10 @@ type
     Procedure ConsoleLineKeyup(sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Grid1PrepareCanvas(sender: TObject; aCol, aRow: Integer; aState: TGridDrawState);
     procedure Grid2PrepareCanvas(sender: TObject; aCol, aRow: Integer; aState: TGridDrawState);
-    Procedure GridMyTxsPrepareCanvas(sender: TObject; aCol, aRow: Integer;aState: TGridDrawState);
     Procedure LatidoEjecutar(sender: TObject);
     Procedure InfoTimerEnd(sender: TObject);
     function  ClientsCount : Integer ;
     procedure SCBitSend1Click(sender: TObject);
-    procedure SE_WO_AntifreezeTimeChange(sender: TObject);
-    procedure GridExLTCResize(sender: TObject);
     procedure SG_MonitorResize(sender: TObject);
     procedure SpeedButton2Click(sender: TObject);
     procedure SpeedButton3Click(sender: TObject);
@@ -561,8 +535,6 @@ type
     procedure IdTCPServer1Exception(AContext: TIdContext;AException: Exception);
     Procedure DoubleClickSysTray(sender: TObject);
     Procedure ConnectCircleOnClick(sender: TObject);
-    Procedure GridMyTxsOnDoubleClick(sender: TObject);
-    Procedure BitPosInfoOnClick (sender: TObject);
     Procedure BDefAddrOnClick(sender: TObject);
     Procedure BCustomAddrOnClick(sender: TObject);
     Procedure EditCustomKeyUp(sender: TObject; var Key: Word; Shift: TShiftState);
@@ -612,10 +584,6 @@ type
     Procedure ConsoLinePopUpCopy(sender:TObject);
     Procedure ConsoLinePopUpPaste(sender:TObject);
 
-    // TRXDETAILS POPUP
-    Procedure TrxDetailsPopUpCopyOrder(sender:TObject);
-
-
     // OPTIONS
       // WALLET
     procedure CB_WO_AutoConnectChange(sender: TObject);
@@ -625,7 +593,6 @@ type
     procedure SE_WO_RTOTChange(sender: TObject);
     procedure SE_WO_ShowOrdersChange(sender: TObject);
     procedure SE_WO_PosWarningChange(sender: TObject);
-    procedure CB_WO_AntiFreezeChange(sender: TObject);
     procedure CB_WO_MultisendChange(sender: TObject);
       // RPC
     procedure CB_RPC_ONChange(sender: TObject);
@@ -726,9 +693,7 @@ var
   WO_ToTray        : boolean = false;
   MinConexToWork   : integer = 1;
   WO_PosWarning    : int64 = 7;
-  WO_AntiFreeze    : boolean = true;
   WO_MultiSend     : boolean = false;
-  WO_AntifreezeTime: integer = 10;
   WO_Language      : string = 'en';
     WO_LastPoUpdate: string = ProgramVersion+Subversion;
   WO_CloseStart    : boolean = true;
@@ -784,7 +749,7 @@ var
   ProcessLines : TStringlist;
   StringAvailableUpdates : String = '';
     U_DataPanel : boolean = true;
-    U_PoSGrid : Boolean = true;
+
 
   ArrayOrderIDsProcessed : array of string;
 
@@ -806,7 +771,6 @@ var
     S_AdvOpt : boolean = false;
   PoolTotalHashRate : int64 = 0;
 
-  CurrentJob : String = '';
   NosoCFGStr : String = '';
   ForcedQuit : boolean = false;
   NewLogLines : integer = 0;
@@ -910,7 +874,6 @@ var
   CSCriptoThread: TRTLCriticalSection;
   CSClosingApp  : TRTLCriticalSection;
   CSNMSData     : TRTLCriticalSection;
-  CSCurrentJob  : TRTLCriticalSection;
   CSClientReads : TRTLCriticalSection;
   CSGVTsArray   : TRTLCriticalSection;
   CSNosoCFGStr  : TRTLCriticalSection;
@@ -1472,7 +1435,6 @@ InitCriticalSection(CSMNsList);
 InitCriticalSection(CSMNsChecks);
 InitCriticalSection(CSClosingApp);
 InitCriticalSection(CSNMSData);
-InitCriticalSection(CSCurrentJob);
 InitCriticalSection(CSClientReads);
 InitCriticalSection(CSGVTsArray);
 InitCriticalSection(CSNosoCFGStr);
@@ -1510,7 +1472,6 @@ DoneCriticalSection(CSMNsList);
 DoneCriticalSection(CSMNsChecks);
 DoneCriticalSection(CSClosingApp);
 DoneCriticalSection(CSNMSData);
-DoneCriticalSection(CSCurrentJob);
 DoneCriticalSection(CSClientReads);
 DoneCriticalSection(CSGVTsArray);
 DoneCriticalSection(CSNosoCFGStr);
@@ -1680,7 +1641,6 @@ if WO_CloseStart then
    AddLineToDebugLog('events',TimeToStr(now)+rs0029); NewLogLines := NewLogLines-1; //'Noso session started'
    info(rs0029);  //'Noso session started'
    infopanel.BringToFront;
-   SetCurrentJob('Main',true);
    forminicio.Visible:=false;
    form1.Visible:=true;
    if FormState_Status = 0 then
@@ -1718,7 +1678,6 @@ Setlength(WaitingMNs,0);
 AddLineToDebugLog('events',TimeToStr(now)+rs0029); NewLogLines := NewLogLines-1; //'Noso session started'
 info(rs0029);  //'Noso session started'
 form1.infopanel.BringToFront;
-SetCurrentJob('Main',true);
 forminicio.Visible:=false;
 form1.Visible:=true;
 if FormState_Status = 0 then
@@ -1740,9 +1699,7 @@ SE_WO_CTOT.Value:= ConnectTimeOutTime;
 SE_WO_RTOT.Value:= ReadTimeOutTIme;
 SE_WO_ShowOrders.Value:= ShowedOrders;
 SE_WO_PosWarning.Value := WO_PosWarning;
-CB_WO_AntiFreeze.Checked:=WO_AntiFreeze;
 CB_WO_Multisend.Checked:=WO_Multisend;
-SE_WO_AntifreezeTime.value := WO_AntifreezeTime;
 CB_WO_Autoupdate.Checked := WO_AutoUpdate;
 CB_FullNode.Checked := WO_FullNode;
 // RPC
@@ -1950,34 +1907,6 @@ if ( (ACol = 0) and (ARow>0) and (AnsiContainsStr(GetNosoCFGString(5),ListaDirec
    end;
 end;
 
-// Para colorear adecuadamente al grid de mis transacciones
-Procedure TForm1.GridMyTxsPrepareCanvas(sender: TObject; aCol, aRow: Integer;
-  aState: TGridDrawState);
-var
-  ts: TTextStyle;
-Begin
-if ((ACol=3) and(ARow>0))then
-   begin
-   ts := (sender as TStringGrid).Canvas.TextStyle;
-   ts.Alignment := taRightJustify;
-   (sender as TStringGrid).Canvas.TextStyle := ts;
-   if Copy(GridMyTxs.Cells[3,aRow],1,1) = '-' then GridMyTxs.Canvas.Font.Color:=clRed
-   else GridMyTxs.Canvas.Font.Color:=clGreen;
-   end
-else if ((arow=0) and (acol = 3)) then
-   begin
-   ts := (sender as TStringGrid).Canvas.TextStyle;
-   ts.Alignment := taRightJustify;
-   (sender as TStringGrid).Canvas.TextStyle := ts;
-   end
-else
-   begin
-   ts := (sender as TStringGrid).Canvas.TextStyle;
-   ts.Alignment := taCenter;
-   (sender as TStringGrid).Canvas.TextStyle := ts;
-   end;
-End;
-
 // Ejecutar el ladido del timer
 Procedure TForm1.LatidoEjecutar(sender: TObject);
 Begin
@@ -2165,12 +2094,6 @@ Form1.PCMonitor.ActivePage:=form1.TabDebug_Log;
 // Visual components
 
 // Resize all grids at launch
-Form1.GridPoSResize(form1);
-Form1.GridPoS.Cells[0,0] := 'Stake size';//rs0063;
-Form1.GridPoS.Cells[0,1] := 'MNs Earned';//rs0064;
-Form1.GridPoS.Cells[0,2] := 'PoS Earned';//rs0065;
-form1.GridPoS.FocusRectVisible:=false;
-
 Form1.SG_MonitorResize(nil);
 
 
@@ -2197,21 +2120,6 @@ Form1.BNewAddr.Parent:=form1.DireccionesPanel;
 
 Form1.SGridSC.FocusRectVisible:=false;
 
-form1.GridMyTxs.SelectedColor:=clLtGray;
-form1.GridMyTxs.Options:= form1.GridMyTxs.Options+[goRowSelect]-[goRangeSelect];
-form1.GridMyTxs.ColWidths[0]:= 60;
-form1.GridMyTxs.ColWidths[1]:= 60;
-form1.GridMyTxs.ColWidths[2]:= 100;
-form1.GridMyTxs.ColWidths[3]:= 147;
-form1.GridMyTxs.ColWidths[4]:= 0;
-form1.GridMyTxs.ColWidths[5]:= 0;
-form1.GridMyTxs.ColWidths[6]:= 0;
-form1.GridMyTxs.ColWidths[7]:= 0;
-form1.GridMyTxs.ColWidths[8]:= 0;
-form1.GridMyTxs.ColWidths[9]:= 0;
-form1.GridMyTxs.ColWidths[10]:= 0;
-form1.GridMyTxs.FocusRectVisible:=false;
-
 Form1.imagenes.GetBitMap(54,form1.ImgRotor.picture.BitMap);
 
 form1.LabAbout.Caption:=CoinName+' project'+SLINEBREAK+'Designed by bermello'+SLINEBREAK+
@@ -2219,7 +2127,6 @@ form1.LabAbout.Caption:=CoinName+' project'+SLINEBREAK+'Designed by bermello'+SL
 'Version '+ProgramVersion+subVersion+SLINEBREAK+'Protocol '+IntToStr(Protocolo)+SLINEBREAK+BuildDate;
 
 form1.SG_Monitor.FocusRectVisible:=false;
-form1.SG_Monitor.Options:= form1.GridMyTxs.Options+[goRowSelect]-[goRangeSelect];
 form1.SG_Monitor.ColWidths[0]:= 142;form1.SG_Monitor.ColWidths[1]:= 73;
 form1.SG_Monitor.ColWidths[2]:= 73;form1.SG_Monitor.ColWidths[3]:= 73;
 
@@ -2809,80 +2716,6 @@ else
    end;
 End;
 
-// Mostrar los detalles de una transaccion
-Procedure TForm1.GridMyTxsOnDoubleClick(sender: TObject);
-var
-  cont : integer;
-  extratext :string = '';
-  referencetoshow : string = '';
-Begin
-if GridMyTxs.Row>0 then
-   begin
-   PanelTrxDetails.visible := true;
-   form1.MemoTrxDetails.Lines.Clear;
-   if GridMyTxs.Cells[2,GridMyTxs.Row] = 'TRFR' then
-      Begin
-      if GridMyTxs.Cells[10,GridMyTxs.Row] = 'YES' then // Own transaction'
-        extratext :=' (OWN)'; //' (OWN)'
-      if GridMyTxs.Cells[7,GridMyTxs.Row] <> 'null' then
-         referencetoshow := GridMyTxs.Cells[7,GridMyTxs.Row];
-      form1.MemoTrxDetails.Text:=
-      GridMyTxs.Cells[4,GridMyTxs.Row]+SLINEBREAK+                    //order ID
-      'Receiver : '+AddrText(GridMyTxs.Cells[6,GridMyTxs.Row])+SLINEBREAK+      //'Receiver : '
-      'Ammount  : '+GridMyTxs.Cells[3,GridMyTxs.Row]+extratext+SLINEBREAK+  //'Ammount  : '
-      'Reference : '+referencetoshow+SLINEBREAK+    //'reference  : '
-      'Transfers: '+GridMyTxs.Cells[9,GridMyTxs.Row]+SLINEBREAK+      //'Transfers: '
-      Parameter(GridMyTxs.Cells[8,GridMyTxs.Row],0)+SLINEBREAK;
-      if StrToIntDef(GridMyTxs.Cells[9,GridMyTxs.Row],1)> 1 then // añadir mas trfids
-         for cont := 2 to StrToIntDef(GridMyTxs.Cells[9,GridMyTxs.Row],1) do
-           form1.MemoTrxDetails.lines.add(parameter(GridMyTxs.Cells[8,GridMyTxs.Row],cont-1));
-      end;
-   if GridMyTxs.Cells[2,GridMyTxs.Row] = 'MINE' then
-      Begin
-      form1.MemoTrxDetails.Text:=
-      'Mined    : '+GridMyTxs.Cells[0,GridMyTxs.Row]+SLINEBREAK+ //'Mined    : '
-      'Receiver : '+AddrText(GridMyTxs.Cells[6,GridMyTxs.Row])+SLINEBREAK+   //'Receiver : '
-      'Ammount  : '+GridMyTxs.Cells[3,GridMyTxs.Row];   //'Ammount  : '
-      end;
-   if GridMyTxs.Cells[2,GridMyTxs.Row] = 'CUSTOM' then
-      Begin
-      form1.MemoTrxDetails.Text:=
-      'Address customization'+SLINEBREAK+                   //'Address customization'
-      'Address  : '+ListaDirecciones[DireccionEsMia(GridMyTxs.Cells[6,GridMyTxs.Row])].Hash+SLINEBREAK+//'Address  : '
-      'Alias    : '+ListaDirecciones[DireccionEsMia(GridMyTxs.Cells[6,GridMyTxs.Row])].Custom+SLINEBREAK+//'Alias    : '
-      'Amount   : '+Int2Curr(Customizationfee);
-      end;
-   if GridMyTxs.Cells[2,GridMyTxs.Row] = 'FEE' then
-      begin
-      form1.MemoTrxDetails.Text:=
-      'Maintenance fee'+SLINEBREAK+   //'Maintenance fee'
-      'Address  : '+GridMyTxs.Cells[6,GridMyTxs.Row]+SLINEBREAK+  //'Address  : '
-      'Interval : '+GridMyTxs.Cells[7,GridMyTxs.Row]+SLINEBREAK+  //'Interval : '
-      'Ammount  : '+GridMyTxs.Cells[3,GridMyTxs.Row]; //'Ammount  : '
-      if GridMyTxs.Cells[8,GridMyTxs.Row] = 'YES' then
-        form1.MemoTrxDetails.Text:= form1.MemoTrxDetails.Text+' (Address deleted from summary)';//' (Address deleted from summary)'
-      end;
-   form1.MemoTrxDetails.SelStart:=0;
-   end;
-
-End;
-
-Procedure TForm1.BitPosInfoOnClick (sender: TObject);
-var
-   PosRequired : int64;
-Begin
-PosRequired := (GetSupply(MyLastBlock+1)*PosStackCoins) div 10000;
-PanelTrxDetails.visible := true;
-MemoTrxDetails.Lines.Clear;
-MemoTrxDetails.Lines.Add('PoS Statistics'+slinebreak+
-                         'My history'+slinebreak+
-                         'PoS payouts : '+IntToStr(G_PoSPayouts)+' payouts'+slinebreak+
-                         'PoS earnings: '+Int2Curr(G_PoSEarnings)+' Nos'+Slinebreak+
-                         'Mainnet'+Slinebreak+
-                         'Next block required: '+Int2Curr(PosRequired)+' Nos'+Slinebreak+
-                         'My PoS Addresses   : '+IntToStr(GetMyPosAddressesCount));
-End;
-
 // Fija como direccion default a la seleccionada
 Procedure TForm1.BDefAddrOnClick(sender: TObject);
 Begin
@@ -3270,18 +3103,6 @@ ConsoleLine.Setfocus;
 End;
 
 //******************************************************************************
-// TrxDetails PopUp
-//******************************************************************************
-
-// Copy the Order ID to clipboard
-Procedure TForm1.TrxDetailsPopUpCopyOrder(sender:TObject);
-Begin
-Clipboard.AsText:= GridMyTxs.Cells[4,GridMyTxs.row];
-info('Order ID copied to clipboard');
-End;
-
-
-//******************************************************************************
 // OPTIONS CONTROLS
 //******************************************************************************
 
@@ -3353,24 +3174,6 @@ if not G_Launching then
    end;
 end;
 
-procedure TForm1.CB_WO_AntiFreezeChange(sender: TObject);
-begin
-if not G_Launching then
-   begin
-   if CB_WO_AntiFreeze.Checked then
-      begin
-      WO_AntiFreeze := true;
-      SE_WO_AntiFreezeTime.Enabled := true;
-      end
-   else
-      begin
-      WO_AntiFreeze := false ;
-      SE_WO_AntiFreezeTime.Enabled := false;
-      end;
-   S_AdvOpt := true;
-   end;
-end;
-
 procedure TForm1.CB_WO_AutoupdateChange(sender: TObject);
 Begin
 if not G_Launching then
@@ -3404,15 +3207,6 @@ if not G_Launching then
    begin
    if CB_WO_Multisend.Checked then WO_Multisend := true
    else WO_Multisend := false ;
-   S_AdvOpt := true;
-   end;
-end;
-
-procedure TForm1.SE_WO_AntifreezeTimeChange(sender: TObject);
-begin
-if not G_Launching then
-   begin
-   WO_AntiFreezeTime := SE_WO_AntiFreezeTime.Value;
    S_AdvOpt := true;
    end;
 end;
@@ -3585,20 +3379,10 @@ form1.GridNodes.ColWidths[1]:= thispercent(64,GridWidth,true);
 form1.GridNodes.ColWidths[2]:= thispercent(0,GridWidth);
 form1.GridNodes.ColWidths[3]:= thispercent(0,GridWidth);
 form1.GridNodes.ColWidths[4]:= thispercent(0,GridWidth, true);
-
 end;
 
-// adjust LTC grid
-procedure TForm1.GridExLTCResize(sender: TObject);
-var
-  GridWidth : integer;
-begin
-GridWidth := form1.GridExLTC.Width;
-form1.GridExLTC.ColWidths[0]:= thispercent(34,GridWidth);
-form1.GridExLTC.ColWidths[1]:= thispercent(33,GridWidth);
-form1.GridExLTC.ColWidths[2]:= thispercent(33,GridWidth,true);
-end;
 
+// Adjust monitor at resize
 procedure TForm1.SG_MonitorResize(sender: TObject);
 var
   GridWidth : integer;
@@ -3622,6 +3406,7 @@ LabeledEdit8.Text:=MN_Funds;
 LabeledEdit9.Text:=MN_Sign;
 end;
 
+//Adjust the about form on resize
 procedure TForm1.TabSheet9Resize(sender: TObject);
 begin
   ImageOptionsAbout.BorderSpacing.Left:=
@@ -3747,12 +3532,6 @@ begin
 WO_OmmitMemos:= CBRunNodeAlone.Checked;
 end;
 
-// Enable/Disable current job label
-procedure TForm1.CB_CurrentjobChange(sender: TObject);
-Begin
-if Not CB_Currentjob.Checked then CB_Currentjob.Caption:='Disabled';
-End;
-
 // Set MN IP to Auto
 procedure TForm1.CBAutoIPClick(sender: TObject);
 Begin
@@ -3775,28 +3554,6 @@ if not G_Launching then
       end;
    S_AdvOpt := true;
    end;
-End;
-
-// adjust transactions history grid when resize
-procedure TForm1.GridMyTxsResize(sender: TObject);
-var
-  GridWidth : integer;
-begin
-GridWidth := form1.GridMyTxs.Width;
-form1.GridMyTxs.ColWidths[0]:= thispercent(20,GridWidth);
-form1.GridMyTxs.ColWidths[1]:= thispercent(20,GridWidth);
-form1.GridMyTxs.ColWidths[2]:= thispercent(25,GridWidth);
-form1.GridMyTxs.ColWidths[3]:= thispercent(35,GridWidth,true);
-end;
-
-// Adjust grid with PoS information at resize
-procedure TForm1.GridPoSResize(sender: TObject);
-var
-  GridWidth : integer;
-begin
-GridWidth := form1.GridPoS.Width;
-form1.GridPoS.ColWidths[0]:= thispercent(50,GridWidth);
-form1.GridPoS.ColWidths[1]:= thispercent(50,GridWidth);
 End;
 
 // Resize GVTs grid

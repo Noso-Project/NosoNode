@@ -31,13 +31,9 @@ Procedure InicializarGUI();
 Procedure OutText(Texto:String;inctime:boolean = false;canal : integer =0);
 Procedure ActualizarGUI();
 function Int2Curr(Value: int64): string;
-function OrderShowed(OrderID:String):integer;
-Function AddrText(hash:String):String;
 Procedure Info(text:string);
 Procedure Processhint(sender:TObject);
 Procedure ShowGlobo(Titulo,texto:string);
-Procedure SetCurrentJob(CurrJob:String;status:boolean);
-Function GetCurrentJob():String;
 Procedure CloseAllForms();
 Procedure UpdateRowHeigth();
 
@@ -228,11 +224,6 @@ form1.DataPanel.Cells[2,5]:='GVTs';  //'Pool Balance'
 form1.DataPanel.Cells[2,6]:='Masternodes';     //'mainnet Time'
 form1.DataPanel.Cells[2,7]:='MNs #';     //'Masternodes'
 
-form1.GridMyTxs.Cells[0,0]:='Block';
-form1.GridMyTxs.Cells[1,0]:='Time';
-form1.GridMyTxs.Cells[2,0]:='Type';
-form1.GridMyTxs.Cells[3,0]:='Amount';
-
 Form1.SGridSC.Cells[0,0]:=rs0501;  //'Destination'
 Form1.SGridSC.Cells[0,1]:=rs0502;  //'Amount'
 Form1.SGridSC.Cells[0,2]:=rs0503;  //'reference'
@@ -331,16 +322,6 @@ if U_DataPanel then
    U_DataPanel := false;
    end;
 
-if U_PoSGrid then
-   begin
-   //form1.GridPoS.Cells[1,0]:=Int2Curr((GetSupply(MyLastBlock+1)*PosStackCoins) div 10000)+' '+coinsimbol;
-   form1.GridPoS.Cells[1,0]:=Format('%s  (%d)',[Int2Curr((GetSupply(MyLastBlock+1)*PosStackCoins) div 10000),GetMyPosAddressesCount]);
-   //form1.GridPoS.Cells[1,1]:=IntToStr(GetMyPosAddressesCount);
-   form1.GridPoS.Cells[1,1]:=Int2Curr(G_MNsEarnings)+' '+CoinSimbol;
-   form1.GridPoS.Cells[1,2]:=Int2Curr(G_PoSEarnings)+' '+CoinSimbol;
-   U_PoSGrid := false;
-   End;
-
 form1.DataPanel.Cells[3,0]:=Copy(GetNMSData.Miner,1,10)+'...';
 form1.DataPanel.Cells[3,1]:=BestHashReadeable(GetNMSData.Diff);
 form1.DataPanel.Cells[3,2]:=GEtOutgoingconnections.ToString+'/'+GetClientReadThreads.ToString;
@@ -409,38 +390,6 @@ Insert('.',Result, Length(Result)-7);
 If Value <0 THen Result := '-'+Result;
 end;
 
-// Devuelve la linea donde la orden ya se esta mostrando, o cero si aun no aparece
-function OrderShowed(OrderID:String):integer;
-var
-  cont : integer;
-Begin
-result := 0;
-if form1.GridMyTxs.RowCount> 1 then
-   begin
-   for cont := 1 to form1.GridMyTxs.RowCount-1 do
-      if form1.GridMyTxs.Cells[4,cont] = OrderID then result := cont;
-   end;
-End;
-
-// Returns alias or hash if address is not aliased
-Function AddrText(hash:String):String;
-var
-  cont : integer;
-Begin
-Result := hash;
-if length(listasumario) > 0 then
-   begin
-   for cont := 0 to length(listasumario)-1 do
-      begin
-      if ((hash = Listasumario[cont].hash) and (Listasumario[cont].Custom<>'')) then
-         begin
-         result := Listasumario[cont].Custom;
-         break;
-         end;
-      end;
-   end;
-End;
-
 // Actualiza la informacion de la label info
 Procedure Info(text:string);
 Begin
@@ -485,36 +434,6 @@ if Form1.SystrayIcon.Visible then
    form1.SystrayIcon.BalloonTimeout:=3000;
    form1.SystrayIcon.ShowBalloonHint;
    end;
-End;
-
-// Fija el valor de la variable con el proceso actual
-Procedure SetCurrentJob(CurrJob:String;status:boolean);
-Begin
-if status then
-   begin
-   EnterCriticalSection(CSCurrentJob);
-   currentjob := CurrentJob+'>'+CurrJob;
-   LeaveCriticalSection(CSCurrentJob);
-   end
-else
-   begin
-   EnterCriticalSection(CSCurrentJob);
-   currentjob := StringReplace(currentjob,'>'+CurrJob,'',[rfReplaceAll, rfIgnoreCase]);
-   LeaveCriticalSection(CSCurrentJob);
-   end;
-if ( (form1.PCMonitor.ActivePage=Form1.TabMonitorMonitor) and (Form1.PageMain.ActivePage=form1.TabMonitor) and
-     (form1.CB_Currentjob.Checked) ) then
-   begin
-   Form1.CB_Currentjob.Caption:=GetCurrentJob;
-   Form1.CB_Currentjob.Update;
-   end;
-End;
-
-Function GetCurrentJob():String;
-Begin
-EnterCriticalSection(CSCurrentJob);
-Result := currentjob;
-LeaveCriticalSection(CSCurrentJob);
 End;
 
 Procedure CloseAllForms();

@@ -133,7 +133,6 @@ var
 Begin
 BuildingBlock := Numero;
 BeginPerformance('BuildNewBlock');
-SetCurrentJob('BuildNewBlock',true);
 if ((numero>0) and (Timestamp < lastblockdata.TimeEnd)) then
    begin
    AddLineToDebugLog('console','New block '+IntToStr(numero)+' : Invalid timestamp');
@@ -168,7 +167,6 @@ if not errored then
 
    // Processs pending orders
    EnterCriticalSection(CSPending);
-   SetCurrentJob('NewBLOCK_PENDING',true);
    BeginPerformance('NewBLOCK_PENDING');
    ArrayLastBlockTrxs := Default(BlockOrdersArray);
    ArrayLastBlockTrxs := GetBlockTrxs(MyLastBlock);
@@ -277,11 +275,9 @@ if not errored then
    END; {TRY}
    SetLength(IgnoredTrxs,0);
    EndPerformance('NewBLOCK_PENDING');
-   SetCurrentJob('NewBLOCK_PENDING',false);
    LeaveCriticalSection(CSPending);
 
    //PoS payment
-   SetCurrentJob('NewBLOCK_PoS',true);
    BeginPerformance('NewBLOCK_PoS');
    if numero >= PoSBlockStart then
       begin
@@ -313,8 +309,6 @@ if not errored then
          end;
       end;
    EndPerformance('NewBLOCK_PoS');
-   SetCurrentJob('NewBLOCK_PoS',false);
-
    // Masternodes processing
    BeginPerformance('NewBLOCK_MNs');
    CreditMNVerifications();
@@ -369,7 +363,6 @@ if not errored then
    for contador := 0 to length(ListaDirecciones)-1 do
       ListaDirecciones[contador].Pending:=0;
    // Definir la cabecera del bloque *****
-   SetCurrentJob('NewBLOCK_Headers',true);
    BlockHeader := Default(BlockHeaderData);
    BlockHeader.Number := Numero;
    BlockHeader.TimeStart:= StartBlockTime;
@@ -390,7 +383,6 @@ if not errored then
    BlockHeader.AccountMiner:=Minero;
    BlockHeader.MinerFee:=MinerFee;
    BlockHeader.Reward:=GetBlockReward(Numero);
-   SetCurrentJob('NewBLOCK_Headers',false);
    // Fin de la cabecera -----
    // Guardar bloque al disco
    if not GuardarBloque(FileName,BlockHeader,ListaOrdenes,PosReward,PosCount,PoSAddressess,
@@ -420,14 +412,12 @@ if not errored then
    CheckForMyPending;
    if DIreccionEsMia(Minero)>-1 then showglobo('Miner','Block found!');
    U_DataPanel := true;
-   SetCurrentJob('BuildNewBlock',false);
    EndPerformance('BuildNewBlock');
    end
 else
    begin
    OutText('Failed to build the block',true);
    end;
-U_PoSGrid := true;
 BuildingBlock := 0;
 End;
 
@@ -516,7 +506,6 @@ var
   counter : integer;
 Begin
 result := true;
-SetCurrentJob('GuardarBloque',true);
 BeginPerformance('GuardarBloque');
 NumeroOrdenes := Cabezera.TrxTotales;
 MemStr := TMemoryStream.Create;
@@ -549,7 +538,6 @@ MemStr := TMemoryStream.Create;
    END{Try};
 MemStr.Free;
 EndPerformance('GuardarBloque');
-SetCurrentJob('GuardarBloque',false);
 End;
 
 // Carga la informacion del bloque

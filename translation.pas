@@ -136,7 +136,7 @@ resourcestring
   //mpred
   rs2000 = 'Sign address not valid';
   rs2001 = 'Wallet not updated';
-  rs2002 = '*****CRITICAL*****'+Slinebreak+'Error inside VerifyConnectionStatus: %s'+Slinebreak+'*****CRITICAL*****';
+  rs2002 = '*****CRITICAL*****'+Slinebreak+'Error inside VerifyConnectionStatus'+Slinebreak+'*****CRITICAL*****';
   rs2003 = 'Sumary file requested';
   //mpcrypto
   rs2501 = '*****CRITICAL*****'+Slinebreak+'Error type 3 on crypto thread: %s'+Slinebreak+'*****CRITICAL*****';

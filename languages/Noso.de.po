@@ -137,14 +137,6 @@ msgstr ""
 msgid "Active JSON-RPC server at launch"
 msgstr "Aktiver JSON-RPC-Server beim Start"
 
-#: tform1.cb_currentjob.caption
-msgid "Disabled"
-msgstr ""
-
-#: tform1.cb_currentjob.hint
-msgid "Show current job (BETA)"
-msgstr ""
-
 #: tform1.cb_fullnode.caption
 #, fuzzy
 #| msgid "Download blockchain"
@@ -159,10 +151,6 @@ msgstr "Nur Whitelist-Anfragen akzeptieren"
 #: tform1.cb_rpc_on.caption
 msgid "Enable JSON-RPC server"
 msgstr "JSON-RPC-Server einschalten"
-
-#: tform1.cb_wo_antifreeze.caption
-msgid "Anti freeze (s)"
-msgstr "Gegen einfrieren (s)"
 
 #: tform1.cb_wo_autoconnect.caption
 msgid "Auto connect at start"
@@ -206,10 +194,6 @@ msgstr "0.00000000"
 #: tform1.lababout.caption
 msgid "About message"
 msgstr "Über Nachricht"
-
-#: tform1.label1.caption
-msgid "Post offer"
-msgstr "Angebot veröffentlichen"
 
 #: tform1.label10.caption
 #, fuzzy
@@ -289,23 +273,9 @@ msgstr "0 NOS"
 msgid "Waiting"
 msgstr ""
 
-#: tform1.labelnobiexaverage.caption
-msgctxt "tform1.labelnobiexaverage.caption"
-msgid "Average: -.-"
-msgstr "Durchschnitt: -.-"
-
-#: tform1.labelnobiexlast.caption
-msgctxt "tform1.labelnobiexlast.caption"
-msgid "Last: -.-"
-msgstr "Letzte: -.-"
-
 #: tform1.labelnodeshash.caption
 msgid "Count: "
 msgstr ""
-
-#: tform1.labeltransactiondetails.caption
-msgid "Transaction details"
-msgstr "Einzelheiten zur Transaktion"
 
 #: tform1.lsctop.caption
 msgid "Send coins"
@@ -405,10 +375,6 @@ msgctxt "tform1.scbitsend1.caption"
 msgid "Transfer"
 msgstr ""
 
-#: tform1.speedbutton1.hint
-msgid "Copy Order ID"
-msgstr "Auftrags-ID kopieren"
-
 #: tform1.speedbutton2.caption
 msgid "A"
 msgstr ""
@@ -464,22 +430,10 @@ msgstr "Log"
 msgid "Doctor"
 msgstr ""
 
-#: tform1.tabexbuy.caption
-msgid "LTC"
-msgstr "LTC"
-
-#: tform1.tabexchange.caption
-msgid "NoBiEx"
-msgstr "NoBiEx"
-
 #: tform1.tabgvts.caption
 msgctxt "tform1.tabgvts.caption"
 msgid "GVTs"
 msgstr ""
-
-#: tform1.tabhistory.caption
-msgid "History"
-msgstr "Verlauf"
 
 #: tform1.tabmonitor.caption
 #, fuzzy
@@ -1106,10 +1060,9 @@ msgid "Wallet not updated"
 msgstr ""
 
 #: translation.rs2002
-#, object-pascal-format
 msgid ""
 "*****CRITICAL*****\n"
-"Error inside VerifyConnectionStatus: %s\n"
+"Error inside VerifyConnectionStatus\n"
 "*****CRITICAL*****"
 msgstr ""
 

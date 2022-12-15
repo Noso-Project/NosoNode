@@ -1,8 +1,8 @@
 UNIT nosogeneral;
 
 {
-nosogeneral 1.0
-December 11th, 2022
+nosogeneral 1.1
+December 15th, 2022
 Noso Unit for general functions
 Requires: Not dependencyes
 }
@@ -20,6 +20,12 @@ Function GetSupply(block:integer):int64;
 Function Restar(number:int64):int64;
 Function HashrateToShow(speed:int64):String;
 Procedure RunExternalProgram(ProgramToRun:String);
+Function GetStackRequired(block:integer):int64;
+Function GetMNsPercentage(block:integer):integer;
+Function GetPoSPercentage(block:integer):integer;
+Function GetDevPercentage(block:integer):integer;
+Function GetMinimumFee(amount:int64):Int64;
+Function GetMaximunToSend(amount:int64):int64;
 
 IMPLEMENTATION
 
@@ -142,6 +148,70 @@ Begin
     END; {TRY}
   Process.Free;
 End;
+
+{Returns the required noso stack size}
+Function GetStackRequired(block:integer):int64;
+Begin
+  result := (GetSupply(block)*20) div 10000;
+End;
+
+{Returns the MNs percentage for the specified block (0 to 10000)}
+Function GetMNsPercentage(block:integer):integer;
+Begin
+  result := 0;
+  if block >= 48010{MNBlockStart} then
+    begin
+    result := 2000{MNsPercentage} + (((block-48010{MNBlockStart}) div 4000) * 100);
+    if block >= 90000{PoSBlockEnd} then Inc(Result,1000);
+    if result > 6000 then result := 6000;
+    end;
+End;
+
+{Returns the PoS percentage for the specified block (0 to 10000)}
+Function GetPoSPercentage(block:integer):integer;
+Begin
+  result := 0;
+  if ((block > 8424) and (block < 40000)) then result := 1000{PoSPercentage};
+  if block >= 40000 then
+    begin
+    result := 1000{PoSPercentage} + (((block-39000) div 1000) * 100);
+    if result > 2000 then result := 2000;
+    end;
+  if block >= 9000{PoSBlockEnd} then result := 0;
+End;
+
+{Returns the Project percentage for the specified block}
+Function GetDevPercentage(block:integer):integer;
+Begin
+  result := 0;
+  if block >= 90000{PoSBlockEnd} then result := 1000;
+End;
+
+{Returns the minimum fee to be paid for the specified amount}
+Function GetMinimumFee(amount:int64):Int64;
+Begin
+  Result := amount div 10000{Comisiontrfr};
+  if result < 10{MinimunFee} then result := 10{MinimunFee};
+End;
+
+{Returns the maximum that can be sent from the specified amount}
+Function GetMaximunToSend(amount:int64):int64;
+var
+  maximo     : int64;
+  comision   : int64;
+  Envio      : int64;
+  Diferencia : int64;
+Begin
+  if amount < 10{MinimunFee} then
+    exit(0);
+  maximo     := (amount * 10000{Comisiontrfr}) div (10000{Comisiontrfr}+1);
+  comision   := maximo div 10000{Comisiontrfr};
+  if Comision < 10{MinimunFee} then Comision := 10{MinimunFee};
+  Envio      := maximo + comision;
+  Diferencia := amount-envio;
+  result     := maximo+diferencia;
+End;
+
 
 END.{UNIT}
 
