@@ -12,13 +12,14 @@ Requires: Not dependencyes
 INTERFACE
 
 uses
-  Classes, SysUtils, process;
+  Classes, SysUtils, Process, StrUtils;
 
 Function Parameter(LineText:String;ParamNumber:int64;de_limit:string=' '):String;
 Function IsValidIP(IpString:String):boolean;
 Function GetSupply(block:integer):int64;
 Function Restar(number:int64):int64;
 Function HashrateToShow(speed:int64):String;
+Function Int2Curr(LValue: int64): string;
 Procedure RunExternalProgram(ProgramToRun:String);
 Function GetStackRequired(block:integer):int64;
 Function GetMNsPercentage(block:integer):integer;
@@ -120,6 +121,15 @@ Begin
   else if speed>1000000 then result := FormatFloat('0.00',speed/1000000)+' Mh/s'
   else if speed>1000 then result := FormatFloat('0.00',speed/1000)+' Kh/s'
   else result := speed.ToString+' h/s'
+End;
+
+{Converts a integer in a human readeaeble format for currency}
+Function Int2Curr(LValue: int64): string;
+Begin
+  Result := IntTostr(Abs(LValue));
+  result :=  AddChar('0',Result, 9);
+  Insert('.',Result, Length(Result)-7);
+  If LValue <0 THen Result := '-'+Result;
 End;
 
 {Runs an external program}

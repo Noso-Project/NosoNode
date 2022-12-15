@@ -5,6 +5,7 @@ Version 0.3.3Aa4
 - Removed history tab and dependencyes.
 - Removed current job and all dependencyes.
 - Removed nobiex tab.
+- Removed Antifreeze references.
 
 Version 0.3.3Aa3
 

@@ -997,10 +997,11 @@ msgid "Wallet not updated"
 msgstr ""
 
 #: translation.rs2002
+#, object-pascal-format
 msgid ""
 "*****CRITICAL*****\n"
 "Error inside VerifyConnectionStatus\n"
-"*****CRITICAL*****"
+"%s*****CRITICAL*****"
 msgstr ""
 
 #: translation.rs2003

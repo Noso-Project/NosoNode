@@ -643,7 +643,7 @@ CONST
   {$ENDIF}
   SubVersion = 'Aa4';
   OficialRelease = false;
-  VersionRequired = '0.3.3Aa3';
+  VersionRequired = '0.3.3Aa4';
   BuildDate = 'December 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';

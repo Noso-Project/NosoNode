@@ -30,7 +30,6 @@ Function GetConnectedPeers():String;
 Procedure InicializarGUI();
 Procedure OutText(Texto:String;inctime:boolean = false;canal : integer =0);
 Procedure ActualizarGUI();
-function Int2Curr(Value: int64): string;
 Procedure Info(text:string);
 Procedure Processhint(sender:TObject);
 Procedure ShowGlobo(Titulo,texto:string);
@@ -380,15 +379,6 @@ if U_DirPanel then
    EndPerformance('UpdateDirPanel');
    end;
 End;
-
-// Muestra el numero de notoshis como currency
-function Int2Curr(Value: int64): string;
-begin
-Result := IntTostr(Abs(Value));
-result :=  AddChar('0',Result, 9);
-Insert('.',Result, Length(Result)-7);
-If Value <0 THen Result := '-'+Result;
-end;
 
 // Actualiza la informacion de la label info
 Procedure Info(text:string);
