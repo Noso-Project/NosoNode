@@ -172,7 +172,7 @@ Begin
   if block >= 48010{MNBlockStart} then
     begin
     result := 2000{MNsPercentage} + (((block-48010{MNBlockStart}) div 4000) * 100);
-    if block >= 90000{PoSBlockEnd} then Inc(Result,1000);
+    if block >= 88400{PoSBlockEnd} then Inc(Result,1000);
     if result > 6000 then result := 6000;
     end;
 End;
@@ -187,14 +187,14 @@ Begin
     result := 1000{PoSPercentage} + (((block-39000) div 1000) * 100);
     if result > 2000 then result := 2000;
     end;
-  if block >= 9000{PoSBlockEnd} then result := 0;
+  if block >= 88400{PoSBlockEnd} then result := 0;
 End;
 
 {Returns the Project percentage for the specified block}
 Function GetDevPercentage(block:integer):integer;
 Begin
   result := 0;
-  if block >= 90000{PoSBlockEnd} then result := 1000;
+  if block >= 88400{PoSBlockEnd} then result := 1000;
 End;
 
 {Returns the minimum fee to be paid for the specified amount}

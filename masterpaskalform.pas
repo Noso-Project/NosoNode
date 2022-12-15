@@ -641,9 +641,9 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa4';
+  SubVersion = 'Aa5';
   OficialRelease = false;
-  VersionRequired = '0.3.3Aa4';
+  VersionRequired = '0.3.3Aa5';
   BuildDate = 'December 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
@@ -670,7 +670,7 @@ CONST
   MNsPercentage = 2000;
   PosStackCoins = 20;               // PoS stack ammoount: supply*20 / PoSStack
   PoSBlockStart : integer = 8425;   // first block with PoSPayment
-  PoSBlockEnd   : integer = 90000;  // Not definitive yetttt
+  PoSBlockEnd   : integer = 88400;  // Not definitive yetttt
   MNBlockStart  : integer = 48010;  // First block with MNpayments
   InitialBlockDiff = 60;            // Dificultad durante los 20 primeros bloques
   GenesysTimeStamp = 1615132800;    // 1615132800;

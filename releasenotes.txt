@@ -1,3 +1,7 @@
+Version 0.3.3Aa5
+
+- Deprecated PoS: partition between MNs and project, block +88400.
+
 Version 0.3.3Aa4
 
 - Unit nosocrypto created.
