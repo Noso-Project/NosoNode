@@ -704,6 +704,7 @@ Trydeletefile(SumarioFilename);
 Trycopyfile(SumarioFilename+'.bak',SumarioFilename);
 LeaveCriticalSection(CSSumary);
 LoadSumaryFromFile();
+UpdateMyData();
 // recover GVTs file
 EnterCriticalSection(CSGVTsArray);
 trydeletefile(GVTsFilename);

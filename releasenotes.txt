@@ -1,3 +1,7 @@
+Version 0.3.3Aa6
+
+- Fixed leak on rebuild sumary with coinbase transaction.
+
 Version 0.3.3Aa5
 
 - Deprecated PoS: partition between MNs and project, block +88400.

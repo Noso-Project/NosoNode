@@ -727,7 +727,7 @@ if fileexists(BlockDirectory+IntToStr(numberblock)+'.blk') then
       AddLineToDebugLog('console','TRANSACTIONS');
       For Counter := 0 to length(LOrders)-1 do
          begin
-         AddLineToDebugLog('console',Format('%-35s -> %-35s : %s',[LOrders[counter].sender,LOrders[counter].Receiver,int2curr(LOrders[counter].AmmountTrf)]));
+         AddLineToDebugLog('console',Format('%-8s %-35s -> %-35s : %s',[LOrders[counter].OrderType,LOrders[counter].sender,LOrders[counter].Receiver,int2curr(LOrders[counter].AmmountTrf)]));
          end;
       end;
    if numberblock>PoSBlockStart then
@@ -1705,7 +1705,7 @@ var
   contador : integer;
 Begin
 numero := StrToIntDef(Parameter(linetext,1),0);
-if ((numero <1) or (numero >2000)) then
+if ((numero <1) or (numero >1000)) then
   Outtext('Range must be 1-1000')
 else
   begin
@@ -2003,6 +2003,7 @@ var
   counter  : integer = 0;
   total    : int64 = 0;
   count    : integer = 0;
+  MNMsg    : string;
 Begin
 sourcestr := GetNosoCFGString(5);
 repeat
@@ -2011,7 +2012,9 @@ if thisadd <> '' then
    begin
    Inc(Total,ListaSumario[AddressSumaryIndex(thisadd)].Balance);
    Inc(count);
-   AddLineToDebugLog('console',format('%-35s : %15s',[thisadd,int2curr(ListaSumario[AddressSumaryIndex(thisadd)].Balance)]));
+   if AnsiContainsStr(GetMN_FileText,Thisadd) then MNMsg := '[MN]'
+   else MNMsg := '';
+   AddLineToDebugLog('console',format('%-35s : %15s  %s',[thisadd,int2curr(ListaSumario[AddressSumaryIndex(thisadd)].Balance),MNMsg]));
    end;
 inc(counter);
 until thisadd = '';

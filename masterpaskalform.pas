@@ -279,7 +279,9 @@ type
   TBlockSumTrfr = packed record
        address  : string[32];
        amount   : int64;
+       RemAmo   : int64;
        score    : int64;
+       RemScore : int64;
        end;
 
   TNosoCFG = packed record
@@ -641,9 +643,9 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa5';
+  SubVersion = 'Aa6';
   OficialRelease = false;
-  VersionRequired = '0.3.3Aa5';
+  VersionRequired = '0.3.3Aa6';
   BuildDate = 'December 2022';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';

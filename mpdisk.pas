@@ -1147,6 +1147,7 @@ for cont := 0 to length(ArrayOrders)-1 do
    if ArrayOrders[cont].OrderType='PROJCT' then
       begin
       UpdateSumario(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,0,IntToStr(BlockNumber));
+      UpdateSumario(BlockHeader.AccountMiner,Restar(ArrayOrders[cont].AmmountTrf),0,IntToStr(BlockNumber));
       end;
    end;
 setlength(ArrayOrders,0);
@@ -1243,6 +1244,7 @@ for contador := 1 to UntilBlock do
       if ArrayOrders[cont].OrderType='PROJCT' then
          begin
          UpdateSumario(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,0,IntToStr(contador));
+         UpdateSumario(BlockHeader.AccountMiner,Restar(ArrayOrders[cont].AmmountTrf),0,IntToStr(contador));
          end;
       end;
    setlength(ArrayOrders,0);
