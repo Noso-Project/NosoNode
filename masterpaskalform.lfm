@@ -2148,9 +2148,9 @@ object Form1: TForm1
         Height = 440
         Top = 0
         Width = 392
-        ActivePage = TabDebug_Log
+        ActivePage = TabDoctor
         Align = alClient
-        TabIndex = 0
+        TabIndex = 5
         TabOrder = 0
         object TabDebug_Log: TTabSheet
           Caption = 'Log'

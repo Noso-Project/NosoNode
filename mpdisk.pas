@@ -1389,7 +1389,7 @@ Read(fileResumen,dato);
 Result := Dato.block.ToString+':'+Dato.blockhash+':'+Dato.SumHash;
 closefile(FileResumen);
 EXCEPT on E:Exception do
-  AddLineToDebugLog('events',TimeToStr(now)+'Error adding new register to headers');
+  AddLineToDebugLog('events',TimeToStr(now)+'Error showing header '+Blocknumber.ToString);
 END;
 LeaveCriticalSection(CSHeadAccess);
 End;

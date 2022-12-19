@@ -199,13 +199,6 @@ type
      SumHash : String[32];
      end;
 
-  {
-  DivResult = packed record
-     cociente : string[255];
-     residuo : string[255];
-     end;
-  }
-
   BlockOrdersArray = Array of OrderData;
 
   TArrayPos = Packed Record
@@ -279,9 +272,7 @@ type
   TBlockSumTrfr = packed record
        address  : string[32];
        amount   : int64;
-       RemAmo   : int64;
        score    : int64;
-       RemScore : int64;
        end;
 
   TNosoCFG = packed record
@@ -617,14 +608,12 @@ Procedure UpdateMyGVTsList();
 
 CONST
   HexAlphabet : string = '0123456789ABCDEF';
-  B58Alphabet : string = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-  B36Alphabet : string = '0123456789abcdefghijklmnopqrstuvwxyz';
   ReservedWords : string = 'NULL,DELADDR';
   ValidProtocolCommands : string = '$PING$PONG$GETPENDING$NEWBL$GETRESUMEN$LASTBLOCK$GETCHECKS'+
                                    '$CUSTOMORDERADMINMSGNETREQ$REPORTNODE$GETMNS$BESTHASH$MNREPO$MNCHECK'+
                                    'GETMNSFILEMNFILEGETHEADUPDATE$GETSUMARY$GETGVTSGVTSFILE$SNDGVTGETCFGDATA'+
                                    'SETCFGDATA';
-  HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS';
+  HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS DELBOT';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
 
   DefaultNosoCFG : String = {0}'NORMAL '+
@@ -643,7 +632,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa6';
+  SubVersion = 'Aa7';
   OficialRelease = false;
   VersionRequired = '0.3.3Aa6';
   BuildDate = 'December 2022';
@@ -1947,7 +1936,8 @@ if form1.SystrayIcon.Visible then
 if FormSlots.Visible then UpdateSlotsGrid();
 ConnectedRotor +=1; if ConnectedRotor>6 then ConnectedRotor := 0;
 UpdateStatusBar;
-if ( (UTCTime mod 3600=3590) and (LastBotClear<>UTCTimeStr) and (Form1.Server.Active) ) then ProcessLinesAdd('delbot all');
+if ( (UTCTime mod 3600=3590) and (LastBotClear<>UTCTimeStr) and (Form1.Server.Active) ) then
+   ProcessLinesAdd('delbot all');
 if ( (UTCTime mod 600>=570) and (UTCTime>NosoT_LastUpdate+599) ) then
    UpdateOffset(PArameter(GetNosoCFGString,2));
 Form1.Latido.Enabled:=true;

@@ -266,41 +266,10 @@ else if UpperCase(Command) = 'CLOSESTARTOFF' then WO_CloseStart := false
 else if UpperCase(Command) = 'DT' then DebugTest(LineText)
 else if UpperCase(Command) = 'TT' then DebugTest2(LineText)
 else if UpperCase(Command) = 'BASE58SUM' then AddLineToDebugLog('console',BMB58resumen(parameter(linetext,1)))
-else if UpperCase(Command) = 'DECTO58' then
-  begin
-  AddLineToDebugLog('console',BMDecTo58(parameter(linetext,1)));
-  AddLineToDebugLog('console',B10toB58(parameter(linetext,1)));
-  end
-else if UpperCase(Command) = 'HEXTO58' then
-  begin
-  AddLineToDebugLog('console',BMHexTo58(parameter(linetext,1),58));
-  AddLineToDebugLog('console',B16toB58(parameter(linetext,1)));
-  end
-else if UpperCase(Command) = '58TODEC' then
-  begin
-  AddLineToDebugLog('console',BM58ToDec(parameter(linetext,1)));
-  AddLineToDebugLog('console',B58toB10(parameter(linetext,1)));
-  end
-else if UpperCase(Command) = 'DECTOHEX' then
-  begin
-  AddLineToDebugLog('console',BMDectoHex(parameter(linetext,1)));
-  AddLineToDebugLog('console',B10ToB16(parameter(linetext,1)));
-  end
-else if UpperCase(Command) = 'HEXTODEC' then
-  begin
-  AddLineToDebugLog('console',BMHexToDec(parameter(linetext,1)));
-  AddLineToDebugLog('console',B16toB10(parameter(linetext,1)));
-  end
-else if UpperCase(Command) = '58TOHEX' then
-  begin
-  AddLineToDebugLog('console',BM58toHex(parameter(linetext,1)));
-  AddLineToDebugLog('console',B58toB16(parameter(linetext,1)));
-  end
 else if UpperCase(Command) = 'NOSOHASH' then AddLineToDebugLog('console',Nosohash(parameter(linetext,1)))
 else if UpperCase(Command) = 'PENDING' then AddLineToDebugLog('console',PendingRawInfo)
-else if UpperCase(Command) = 'HEADER' then AddLineToDebugLog('console',LastHeaders(StrToIntDef(parameter(linetext,1),-1)))
+else if UpperCase(Command) = 'HEADER' then AddLineToDebugLog('console',ShowBlockHeaders(StrToIntDef(parameter(linetext,1),-1)))
 else if UpperCase(Command) = 'HEADSIZE' then AddLineToDebugLog('console',GetHeadersSize.ToString)
-else if UpperCase(Command) = 'CHECKSUM' then AddLineToDebugLog('console',BMDecTo58(BMB58resumen(parameter(linetext,1))))
 
 // CONSULTING
 else if UpperCase(Command) = 'NETRATE' then AddLineToDebugLog('console','Average Mainnet hashrate: '+HashrateToShow(MainNetHashrate))
@@ -464,6 +433,7 @@ var
   NotValidBalance : int64 = 0;
   NotValidStr     : string = '';
 Begin
+BeginPerformance('ShowSumary');
 EnterCriticalSection(CSSumary);
 For contador := 0 to length(ListaSumario)-1 do
    begin
@@ -489,7 +459,11 @@ For contador := 0 to length(ListaSumario)-1 do
       end
    else CustomsAdds := CustomsAdds+thiscustom+' ';
 
-   if ListaSumario[contador].Balance < 0 then NegAdds+=1;
+   if ListaSumario[contador].Balance < 0 then
+      begin
+      NegAdds+=1;
+      //AddLineToDebugLog('console',format('%s : %s',[ListaSumario[contador].Hash,int2curr(ListaSumario[contador].Balance)]));
+      end;
    TotalCOins := totalCoins+ ListaSumario[contador].Balance;
    if ListaSumario[contador].Balance = 0 then EmptyAddresses +=1;
    if ListaSumario[contador].Balance > BiggerAmmount then
@@ -519,6 +493,7 @@ AddLineToDebugLog('console',Int2Curr(Totalcoins)+' '+CoinSimbol+' '+AsExpected);
 AddLineToDebugLog('console','Bigger : '+BiggerAddress);
 AddLineToDebugLog('console','Balance: '+Int2curr(BiggerAmmount));
 LeaveCriticalSection(CSSumary);
+EndPerformance('ShowSumary');
 End;
 
 Procedure AutoServerON();
@@ -1046,7 +1021,7 @@ for contador := 0 to HalvingSteps do
    block1 := BlockHalvingInterval*(contador);
    if block1 = 0 then block1 := 1;
    block2 := (BlockHalvingInterval*(contador+1))-1;
-   reward := InitialReward div StrToInt64(BMExponente('2',IntToStr(contador)));
+   reward := InitialReward div (2**contador);
    MarketCap := marketcap+(reward*BlockHalvingInterval);
    Texto := Format('From block %7d until %7d : %11s',[block1,block2,Int2curr(reward)]);
    //Texto :='From block '+IntToStr(block1)+' until '+IntToStr(block2)+': '+Int2curr(reward); //'From block '+' until '
@@ -1136,7 +1111,7 @@ else if uppercase(IPBot) = 'ALL' then
    SetLength(ListadoBots,0);
    LastBotClear := UTCTimeStr;
    S_BotData := true;
-   AddLineToDebugLog('console','All bots deleted');
+   AddLineToDebugLog('events','All bots deleted');
    end
 else
    begin
@@ -2021,7 +1996,6 @@ until thisadd = '';
 AddLineToDebugLog('console',format('Freezed %d : %s',[count,int2curr(Total)]));
 
 End;
-
 
 END. // END UNIT
 

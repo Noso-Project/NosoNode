@@ -5,7 +5,7 @@ unit mpBlock;
 interface
 
 uses
-  Classes, SysUtils,MasterPaskalForm, fileutil, mpcoin, dialogs,
+  Classes, SysUtils,MasterPaskalForm, fileutil, mpcoin, dialogs, math,
   nosotime, mpMN, nosodebug,nosogeneral,nosocrypto;
 
 Procedure CrearBloqueCero();
@@ -407,12 +407,11 @@ if not errored then
       begin
       OutgoingMsjsAdd(ProtocolLine(ping));
       end;
-   OutText('Block built: '+IntToStr(numero),true);  //'Block builded: '
-
    CheckForMyPending;
    if DIreccionEsMia(Minero)>-1 then showglobo('Miner','Block found!');
    U_DataPanel := true;
-   EndPerformance('BuildNewBlock');
+   OutText(format('Block built: %d (%d ms)',[numero,EndPerformance('BuildNewBlock')]),true);  //'Block builded: '
+   //EndPerformance('BuildNewBlock');
    end
 else
    begin
@@ -484,13 +483,13 @@ End;
 // RETURNS THE MINING REWARD FOR A BLOCK
 function GetBlockReward(BlNumber:int64):Int64;
 var
-  NumHalvings : integer;
+  NumHalvings : int64;
 Begin
 if BlNumber = 0 then result := PremineAmount
 else if ((BlNumber > 0) and (blnumber < BlockHalvingInterval*(HalvingSteps+1))) then
    begin
    numHalvings := BlNumber div BlockHalvingInterval;
-   result := InitialReward div StrToInt64(BMExponente('2',IntToStr(numHalvings)));
+   result := InitialReward div ( 2**NumHalvings );
    end
 else result := 0;
 End;
@@ -704,7 +703,6 @@ Trydeletefile(SumarioFilename);
 Trycopyfile(SumarioFilename+'.bak',SumarioFilename);
 LeaveCriticalSection(CSSumary);
 LoadSumaryFromFile();
-UpdateMyData();
 // recover GVTs file
 EnterCriticalSection(CSGVTsArray);
 trydeletefile(GVTsFilename);

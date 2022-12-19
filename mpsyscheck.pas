@@ -62,7 +62,6 @@ End;
 
 Function AllocateMem(UpToMb:integer=1024):int64;
 var
-  counter  : integer;
   MemMb    : array of pointer;
   Finished : boolean = false;
   h: TFPCHeapStatus;

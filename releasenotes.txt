@@ -1,3 +1,10 @@
+Version 0.3.3Aa7
+
+- Improved orderID creation time.
+- Completed nosocrypto implementation.
+- Deprecated Big Maths functions.
+- EndPerformance converted to function.
+
 Version 0.3.3Aa6
 
 - Fixed leak on rebuild sumary with coinbase transaction.

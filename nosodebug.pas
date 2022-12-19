@@ -1,8 +1,8 @@
 unit nosodebug;
 
 {
-Nosodebug 1.0
-December 8th, 2022
+Nosodebug 1.1
+December 17th, 2022
 Unit to implement debug functionalities on noso project apps.
 }
 
@@ -32,7 +32,7 @@ type
     end;
 
 Procedure BeginPerformance(Tag:String);
-Procedure EndPerformance(Tag:String);
+Function EndPerformance(Tag:String):int64;
 Procedure CreateNewLog(LogName: string; LogFileName:String = '');
 Procedure AddLineToDebugLog(LogTag,NewLine : String);
 Function GetLogLine(LogTag:string;out LineContent:string):boolean;
@@ -71,11 +71,12 @@ Begin
 End;
 
 {Ends a performance}
-Procedure EndPerformance(Tag:String);
+Function EndPerformance(Tag:String):int64;
 var
   counter  : integer;
-  duration : int64;
+  duration : int64 = 0;
 Begin
+  result := 0;
   if not NosoDebug_UsePerformance then exit;
   for counter := 0 to high(ArrPerformance) do
     begin
@@ -91,6 +92,7 @@ Begin
       break;
       end;
     end;
+  Result := duration;
 End;
 
 {private: verify that the file for the log exists}

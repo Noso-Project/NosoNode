@@ -54,9 +54,6 @@ begin
 end;
 
 procedure TThreadUpdateOffset.Execute;
-var
-  TimeToRun : int64;
-  TFinished  : boolean = false;
 Begin
 GetTimeOffset(Hosts);
 End;

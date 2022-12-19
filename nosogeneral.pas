@@ -103,6 +103,7 @@ End;
 {Returns the circulating supply on the specified block}
 Function GetSupply(block:integer):int64;
 Begin
+  Result := 0;
   if block < 210000 then
     result := (block*5000000000)+1030390730000;
 End;
