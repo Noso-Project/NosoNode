@@ -8,7 +8,7 @@ uses
   Classes, forms, SysUtils, MasterPaskalForm, nosotime, IdContext, IdGlobal, mpGUI, mpDisk,
   mpBlock, fileutil, graphics,  dialogs, strutils, mpcoin, fphttpclient,
   opensslsockets,translation, IdHTTP, IdComponent, IdSSLOpenSSL, mpmn, IdTCPClient,
-  nosodebug,nosogeneral, nosocrypto;
+  nosodebug,nosogeneral, nosocrypto, nosounit;
 
 function GetSlotFromIP(Ip:String):int64;
 function GetSlotFromContext(Context:TidContext):int64;
@@ -1163,9 +1163,9 @@ var
   counter,counter2 : integer;
   orderfound : boolean = false;
   resultorder : TOrderGroup;
-  ArrTrxs : BlockOrdersArray;
+  ArrTrxs : TBlockOrdersArray;
   LastBlockToCheck : integer = 0;
-  CopyPendings : array of orderdata;
+  CopyPendings : array of Torderdata;
 Begin
 BeginPerformance('GetOrderDetails');
 resultorder := default(TOrderGroup);
@@ -1242,8 +1242,8 @@ var
   LastBlockToCheck : integer;
   Counter          : integer;
   counter2         : integer;
-  resultorder      : orderdata;
-  ArrTrxs          : BlockOrdersArray;
+  resultorder      : Torderdata;
+  ArrTrxs          : TBlockOrdersArray;
   orderfound       : boolean = false;
 Begin
 result := '';

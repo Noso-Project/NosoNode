@@ -10,7 +10,7 @@ uses
   fileutil, Clipbrd, Menus, formexplore, lclintf, ComCtrls, Spin,
   strutils, math, IdHTTPServer, IdCustomHTTPServer,
   IdHTTP, fpJSON, Types, DefaultTranslator, LCLTranslator, translation, nosodebug,
-  ubarcodes, IdComponent,nosogeneral,nosocrypto;
+  ubarcodes, IdComponent,nosogeneral,nosocrypto, nosounit;
 
 type
 
@@ -131,6 +131,7 @@ type
      LastOP : int64;// tiempo de la ultima operacion en UnixTime.
      end;
 
+  {
   SumarioData = Packed Record
      Hash : String[40];    // El hash publico o direccion
      Custom : String[40];  // En caso de que la direccion este personalizada
@@ -138,6 +139,7 @@ type
      Score : int64;        // estado del registro de la direccion.
      LastOP : int64;       // tiempo de la ultima operacion en UnixTime.
      end;
+  }
 
   BlockHeaderData = Packed Record
      Number         : Int64;
@@ -156,6 +158,7 @@ type
      Reward         : Int64;
      end;
 
+  {
   OrderData = Packed Record
      Block : integer;
      OrderID : String[64];
@@ -172,7 +175,8 @@ type
        Signature : String[120];
        TrfrID : String[64];
      end;
-
+    }
+    {
     TOrderGroup = Packed Record
      Block      : integer;
      TimeStamp  : Int64;
@@ -185,6 +189,7 @@ type
      AmmountFee : Int64;
      AmmountTrf : Int64;
      end;
+     }
 
   NetworkData = Packed Record
      Value : String[64];   // el valor almacenado
@@ -199,7 +204,9 @@ type
      SumHash : String[32];
      end;
 
+  {
   BlockOrdersArray = Array of OrderData;
+  }
 
   TArrayPos = Packed Record
        address : string[32];
@@ -343,6 +350,7 @@ type
     Panel9: TPanel;
     PanelQRImg: TPanel;
     SCBitSend1: TBitBtn;
+    SG_OpenThreads: TStringGrid;
     SpeedButton2: TSpeedButton;
     SpeedButton3: TSpeedButton;
     SpinDoctor1: TSpinEdit;
@@ -460,7 +468,7 @@ type
     SystrayIcon: TTrayIcon;
     tabOptions: TTabSheet;
     TabOpt_Wallet: TTabSheet;
-    TabSheet10: TTabSheet;
+    TabProcesses: TTabSheet;
     TabNodeOptions: TTabSheet;
     TabSheet3: TTabSheet;
     TabSheet5: TTabSheet;
@@ -516,6 +524,7 @@ type
     function  ClientsCount : Integer ;
     procedure SCBitSend1Click(sender: TObject);
     procedure SG_MonitorResize(sender: TObject);
+    procedure SG_OpenThreadsResize(Sender: TObject);
     procedure SpeedButton2Click(sender: TObject);
     procedure SpeedButton3Click(sender: TObject);
     procedure StaConLabDblClick(sender: TObject);
@@ -750,7 +759,7 @@ var
   LastBotClear: string = '';
   FileWallet : file of WalletData;
     S_Wallet : boolean = false;
-  FileSumario : file of SumarioData;
+  FileSumario : file of TSummaryData;
     S_Sumario : boolean = false;
   FileResumen : file of ResumenData;
     S_Resumen : Boolean = false;
@@ -772,8 +781,8 @@ var
   ListadoBots      :  array of BotData;
   ListaNodos       : array of NodeData;
   ListaDirecciones : array of walletData; // Wallet addresses
-  ListaSumario     : array of SumarioData;    // Sumary addresses
-  PendingTXs       : Array of OrderData;
+  {ListaSumario     : array of TSummaryData;}    // Sumary addresses
+  PendingTXs       : Array of TOrderData;
   OutgoingMsjs     : TStringlist;
   ArrayConsenso    : array of NetworkData;
 
@@ -960,6 +969,7 @@ End;
 
 procedure TUpdateLogs.Execute;
 Begin
+AddNewOpenThread('UpdateLogs',UTCTime);
 While not terminated do
   begin
   sleep(10);
@@ -984,6 +994,7 @@ var
   LineSent     : boolean;
   KillIt       : boolean = false;
 begin
+AddNewOpenThread('ReadClient '+FSlot.ToString,UTCTime);
 REPEAT
 TRY
 sleep(1);
@@ -1097,7 +1108,7 @@ if Continuar then
                begin
                AddLineToDebugLog('console',format(rs0087,[copy(HashMD5File(SumarioFilename),1,5)])); //'Sumary file received'
                EnterCriticalSection(CSSumary);
-               LoadSumaryFromFile();
+               LoadSummaryFromDisk();
                UpdateWalletFromSumario;
                LeaveCriticalSection(CSSumary);
 
@@ -1198,6 +1209,7 @@ EXCEPT ON E:Exception do
 END; {TRY}
 UNTIL ( (terminated) or (not CanalCliente[FSlot].Connected) or (KillIt) );
 DecClientReadThreads;
+CloseOpenThread('ReadClient '+FSlot.ToString);
 End;
 
 constructor TThreadClientRead.Create(const CreatePaused: Boolean; const ConexSlot:Integer);
@@ -1217,6 +1229,7 @@ var
   TimeToRun : int64;
   TFinished  : boolean = false;
 Begin
+AddNewOpenThread('Directives',UTCTime);
 TimeToRun := 50+(MNsRandomWait*20);
 While not Tfinished do
    begin
@@ -1255,6 +1268,7 @@ procedure TUpdateMNs.Execute;
 var
   TextLine : String;
 Begin
+AddNewOpenThread('Masternodes',UTCTime);
 Randomize;
 MNsRandomWait := Random(21);
 While not terminated do
@@ -1288,6 +1302,7 @@ var
   NewAddress : WalletData;
   PubKey,PriKey : string;
 Begin
+AddNewOpenThread('Crypto',UTCTime);
 While not terminated do
    begin
    NewAddrss := 0;
@@ -1378,6 +1393,7 @@ Var
   Linea : string;
   Counter : int64 = 0;
 Begin
+AddNewOpenThread('SendMSGS',UTCTime);
 While not terminated do
    begin
    if OutgoingMsjs.Count > 0 then
@@ -1566,6 +1582,7 @@ var
   contador : integer;
   LastRelease : String = '';
 Begin
+AddNewOpenThread('Main',UTCTime);
 // A partir de aqui se inicializa todo
 // Enable units variables
 NosoDebug_UsePerformance := true;
@@ -3384,6 +3401,16 @@ form1.SG_Monitor.ColWidths[0]:= thispercent(40,GridWidth);
 form1.SG_Monitor.ColWidths[1]:= thispercent(20,GridWidth);
 form1.SG_Monitor.ColWidths[2]:= thispercent(20,GridWidth);
 form1.SG_Monitor.ColWidths[3]:= thispercent(20,GridWidth,true);
+End;
+
+// Grid openthreads on resize
+procedure TForm1.SG_OpenThreadsResize(Sender: TObject);
+var
+  GridWidth : integer;
+Begin
+GridWidth := form1.SG_Monitor.Width;
+form1.SG_OpenThreads.ColWidths[0]:= thispercent(70,GridWidth);
+form1.SG_OpenThreads.ColWidths[1]:= thispercent(30,GridWidth,true);
 End;
 
 // Load Masternode options when TAB is selected

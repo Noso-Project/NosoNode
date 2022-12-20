@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, MasterPaskalForm, Dialogs, Forms, nosotime, FileUtil, LCLType,
   lclintf, controls, mpBlock, Zipper, mpcoin, mpMn, nosodebug,
   {$IFDEF WINDOWS}Win32Proc, {$ENDIF}
-  translation, strutils,nosogeneral, nosocrypto;
+  translation, strutils,nosogeneral, nosocrypto, nosounit;
 
 Procedure VerificarArchivos();
 
@@ -125,7 +125,8 @@ OutText('✓ Bots file ok',false,1);
 
 FillNodeList;  // Fills the hardcoded seed nodes list
 
-if not Fileexists(SumarioFilename) then CreateSumario() else LoadSumaryFromFile();
+if not Fileexists(SumarioFilename) then CreateSumario()
+else LoadSummaryFromDisk(){LoadSumaryFromFile()};
 OutText('✓ Sumary file ok',false,1);
 if not Fileexists(ResumenFilename) then CreateResumen();
 OutText('✓ Headers file ok',false,1);
@@ -625,7 +626,11 @@ Procedure SaveUpdatedFiles();
 Begin
 if S_BotData then SaveBotData();
 if S_Wallet then GuardarWallet();
-if ( (S_Sumario) and (BuildingBlock=0) ) then GuardarSumario();
+if ( (S_Sumario) and (BuildingBlock=0) ) then
+   begin
+   SaveSummaryToDisk();
+   S_Sumario := false;
+   end;
 if S_AdvOpt then CreateADV(true);
 End;
 
@@ -877,7 +882,7 @@ Procedure UpdateSumario(Direccion:string;monto:Int64;score:integer;LastOpBlock:s
 var
   contador : integer = 0;
   Yaexiste : boolean = false;
-  NuevoRegistro : SumarioData;
+  NuevoRegistro : TSummaryData;
 Begin
 BeginPerformance('UpdateSumario');
 EnterCriticalSection(CSSumary);
@@ -885,7 +890,7 @@ for contador := 0 to length(ListaSumario)-1 do
    begin
    if ((ListaSumario[contador].Hash=Direccion) or (ListaSumario[contador].Custom=Direccion)) then
       begin
-      NuevoRegistro := Default(SumarioData);
+      NuevoRegistro := Default(TSummaryData);
       NuevoRegistro.Hash:=ListaSumario[contador].Hash;
       NuevoRegistro.Custom:=ListaSumario[contador].Custom;
       NuevoRegistro.Balance:=ListaSumario[contador].Balance+Monto;
@@ -898,7 +903,7 @@ for contador := 0 to length(ListaSumario)-1 do
    end;
 if not YaExiste then
    begin
-   NuevoRegistro := Default(SumarioData);
+   NuevoRegistro := Default(TSummaryData);
    setlength(ListaSumario,Length(ListaSumario)+1);
    NuevoRegistro.Hash:=Direccion;
    NuevoRegistro.Custom:='';
@@ -1004,7 +1009,7 @@ var
   CurrHash : String = '';
   LastHash : String = '';
   BlockHeader : BlockHeaderData;
-  ArrayOrders : BlockOrdersArray;
+  ArrayOrders : TBlockOrdersArray;
   cont : integer;
   newblocks : integer = 0;
 Begin
@@ -1074,7 +1079,8 @@ if newblocks>0 then
    AddLineToDebugLog('console',IntToStr(newblocks)+' added to headers'); //' added to headers'
    U_DirPanel := true;
    end;
-GuardarSumario();
+SaveSummaryToDisk();
+S_Sumario := false;
 UpdateMyData();
 MySumarioHash := HashMD5File(SumarioFilename);
 U_Dirpanel := true;
@@ -1097,7 +1103,8 @@ for counter := StartBlock to finishblock do
    EngineLastUpdate := UTCTime;
    AddBlockToSumary(counter, false);
    end;
-GuardarSumario();
+SaveSummaryToDisk();
+S_Sumario := false;
 RebuildingSumary := false;
 UpdateMyData();
 AddLineToDebugLog('console','Sumary completed from '+IntToStr(StartBlock)+' to '+IntToStr(finishblock));
@@ -1109,7 +1116,7 @@ Procedure AddBlockToSumary(BlockNumber:integer;SaveAndUpdate:boolean = true);
 var
   cont : integer;
   BlockHeader : BlockHeaderData;
-  ArrayOrders : BlockOrdersArray;
+  ArrayOrders : TBlockOrdersArray;
   ArrayPos    : BlockArraysPos;
   ArrayMNs    : BlockArraysPos;
   PosReward   : int64;
@@ -1124,7 +1131,7 @@ BlockHeader := Default(BlockHeaderData);
 BlockHeader := LoadBlockDataHeader(BlockNumber);
 EnterCriticalSection(CSSumary);
 UpdateSumario(BlockHeader.AccountMiner,BlockHeader.Reward+BlockHeader.MinerFee,0,IntToStr(BlockNumber));
-ArrayOrders := Default(BlockOrdersArray);
+ArrayOrders := Default(TBlockOrdersArray);
 ArrayOrders := GetBlockTrxs(BlockNumber);
 for cont := 0 to length(ArrayOrders)-1 do
    begin
@@ -1178,7 +1185,8 @@ if blocknumber >= MNBlockStart then
 ListaSumario[0].LastOP:=BlockNumber;
 if ( (SaveAndUpdate) or (BlockNumber mod SumMarkInterval = 0) ) then
    begin
-   GuardarSumario();
+   SaveSummaryToDisk();
+   S_Sumario := false;
    {if not RunningDoctor then} UpdateMyData();
    end;
 LeaveCriticalSection(CSSumary);
@@ -1194,7 +1202,7 @@ Procedure RebuildSumario(UntilBlock:integer);
 var
   contador, cont : integer;
   BlockHeader : BlockHeaderData;
-  ArrayOrders : BlockOrdersArray;
+  ArrayOrders : TBlockOrdersArray;
   ArrayPos    : BlockArraysPos;
   PosReward   : int64;
   PosCount    : integer;
@@ -1221,7 +1229,7 @@ for contador := 1 to UntilBlock do
    BlockHeader := Default(BlockHeaderData);
    BlockHeader := LoadBlockDataHeader(contador);
    UpdateSumario(BlockHeader.AccountMiner,BlockHeader.Reward+BlockHeader.MinerFee,0,IntToStr(contador));
-   ArrayOrders := Default(BlockOrdersArray);
+   ArrayOrders := Default(TBlockOrdersArray);
    ArrayOrders := GetBlockTrxs(contador);
    for cont := 0 to length(ArrayOrders)-1 do
       begin
@@ -1276,12 +1284,14 @@ for contador := 1 to UntilBlock do
    if contador mod SumMarkInterval = 0 then
       begin
       //form1.MemoConsola.lines.Add('Saving backup');
-      GuardarSumario();
+      SaveSummaryToDisk();
+      S_Sumario := false;
       end;
    end;
 RebuildingSumary := false;
 LeaveCriticalSection(CSSumary);
-GuardarSumario();
+SaveSummaryToDisk();
+S_Sumario := false;
 if GVTsTrfer>0 then
    begin
    SaveGVTs;
@@ -1752,7 +1762,7 @@ var
 Begin
 if fromblock = 0 then StartMark := ((GetMyLastUpdatedBlock div SumMarkInterval)-1)*SumMarkInterval
 else StartMark := Fromblock;
-LoadSumaryFromFile(MarksDirectory+StartMark.ToString+'.bak');
+LoadSummaryFromDisk(MarksDirectory+StartMark.ToString+'.bak');
 AddLineToDebugLog('console','Restoring sumary from '+StartMark.ToString);
 CompleteSumary;
 End;
@@ -1787,18 +1797,9 @@ End;
 
 // Returns the name of the app file without path
 function AppFileName():string;
-var
-  cont : integer;
-  NameFile : string = '';
 Begin
-NameFile := Application.ExeName;
-result := '';
-for cont := Length(NameFile) downto 1 do
- if NameFile[cont] = DirectorySeparator then
-   begin
-     Result := Copy(NameFile, cont+1, Length(NameFile));
-     Break;
-   end;
+result := ExtractFileName(ParamStr(0));
+// For wornking path: ExtractFilePAth
 End;
 
 

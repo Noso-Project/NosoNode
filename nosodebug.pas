@@ -1,8 +1,8 @@
 unit nosodebug;
 
 {
-Nosodebug 1.1
-December 17th, 2022
+Nosodebug 1.2
+December 20th, 2022
 Unit to implement debug functionalities on noso project apps.
 }
 
@@ -31,20 +31,38 @@ type
     Filename : string;
     end;
 
+  TCoreManager = record
+    ThName   : string;
+    ThStart  : int64;
+    ThLast   : int64;
+    end;
+
+  TProcessCopy = array of TCoreManager;
+
 Procedure BeginPerformance(Tag:String);
 Function EndPerformance(Tag:String):int64;
+
 Procedure CreateNewLog(LogName: string; LogFileName:String = '');
 Procedure AddLineToDebugLog(LogTag,NewLine : String);
 Function GetLogLine(LogTag:string;out LineContent:string):boolean;
 
+Procedure AddNewOpenThread(ThName:String;TimeStamp:int64);
+Procedure UpdateOpenThread(ThName:String;TimeStamp:int64);
+Procedure CloseOpenThread(ThName:String);
+Function GetProcessCopy():TProcessCopy;
+
 var
   ArrPerformance : array of TPerformance;
   NosoDebug_UsePerformance : boolean = false;
-  ArrNDLogs  : Array of TLogND;
-  ArrNDCSs   : array of TRTLCriticalSection;
-  ArrNDSLs   : array of TStringList;
+  ArrNDLogs    : Array of TLogND;
+  ArrNDCSs     : array of TRTLCriticalSection;
+  ArrNDSLs     : array of TStringList;
+  ArrProcess   : Array of TCoreManager;
+  CS_ThManager : TRTLCriticalSection;
 
 IMPLEMENTATION
+
+{$REGION Performance}
 
 {Starts a performance measure}
 Procedure BeginPerformance(Tag:String);
@@ -94,6 +112,10 @@ Begin
     end;
   Result := duration;
 End;
+
+{$ENDREGION}
+
+{$REGION Logs}
 
 {private: verify that the file for the log exists}
 Procedure InitializeLogFile(Filename:String);
@@ -207,13 +229,75 @@ Begin
     end;
 End;
 
+{$ENDREGION}
+
+{$REGION Thread manager}
+
+Procedure AddNewOpenThread(ThName:String;TimeStamp:int64);
+var
+  NewValue : TCoreManager;
+Begin
+  NewValue := Default(TCoreManager);
+  NewValue.ThName  := ThName;
+  NewValue.ThStart := TimeStamp;
+  NewValue.ThLast  := TimeStamp;
+  EnterCriticalSection(CS_ThManager);
+  Insert(NewValue,ArrProcess,Length(ArrProcess));
+  LeaveCriticalSection(CS_ThManager);
+End;
+
+Procedure UpdateOpenThread(ThName:String;TimeStamp:int64);
+var
+  counter : integer;
+Begin
+  EnterCriticalSection(CS_ThManager);
+  for counter := 0 to High(ArrProcess) do
+    begin
+    if UpperCase(ArrProcess[counter].ThName) = UpperCase(ThName) then
+      begin
+      ArrProcess[counter].ThLast:=TimeStamp;
+      Break;
+      end;
+    end;
+  LeaveCriticalSection(CS_ThManager);
+End;
+
+Procedure CloseOpenThread(ThName:String);
+var
+  counter : integer;
+Begin
+  EnterCriticalSection(CS_ThManager);
+  for counter := 0 to High(ArrProcess) do
+    begin
+    if UpperCase(ArrProcess[counter].ThName) = UpperCase(ThName) then
+      begin
+      Delete(ArrProcess,Counter,1);
+      Break;
+      end;
+    end;
+  LeaveCriticalSection(CS_ThManager);
+End;
+
+Function GetProcessCopy():TProcessCopy;
+Begin
+  Setlength(Result,0);
+  EnterCriticalSection(CS_ThManager);
+  Result := copy(ArrProcess,0,length(ArrProcess));
+  LeaveCriticalSection(CS_ThManager);
+End;
+
+{$ENDREGION}
+
 INITIALIZATION
   Setlength(ArrPerformance,0);
   Setlength(ArrNDLogs,0);
   Setlength(ArrNDCSs,0);
   Setlength(ArrNDSLs,0);
+  Setlength(ArrProcess,0);
+  InitCriticalSection(CS_ThManager);
 
 FINALIZATION
+  DoneCriticalSection(CS_ThManager);
   FreeAllLogs;
 
 END. {END UNIT}

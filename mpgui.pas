@@ -279,9 +279,11 @@ End;
 // Actualiza los datos en el grid
 Procedure ActualizarGUI();
 Const
-  LocalLastUpdate : integer = 0;
+  LocalLastUpdate     : int64 = 0;
+  LastUpdateProcesses : int64 = 0;
 var
   contador : integer = 0;
+  LocalProcesses      : TProcessCopy;
 Begin
 //Update Monitor Grid
 if ( (form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor) and (LastUpdateMonitor<>UTCTime) ) then
@@ -306,6 +308,22 @@ if ( (form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor) and (LastUpdateMonit
       end;
    LastUpdateMonitor := UTCTime;
    EndPerformance('UpdateGUIMonitor');
+   end;
+
+if LastUpdateProcesses<> UTCTime then
+   begin
+   if form1.PCMonitor.ActivePage = Form1.TabProcesses then
+      begin
+      LocalProcesses := GetProcessCopy;
+      Form1.SG_OpenThreads.RowCount:=Length(LocalProcesses)+1;
+      Form1.SG_OpenThreads.Cells[0,0]:=Format('Thread [%d]',[length(LocalProcesses)]);
+      For contador := 0 to High(LocalProcesses) do
+         begin
+         Form1.SG_OpenThreads.Cells[0,contador+1]:=LocalPRocesses[contador].ThName;
+         Form1.SG_OpenThreads.Cells[1,contador+1]:=TimeSinceStamp(LocalPRocesses[contador].ThStart);
+         end;
+      end;
+   LastUpdateProcesses := UTCTime
    end;
 
 if LocalLastUpdate = UTCTime then exit;

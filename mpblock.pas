@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils,MasterPaskalForm, fileutil, mpcoin, dialogs, math,
-  nosotime, mpMN, nosodebug,nosogeneral,nosocrypto;
+  nosotime, mpMN, nosodebug,nosogeneral,nosocrypto, nosounit;
 
 Procedure CrearBloqueCero();
 Procedure BuildNewBlock(Numero,TimeStamp: Int64; TargetHash, Minero, Solucion:String);
@@ -15,11 +15,11 @@ Function BestHashReadeable(BestDiff:String):string;
 function GetDiffForNextBlock(UltimoBloque,Last20Average,lastblocktime,previous:integer):integer;
 function GetLast20Time(LastBlTime:integer):integer;
 function GetBlockReward(BlNumber:int64):Int64;
-Function GuardarBloque(NombreArchivo:string;Cabezera:BlockHeaderData;Ordenes:array of OrderData;
+Function GuardarBloque(NombreArchivo:string;Cabezera:BlockHeaderData;Ordenes:array of TOrderData;
                         PosPay:Int64;PoSnumber:integer;PosAddresses:array of TArrayPos;
                         MNsPay:int64;MNsNumber:Integer;MNsAddresses:array of TArrayPos):boolean;
 function LoadBlockDataHeader(BlockNumber:integer):BlockHeaderData;
-function GetBlockTrxs(BlockNumber:integer):BlockOrdersArray;
+function GetBlockTrxs(BlockNumber:integer):TBlockOrdersArray;
 Procedure UndoneLastBlock();
 Function GetBlockPoSes(BlockNumber:integer): BlockArraysPos;
 Function GetBlockMNs(BlockNumber:integer): BlockArraysPos;
@@ -30,9 +30,9 @@ implementation
 Uses
   mpDisk,mpProtocol, mpGui, mpparser, mpRed;
 
-Function CreateDevPaymentOrder(number:integer;timestamp,amount:int64):OrderData;
+Function CreateDevPaymentOrder(number:integer;timestamp,amount:int64):TOrderData;
 Begin
-Result := Default(OrderData);
+Result := Default(TOrderData);
 
 Result.Block      := number;
 //Result.OrderID    :='';
@@ -48,7 +48,7 @@ Result.AmmountFee := 0;
 Result.AmmountTrf := amount;
 Result.Signature  := 'COINBASE';
 Result.TrfrID     := GetTransferHash(Result.TimeStamp.ToString+'COINBASE'+'NpryectdevepmentfundsGE'+IntToStr(amount)+IntToStr(MyLastblock));
-Result.OrderID    := '1'+Result.TrfrID;
+Result.OrderID    := GetOrderHash('1'+Result.TrfrID);
 End;
 
 // Build the default block 0
@@ -65,19 +65,19 @@ var
   BlockHeader : BlockHeaderData;
   StartBlockTime : int64 = 0;
   MinerFee : int64 = 0;
-  ListaOrdenes : Array of OrderData;
-  IgnoredTrxs  : Array of OrderData;
+  ListaOrdenes : Array of TOrderData;
+  IgnoredTrxs  : Array of TOrderData;
   Filename : String;
   Contador : integer = 0;
   OperationAddress : string = '';
   errored : boolean = false;
   PoWTotalReward : int64;
-  ArrayLastBlockTrxs : BlockOrdersArray;
+  ArrayLastBlockTrxs : TBlockOrdersArray;
   ExistsInLastBlock : boolean;
   Count2 : integer;
 
   DevsTotalReward : int64 = 0;
-  DevOrder        : OrderData;
+  DevOrder        : TOrderData;
 
   PoScount : integer = 0;
   PosRequired, PosReward: int64;
@@ -168,7 +168,7 @@ if not errored then
    // Processs pending orders
    EnterCriticalSection(CSPending);
    BeginPerformance('NewBLOCK_PENDING');
-   ArrayLastBlockTrxs := Default(BlockOrdersArray);
+   ArrayLastBlockTrxs := Default(TBlockOrdersArray);
    ArrayLastBlockTrxs := GetBlockTrxs(MyLastBlock);
    for contador := 0 to length(pendingTXs)-1 do
       begin
@@ -357,7 +357,8 @@ if not errored then
    // Actualizar el ultimo bloque añadido al sumario
    // Guardar el sumario
    BeginPerformance('NewBLOCK_SaveSum');
-   GuardarSumario();
+   SaveSummaryToDisk();
+   S_Sumario := false;
    EndPerformance('NewBLOCK_SaveSum');
    // Limpiar las pendientes
    for contador := 0 to length(ListaDirecciones)-1 do
@@ -496,7 +497,7 @@ End;
 
 // Guarda el archivo de bloque en disco
 Function GuardarBloque(NombreArchivo:string;Cabezera:BlockHeaderData;
-                        Ordenes:array of OrderData;
+                        Ordenes:array of TOrderData;
                         PosPay:Int64;PoSnumber:integer;PosAddresses:array of TArrayPos;
                         MNsPay:int64;MNsNumber:Integer;MNsAddresses:array of TArrayPos):boolean;
 var
@@ -563,9 +564,9 @@ Result := header;
 End;
 
 // Devuelve las transacciones del bloque
-function GetBlockTrxs(BlockNumber:integer):BlockOrdersArray;
+function GetBlockTrxs(BlockNumber:integer):TBlockOrdersArray;
 var
-  ArrTrxs : BlockOrdersArray;
+  ArrTrxs : TBlockOrdersArray;
   MemStr: TMemoryStream;
   Header : BlockHeaderData;
   ArchData : String;
@@ -593,7 +594,7 @@ End;
 Function GetBlockPoSes(BlockNumber:integer): BlockArraysPos;
 var
   resultado : BlockArraysPos;
-  ArrTrxs : BlockOrdersArray;
+  ArrTrxs : TBlockOrdersArray;
   ArchData : String;
   MemStr: TMemoryStream;
   Header : BlockHeaderData;
@@ -629,7 +630,7 @@ Function GetBlockMNs(BlockNumber:integer): BlockArraysPos;
 var
   resultado : BlockArraysPos;
   ArrayPos    : BlockArraysPos;
-  ArrTrxs : BlockOrdersArray;
+  ArrTrxs : TBlockOrdersArray;
   ArchData : String;
   MemStr: TMemoryStream;
   Header : BlockHeaderData;
@@ -702,7 +703,7 @@ EnterCriticalSection(CSSumary);
 Trydeletefile(SumarioFilename);
 Trycopyfile(SumarioFilename+'.bak',SumarioFilename);
 LeaveCriticalSection(CSSumary);
-LoadSumaryFromFile();
+LoadSummaryFromDisk();
 // recover GVTs file
 EnterCriticalSection(CSGVTsArray);
 trydeletefile(GVTsFilename);
@@ -734,7 +735,7 @@ Function GEtNSLBlkOrdInfo(LineText:String):String;
 var
   ParamBlock  : String;
   BlkNumber   : integer;
-  OrdersArray : BlockOrdersArray;
+  OrdersArray : TBlockOrdersArray;
   Cont     : integer;
   ThisOrder   : string  = '';
 Begin
@@ -746,7 +747,7 @@ if ( (BlkNumber<0) or (BlkNumber<MyLastBlock-4000) or (BlkNumber>MyLastBlock) ) 
 else
    begin
    Result := Result+BlkNumber.ToString+' ';
-   OrdersArray := Default(BlockOrdersArray);
+   OrdersArray := Default(TBlockOrdersArray);
    OrdersArray := GetBlockTrxs(BlkNumber);
    if Length(OrdersArray)>0 then
       begin

@@ -416,7 +416,7 @@ msgstr ""
 
 #: tform1.tabmonitormonitor.caption
 msgctxt "tform1.tabmonitormonitor.caption"
-msgid "Processes"
+msgid "Performance"
 msgstr ""
 
 #: tform1.tabnodeoptions.caption
@@ -437,8 +437,9 @@ msgctxt "tform1.tabopt_wallet.caption"
 msgid "Wallet"
 msgstr ""
 
-#: tform1.tabsheet10.caption
-msgid "Stats"
+#: tform1.tabprocesses.caption
+msgctxt "tform1.tabprocesses.caption"
+msgid "Processes"
 msgstr ""
 
 #: tform1.tabsheet3.caption

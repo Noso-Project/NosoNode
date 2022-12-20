@@ -6,11 +6,11 @@ interface
 
 uses
   Classes, SysUtils, mpRed, MasterPaskalForm, mpParser, StrUtils, mpDisk, nosotime, mpBlock,
-  Zipper, mpcoin, mpMn, nosodebug, nosogeneral, nosocrypto;
+  Zipper, mpcoin, mpMn, nosodebug, nosogeneral, nosocrypto, nosounit;
 
 function GetPTCEcn():String;
-Function GetOrderFromString(textLine:String):OrderData;
-function GetStringFromOrder(order:orderdata):String;
+Function GetOrderFromString(textLine:String):TOrderData;
+function GetStringFromOrder(order:Torderdata):String;
 function GetStringFromBlockHeader(blockheader:BlockHeaderdata):String;
 Function ProtocolLine(tipo:integer):String;
 Procedure ParseProtocolLines();
@@ -31,7 +31,7 @@ function CreateZipBlockfile(firstblock:integer):string;
 Procedure PTC_SendBlocks(Slot:integer;TextLine:String);
 Procedure INC_PTC_Custom(TextLine:String;connection:integer);
 Function PTC_Custom(TextLine:String):integer;
-function ValidateTrfr(order:orderdata;Origen:String):integer;
+function ValidateTrfr(order:Torderdata;Origen:String):integer;
 function IsAddressLocked(LAddress:String):boolean;
 Function IsOrderIDAlreadyProcessed(OrderText:string):Boolean;
 Procedure INC_PTC_Order(TextLine:String;connection:integer);
@@ -100,11 +100,11 @@ result := 'PSK '+IntToStr(protocolo)+' '+ProgramVersion+subversion+' '+UTCTimeSt
 End;
 
 // convierte los datos de la cadena en una order
-Function GetOrderFromString(textLine:String):OrderData;
+Function GetOrderFromString(textLine:String):TOrderData;
 var
-  orderinfo : OrderData;
+  orderinfo : TOrderData;
 Begin
-OrderInfo := Default(OrderData);
+OrderInfo := Default(TOrderData);
 TRY
 OrderInfo.OrderID    := Parameter(textline,1);
 OrderInfo.OrderLines := StrToInt(Parameter(textline,2));
@@ -128,7 +128,7 @@ Result := OrderInfo;
 End;
 
 // Convierte una orden en una cadena para compartir
-function GetStringFromOrder(order:orderdata):String;
+function GetStringFromOrder(order:Torderdata):String;
 Begin
 result:= Order.OrderType+' '+
          Order.OrderID+' '+
@@ -520,7 +520,7 @@ var
   Encab : string;
   Textline : String;
   TextOrder : String;
-  CopyPendingTXs : Array of OrderData;
+  CopyPendingTXs : Array of TOrderData;
 Begin
 Encab := GetPTCEcn;
 TextOrder := encab+'ORDER ';
@@ -795,13 +795,13 @@ End;
 // Procesa una solicitud de customizacion
 Function PTC_Custom(TextLine:String):integer;
 var
-  OrderInfo : OrderData;
+  OrderInfo : TOrderData;
   Address   : String = '';
   OpData    : String = '';
   ErrorCode : Integer = 0;
 Begin
 Result := 0;
-OrderInfo := Default(OrderData);
+OrderInfo := Default(TOrderData);
 OrderInfo := GetOrderFromString(TextLine);
 Address := GetAddressFromPublicKey(OrderInfo.sender);
 if address <> OrderInfo.Address then ErrorCode := 1;
@@ -829,7 +829,7 @@ If AnsiContainsSTR(GetNosoCFGString(5), LAddress) then result := true;
 End;
 
 // Verify a transfer
-function ValidateTrfr(order:orderdata;Origen:String):integer;
+function ValidateTrfr(order:Torderdata;Origen:String):integer;
 Begin
 Result := 0;
 if GetAddressBalance(Origen)-GetAddressPendingPays(Origen) < Order.AmmountFee+order.AmmountTrf then
@@ -892,7 +892,7 @@ End;
 Function PTC_Order(TextLine:String):String;
 var
   NumTransfers  : integer;
-  TrxArray      : Array of orderdata;
+  TrxArray      : Array of Torderdata;
   senderTrx     : array of string;
   cont          : integer;
   Textbak       : string;
@@ -915,7 +915,7 @@ SetLength(TrxArray,0);SetLength(senderTrx,0);
 for cont := 0 to NumTransfers-1 do
    begin
    SetLength(TrxArray,length(TrxArray)+1);SetLength(senderTrx,length(senderTrx)+1);
-   TrxArray[cont] := default (orderdata);
+   TrxArray[cont] := default (Torderdata);
    TrxArray[cont] := GetOrderFromString(Textbak);
    Inc(TotalSent,TrxArray[cont].AmmountTrf);
    Inc(TotalFee,TrxArray[cont].AmmountFee);
@@ -1002,13 +1002,13 @@ End;
 
 Function PTC_SendGVT(TextLine:String):integer;
 var
-  OrderInfo  : OrderData;
+  OrderInfo  : TOrderData;
   Address    : String = '';
   OpData     : String = '';
   ErrorCode  : Integer = 0;
   StrTosign  : String = '';
 Begin
-OrderInfo := Default(OrderData);
+OrderInfo := Default(TOrderData);
 //AddLineToDebugLog('console',TextLine);
 OrderInfo := GetOrderFromString(TextLine);
 Address := GetAddressFromPublicKey(OrderInfo.sender);

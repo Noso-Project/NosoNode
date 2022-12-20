@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils,MasterPaskalForm,mpgui,Clipbrd, strutils, nosodebug,nosogeneral,
-  nosocrypto;
+  nosocrypto, nosounit;
 
 function GetAddressAvailable(address:string):int64;
 function GetAddressBalance(address:string):int64;
@@ -14,16 +14,16 @@ function GetAddressPendingPays(Address:string):int64;
 function GetAddressIncomingpays(Address:string):int64;
 function TranxAlreadyPending(TrxHash:string):boolean;
 function TrxExistsInLastBlock(trfrhash:String):boolean;
-function AddPendingTxs(order:OrderData):boolean;
+function AddPendingTxs(order:TOrderData):boolean;
 function DireccionEsMia(direccion:string):integer;
-Procedure VerifyIfPendingIsMine(order:orderdata);
+Procedure VerifyIfPendingIsMine(order:Torderdata);
 function AddressAlreadyCustomized(address:string):boolean;
 Function GVTAlreadyTransfered(NumberStr:String):boolean;
 function AliasAlreadyExists(Addalias:string):boolean;
 function AddressSumaryIndex(Address:string):integer;
 //function GetFee(monto:int64):Int64;
 Function SendFundsFromAddress(Origen, Destino:String; monto, comision:int64; reference,
-  ordertime:String;linea:integer):OrderData;
+  ordertime:String;linea:integer):TOrderData;
 Procedure CheckForMyPending();
 //function GetMaximunToSend(monto:int64):int64;
 function GetCurrentStatus(mode:integer):String;
@@ -71,7 +71,7 @@ End;
 function GetAddressPendingPays(Address:string):int64;
 var
   cont : integer;
-  CopyPendings : array of orderdata;
+  CopyPendings : array of Torderdata;
 Begin
 Result := 0;
 if Address = '' then exit;
@@ -93,7 +93,7 @@ End;
 function GetAddressIncomingpays(Address:string):int64;
 var
   cont : integer;
-  CopyPendings : array of orderdata;
+  CopyPendings : array of Torderdata;
 Begin
 result := 0;
 if GetPendingCount>0 then
@@ -129,11 +129,11 @@ End;
 // Devuelve si una transaccion existe en el ultimo bloque
 function TrxExistsInLastBlock(trfrhash:String):boolean;
 var
-  ArrayLastBlockTrxs : BlockOrdersArray;
+  ArrayLastBlockTrxs : TBlockOrdersArray;
   cont : integer;
 Begin
 Result := false;
-ArrayLastBlockTrxs := Default(BlockOrdersArray);
+ArrayLastBlockTrxs := Default(TBlockOrdersArray);
 ArrayLastBlockTrxs := GetBlockTrxs(MyLastBlock);
 for cont := 0 to length(ArrayLastBlockTrxs)-1 do
    begin
@@ -147,7 +147,7 @@ SetLength(ArrayLastBlockTrxs,0);
 End;
 
 // Añade la transaccion pendiente en su lugar
-function AddPendingTxs(order:OrderData):boolean;
+function AddPendingTxs(order:TOrderData):boolean;
 var
   cont : integer = 0;
   insertar : boolean = false;
@@ -216,7 +216,7 @@ if ( (not IsValidHashAddress(direccion)) and (AddressSumaryIndex(direccion)<0) )
 End;
 
 // Verifica si una orden especifica es del usuario
-Procedure VerifyIfPendingIsMine(order:orderdata);
+Procedure VerifyIfPendingIsMine(order:Torderdata);
 var
   DireccionEnvia: string;
 Begin
@@ -341,10 +341,10 @@ End;
 
 // Obtiene una orden de envio de fondos desde una direccion
 Function SendFundsFromAddress(Origen, Destino:String; monto, comision:int64; reference,
-  ordertime:String; linea:integer):OrderData;
+  ordertime:String; linea:integer):TOrderData;
 var
   MontoDisponible, Montotrfr, comisionTrfr : int64;
-  OrderInfo : orderdata;
+  OrderInfo : Torderdata;
 Begin
 BeginPerformance('SendFundsFromAddress');
 MontoDisponible := ListaDirecciones[DireccionEsMia(origen)].Balance-GetAddressPendingPays(Origen);
@@ -353,7 +353,7 @@ else comisiontrfr := montodisponible;
 if montodisponible>monto+comision then montotrfr := monto
 else montotrfr := montodisponible-comision;
 if montotrfr <0 then montotrfr := 0;
-OrderInfo := Default(OrderData);
+OrderInfo := Default(TOrderData);
 OrderInfo.OrderID    := '';
 OrderInfo.OrderLines := 1;
 OrderInfo.OrderType  := 'TRFR';
@@ -498,7 +498,7 @@ End;
 // Returns the basic info of the pending orders
 function PendingRawInfo():String;
 var
-  CopyPendingTXs : Array of OrderData;
+  CopyPendingTXs : Array of TOrderData;
   counter : integer;
   ThisPending : string;
 Begin

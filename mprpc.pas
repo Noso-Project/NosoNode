@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, mpgui, FPJSON, jsonparser, mpCoin, mpRed, mpBlock,nosodebug,
-  nosogeneral, nosocrypto;
+  nosogeneral, nosocrypto, nosounit;
 
 Procedure SetRPCPort(LineText:string);
 Procedure setRPCpassword(newpassword:string);
@@ -531,12 +531,12 @@ End;
 function RPC_BlockOrders(NosoPParams:string):string;
 var
   blocknumber : integer;
-  ArraTrxs : BlockOrdersArray;
+  ArraTrxs : TBlockOrdersArray;
   counter : integer;
   Thisorderinfo : string;
   arrayOrds : array of TOrderGroup;
 
-  Procedure AddOrder(order:OrderData);
+  Procedure AddOrder(order:TOrderData);
   var
     cont : integer;
     existed : boolean = false;

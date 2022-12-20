@@ -99,6 +99,7 @@ var
   Success : boolean ;
   Trys :integer = 0;
 Begin
+AddNewOpenThread('VerifyMN '+FSlot.ToString,UTCTime);
 Sleep(1000);
 TRY {BIG}
 IP := MNsListCopy[FSlot].Ip;
@@ -150,6 +151,7 @@ END{BIG TRY};
 EnterCriticalSection(DecVerThreads);
 Dec(OpenVerificators);
 LeaveCriticalSection(DecVerThreads);
+CloseOpenThread('VerifyMN '+FSlot.ToString);
 End;
 
 Function NoVerificators():integer;

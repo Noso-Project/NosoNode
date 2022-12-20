@@ -4,6 +4,8 @@ Version 0.3.3Aa7
 - Completed nosocrypto implementation.
 - Deprecated Big Maths functions.
 - EndPerformance converted to function.
+- Implemented thread manager on nosodebug.
+- Optimized AppFileName.
 
 Version 0.3.3Aa6
 
