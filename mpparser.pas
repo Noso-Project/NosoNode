@@ -80,6 +80,8 @@ Procedure showPosrequired(linetext:string);
 Procedure ShowBlockMNs(LineText:string);
 Procedure showgmts(LineText:string);
 Procedure ShowSystemInfo(Linetext:string);
+Procedure TestSumaryChanges();
+Procedure CreateMegaSum();
 
 // EXCHANGE
 Procedure PostOffer(LineText:String);
@@ -176,6 +178,8 @@ End;
 Procedure ParseCommandLine(LineText:string);
 var
   Command : String;
+  Counter : integer;
+  LItem   : TSummaryData;
 begin
 Command :=Parameter(Linetext,0);
 if not AnsiContainsStr(HideCommands,Uppercase(command)) then AddLineToDebugLog('Console','>> '+Linetext);
@@ -294,8 +298,10 @@ else if UpperCase(Command) = 'ISALLSYNCED' then AddLineToDebugLog('console',IsAl
 else if UpperCase(Command) = 'FEST' then Fest(parameter(linetext,1))
 else if UpperCase(Command) = 'FEST2' then CheckFestIncomings(parameter(linetext,1))
 else if UpperCase(Command) = 'FREEZED' then Totallocked()
-else if UpperCase(Command) = 'OPTSUM' then OptimizeSummary(MyLastBlock)
-
+else if UpperCase(Command) = 'ORDSUM' then ReorderSumario()
+else if UpperCase(Command) = 'SUMNEW' then TestSumaryChanges
+else if UpperCase(Command) = 'SUMSIZE' then AddLineToDebugLog('console',CreateSumaryIndex.ToString)
+else if UpperCase(Command) = 'MEGASUM' then CreateMegaSum
 
 // P2P
 else if UpperCase(Command) = 'PEERS' then AddLineToDebugLog('console','Server list: '+IntToStr(form1.ClientsCount)+'/'+IntToStr(GetIncomingConnections))
@@ -434,11 +440,13 @@ var
   NotValid   : integer = 0;
   NotValidBalance : int64 = 0;
   NotValidStr     : string = '';
+  TotalDeb        : int64 = 0;
 Begin
 BeginPerformance('ShowSumary');
 EnterCriticalSection(CSSumary);
 For contador := 0 to length(ListaSumario)-1 do
    begin
+   //AddLineToDebugLog('console',ListaSumario[contador].Hash);
    if not IsValidHashAddress(ListaSumario[contador].Hash) then
       begin
       Inc(NotValid);
@@ -451,7 +459,6 @@ For contador := 0 to length(ListaSumario)-1 do
    AddLineToDebugLog('console',ListaSumario[contador].Hash+' '+Int2Curr(ListaSumario[contador].Balance)+' '+
       ThisCustom+' '+
       IntToStr(ListaSumario[contador].LastOP)+' '+IntToStr(ListaSumario[contador].Score));
-   EngineLastUpdate := UTCTime.ToInt64;
    }
    // Custom adds verification
    if ( (thiscustom <> 'NULL') and (AnsiContainsStr(CustomsAdds,' '+thiscustom+' ')) ) then
@@ -464,10 +471,14 @@ For contador := 0 to length(ListaSumario)-1 do
    if ListaSumario[contador].Balance < 0 then
       begin
       NegAdds+=1;
+      Inc(TotalDeb,Abs(ListaSumario[contador].Balance));
       //AddLineToDebugLog('console',format('%s : %s',[ListaSumario[contador].Hash,int2curr(ListaSumario[contador].Balance)]));
       end;
    TotalCOins := totalCoins+ ListaSumario[contador].Balance;
-   if ListaSumario[contador].Balance = 0 then EmptyAddresses +=1;
+   if ( (ListaSumario[contador].Balance = 0) and (ListaSumario[contador].Custom='') ) then
+      begin
+      EmptyAddresses +=1;
+      end;
    if ListaSumario[contador].Balance > BiggerAmmount then
       begin
       BiggerAmmount := ListaSumario[contador].Balance;
@@ -476,8 +487,8 @@ For contador := 0 to length(ListaSumario)-1 do
    end;
 if NotValid>0 then
    begin
-   AddLineToDebugLog('console',Format('Not Valid: %d [%s]',[NotValid,Int2Curr(NotValidBalance)]));
-   AddLineToDebugLog('console',NotValidStr);
+   //AddLineToDebugLog('console',Format('Not Valid: %d [%s]',[NotValid,Int2Curr(NotValidBalance)]));
+   //AddLineToDebugLog('console',NotValidStr);
    end;
 AddLineToDebugLog('console',IntToStr(Length(ListaSumario))+' addresses.'); //addresses
 AddLineToDebugLog('console',IntToStr(EmptyAddresses)+' empty.'); //addresses
@@ -485,8 +496,10 @@ if NegAdds>0 then AddLineToDebugLog('console','Possible issues: '+IntToStr(NegAd
 if DuplicatedCount>0 then
    begin
    AddLineToDebugLog('console','Duplicated alias: '+DuplicatedCount.ToString);
-   AddLineToDebugLog('console',DuplicatedCustoms);
+   //AddLineToDebugLog('console',DuplicatedCustoms);
    end;
+if TotalDeb > 0 then
+   AddLineToDebugLog('console','Total debt: '+Int2curr(TotalDeb));
 if TotalCoins = GetSupply(MyLastBlock) then AsExpected := '✓'
 else AsExpected := '✗ '+Int2curr(TotalCoins-GetSupply(MyLastBlock));
 AddLineToDebugLog('console',Int2Curr(Totalcoins)+' '+CoinSimbol+' '+AsExpected);
@@ -1445,7 +1458,7 @@ for counter := MyLastBlock downto MyLastBlock- BlockCount do
             begin
             outgoingtrx +=1;
             outcoins := outcoins + ArrTrxs[contador2].AmmountTrf + ArrTrxs[contador2].AmmountFee;
-            //transSL.Add(IntToStr(Counter)+'] '+ArrTrxs[contador2].Receiver+'--> '+Int2curr(ArrTrxs[contador2].AmmountTrf));
+            transSL.Add(IntToStr(Counter)+'] '+ArrTrxs[contador2].Receiver+'--> '+Int2curr(ArrTrxs[contador2].AmmountTrf));
             end;
          end;
       end;
@@ -1994,7 +2007,51 @@ if thisadd <> '' then
 inc(counter);
 until thisadd = '';
 AddLineToDebugLog('console',format('Freezed %d : %s',[count,int2curr(Total)]));
+End;
 
+Procedure TestSumaryChanges();
+var
+  testindex : integer;
+  Errors    : integer = 0;
+  Counter : integer;
+  bigindex : integer = 0;
+  bigindexnumber : integer;
+begin
+  CreateSumaryIndex;
+  AddLineToDebugLog('console','Sumary records: '+length(listasumario).tostring);
+  AddLineToDebugLog('console','Index length  : '+length(SumaryIndex).tostring);
+  for counter := 0 to high(SumaryIndex) do
+     if length(sumaryindex[counter])> bigindex then
+       begin
+       bigindex := length(sumaryindex[counter]);
+       bigindexnumber := counter;
+       end;
+  AddLineToDebugLog('console','Big index  : '+bigindex.ToString+' colutions, on index '+bigindexnumber.ToString);
+  beginperformance('trtrtr');
+  for counter := 1 to 100000 do
+     begin
+     testindex := random(length(Listasumario));
+     GetAddressBalanceIndexed(ListaSumario[TestIndex].Hash);
+     end;
+  AddLineToDebugLog('console','100,000 searchs: '+endperformance('trtrtr').ToString+' ms');
+end;
+
+Procedure CreateMegaSum();
+var
+  counter : integer;
+  thisaddress : string;
+  pubkey,privkey:string;
+  newRecord : TSummaryData;
+Begin
+beginperformance('CreateMegaSum');
+for counter := 1 to 1000000 do
+   begin
+   NewRecord := Default(TSummaryData);
+   newRecord.hash := GenerateNewAddress(pubkey,privkey);
+   Insert(newrecord,listasumario,length(listasumario));
+   end;
+SaveSummaryToDisk ;
+AddLineToDebugLog('console',endperformance('CreateMegaSum').ToString+' '+'ms');
 End;
 
 END. // END UNIT

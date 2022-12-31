@@ -48,7 +48,7 @@ Result.AmmountFee := 0;
 Result.AmmountTrf := amount;
 Result.Signature  := 'COINBASE';
 Result.TrfrID     := GetTransferHash(Result.TimeStamp.ToString+'COINBASE'+'NpryectdevepmentfundsGE'+IntToStr(amount)+IntToStr(MyLastblock));
-Result.OrderID    := GetOrderHash('1'+Result.TrfrID);
+Result.OrderID    := {GetOrderHash(}'1'+Result.TrfrID{)};
 End;
 
 // Build the default block 0

@@ -6,7 +6,7 @@ INTERFACE
 
 uses
   Classes, SysUtils,
-  nosocrypto;
+  nosocrypto, nosodebug;
 
 Type
   TSummaryData = Packed Record
@@ -48,14 +48,16 @@ Type
     end;
 
   TBlockOrdersArray = Array of TOrderData;
+  TIndexRecord      = array of integer;
 
 {Protocol utilitys}
 Function CreateProtocolOrder(BlockN:integer;OrType,sender,receiver,signature:string;TimeStamp,Amount:int64):TOrderData;
 
+{Sumary management}
 Function LoadSummaryFromDisk(FileToLoad:String = ''):Boolean;
 Function SaveSummaryToDisk(FileToSave:String = ''):Boolean;
-Function FixSummary():TBlockOrdersArray;
-Function OptimizeSummary(OnBlock:int64):Boolean;
+Function CreateSumaryIndex():int64;
+Function GetAddressBalanceIndexed(Address:string):int64;
 
 Var
   {Overall variables}
@@ -64,6 +66,7 @@ Var
   {Summary related}
   SummaryFileName : string = 'NOSODATA'+DirectorySeparator+'sumary.psk';
   Listasumario    : Array of TSummaryData;
+  SumaryIndex     : Array of TindexRecord;
   CS_Summary      : TRTLCriticalSection;
 
 IMPLEMENTATION
@@ -93,11 +96,13 @@ End;
 
 {$REGION Sumary management}
 
+{Loads the summary from file to the memory array}
 Function LoadSummaryFromDisk(FileToLoad:String = ''):Boolean;
 var
   MyStream   : TMemoryStream;
   ThisRecord : TSummaryData;
 Begin
+  Beginperformance('LoadSummaryFromDisk');
   result := true;
   if FileToLoad = '' then FileToLoad := SummaryFileName;
   MyStream := TMemoryStream.Create;
@@ -118,8 +123,11 @@ Begin
     result := false;
   END;
   MyStream.Free;
+  Endperformance('LoadSummaryFromDisk');
+  CreateSumaryIndex;
 End;
 
+{Save the summary array to the disk}
 Function SaveSummaryToDisk(FileToSave:String = ''):Boolean;
 var
   MyStream   : TMemoryStream;
@@ -140,34 +148,94 @@ Begin
   MyStream.Free;;
 End;
 
-Function FixSummary():TBlockOrdersArray;
-var
-  counter : integer;
+Function GetIndexSize(LRecords:integer):integer;
 Begin
-  Setlength(Result,0);
-  For counter := 0 to high(Listasumario) do
-    begin
-
-    end;
+result := 10;
+Repeat
+  Result := Result*10;
+until result > Lrecords;
+Result := result div 10;
 End;
 
-Function OptimizeSummary(OnBlock:int64):Boolean;
+Function IndexFunction(LAddressHash:string; indexsize:int64):int64;
 var
-  IsDone  : boolean = false;
-  Counter : integer = 0;
+  SubStr : string;
 Begin
-  Result := true;
-  Repeat
-    if counter >= Length(Listasumario) then IsDone := true
-    else
+  LAddressHash := Hashmd5String(LAddressHash);
+  LAddressHash := B16toB58(LAddressHash);
+  SubStr := copy(LAddressHash,2,6);
+  result := StrToInt64(b58toB10(SubStr)) mod indexsize;
+End;
+
+{Creates the summary hash from the disk}
+Function CreateSumaryIndex():int64;
+var
+  SumFile : File;
+  Readed : integer = 0;
+  ThisRecord : TSummaryData;
+  IndexSize  : int64;
+  IndexPosition : int64;
+  CurrPos       : int64 = 0;
+Begin
+  beginperformance('CreateSumaryIndex');
+  AssignFile(SumFile,SummaryFileName);
+    TRY
+    Reset(SumFile,1);
+    IndexSize := GetIndexSize(FileSize(SumFile) div Sizeof(TSummaryData));
+    SetLength(SumaryIndex,IndexSize);
+    While not eof(SumFile) do
       begin
-      if ( (ListaSumario[counter].Balance=0) and (ListaSumario[counter].score=0) and
-         (ListaSumario[counter].custom='') )then
-        Delete(Listasumario,counter,1)
-      else inc(counter);
+      blockread(sumfile,ThisRecord,sizeof(ThisRecord));
+      IndexPosition := IndexFunction(ThisRecord.Hash,indexsize);
+      Insert(CurrPos,SumaryIndex[IndexPosition],length(SumaryIndex[IndexPosition]));
+      if ThisRecord.Custom  <> '' then
+        begin
+        IndexPosition := IndexFunction(ThisRecord.custom,indexsize);
+        Insert(CurrPos,SumaryIndex[IndexPosition],length(SumaryIndex[IndexPosition]));
+        end;
+      Inc(currpos);
       end;
-  until IsDone;
-  SaveSummaryToDisk;
+    CloseFile(SumFile);
+    EXCEPT
+    END;{Try}
+  Result := EndPerformance('CreateSumaryIndex');
+End;
+
+function ReadSumaryRecordFromDisk(index:integer):TSummaryData;
+var
+  SumFile : File;
+Begin
+  Result := Default(TSummaryData);
+  AssignFile(SumFile,SummaryFileName);
+    TRY
+    Reset(SumFile,1);
+    seek(Sumfile,index*(sizeof(result)));
+    blockread(sumfile,result,sizeof(result));
+    CloseFile(SumFile);
+    EXCEPT
+    END;{Try}
+End;
+
+Function GetAddressBalanceIndexed(Address:string):int64;
+var
+  IndexPos : integer;
+  counter  : integer = 0;
+  ThisRecord : TSummaryData;
+Begin
+result := 0;
+IndexPos := IndexFunction(address,length(SumaryIndex));
+if length(SumaryIndex[IndexPos])>0 then
+   begin
+   for counter := 0 to high(SumaryIndex[IndexPos]) do
+     begin
+     ThisRecord := ReadSumaryRecordFromDisk(SumaryIndex[IndexPos][counter]);
+     if Thisrecord.Hash = address then
+        begin
+        result := ThisRecord.Balance;
+        break;
+        end;
+     end;
+   end;
 End;
 
 {$ENDREGION}

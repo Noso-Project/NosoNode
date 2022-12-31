@@ -6,6 +6,7 @@ Version 0.3.3Aa7
 - EndPerformance converted to function.
 - Implemented thread manager on nosodebug.
 - Optimized AppFileName.
+- Implemented nosounit.
 
 Version 0.3.3Aa6
 

@@ -45,10 +45,11 @@ Procedure UpdateWalletFromSumario();
 Procedure CreateSumario();
 Procedure LoadSumaryFromFile(source:string='');
 Procedure GuardarSumario(SaveCheckmark:boolean = false);
-Procedure UpdateSumario(Direccion:string;monto:Int64;score:integer;LastOpBlock:string);
+Procedure UpdateSumario(Direccion:string;monto:Int64;score:int64;LastOpBlock:string);
 Procedure AddBlockToSumary(BlockNumber:integer;SaveAndUpdate:boolean = true);
 Procedure CompleteSumary();
 Procedure RebuildSumario(UntilBlock:integer);
+Procedure ReorderSumario();
 
 Procedure SaveUpdatedFiles();
 Procedure CrearWallet();
@@ -878,7 +879,7 @@ Begin
 End;
 
 // Updates sumary
-Procedure UpdateSumario(Direccion:string;monto:Int64;score:integer;LastOpBlock:string);
+Procedure UpdateSumario(Direccion:string;monto:Int64;score:int64;LastOpBlock:string);
 var
   contador : integer = 0;
   Yaexiste : boolean = false;
@@ -1017,6 +1018,8 @@ assignfile(FileResumen,ResumenFilename);
 reset(FileResumen);
 AddLineToDebugLog('console','Rebuilding until block '+IntToStr(untilblock)); //'Rebuilding until block '
 contador := 0;
+SetLength(ListaSumario,0);
+UpdateSumario(ADMINHash,PremineAmount,0,'0');
 while contador <= untilblock do
    begin
    if contador mod 100 = 0 then
@@ -1055,14 +1058,14 @@ while contador <= untilblock do
    // VErificar si el sumario hash no esta en blanco
    seek(FileResumen,contador);
    Read(FileResumen,dato);
-   if dato.SumHash = '' then
+   if 1=1 {dato.SumHash = ''} then
       begin
-      NewDato := Default(ResumenData);
-      NewDato := Dato;
-      NewDato.SumHash:=HashMD5File(SumarioFilename);
+      //NewDato := Default(ResumenData);
+      //NewDato := Dato;
+      Dato.SumHash:=HashMD5File(SumarioFilename);
       seek(FileResumen,contador);
-      Write(FileResumen,Newdato);
-      AddLineToDebugLog('events',TimeToStr(now)+'Readjusted sumhash for block '+inttostr(contador));
+      Write(FileResumen,dato);
+      //AddLineToDebugLog('events',TimeToStr(now)+'Readjusted sumhash for block '+inttostr(contador));
       end;
    contador := contador+1;
    LastHash := CurrHash;
@@ -1301,6 +1304,39 @@ UpdateMyData();
 AddLineToDebugLog('console','Summary rebuilded.');  //'Sumary rebuilded.'
 end;
 
+Procedure ReorderSumario();
+var
+  counter, counter2 : integer;
+  NewSumario : Array of TSummaryData;
+  ThisRecord : TSummaryData;
+  Added : Boolean;
+Begin
+BeginPerformance('ReorderSumario');
+SetLEngth(NewSumario,0);
+For counter := 0 to high(ListaSumario) do
+   begin
+   ThisRecord := Listasumario[counter];
+   if length(NewSumario) = 0 then Insert(ThisRecord,NewSumario,0)
+   else
+      begin
+      Added := false;
+      for counter2 := 0 to high(NewSumario) do
+         begin
+         if ThisRecord.Hash < NewSumario[counter2].Hash then
+            begin
+            Insert(ThisRecord,NewSumario,counter2);
+            Added := true;
+            Break;
+            end;
+         end;
+      if not Added then Insert(ThisRecord,NewSumario,length(NewSumario));
+      end;
+   end;
+SetLEngth(ListaSumario,0);
+ListaSumario := Copy(NewSumario,0,length(NewSumario));
+AddLineToDebugLog('console',EndPerformance('ReorderSumario').ToString+' ms');
+End;
+
 // adds a header at the end of headers file
 Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
 var
@@ -1491,6 +1527,8 @@ var
   firstB,lastB : integer;
   dato : ResumenData;
   WorkLoad : integer;
+  BlockHashErrors : integer = 0;
+  SumHashErrors : integer = 0;
 Begin
 firstB := form1.SpinDoctor1.Value;
 LastB := form1.SpinDoctor2.Value;
@@ -1524,8 +1562,12 @@ for cont := firstB to lastB do
       begin
       if HashMD5File(BlockDirectory+IntToStr(cont)+'.blk')<> dato.blockhash then
          begin
-         form1.MemoDoctor.Lines.Add(format(rs1001,[cont]));
-         form1.MemoDoctor.Lines.Add(Format(rs1002,[HashMD5File(BlockDirectory+IntToStr(cont)+'.blk'),dato.blockhash]));
+         //form1.MemoDoctor.Lines.Add(format(rs1001,[cont]));
+         //form1.MemoDoctor.Lines.Add(Format(rs1002,[HashMD5File(BlockDirectory+IntToStr(cont)+'.blk'),dato.blockhash]));
+         Dato.blockhash:=HashMD5File(BlockDirectory+IntToStr(cont)+'.blk');
+         Seek(FileResumen,cont);
+         write(FileResumen,dato);
+         Inc(BlockHashErrors);
          end;
       end;
    if form1.CBSummaryhash.Checked then   // Check summary hash
@@ -1533,8 +1575,12 @@ for cont := firstB to lastB do
       AddBlockToSumary(cont);
       if HashMD5File(SumarioFilename) <> dato.SumHash then
          begin
-         form1.MemoDoctor.Lines.Add(format(rs1001,[cont]));
-         form1.MemoDoctor.Lines.Add(format(rs1004,[HashMD5File(SumarioFilename),dato.SumHash]));
+         //form1.MemoDoctor.Lines.Add(format(rs1001,[cont]));
+         //form1.MemoDoctor.Lines.Add(format(rs1004,[HashMD5File(SumarioFilename),dato.SumHash]));
+         Dato.SumHash:=HashMD5File(SumarioFilename);
+         Seek(FileResumen,cont);
+         write(FileResumen,dato);
+         Inc(SumHashErrors);
          end;
       end;
    if stopdoctor then break;
@@ -1544,7 +1590,8 @@ if ((form1.CBBlockhash.Checked) or (form1.CBSummaryhash.Checked)) then
    CloseFile(FileResumen);
 form1.ButStartDoctor.Visible:=true;
 form1.ButStopDoctor.Visible:=false;
-
+form1.MemoDoctor.Lines.Add(format('BlockHash errors: %d',[BlockHashErrors]));
+form1.MemoDoctor.Lines.Add(format('SumHash errors  : %d',[SumHashErrors]));
 End;
 
 // Runs doctor tool

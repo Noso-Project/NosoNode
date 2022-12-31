@@ -670,7 +670,7 @@ CONST
   MNsPercentage = 2000;
   PosStackCoins = 20;               // PoS stack ammoount: supply*20 / PoSStack
   PoSBlockStart : integer = 8425;   // first block with PoSPayment
-  PoSBlockEnd   : integer = 88400;  // Not definitive yetttt
+  PoSBlockEnd   : integer = 88500;  // Not definitive yetttt
   MNBlockStart  : integer = 48010;  // First block with MNpayments
   InitialBlockDiff = 60;            // Dificultad durante los 20 primeros bloques
   GenesysTimeStamp = 1615132800;    // 1615132800;
@@ -3000,10 +3000,10 @@ var
   version : string;
   MenuItem : TMenuItem;
 Begin
-if Form1.Server.Active then form1.MainMenu.Items[0].Items[0].Caption:=rs0077
-else form1.MainMenu.Items[0].Items[0].Caption:=rs0076;
-if CONNECT_Try then form1.MainMenu.Items[0].Items[1].Caption:=rs0079
-else form1.MainMenu.Items[0].Items[1].Caption:=rs0078;
+if Form1.Server.Active then form1.MainMenu.Items[0].Items[0].Caption:=rs0077 //Stop server
+else form1.MainMenu.Items[0].Items[0].Caption:=rs0076; // Start server
+if CONNECT_Try then form1.MainMenu.Items[0].Items[1].Caption:=rs0079 // disconnect
+else form1.MainMenu.Items[0].Items[1].Caption:=rs0078;  // Connect
 End;
 
 // menu principal conexion
