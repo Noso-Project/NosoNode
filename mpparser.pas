@@ -25,7 +25,6 @@ function GetWalletBalance(): Int64;
 Procedure ConnectTo(LineText:string);
 Procedure ToTrayON();
 Procedure ToTrayOFF();
-Procedure ShowSumary();
 Procedure AutoServerON();
 Procedure AutoServerOFF();
 Procedure AutoConnectON();
@@ -80,7 +79,7 @@ Procedure showPosrequired(linetext:string);
 Procedure ShowBlockMNs(LineText:string);
 Procedure showgmts(LineText:string);
 Procedure ShowSystemInfo(Linetext:string);
-Procedure TestSumaryChanges();
+
 Procedure CreateMegaSum();
 
 // EXCHANGE
@@ -198,7 +197,6 @@ else if UpperCase(Command) = 'NEWADDRESS' then NuevaDireccion(linetext)
 else if UpperCase(Command) = 'USEROPTIONS' then ShowUser_Options()
 else if UpperCase(Command) = 'BALANCE' then AddLineToDebugLog('console',Int2Curr(GetWalletBalance)+' '+CoinSimbol)
 else if UpperCase(Command) = 'CONNECTTO' then ConnectTo(Linetext)
-else if UpperCase(Command) = 'SUMARY' then ShowSumary()
 else if UpperCase(Command) = 'AUTOSERVERON' then AutoServerON()
 else if UpperCase(Command) = 'AUTOSERVEROFF' then AutoServerOFF()
 else if UpperCase(Command) = 'AUTOCONNECTON' then AutoConnectON()
@@ -215,8 +213,6 @@ else if UpperCase(Command) = 'CUSTOMIZE' then CustomizeAddress(LineText)
 else if UpperCase(Command) = 'SENDTO' then Parse_SendFunds(LineText)
 else if UpperCase(Command) = 'SENDGVT' then Parse_SendGVT(LineText)
 else if UpperCase(Command) = 'HALVING' then ShowHalvings()
-else if UpperCase(Command) = 'REBUILDSUMARY' then RebuildSumario(MyLastBlock)
-else if UpperCase(Command) = 'REBUILDHEADERS' then BuildHeaderFile(MyLastBlock)
 else if UpperCase(Command) = 'GROUPCOINS' then Groupcoins(linetext)
 else if UpperCase(Command) = 'SETPORT' then SetServerPort(LineText)
 else if UpperCase(Command) = 'SHA256' then AddLineToDebugLog('console',HashSha256String(Parameter(LineText,1)))
@@ -298,8 +294,7 @@ else if UpperCase(Command) = 'ISALLSYNCED' then AddLineToDebugLog('console',IsAl
 else if UpperCase(Command) = 'FEST' then Fest(parameter(linetext,1))
 else if UpperCase(Command) = 'FEST2' then CheckFestIncomings(parameter(linetext,1))
 else if UpperCase(Command) = 'FREEZED' then Totallocked()
-else if UpperCase(Command) = 'ORDSUM' then ReorderSumario()
-else if UpperCase(Command) = 'SUMNEW' then TestSumaryChanges
+
 else if UpperCase(Command) = 'SUMSIZE' then AddLineToDebugLog('console',CreateSumaryIndex.ToString)
 else if UpperCase(Command) = 'MEGASUM' then CreateMegaSum
 
@@ -421,92 +416,6 @@ G_Launching := true;
 form1.CB_WO_ToTray.Checked:=false;
 G_Launching := false;
 AddLineToDebugLog('console','Minimize to tray is now '+'INACTIVE'); //GetNodes option is now  // INACTIVE
-End;
-
-// muestra el sumario completo
-Procedure ShowSumary();
-var
-  contador : integer = 0;
-  TotalCoins : int64 = 0;
-  EmptyAddresses : int64 = 0;
-  NegAdds : integer = 0;
-  ThisCustom : string;
-  CustomsAdds : string = '';
-  DuplicatedCustoms : string = ' ';
-  DuplicatedCount : integer = 0;
-  BiggerAmmount : int64 = 0;
-  BiggerAddress : string = '';
-  AsExpected : string = '';
-  NotValid   : integer = 0;
-  NotValidBalance : int64 = 0;
-  NotValidStr     : string = '';
-  TotalDeb        : int64 = 0;
-Begin
-BeginPerformance('ShowSumary');
-EnterCriticalSection(CSSumary);
-For contador := 0 to length(ListaSumario)-1 do
-   begin
-   //AddLineToDebugLog('console',ListaSumario[contador].Hash);
-   if not IsValidHashAddress(ListaSumario[contador].Hash) then
-      begin
-      Inc(NotValid);
-      Inc(NotValidBalance,ListaSumario[contador].Balance);
-      NotValidStr := NotValidStr+contador.ToString+'->'+ListaSumario[contador].Hash+slinebreak;
-      end;
-   if ListaSumario[contador].custom ='' then ThisCustom := 'NULL'
-      else ThisCustom := ListaSumario[contador].custom;
-   {
-   AddLineToDebugLog('console',ListaSumario[contador].Hash+' '+Int2Curr(ListaSumario[contador].Balance)+' '+
-      ThisCustom+' '+
-      IntToStr(ListaSumario[contador].LastOP)+' '+IntToStr(ListaSumario[contador].Score));
-   }
-   // Custom adds verification
-   if ( (thiscustom <> 'NULL') and (AnsiContainsStr(CustomsAdds,' '+thiscustom+' ')) ) then
-      begin
-      DuplicatedCount +=1;
-      DuplicatedCustoms := DuplicatedCustoms+thiscustom+' ';
-      end
-   else CustomsAdds := CustomsAdds+thiscustom+' ';
-
-   if ListaSumario[contador].Balance < 0 then
-      begin
-      NegAdds+=1;
-      Inc(TotalDeb,Abs(ListaSumario[contador].Balance));
-      //AddLineToDebugLog('console',format('%s : %s',[ListaSumario[contador].Hash,int2curr(ListaSumario[contador].Balance)]));
-      end;
-   TotalCOins := totalCoins+ ListaSumario[contador].Balance;
-   if ( (ListaSumario[contador].Balance = 0) and (ListaSumario[contador].Custom='') ) then
-      begin
-      EmptyAddresses +=1;
-      end;
-   if ListaSumario[contador].Balance > BiggerAmmount then
-      begin
-      BiggerAmmount := ListaSumario[contador].Balance;
-      BiggerAddress := ListaSumario[contador].Hash;
-      end;
-   end;
-if NotValid>0 then
-   begin
-   //AddLineToDebugLog('console',Format('Not Valid: %d [%s]',[NotValid,Int2Curr(NotValidBalance)]));
-   //AddLineToDebugLog('console',NotValidStr);
-   end;
-AddLineToDebugLog('console',IntToStr(Length(ListaSumario))+' addresses.'); //addresses
-AddLineToDebugLog('console',IntToStr(EmptyAddresses)+' empty.'); //addresses
-if NegAdds>0 then AddLineToDebugLog('console','Possible issues: '+IntToStr(NegAdds));
-if DuplicatedCount>0 then
-   begin
-   AddLineToDebugLog('console','Duplicated alias: '+DuplicatedCount.ToString);
-   //AddLineToDebugLog('console',DuplicatedCustoms);
-   end;
-if TotalDeb > 0 then
-   AddLineToDebugLog('console','Total debt: '+Int2curr(TotalDeb));
-if TotalCoins = GetSupply(MyLastBlock) then AsExpected := '✓'
-else AsExpected := '✗ '+Int2curr(TotalCoins-GetSupply(MyLastBlock));
-AddLineToDebugLog('console',Int2Curr(Totalcoins)+' '+CoinSimbol+' '+AsExpected);
-AddLineToDebugLog('console','Bigger : '+BiggerAddress);
-AddLineToDebugLog('console','Balance: '+Int2curr(BiggerAmmount));
-LeaveCriticalSection(CSSumary);
-EndPerformance('ShowSumary');
 End;
 
 Procedure AutoServerON();
@@ -837,6 +746,7 @@ var
   Procesar : boolean = true;
   ResultOrderID : String = '';
   CoinsAvailable : int64;
+  DestinationRecord : TSummaryData;
 Begin
 result := '';
 BeginPerformance('SendFunds');
@@ -850,13 +760,13 @@ if ((Destination='') or (amount='')) then
    end;
 if not IsValidHashAddress(Destination) then
    begin
-   AliasIndex:=AddressSumaryIndex(Destination);
+   AliasIndex:=GetIndexPosition(Destination,DestinationRecord,true);
    if AliasIndex<0 then
       begin
       if showOutput then AddLineToDebugLog('console','Invalid destination.'); //'Invalid destination.'
       Procesar := false;
       end
-   else Destination := ListaSumario[aliasIndex].Hash;
+   else Destination := DestinationRecord.Hash;
    end;
 monto := StrToInt64Def(amount,-1);
 if reference = '' then reference := 'null';
@@ -948,6 +858,7 @@ var
   Signature   : string = '';
   GVTNumStr   : string = '';
   StrTosign   : String = '';
+  DestinationRecord : TSummaryData;
 Begin
 result := '';
 BeginPerformance('SendGVT');
@@ -972,13 +883,13 @@ if GetAddressAvailable(GVTOwner)<Customizationfee then
    end;
 if not IsValidHashAddress(Destination) then
    begin
-   AliasIndex:=AddressSumaryIndex(Destination);
+   AliasIndex:=GetIndexPosition(Destination,DestinationRecord,true);
    if AliasIndex<0 then
       begin
       if showOutput then AddLineToDebugLog('console','Invalid destination.'); //'Invalid destination.'
       Exit;
       end
-   else Destination := ListaSumario[aliasIndex].Hash;
+   else Destination := DestinationRecord.Hash;
    end;
 if GVTOwner=Destination then
    begin
@@ -2009,33 +1920,6 @@ until thisadd = '';
 AddLineToDebugLog('console',format('Freezed %d : %s',[count,int2curr(Total)]));
 End;
 
-Procedure TestSumaryChanges();
-var
-  testindex : integer;
-  Errors    : integer = 0;
-  Counter : integer;
-  bigindex : integer = 0;
-  bigindexnumber : integer;
-begin
-  CreateSumaryIndex;
-  AddLineToDebugLog('console','Sumary records: '+length(listasumario).tostring);
-  AddLineToDebugLog('console','Index length  : '+length(SumaryIndex).tostring);
-  for counter := 0 to high(SumaryIndex) do
-     if length(sumaryindex[counter])> bigindex then
-       begin
-       bigindex := length(sumaryindex[counter]);
-       bigindexnumber := counter;
-       end;
-  AddLineToDebugLog('console','Big index  : '+bigindex.ToString+' colutions, on index '+bigindexnumber.ToString);
-  beginperformance('trtrtr');
-  for counter := 1 to 100000 do
-     begin
-     testindex := random(length(Listasumario));
-     GetAddressBalanceIndexed(ListaSumario[TestIndex].Hash);
-     end;
-  AddLineToDebugLog('console','100,000 searchs: '+endperformance('trtrtr').ToString+' ms');
-end;
-
 Procedure CreateMegaSum();
 var
   counter : integer;
@@ -2044,7 +1928,7 @@ var
   newRecord : TSummaryData;
 Begin
 beginperformance('CreateMegaSum');
-for counter := 1 to 1000000 do
+for counter := 1 to 100000 do
    begin
    NewRecord := Default(TSummaryData);
    newRecord.hash := GenerateNewAddress(pubkey,privkey);

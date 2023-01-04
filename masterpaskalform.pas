@@ -276,12 +276,6 @@ type
        control  : integer;
        end;
 
-  TBlockSumTrfr = packed record
-       address  : string[32];
-       amount   : int64;
-       score    : int64;
-       end;
-
   TNosoCFG = packed record
        NetStatus : string;
        SeedNode  : string;
@@ -781,7 +775,6 @@ var
   ListadoBots      :  array of BotData;
   ListaNodos       : array of NodeData;
   ListaDirecciones : array of walletData; // Wallet addresses
-  {ListaSumario     : array of TSummaryData;}    // Sumary addresses
   PendingTXs       : Array of TOrderData;
   OutgoingMsjs     : TStringlist;
   ArrayConsenso    : array of NetworkData;

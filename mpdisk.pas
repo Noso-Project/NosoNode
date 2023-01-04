@@ -43,13 +43,8 @@ Procedure SaveBotData();
 // sumary
 Procedure UpdateWalletFromSumario();
 Procedure CreateSumario();
-Procedure LoadSumaryFromFile(source:string='');
-Procedure GuardarSumario(SaveCheckmark:boolean = false);
-Procedure UpdateSumario(Direccion:string;monto:Int64;score:int64;LastOpBlock:string);
 Procedure AddBlockToSumary(BlockNumber:integer;SaveAndUpdate:boolean = true);
 Procedure CompleteSumary();
-Procedure RebuildSumario(UntilBlock:integer);
-Procedure ReorderSumario();
 
 Procedure SaveUpdatedFiles();
 Procedure CrearWallet();
@@ -58,11 +53,9 @@ Procedure GuardarWallet();
 
 function GetMyLastUpdatedBlock():int64;
 
-function SetCustomAlias(Address,Addalias:String;block:integer):Boolean;
 Function UnzipBlockFile(filename:String;delFile:boolean):boolean;
 function UnZipUpdateFromRepo(Tver,TArch:String):boolean;
 Procedure CreateResumen();
-Procedure BuildHeaderFile(untilblock:integer);
 Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
 Function DelBlChHeadLast(Block:integer): boolean;
 Function GetHeadersSize():integer;
@@ -127,7 +120,7 @@ OutText('✓ Bots file ok',false,1);
 FillNodeList;  // Fills the hardcoded seed nodes list
 
 if not Fileexists(SumarioFilename) then CreateSumario()
-else LoadSummaryFromDisk(){LoadSumaryFromFile()};
+else LoadSummaryFromDisk();
 OutText('✓ Sumary file ok',false,1);
 if not Fileexists(ResumenFilename) then CreateResumen();
 OutText('✓ Headers file ok',false,1);
@@ -728,28 +721,16 @@ Procedure UpdateWalletFromSumario();
 var
   Contador, counter : integer;
   ThisExists : boolean = false;
+  SumPos : int64;
+  ThisRecord : TSummaryData;
 Begin
-for contador := 0 to length(ListaDirecciones)-1 do
+for contador := 0 to high(ListaDirecciones) do
    begin
-   ThisExists := false;
-   for counter := 0 to length(ListaSumario)-1 do
-      begin
-      if ListaDirecciones[contador].Hash = ListaSumario[counter].Hash then
-         begin
-         ListaDirecciones[contador].Balance:=ListaSumario[counter].Balance;
-         ListaDirecciones[contador].LastOP:=ListaSumario[counter].LastOP;
-         ListaDirecciones[contador].score:=ListaSumario[counter].score;
-         ListaDirecciones[contador].Custom:=ListaSumario[counter].Custom;
-         ThisExists := true;
-         end;
-      end;
-   if not ThisExists then
-      begin
-      ListaDirecciones[contador].Balance:=0;
-      ListaDirecciones[contador].LastOP:=0;
-      ListaDirecciones[contador].score:=0;
-      ListaDirecciones[contador].Custom:='';
-      end;
+   SumPos := GetIndexPosition(ListaDirecciones[contador].Hash,thisRecord);
+   ListaDirecciones[contador].Balance := thisRecord.Balance;
+   ListaDirecciones[contador].LastOP  := thisRecord.LastOP;
+   ListaDirecciones[contador].score   := thisRecord.score;
+   ListaDirecciones[contador].Custom  := thisRecord.Custom;
    end;
 S_Wallet := true;
 U_Dirpanel := true;
@@ -759,93 +740,19 @@ End;
 Procedure CreateSumario();
 Begin
    TRY
-   SetLength(ListaSumario,0);
    assignfile(FileSumario,SumarioFilename);
    Rewrite(FileSumario);
    CloseFile(FileSumario);
    // for cases when rebuilding sumary
-   if FileExists(BlockDirectory+'0.blk') then UpdateSumario(ADMINHash,PremineAmount,0,'0');
+   if FileExists(BlockDirectory+'0.blk') then
+      begin
+      CreditTo(ADMINHash,PremineAmount,0);
+      UpdateSummaryChanges;
+      ResetBlockRecords;
+      end;
    EXCEPT on E:Exception do
       AddLineToDebugLog('events',TimeToStr(now)+'Error creating summary file');
    END; {TRY}
-End;
-
-// Loads sumary from disk
-Procedure LoadSumaryFromFile(source:string='');
-var
-  contador : integer = 0;
-Begin
-if source = '' then source := SumarioFilename
-else
-   begin
-   if not FileExists(Source) then
-      begin
-      source := SumarioFilename;
-      AddLineToDebugLog('console','Can not find '+source+slinebreak+'Loading sumary from default');
-      end;
-   end;
-   TRY
-   SetLength(ListaSumario,0);
-   assignfile(FileSumario,source);
-   Reset(FileSumario);
-   SetLength(ListaSumario,fileSize(FileSumario));
-   for contador := 0 to Filesize(fileSumario)-1 do
-      Begin
-      seek(filesumario,contador);
-      read(FileSumario,Listasumario[contador]);
-      end;
-   CloseFile(FileSumario);
-   EXCEPT on E:Exception do
-      AddLineToDebugLog('events',TimeToStr(now)+'Error loading summary from file');
-   END;
-End;
-
-// Save sumary to disk
-Procedure GuardarSumario(SaveCheckmark:boolean = false);
-var
-  contador     : integer = 0;
-  CurrentBlock : integer;
-  IOCode       : integer;
-Begin
-BeginPerformance('GuardarSumario');
-assignfile(FileSumario,SumarioFilename);
-EnterCriticalSection(CSSumary);
-{$I-}Reset(FileSumario);{$I+};
-IOCode := IOResult;
-If IOCode = 0 then
-   Begin
-   TRY
-   for contador := 0 to length(ListaSumario)-1 do
-      Begin
-      seek(filesumario,contador);
-      write(FileSumario,Listasumario[contador]);
-      end;
-   Truncate(filesumario);
-   MySumarioHash := HashMD5File(SumarioFilename);
-   S_Sumario := false;
-   U_DataPanel := true;
-   EXCEPT on E:Exception do
-      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error saving summary file: '+e.Message);
-   END; {TRY}
-   end
-else
-   begin
-   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error opening summary: '+IOCode.ToString );
-   {$I-}CloseFile(FileSumario);{$I+};
-   end;
-{$I-}CloseFile(FileSumario);{$I+};
-LeaveCriticalSection(CSSumary);
-ZipSumary;
-if ( (Listasumario[0].LastOP mod SumMarkInterval = 0) and (Listasumario[0].LastOP>0) ) then
-   begin
-   EnterCriticalSection(CSSumary);
-   Trycopyfile(SumarioFilename,MarksDirectory+Listasumario[0].LastOP.ToString+'.bak');
-   LeaveCriticalSection(CSSumary);
-   EnterCriticalSection(CSGVTsArray);
-   Trycopyfile(GVTsFilename,GVTMarksDirectory+Listasumario[0].LastOP.ToString+'.bak');
-   LeaveCriticalSection(CSGVTsArray);
-   end;
-EndPerformance('GuardarSumario');
 End;
 
 // Returns the last downloaded block
@@ -876,69 +783,6 @@ end;
 Function deleteBlockFiles(fromnumber:integer):integer;
 Begin
 
-End;
-
-// Updates sumary
-Procedure UpdateSumario(Direccion:string;monto:Int64;score:int64;LastOpBlock:string);
-var
-  contador : integer = 0;
-  Yaexiste : boolean = false;
-  NuevoRegistro : TSummaryData;
-Begin
-BeginPerformance('UpdateSumario');
-EnterCriticalSection(CSSumary);
-for contador := 0 to length(ListaSumario)-1 do
-   begin
-   if ((ListaSumario[contador].Hash=Direccion) or (ListaSumario[contador].Custom=Direccion)) then
-      begin
-      NuevoRegistro := Default(TSummaryData);
-      NuevoRegistro.Hash:=ListaSumario[contador].Hash;
-      NuevoRegistro.Custom:=ListaSumario[contador].Custom;
-      NuevoRegistro.Balance:=ListaSumario[contador].Balance+Monto;
-      NuevoRegistro.Score:=ListaSumario[contador].Score+score;;
-      NuevoRegistro.LastOP:=StrToInt64def(LastOpBlock,0);
-      ListaSumario[contador] := NuevoRegistro;
-      Yaexiste := true;
-      break;
-      end;
-   end;
-if not YaExiste then
-   begin
-   NuevoRegistro := Default(TSummaryData);
-   setlength(ListaSumario,Length(ListaSumario)+1);
-   NuevoRegistro.Hash:=Direccion;
-   NuevoRegistro.Custom:='';
-   NuevoRegistro.Balance:=Monto;
-   NuevoRegistro.Score:=0;
-   NuevoRegistro.LastOP:=StrToInt64def(LastOpBlock,0);
-   ListaSumario[length(listasumario)-1] := NuevoRegistro;
-   end;
-S_Sumario := true;
-LeaveCriticalSection(CSSumary);
-EndPerformance('UpdateSumario');
-if DireccionEsMia(Direccion)>= 0 then UpdateWalletFromSumario();
-End;
-
-// Set alias for an address if it is empty
-function SetCustomAlias(Address,Addalias:String;block:integer):boolean;
-var
-  cont : integer;
-Begin
-result := false;
-EnterCriticalSection(CSSumary);
-for cont := 0 to length(ListaSumario)-1 do
-   begin
-   if ((ListaSumario[cont].Hash=Address)and (ListaSumario[cont].custom='')) then
-      begin
-      listasumario[cont].Custom:=Addalias;
-      listasumario[cont].LastOP:=block;
-      result := true;
-      break;
-      end;
-   end;
-LeaveCriticalSection(CSSumary);
-if ((result=false) and (block > 10429)) then
-   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error assigning custom alias to address: '+Address+' -> '+addalias);
 End;
 
 // Unzip a zip file and (optional) delete it
@@ -1002,94 +846,6 @@ Begin
    end;
 End;
 
-// Rebuild headers file
-Procedure BuildHeaderFile(untilblock:integer);
-var
-  Dato, NewDato: ResumenData;
-  Contador : integer = 0;
-  CurrHash : String = '';
-  LastHash : String = '';
-  BlockHeader : BlockHeaderData;
-  ArrayOrders : TBlockOrdersArray;
-  cont : integer;
-  newblocks : integer = 0;
-Begin
-assignfile(FileResumen,ResumenFilename);
-reset(FileResumen);
-AddLineToDebugLog('console','Rebuilding until block '+IntToStr(untilblock)); //'Rebuilding until block '
-contador := 0;
-SetLength(ListaSumario,0);
-UpdateSumario(ADMINHash,PremineAmount,0,'0');
-while contador <= untilblock do
-   begin
-   if contador mod 100 = 0 then
-      begin
-      info('REBUILDING '+Contador.ToString);  //'Rebuilding sumary block: '
-      application.ProcessMessages;
-      EngineLastUpdate := UTCTime;
-      end;
-   if ((contador = MyLastBlock) and (contador>0)) then
-      LastHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock-1)+'.blk');
-   info('Rebuild block: '+IntToStr(contador)); //'Rebuild block: '
-   BlockHeader := LoadBlockDataHeader(contador);
-   dato := default(ResumenData);
-   seek(FileResumen,contador);
-   if filesize(FileResumen)>contador then
-      Read(FileResumen,dato);
-   If ((contador>0) and (BlockHeader.LastBlockHash <> LastHash)) then
-      begin  // Que hacer si todo encaja pero el sumario no esta bien
-      //RestoreBlockChain();
-      end;
-   CurrHash := HashMD5File(BlockDirectory+IntToStr(contador)+'.blk');
-   if  CurrHash <> Dato.blockhash then
-      begin
-      NewDato := Default(ResumenData);
-      NewDato := Dato;
-      NewDato.block:=contador;
-      NewDato.blockhash:=CurrHash;
-      seek(FileResumen,contador);
-      Write(FileResumen,Newdato);
-      end;
-   if contador > ListaSumario[0].LastOP then // el bloque analizado es mayor que el ultimo incluido
-      begin                                  // en el sumario asi que se procesan sus trxs
-      newblocks := newblocks + 1;
-      AddBlockToSumary(contador);
-      end;
-   // VErificar si el sumario hash no esta en blanco
-   seek(FileResumen,contador);
-   Read(FileResumen,dato);
-   if 1=1 {dato.SumHash = ''} then
-      begin
-      //NewDato := Default(ResumenData);
-      //NewDato := Dato;
-      Dato.SumHash:=HashMD5File(SumarioFilename);
-      seek(FileResumen,contador);
-      Write(FileResumen,dato);
-      //AddLineToDebugLog('events',TimeToStr(now)+'Readjusted sumhash for block '+inttostr(contador));
-      end;
-   contador := contador+1;
-   LastHash := CurrHash;
-   end;
-while filesize(FileResumen)> Untilblock+1 do  // cabeceras presenta un numero anomalo de registros
-   begin
-   seek(FileResumen,Untilblock+1);
-   truncate(fileResumen);
-   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Readjusted headers size');
-   end;
-closefile(FileResumen);
-if newblocks>0 then
-   begin
-   AddLineToDebugLog('console',IntToStr(newblocks)+' added to headers'); //' added to headers'
-   U_DirPanel := true;
-   end;
-SaveSummaryToDisk();
-S_Sumario := false;
-UpdateMyData();
-MySumarioHash := HashMD5File(SumarioFilename);
-U_Dirpanel := true;
-if g_launching then OutText('✓ '+IntToStr(untilblock+1)+' blocks rebuilded',false,1);
-End;
-
 // COmpletes the sumary from LAstUpdate to Lastblock
 Procedure CompleteSumary();
 var
@@ -1097,8 +853,9 @@ var
   counter : integer;
 Begin
 RebuildingSumary := true;
-StartBlock := ListaSumario[0].LastOP+1;
+StartBlock := SummaryLastop+1;
 finishblock := Mylastblock;
+AddLineToDebugLog('console','Complete summary');
 for counter := StartBlock to finishblock do
    begin
    info('Rebuilding summary block: '+inttoStr(counter));  //'Rebuilding sumary block: '
@@ -1106,7 +863,7 @@ for counter := StartBlock to finishblock do
    EngineLastUpdate := UTCTime;
    AddBlockToSumary(counter, false);
    end;
-SaveSummaryToDisk();
+SummaryLastop := finishblock;
 S_Sumario := false;
 RebuildingSumary := false;
 UpdateMyData();
@@ -1122,8 +879,8 @@ var
   ArrayOrders : TBlockOrdersArray;
   ArrayPos    : BlockArraysPos;
   ArrayMNs    : BlockArraysPos;
-  PosReward   : int64;
-  PosCount    : integer;
+  PosReward   : int64 = 0;
+  PosCount    : integer = 0;
   CounterPos  : integer;
   MNsReward   : int64;
   MNsCount    : integer;
@@ -1132,44 +889,43 @@ var
 Begin
 BlockHeader := Default(BlockHeaderData);
 BlockHeader := LoadBlockDataHeader(BlockNumber);
-EnterCriticalSection(CSSumary);
-UpdateSumario(BlockHeader.AccountMiner,BlockHeader.Reward+BlockHeader.MinerFee,0,IntToStr(BlockNumber));
+ResetBlockRecords;
+CreditTo(BlockHeader.AccountMiner,BlockHeader.Reward+BlockHeader.MinerFee,BlockNumber);
 ArrayOrders := Default(TBlockOrdersArray);
 ArrayOrders := GetBlockTrxs(BlockNumber);
 for cont := 0 to length(ArrayOrders)-1 do
    begin
    if ArrayOrders[cont].OrderType='CUSTOM' then
       begin
-      UpdateSumario(ArrayOrders[cont].sender,Restar(Customizationfee),0,IntToStr(BlockNumber));
-      setcustomalias(ArrayOrders[cont].sender,ArrayOrders[cont].Receiver,BlockNumber);
+      IsCustomizacionValid(ArrayOrders[cont].sender,ArrayOrders[cont].Receiver,BlockNumber);
       end;
    if ArrayOrders[cont].OrderType='SNDGVT' then
       begin
       Inc(GVTsTrfer);
-      UpdateSumario(ArrayOrders[cont].sender,Restar(Customizationfee),0,IntToStr(BlockNumber));
+      SummaryValidPay(ArrayOrders[cont].sender,Customizationfee,BlockNumber);
       ChangeGVTOwner(StrToIntDef(ArrayOrders[cont].Reference,100),ArrayOrders[cont].sender,ArrayOrders[cont].Receiver);
       end;
    if ArrayOrders[cont].OrderType='TRFR' then
       begin
-      UpdateSumario(ArrayOrders[cont].sender,Restar(ArrayOrders[cont].AmmountFee+ArrayOrders[cont].AmmountTrf),0,IntToStr(BlockNumber));
-      UpdateSumario(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,0,IntToStr(BlockNumber));
+      SummaryValidPay(ArrayOrders[cont].sender,ArrayOrders[cont].AmmountFee+ArrayOrders[cont].AmmountTrf,blocknumber);
+      CreditTo(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,BlockNumber);
       end;
    if ArrayOrders[cont].OrderType='PROJCT' then
       begin
-      UpdateSumario(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,0,IntToStr(BlockNumber));
-      UpdateSumario(BlockHeader.AccountMiner,Restar(ArrayOrders[cont].AmmountTrf),0,IntToStr(BlockNumber));
+      CreditTo('NpryectdevepmentfundsGE',ArrayOrders[cont].AmmountTrf,BlockNumber);
+      SummaryValidPay(BlockHeader.AccountMiner,ArrayOrders[cont].AmmountTrf,blocknumber);
       end;
    end;
 setlength(ArrayOrders,0);
-if blocknumber >= PoSBlockStart then
+if ((blocknumber >= PoSBlockStart) and (blocknumber<=PoSBlockEnd)) then
    begin
    ArrayPos := GetBlockPoSes(BlockNumber);
    PosReward := StrToIntDef(Arraypos[length(Arraypos)-1].address,0);
    SetLength(ArrayPos,length(ArrayPos)-1);
    PosCount := length(ArrayPos);
    for counterpos := 0 to PosCount-1 do
-      UpdateSumario(ArrayPos[counterPos].address,Posreward,0,IntToStr(BlockNumber));
-   UpdateSumario(BlockHeader.AccountMiner,Restar(PosCount*Posreward),0,IntToStr(BlockNumber));
+      CreditTo(ArrayPos[counterPos].address,Posreward,BlockNumber);
+   SummaryValidPay(BlockHeader.AccountMiner,PosCount*Posreward,blocknumber);
    SetLength(ArrayPos,0);
    end;
 
@@ -1180,161 +936,17 @@ if blocknumber >= MNBlockStart then
    SetLength(ArrayMNs,length(ArrayMNs)-1);
    MNsCount := length(ArrayMNs);
    for counterMNs := 0 to MNsCount-1 do
-      UpdateSumario(ArrayMNs[counterMNs].address,MNsreward,0,IntToStr(BlockNumber));
-   UpdateSumario(BlockHeader.AccountMiner,Restar(MNsCount*MNsreward),0,IntToStr(BlockNumber));
+      CreditTo(ArrayMNs[counterMNs].address,MNsreward,BlockNumber);
+   SummaryValidPay(BlockHeader.AccountMiner,MNsCount*MNsreward,BlockNumber);
    SetLength(ArrayMNs,0);
    end;
-
-ListaSumario[0].LastOP:=BlockNumber;
-if ( (SaveAndUpdate) or (BlockNumber mod SumMarkInterval = 0) ) then
-   begin
-   SaveSummaryToDisk();
-   S_Sumario := false;
-   {if not RunningDoctor then} UpdateMyData();
-   end;
-LeaveCriticalSection(CSSumary);
+CreditTo(AdminHash,0,BlockNumber);
+UpdateSummaryChanges;
 if GVTsTrfer>0 then
    begin
    SaveGVTs;
    UpdateMyGVTsList;
    end;
-End;
-
-// Rebuilds totally sumary
-Procedure RebuildSumario(UntilBlock:integer);
-var
-  contador, cont : integer;
-  BlockHeader : BlockHeaderData;
-  ArrayOrders : TBlockOrdersArray;
-  ArrayPos    : BlockArraysPos;
-  PosReward   : int64;
-  PosCount    : integer;
-  CounterPos  : integer;
-  ArrayMNs    : BlockArraysPos;
-  MNsReward   : int64;
-  MNsCount    : integer;
-  CounterMNs  : integer;
-  GVTsTrfer   : integer = 0;
-Begin
-EnterCriticalSection(CSSumary);
-RebuildingSumary := true;
-SetLength(ListaSumario,0);
-// incluir el pago del bloque genesys
-UpdateSumario(ADMINHash,PremineAmount,0,'0');
-for contador := 1 to UntilBlock do
-   begin
-   if contador mod 10 = 0 then
-      begin
-      info('Rebuilding summary block: '+inttoStr(contador));  //'Rebuilding sumary block: '
-      EngineLastUpdate := UTCTime;
-      application.ProcessMessages;
-      end;
-   BlockHeader := Default(BlockHeaderData);
-   BlockHeader := LoadBlockDataHeader(contador);
-   UpdateSumario(BlockHeader.AccountMiner,BlockHeader.Reward+BlockHeader.MinerFee,0,IntToStr(contador));
-   ArrayOrders := Default(TBlockOrdersArray);
-   ArrayOrders := GetBlockTrxs(contador);
-   for cont := 0 to length(ArrayOrders)-1 do
-      begin
-      if ArrayOrders[cont].OrderType='CUSTOM' then
-         begin
-         UpdateSumario(ArrayOrders[cont].sender,Restar(Customizationfee),0,IntToStr(contador));
-         setcustomalias(ArrayOrders[cont].sender,ArrayOrders[cont].Receiver,contador);
-         end;
-      if ArrayOrders[cont].OrderType='SNDGVT' then
-         begin
-         Inc(GVTsTrfer);
-         UpdateSumario(ArrayOrders[cont].sender,Restar(Customizationfee),0,IntToStr(contador));
-         ChangeGVTOwner(StrToIntDef(ArrayOrders[cont].Reference,100),ArrayOrders[cont].sender,ArrayOrders[cont].Receiver);
-         end;
-      if ArrayOrders[cont].OrderType='TRFR' then
-         begin
-         UpdateSumario(ArrayOrders[cont].sender,Restar(ArrayOrders[cont].AmmountFee+ArrayOrders[cont].AmmountTrf),0,IntToStr(contador));
-         UpdateSumario(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,0,IntToStr(contador));
-         end;
-      if ArrayOrders[cont].OrderType='PROJCT' then
-         begin
-         UpdateSumario(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,0,IntToStr(contador));
-         UpdateSumario(BlockHeader.AccountMiner,Restar(ArrayOrders[cont].AmmountTrf),0,IntToStr(contador));
-         end;
-      end;
-   setlength(ArrayOrders,0);
-   if contador >= PoSBlockStart then
-      begin
-      ArrayPos := GetBlockPoSes(contador);
-      PosReward := StrToInt64Def(Arraypos[length(Arraypos)-1].address,0);
-      SetLength(ArrayPos,length(ArrayPos)-1);
-      PosCount := length(ArrayPos);
-      for counterpos := 0 to PosCount-1 do
-         UpdateSumario(ArrayPos[counterPos].address,Posreward,0,IntToStr(contador));
-      // Restar el PoS al minero
-      UpdateSumario(BlockHeader.AccountMiner,Restar(PosCount*Posreward),0,IntToStr(contador));
-      SetLength(ArrayPos,0);
-      end;
-
-   if contador >= MNBlockStart then
-      begin
-      ArrayMNs := GetBlockMNs(contador);
-      MNsReward := StrToIntDef(ArrayMNs[length(ArrayMNs)-1].address,0);
-      SetLength(ArrayMNs,length(ArrayMNs)-1);
-      MNsCount := length(ArrayMNs);
-      for counterMNs := 0 to MNsCount-1 do
-         UpdateSumario(ArrayMNs[counterMNs].address,MNsreward,0,IntToStr(contador));
-      UpdateSumario(BlockHeader.AccountMiner,Restar(MNsCount*MNsreward),0,IntToStr(contador));
-      SetLength(ArrayMNs,0);
-      end;
-   ListaSumario[0].LastOP:=contador;
-   if contador mod SumMarkInterval = 0 then
-      begin
-      //form1.MemoConsola.lines.Add('Saving backup');
-      SaveSummaryToDisk();
-      S_Sumario := false;
-      end;
-   end;
-RebuildingSumary := false;
-LeaveCriticalSection(CSSumary);
-SaveSummaryToDisk();
-S_Sumario := false;
-if GVTsTrfer>0 then
-   begin
-   SaveGVTs;
-   UpdateMyGVTsList;
-   end;
-UpdateMyData();
-AddLineToDebugLog('console','Summary rebuilded.');  //'Sumary rebuilded.'
-end;
-
-Procedure ReorderSumario();
-var
-  counter, counter2 : integer;
-  NewSumario : Array of TSummaryData;
-  ThisRecord : TSummaryData;
-  Added : Boolean;
-Begin
-BeginPerformance('ReorderSumario');
-SetLEngth(NewSumario,0);
-For counter := 0 to high(ListaSumario) do
-   begin
-   ThisRecord := Listasumario[counter];
-   if length(NewSumario) = 0 then Insert(ThisRecord,NewSumario,0)
-   else
-      begin
-      Added := false;
-      for counter2 := 0 to high(NewSumario) do
-         begin
-         if ThisRecord.Hash < NewSumario[counter2].Hash then
-            begin
-            Insert(ThisRecord,NewSumario,counter2);
-            Added := true;
-            Break;
-            end;
-         end;
-      if not Added then Insert(ThisRecord,NewSumario,length(NewSumario));
-      end;
-   end;
-SetLEngth(ListaSumario,0);
-ListaSumario := Copy(NewSumario,0,length(NewSumario));
-AddLineToDebugLog('console',EndPerformance('ReorderSumario').ToString+' ms');
 End;
 
 // adds a header at the end of headers file
@@ -1537,7 +1149,6 @@ form1.MemoDoctor.Lines.Clear;
 assignfile(FileResumen,ResumenFilename);
 if ((form1.CBBlockhash.Checked) or (form1.CBSummaryhash.Checked)) then
    reset(FileResumen);
-if form1.CBSummaryhash.Checked then Rebuildsumario(FirstB-1);
 RunningDoctor := True;
 for cont := firstB to lastB do
    begin

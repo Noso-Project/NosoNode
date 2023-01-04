@@ -1020,7 +1020,7 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  /
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
         (MySumarioHash<>NetSumarioHash.Value) and (ListaSumario[0].LastOP < mylastblock)) then
    begin  // complete or download summary
-   if (ListaSumario[0].LastOP+(2*SumMarkInterval) < mylastblock) then
+   if (SummaryLastop+(2*SumMarkInterval) < mylastblock) then
       begin
       if ((LastTimeRequestsumary+5 < UTCTime) and (not DownloadSumary) ) then
          begin

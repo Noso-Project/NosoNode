@@ -94,41 +94,6 @@ var
   MNsFileText   : String = '';
   GVTsTransfered : integer = 0;
 
-  ArrayPays : array of TBlockSumTrfr;
-
-  Function AddArrayPay(address:string;amount,score:int64):boolean;
-  var
-    counter : integer;
-    added : boolean = false;
-  Begin
-  for counter := 0 to length(ArrayPays)-1 do
-     begin
-     if ArrayPays[counter].address = address then
-        begin
-        ArrayPays[counter].amount:=ArrayPays[counter].amount+amount;
-        ArrayPays[counter].score:=ArrayPays[counter].score+score;
-        added := true;
-        break;
-        end;
-     end;
-  if not added then
-     begin
-     SetLEngth(ArrayPays,length(ArrayPays)+1);
-     ArrayPays[Length(ArrayPays)-1].address:=address;
-     ArrayPays[Length(ArrayPays)-1].amount:=amount;
-     ArrayPays[Length(ArrayPays)-1].score:=score;
-     end;
-  End;
-
-  Procedure ProcessArrPays(block:string);
-  var
-    counter : integer;
-  Begin
-  for counter := 0 to length(ArrayPays)-1 do
-     begin
-     UpdateSumario(ArrayPays[counter].address,ArrayPays[counter].amount,ArrayPays[counter].score,block);
-     end;
-  End;
 
 Begin
 BuildingBlock := Numero;
@@ -152,7 +117,6 @@ if not errored then
    FileName := BlockDirectory + IntToStr(Numero)+'.blk';
    SetLength(ListaOrdenes,0);
    SetLength(IgnoredTrxs,0);
-   SetLength(ArrayPays,0);
    // Generate summary copy
    EnterCriticalSection(CSSumary);
    trydeletefile(SumarioFilename+'.bak');
@@ -170,6 +134,7 @@ if not errored then
    BeginPerformance('NewBLOCK_PENDING');
    ArrayLastBlockTrxs := Default(TBlockOrdersArray);
    ArrayLastBlockTrxs := GetBlockTrxs(MyLastBlock);
+   ResetBlockRecords;
    for contador := 0 to length(pendingTXs)-1 do
       begin
       // Version 0.2.1Ga1 reverification starts
@@ -200,15 +165,10 @@ if not errored then
          end;
       if PendingTXs[contador].OrderType='CUSTOM' then
          begin
-         minerfee := minerfee+PendingTXs[contador].AmmountFee;
          OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].sender);
-         if not SetCustomAlias(OperationAddress,PendingTXs[contador].Receiver,Numero) then
+         if IsCustomizacionValid(OperationAddress,PendingTXs[contador].Receiver,numero) then
             begin
-            // CRITICAL ERROR: NO SE PUDO ASIGNAR EL ALIAS
-            end
-         else
-            begin
-            UpdateSumario(OperationAddress,Restar(PendingTXs[contador].AmmountFee),0,IntToStr(Numero));
+            minerfee := minerfee+PendingTXs[contador].AmmountFee;
             PendingTXs[contador].Block:=numero;
             PendingTXs[contador].sender:=OperationAddress;
             insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
@@ -216,35 +176,25 @@ if not errored then
          end;
       if PendingTXs[contador].OrderType='TRFR' then
          begin
-         //OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].sender);
          OperationAddress := PendingTXs[contador].Address;
-         //OperationAddress := GetAddressFromPubKey_New(PendingTXs[contador].sender);
-         // nueva adicion para que no incluya las transacciones invalidas
-         if GetAddressBalance(OperationAddress) < (PendingTXs[contador].AmmountFee+PendingTXs[contador].AmmountTrf) then continue;
-         minerfee := minerfee+PendingTXs[contador].AmmountFee;
-         // restar transferencia y comision de la direccion que envia
-         AddArrayPay(OperationAddress,Restar(PendingTXs[contador].AmmountFee+PendingTXs[contador].AmmountTrf),0);
-            //UpdateSumario(OperationAddress,Restar(PendingTXs[contador].AmmountFee+PendingTXs[contador].AmmountTrf),0,IntToStr(Numero));
-         // sumar transferencia al receptor
-         AddArrayPay(PendingTXs[contador].Receiver,PendingTXs[contador].AmmountTrf,0);
-            //UpdateSumario(PendingTXs[contador].Receiver,PendingTXs[contador].AmmountTrf,0,IntToStr(Numero));
-         PendingTXs[contador].Block:=numero;
-         PendingTXs[contador].sender:=OperationAddress;
-         insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
+         if SummaryValidPay(OperationAddress,PendingTXs[contador].AmmountFee+PendingTXs[contador].AmmountTrf,numero) then
+            begin
+            minerfee := minerfee+PendingTXs[contador].AmmountFee;
+            CreditTo(PendingTXs[contador].Receiver,PendingTXs[contador].AmmountTrf,numero);
+            PendingTXs[contador].Block:=numero;
+            PendingTXs[contador].sender:=OperationAddress;
+            insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
+            end;
          end;
       if ( (PendingTXs[contador].OrderType='SNDGVT') and ( PendingTXs[contador].sender = AdminPubKey) ) then
          begin
          OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].sender);
-         if GetAddressBalance(OperationAddress) < PendingTXs[contador].AmmountFee then continue;
-         minerfee := minerfee+PendingTXs[contador].AmmountFee;
-         if ChangeGVTOwner(StrToIntDef(PendingTXs[contador].Reference,100),OperationAddress,PendingTXs[contador].Receiver)>0 then
+         if not GetAddressBalanceIndexed(OperationAddress)< PendingTXs[contador].AmmountFee then continue;
+         if ChangeGVTOwner(StrToIntDef(PendingTXs[contador].Reference,100),OperationAddress,PendingTXs[contador].Receiver)=0 then
             begin
-            // Change GVT ownerfailed
-            end
-         else
-            begin
+            minerfee := minerfee+PendingTXs[contador].AmmountFee;
             Inc(GVTsTransfered);
-            UpdateSumario(OperationAddress,Restar(PendingTXs[contador].AmmountFee),0,IntToStr(Numero));
+            SummaryValidPay(OperationAddress,PendingTXs[contador].AmmountFee,numero);
             PendingTXs[contador].Block:=numero;
             PendingTXs[contador].sender:=OperationAddress;
             insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
@@ -256,10 +206,12 @@ if not errored then
       begin
       DevsTotalReward := ((GetBlockReward(Numero)+MinerFee)*GetDevPercentage(Numero)) div 10000;
       DevORder := CreateDevPaymentOrder(numero,TimeStamp,DevsTotalReward);
-      UpdateSumario('NpryectdevepmentfundsGE',DevsTotalReward,0,IntToStr(Numero));
+      CreditTo('NpryectdevepmentfundsGE',DevsTotalReward,numero);
       insert(DevORder,ListaOrdenes,length(listaordenes));
       end;
+   {
    ProcessArrPays(IntToStr(Numero));
+   }
    if GVTsTransfered>0 then
       begin
       SaveGVTs;
@@ -305,7 +257,7 @@ if not errored then
          PosTotalReward := PoSCount * PosReward;
          //pay POS
          for contador := 0 to length(PoSAddressess)-1 do
-            UpdateSumario(PoSAddressess[contador].address,PosReward,0,IntToStr(Numero));
+            CreditTo(PoSAddressess[contador].address,PosReward,numero);
          end;
       end;
    EndPerformance('NewBLOCK_PoS');
@@ -341,7 +293,7 @@ if not errored then
       MNsTotalReward := MNsCount * MNsReward;
       For contador := 0 to length(MNsAddressess)-1 do
          begin
-         UpdateSumario(MNsAddressess[contador].address,MNsReward,0,IntToStr(Numero));
+         CreditTo(MNsAddressess[contador].address,MNsReward,numero);
          end;
       EndPerformance('NewBLOCK_MNs');
       end;// End of MNS payment procecessing
@@ -353,13 +305,17 @@ if not errored then
 
    // Pago del minero
    PoWTotalReward := (GetBlockReward(Numero)+MinerFee)-PosTotalReward-MNsTotalReward-DevsTotalReward;
-   UpdateSumario(Minero,PoWTotalReward,0,IntToStr(numero));
+   CreditTo(Minero,PoWTotalReward,numero);
    // Actualizar el ultimo bloque añadido al sumario
    // Guardar el sumario
    BeginPerformance('NewBLOCK_SaveSum');
-   SaveSummaryToDisk();
+   //SaveSummaryToDisk();
+   UpdateSummaryChanges();
    S_Sumario := false;
    EndPerformance('NewBLOCK_SaveSum');
+   BeginPerformance('NewBLOCK_LoadSummaryFromDisk');
+   LoadSummaryFromDisk;
+   EndPerformance('NewBLOCK_LoadSummaryFromDisk');
    // Limpiar las pendientes
    for contador := 0 to length(ListaDirecciones)-1 do
       ListaDirecciones[contador].Pending:=0;
