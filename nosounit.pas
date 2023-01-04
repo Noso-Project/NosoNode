@@ -72,6 +72,7 @@ Procedure CreditTo(Address:String;amount,blocknumber:int64);
 Function IsCustomizacionValid(address,custom:string;blocknumber:int64):Boolean;
 Procedure UpdateSummaryChanges();
 Function GetAddressBalanceIndexed(Address:string):int64;
+Function GetAddressAlias(Address:String):string;
 
 Var
   {Overall variables}
@@ -444,6 +445,16 @@ Begin
     EXCEPT
     END;{Try}
   LeaveCriticalSection(CS_SummaryDisk);
+End;
+
+Function GetAddressAlias(Address:String):string;
+var
+  sumpos  : int64;
+  LRecord : TSummaryData;
+Begin
+  Result := '';
+  sumpos := GetIndexPosition(Address,LRecord);
+  if ((sumpos>=0) and (LRecord.Custom <> '')) then result := LRecord.Custom;
 End;
 
 {$ENDREGION}

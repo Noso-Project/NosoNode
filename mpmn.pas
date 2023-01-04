@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalform, mpcoin, mpgui, IdTCPClient, IdGlobal,
-  strutils, nosodebug, nosogeneral, nosocrypto, nosotime;
+  strutils, nosodebug, nosogeneral, nosocrypto, nosotime, nosounit;
 
 Type
 
@@ -472,7 +472,7 @@ if GetMNsListLength>0 then
            (ThisNode.First>MyLastBlock) or
            (ThisNode.Last>MyLastBlock) or
            (ThisNode.Total<>0) or
-           (GetAddressBalance(ThisNode.Fund) < GetStackRequired(MyLastBlock+1)) or
+           (GetAddressBalanceIndexed(ThisNode.Fund) < GetStackRequired(MyLastBlock+1)) or
            (ThisNode.Validations<>0) ) then
               begin
               Result := false;

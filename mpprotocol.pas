@@ -806,7 +806,7 @@ OrderInfo := GetOrderFromString(TextLine);
 Address := GetAddressFromPublicKey(OrderInfo.sender);
 if address <> OrderInfo.Address then ErrorCode := 1;
 // La direccion no dispone de fondos
-if GetAddressBalance(Address)-GetAddressPendingPays(Address) < Customizationfee then ErrorCode:=2;
+if GetAddressBalanceIndexed(Address)-GetAddressPendingPays(Address) < Customizationfee then ErrorCode:=2;
 if TranxAlreadyPending(OrderInfo.TrfrID ) then ErrorCode:=3;
 if OrderInfo.TimeStamp < LastBlockData.TimeStart then ErrorCode:=4;
 if TrxExistsInLastBlock(OrderInfo.TrfrID) then ErrorCode:=5;
@@ -832,7 +832,7 @@ End;
 function ValidateTrfr(order:Torderdata;Origen:String):integer;
 Begin
 Result := 0;
-if GetAddressBalance(Origen)-GetAddressPendingPays(Origen) < Order.AmmountFee+order.AmmountTrf then
+if GetAddressBalanceIndexed(Origen)-GetAddressPendingPays(Origen) < Order.AmmountFee+order.AmmountTrf then
    result:=1
 else if TranxAlreadyPending(order.TrfrID ) then
    result:=2
@@ -1014,7 +1014,7 @@ OrderInfo := GetOrderFromString(TextLine);
 Address := GetAddressFromPublicKey(OrderInfo.sender);
 if address <> OrderInfo.Address then ErrorCode := 1;
 // La direccion no dispone de fondos
-if GetAddressBalance(Address)-GetAddressPendingPays(Address) < Customizationfee then ErrorCode:=2;
+if GetAddressBalanceIndexed(Address)-GetAddressPendingPays(Address) < Customizationfee then ErrorCode:=2;
 if TranxAlreadyPending(OrderInfo.TrfrID ) then ErrorCode:=3;
 if OrderInfo.TimeStamp < LastBlockData.TimeStart then ErrorCode:=4;
 if TrxExistsInLastBlock(OrderInfo.TrfrID) then ErrorCode:=5;

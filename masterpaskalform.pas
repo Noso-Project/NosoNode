@@ -2733,7 +2733,7 @@ Begin
 Address := DireccionesPanel.Cells[0,DireccionesPanel.Row];
 if not IsValidHashAddress(address) then info('Address already customized')
 else if AddressAlreadyCustomized(address) then info('Address already customized')
-else if GetAddressBalance(Address)-GetAddressPendingPays(address)< Customizationfee then info('Insufficient funds')
+else if GetAddressBalanceIndexed(Address)-GetAddressPendingPays(address)< Customizationfee then info('Insufficient funds')
 else
    begin
    DireccionesPanel.Enabled:=false;
@@ -3460,7 +3460,7 @@ if DireccionEsMia(LabeledEdit9.Text) < 0 then
    info(rs0081); // Invalid sign address
    exit;
    end;
-if GetAddressBalance(LabeledEdit8.Text) < GetStackRequired(MylastBlock) then
+if GetAddressBalanceIndexed(LabeledEdit8.Text) < GetStackRequired(MylastBlock) then
    begin
    info(rs0082); // Funds address do not owns enough coins
    exit;

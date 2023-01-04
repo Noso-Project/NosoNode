@@ -9,7 +9,6 @@ uses
   nosocrypto, nosounit;
 
 function GetAddressAvailable(address:string):int64;
-function GetAddressBalance(address:string):int64;
 function GetAddressPendingPays(Address:string):int64;
 function GetAddressIncomingpays(Address:string):int64;
 function TranxAlreadyPending(TrxHash:string):boolean;
@@ -45,26 +44,7 @@ Uses
 
 function GetAddressAvailable(address:string):int64;
 Begin
-result := GetAddressBalance(address)-GetAddressPendingPays(address);
-End;
-
-// Devuelve el saldo en sumario de una direccion/alias
-function GetAddressBalance(address:string):int64;
-var
-  cont : integer;
-Begin
-BeginPerformance('GetAddressBalance');
-Result := 0;
-if address = '' then exit;
-for cont := 0 to length(ListaSumario)-1 do
-   begin
-   if ((address = ListaSumario[cont].Hash) or (address = ListaSumario[cont].Custom)) then
-      begin
-      result := ListaSumario[cont].Balance;
-      break;
-      end;
-   end;
-EndPerformance('GetAddressBalance');
+result := GetAddressBalanceIndexed(address)-GetAddressPendingPays(address);
 End;
 
 // Devuelve el saldo que una direccion ya tiene comprometido en pendientes

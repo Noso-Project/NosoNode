@@ -425,7 +425,7 @@ if NosoPParams <> '' then
          end
       else
          begin
-         Balance := GetAddressBalance(ThisAddress);
+         Balance := GetAddressBalanceIndexed(ThisAddress);
          incoming := GetAddressIncomingpays(ThisAddress);
          outgoing := GetAddressPendingPays(ThisAddress);
          addalias := ListaSumario[sumposition].custom;
