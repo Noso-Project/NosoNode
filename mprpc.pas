@@ -409,13 +409,16 @@ var
   addalias : string = '';
   sumposition : integer;
   valid : string;
+  LRecord : TSummaryData;
 Begin
 result := '';
 if NosoPParams <> '' then
    begin
    Repeat
    ThisAddress := parameter(NosoPParams,counter);
-   sumposition := AddressSumaryIndex(ThisAddress);
+   if IsValidHashAddress(ThisAddress) then sumposition := GetIndexPosition(ThisAddress,LRecord)
+   else sumposition := GetIndexPosition(ThisAddress,LRecord,true);
+   ThisAddress := LRecord.Hash;
    if ThisAddress <>'' then
       begin
       if sumposition<0 then
@@ -428,9 +431,8 @@ if NosoPParams <> '' then
          Balance := GetAddressBalanceIndexed(ThisAddress);
          incoming := GetAddressIncomingpays(ThisAddress);
          outgoing := GetAddressPendingPays(ThisAddress);
-         addalias := ListaSumario[sumposition].custom;
+         addalias := LRecord.Custom;
          if addalias = '' then addalias := 'null';
-         thisaddress := ListaSumario[sumposition].Hash;
          valid := 'true';
          end;
       result := result+format('balance'#127'%s'#127'%s'#127'%s'#127'%d'#127'%d'#127'%d ',[valid,ThisAddress,addalias,balance,incoming,outgoing]);

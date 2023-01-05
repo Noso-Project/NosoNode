@@ -19,7 +19,6 @@ Procedure VerifyIfPendingIsMine(order:Torderdata);
 function AddressAlreadyCustomized(address:string):boolean;
 Function GVTAlreadyTransfered(NumberStr:String):boolean;
 function AliasAlreadyExists(Addalias:string):boolean;
-function AddressSumaryIndex(Address:string):integer;
 //function GetFee(monto:int64):Int64;
 Function SendFundsFromAddress(Origen, Destino:String; monto, comision:int64; reference,
   ordertime:String;linea:integer):TOrderData;
@@ -32,10 +31,6 @@ function ValidRPCHost(hoststr:string):boolean;
 function PendingRawInfo():String;
 Function GetPendingCount():integer;
 Procedure ClearAllPending();
-//Function GetDevPercentage(block:integer):integer;
-//Function GetPoSPercentage(block:integer):integer;
-//Function GetMNsPercentage(block:integer):integer;
-//Function GetStackRequired(block:integer):int64;
 
 implementation
 
@@ -177,22 +172,16 @@ if not TranxAlreadyPending(order.TrfrID) then
 EndPerformance('AddPendingTxs');
 End;
 
-// Verifica si la direccion enviada esta en la cartera del usuario
+// Verify if address in on local wallet
 function DireccionEsMia(direccion:string):integer;
 var
   contador : integer = 0;
 Begin
 Result := -1;
 if ((direccion ='') or (length(direccion)<5)) then exit;
-for contador := 0 to length(Listadirecciones)-1 do
-   begin
+for contador := 0 to high(Listadirecciones) do
    if ((ListaDirecciones[contador].Hash = direccion) or (ListaDirecciones[contador].Custom = direccion )) then
-      begin
-      result := contador;
-      break;
-      end;
-   end;
-if ( (not IsValidHashAddress(direccion)) and (AddressSumaryIndex(direccion)<0) ) then result := -1;
+      Exit(contador);
 End;
 
 // Verifica si una orden especifica es del usuario
@@ -223,25 +212,10 @@ var
   cont : integer;
 Begin
 Result := false;
-for cont := 0 to length(ListaSumario) -1 do
-   begin
-   if ((ListaSumario[cont].Hash = Address) and (ListaSumario[cont].Custom <> '')) then
-      begin
-      result := true;
-      break;
-      end;
-   end;
-if result = false then
-   begin
-   for cont := 0 to GetPendingCount-1 do
-      begin
-      if ((PendingTxs[cont].Address=address) and (PendingTxs[cont].OrderType = 'CUSTOM')) then
-         begin
-         result := true;
-         break;
-         end;
-      end;
-   end;
+if GetAddressAlias(address) <> '' then Exit(True);
+for cont := 0 to GetPendingCount-1 do
+   if ((PendingTxs[cont].Address=address) and (PendingTxs[cont].OrderType = 'CUSTOM')) then
+      exit(true);
 End;
 
 Function GVTAlreadyTransfered(NumberStr:String):boolean;
@@ -270,46 +244,13 @@ End;
 function AliasAlreadyExists(Addalias:string):boolean;
 var
   cont : integer;
+  LRecord : TSummaryData;
 Begin
 Result := false;
-for cont := 0 to length(ListaSumario) -1 do
-   begin
-   if (ListaSumario[cont].custom = Addalias)  then
-      begin
-      result := true;
-      break;
-      end;
-   end;
-if not result then
-   begin
-   for cont := 0 to GetPendingCount-1 do
-      begin
-      if ((PendingTxs[cont].OrderType='CUSTOM') and (PendingTxs[cont].Receiver = Addalias)) then
-         begin
-         result := true;
-         break;
-         end;
-      end;
-   end;
-End;
-
-// Devuelve el indice de la direccion o alias en el sumario, o -1 si no existe
-function AddressSumaryIndex(Address:string):integer;
-var
-  cont : integer = 0;
-Begin
-result := -1;
-if ((address <> '') and (length(ListaSumario) > 0)) then
-   begin
-   for cont := 0 to length(ListaSumario)-1 do
-      begin
-      if ((listasumario[cont].Hash=address) or (Listasumario[cont].Custom=address)) then
-         begin
-         result:= cont;
-         break;
-         end;
-      end;
-   end;
+if GetIndexPosition(AddAlias,LRecord,True) >= 0 then Exit(True);
+for cont := 0 to GetPendingCount-1 do
+   if ((PendingTxs[cont].OrderType='CUSTOM') and (PendingTxs[cont].Receiver = Addalias)) then
+      Exit(True);
 End;
 
 // Devuelve la comision por un monto
@@ -517,43 +458,6 @@ EnterCriticalSection(CSPending);
 SetLength(PendingTXs,0);
 LeaveCriticalSection(CSPending);
 End;
-
-Function GetDevPercentage(block:integer):integer;
-Begin
-result := 0;
-if block >= PoSBlockEnd then result := 1000;
-End;
-
-// Returns the PoS percentage for the specified block (0 to 10000)
-Function GetPoSPercentage(block:integer):integer;
-Begin
-result := 0;
-if ((block > 8424) and (block < 40000)) then result := PoSPercentage; // 1000
-if block >= 40000 then
-   begin
-   result := PoSPercentage + (((block-39000) div 1000) * 100);
-   if result > 2000 then result := 2000;
-   end;
-if block >= PoSBlockEnd then result := 0;
-End;
-
-// Returns the MNs percentage for the specified block (0 to 10000)
-Function GetMNsPercentage(block:integer):integer;
-Begin
-result := 0;
-if block >= MNBlockStart then
-   begin
-   result := MNsPercentage + (((block-MNBlockStart) div 4000) * 100); // MNsPercentage := 2000
-   if block >= PoSBlockEnd then Inc(Result,1000);
-   if result > 6000 then result := 6000;
-   end;
-End;
-
-Function GetStackRequired(block:integer):int64;
-Begin
-result := (GetSupply(block)*PosStackCoins) div 10000;
-End;
-
 
 END. // END UNIT
 

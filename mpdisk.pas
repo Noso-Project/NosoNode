@@ -120,7 +120,7 @@ OutText('✓ Bots file ok',false,1);
 FillNodeList;  // Fills the hardcoded seed nodes list
 
 if not Fileexists(SumarioFilename) then CreateSumario()
-else LoadSummaryFromDisk();
+else CreateSumaryIndex();
 OutText('✓ Sumary file ok',false,1);
 if not Fileexists(ResumenFilename) then CreateResumen();
 OutText('✓ Headers file ok',false,1);
@@ -622,7 +622,6 @@ if S_BotData then SaveBotData();
 if S_Wallet then GuardarWallet();
 if ( (S_Sumario) and (BuildingBlock=0) ) then
    begin
-   SaveSummaryToDisk();
    S_Sumario := false;
    end;
 if S_AdvOpt then CreateADV(true);
@@ -1420,7 +1419,7 @@ var
 Begin
 if fromblock = 0 then StartMark := ((GetMyLastUpdatedBlock div SumMarkInterval)-1)*SumMarkInterval
 else StartMark := Fromblock;
-LoadSummaryFromDisk(MarksDirectory+StartMark.ToString+'.bak');
+//LoadSummaryFromDisk(MarksDirectory+StartMark.ToString+'.bak');
 AddLineToDebugLog('console','Restoring sumary from '+StartMark.ToString);
 CompleteSumary;
 End;

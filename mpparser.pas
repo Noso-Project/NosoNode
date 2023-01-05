@@ -1249,20 +1249,33 @@ var
   onsumary, pending : int64;
   counter : integer;
   OwnedGVTs : string = '';
+  LRecord   : TSummaryData;
 Begin
 addtoshow := parameter(LineText,1);
-sumposition := AddressSumaryIndex(addtoshow);
-addhash := ListaSumario[sumposition].Hash;
+if IsValidHashAddress(addtoshow) then
+  begin
+  addhash := addtoshow;
+  addalias := GetAddressAlias(addtoshow);
+  end
+else
+  begin
+  sumposition := GetIndexPosition(AddToShow,LRecord,true);
+  if Sumposition >= 0 then
+    begin
+    addhash  := LRecord.Hash;
+    AddAlias := AddToShow;
+    end;
+  end;
 if sumposition<0 then
    AddLineToDebugLog('console','Address do not exists in sumary.')
 else
    begin
-   onsumary := GetAddressBalanceIndexed(addtoshow);
-   pending := GetAddressPendingPays(addtoshow);
-   AddLineToDebugLog('console','Address   : '+ListaSumario[sumposition].Hash+' ('+IntToStr(sumposition)+')'+slinebreak+
-                    'Alias     : '+ListaSumario[sumposition].Custom+slinebreak+
+   onsumary := GetAddressBalanceIndexed(addhash);
+   pending := GetAddressPendingPays(addhash);
+   AddLineToDebugLog('console','Address   : '+addhash+slinebreak+
+                    'Alias     : '+AddAlias+slinebreak+
                     'Sumary    : '+Int2curr(onsumary)+slinebreak+
-                    'Incoming  : '+Int2Curr(GetAddressIncomingpays(ListaSumario[sumposition].Hash))+slinebreak+
+                    'Incoming  : '+Int2Curr(GetAddressIncomingpays(AddHash))+slinebreak+
                     'Outgoing  : '+Int2curr(pending)+slinebreak+
                     'Available : '+int2curr(onsumary-pending));
    if AnsiContainsStr(GetMN_FileText,addhash) then

@@ -1018,7 +1018,7 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  /
       end;
    end
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
-        (MySumarioHash<>NetSumarioHash.Value) and (ListaSumario[0].LastOP < mylastblock)) then
+        (MySumarioHash<>NetSumarioHash.Value) and (SummaryLastop < mylastblock)) then
    begin  // complete or download summary
    if (SummaryLastop+(2*SumMarkInterval) < mylastblock) then
       begin
@@ -1034,7 +1034,7 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
    end
 // Blockchain status issues starts here
 else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
-        (MySumarioHash<>NetSumarioHash.Value) and (ListaSumario[0].LastOP = mylastblock)) then
+        (MySumarioHash<>NetSumarioHash.Value) and (SummaryLastop = mylastblock)) then
    begin
    UndoneLastBlock();
    end

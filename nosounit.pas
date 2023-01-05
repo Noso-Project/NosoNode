@@ -59,10 +59,6 @@ Type
 Function CreateProtocolOrder(BlockN:integer;OrType,sender,receiver,signature:string;TimeStamp,Amount:int64):TOrderData;
 
 {Sumary management}
-{Old system}
-Function LoadSummaryFromDisk(FileToLoad:String = ''):Boolean;
-Function SaveSummaryToDisk(FileToSave:String = ''):Boolean;
-{New system}
 Function CreateSumaryIndex():int64;
 Function SumIndexLength():int64;
 Procedure ResetBlockRecords();
@@ -81,7 +77,6 @@ Var
   {Summary related}
   SummaryFileName : string = 'NOSODATA'+DirectorySeparator+'sumary.psk';
   SummaryLastop   : int64;
-  Listasumario    : Array of TSummaryData;
 
 IMPLEMENTATION
 
@@ -126,51 +121,8 @@ var
   ThisRecord : TSummaryData;
 Begin
   Beginperformance('LoadSummaryFromDisk');
-
-  result := true;
-  if FileToLoad = '' then FileToLoad := SummaryFileName;
-  MyStream := TMemoryStream.Create;
-  TRY
-  MyStream.LoadFromFile(FileToLoad);
-  MyStream.Position := 0;
-  Setlength(Listasumario,0);
-  While MyStream.Position < MyStream.Size do
-    begin
-    MyStream.Read(ThisRecord.Hash, SizeOf(ThisRecord.Hash));
-    MyStream.Read(ThisRecord.Custom, SizeOf(ThisRecord.Custom));
-    MyStream.Read(ThisRecord.Balance, SizeOf(ThisRecord.Balance));
-    MyStream.Read(ThisRecord.Score, SizeOf(ThisRecord.Score));
-    MyStream.Read(ThisRecord.LastOP, SizeOf(ThisRecord.LastOp));
-    Insert(ThisRecord,Listasumario,length(Listasumario));
-    end;
-  EXCEPT
-    result := false;
-  END;
-  MyStream.Free;
-
-  Endperformance('LoadSummaryFromDisk');
   CreateSumaryIndex;
-End;
-
-{Save the summary array to the disk}
-Function SaveSummaryToDisk(FileToSave:String = ''):Boolean;
-var
-  MyStream   : TMemoryStream;
-  counter    : integer;
-Begin
-  result := true;
-  if FileToSave = '' then FileToSave := SummaryFileName;
-  MyStream := TMemoryStream.Create;
-  TRY
-  for counter := 0 to high(Listasumario) do
-    begin
-    MyStream.Write(Listasumario[counter],Sizeof(Listasumario[counter]));
-    end;
-  MyStream.SaveToFile(FileToSave);
-  EXCEPT
-    result := false;
-  END;
-  MyStream.Free;
+  Endperformance('LoadSummaryFromDisk');
 End;
 
 {$ENDREGION}

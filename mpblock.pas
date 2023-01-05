@@ -240,17 +240,6 @@ if not errored then
       if numero < PosBlockEnd then
          begin
          PosRequired := (GetSupply(numero)*PosStackCoins) div 10000;
-         EnterCriticalSection(CSSumary);
-         for contador := 0 to length(ListaSumario)-1 do
-            begin
-            if listasumario[contador].Balance >= PosRequired then
-               begin
-               SetLength(PoSAddressess,length(PoSAddressess)+1);
-               PoSAddressess[length(PoSAddressess)-1].address:=listasumario[contador].Hash;
-               end;
-            end;
-         ListaSumario[0].LastOP:=numero;  // Actualizar el ultimo bloque añadido al sumario
-         LeaveCriticalSection(CSSumary);
          PoScount := length(PoSAddressess);
          PosTotalReward := ((GetBlockReward(Numero)+MinerFee)*GetPoSPercentage(Numero)) div 10000;
          PosReward := PosTotalReward div PoScount;
@@ -309,13 +298,9 @@ if not errored then
    // Actualizar el ultimo bloque añadido al sumario
    // Guardar el sumario
    BeginPerformance('NewBLOCK_SaveSum');
-   //SaveSummaryToDisk();
    UpdateSummaryChanges();
    S_Sumario := false;
    EndPerformance('NewBLOCK_SaveSum');
-   BeginPerformance('NewBLOCK_LoadSummaryFromDisk');
-   LoadSummaryFromDisk;
-   EndPerformance('NewBLOCK_LoadSummaryFromDisk');
    // Limpiar las pendientes
    for contador := 0 to length(ListaDirecciones)-1 do
       ListaDirecciones[contador].Pending:=0;
@@ -659,7 +644,7 @@ EnterCriticalSection(CSSumary);
 Trydeletefile(SumarioFilename);
 Trycopyfile(SumarioFilename+'.bak',SumarioFilename);
 LeaveCriticalSection(CSSumary);
-LoadSummaryFromDisk();
+CreateSumaryIndex;
 // recover GVTs file
 EnterCriticalSection(CSGVTsArray);
 trydeletefile(GVTsFilename);

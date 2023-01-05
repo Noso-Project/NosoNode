@@ -1100,11 +1100,8 @@ if Continuar then
             if Downloaded and not errored then
                begin
                AddLineToDebugLog('console',format(rs0087,[copy(HashMD5File(SumarioFilename),1,5)])); //'Sumary file received'
-               EnterCriticalSection(CSSumary);
-               LoadSummaryFromDisk();
+               CreateSumaryIndex();
                UpdateWalletFromSumario;
-               LeaveCriticalSection(CSSumary);
-
                LastTimeRequestSumary := 0;
                UpdateMyData();
                end;
@@ -2836,11 +2833,10 @@ if EditSCDest.Text = '' then ImgSCDest.Picture.Clear
 else
    begin
    EditSCDest.Text :=StringReplace(EditSCDest.Text,' ','',[rfReplaceAll, rfIgnoreCase]);
-   if ((IsValidHashAddress(EditSCDest.Text)) or (AddressSumaryIndex(EditSCDest.Text)>=0)) then
+   if ((IsValidHashAddress(EditSCDest.Text)) or (AliasAlreadyExists(EditSCDest.Text))) then
      Form1.imagenes.GetBitmap(17,ImgSCDest.Picture.Bitmap)
    else Form1.imagenes.GetBitmap(14,ImgSCDest.Picture.Bitmap);
    end;
-
 End;
 
 // Modificar el monto a enviar
@@ -2929,7 +2925,7 @@ End;
 // enviar el dinero
 Procedure Tform1.SCBitSendOnClick(sender:TObject);
 Begin
-if ( ( ((AddressSumaryIndex(EditSCDest.Text)>=0) or (IsValidHashAddress(EditSCDest.Text))) ) and
+if ( ( ((AliasAlreadyExists(EditSCDest.Text)) or (IsValidHashAddress(EditSCDest.Text))) ) and
    (StrToInt64Def(StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase]),-1)>0) and
    (StrToInt64Def(StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase]),-1)<=GetMaximunToSend(GetWalletBalance)) ) then
    begin
