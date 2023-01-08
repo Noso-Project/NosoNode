@@ -112,21 +112,6 @@ End;
 
 {$REGION Sumary management}
 
-{$REGION Old system}
-
-{Loads the summary from file to the memory array}
-Function LoadSummaryFromDisk(FileToLoad:String = ''):Boolean;
-var
-  MyStream   : TMemoryStream;
-  ThisRecord : TSummaryData;
-Begin
-  Beginperformance('LoadSummaryFromDisk');
-  CreateSumaryIndex;
-  Endperformance('LoadSummaryFromDisk');
-End;
-
-{$ENDREGION}
-
 Function GetIndexSize(LRecords:integer):integer;
 Begin
 result := 10;
@@ -167,6 +152,20 @@ Begin
   LeaveCriticalSection(CS_SummaryDisk);
 End;
 
+{Add a pointer to the summary index}
+Procedure InsertIndexData(LRecord:TSummaryData;DiskPos:int64);
+var
+  IndexValue : int64;
+Begin
+  IndexValue := IndexFunction(LRecord.Hash,IndexLength);
+  Insert(DiskPos,SumaryIndex[IndexValue],length(SumaryIndex[IndexValue]));
+  if LRecord.Custom  <> '' then
+    begin
+    IndexValue := IndexFunction(LRecord.custom,IndexLength);
+    Insert(DiskPos,SumaryIndex[IndexValue],length(SumaryIndex[IndexValue]));
+    end;
+End;
+
 {Creates the summary index from the disk}
 Function CreateSumaryIndex():int64;
 var
@@ -187,13 +186,7 @@ Begin
     While not eof(SumFile) do
       begin
       blockread(sumfile,ThisRecord,sizeof(ThisRecord));
-      IndexPosition := IndexFunction(ThisRecord.Hash,IndexLength);
-      Insert(CurrPos,SumaryIndex[IndexPosition],length(SumaryIndex[IndexPosition]));
-      if ThisRecord.Custom  <> '' then
-        begin
-        IndexPosition := IndexFunction(ThisRecord.custom,IndexLength);
-        Insert(CurrPos,SumaryIndex[IndexPosition],length(SumaryIndex[IndexPosition]));
-        end;
+      InsertIndexData(ThisRecord,CurrPos);
       Inc(currpos);
       end;
     CloseFile(SumFile);
@@ -203,29 +196,10 @@ Begin
   SummaryLastop := ReadSumaryRecordFromDisk(0).LastOp;
 End;
 
+{Returns the ssummary index length}
 Function SumIndexLength():int64;
 Begin
   result := IndexLength;
-End;
-
-Procedure WriteSummaryRecordToDisk(index:int64;LRecord:TSummaryData);
-var
-  SumFile : File;
-Begin
-  AssignFile(SumFile,SummaryFileName);
-  EnterCriticalSection(CS_SummaryDisk);
-    TRY
-    Reset(SumFile,1);
-      TRY
-      if index<0 then index := FileSize(SumFile) div Sizeof(TSummaryData);
-      seek(Sumfile,index*(sizeof(LRecord)));
-      blockwrite(sumfile,LRecord,sizeof(LRecord));
-      EXCEPT
-      END;{Try}
-    CloseFile(SumFile);
-    EXCEPT
-    END;{Try}
-  LeaveCriticalSection(CS_SummaryDisk);
 End;
 
 {If found, returns the record}
@@ -253,6 +227,7 @@ Begin
     end;
 End;
 
+{Returns the balance of a specific address}
 Function GetAddressBalanceIndexed(Address:string):int64;
 var
   IndexPos : integer;
@@ -275,6 +250,7 @@ if length(SumaryIndex[IndexPos])>0 then
    end;
 End;
 
+{Reset the block records}
 Procedure ResetBlockRecords();
 Begin
   SetLength(BlockRecords,0);
@@ -387,7 +363,11 @@ Begin
       TRY
       For counter := 0 to high(BlockRecords) do
         begin
-        if BlockRecords[counter].DiskSlot <0 then BlockRecords[counter].DiskSlot := FileSize(SumFile) div Sizeof(TSummaryData);
+        if BlockRecords[counter].DiskSlot <0 then
+          begin
+          BlockRecords[counter].DiskSlot := FileSize(SumFile) div Sizeof(TSummaryData);
+          InsertIndexData(BlockRecords[counter].VRecord,BlockRecords[counter].DiskSlot);
+          end;
         seek(Sumfile,BlockRecords[counter].DiskSlot*(sizeof(TSummaryData)));
         blockwrite(sumfile,BlockRecords[counter].VRecord,sizeof(TSummaryData));
         end;

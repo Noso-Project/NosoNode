@@ -119,8 +119,8 @@ OutText('✓ Bots file ok',false,1);
 
 FillNodeList;  // Fills the hardcoded seed nodes list
 
-if not Fileexists(SumarioFilename) then CreateSumario()
-else CreateSumaryIndex();
+if not Fileexists(SumarioFilename) then CreateSumario();
+CreateSumaryIndex();
 OutText('✓ Sumary file ok',false,1);
 if not Fileexists(ResumenFilename) then CreateResumen();
 OutText('✓ Headers file ok',false,1);
@@ -128,7 +128,6 @@ if not FileExists(BlockDirectory+'0.blk') then CrearBloqueCero();
 
 MyLastBlock := GetMyLastUpdatedBlock;
 OutText('✓ My last block verified: '+MyLastBlock.ToString,false,1);
-//OutText('✓ Headers file build',false,1);
 
 UpdateWalletFromSumario();
 OutText('✓ Wallet updated',false,1);
