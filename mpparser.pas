@@ -85,6 +85,7 @@ Procedure DebugTest(linetext:string);
 Procedure DebugTest2(linetext:string);
 
 Procedure totallocked();
+Procedure ShowSumary();
 
 implementation
 
@@ -263,6 +264,12 @@ else if UpperCase(Command) = 'NOSOHASH' then AddLineToDebugLog('console',Nosohas
 else if UpperCase(Command) = 'PENDING' then AddLineToDebugLog('console',PendingRawInfo)
 else if UpperCase(Command) = 'HEADER' then AddLineToDebugLog('console',ShowBlockHeaders(StrToIntDef(parameter(linetext,1),-1)))
 else if UpperCase(Command) = 'HEADSIZE' then AddLineToDebugLog('console',GetHeadersSize.ToString)
+
+// New system
+
+else if UpperCase(Command) = 'SUMARY' then ShowSumary()
+else if UpperCase(Command) = 'REBUILDSUM' then RebuildSummary()
+
 
 // CONSULTING
 else if UpperCase(Command) = 'NETRATE' then AddLineToDebugLog('console','Average Mainnet hashrate: '+HashrateToShow(MainNetHashrate))
@@ -1745,6 +1752,39 @@ inc(counter);
 until thisadd = '';
 AddLineToDebugLog('console',format('Freezed %d : %s',[count,int2curr(Total)]));
 End;
+
+{ShowsSummary file info}
+Procedure ShowSumary();
+var
+  SumFile : File;
+  Readed : integer = 0;
+  ThisRecord : TSummaryData;
+  IndexPosition : int64;
+  CurrPos       : int64 = 0;
+  TotalCoins    : int64 = 0;
+  AsExpected    : string = '';
+  NegativeCount : integer = 0;
+Begin
+  AssignFile(SumFile,SummaryFileName);
+    TRY
+    Reset(SumFile,1);
+    While not eof(SumFile) do
+      begin
+      blockread(sumfile,ThisRecord,sizeof(ThisRecord));
+      if thisrecord.Balance<0 then Inc(NegativeCount);
+      inc(TotalCoins,ThisRecord.Balance);
+      Inc(currpos);
+      end;
+    CloseFile(SumFile);
+    EXCEPT
+    END;{Try}
+  if TotalCoins = GetSupply(MyLastBlock) then AsExpected := '✓'
+  else AsExpected := '✗ '+Int2curr(TotalCoins-GetSupply(MyLastBlock));
+  AddLineToDebugLog('console',Int2Curr(Totalcoins)+' '+CoinSimbol+' '+AsExpected);
+  AddLineToDebugLog('console','Negative  : '+NegativeCount.ToString);
+  AddLineToDebugLog('console','Addresses : '+currpos.ToString);
+End;
+
 
 END. // END UNIT
 

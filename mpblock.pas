@@ -96,6 +96,7 @@ var
 
 
 Begin
+if GetNosoCFGString(0) = 'STOP' then exit;
 BuildingBlock := Numero;
 BeginPerformance('BuildNewBlock');
 if ((numero>0) and (Timestamp < lastblockdata.TimeEnd)) then
@@ -151,12 +152,6 @@ if not errored then
             end;
          end;
       if ExistsInLastBlock then continue;
-      //}
-      {
-      if TrxExistsInLastBlock(PendingTXs[contador].TrfrID) then
-         continue;
-      }
-      // Version 0.2.1Ga1 reverification ends
       if PendingTXs[contador].TimeStamp+60 > TimeStamp then
          begin
          if PendingTXs[contador].TimeStamp < TimeStamp+600 then
@@ -189,7 +184,7 @@ if not errored then
       if ( (PendingTXs[contador].OrderType='SNDGVT') and ( PendingTXs[contador].sender = AdminPubKey) ) then
          begin
          OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].sender);
-         if not GetAddressBalanceIndexed(OperationAddress)< PendingTXs[contador].AmmountFee then continue;
+         if GetAddressBalanceIndexed(OperationAddress)< PendingTXs[contador].AmmountFee then continue;
          if ChangeGVTOwner(StrToIntDef(PendingTXs[contador].Reference,100),OperationAddress,PendingTXs[contador].Receiver)=0 then
             begin
             minerfee := minerfee+PendingTXs[contador].AmmountFee;
@@ -209,9 +204,6 @@ if not errored then
       CreditTo('NpryectdevepmentfundsGE',DevsTotalReward,numero);
       insert(DevORder,ListaOrdenes,length(listaordenes));
       end;
-   {
-   ProcessArrPays(IntToStr(Numero));
-   }
    if GVTsTransfered>0 then
       begin
       SaveGVTs;
@@ -292,15 +284,16 @@ if not errored then
    // Reset Order hashes received
    ClearReceivedOrdersIDs;
 
-   // Pago del minero
+   // Miner payment
    PoWTotalReward := (GetBlockReward(Numero)+MinerFee)-PosTotalReward-MNsTotalReward-DevsTotalReward;
    CreditTo(Minero,PoWTotalReward,numero);
-   // Actualizar el ultimo bloque añadido al sumario
-   // Guardar el sumario
+   // Update summary lastblock
+   CreditTo(AdminHash,0,numero);
+   // Save summary file
    BeginPerformance('NewBLOCK_SaveSum');
    UpdateSummaryChanges();
-   S_Sumario := false;
    EndPerformance('NewBLOCK_SaveSum');
+   SummaryLastop := numero;
    // Limpiar las pendientes
    for contador := 0 to length(ListaDirecciones)-1 do
       ListaDirecciones[contador].Pending:=0;
@@ -318,6 +311,7 @@ if not errored then
    BlockHeader.TargetHash:=TargetHash;
    //if protocolo = 1 then BlockHeader.Solution:= Solucion
    BlockHeader.Solution:= Solucion+' '+GetNMSData.Diff+' '+PoWTotalReward.ToString+' '+MNsTotalReward.ToString+' '+PosTotalReward.ToString;
+   if numero = 0 then BlockHeader.Solution:='';
    if numero = 0 then BlockHeader.LastBlockHash:='NOSO GENESYS BLOCK'
    else BlockHeader.LastBlockHash:=MyLastBlockHash;
    if numero<53000 then BlockHeader.NxtBlkDiff:= 0{MNsReward}//GetDiffForNextBlock(numero,BlockHeader.TimeLast20,BlockHeader.TimeTotal,BlockHeader.Difficult);
@@ -333,6 +327,7 @@ if not errored then
 
    SetNMSData('','','','','','');
    BuildNMSBlock := 0;
+   ZipSumary;
 
    SetLength(ListaOrdenes,0);
    SetLength(PoSAddressess,0);
@@ -352,8 +347,7 @@ if not errored then
    CheckForMyPending;
    if DIreccionEsMia(Minero)>-1 then showglobo('Miner','Block found!');
    U_DataPanel := true;
-   OutText(format('Block built: %d (%d ms)',[numero,EndPerformance('BuildNewBlock')]),true);  //'Block builded: '
-   //EndPerformance('BuildNewBlock');
+   OutText(format('Block built: %d (%d ms)',[numero,EndPerformance('BuildNewBlock')]),true);
    end
 else
    begin

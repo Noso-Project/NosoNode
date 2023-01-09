@@ -1,5 +1,11 @@
 unit nosounit;
 
+{
+Nosounit 1.0
+January 8th 2023
+Noso project unit to manage summary
+}
+
 {$mode ObjFPC}{$H+}
 
 INTERFACE
@@ -64,6 +70,7 @@ Function SumIndexLength():int64;
 Procedure ResetBlockRecords();
 Function GetIndexPosition(LText:String;out RecordData:TSummaryData; IsAlias:boolean = false):int64;
 Function SummaryValidPay(Address:string;amount,blocknumber:int64):boolean;
+Procedure SummaryPay(Address:string;amount,blocknumber:int64);
 Procedure CreditTo(Address:String;amount,blocknumber:int64);
 Function IsCustomizacionValid(address,custom:string;blocknumber:int64):Boolean;
 Procedure UpdateSummaryChanges();
@@ -174,7 +181,6 @@ var
   ThisRecord : TSummaryData;
   IndexPosition : int64;
   CurrPos       : int64 = 0;
-  IsRecordZero  : boolean = true;
 Begin
   beginperformance('CreateSumaryIndex');
   AssignFile(SumFile,SummaryFileName);
@@ -196,7 +202,7 @@ Begin
   SummaryLastop := ReadSumaryRecordFromDisk(0).LastOp;
 End;
 
-{Returns the ssummary index length}
+{Returns the summary index length}
 Function SumIndexLength():int64;
 Begin
   result := IndexLength;
@@ -236,16 +242,14 @@ var
 Begin
 result := 0;
 IndexPos := IndexFunction(address,length(SumaryIndex));
+If IndexPos > Length(SumaryIndex) then Exit;
 if length(SumaryIndex[IndexPos])>0 then
    begin
    for counter := 0 to high(SumaryIndex[IndexPos]) do
      begin
      ThisRecord := ReadSumaryRecordFromDisk(SumaryIndex[IndexPos][counter]);
      if Thisrecord.Hash = address then
-        begin
-        result := ThisRecord.Balance;
-        break;
-        end;
+       Exit(ThisRecord.Balance)
      end;
    end;
 End;
@@ -253,7 +257,19 @@ End;
 {Reset the block records}
 Procedure ResetBlockRecords();
 Begin
+  EnterCriticalSection(CS_BlockRecs);
   SetLength(BlockRecords,0);
+  LeaveCriticalSection(CS_BlockRecs);
+End;
+
+{Insert a block record}
+Procedure InsBlockRecord(LRecord:TSummaryData;SLot:int64);
+Begin
+  EnterCriticalSection(CS_BlockRecs);
+  SetLength(BlockRecords,Length(BlockRecords)+1);
+  BlockRecords[Length(BlockRecords)-1].DiskSlot := SLot;
+  BlockRecords[Length(BlockRecords)-1].VRecord  := LRecord;
+  LeaveCriticalSection(CS_BlockRecs);
 End;
 
 {Verify if a sender address have enough funds}
@@ -264,7 +280,9 @@ var
   ThisRecord  : TSummaryData;
 Begin
   Result := False;
-  For counter := 0 to high(BlockRecords) do
+  EnterCriticalSection(CS_BlockRecs);
+  try
+    For counter := 0 to high(BlockRecords) do
     begin
     if BlockRecords[counter].VRecord.Hash = Address then
       begin
@@ -277,6 +295,9 @@ Begin
         end;
       end;
     end;
+  finally
+    LeaveCriticalSection(CS_BlockRecs);
+  end;
   SendPos := GetIndexPosition(Address,ThisRecord);
   If SendPos < 0 then exit(false)
   else
@@ -286,40 +307,72 @@ Begin
       begin
       Dec(ThisRecord.Balance,amount);
       ThisRecord.LastOP:=Blocknumber;
-      SetLength(BlockRecords,Length(BlockRecords)+1);
-      BlockRecords[Length(BlockRecords)-1].DiskSlot := SendPos;
-      BlockRecords[Length(BlockRecords)-1].VRecord  := ThisRecord;
+      InsBlockRecord(ThisRecord,sendpos);
       Exit(true);
       end;
     end;
 End;
 
+Procedure SummaryPay(Address:string;amount,blocknumber:int64);
+var
+  counter     : integer;
+  SendPos     : int64;
+  ThisRecord  : TSummaryData;
+Begin
+  EnterCriticalSection(CS_BlockRecs);
+  try
+    For counter := 0 to high(BlockRecords) do
+    begin
+    if BlockRecords[counter].VRecord.Hash = Address then
+      begin
+      Dec(BlockRecords[counter].VRecord.Balance,amount);
+      BlockRecords[counter].VRecord.LastOP:=BlockNumber;
+      Exit;
+      end;
+    end;
+  finally
+    LeaveCriticalSection(CS_BlockRecs);
+  end;
+  SendPos := GetIndexPosition(Address,ThisRecord);
+  If SendPos < 0 then ThisRecord.Hash := address
+  else
+    begin
+    Dec(ThisRecord.Balance,amount);
+    ThisRecord.LastOP:=Blocknumber;
+    InsBlockRecord(ThisRecord,sendpos);
+    Exit;
+    end;
+End;
+
+{Set an ammount to be credited to an specific address}
 Procedure CreditTo(Address:String;amount,blocknumber:int64);
 var
   counter     : integer;
   SendPos     : int64;
   ThisRecord  : TSummaryData;
 Begin
-  For counter := 0 to high(BlockRecords) do
-    begin
-    if BlockRecords[counter].VRecord.Hash = Address then
+  EnterCriticalSection(CS_BlockRecs);
+  try
+    For counter := 0 to high(BlockRecords) do
       begin
-      Inc(BlockRecords[counter].VRecord.Balance,amount);
-      BlockRecords[counter].VRecord.LastOP:=BlockNumber;
-      Exit;
+      if BlockRecords[counter].VRecord.Hash = Address then
+        begin
+        Inc(BlockRecords[counter].VRecord.Balance,amount);
+        BlockRecords[counter].VRecord.LastOP:=BlockNumber;
+        Exit;
+        end;
       end;
-    end;
+  finally
+    LeaveCriticalSection(CS_BlockRecs);
+  end;
   SendPos := GetIndexPosition(Address,ThisRecord);
   Inc(ThisRecord.Balance,amount);
   ThisRecord.LastOP :=BlockNumber;
   if SendPos < 0 then ThisRecord.Hash   :=Address;
-    begin
-    Setlength(BlockRecords,length(BlockRecords)+1);
-    BlockRecords[length(BlockRecords)-1].DiskSlot:= SendPos;
-    BlockRecords[length(BlockRecords)-1].VRecord := ThisRecord;
-    end;
+  InsBlockRecord(ThisRecord,sendpos);
 End;
 
+{Process if an address customization is valid}
 Function IsCustomizacionValid(address,custom:string;blocknumber:int64):Boolean;
 var
   counter     : integer;
@@ -327,29 +380,34 @@ var
   ThisRecord  : TSummaryData;
 Begin
   Result := False;
-  For counter := 0 to high(BlockRecords) do
-    begin
-    if BlockRecords[counter].VRecord.Hash=Address then
+  EnterCriticalSection(CS_BlockRecs);
+  try
+    For counter := 0 to high(BlockRecords) do
       begin
-      if BlockRecords[counter].VRecord.Custom<> '' then exit(false);
-      if BlockRecords[counter].VRecord.Balance<25000 then Exit(false);
-      BlockRecords[counter].VRecord.Custom := Address;
-      Dec(BlockRecords[counter].VRecord.Balance,25000);
-      exit(true);
+      if BlockRecords[counter].VRecord.Hash=Address then
+        begin
+        if BlockRecords[counter].VRecord.Custom<> '' then exit(false);
+        if BlockRecords[counter].VRecord.Balance<25000 then Exit(false);
+        BlockRecords[counter].VRecord.Custom := Address;
+        Dec(BlockRecords[counter].VRecord.Balance,25000);
+        exit(true);
+        end;
       end;
-    end;
+  finally
+    LeaveCriticalSection(CS_BlockRecs);
+  end;
   SumPos := GetIndexPosition(Address,ThisRecord);
   if SumPos < 0 then Exit(False);
   if ThisRecord.Balance<25000 then Exit(false);
-  ThisRecord.Custom:=address;
+  if thisRecord.Custom<> '' then Exit(false);
+  ThisRecord.Custom:=custom;
   Dec(ThisRecord.Balance,25000);
   ThisRecord.LastOP:=BlockNumber;
-  SetLength(BlockRecords,Length(BlockRecords)+1);
-  BlockRecords[Length(BlockRecords)-1].DiskSlot := SumPos;
-  BlockRecords[Length(BlockRecords)-1].VRecord  := ThisRecord;
-  Exit(true);
+  InsBlockRecord(ThisRecord,SumPos);
+  Result := true;
 End;
 
+{Process the changes of the block to the summary on disk}
 Procedure UpdateSummaryChanges();
 var
   counter     : integer;
@@ -379,6 +437,7 @@ Begin
   LeaveCriticalSection(CS_SummaryDisk);
 End;
 
+{Returns the address alias name if exists}
 Function GetAddressAlias(Address:String):string;
 var
   sumpos  : int64;

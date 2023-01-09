@@ -638,7 +638,7 @@ CONST
   SubVersion = 'Aa7';
   OficialRelease = false;
   VersionRequired = '0.3.3Aa6';
-  BuildDate = 'December 2022';
+  BuildDate = 'January 2023';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   DefaultServerPort = 8080;
@@ -754,7 +754,6 @@ var
   FileWallet : file of WalletData;
     S_Wallet : boolean = false;
   FileSumario : file of TSummaryData;
-    S_Sumario : boolean = false;
   FileResumen : file of ResumenData;
     S_Resumen : Boolean = false;
 

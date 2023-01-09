@@ -43,6 +43,7 @@ Procedure SaveBotData();
 // sumary
 Procedure UpdateWalletFromSumario();
 Procedure CreateSumario();
+Procedure RebuildSummary();
 Procedure AddBlockToSumary(BlockNumber:integer;SaveAndUpdate:boolean = true);
 Procedure CompleteSumary();
 
@@ -619,10 +620,6 @@ Procedure SaveUpdatedFiles();
 Begin
 if S_BotData then SaveBotData();
 if S_Wallet then GuardarWallet();
-if ( (S_Sumario) and (BuildingBlock=0) ) then
-   begin
-   S_Sumario := false;
-   end;
 if S_AdvOpt then CreateADV(true);
 End;
 
@@ -747,10 +744,29 @@ Begin
       CreditTo(ADMINHash,PremineAmount,0);
       UpdateSummaryChanges;
       ResetBlockRecords;
+      SummaryLastop := 0;
       end;
    EXCEPT on E:Exception do
       AddLineToDebugLog('events',TimeToStr(now)+'Error creating summary file');
    END; {TRY}
+End;
+
+Procedure RebuildSummary();
+var
+  counter : integer;
+Begin
+CreateSumario();
+for counter := 1 to MylastBlock do
+   begin
+   AddBlockToSumary(counter,false);
+   if counter mod 500 = 0 then
+      begin
+      info('Rebuilding summary block: '+inttoStr(counter));
+      application.ProcessMessages;
+      end;
+   end;
+UpdateSummaryChanges;
+UpdateMyData();
 End;
 
 // Returns the last downloaded block
@@ -824,11 +840,6 @@ UnZipper := TUnZipper.Create;
       OutText (E.Message,false,1);
       end;
    END{Try};
-//Trydeletefile('NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator+TVer+'_'+TArch+'.zip');
-{
-{$IFDEF WINDOWS}Trycopyfile('NOSODATA/UPDATES/Noso.exe','nosonew');{$ENDIF}
-{$IFDEF UNIX}Trycopyfile('NOSODATA/UPDATES/Noso','Nosonew');{$ENDIF}
-}
 UnZipper.Free;
 End;
 
@@ -856,15 +867,18 @@ finishblock := Mylastblock;
 AddLineToDebugLog('console','Complete summary');
 for counter := StartBlock to finishblock do
    begin
-   info('Rebuilding summary block: '+inttoStr(counter));  //'Rebuilding sumary block: '
-   application.ProcessMessages;
-   EngineLastUpdate := UTCTime;
-   AddBlockToSumary(counter, false);
+   AddBlockToSumary(counter, true);
+   if counter mod 100 = 0 then
+      begin
+      info('Rebuilding summary block: '+inttoStr(counter));  //'Rebuilding sumary block: '
+      application.ProcessMessages;
+      EngineLastUpdate := UTCTime;
+      end;
    end;
 SummaryLastop := finishblock;
-S_Sumario := false;
 RebuildingSumary := false;
 UpdateMyData();
+ZipSumary;
 AddLineToDebugLog('console','Sumary completed from '+IntToStr(StartBlock)+' to '+IntToStr(finishblock));
 info('Sumary completed');
 End;
@@ -887,7 +901,7 @@ var
 Begin
 BlockHeader := Default(BlockHeaderData);
 BlockHeader := LoadBlockDataHeader(BlockNumber);
-ResetBlockRecords;
+if SaveAndUpdate then ResetBlockRecords;
 CreditTo(BlockHeader.AccountMiner,BlockHeader.Reward+BlockHeader.MinerFee,BlockNumber);
 ArrayOrders := Default(TBlockOrdersArray);
 ArrayOrders := GetBlockTrxs(BlockNumber);
@@ -900,18 +914,18 @@ for cont := 0 to length(ArrayOrders)-1 do
    if ArrayOrders[cont].OrderType='SNDGVT' then
       begin
       Inc(GVTsTrfer);
-      SummaryValidPay(ArrayOrders[cont].sender,Customizationfee,BlockNumber);
+      SummaryPay(ArrayOrders[cont].sender,Customizationfee,BlockNumber);
       ChangeGVTOwner(StrToIntDef(ArrayOrders[cont].Reference,100),ArrayOrders[cont].sender,ArrayOrders[cont].Receiver);
       end;
    if ArrayOrders[cont].OrderType='TRFR' then
       begin
-      SummaryValidPay(ArrayOrders[cont].sender,ArrayOrders[cont].AmmountFee+ArrayOrders[cont].AmmountTrf,blocknumber);
+      SummaryPay(ArrayOrders[cont].sender,ArrayOrders[cont].AmmountFee+ArrayOrders[cont].AmmountTrf,blocknumber);
       CreditTo(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,BlockNumber);
       end;
    if ArrayOrders[cont].OrderType='PROJCT' then
       begin
       CreditTo('NpryectdevepmentfundsGE',ArrayOrders[cont].AmmountTrf,BlockNumber);
-      SummaryValidPay(BlockHeader.AccountMiner,ArrayOrders[cont].AmmountTrf,blocknumber);
+      SummaryPay(BlockHeader.AccountMiner,ArrayOrders[cont].AmmountTrf,blocknumber);
       end;
    end;
 setlength(ArrayOrders,0);
@@ -923,7 +937,7 @@ if ((blocknumber >= PoSBlockStart) and (blocknumber<=PoSBlockEnd)) then
    PosCount := length(ArrayPos);
    for counterpos := 0 to PosCount-1 do
       CreditTo(ArrayPos[counterPos].address,Posreward,BlockNumber);
-   SummaryValidPay(BlockHeader.AccountMiner,PosCount*Posreward,blocknumber);
+   SummaryPay(BlockHeader.AccountMiner,PosCount*Posreward,blocknumber);
    SetLength(ArrayPos,0);
    end;
 
@@ -935,11 +949,11 @@ if blocknumber >= MNBlockStart then
    MNsCount := length(ArrayMNs);
    for counterMNs := 0 to MNsCount-1 do
       CreditTo(ArrayMNs[counterMNs].address,MNsreward,BlockNumber);
-   SummaryValidPay(BlockHeader.AccountMiner,MNsCount*MNsreward,BlockNumber);
+   SummaryPay(BlockHeader.AccountMiner,MNsCount*MNsreward,BlockNumber);
    SetLength(ArrayMNs,0);
    end;
 CreditTo(AdminHash,0,BlockNumber);
-UpdateSummaryChanges;
+if SaveAndUpdate then UpdateSummaryChanges;
 if GVTsTrfer>0 then
    begin
    SaveGVTs;
@@ -1455,7 +1469,7 @@ End;
 function AppFileName():string;
 Begin
 result := ExtractFileName(ParamStr(0));
-// For wornking path: ExtractFilePAth
+// For working path: ExtractFilePAth
 End;
 
 

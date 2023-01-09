@@ -7,6 +7,7 @@ Version 0.3.3Aa7
 - Implemented thread manager on nosodebug.
 - Optimized AppFileName.
 - Implemented nosounit.
+- Mode STOP implemented.
 
 Version 0.3.3Aa6
 
