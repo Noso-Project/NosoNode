@@ -11,7 +11,7 @@ Noso project unit to manage summary
 INTERFACE
 
 uses
-  Classes, SysUtils,
+  Classes, SysUtils, Zipper,
   nosocrypto, nosodebug;
 
 Type
@@ -65,14 +65,18 @@ Type
 Function CreateProtocolOrder(BlockN:integer;OrType,sender,receiver,signature:string;TimeStamp,Amount:int64):TOrderData;
 
 {Sumary management}
+Procedure CreateNewSummaryFile(AddBlockZero:Boolean);
+Function ZipSumary():boolean;
 Function CreateSumaryIndex():int64;
+Function GetSummaryAsMemStream(out LMs:TMemoryStream):int64;
+Function SaveSummaryToFile(Const LStream:TMemoryStream):Boolean;
 Function SumIndexLength():int64;
 Procedure ResetBlockRecords();
 Function GetIndexPosition(LText:String;out RecordData:TSummaryData; IsAlias:boolean = false):int64;
 Function SummaryValidPay(Address:string;amount,blocknumber:int64):boolean;
 Procedure SummaryPay(Address:string;amount,blocknumber:int64);
 Procedure CreditTo(Address:String;amount,blocknumber:int64);
-Function IsCustomizacionValid(address,custom:string;blocknumber:int64):Boolean;
+Function IsCustomizacionValid(address,custom:string;blocknumber:int64;forceCustom:boolean = false):Boolean;
 Procedure UpdateSummaryChanges();
 Function GetAddressBalanceIndexed(Address:string):int64;
 Function GetAddressAlias(Address:String):string;
@@ -82,13 +86,14 @@ Var
   WorkingPath     : string = '';
 
   {Summary related}
-  SummaryFileName : string = 'NOSODATA'+DirectorySeparator+'sumary.psk';
-  SummaryLastop   : int64;
+  SummaryFileName     : string = 'NOSODATA'+DirectorySeparator+'sumary.psk';
+  ZipSumaryFileName   : string = 'NOSODATA'+DirectorySeparator+'sumary.zip';
+  SummaryLastop       : int64;
 
 IMPLEMENTATION
 
 var
-  IndexLength     : int64;
+  IndexLength     : int64 = 10;
   SumaryIndex     : Array of TindexRecord;
   CS_SummaryDisk  : TRTLCriticalSection;   {Disk access to summary}
   BlockRecords    : array of TBlockRecords;
@@ -118,6 +123,80 @@ End;
 {$ENDREGION}
 
 {$REGION Sumary management}
+
+{Creates a new summary file}
+Procedure CreateNewSummaryFile(AddBlockZero:Boolean);
+var
+  lFile : file;
+Begin
+  TRY
+  assignfile(lFile,SummaryFileName);
+  Rewrite(lFile);
+  CloseFile(lFile);
+  CreateSumaryIndex;
+  if AddBlockZero then
+    begin
+    CreditTo('N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd',1030390730000,0);
+    UpdateSummaryChanges;
+    ResetBlockRecords;
+    SummaryLastop := 0;
+    end;
+  EXCEPT on E:Exception do
+  END; {TRY}
+End;
+
+{Create the zipped summary file}
+{Must be replaced with new stream compression methods}
+Function ZipSumary():boolean;
+var
+  MyZipFile: TZipper;
+  archivename: String;
+Begin
+result := false;
+MyZipFile := TZipper.Create;
+MyZipFile.FileName := ZipSumaryFileName;
+EnterCriticalSection(CS_SummaryDisk);
+   TRY
+   {$IFDEF WINDOWS}
+   archivename:= StringReplace(SummaryFileName,'\','/',[rfReplaceAll]);
+   {$ENDIF}
+   {$IFDEF UNIX}
+   archivename:= SummaryFileName;
+   {$ENDIF}
+   archivename:= StringReplace(archivename,'NOSODATA','data',[rfReplaceAll]);
+   MyZipFile.Entries.AddFileEntry(SummaryFileName, archivename);
+   MyZipFile.ZipAllFiles;
+   result := true;
+   EXCEPT ON E:Exception do
+   END{Try};
+MyZipFile.Free;
+LeaveCriticalSection(CS_SummaryDisk);
+End;
+
+Function GetSummaryAsMemStream(out LMs:TMemoryStream):int64;
+Begin
+  Result := 0;
+  EnterCriticalSection(CS_SummaryDisk);
+    TRY
+    LMs.LoadFromFile(SummaryFileName);
+    result:= LMs.Size;
+    LMs.Position:=0;
+    EXCEPT ON E:Exception do
+    END{Try};
+  LeaveCriticalSection(CS_SummaryDisk);
+End;
+
+Function SaveSummaryToFile(Const LStream:TMemoryStream):Boolean;
+Begin
+  result := false;
+  EnterCriticalSection(CS_SummaryDisk);
+    TRY
+    LStream.SaveToFile(SummaryFileName);
+    Result := true;
+    EXCEPT ON E:Exception do
+    END{Try};
+  LeaveCriticalSection(CS_SummaryDisk);
+End;
 
 Function GetIndexSize(LRecords:integer):integer;
 Begin
@@ -348,7 +427,7 @@ End;
 Procedure CreditTo(Address:String;amount,blocknumber:int64);
 var
   counter     : integer;
-  SendPos     : int64;
+  SummPos     : int64;
   ThisRecord  : TSummaryData;
 Begin
   EnterCriticalSection(CS_BlockRecs);
@@ -365,15 +444,15 @@ Begin
   finally
     LeaveCriticalSection(CS_BlockRecs);
   end;
-  SendPos := GetIndexPosition(Address,ThisRecord);
+  SummPos := GetIndexPosition(Address,ThisRecord);
   Inc(ThisRecord.Balance,amount);
   ThisRecord.LastOP :=BlockNumber;
-  if SendPos < 0 then ThisRecord.Hash   :=Address;
-  InsBlockRecord(ThisRecord,sendpos);
+  if SummPos < 0 then ThisRecord.Hash := Address;
+  InsBlockRecord(ThisRecord,SummPos);
 End;
 
 {Process if an address customization is valid}
-Function IsCustomizacionValid(address,custom:string;blocknumber:int64):Boolean;
+Function IsCustomizacionValid(address,custom:string;blocknumber:int64;forceCustom:boolean = false):Boolean;
 var
   counter     : integer;
   SumPos     : int64;
@@ -386,9 +465,9 @@ Begin
       begin
       if BlockRecords[counter].VRecord.Hash=Address then
         begin
-        if BlockRecords[counter].VRecord.Custom<> '' then exit(false);
-        if BlockRecords[counter].VRecord.Balance<25000 then Exit(false);
-        BlockRecords[counter].VRecord.Custom := Address;
+        if ((BlockRecords[counter].VRecord.Custom<> '') and (not forceCustom)) then exit(false);
+        if ((BlockRecords[counter].VRecord.Balance<25000) and (not forceCustom)) then Exit(false);
+        BlockRecords[counter].VRecord.Custom := custom;
         Dec(BlockRecords[counter].VRecord.Balance,25000);
         exit(true);
         end;
@@ -398,8 +477,8 @@ Begin
   end;
   SumPos := GetIndexPosition(Address,ThisRecord);
   if SumPos < 0 then Exit(False);
-  if ThisRecord.Balance<25000 then Exit(false);
-  if thisRecord.Custom<> '' then Exit(false);
+  if ((ThisRecord.Balance<25000) and (not forceCustom)) then Exit(false);
+  if ((thisRecord.Custom<> '') and (not forceCustom)) then Exit(false);
   ThisRecord.Custom:=custom;
   Dec(ThisRecord.Balance,25000);
   ThisRecord.LastOP:=BlockNumber;
@@ -451,6 +530,8 @@ End;
 {$ENDREGION}
 
 INITIALIZATION
+SetLength(SumaryIndex,0,0);
+SetLength(BlockRecords,0);
 InitCriticalSection(CS_SummaryDisk);
 InitCriticalSection(CS_BlockRecs);
 

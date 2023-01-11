@@ -957,7 +957,7 @@ End;
 // Actualiza mi informacion para compoartirla en la red
 Procedure UpdateMyData();
 Begin
-MySumarioHash := HashMD5File(SumarioFilename);
+MySumarioHash := HashMD5File(SummaryFileName);
 MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
 LastBlockData := LoadBlockDataHeader(MyLastBlock);
 MyResumenHash := HashMD5File(ResumenFilename);

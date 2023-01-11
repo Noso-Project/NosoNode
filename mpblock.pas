@@ -120,8 +120,8 @@ if not errored then
    SetLength(IgnoredTrxs,0);
    // Generate summary copy
    EnterCriticalSection(CSSumary);
-   trydeletefile(SumarioFilename+'.bak');
-   copyfile(SumarioFilename,SumarioFilename+'.bak');
+   trydeletefile(SummaryFileName+'.bak');
+   copyfile(SummaryFileName,SummaryFileName+'.bak');
    LeaveCriticalSection(CSSumary);
 
    // Generate GVT copy
@@ -335,7 +335,7 @@ if not errored then
    MyLastBlock := Numero;
    MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
    LastBlockData := LoadBlockDataHeader(MyLastBlock);
-   MySumarioHash := HashMD5File(SumarioFilename);
+   MySumarioHash := HashMD5File(SummaryFileName);
    MyMNsHash     := HashMD5File(MasterNodesFilename);
    // Actualizar el arvhivo de cabeceras
    AddBlchHead(Numero,MyLastBlockHash,MySumarioHash);
@@ -635,8 +635,8 @@ if MyConStatus = 3 then
    end;
 // recover summary
 EnterCriticalSection(CSSumary);
-Trydeletefile(SumarioFilename);
-Trycopyfile(SumarioFilename+'.bak',SumarioFilename);
+Trydeletefile(SummaryFileName);
+Trycopyfile(SummaryFileName+'.bak',SummaryFileName);
 LeaveCriticalSection(CSSumary);
 CreateSumaryIndex;
 // recover GVTs file

@@ -42,7 +42,6 @@ Procedure SaveBotData();
 
 // sumary
 Procedure UpdateWalletFromSumario();
-Procedure CreateSumario();
 Procedure RebuildSummary();
 Procedure AddBlockToSumary(BlockNumber:integer;SaveAndUpdate:boolean = true);
 Procedure CompleteSumary();
@@ -120,7 +119,7 @@ OutText('✓ Bots file ok',false,1);
 
 FillNodeList;  // Fills the hardcoded seed nodes list
 
-if not Fileexists(SumarioFilename) then CreateSumario();
+if not Fileexists(SummaryFileName) then CreateNewSummaryFile(FileExists(BlockDirectory+'0.blk'));
 CreateSumaryIndex();
 OutText('✓ Sumary file ok',false,1);
 if not Fileexists(ResumenFilename) then CreateResumen();
@@ -731,42 +730,29 @@ S_Wallet := true;
 U_Dirpanel := true;
 End;
 
-// Creates sumary file
-Procedure CreateSumario();
-Begin
-   TRY
-   assignfile(FileSumario,SumarioFilename);
-   Rewrite(FileSumario);
-   CloseFile(FileSumario);
-   // for cases when rebuilding sumary
-   if FileExists(BlockDirectory+'0.blk') then
-      begin
-      CreditTo(ADMINHash,PremineAmount,0);
-      UpdateSummaryChanges;
-      ResetBlockRecords;
-      SummaryLastop := 0;
-      end;
-   EXCEPT on E:Exception do
-      AddLineToDebugLog('events',TimeToStr(now)+'Error creating summary file');
-   END; {TRY}
-End;
-
 Procedure RebuildSummary();
 var
-  counter : integer;
+  counter      : integer;
+  TimeDuration : int64;
 Begin
-CreateSumario();
+BeginPerformance('RebuildSummary');
+CreateNewSummaryFile(FileExists(BlockDirectory+'0.blk'));
 for counter := 1 to MylastBlock do
    begin
    AddBlockToSumary(counter,false);
-   if counter mod 500 = 0 then
+   if counter mod 100 = 0 then
       begin
       info('Rebuilding summary block: '+inttoStr(counter));
       application.ProcessMessages;
+      UpdateSummaryChanges;
+      ResetBlockRecords;
       end;
    end;
 UpdateSummaryChanges;
 UpdateMyData();
+CreateSumaryIndex;
+TimeDuration := EndPerformance('RebuildSummary');
+AddLineToDebugLog('console',format('Sumary rebuild time: %d ms',[TimeDuration]));
 End;
 
 // Returns the last downloaded block
@@ -909,7 +895,7 @@ for cont := 0 to length(ArrayOrders)-1 do
    begin
    if ArrayOrders[cont].OrderType='CUSTOM' then
       begin
-      IsCustomizacionValid(ArrayOrders[cont].sender,ArrayOrders[cont].Receiver,BlockNumber);
+      IsCustomizacionValid(ArrayOrders[cont].sender,ArrayOrders[cont].Receiver,BlockNumber,true);
       end;
    if ArrayOrders[cont].OrderType='SNDGVT' then
       begin
@@ -1196,11 +1182,11 @@ for cont := firstB to lastB do
    if form1.CBSummaryhash.Checked then   // Check summary hash
       begin
       AddBlockToSumary(cont);
-      if HashMD5File(SumarioFilename) <> dato.SumHash then
+      if HashMD5File(SummaryFileName) <> dato.SumHash then
          begin
          //form1.MemoDoctor.Lines.Add(format(rs1001,[cont]));
-         //form1.MemoDoctor.Lines.Add(format(rs1004,[HashMD5File(SumarioFilename),dato.SumHash]));
-         Dato.SumHash:=HashMD5File(SumarioFilename);
+         //form1.MemoDoctor.Lines.Add(format(rs1004,[HashMD5File(SummaryFileName),dato.SumHash]));
+         Dato.SumHash:=HashMD5File(SummaryFileName);
          Seek(FileResumen,cont);
          write(FileResumen,dato);
          Inc(SumHashErrors);
@@ -1303,14 +1289,14 @@ for cont := 1 to lastblock do
    gridinicio.RowCount := gridinicio.RowCount-1;
    if cont = 1 then RebuildSumario(cont)
    else AddBlockToSumary(cont);
-   if HashMD5File(SumarioFilename) <> dato.SumHash then
+   if HashMD5File(SummaryFileName) <> dato.SumHash then
       begin
       errores +=1;
       if fixfiles then
          begin
          fixed +=1;
          dato.block:=cont;
-         dato.SumHash:=HashMD5File(SumarioFilename);
+         dato.SumHash:=HashMD5File(SummaryFileName);
          Seek(FileResumen,cont);
          write(FileResumen,dato);
          end
@@ -1418,8 +1404,8 @@ CloseAllforms();
 CerrarClientes();
 StopServer();
 //setlength(CriptoOpsTIPO,0);
-deletefile(SumarioFilename);
-deletefile(SumarioFilename+'.bak');
+deletefile(SummaryFileName);
+deletefile(SummaryFileName+'.bak');
 deletefile(ResumenFilename);
 if DeleteDirectory(BlockDirectory,True) then
    RemoveDir(BlockDirectory);

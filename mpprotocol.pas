@@ -25,7 +25,6 @@ function GetPingString():string;
 procedure PTC_SendPending(Slot:int64);
 Procedure PTC_SendResumen(Slot:int64);
 Procedure PTC_SendSumary(Slot:int64);
-Function ZipSumary():boolean;
 Function ZipHeaders():boolean;
 function CreateZipBlockfile(firstblock:integer):string;
 Procedure PTC_SendBlocks(Slot:integer;TextLine:String);
@@ -604,7 +603,7 @@ var
 Begin
 MemStream := TMemoryStream.Create;
 EnterCriticalSection(CSSumary);
-MemStream.LoadFromFile(SumarioFilename);
+MemStream.LoadFromFile(SummaryFileName);
 LeaveCriticalSection(CSSumary);
 if conexiones[slot].tipo='CLI' then
    begin
@@ -631,36 +630,6 @@ if conexiones[slot].tipo='SER' then
       END;{TRY}
    end;
 MemStream.Free;
-End;
-
-// Zips the sumary file
-Function ZipSumary():boolean;
-var
-  MyZipFile: TZipper;
-  archivename: String;
-Begin
-result := false;
-MyZipFile := TZipper.Create;
-MyZipFile.FileName := ZipSumaryFileName;
-EnterCriticalSection(CSSumary);
-   TRY
-   {$IFDEF WINDOWS}
-   archivename:= StringReplace(SumarioFilename,'\','/',[rfReplaceAll]);
-   {$ENDIF}
-   {$IFDEF UNIX}
-   archivename:= SumarioFilename;
-   {$ENDIF}
-   archivename:= StringReplace(archivename,'NOSODATA','data',[rfReplaceAll]);
-   MyZipFile.Entries.AddFileEntry(SumarioFilename, archivename);
-   MyZipFile.ZipAllFiles;
-   result := true;
-   EXCEPT ON E:Exception do
-      begin
-      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error zipping summary: '+E.Message);
-      end;
-   END{Try};
-MyZipFile.Free;
-LeaveCriticalSection(CSSumary);
 End;
 
 // Zips the headers file

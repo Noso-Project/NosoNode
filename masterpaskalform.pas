@@ -158,39 +158,6 @@ type
      Reward         : Int64;
      end;
 
-  {
-  OrderData = Packed Record
-     Block : integer;
-     OrderID : String[64];
-     OrderLines : Integer;
-     OrderType : String[6];
-     TimeStamp : Int64;
-     Reference : String[64];
-       TrxLine : integer;
-       sender : String[120];    // La clave publica de quien envia
-       Address : String[40];
-       Receiver : String[40];
-       AmmountFee : Int64;
-       AmmountTrf : Int64;
-       Signature : String[120];
-       TrfrID : String[64];
-     end;
-    }
-    {
-    TOrderGroup = Packed Record
-     Block      : integer;
-     TimeStamp  : Int64;
-     OrderID    : string[64];
-     OrderType  : String[6];
-     OrderLines : Integer;
-     Reference  : String[64];
-     sender     : string;
-     Receiver   : String[40];
-     AmmountFee : Int64;
-     AmmountTrf : Int64;
-     end;
-     }
-
   NetworkData = Packed Record
      Value : String[64];   // el valor almacenado
      Porcentaje : integer; // porcentaje de peers que tienen el valor
@@ -753,7 +720,6 @@ var
   LastBotClear: string = '';
   FileWallet : file of WalletData;
     S_Wallet : boolean = false;
-  FileSumario : file of TSummaryData;
   FileResumen : file of ResumenData;
     S_Resumen : Boolean = false;
 
@@ -896,7 +862,6 @@ var
 
   BotDataFilename     :string= 'NOSODATA'+DirectorySeparator+'botdata.psk';
   WalletFilename      :string= 'NOSODATA'+DirectorySeparator+'wallet.pkw';
-  SumarioFilename     :string= 'NOSODATA'+DirectorySeparator+'sumary.psk';
   BlockDirectory      :string= 'NOSODATA'+DirectorySeparator+'BLOCKS'+DirectorySeparator;
   MarksDirectory      :string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator;
   GVTMarksDirectory   :string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator+'GVTS'+DirectorySeparator;
@@ -908,7 +873,6 @@ var
   EventLogFilename    :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'eventlog.txt';
   AdvOptionsFilename  :string= 'NOSODATA'+DirectorySeparator+'advopt.txt';
   MasterNodesFilename :string= 'NOSODATA'+DirectorySeparator+'masternodes.txt';
-  ZipSumaryFileName   :string= 'NOSODATA'+DirectorySeparator+'sumary.zip';
   ZipHeadersFileName  :string= 'NOSODATA'+DirectorySeparator+'blchhead.zip';
   GVTsFilename        :string= 'NOSODATA'+DirectorySeparator+'gvts.psk';
   NosoCFGFilename     :string= 'NOSODATA'+DirectorySeparator+'nosocfg.psk';
@@ -985,6 +949,7 @@ var
   LineToSend   : string;
   LineSent     : boolean;
   KillIt       : boolean = false;
+  SavedToFile  : boolean;
 begin
 AddNewOpenThread('ReadClient '+FSlot.ToString,UTCTime);
 REPEAT
@@ -1065,10 +1030,10 @@ if Continuar then
             MemStream.Free;
             DownloadHeaders := false;
             end
+
          else if Parameter(LLine,0) = 'SUMARYFILE' then
             begin
             DownloadSumary := true;
-            AddLineToDebugLog('events',TimeToStr(now)+rs0085); //'Receiving sumary'
             AddLineToDebugLog('console',rs0085); //'Receiving sumary'
             MemStream := TMemoryStream.Create;
             CanalCliente[FSlot].ReadTimeout:=10000;
@@ -1081,24 +1046,10 @@ if Continuar then
                   downloaded := false;
                   end;
                END; {TRY}
-            if Downloaded then
+            if Downloaded then SavedToFile := SaveSummaryToFile(MemStream);
+            if Downloaded and SavedToFile then
                begin
-               Errored := false;
-               EnterCriticalSection(CSSumary);
-                  TRY
-                  MemStream.SaveToFile(SumarioFilename);
-                  Errored := False;
-                  EXCEPT on E:Exception do
-                     begin
-                     Errored := true;
-                     AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error saving sumary to file: '+E.Message);
-                     end;
-                  END; {TRY}
-               LeaveCriticalSection(CSSumary);
-               end;
-            if Downloaded and not errored then
-               begin
-               AddLineToDebugLog('console',format(rs0087,[copy(HashMD5File(SumarioFilename),1,5)])); //'Sumary file received'
+               AddLineToDebugLog('console',format(rs0087,[copy(HashMD5File(SummaryFileName),1,5)])); //'Sumary file received'
                CreateSumaryIndex();
                UpdateWalletFromSumario;
                LastTimeRequestSumary := 0;
@@ -2390,6 +2341,19 @@ if GoAhead then
                //AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0051,[E.Message]));
                end;
             END; {TRY}
+         end;
+      MemStream.Free;
+      end
+   else if parameter(LLine,4) = '$GETSUMARY' then
+      begin
+      MemStream := TMemoryStream.Create;
+      if GetSummaryAsMemStream(MemStream)>0 then
+         begin
+           TRY
+           Acontext.Connection.IOHandler.WriteLn('SUMARYFILE');
+           Acontext.connection.IOHandler.Write(MemStream,0,true);
+           EXCEPT on E:Exception do
+           END; {TRY}
          end;
       MemStream.Free;
       end

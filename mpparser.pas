@@ -1771,7 +1771,11 @@ Begin
     While not eof(SumFile) do
       begin
       blockread(sumfile,ThisRecord,sizeof(ThisRecord));
-      if thisrecord.Balance<0 then Inc(NegativeCount);
+      if thisrecord.Balance<0 then
+        begin
+        Inc(NegativeCount);
+        AddLineToDebugLog('console',Format('%s : %s',[ThisRecord.Hash,Int2curr(ThisRecord.Balance)]));
+        end;
       inc(TotalCoins,ThisRecord.Balance);
       Inc(currpos);
       end;
