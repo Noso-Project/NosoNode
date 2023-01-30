@@ -31,6 +31,7 @@ function RPC_Mainnetinfo(NosoPParams:string):string;
 function RPC_PendingOrders(NosoPParams:string):string;
 function RPC_GetPeers(NosoPParams:string):string;
 function RPC_BlockOrders(NosoPParams:string):string;
+function RPC_Blockmns(NosoPParams:string):string;
 function RPC_NewAddress(NosoPParams:string):string;
 function RPC_SendFunds(NosoPParams:string):string;
 
@@ -331,6 +332,16 @@ else if objecttype = 'blockorder' then
       end;
    resultado.Add('orders',ordersarray);
    end
+else if objecttype = 'blockmns' then
+   begin
+   resultado.Add('valid',StrToBool(parameter(mystring,1)));
+   resultado.Add('block',StrToIntDef(parameter(mystring,2),-1));
+   resultado.Add('count',StrToIntDef(parameter(mystring,3),-1));
+   resultado.Add('reward',StrToInt64Def(parameter(mystring,4),-1));
+   resultado.Add('total',StrToInt64Def(parameter(mystring,5),-1));
+   resultado.Add('addresses',parameter(mystring,6));
+   end
+
 else if objecttype = 'newaddress' then
    begin
    //resultado.Add('valid',StrToBool(parameter(mystring,1)));
@@ -389,6 +400,7 @@ else
       else if method = 'getpendingorders' then result := GetJSONResponse(RPC_PendingOrders(NosoPParams),jsonid)
       else if method = 'getpeers' then result := GetJSONResponse(RPC_GetPeers(NosoPParams),jsonid)
       else if method = 'getblockorders' then result := GetJSONResponse(RPC_BlockOrders(NosoPParams),jsonid)
+      else if method = 'getblockmns' then result := GetJSONResponse(RPC_BlockMNs(NosoPParams),jsonid)
       else if method = 'getnewaddress' then result := GetJSONResponse(RPC_NewAddress(NosoPParams),jsonid)
       else if method = 'sendfunds' then result := GetJSONResponse(RPC_SendFunds(NosoPParams),jsonid)
       else result := GetJSONErrorCode(402,-1);
@@ -606,6 +618,36 @@ else
    else result := result+'0'#127;
    trim(result);
    end;
+End;
+
+function RPC_Blockmns(NosoPParams:string):string;
+var
+  blocknumber : integer;
+  ArrayMNs : BlockArraysPos;
+  MNsReward : int64;
+  MNsCount, Totalpaid : int64;
+  counter : integer;
+  AddressesString : string = '';
+Begin
+result := '';
+blocknumber := StrToIntDef(NosoPParams,-1);
+if ((blocknumber<48010) or (blocknumber>MyLastblock)) then
+   result := 'blockmns'#127'false'#127+NosoPParams+#127'0'#127'0'#127'0'
+else
+   begin
+   ArrayMNs := GetBlockMNs(blocknumber);
+   MNsReward := StrToInt64Def(ArrayMNs[length(ArrayMNs)-1].address,0);
+   SetLength(ArrayMNs,length(ArrayMNs)-1);
+   MNSCount := length(ArrayMNs);
+   TotalPAid := MNSCount * MNsReward;
+   for counter := 0 to MNsCount-1 do
+      AddressesString := AddressesString+ArrayMNs[counter].address+' ';
+   AddressesString := Trim(AddressesString);
+   AddressesString := StringReplace(AddressesString,' ',',',[rfReplaceAll, rfIgnoreCase]);
+   result := 'blockmns'#127'true'#127+blocknumber.ToString+#127+MNSCount.ToString+#127+
+              MNsReward.ToString+#127+TotalPAid.ToString+#127+AddressesString;
+   end;
+
 End;
 
 function RPC_NewAddress(NosoPParams:string):string;

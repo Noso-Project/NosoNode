@@ -605,7 +605,7 @@ CONST
   SubVersion = 'Aa7';
   OficialRelease = false;
   VersionRequired = '0.3.3Aa6';
-  BuildDate = 'January 2023';
+  BuildDate = 'Febraury 2023';
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
   DefaultServerPort = 8080;
@@ -2071,7 +2071,7 @@ Form1.SGridSC.FocusRectVisible:=false;
 
 Form1.imagenes.GetBitMap(54,form1.ImgRotor.picture.BitMap);
 
-form1.LabAbout.Caption:=CoinName+' project'+SLINEBREAK+'Designed by bermello'+SLINEBREAK+
+form1.LabAbout.Caption:=CoinName+' project'+SLINEBREAK+'Designed by bermello (AOG-im)'+SLINEBREAK+
 'Crypto routines by Xor-el'+SLINEBREAK+
 'Version '+ProgramVersion+subVersion+SLINEBREAK+'Protocol '+IntToStr(Protocolo)+SLINEBREAK+BuildDate;
 

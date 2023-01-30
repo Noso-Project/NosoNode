@@ -121,7 +121,7 @@ if not errored then
    // Generate summary copy
    EnterCriticalSection(CSSumary);
    trydeletefile(SummaryFileName+'.bak');
-   copyfile(SummaryFileName,SummaryFileName+'.bak');
+   trycopyfile(SummaryFileName,SummaryFileName+'.bak');
    LeaveCriticalSection(CSSumary);
 
    // Generate GVT copy

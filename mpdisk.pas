@@ -124,8 +124,8 @@ CreateSumaryIndex();
 OutText('✓ Sumary file ok',false,1);
 if not Fileexists(ResumenFilename) then CreateResumen();
 OutText('✓ Headers file ok',false,1);
-if not FileExists(BlockDirectory+'0.blk') then CrearBloqueCero();
 
+if not FileExists(BlockDirectory+'0.blk') then CrearBloqueCero();
 MyLastBlock := GetMyLastUpdatedBlock;
 OutText('✓ My last block verified: '+MyLastBlock.ToString,false,1);
 

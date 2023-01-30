@@ -8,6 +8,7 @@ Version 0.3.3Aa7
 - Optimized AppFileName.
 - Implemented nosounit.
 - Mode STOP implemented.
+- (im) message added.
 
 Version 0.3.3Aa6
 
