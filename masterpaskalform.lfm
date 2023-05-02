@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 543
+  Left = 836
   Height = 560
-  Top = 124
+  Top = 96
   Width = 400
   Caption = 'Noso'
   ClientHeight = 540
@@ -318,7 +318,7 @@ object Form1: TForm1
     Height = 468
     Top = 38
     Width = 400
-    ActivePage = tabOptions
+    ActivePage = TabMonitor
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
     Font.CharSet = ANSI_CHARSET
@@ -327,7 +327,7 @@ object Form1: TForm1
     Font.Pitch = fpVariable
     Font.Quality = fqDraft
     ParentFont = False
-    TabIndex = 2
+    TabIndex = 3
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
@@ -928,7 +928,7 @@ object Form1: TForm1
         Height = 440
         Top = 0
         Width = 392
-        ActivePage = TabSheet9
+        ActivePage = Tab_Options_About
         Align = alClient
         TabIndex = 4
         TabOrder = 0
@@ -1478,7 +1478,7 @@ object Form1: TForm1
             end
           end
         end
-        object TabSheet3: TTabSheet
+        object Tab_Options_RPC: TTabSheet
           Caption = 'RPC'
           ClientHeight = 412
           ClientWidth = 384
@@ -1600,11 +1600,12 @@ object Form1: TForm1
             end
           end
         end
-        object TabSheet5: TTabSheet
+        object Tab_Options_Trade: TTabSheet
           Caption = 'Trade'
           ClientHeight = 412
           ClientWidth = 384
           Enabled = False
+          TabVisible = False
           object CheckBox7: TCheckBox
             Left = 8
             Height = 19
@@ -1663,11 +1664,11 @@ object Form1: TForm1
             TabOrder = 4
           end
         end
-        object TabSheet9: TTabSheet
+        object Tab_Options_About: TTabSheet
           Caption = 'About...'
           ClientHeight = 412
           ClientWidth = 384
-          OnResize = TabSheet9Resize
+          OnResize = Tab_Options_AboutResize
           object LabAbout: TLabel
             Left = 8
             Height = 167
@@ -2148,9 +2149,9 @@ object Form1: TForm1
         Height = 440
         Top = 0
         Width = 392
-        ActivePage = TabDoctor
+        ActivePage = TabConsensus
         Align = alClient
-        TabIndex = 5
+        TabIndex = 6
         TabOrder = 0
         object TabDebug_Log: TTabSheet
           Caption = 'Log'
@@ -2286,33 +2287,88 @@ object Form1: TForm1
           Caption = 'Processes'
           ClientHeight = 412
           ClientWidth = 384
-          object SG_OpenThreads: TStringGrid
+          object PC_Processes: TPageControl
             Left = 0
             Height = 412
             Top = 0
             Width = 384
+            ActivePage = TabFiles
             Align = alClient
-            ColCount = 2
-            FixedCols = 0
-            Font.CharSet = ANSI_CHARSET
-            Font.Height = -11
-            Font.Name = 'Consolas'
-            Font.Pitch = fpFixed
-            Font.Quality = fqDraft
-            ParentFont = False
-            RowCount = 1
-            ScrollBars = ssVertical
+            TabIndex = 1
             TabOrder = 0
-            OnResize = SG_OpenThreadsResize
-            Cells = (
-              2
-              0
-              0
-              'Thread'
-              1
-              0
-              'Age'
-            )
+            OnResize = PC_ProcessesResize
+            object TabThreads: TTabSheet
+              Caption = 'Threads'
+              ClientHeight = 384
+              ClientWidth = 376
+              object SG_OpenThreads: TStringGrid
+                Left = 0
+                Height = 384
+                Top = 0
+                Width = 376
+                Align = alClient
+                ColCount = 2
+                FixedCols = 0
+                Font.CharSet = ANSI_CHARSET
+                Font.Height = -11
+                Font.Name = 'Consolas'
+                Font.Pitch = fpFixed
+                Font.Quality = fqDraft
+                ParentFont = False
+                RowCount = 1
+                ScrollBars = ssVertical
+                TabOrder = 0
+                OnResize = SG_OpenThreadsResize
+                Cells = (
+                  2
+                  0
+                  0
+                  'Thread'
+                  1
+                  0
+                  'Age'
+                )
+              end
+            end
+            object TabFiles: TTabSheet
+              Caption = 'Files'
+              ClientHeight = 384
+              ClientWidth = 376
+              object SG_FileProcs: TStringGrid
+                Left = 0
+                Height = 384
+                Top = 0
+                Width = 376
+                Align = alClient
+                ColCount = 4
+                FixedCols = 0
+                Font.CharSet = ANSI_CHARSET
+                Font.Height = -11
+                Font.Name = 'Consolas'
+                Font.Pitch = fpFixed
+                Font.Quality = fqDraft
+                ParentFont = False
+                RowCount = 1
+                ScrollBars = ssVertical
+                TabOrder = 0
+                OnResize = SG_OpenThreadsResize
+                Cells = (
+                  4
+                  0
+                  0
+                  'Type'
+                  1
+                  0
+                  'File'
+                  2
+                  0
+                  'Peer'
+                  3
+                  0
+                  'Last'
+                )
+              end
+            end
           end
         end
         object TabNodes: TTabSheet
@@ -2326,7 +2382,13 @@ object Form1: TForm1
             Width = 384
             Align = alClient
             FixedCols = 0
+            Font.CharSet = ANSI_CHARSET
+            Font.Height = -12
+            Font.Name = 'Consolas'
+            Font.Pitch = fpFixed
+            Font.Quality = fqDraft
             Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRowSelect, goSmoothScroll]
+            ParentFont = False
             RowCount = 1
             ScrollBars = ssVertical
             TabOrder = 0
@@ -2358,6 +2420,7 @@ object Form1: TForm1
           Caption = 'Doctor'
           ClientHeight = 412
           ClientWidth = 384
+          TabVisible = False
           object PanelDoctor: TPanel
             Left = 0
             Height = 106
@@ -2461,6 +2524,87 @@ object Form1: TForm1
             ReadOnly = True
             ScrollBars = ssVertical
             TabOrder = 1
+          end
+        end
+        object TabConsensus: TTabSheet
+          Caption = 'Consensus'
+          ClientHeight = 412
+          ClientWidth = 384
+          object Label1: TLabel
+            Left = 2
+            Height = 14
+            Top = 2
+            Width = 380
+            Align = alTop
+            BorderSpacing.Left = 2
+            BorderSpacing.Top = 2
+            BorderSpacing.Right = 2
+            BorderSpacing.Bottom = 2
+            Caption = 'Last update'
+            Font.CharSet = ANSI_CHARSET
+            Font.Height = -12
+            Font.Name = 'Consolas'
+            Font.Pitch = fpFixed
+            Font.Quality = fqDraft
+            ParentColor = False
+            ParentFont = False
+          end
+          object Label16: TLabel
+            Left = 2
+            Height = 14
+            Top = 18
+            Width = 380
+            Align = alTop
+            BorderSpacing.Left = 2
+            BorderSpacing.Top = 2
+            BorderSpacing.Right = 2
+            BorderSpacing.Bottom = 2
+            Caption = 'Block'
+            Font.CharSet = ANSI_CHARSET
+            Font.Height = -12
+            Font.Name = 'Consolas'
+            Font.Pitch = fpFixed
+            Font.Quality = fqDraft
+            ParentColor = False
+            ParentFont = False
+          end
+          object Label17: TLabel
+            Left = 2
+            Height = 14
+            Top = 50
+            Width = 380
+            Align = alTop
+            BorderSpacing.Left = 2
+            BorderSpacing.Top = 2
+            BorderSpacing.Right = 2
+            BorderSpacing.Bottom = 2
+            Caption = 'Percentage'
+            Font.CharSet = ANSI_CHARSET
+            Font.Height = -12
+            Font.Name = 'Consolas'
+            Font.Pitch = fpFixed
+            Font.Quality = fqDraft
+            ParentColor = False
+            ParentFont = False
+          end
+          object Label18: TLabel
+            Left = 2
+            Height = 14
+            Top = 34
+            Width = 380
+            Align = alTop
+            BorderSpacing.Left = 2
+            BorderSpacing.Top = 2
+            BorderSpacing.Right = 2
+            BorderSpacing.Bottom = 2
+            Caption = 'Hash'
+            Font.CharSet = ANSI_CHARSET
+            Font.Height = -12
+            Font.Name = 'Consolas'
+            Font.Pitch = fpFixed
+            Font.Quality = fqDraft
+            ParentColor = False
+            ParentFont = False
           end
         end
       end

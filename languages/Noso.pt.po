@@ -193,6 +193,10 @@ msgstr "0.00000000"
 msgid "About message"
 msgstr "Sobre a mensagem"
 
+#: tform1.label1.caption
+msgid "Last update"
+msgstr ""
+
 #: tform1.label10.caption
 msgctxt "tform1.label10.caption"
 msgid "Funds address"
@@ -223,6 +227,20 @@ msgstr ""
 msgctxt "tform1.label15.caption"
 msgid "Destination"
 msgstr "Destino"
+
+#: tform1.label16.caption
+msgid "Block"
+msgstr ""
+
+#: tform1.label17.caption
+msgctxt "tform1.label17.caption"
+msgid "Percentage"
+msgstr ""
+
+#: tform1.label18.caption
+msgctxt "tform1.label18.caption"
+msgid "Hash"
+msgstr ""
 
 #: tform1.label2.caption
 msgid "Minimum connections to work"
@@ -408,6 +426,11 @@ msgstr "Horas da rede Noso"
 msgid "Addresses"
 msgstr "Endereços"
 
+#: tform1.tabconsensus.caption
+msgctxt "tform1.tabconsensus.caption"
+msgid "Consensus"
+msgstr ""
+
 #: tform1.tabconsole.caption
 msgctxt "tform1.tabconsole.caption"
 msgid "Console"
@@ -422,6 +445,11 @@ msgstr "Diário"
 #: tform1.tabdoctor.caption
 msgid "Doctor"
 msgstr "Doutor"
+
+#: tform1.tabfiles.caption
+msgctxt "tform1.tabfiles.caption"
+msgid "Files"
+msgstr ""
 
 #: tform1.tabgvts.caption
 msgctxt "tform1.tabgvts.caption"
@@ -466,27 +494,37 @@ msgctxt "tform1.tabprocesses.caption"
 msgid "Processes"
 msgstr ""
 
-#: tform1.tabsheet3.caption
-msgid "RPC"
-msgstr "RPC"
-
-#: tform1.tabsheet5.caption
-msgid "Trade"
-msgstr "Intercâmbio"
-
 #: tform1.tabsheet8.caption
 msgid "Except"
 msgstr "Exceções(Erros)"
 
-#: tform1.tabsheet9.caption
-msgctxt "tform1.tabsheet9.caption"
-msgid "About..."
-msgstr "Sobre..."
+#: tform1.tabthreads.caption
+msgctxt "tform1.tabthreads.caption"
+msgid "Threads"
+msgstr ""
 
 #: tform1.tabwallet.caption
 msgctxt "tform1.tabwallet.caption"
 msgid "Wallet"
 msgstr "Carteira"
+
+#: tform1.tab_options_about.caption
+#, fuzzy
+msgctxt "tform1.tab_options_about.caption"
+msgid "About..."
+msgstr "Sobre..."
+
+#: tform1.tab_options_rpc.caption
+#, fuzzy
+msgctxt "tform1.tab_options_rpc.caption"
+msgid "RPC"
+msgstr "RPC"
+
+#: tform1.tab_options_trade.caption
+#, fuzzy
+msgctxt "tform1.tab_options_trade.caption"
+msgid "Trade"
+msgstr "Intercâmbio"
 
 #: translation.rs0001
 #, object-pascal-format

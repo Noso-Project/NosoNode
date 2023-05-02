@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, nosotime, mpblock, mpcoin,
   dialogs, fileutil, forms, idglobal, strutils, mpRPC, DateUtils, Clipbrd,translation,
-  idContext, math, mpMN, MPSysCheck, nosodebug, nosogeneral, nosocrypto, nosounit;
+  idContext, math, mpMN, MPSysCheck, nosodebug, nosogeneral, nosocrypto, nosounit, nosoconsensus;
 
 procedure ProcessLinesAdd(const ALine: String);
 procedure OutgoingMsjsAdd(const ALine: String);
@@ -86,6 +86,10 @@ Procedure DebugTest2(linetext:string);
 
 Procedure totallocked();
 Procedure ShowSumary();
+
+// CONSENSUS
+
+Procedure ShowConsensus();
 
 implementation
 
@@ -291,6 +295,9 @@ else if UpperCase(Command) = 'DELPOOL' then RemoveCFGData(parameter(linetext,1),
 else if UpperCase(Command) = 'RESTORECFG' then RestoreCFGData()
 else if UpperCase(Command) = 'ISALLSYNCED' then AddLineToDebugLog('console',IsAllsynced.ToString)
 else if UpperCase(Command) = 'FREEZED' then Totallocked()
+
+// New CONSENSUS
+else if UpperCase(Command) = 'CONSENSUS' then ShowConsensus()
 
 // P2P
 else if UpperCase(Command) = 'PEERS' then AddLineToDebugLog('console','Server list: '+IntToStr(form1.ClientsCount)+'/'+IntToStr(GetIncomingConnections))
@@ -1321,6 +1328,10 @@ var
   PoSEarnings : int64 = 0;
   TransSL : TStringlist;
   MinedBlocksStr : string = '';
+  sumpool1    : int64 = 0;
+  sumpool2    : int64 = 0;
+  sumpool3    : int64 = 0;
+  sumpool4    : int64 = 0;
 Begin
 BlockCount := StrToIntDef(Parameter(Linetext,2),0);
 if BlockCount = 0 then BlockCount := SecurityBlocks-1;
@@ -1348,9 +1359,15 @@ for counter := MyLastBlock downto MyLastBlock- BlockCount do
          begin
          if ArrTrxs[contador2].Receiver = addtoshow then // incoming order
             begin
+            //{
+            if ArrTrxs[contador2].sender = 'N3aXz2RGwj8LAZgtgyyXNRkfQ1EMnFC' then Inc(sumpool1,ArrTrxs[contador2].AmmountTrf);
+            if ArrTrxs[contador2].sender = 'N2ophUoAzJw9LtgXbYMiB4u5jWWGJF7' then Inc(sumpool2,ArrTrxs[contador2].AmmountTrf);
+            if ArrTrxs[contador2].sender = 'N3ESwXxCAR4jw3GVHgmKiX9zx1ojWEf' then Inc(sumpool3,ArrTrxs[contador2].AmmountTrf);
+            if ArrTrxs[contador2].sender = 'N3pzgU2jpvhjW6cSJL8zW8Rzj5fJdFa' then Inc(sumpool4,ArrTrxs[contador2].AmmountTrf);
             incomingtrx += 1;
             inccoins := inccoins+ArrTrxs[contador2].AmmountTrf;
             transSL.Add(IntToStr(Counter)+'] '+ArrTrxs[contador2].sender+'<-- '+Int2curr(ArrTrxs[contador2].AmmountTrf));
+            //}
             end;
          if ArrTrxs[contador2].sender = addtoshow then // outgoing order
             begin
@@ -1401,6 +1418,12 @@ While TransSL.Count >0 do
    TransSL.Delete(0);
    end;
 TransSL.Free;
+{
+AddLineToDebugLog('console','Propool  paid : '+Int2curr(sumpool4));
+AddLineToDebugLog('console','Estripa  paid : '+Int2curr(sumpool2));
+AddLineToDebugLog('console','NosoMN   paid : '+Int2curr(sumpool1));
+AddLineToDebugLog('console','Gonefish paid : '+Int2curr(sumpool3));
+}
 End;
 
 // Shows the total fees paid in the whole blockchain
@@ -1789,6 +1812,19 @@ Begin
   AddLineToDebugLog('console','Addresses : '+currpos.ToString);
 End;
 
+Procedure ShowConsensus();
+var
+  counter : integer;
+  LText   : string;
+Begin
+  GetConsensus(GetNosoCFGString(1));
+  AddLineToDebugLog('console',Format('(%d / %d) %d %%',[Css_ReachedNodes,Css_TotalNodes,Css_Percentage]));
+  for counter := 0 to high(consensus) do
+     begin
+     LText := Format('%0:12s',[NConsensus[counter]]);
+     AddLineToDebugLog('console',Format('%0:2s %s -> %s',[Counter.ToString,LText,Consensus[counter]]));
+     end;
+End;
 
 END. // END UNIT
 

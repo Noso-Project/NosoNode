@@ -202,7 +202,7 @@
         <PackageName Value="LCL"/>
       </Item5>
     </RequiredPackages>
-    <Units Count="20">
+    <Units Count="21">
       <Unit0>
         <Filename Value="Noso.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -298,6 +298,10 @@
         <Filename Value="nosounit.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit19>
+      <Unit20>
+        <Filename Value="nosoconsensus.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit20>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

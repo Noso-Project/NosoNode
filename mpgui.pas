@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, MasterPaskalForm, nosotime, graphics, strutils, forms, controls, grids,stdctrls,
   ExtCtrls, buttons, editbtn , menus, Clipbrd, IdContext, LCLTranslator, nosodebug, nosogeneral,
-  nosocrypto;
+  nosocrypto, nosoconsensus;
 
 type
   TFormInicio = class(Tform)
@@ -281,9 +281,11 @@ Procedure ActualizarGUI();
 Const
   LocalLastUpdate     : int64 = 0;
   LastUpdateProcesses : int64 = 0;
+  LastUpdateConsensus : int64 = 0;
 var
   contador : integer = 0;
   LocalProcesses      : TProcessCopy;
+  FileProcs           : TFileMCopy;
 Begin
 //Update Monitor Grid
 if ( (form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor) and (LastUpdateMonitor<>UTCTime) ) then
@@ -312,7 +314,23 @@ if ( (form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor) and (LastUpdateMonit
 
 if LastUpdateProcesses<> UTCTime then
    begin
-   if form1.PCMonitor.ActivePage = Form1.TabProcesses then
+   if form1.PC_Processes.ActivePage = Form1.TabFiles then
+      begin
+      FileProcs := GetFileProcessCopy;
+      Form1.SG_FileProcs.RowCount:=Length(FileProcs)+1;
+      //Form1.SG_FileProcs.Cells[0,0]:=Format('Thread [%d]',[length(LocalProcesses)]);
+      For contador := 0 to High(FileProcs) do
+         begin
+         Form1.SG_FileProcs.Cells[0,contador+1]:=FileProcs[contador].FiType;
+         Form1.SG_FileProcs.Cells[1,contador+1]:=FileProcs[contador].FiFile;
+         Form1.SG_FileProcs.Cells[2,contador+1]:=FileProcs[contador].FiPeer;
+         end;
+      end;
+   end;
+
+if LastUpdateProcesses<> UTCTime then
+   begin
+   if form1.PC_Processes.ActivePage = Form1.TabThreads then
       begin
       LocalProcesses := GetProcessCopy;
       Form1.SG_OpenThreads.RowCount:=Length(LocalProcesses)+1;
@@ -323,9 +341,18 @@ if LastUpdateProcesses<> UTCTime then
          Form1.SG_OpenThreads.Cells[1,contador+1]:=TimeSinceStamp(LocalPRocesses[contador].ThStart);
          end;
       end;
-   LastUpdateProcesses := UTCTime
    end;
-
+if LastUpdateConsensus <> UTCTime then
+   begin
+   if form1.PCMonitor.ActivePage = Form1.TabConsensus then
+      begin
+      form1.Label1.Caption:= Format('Last update : %d seconds',[UTCTime-LastConsensusTime]);
+      form1.Label16.Caption:=Format('Block       : %s',[Consensus[2]]);
+      form1.Label17.Caption:=Format('Hash        : %s',[Consensus[0]]);
+      form1.Label18.Caption:=Format('Percentage  : %d %%',[Css_Percentage]);
+      end;
+   end;
+LastUpdateProcesses := UTCTime;
 if LocalLastUpdate = UTCTime then exit;
 LocalLastUpdate := UTCTime;
 

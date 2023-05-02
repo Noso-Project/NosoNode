@@ -37,7 +37,15 @@ type
     ThLast   : int64;
     end;
 
+  TFileManager = Record
+    FiType   : string;
+    FiFile   : string;
+    FiPeer   : string;
+    FiLast   : int64;
+  end;
+
   TProcessCopy = array of TCoreManager;
+  TFileMCopy   = array of TFileManager;
 
 Procedure BeginPerformance(Tag:String);
 Function EndPerformance(Tag:String):int64;
@@ -51,14 +59,20 @@ Procedure UpdateOpenThread(ThName:String;TimeStamp:int64);
 Procedure CloseOpenThread(ThName:String);
 Function GetProcessCopy():TProcessCopy;
 
+Procedure AddFileProcess(FiType, FiFile, FiPeer:String;TimeStamp:int64);
+Function CloseFileProcess(FiType, FiFile, FiPeer:String;TimeStamp:int64):int64;
+Function GetFileProcessCopy():TFileMCopy;
+
 var
   ArrPerformance : array of TPerformance;
   NosoDebug_UsePerformance : boolean = false;
-  ArrNDLogs    : Array of TLogND;
-  ArrNDCSs     : array of TRTLCriticalSection;
-  ArrNDSLs     : array of TStringList;
-  ArrProcess   : Array of TCoreManager;
-  CS_ThManager : TRTLCriticalSection;
+  ArrNDLogs      : Array of TLogND;
+  ArrNDCSs       : array of TRTLCriticalSection;
+  ArrNDSLs       : array of TStringList;
+  ArrProcess     : Array of TCoreManager;
+  CS_ThManager   : TRTLCriticalSection;
+  ArrFileMgr     : Array of TFileManager;
+  CS_FileManager : TRTLCriticalSection;
 
 IMPLEMENTATION
 
@@ -288,16 +302,67 @@ End;
 
 {$ENDREGION}
 
+{$REGION Files manager}
+
+Procedure AddFileProcess(FiType, FiFile, FiPeer:String;TimeStamp:int64);
+var
+  NewValue : TFileManager;
+Begin
+  NewValue := Default(TFileManager);
+  NewValue.FiType  := FiType;
+  NewValue.FiFile  := FiFile;
+  NewValue.FiPeer  := FiPeer;
+  NewValue.FiLast  := TimeStamp;
+  EnterCriticalSection(CS_FileManager);
+  Insert(NewValue,ArrFileMgr,Length(ArrFileMgr));
+  LeaveCriticalSection(CS_FileManager);
+End;
+
+Function CloseFileProcess(FiType, FiFile, FiPeer:String;TimeStamp:int64):int64;
+var
+  counter : integer;
+Begin
+  Result := 0;
+  EnterCriticalSection(CS_FileManager);
+  for counter := 0 to High(ArrFileMgr) do
+    begin
+    if ( (UpperCase(ArrFileMgr[counter].FiType) = UpperCase(FiType)) and
+         (UpperCase(ArrFileMgr[counter].FiFile) = UpperCase(FiFile)) and
+         (UpperCase(ArrFileMgr[counter].FiPeer) = UpperCase(FiPeer)) ) then
+      begin
+      Result := TimeStamp - ArrFileMgr[counter].FiLast;
+      Delete(ArrFileMgr,Counter,1);
+      Break;
+      end;
+    end;
+  LeaveCriticalSection(CS_FileManager);
+End;
+
+Function GetFileProcessCopy():TFileMCopy;
+Begin
+  Setlength(Result,0);
+  EnterCriticalSection(CS_FileManager);
+  Result := copy(ArrFileMgr,0,length(ArrFileMgr));
+  LeaveCriticalSection(CS_FileManager);
+End;
+
+
+{$ENDREGION}
+
+
 INITIALIZATION
   Setlength(ArrPerformance,0);
   Setlength(ArrNDLogs,0);
   Setlength(ArrNDCSs,0);
   Setlength(ArrNDSLs,0);
   Setlength(ArrProcess,0);
+  Setlength(ArrFileMgr,0);
   InitCriticalSection(CS_ThManager);
+  InitCriticalSection(CS_FileManager);
 
 FINALIZATION
   DoneCriticalSection(CS_ThManager);
+  DoneCriticalSection(CS_FileManager);
   FreeAllLogs;
 
 END. {END UNIT}

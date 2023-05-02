@@ -1,8 +1,8 @@
 UNIT nosogeneral;
 
 {
-nosogeneral 1.1
-December 15th, 2022
+nosogeneral 1.2
+December 27th, 2022
 Noso Unit for general functions
 Requires: Not dependencyes
 }
@@ -12,8 +12,10 @@ Requires: Not dependencyes
 INTERFACE
 
 uses
-  Classes, SysUtils, Process, StrUtils;
+  Classes, SysUtils, Process, StrUtils, IdTCPClient, IdGlobal, fphttpclient,
+  opensslsockets, fileutil;
 
+{Generic}
 Function Parameter(LineText:String;ParamNumber:int64;de_limit:string=' '):String;
 Function IsValidIP(IpString:String):boolean;
 Function GetSupply(block:integer):int64;
@@ -28,7 +30,20 @@ Function GetDevPercentage(block:integer):integer;
 Function GetMinimumFee(amount:int64):Int64;
 Function GetMaximunToSend(amount:int64):int64;
 
+{Network}
+Function RequestLineToPeer(host:String;port:integer;command:string):string;
+Function RequestToPeer(hostandPort,command:string):string;
+Function SendApiRequest(urltocheck:string):String;
+
+{File handling}
+function SaveTextToDisk(const aFileName: TFileName; const aText: String): Boolean;
+Function LoadTextFromDisk(const aFileName: TFileName): string;
+function TryCopyFile(Source, destination:string):boolean;
+function TryDeleteFile(filename:string):boolean;
+
 IMPLEMENTATION
+
+{$REGION Generic}
 
 {Returns a specific parameter number of text}
 Function Parameter(LineText:String;ParamNumber:int64;de_limit:string=' '):String;
@@ -105,7 +120,12 @@ Function GetSupply(block:integer):int64;
 Begin
   Result := 0;
   if block < 210000 then
-    result := (block*5000000000)+1030390730000;
+    result := (block*5000000000)+1030390730000
+  else if ((block >= 210000) and (block < 420000)) then
+    begin
+    Inc(result,(209999*5000000000)+1030390730000);
+    Inc(result,(block-209999)*5000000000);
+    end;
 End;
 
 {Convert any positive integer in negative}
@@ -164,6 +184,7 @@ End;
 Function GetStackRequired(block:integer):int64;
 Begin
   result := (GetSupply(block)*20) div 10000;
+  if result > 1100000000000 then result := 1100000000000;
 End;
 
 {Returns the MNs percentage for the specified block (0 to 10000)}
@@ -222,6 +243,122 @@ Begin
   Diferencia := amount-envio;
   result     := maximo+diferencia;
 End;
+
+{$ENDREGION}
+
+{$REGION Network}
+
+Function RequestLineToPeer(host:String;port:integer;command:string):string;
+var
+  Client   : TidTCPClient;
+Begin
+  Result := '';
+  Client := TidTCPClient.Create(nil);
+  Client.Host:=host;
+  Client.Port:=Port;
+  Client.ConnectTimeout:= 1000;
+  Client.ReadTimeout:=1000;
+  TRY
+  Client.Connect;
+  Client.IOHandler.WriteLn(Command);
+  client.IOHandler.MaxLineLength:=Maxint;
+  Result := Client.IOHandler.ReadLn();
+  EXCEPT on E:Exception do
+
+  END;{Try}
+  if client.Connected then Client.Disconnect();
+  client.Free;
+End;
+
+Function RequestToPeer(hostandPort,command:string):string;
+var
+  Client   : TidTCPClient;
+Begin
+  Result := '';
+  Client := TidTCPClient.Create(nil);
+  Client.Host:=Parameter(hostandPort,0);
+  Client.Port:=StrToIntDef(Parameter(hostandPort,1),8080);
+  Client.ConnectTimeout:= 1000;
+  Client.ReadTimeout:=1000;
+  TRY
+  Client.Connect;
+  Client.IOHandler.WriteLn(Command);
+  client.IOHandler.MaxLineLength:=Maxint;
+  Result := Client.IOHandler.ReadLn();
+  EXCEPT on E:Exception do
+
+  END;{Try}
+  if client.Connected then Client.Disconnect();
+  client.Free;
+End;
+
+Function SendApiRequest(urltocheck:string):String;
+var
+  Conector : TFPHttpClient;
+Begin
+  Result := '';
+  Conector := TFPHttpClient.Create(nil);
+  conector.ConnectTimeout:=3000;
+  conector.IOTimeout:=3000;
+    TRY
+    result := Trim(Conector.SimpleGet(urltocheck));
+    EXCEPT on E: Exception do
+
+    END;//TRY
+Conector.Free;
+End;
+
+{$ENDREGION}
+
+{$REGION File handling}
+
+Function SaveTextToDisk(const aFileName: TFileName; const aText: String): Boolean;
+var
+  LStream: TStringStream;
+Begin
+  Result := true;
+  LStream := TStringStream.Create(aText);
+    TRY
+    LStream.SaveToFile(aFileName);
+    EXCEPT
+    result := false;
+    END;{Try}
+  LStream.Free;
+End;
+
+Function LoadTextFromDisk(const aFileName: TFileName): string;
+var
+  LStream: TStringStream;
+Begin
+  Result := '';
+  LStream := TStringStream.Create;
+    TRY
+    LStream.LoadFromFile(aFileName);
+    Result := LStream.DataString;
+    EXCEPT
+    result := '';
+    END;{Try}
+  LStream.Free;
+End;
+
+function TryCopyFile(Source, destination:string):boolean;
+Begin
+  result := true;
+    TRY
+    copyfile (source,destination,[cffOverwriteFile],true);
+    EXCEPT on E:Exception do
+      result := false;
+    END; {TRY}
+End;
+
+{Try to delete a file safely}
+function TryDeleteFile(filename:string):boolean;
+Begin
+  result := deletefile(filename);
+End;
+
+
+{$ENDREGION}
 
 
 END.{UNIT}

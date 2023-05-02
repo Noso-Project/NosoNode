@@ -142,6 +142,7 @@ Begin
     SummaryLastop := 0;
     end;
   EXCEPT on E:Exception do
+
   END; {TRY}
 End;
 

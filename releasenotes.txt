@@ -1,4 +1,4 @@
-Version 0.3.3Aa7
+Version 0.4.0Aa1
 
 - Improved orderID creation time.
 - Completed nosocrypto implementation.
@@ -9,6 +9,8 @@ Version 0.3.3Aa7
 - Implemented nosounit.
 - Mode STOP implemented.
 - (im) message added.
+- Consensus TAB added.
+- New consensus system.
 
 Version 0.3.3Aa6
 

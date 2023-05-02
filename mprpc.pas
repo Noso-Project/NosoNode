@@ -419,7 +419,7 @@ var
   counter : integer = 0;
   Balance, incoming, outgoing : int64;
   addalias : string = '';
-  sumposition : integer;
+  sumposition  : integer = 0;
   valid : string;
   LRecord : TSummaryData;
 Begin
@@ -428,26 +428,32 @@ if NosoPParams <> '' then
    begin
    Repeat
    ThisAddress := parameter(NosoPParams,counter);
-   if IsValidHashAddress(ThisAddress) then sumposition := GetIndexPosition(ThisAddress,LRecord)
-   else sumposition := GetIndexPosition(ThisAddress,LRecord,true);
-   ThisAddress := LRecord.Hash;
-   if ThisAddress <>'' then
+   if ThisAddress<> '' then
       begin
-      if sumposition<0 then
-         begin
-         balance :=-1;incoming := -1;outgoing := -1;
-         addalias := 'null'; valid := 'false';
-         end
+      if IsValidHashAddress(ThisAddress) then sumposition := GetIndexPosition(ThisAddress,LRecord)
       else
          begin
-         Balance := GetAddressBalanceIndexed(ThisAddress);
-         incoming := GetAddressIncomingpays(ThisAddress);
-         outgoing := GetAddressPendingPays(ThisAddress);
-         addalias := LRecord.Custom;
-         if addalias = '' then addalias := 'null';
-         valid := 'true';
+         sumposition := GetIndexPosition(ThisAddress,LRecord,true);
+         ThisAddress := LRecord.Hash;
          end;
-      result := result+format('balance'#127'%s'#127'%s'#127'%s'#127'%d'#127'%d'#127'%d ',[valid,ThisAddress,addalias,balance,incoming,outgoing]);
+      if ThisAddress <>'' then
+         begin
+         if sumposition<0 then
+            begin
+            balance :=-1;incoming := -1;outgoing := -1;
+            addalias := 'null'; valid := 'false';
+            end
+         else
+            begin
+            Balance := GetAddressBalanceIndexed(ThisAddress);
+            incoming := GetAddressIncomingpays(ThisAddress);
+            outgoing := GetAddressPendingPays(ThisAddress);
+            addalias := LRecord.Custom;
+            if addalias = '' then addalias := 'null';
+            valid := 'true';
+            end;
+         result := result+format('balance'#127'%s'#127'%s'#127'%s'#127'%d'#127'%d'#127'%d ',[valid,ThisAddress,addalias,balance,incoming,outgoing]);
+         end;
       end;
    counter+=1;
    until ThisAddress = '';

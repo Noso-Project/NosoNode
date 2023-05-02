@@ -10,7 +10,7 @@ uses
   fileutil, Clipbrd, Menus, formexplore, lclintf, ComCtrls, Spin,
   strutils, math, IdHTTPServer, IdCustomHTTPServer,
   IdHTTP, fpJSON, Types, DefaultTranslator, LCLTranslator, translation, nosodebug,
-  ubarcodes, IdComponent,nosogeneral,nosocrypto, nosounit;
+  ubarcodes, IdComponent,nosogeneral,nosocrypto, nosounit, nosoconsensus;
 
 type
 
@@ -273,8 +273,12 @@ type
     CBRunNodeAlone: TCheckBox;
     ComboBoxLang: TComboBox;
     Edit2: TEdit;
+    Label1: TLabel;
     Label14: TLabel;
     Label15: TLabel;
+    Label16: TLabel;
+    Label17: TLabel;
+    Label18: TLabel;
     LabelNodesHash: TLabel;
     LabelDoctor: TLabel;
     LE_Rpc_Pass: TEdit;
@@ -291,6 +295,7 @@ type
     LabeledEdit5: TEdit;
     Label7: TLabel;
     MemoDoctor: TMemo;
+    PC_Processes: TPageControl;
     Panel10: TPanel;
     Panel11: TPanel;
     Panel12: TPanel;
@@ -312,6 +317,7 @@ type
     PanelQRImg: TPanel;
     SCBitSend1: TBitBtn;
     SG_OpenThreads: TStringGrid;
+    SG_FileProcs: TStringGrid;
     SpeedButton2: TSpeedButton;
     SpeedButton3: TSpeedButton;
     SpinDoctor1: TSpinEdit;
@@ -325,6 +331,9 @@ type
     GVTsGrid: TStringGrid;
     TabDoctor: TTabSheet;
     TabGVTs: TTabSheet;
+    TabConsensus: TTabSheet;
+    TabThreads: TTabSheet;
+    TabFiles: TTabSheet;
     TextQRcode: TStaticText;
     StaTimeLab: TLabel;
     SCBitSend: TBitBtn;
@@ -431,13 +440,13 @@ type
     TabOpt_Wallet: TTabSheet;
     TabProcesses: TTabSheet;
     TabNodeOptions: TTabSheet;
-    TabSheet3: TTabSheet;
-    TabSheet5: TTabSheet;
+    Tab_Options_RPC: TTabSheet;
+    Tab_Options_Trade: TTabSheet;
     TabMonitor: TTabSheet;
     TabDebug_Log: TTabSheet;
     TabSheet8: TTabSheet;
     TabMonitorMonitor: TTabSheet;
-    TabSheet9: TTabSheet;
+    Tab_Options_About: TTabSheet;
     TabWallet: TTabSheet;
     TabConsole: TTabSheet;
 
@@ -475,6 +484,7 @@ type
     procedure FormShow(sender: TObject);
     Procedure InicoTimerEjecutar(sender: TObject);
     procedure MemoRPCWhitelistEditingDone(sender: TObject);
+    procedure PC_ProcessesResize(Sender: TObject);
     Procedure RestartTimerEjecutar(sender: TObject);
     Procedure EjecutarInicio();
     Procedure ConsoleLineKeyup(sender: TObject; var Key: Word; Shift: TShiftState);
@@ -490,7 +500,7 @@ type
     procedure SpeedButton3Click(sender: TObject);
     procedure StaConLabDblClick(sender: TObject);
     procedure TabNodeOptionsShow(sender: TObject);
-    procedure TabSheet9Resize(sender: TObject);
+    procedure Tab_Options_AboutResize(sender: TObject);
     Procedure TryCloseServerConnection(AContext: TIdContext; closemsg:string='');
     procedure IdTCPServer1Execute(AContext: TIdContext);
     procedure IdTCPServer1Connect(AContext: TIdContext);
@@ -593,7 +603,7 @@ CONST
                             {4}'nosofish.xyz;8082:nosopool.estripa.online;8082:pool.nosomn.com;8082:159.196.1.198;8082: '+
                             {5}'NpryectdevepmentfundsGE:';
 
-  ProgramVersion = '0.3.3';
+  ProgramVersion = '0.4.0';
   {$IFDEF WINDOWS}
   RestartFileName = 'launcher.bat';
   updateextension = 'zip';
@@ -602,12 +612,15 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa7';
+  SubVersion = 'Aa1';
   OficialRelease = false;
   VersionRequired = '0.3.3Aa6';
-  BuildDate = 'Febraury 2023';
+  BuildDate = 'April 2023';
+  {Developer addresses}
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
+  Authorizedaddresses = 'N4HgivS84xzgG6uPAnhQprLVsfry6GM N4GvsJ7SjBw6Ls8XNk6gELpXoLTt5Dv';
+
   DefaultServerPort = 8080;
   MaxConecciones  = 99;
   Protocolo = 2;
@@ -869,6 +882,7 @@ var
   LogsDirectory       :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator;
   ExceptLogFilename   :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'exceptlog.txt';
   ConsoleLogFilename  :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'console.txt';
+  NodeFTPLogFilename  :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'nodeftp.txt';
   ResumenFilename     :string= 'NOSODATA'+DirectorySeparator+'blchhead.nos';
   EventLogFilename    :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'eventlog.txt';
   AdvOptionsFilename  :string= 'NOSODATA'+DirectorySeparator+'advopt.txt';
@@ -932,6 +946,7 @@ While not terminated do
   while GetLogLine('console',lastlogline) do Synchronize(@UpdateConsole);
   while GetLogLine('events',lastlogline) do Synchronize(@UpdateEvents);
   while GetLogLine('exceps',lastlogline) do Synchronize(@UpdateExceps);
+  GetLogLine('nodeftp',lastlogline);
   end;
 End;
 
@@ -950,6 +965,9 @@ var
   LineSent     : boolean;
   KillIt       : boolean = false;
   SavedToFile  : boolean;
+  FTPTime      : int64;
+  FTPSize      : int64;
+  FTPSpeed     : int64;
 begin
 AddNewOpenThread('ReadClient '+FSlot.ToString,UTCTime);
 REPEAT
@@ -993,12 +1011,14 @@ if Continuar then
          if Parameter(LLine,0) = 'RESUMENFILE' then
             begin
             DownloadHeaders := true;
+            AddFileProcess('Get','Headers',CanalCliente[FSlot].Host,GetTickCount64);
             AddLineToDebugLog('events',TimeToStr(now)+rs0003); //'Receiving headers'
             AddLineToDebugLog('console',rs0003); //'Receiving headers'
             MemStream := TMemoryStream.Create;
             CanalCliente[FSlot].ReadTimeout:=10000;
                TRY
                CanalCliente[FSlot].IOHandler.ReadStream(MemStream);
+               FTPsize := MemStream.Size;
                downloaded := True;
                EXCEPT ON E:Exception do
                   begin
@@ -1029,16 +1049,21 @@ if Continuar then
                end;
             MemStream.Free;
             DownloadHeaders := false;
+            FTPTime := CloseFileProcess('Get','Headers',CanalCliente[FSlot].Host,GetTickCount64);
+            FTPSpeed := (FTPSize div FTPTime);
+            AddLineToDebugLog('nodeftp','Downloaded headers from '+CanalCliente[FSlot].Host+' at '+FTPSpeed.ToString+' kb/s');
             end
 
          else if Parameter(LLine,0) = 'SUMARYFILE' then
             begin
             DownloadSumary := true;
+            AddFileProcess('Get','Summary',CanalCliente[FSlot].Host,GetTickCount64);
             AddLineToDebugLog('console',rs0085); //'Receiving sumary'
             MemStream := TMemoryStream.Create;
             CanalCliente[FSlot].ReadTimeout:=10000;
                TRY
                CanalCliente[FSlot].IOHandler.ReadStream(MemStream);
+               FTPsize := MemStream.Size;
                downloaded := True;
                EXCEPT ON E:Exception do
                   begin
@@ -1057,17 +1082,22 @@ if Continuar then
                end;
             MemStream.Free;
             DownloadSumary := false;
+            FTPTime := CloseFileProcess('Get','Summary',CanalCliente[FSlot].Host,GetTickCount64);
+            FTPSpeed := (FTPSize div FTPTime);
+            AddLineToDebugLog('nodeftp','Downloaded summary from '+CanalCliente[FSlot].Host+' at '+FTPSpeed.ToString+' kb/s');
             end
 
          else if Parameter(LLine,0) = 'GVTSFILE' then
             begin
             DownloadGVTs := true;
+            AddFileProcess('Get','GVTFile',CanalCliente[FSlot].Host,GetTickCount64);
             AddLineToDebugLog('events',TimeToStr(now)+rs0089); //'Receiving GVTs'
             AddLineToDebugLog('console',rs0089); //'Receiving GVTs'
             MemStream := TMemoryStream.Create;
             CanalCliente[FSlot].ReadTimeout:=10000;
                TRY
                CanalCliente[FSlot].IOHandler.ReadStream(MemStream);
+               FTPsize := MemStream.Size;
                downloaded := True;
                EXCEPT ON E:Exception do
                   begin
@@ -1098,10 +1128,14 @@ if Continuar then
                end;
             MemStream.Free;
             DownloadGVTs := false;
+            FTPTime := CloseFileProcess('Get','GVTFile',CanalCliente[FSlot].Host,GetTickCount64);
+            FTPSpeed := (FTPSize div FTPTime);
+            AddLineToDebugLog('nodeftp','Downloaded GVTs from '+CanalCliente[FSlot].Host+' at '+FTPTime.ToString+' kb/s');
             end
 
          else if LLine = 'BLOCKZIP' then
             begin  // START RECEIVING BLOCKS
+            AddFileProcess('Get','Blocks',CanalCliente[FSlot].Host,GetTickCount64);
             AddLineToDebugLog('events',TimeToStr(now)+rs0006); //'Receiving blocks'
             BlockZipName := BlockDirectory+'blocks.zip';
             TryDeleteFile(BlockZipName);
@@ -1110,6 +1144,7 @@ if Continuar then
             CanalCliente[FSlot].ReadTimeout:=10000;
                TRY
                CanalCliente[FSlot].IOHandler.ReadStream(MemStream);
+               FTPsize := MemStream.Size;
                MemStream.SaveToFile(BlockZipName);
                Errored := false;
                EXCEPT ON E:Exception do
@@ -1131,6 +1166,9 @@ if Continuar then
                end;
             MemStream.Free;
             DownLoadBlocks := false;
+            FTPTime := CloseFileProcess('Get','Blocks',CanalCliente[FSlot].Host,GetTickCount64);
+            FTPSpeed := (FTPSize div FTPTime);
+            AddLineToDebugLog('nodeftp','Downloaded blocks from '+CanalCliente[FSlot].Host+' at '+FTPTime.ToString+' kb/s');
             end // END RECEIVING BLOCKS
          else
             begin
@@ -1145,6 +1183,7 @@ EXCEPT ON E:Exception do
    begin
    AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'*****CRITICAL**** Error inside Client thread: '+E.Message);
    if AnsiContainsStr(E.Message,'Error # 10053') then KillIt := true;
+   if AnsiContainsStr(E.Message,'Error # 10054') then KillIt := true;
    end;
 END; {TRY}
 UNTIL ( (terminated) or (not CanalCliente[FSlot].Connected) or (KillIt) );
@@ -1533,6 +1572,7 @@ if not directoryexists(LogsDirectory) then CreateDir(LogsDirectory);
 CreateNewLog('console',ConsoleLogFilename);
 CreateNewLog('events',EventLogFilename);
 CreateNewLog('exceps',ExceptLogFilename);
+CreateNewLog('nodeftp',NodeFTPLogFilename);
 if not directoryexists('NOSODATA') then CreateDir('NOSODATA');
 OutText(rs0022,false,1); //'✓ Data directory ok'
 // finalizar la inicializacion
@@ -1565,6 +1605,8 @@ if fileexists('restart.txt') then
 StringAvailableUpdates := AvailableUpdates();
 Form1.Latido.Enabled:=true;
 OutText('Noso is ready',false,1);
+SetNodesArray(GetNosoCFGString(1));
+StartAutoConsensus;
 if WO_CloseStart then
    begin
    G_Launching := false;
@@ -2071,7 +2113,7 @@ Form1.SGridSC.FocusRectVisible:=false;
 
 Form1.imagenes.GetBitMap(54,form1.ImgRotor.picture.BitMap);
 
-form1.LabAbout.Caption:=CoinName+' project'+SLINEBREAK+'Designed by bermello (AOG-im)'+SLINEBREAK+
+form1.LabAbout.Caption:=CoinName+' project'+SLINEBREAK+'Designed by bermello (imAOG)'+SLINEBREAK+
 'Crypto routines by Xor-el'+SLINEBREAK+
 'Version '+ProgramVersion+subVersion+SLINEBREAK+'Protocol '+IntToStr(Protocolo)+SLINEBREAK+BuildDate;
 
@@ -2218,6 +2260,7 @@ var
   NextLines : array of string;
   LineToSend : string;
   LinesSent : integer = 0;
+  FTPTime, FTPSize, FTPSpeed : int64;
 Begin
 GoAhead := true;
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
@@ -2318,10 +2361,12 @@ if GoAhead then
       end
    else if parameter(LLine,4) = '$GETRESUMEN' then
       begin
+      AddFileProcess('Send','Headers',IPUser,GetTickCount64);
       MemStream := TMemoryStream.Create;
          TRY
          EnterCriticalSection(CSHeadAccess);
          MemStream.LoadFromFile(ResumenFilename);
+         FTPSize := Memstream.Size;
          LeaveCriticalSection(CSHeadAccess);
          GetFileOk := true;
          EXCEPT on E:Exception do
@@ -2343,11 +2388,16 @@ if GoAhead then
             END; {TRY}
          end;
       MemStream.Free;
+      FTPTime := CloseFileProcess('Send','Headers',IPUser,GetTickCount64);
+      FTPSpeed := (FTPSize div FTPTime);
+      AddLineToDebugLog('nodeftp','Uploaded headers to '+IPUser+' at '+FTPSpeed.ToString+' kb/s');
       end
    else if parameter(LLine,4) = '$GETSUMARY' then
       begin
+      AddFileProcess('Send','Summary',IPUser,GetTickCount64);
       MemStream := TMemoryStream.Create;
-      if GetSummaryAsMemStream(MemStream)>0 then
+      FTPSize := GetSummaryAsMemStream(MemStream);
+      if FTPSize>0 then
          begin
            TRY
            Acontext.Connection.IOHandler.WriteLn('SUMARYFILE');
@@ -2356,9 +2406,13 @@ if GoAhead then
            END; {TRY}
          end;
       MemStream.Free;
+      FTPTime := CloseFileProcess('Send','Summary',IPUser,GetTickCount64);
+      FTPSpeed := (FTPSize div FTPTime);
+      AddLineToDebugLog('nodeftp','Uploaded Summary to '+IPUser+' at '+FTPSpeed.ToString+' kb/s');
       end
    else if parameter(LLine,4) = '$LASTBLOCK' then
       begin // START SENDING BLOCKS
+      AddFileProcess('Send','Blocks',IPUser,GetTickCount64);
       BlockZipName := CreateZipBlockfile(StrToIntDef(parameter(LLine,5),0));
       if BlockZipName <> '' then
          begin
@@ -2371,6 +2425,7 @@ if GoAhead then
                GetFileOk := false;
                end;
             END; {TRY}
+         FTPSize := MemStream.Size;
          If GetFileOk then
             begin
                TRY
@@ -2385,6 +2440,9 @@ if GoAhead then
                END; {TRY}
             end;
          MemStream.Free;
+         FTPTime := CloseFileProcess('Send','Blocks',IPUser,GetTickCount64);
+         FTPSpeed := (FTPSize div FTPTime);
+         AddLineToDebugLog('nodeftp','Uploaded Blocks to '+IPUser+' at '+FTPSpeed.ToString+' kb/s');
          Trydeletefile(BlockZipName); // safe function to delete files
          end
       end // END SENDING BLOCKS
@@ -3365,6 +3423,18 @@ form1.SG_OpenThreads.ColWidths[0]:= thispercent(70,GridWidth);
 form1.SG_OpenThreads.ColWidths[1]:= thispercent(30,GridWidth,true);
 End;
 
+// Grid file processes on resize
+procedure TForm1.PC_ProcessesResize(Sender: TObject);
+var
+  GridWidth : integer;
+Begin
+GridWidth := form1.SG_Monitor.Width;
+form1.SG_FilePRocs.ColWidths[0]:= thispercent(25,GridWidth);
+form1.SG_FilePRocs.ColWidths[1]:= thispercent(25,GridWidth);
+form1.SG_FilePRocs.ColWidths[2]:= thispercent(25,GridWidth);
+form1.SG_FilePRocs.ColWidths[3]:= thispercent(25,GridWidth,true);
+End;
+
 // Load Masternode options when TAB is selected
 procedure TForm1.TabNodeOptionsShow(sender: TObject);
 begin
@@ -3378,16 +3448,16 @@ LabeledEdit9.Text:=MN_Sign;
 end;
 
 //Adjust the about form on resize
-procedure TForm1.TabSheet9Resize(sender: TObject);
+procedure TForm1.Tab_Options_AboutResize(sender: TObject);
 begin
   ImageOptionsAbout.BorderSpacing.Left:=
-    (TabSheet9.ClientWidth div 2) -
+    (Tab_Options_About.ClientWidth div 2) -
     (ImageOptionsAbout.Width div 2);
   BitBtnWeb.BorderSpacing.Left:=
-    (TabSheet9.ClientWidth div 2) -
+    (Tab_Options_About.ClientWidth div 2) -
     (BitBtnWeb.Width div 2);
   BitBtnDonate.BorderSpacing.Left:=
-    (TabSheet9.ClientWidth div 2) -
+    (Tab_Options_About.ClientWidth div 2) -
     (BitBtnDonate.Width div 2);
 end;
 
@@ -3579,6 +3649,8 @@ if ( (not G_Launching) and (MemoRPCWhitelist.Text<>RPCWhitelist) ) then
    S_AdvOpt := true;
    end;
 end;
+
+
 
 END. // END PROGRAM
 
