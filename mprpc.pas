@@ -33,6 +33,7 @@ function RPC_GetPeers(NosoPParams:string):string;
 function RPC_BlockOrders(NosoPParams:string):string;
 function RPC_Blockmns(NosoPParams:string):string;
 function RPC_NewAddress(NosoPParams:string):string;
+Function RPC_ValidateAddress(NosoPParams:string):string;
 function RPC_SendFunds(NosoPParams:string):string;
 
 
@@ -360,7 +361,12 @@ else if objecttype = 'sendfunds' then
       resultado.Add('result','Failed')
    else
       resultado.Add('result',parameter(mystring,1));
+   end
+else if objecttype = 'islocaladdress' then
+   begin
+   resultado.Add('result',StrToBool(parameter(mystring,1)))
    end;
+
 result := resultado.AsJSON;
 resultado.free;
 End;
@@ -402,6 +408,7 @@ else
       else if method = 'getblockorders' then result := GetJSONResponse(RPC_BlockOrders(NosoPParams),jsonid)
       else if method = 'getblockmns' then result := GetJSONResponse(RPC_BlockMNs(NosoPParams),jsonid)
       else if method = 'getnewaddress' then result := GetJSONResponse(RPC_NewAddress(NosoPParams),jsonid)
+      else if method = 'islocaladdress' then result := GetJSONResponse(RPC_ValidateAddress(NosoPParams),jsonid)
       else if method = 'sendfunds' then result := GetJSONResponse(RPC_SendFunds(NosoPParams),jsonid)
       else result := GetJSONErrorCode(402,-1);
       Except on E:Exception do
@@ -675,12 +682,20 @@ for counter := 1 to totalnumber do
    NewAddress.PublicKey:=pubkey;
    NewAddress.PrivateKey:=PriKey;
    ListaDirecciones[Length(ListaDirecciones)-1] := NewAddress;
+   if RPCSaveNew then SaveWalletBak(NewAddress);
    Result := result+NewAddress.Hash+#127;
    end;
 trim(result);
 S_Wallet := true;
 U_DirPanel := true;
 //AddLineToDebugLog('console',result);
+End;
+
+Function RPC_ValidateAddress(NosoPParams:string):string;
+Begin
+  If ValidateAddressOnDisk(Parameter(NosoPParams,0)) then
+    result := 'islocaladdress'#127'True'
+  else result := 'islocaladdress'#127'False';
 End;
 
 function RPC_SendFunds(NosoPParams:string):string;

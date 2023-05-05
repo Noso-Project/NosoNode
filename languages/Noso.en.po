@@ -470,6 +470,14 @@ msgctxt "tform1.tabprocesses.caption"
 msgid "Processes"
 msgstr ""
 
+#: tform1.tabsheet1.caption
+msgid "Seeds"
+msgstr ""
+
+#: tform1.tabsheet2.caption
+msgid "Validators"
+msgstr ""
+
 #: tform1.tabsheet8.caption
 msgid "Except"
 msgstr ""

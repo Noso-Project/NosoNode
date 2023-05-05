@@ -12,7 +12,7 @@ INTERFACE
 
 uses
   Classes, SysUtils, Zipper,
-  nosocrypto, nosodebug;
+  nosocrypto, nosodebug, nosogeneral;
 
 Type
   TSummaryData = Packed Record
@@ -515,6 +515,7 @@ Begin
     EXCEPT
     END;{Try}
   LeaveCriticalSection(CS_SummaryDisk);
+  SummaryLastop := ReadSumaryRecordFromDisk(0).LastOp;
 End;
 
 {Returns the address alias name if exists}

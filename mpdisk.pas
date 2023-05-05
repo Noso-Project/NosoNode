@@ -49,15 +49,21 @@ Procedure CompleteSumary();
 Procedure SaveUpdatedFiles();
 Procedure CrearWallet();
 Procedure CargarWallet(wallet:String);
-Procedure GuardarWallet();
+Function SaveWalletFile(): boolean;
+Function ValidateAddressOnDisk(LHashAddress:string):Boolean;
+Procedure SaveWalletBak(LData:WalletData);
 
 function GetMyLastUpdatedBlock():int64;
 
 Function UnzipBlockFile(filename:String;delFile:boolean):boolean;
 function UnZipUpdateFromRepo(Tver,TArch:String):boolean;
 Procedure CreateResumen();
+Procedure RebuildHeadersFile();
+Procedure BuildHeaderFile(fromblock: integer; untilblock:integer=-1);
 Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
 Function DelBlChHeadLast(Block:integer): boolean;
+Function GetHeadersNumber(Block:integer):ResumenData;
+Function SetHeadersNumber(LData:ResumenData):boolean;
 Function GetHeadersSize():integer;
 Function GetHeadersLastBlock():integer;
 Function ShowBlockHeaders(BlockNumber:Integer):String;
@@ -95,6 +101,8 @@ if not directoryexists(MarksDirectory) then CreateDir(MarksDirectory);
 OutText('✓ Marks folder ok',false,1);
 if not directoryexists(GVTMarksDirectory) then CreateDir(GVTMarksDirectory);
 OutText('✓ GVTs Marks folder ok',false,1);
+if not directoryexists(RPCBakDirectory) then CreateDir(RPCBakDirectory);
+OutText('✓ RPC bak folder ok',false,1);
 
 if not FileExists (AdvOptionsFilename) then CreateADV(false) else LoadADV();
 OutText('✓ Advanced options loaded',false,1);
@@ -382,6 +390,8 @@ BeginPerformance('CreateADV');
    writeln(FileAdvOptions,'RPCWhiteList '+RPCWhitelist);
    writeln(FileAdvOptions,'//Enable RPC server at start');
    writeln(FileAdvOptions,'RPCAuto '+BoolToStr(RPCAuto,true));
+   writeln(FileAdvOptions,'//Save addresses keys created on a BAK folder');
+   writeln(FileAdvOptions,'RPCSaveNew '+BoolToStr(RPCSaveNew,true));
    writeln(FileAdvOptions,'');
 
    writeln(FileAdvOptions,'---Deprecated. To be removed.---');
@@ -427,6 +437,7 @@ Begin
       if parameter(linea,0) ='RPCFilter' then RPCFilter:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='RPCWhiteList' then RPCWhiteList:=Parameter(linea,1);
       if parameter(linea,0) ='RPCAuto' then RPCAuto:=StrToBool(Parameter(linea,1));
+      if parameter(linea,0) ='RPCSaveNew' then RPCSaveNew:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='Language' then WO_Language:=Parameter(linea,1);
       if parameter(linea,0) ='Autoserver' then WO_AutoServer:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='PoUpdate' then WO_LastPoUpdate:=Parameter(linea,1);
@@ -618,7 +629,7 @@ End;
 Procedure SaveUpdatedFiles();
 Begin
 if S_BotData then SaveBotData();
-if S_Wallet then GuardarWallet();
+if S_Wallet then SaveWalletFile();
 if S_AdvOpt then CreateADV(true);
 End;
 
@@ -669,20 +680,22 @@ Begin
       closefile(FileWallet);
       end;
    UpdateWalletFromSumario();
-   GuardarWallet();                         // Permite corregir cualquier problema con los pending
+   SaveWalletFile();                         // Permite corregir cualquier problema con los pending
    EXCEPT on E:Exception do
       AddLineToDebugLog('events',TimeToStr(now)+'Error loading wallet from file');
    END;{TRY}
 End;
 
 // Save wallet data to disk
-Procedure GuardarWallet();
+Function SaveWalletFile(): boolean;
 var
   contador : integer = 0;
   previous : int64;
   IOCode   : integer;
 Begin
-BeginPerformance('GuardarWallet');
+EnterCriticalSection(CSWallet);
+Result := true;
+BeginPerformance('SaveWalletFile');
 Trycopyfile (WalletFilename,WalletFilename+'.bak');
 assignfile(FileWallet,WalletFilename);
 {$I-}reset(FileWallet);{$I+}
@@ -700,14 +713,64 @@ If IOCode = 0 then
       end;
    S_Wallet := false;
    EXCEPT on E:Exception do
+      begin
       AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error saving wallet to disk ('+E.Message+')');
+      Result := false;
+      end;
    END; {TRY}
    end;
 {$I-}closefile(FileWallet);{$I+}
 IOCode := IOResult;
 if IOCode>0 then
+   begin
    AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Unable to close wallet file, error= '+IOCode.ToString );
-EndPerformance('GuardarWallet');
+   Result := false;
+   end;
+EndPerformance('SaveWalletFile');
+LeaveCriticalSection(CSWallet);
+End;
+
+Function ValidateAddressOnDisk(LHashAddress:string):Boolean;
+var
+  counter  : integer;
+  ThisData : WalletData;
+Begin
+  Result := false;
+  assignfile(FileWallet,WalletFilename);
+  EnterCriticalSection(CSWallet);
+  TRY
+    reset(FileWallet);
+    for counter := 0 to filesize(filewallet)-1 do
+       begin
+       seek(FileWallet,counter);
+       Read(FileWallet,ThisData);
+       if ThisData.Hash = LHashAddress then
+          begin
+          result := true;
+          break;
+          end;
+       end;
+    CloseFile(FileWallet);
+  EXCEPT on E:Exception do
+    begin
+    end;
+  END;
+  LeaveCriticalSection(CSWallet);
+End;
+
+Procedure SaveWalletBak(LData:WalletData);
+var
+  TempFile : File of WalletData;
+Begin
+  AssignFile(TempFile,RPCBakDirectory+Ldata.Hash+'.pkw');
+  TRY
+    rewrite(TempFile);
+    write(TempFile,Ldata);
+    CloseFile(TempFile);
+  EXCEPT on E:Exception do
+    begin
+    end;
+  END;
 End;
 
 // Updates wallet addresses balance from sumary
@@ -841,6 +904,66 @@ Begin
    end;
 End;
 
+Procedure RebuildHeadersFile();
+Begin
+  CreateNewSummaryFile(true);
+  BuildHeaderFile(0,-1);
+End;
+
+// Rebuild headers file
+Procedure BuildHeaderFile(fromblock: integer; untilblock:integer=-1);
+var
+  Dato        : ResumenData;
+  Contador    : integer = 0;
+  CurrHash    : String = '';
+  newblocks   : integer = 0;
+  Modified    : boolean = false;
+Begin
+if untilBlock = -1 then untilblock := MyLastBlock;
+AddLineToDebugLog('console','Rebuilding until block '+IntToStr(untilblock)); //'Rebuilding until block '
+contador := fromblock;
+while contador <= untilblock do
+   begin
+   Modified := false;
+   dato := GetHeadersNumber(contador);
+   if  Contador <> Dato.block then
+      begin
+      Dato.block := contador;
+      Modified   := true;
+      end;
+   CurrHash := HashMD5File(BlockDirectory+IntToStr(contador)+'.blk');
+   if  CurrHash <> Dato.blockhash then
+      begin
+      Dato.blockhash:=CurrHash;
+      Modified := true;
+      end;
+   if contador > SummaryLastop then
+      begin
+      Inc(NewBlocks);
+      AddBlockToSumary(contador);
+      Dato.SumHash:=HashMD5File(SummaryFileName);
+      Modified := true;
+      end;
+   if modified then
+      begin
+      SetHeadersNumber(Dato);
+      end;
+   if contador mod 10 = 0 then
+      begin
+      AddLineToDebugLog('console',Format('Last verified: %d (%d)',[contador,newblocks]));
+      end;
+   Application.ProcessMessages;
+   Inc(Contador);
+   end;
+if newblocks>0 then
+   begin
+   AddLineToDebugLog('console',IntToStr(newblocks)+' added to headers'); //' added to headers'
+   U_DirPanel := true;
+   end;
+UpdateMyData();
+U_Dirpanel := true;
+End;
+
 // COmpletes the sumary from LAstUpdate to Lastblock
 Procedure CompleteSumary();
 var
@@ -854,7 +977,7 @@ AddLineToDebugLog('console','Complete summary');
 for counter := StartBlock to finishblock do
    begin
    AddBlockToSumary(counter, true);
-   if counter mod 100 = 0 then
+   if counter mod 1 = 0 then
       begin
       info('Rebuilding summary block: '+inttoStr(counter));  //'Rebuilding sumary block: '
       application.ProcessMessages;
@@ -905,8 +1028,9 @@ for cont := 0 to length(ArrayOrders)-1 do
       end;
    if ArrayOrders[cont].OrderType='TRFR' then
       begin
-      SummaryPay(ArrayOrders[cont].sender,ArrayOrders[cont].AmmountFee+ArrayOrders[cont].AmmountTrf,blocknumber);
-      CreditTo(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,BlockNumber);
+      if SummaryValidPay(ArrayOrders[cont].sender,ArrayOrders[cont].AmmountFee+ArrayOrders[cont].AmmountTrf,blocknumber) then
+         CreditTo(ArrayOrders[cont].Receiver,ArrayOrders[cont].AmmountTrf,BlockNumber)
+      else SummaryPay(BlockHeader.AccountMiner,ArrayOrders[cont].AmmountFee,blocknumber)
       end;
    if ArrayOrders[cont].OrderType='PROJCT' then
       begin
@@ -940,6 +1064,7 @@ if blocknumber >= MNBlockStart then
    end;
 CreditTo(AdminHash,0,BlockNumber);
 if SaveAndUpdate then UpdateSummaryChanges;
+if BlockNumber mod 1000 = 0 then TryCopyFile(SummaryFileName,MarksDirectory+BlockNumber.tostring+'.bak');
 if GVTsTrfer>0 then
    begin
    SaveGVTs;
@@ -989,6 +1114,54 @@ EnterCriticalSection(CSHeadAccess);
 LeaveCriticalSection(CSHeadAccess);
 End;
 
+// Returns the specific headers data
+Function GetHeadersNumber(Block:integer):ResumenData;
+var
+  Dato: ResumenData;
+Begin
+  result :=Default(ResumenData);
+  if Block>GetHeadersSize then exit;
+  assignfile(FileResumen,ResumenFilename);
+  EnterCriticalSection(CSHeadAccess);
+  TRY
+    TRY
+    reset(FileResumen);
+    seek(fileResumen,Block);
+    Read(fileResumen,Result);
+    FINALLY
+    closefile(FileResumen);
+    END;
+  EXCEPT on E:Exception do
+    begin
+    AddLineToDebugLog('events',TimeToStr(now)+'Error getting header '+Block.ToString+': '+E.Message);
+    Result.block:=-1;
+    end;
+  END;
+  LeaveCriticalSection(CSHeadAccess);
+End;
+
+Function SetHeadersNumber(LData:ResumenData):boolean;
+Begin
+  Result := false;
+  if Ldata.block>GetHeadersSize+1 then exit;
+  assignfile(FileResumen,ResumenFilename);
+  EnterCriticalSection(CSHeadAccess);
+  TRY
+    TRY
+    reset(FileResumen);
+    seek(fileResumen,Ldata.block);
+    write(fileResumen,Ldata);
+    Result := true;
+    FINALLY
+    closefile(FileResumen);
+    END;
+  EXCEPT on E:Exception do
+    AddLineToDebugLog('events',TimeToStr(now)+'Error SetHeadersNumber '+Ldata.block.ToString+': '+E.Message);
+  END;
+  LeaveCriticalSection(CSHeadAccess);
+End;
+
+// Returns the last block added to headers
 Function GetHeadersSize():integer;
 Begin
 result := -1;

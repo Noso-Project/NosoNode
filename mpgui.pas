@@ -286,6 +286,7 @@ var
   contador : integer = 0;
   LocalProcesses      : TProcessCopy;
   FileProcs           : TFileMCopy;
+  LConsensus          : TNodeConsensus;
 Begin
 //Update Monitor Grid
 if ( (form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor) and (LastUpdateMonitor<>UTCTime) ) then
@@ -347,9 +348,16 @@ if LastUpdateConsensus <> UTCTime then
    if form1.PCMonitor.ActivePage = Form1.TabConsensus then
       begin
       form1.Label1.Caption:= Format('Last update : %d seconds',[UTCTime-LastConsensusTime]);
-      form1.Label16.Caption:=Format('Block       : %s',[Consensus[2]]);
-      form1.Label17.Caption:=Format('Hash        : %s',[Consensus[0]]);
-      form1.Label18.Caption:=Format('Percentage  : %d %%',[Css_Percentage]);
+      form1.Label16.Caption:=Format('Block       : %s',[GetConsensus(2)]);
+      form1.Label17.Caption:=Format('Hash        : %s',[GetConsensus]);
+      form1.Label18.Caption:=Format('Consensus   : %d %% (%d/%d)',[Css_Percentage,Css_ReachedNodes,Css_TotalNodes]);
+      form1.SGConSeeds.RowCount:=1+GetNodesArrayCount;
+      for contador := 0 to GetNodesArrayCount-1 do
+         begin
+         LConsensus := GetNodesArrayIndex(contador);
+         Form1.SGConSeeds.Cells[0,contador+1]:= LConsensus.host;
+         Form1.SGConSeeds.Cells[1,contador+1]:= LConsensus.peers.ToString;
+         end;
       end;
    end;
 LastUpdateProcesses := UTCTime;

@@ -273,7 +273,8 @@ else if UpperCase(Command) = 'HEADSIZE' then AddLineToDebugLog('console',GetHead
 
 else if UpperCase(Command) = 'SUMARY' then ShowSumary()
 else if UpperCase(Command) = 'REBUILDSUM' then RebuildSummary()
-
+else if UpperCase(Command) = 'CHECKHEADERS' then BuildHeaderFile(StrToIntDef(parameter(linetext,1),0),StrToIntDef(parameter(linetext,2),-1))
+else if UpperCase(Command) = 'REBUILDHEADERS' then RebuildHeadersFile()
 
 // CONSULTING
 else if UpperCase(Command) = 'NETRATE' then AddLineToDebugLog('console','Average Mainnet hashrate: '+HashrateToShow(MainNetHashrate))
@@ -296,9 +297,9 @@ else if UpperCase(Command) = 'RESTORECFG' then RestoreCFGData()
 else if UpperCase(Command) = 'ISALLSYNCED' then AddLineToDebugLog('console',IsAllsynced.ToString)
 else if UpperCase(Command) = 'FREEZED' then Totallocked()
 
-// New CONSENSUS
+// 0.4.0
 else if UpperCase(Command) = 'CONSENSUS' then ShowConsensus()
-
+else if UpperCase(Command) = 'VALIDATE' then AddLineToDebugLog('console',BoolToStr(ValidateAddressOnDisk(parameter(linetext,1)),true))
 // P2P
 else if UpperCase(Command) = 'PEERS' then AddLineToDebugLog('console','Server list: '+IntToStr(form1.ClientsCount)+'/'+IntToStr(GetIncomingConnections))
 
@@ -1817,7 +1818,6 @@ var
   counter : integer;
   LText   : string;
 Begin
-  GetConsensus(GetNosoCFGString(1));
   AddLineToDebugLog('console',Format('(%d / %d) %d %%',[Css_ReachedNodes,Css_TotalNodes,Css_Percentage]));
   for counter := 0 to high(consensus) do
      begin
@@ -1825,6 +1825,7 @@ Begin
      AddLineToDebugLog('console',Format('%0:2s %s -> %s',[Counter.ToString,LText,Consensus[counter]]));
      end;
 End;
+
 
 END. // END UNIT
 

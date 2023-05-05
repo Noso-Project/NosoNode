@@ -6,13 +6,14 @@ interface
 
 uses
   Classes, SysUtils,MasterPaskalForm,mpgui,Clipbrd, strutils, nosodebug,nosogeneral,
-  nosocrypto, nosounit;
+  nosocrypto, nosounit,nosotime;
 
 function GetAddressAvailable(address:string):int64;
 function GetAddressPendingPays(Address:string):int64;
 function GetAddressIncomingpays(Address:string):int64;
 function TranxAlreadyPending(TrxHash:string):boolean;
 function TrxExistsInLastBlock(trfrhash:String):boolean;
+function GetLastPendingTime():int64;
 function AddPendingTxs(order:TOrderData):boolean;
 function DireccionEsMia(direccion:string):integer;
 Procedure VerifyIfPendingIsMine(order:Torderdata);
@@ -121,6 +122,14 @@ for cont := 0 to length(ArrayLastBlockTrxs)-1 do
 SetLength(ArrayLastBlockTrxs,0);
 End;
 
+function GetLastPendingTime():int64;
+Begin
+  result := 0;
+  EnterCriticalSection(CSPending);
+  if length(PendingTxs) > 0 then result := PendingTxs[length(PendingTxs)-1].TimeStamp;
+  LeaveCriticalSection(CSPending);
+End;
+
 // Añade la transaccion pendiente en su lugar
 function AddPendingTxs(order:TOrderData):boolean;
 var
@@ -132,6 +141,7 @@ BeginPerformance('AddPendingTxs');
 //if order.OrderType='FEE' then exit;
 if order.TimeStamp < LastBlockData.TimeStart then exit;
 if TrxExistsInLastBlock(order.TrfrID) then exit;
+if ((BlockAge>585) and (order.TimeStamp < LastBlockData.TimeStart+540) ) then exit;
 if not TranxAlreadyPending(order.TrfrID) then
    begin
    EnterCriticalSection(CSPending);

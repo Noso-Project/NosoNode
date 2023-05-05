@@ -8,7 +8,7 @@ uses
   Classes, forms, SysUtils, MasterPaskalForm, nosotime, IdContext, IdGlobal, mpGUI, mpDisk,
   mpBlock, fileutil, graphics,  dialogs, strutils, mpcoin, fphttpclient,
   opensslsockets,translation, IdHTTP, IdComponent, IdSSLOpenSSL, mpmn, IdTCPClient,
-  nosodebug,nosogeneral, nosocrypto, nosounit;
+  nosodebug,nosogeneral, nosocrypto, nosounit, nosoconsensus;
 
 function GetSlotFromIP(Ip:String):int64;
 function GetSlotFromContext(Context:TidContext):int64;
@@ -973,9 +973,10 @@ var
   LastDownBlock : integer = 0;
 Begin
 if BuildingBlock>0 then exit;
+if GetConsensus = '' then exit;
 if ((BlockAge <10) or (blockAge>595)) then exit;
-NLBV := StrToIntDef(NetLastBlock.Value,0);
-if ((MyResumenhash <> NetResumenHash.Value) and (NLBV>mylastblock)) then  // Request headers
+NLBV := StrToIntDef(GetConsensus(cLastBlock),0);
+if ((Copy(MyResumenhash,0,5) <> GetConsensus(cHeaders)) and (NLBV>mylastblock)) then  // Request headers
    begin
    ClearAllPending;
    SetNMSData('','','','','','');

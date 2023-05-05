@@ -57,6 +57,13 @@ type
       Constructor Create(CreateSuspended : boolean);
     end;
 
+  TThreadKeepConnect = class(TThread)
+    protected
+      procedure Execute; override;
+    public
+      Constructor Create(CreateSuspended : boolean);
+    end;
+
   TUpdateMNs = class(TThread)
     protected
       procedure Execute; override;
@@ -295,6 +302,7 @@ type
     LabeledEdit5: TEdit;
     Label7: TLabel;
     MemoDoctor: TMemo;
+    PageControl2: TPageControl;
     PC_Processes: TPageControl;
     Panel10: TPanel;
     Panel11: TPanel;
@@ -329,9 +337,12 @@ type
     ImgRotor: TImage;
     GridNodes: TStringGrid;
     GVTsGrid: TStringGrid;
+    SGConSeeds: TStringGrid;
     TabDoctor: TTabSheet;
     TabGVTs: TTabSheet;
     TabConsensus: TTabSheet;
+    TabSheet1: TTabSheet;
+    TabSheet2: TTabSheet;
     TabThreads: TTabSheet;
     TabFiles: TTabSheet;
     TextQRcode: TStaticText;
@@ -499,6 +510,7 @@ type
     procedure SpeedButton2Click(sender: TObject);
     procedure SpeedButton3Click(sender: TObject);
     procedure StaConLabDblClick(sender: TObject);
+    procedure SGConSeedsResize(Sender: TObject);
     procedure TabNodeOptionsShow(sender: TObject);
     procedure Tab_Options_AboutResize(sender: TObject);
     Procedure TryCloseServerConnection(AContext: TIdContext; closemsg:string='');
@@ -678,6 +690,7 @@ var
   RPCFilter        : boolean = true;
   RPCWhitelist     : string = '127.0.0.1,localhost';
   RPCAuto          : boolean = false;
+  RPCSaveNew       : boolean = false;
   MN_IP            : string = 'localhost';
   MN_Port          : string = '8080';
   MN_Funds         : string = '';
@@ -691,6 +704,8 @@ var
   StopDoctor : boolean = false;
 
   SendOutMsgsThread : TThreadSendOutMsjs;
+
+  KeepConnectThread : TThreadKeepConnect;
 
   ThreadMNs : TUpdateMNs;
   CryptoThread : TCryptoThread;
@@ -848,6 +863,7 @@ var
   CSClientReads : TRTLCriticalSection;
   CSGVTsArray   : TRTLCriticalSection;
   CSNosoCFGStr  : TRTLCriticalSection;
+  CSWallet      : TRTLCriticalSection;
 
   // old system
   CSMNsArray    : TRTLCriticalSection;
@@ -890,7 +906,7 @@ var
   ZipHeadersFileName  :string= 'NOSODATA'+DirectorySeparator+'blchhead.zip';
   GVTsFilename        :string= 'NOSODATA'+DirectorySeparator+'gvts.psk';
   NosoCFGFilename     :string= 'NOSODATA'+DirectorySeparator+'nosocfg.psk';
-
+  RPCBakDirectory     :string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator+'RPC'+DirectorySeparator;
   MontoIncoming : Int64 = 0;
   MontoOutgoing : Int64 = 0;
   InfoPanelTime : integer = 0;
@@ -1183,7 +1199,7 @@ EXCEPT ON E:Exception do
    begin
    AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'*****CRITICAL**** Error inside Client thread: '+E.Message);
    if AnsiContainsStr(E.Message,'Error # 10053') then KillIt := true;
-   if AnsiContainsStr(E.Message,'Error # 10054') then KillIt := true;
+   if AnsiContainsStr(E.Message,'10054') then KillIt := true;
    end;
 END; {TRY}
 UNTIL ( (terminated) or (not CanalCliente[FSlot].Connected) or (KillIt) );
@@ -1396,6 +1412,26 @@ While not terminated do
    End;
 End;
 
+//***************************
+// *** KEEPCONNECT THREAD ***
+//***************************
+
+constructor TThreadKeepConnect.Create(CreateSuspended : boolean);
+begin
+  inherited Create(CreateSuspended);
+end;
+
+procedure TThreadKeepConnect.Execute;
+Begin
+  AddNewOpenThread('KeepConnect',UTCTime);
+  while not terminated do
+    begin
+
+    sleep(10);
+    end;
+  CloseOpenThread('KeepConnect');
+End;
+
 //***********************
 // *** FORM RELATIVES ***
 //***********************
@@ -1424,6 +1460,7 @@ InitCriticalSection(CSNMSData);
 InitCriticalSection(CSClientReads);
 InitCriticalSection(CSGVTsArray);
 InitCriticalSection(CSNosoCFGStr);
+InitCriticalSection(CSWallet);
 
 InitCriticalSection(CSIdsProcessed);
 InitCriticalSection(CSNodesList);
@@ -1461,6 +1498,7 @@ DoneCriticalSection(CSNMSData);
 DoneCriticalSection(CSClientReads);
 DoneCriticalSection(CSGVTsArray);
 DoneCriticalSection(CSNosoCFGStr);
+DoneCriticalSection(CSWallet);
 DoneCriticalSection(CSIdsProcessed);
 DoneCriticalSection(CSNodesList);
 for contador := 1 to MaxConecciones do
@@ -1628,6 +1666,11 @@ if WO_CloseStart then
       SendOutMsgsThread := TThreadSendOutMsjs.Create(true);
       SendOutMsgsThread.FreeOnTerminate:=true;
       SendOutMsgsThread.Start;
+
+      KeepConnectThread := TThreadKeepConnect.Create(true);
+      KeepConnectThread.FreeOnTerminate:=true;
+      KeepConnectThread.Start;
+
    AddLineToDebugLog('events',TimeToStr(now)+rs0029); NewLogLines := NewLogLines-1; //'Noso session started'
    info(rs0029);  //'Noso session started'
    infopanel.BringToFront;
@@ -1768,6 +1811,7 @@ procedure TForm1.StaConLabDblClick(sender: TObject);
 begin
 formslots.Visible:=true;
 end;
+
 
 // Al minimizar verifica si hay que llevarlo a barra de tareas
 procedure TForm1.FormWindowStateChange(sender: TObject);
@@ -2102,6 +2146,8 @@ Form1.imagenes.GetBitmap(10,Form1.Imageout.Picture.Bitmap);
 form1.DireccionesPanel.Options:= form1.DireccionesPanel.Options+[goRowSelect]-[goRangeSelect];
 form1.DireccionesPanel.ColWidths[0]:= 260;form1.DireccionesPanel.ColWidths[1]:= 107;
 form1.DireccionesPanel.FocusRectVisible:=false;
+
+form1.SGConSeeds.FocusRectVisible:=false;
 
 Form1.BQRCode.Parent:=form1.DireccionesPanel;
 Form1.BDefAddr.Parent:=form1.DireccionesPanel;
@@ -3399,6 +3445,17 @@ form1.GridNodes.ColWidths[2]:= thispercent(0,GridWidth);
 form1.GridNodes.ColWidths[3]:= thispercent(0,GridWidth);
 form1.GridNodes.ColWidths[4]:= thispercent(0,GridWidth, true);
 end;
+
+// Adjust seeds on consensus stringgrid
+procedure TForm1.SGConSeedsResize(Sender: TObject);
+var
+  GridWidth : integer;
+begin
+GridWidth := form1.SGConSeeds.Width;
+form1.SGConSeeds.ColWidths[0]:= thispercent(50,GridWidth);
+form1.SGConSeeds.ColWidths[1]:= thispercent(50,GridWidth,true);
+end;
+
 
 
 // Adjust monitor at resize

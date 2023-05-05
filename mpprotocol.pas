@@ -825,7 +825,6 @@ else if ( (order.OrderType='TRFR') and  (Not IsValidHashAddress(Order.Receiver))
    result := 10
 else if IsAddressLocked(Order.Address) then
    result := 11
-
 else result := 0;
 End;
 

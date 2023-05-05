@@ -88,6 +88,8 @@
 {"hash":4797851,"name":"tform1.label16.caption","sourcebytes":[66,108,111,99,107],"value":"Block"},
 {"hash":163629909,"name":"tform1.label17.caption","sourcebytes":[80,101,114,99,101,110,116,97,103,101],"value":"Percentage"},
 {"hash":321688,"name":"tform1.label18.caption","sourcebytes":[72,97,115,104],"value":"Hash"},
+{"hash":5880755,"name":"tform1.tabsheet1.caption","sourcebytes":[83,101,101,100,115],"value":"Seeds"},
+{"hash":263028403,"name":"tform1.tabsheet2.caption","sourcebytes":[86,97,108,105,100,97,116,111,114,115],"value":"Validators"},
 {"hash":265189445,"name":"tform1.statimelab.hint","sourcebytes":[78,111,115,111,32,110,101,116,119,111,114,107,32,116,105,109,101],"value":"Noso network time"},
 {"hash":238209033,"name":"tform1.statimelab.caption","sourcebytes":[48,48,45,48,48,45,48,48,32,48,48,58,48,48,58,48,48,32,40,48,41],"value":"00-00-00 00:00:00 (0)"},
 {"hash":22008787,"name":"tform1.bitbtnpending.hint","sourcebytes":[78,101,116,119,111,114,107,32,112,101,110,100,105,110,103,32,111,114,100,101,114,115],"value":"Network pending orders"},
