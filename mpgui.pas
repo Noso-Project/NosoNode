@@ -112,7 +112,7 @@ Procedure CreateFormSlots();
 Begin
 FormSlots := TFormSlots.Createnew(form1);
 FormSlots.caption := coinname+' Slots Monitor';
-FormSlots.SetBounds(0, 0, 820, 410);
+FormSlots.SetBounds(0, 0, 860, 410);
 FormSlots.BorderStyle := bssingle;
 //FormSlots.Position:=poOwnerFormCenter;
 FormSlots.Top:=1;FormSlots.Left:=1;
@@ -121,9 +121,9 @@ FormSlots.ShowInTaskBar:=sTAlways;
 
 GridMSlots := TStringGrid.Create(FormSlots);GridMSlots.Parent:=FormSlots;
 GridMSlots.Font.Name:='consolas'; GridMSlots.Font.Size:=8;
-GridMSlots.Left:=1;GridMSlots.Top:=1;GridMSlots.Height:=408;GridMSlots.width:=814;
+GridMSlots.Left:=1;GridMSlots.Top:=1;GridMSlots.Height:=408;GridMSlots.width:=854;
 GridMSlots.FixedCols:=0;GridMSlots.FixedRows:=1;
-GridMSlots.rowcount := MaxConecciones+1;GridMSlots.ColCount:=21;
+GridMSlots.rowcount := MaxConecciones+1;GridMSlots.ColCount:=22;
 GridMSlots.ScrollBars:=ssVertical;
 GridMSlots.FocusRectVisible:=false;
 GridMSlots.Options:= GridMSlots.Options-[goRangeSelect];
@@ -134,6 +134,7 @@ GridMSlots.ColWidths[9]:= 70;GridMSlots.ColWidths[10]:= 30;GridMSlots.ColWidths[
 GridMSlots.ColWidths[12]:= 40;GridMSlots.ColWidths[13]:= 25;GridMSlots.ColWidths[14]:= 29;
 GridMSlots.ColWidths[15]:= 40;GridMSlots.ColWidths[16]:= 25;GridMSlots.ColWidths[17]:= 80;
 GridMSlots.ColWidths[18]:= 25;GridMSlots.ColWidths[19]:= 40;GridMSlots.ColWidths[20]:= 40;
+GridMSlots.ColWidths[21]:= 40;
 GridMSlots.Enabled := true;
 GridMSlots.Cells[0,0]:='N';GridMSlots.Cells[1,0]:='IP';GridMSlots.Cells[2,0]:='T';
 GridMSlots.Cells[3,0]:='Cx';GridMSlots.Cells[4,0]:='LBl';GridMSlots.Cells[5,0]:='LBlH';
@@ -142,6 +143,7 @@ GridMSlots.Cells[9,0]:='Ver';GridMSlots.Cells[10,0]:='LiP';GridMSlots.Cells[11,0
 GridMSlots.Cells[12,0]:='HeaH';GridMSlots.Cells[13,0]:='Sta';GridMSlots.Cells[14,0]:='Ping';
 GridMSlots.Cells[15,0]:='MNs';GridMSlots.Cells[16,0]:='#';GridMSlots.Cells[17,0]:='Besthash';
 GridMSlots.Cells[18,0]:='MNC';GridMSlots.Cells[19,0]:='GVTs';GridMSlots.Cells[20,0]:='CFG';
+GridMSlots.Cells[21,0]:='Mkl';
 GridMSlots.GridLineWidth := 1;
 GridMSlots.OnPrepareCanvas:= @FormSlots.GridMSlotsPrepareCanvas;
 End;
@@ -178,6 +180,7 @@ if CurrentUTC>SlotsLastUpdate then
       GridMSlots.Cells[18,contador]:= Conexiones[contador].MNChecksCount.ToString;
       GridMSlots.Cells[19,contador]:= copy(Conexiones[contador].GVTsHash,0,5);
       GridMSlots.Cells[20,contador]:= Conexiones[contador].CFGHash;
+      GridMSlots.Cells[21,contador]:= copy(Conexiones[contador].MerkleHash,0,5);
       end;
    SlotsLastUpdate := CurrentUTC;
    end;
@@ -349,7 +352,7 @@ if LastUpdateConsensus <> UTCTime then
       begin
       form1.Label1.Caption:= Format('Last update : %d seconds',[UTCTime-LastConsensusTime]);
       form1.Label16.Caption:=Format('Block       : %s',[GetConsensus(2)]);
-      form1.Label17.Caption:=Format('Hash        : %s',[GetConsensus]);
+      form1.Label17.Caption:=Format('Merkle      : %s',[GetConsensus]);
       form1.Label18.Caption:=Format('Consensus   : %d %% (%d/%d)',[Css_Percentage,Css_ReachedNodes,Css_TotalNodes]);
       form1.SGConSeeds.RowCount:=1+GetNodesArrayCount;
       for contador := 0 to GetNodesArrayCount-1 do

@@ -2578,7 +2578,7 @@ object Form1: TForm1
             BorderSpacing.Top = 2
             BorderSpacing.Right = 2
             BorderSpacing.Bottom = 2
-            Caption = 'Percentage'
+            Caption = 'Consensus'
             Font.CharSet = ANSI_CHARSET
             Font.Height = -12
             Font.Name = 'Consolas'
@@ -2597,7 +2597,7 @@ object Form1: TForm1
             BorderSpacing.Top = 2
             BorderSpacing.Right = 2
             BorderSpacing.Bottom = 2
-            Caption = 'Hash'
+            Caption = 'Merkle'
             Font.CharSet = ANSI_CHARSET
             Font.Height = -12
             Font.Name = 'Consolas'

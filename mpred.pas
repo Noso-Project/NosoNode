@@ -54,6 +54,7 @@ Procedure AddNewBot(linea:string);
 function GetOutGoingConnections():integer;
 function GetIncomingConnections():integer;
 Function GetSeedConnections():integer;
+Function GetValidSlotForSeed(out Slot:integer):boolean;
 function GetOrderDetails(orderid:string):TOrderGroup;
 function GetOrderSources(orderid:string):string;
 Function GetNodeStatusString():string;
@@ -971,6 +972,7 @@ Procedure ActualizarseConLaRed();
 var
   NLBV          : integer = 0; // network last block value
   LastDownBlock : integer = 0;
+  ValidSlot     : integer;
 Begin
 if BuildingBlock>0 then exit;
 if GetConsensus = '' then exit;
@@ -986,20 +988,25 @@ if ((Copy(MyResumenhash,0,5) <> GetConsensus(cHeaders)) and (NLBV>mylastblock)) 
       begin
       if ( (NLBV-mylastblock >= 144) or (ForceCompleteHeadersDownload) ) then
          begin
-         PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
-         AddLineToDebugLog('console','Headers file requested'); //'Headers file requested'
-         LastTimeRequestResumen := UTCTime;
+         if GetValidSlotForSeed(ValidSlot) then
+            begin
+            PTC_SendLine(ValidSlot,ProtocolLine(7)); // GetResumen
+            AddLineToDebugLog('console','Headers file requested to '+conexiones[ValidSlot].ip); //'Headers file requested'
+            LastTimeRequestResumen := UTCTime;
+            end;
          end
       else // If less than 144 block just update heades
          begin
-         //PTC_SendLine(NetResumenHash.Slot,ProtocolLine(18)); // GetResumen update
-         PTC_SendLine(NetResumenHash.Slot,ProtocolLine(18)); // GetResumen
-         AddLineToDebugLog('console','Headers update requested'); //'Headers update requested'
-         LastTimeRequestResumen := UTCTime;
+         if GetValidSlotForSeed(ValidSlot) then
+            begin
+            PTC_SendLine(ValidSlot,ProtocolLine(18)); // GetResumen
+            AddLineToDebugLog('console','Headers update requested to '+conexiones[ValidSlot].ip); //'Headers update requested'
+            LastTimeRequestResumen := UTCTime;
+            end;
          end;
       end;
    end
-else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  // request up to 100 blocks
+else if ((Copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock <NLBV)) then  // request up to 100 blocks
    begin
    ClearAllPending;
    SetNMSData('','','','','','');
@@ -1007,35 +1014,41 @@ else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock <NLBV)) then  /
    ClearMNsList();
    if ((LastTimeRequestBlock+5<UTCTime)and (not DownLoadBlocks)) then
       begin
-      PTC_SendLine(NetResumenHash.Slot,ProtocolLine(8)); // lastblock
-      if WO_FullNode then AddLineToDebugLog('console','LastBlock requested from block '+IntToStr(mylastblock)) //'LastBlock requested from block '
-      else
+      if GetValidSlotForSeed(ValidSlot) then
          begin
-         LastDownBlock := NLBV-SecurityBlocks;
-         if LastDownBlock<MyLastBlock then LastDownBlock:=MyLastBlock;
-         AddLineToDebugLog('console','LastBlock requested from block '+IntToStr(LastDownBlock));
+         PTC_SendLine(ValidSlot,ProtocolLine(8)); // lastblock
+         if WO_FullNode then AddLineToDebugLog('console','LastBlock requested from block '+IntToStr(mylastblock)) //'LastBlock requested from block '
+         else
+            begin
+            LastDownBlock := NLBV-SecurityBlocks;
+            if LastDownBlock<MyLastBlock then LastDownBlock:=MyLastBlock;
+            AddLineToDebugLog('console','LastBlock requested from block '+IntToStr(LastDownBlock));
+            end;
+         LastTimeRequestBlock := UTCTime;
          end;
-      LastTimeRequestBlock := UTCTime;
       end;
    end
-else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
-        (MySumarioHash<>NetSumarioHash.Value) and (SummaryLastop < mylastblock)) then
+else if ((copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) and
+        (MySumarioHash<>GetConsensus(17)) and (SummaryLastop < mylastblock)) then
    begin  // complete or download summary
    if (SummaryLastop+(2*SumMarkInterval) < mylastblock) then
       begin
       if ((LastTimeRequestsumary+5 < UTCTime) and (not DownloadSumary) ) then
          begin
-         PTC_SendLine(NetResumenHash.Slot,ProtocolLine(6)); // Getsumary
-         AddLineToDebugLog('console',rs2003); //'sumary file requested'
-         LastTimeRequestsumary := UTCTime;
+         if GetValidSlotForSeed(ValidSlot) then
+            begin
+            PTC_SendLine(ValidSlot,ProtocolLine(6)); // Getsumary
+            AddLineToDebugLog('console',rs2003); //'sumary file requested'
+            LastTimeRequestsumary := UTCTime;
+            end;
          end;
       end
    else
       CompleteSumary();
    end
 // Blockchain status issues starts here
-else if ((MyResumenhash = NetResumenHash.Value) and (mylastblock = NLBV) and
-        (MySumarioHash<>NetSumarioHash.Value) and (SummaryLastop = mylastblock)) then
+else if ((copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) and
+        (MySumarioHash<>GetConsensus(17)) and (SummaryLastop = mylastblock)) then
    begin
    UndoneLastBlock();
    end
@@ -1145,6 +1158,22 @@ for contador := 1 to MaxConecciones do
    end;
 Result := resultado;
 end;
+
+Function GetValidSlotForSeed(out Slot:integer):boolean;
+var
+  counter : integer;
+Begin
+  Result := false;
+  For counter := 1 to MaxConecciones do
+    begin
+    if ( (IsSeedNode(conexiones[counter].ip)) and (conexiones[counter].MerkleHash = GetConsensus(0)) ) then
+      begin
+      result := true;
+      slot := counter;
+      break;
+      end;
+    end;
+End;
 
 Function GetSeedConnections():integer;
 var

@@ -235,12 +235,12 @@ msgstr ""
 
 #: tform1.label17.caption
 msgctxt "tform1.label17.caption"
-msgid "Percentage"
+msgid "Consensus"
 msgstr ""
 
 #: tform1.label18.caption
 msgctxt "tform1.label18.caption"
-msgid "Hash"
+msgid "Merkle"
 msgstr ""
 
 #: tform1.label2.caption

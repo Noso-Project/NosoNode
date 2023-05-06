@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, mpRed, MasterPaskalForm, mpParser, StrUtils, mpDisk, nosotime, mpBlock,
-  Zipper, mpcoin, mpMn, nosodebug, nosogeneral, nosocrypto, nosounit;
+  Zipper, mpcoin, mpMn, nosodebug, nosogeneral, nosocrypto, nosounit,nosoconsensus;
 
 function GetPTCEcn():String;
 Function GetOrderFromString(textLine:String):TOrderData;
@@ -485,7 +485,11 @@ conexiones[slot].MNsCount     :=StrToIntDef(PMNsCount,0);
 conexiones[slot].BestHashDiff := BestHashDiff;
 conexiones[slot].MNChecksCount:=StrToIntDef(MnsCheckCount,0);
 conexiones[slot].GVTsHash     :=Parameter(LineaDeTexto,17);
-conexiones[slot].CFGHash     :=Parameter(LineaDeTexto,18);
+conexiones[slot].CFGHash      :=Parameter(LineaDeTexto,18);
+conexiones[slot].MerkleHash   :=HashMD5String(PLastBlock+copy(PResumenHash,0,5)+copy(PMNsHash,0,5)+
+                                copy(PLastBlockHash,0,5)+copy(PSumHash,0,5)+
+                                copy(Parameter(LineaDeTexto,17),0,5)+copy(Parameter(LineaDeTexto,18),0,5));
+
 if responder then PTC_SendLine(slot,ProtocolLine(4));
 if responder then G_TotalPings := G_TotalPings+1;
 End;
@@ -496,7 +500,7 @@ var
   Port : integer = 0;
 Begin
 if Form1.Server.Active then port := Form1.Server.DefaultPort else port:= -1 ;
-result :=IntToStr(GetTotalConexiones())+' '+
+result :=IntToStr(GetTotalConexiones())+' '+ //
          IntToStr(MyLastBlock)+' '+
          MyLastBlockHash+' '+
          MySumarioHash+' '+
@@ -1179,10 +1183,10 @@ UNTIL ThisHeader='';
 //if TotalErrors>0 then AddLineToDebugLog('console',Format('Errors updating headers: %d',[TotalErrors]));
 //if TotalReceived>0 then AddLineToDebugLog('console',Format('Headers Received: %d',[TotalReceived]));
 MyResumenHash := HashMD5File(ResumenFilename);
-if MyResumenHash <> NetResumenHash.Value then
+if copy(MyResumenHash,0,5) <> GetConsensus(5) then
    begin
    ForceCompleteHeadersDownload := true;
-   AddLineToDebugLog('Console',Format('Update headers failed: %s <> %s',[MyResumenHash,NetResumenHash.Value]));
+   AddLineToDebugLog('Console',Format('Update headers failed: %s <> %s',[MyResumenHash,GetConsensus(5)]));
    end
 else
    begin

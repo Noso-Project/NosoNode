@@ -125,6 +125,7 @@ type
      MNChecksCount : integer;
      GVTsHash      : string[32];
      CFGHash       : string[32];
+     MerkleHash    : string[32];
      end;
 
   WalletData = Packed Record

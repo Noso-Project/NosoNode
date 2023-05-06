@@ -207,8 +207,9 @@ End;
 Function GetConHash(ILine:String):String;
 Begin
   Result := '';
-  Result := HashMD5String(Parameter(ILine,2)+Parameter(ILine,5)+Parameter(ILine,8)+Parameter(ILine,10)+
-                          Parameter(ILine,17)+Parameter(ILine,18)+Parameter(ILine,19));
+  Result := HashMD5String(Parameter(ILine,2)+copy(Parameter(ILine,5),0,5)+copy(Parameter(ILine,8),0,5)+
+                          copy(Parameter(ILine,10),0,5)+copy(Parameter(ILine,17),0,5)+
+                          copy(Parameter(ILine,18),0,5)+copy(Parameter(ILine,19),0,5));
 End;
 
 {Gets a random ip and port node}
