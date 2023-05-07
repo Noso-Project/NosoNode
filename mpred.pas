@@ -49,7 +49,7 @@ function UpdateNetworkCFGHash():NetworkData;
 Procedure UpdateNetworkData();
 Function IsAllSynced():integer;
 Procedure UpdateMyData();
-Procedure ActualizarseConLaRed();
+Procedure SyncWithMainnet();
 Procedure AddNewBot(linea:string);
 function GetOutGoingConnections():integer;
 function GetIncomingConnections():integer;
@@ -636,7 +636,7 @@ if ((NumeroConexiones>=MinConexToWork) and (MyConStatus<2) and (not STATUS_Conne
 if STATUS_Connected then
    begin
    UpdateNetworkData();
-   if Last_ActualizarseConLaRed+4<UTCTime then ActualizarseConLaRed();
+   if Last_SyncWithMainnet+4<UTCTime then SyncWithMainnet();
    end;
 if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLastBlock.Value)
      and (MySumarioHash=NetSumarioHash.Value) and(MyResumenhash = NetResumenHash.Value) ) then
@@ -968,7 +968,7 @@ MyCFGHash     := Copy(HAshMD5String(GetNosoCFGString),1,5);
 End;
 
 // Request necessary files/info to update
-Procedure ActualizarseConLaRed();
+Procedure SyncWithMainnet();
 var
   NLBV          : integer = 0; // network last block value
   LastDownBlock : integer = 0;
@@ -1048,73 +1048,84 @@ else if ((copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) an
    end
 // Blockchain status issues starts here
 else if ((copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) and
-        (MySumarioHash<>GetConsensus(17)) and (SummaryLastop = mylastblock)) then
+        (copy(MySumarioHash,0,5)<>GetConsensus(17)) and (SummaryLastop = mylastblock)) then
    begin
+   AddLineToDebugLog('console','Reqsum?');
    UndoneLastBlock();
    end
-else if ( (mylastblock = NLBV) and ( (MyResumenhash <> NetResumenHash.Value) or
-   (MyLastBlockHash<>NetLastBlockHash.value) ) ) then
+else if ( (mylastblock = NLBV) and ( (copy(MyResumenhash,0,5) <> GetConsensus(5)) or
+   (MyLastBlockHash<>GetConsensus(10)) ) ) then
    begin
    AddLineToDebugLog('console',MyLastBlockHash+' '+MyLastBlockHash);
    UndoneLastBlock();
    end
 // Update headers
-else if ((MyResumenhash <> NetResumenHash.Value) and (NLBV=mylastblock) and (MyLastBlockHash=NetLastBlockHash.value)
-   and (MySumarioHash=NetSumarioHash.Value) and (not DownloadHeaders) ) then
+else if ((copy(MyResumenhash,0,5) <> GetConsensus(5)) and (NLBV=mylastblock) and (MyLastBlockHash=GetConsensus(10))
+   and (copy(MySumarioHash,0,5)=GetConsensus(17)) and (not DownloadHeaders) ) then
    begin
-   ClearAllPending;
-   SetNMSData('','','','','','');
-   PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7)); // GetResumen
-   AddLineToDebugLog('console','Headers file requested'); //'Headers file requested'
-   LastTimeRequestResumen := UTCTime;
+   if GetValidSlotForSeed(ValidSlot) then
+      begin
+      ClearAllPending;
+      SetNMSData('','','','','','');
+      PTC_SendLine(ValidSlot,ProtocolLine(7));
+      AddLineToDebugLog('console','Headers file requested');
+      LastTimeRequestResumen := UTCTime;
+      end;
    end
-else if ( (StrToIntDef(NetMNsCount.Value,0)>GetMNsListLength) and (LastTimeMNsRequested+5<UTCTime)
+else if ( (StrToIntDef(GetConsensus(9),0)>GetMNsListLength) and (LastTimeMNsRequested+5<UTCTime)
            and (LengthWaitingMNs = 0) and (BlockAge>30) ) then
    begin
-   EnterCriticalSection(CSMNsIPCheck);
-   Setlength(ArrayIPsProcessed,0);
-   LeaveCriticalSection(CSMNsIPCheck);
-   PTC_SendLine(NetMNsCount.Slot,ProtocolLine(11));  // Get MNsList
-   LastTimeMNsRequested := UTCTime;
-   AddLineToDebugLog('console','MNs reports requested');
+   if GetValidSlotForSeed(ValidSlot) then
+      begin
+      EnterCriticalSection(CSMNsIPCheck);
+      Setlength(ArrayIPsProcessed,0);
+      LeaveCriticalSection(CSMNsIPCheck);
+      PTC_SendLine(ValidSlot,ProtocolLine(11));  // Get MNsList
+      LastTimeMNsRequested := UTCTime;
+      AddLineToDebugLog('console','MNs reports requested');
+      end;
    end
-else if ((StrToIntDef(NetMNsChecks.Value,0)>GetMNsChecksCount) and (LastTimeChecksRequested+5<UTCTime)) then
+else if ((StrToIntDef(GetConsensus(14),0)>GetMNsChecksCount) and (LastTimeChecksRequested+5<UTCTime)) then
    begin
-   PTC_SendLine(NetMNsChecks.Slot,ProtocolLine(GetChecks));  // Get MNsChecks
-   LastTimeChecksRequested := UTCTime;
-   AddLineToDebugLog('console','Checks requested to '+conexiones[NetMNsChecks.Slot].ip);
+   if GetValidSlotForSeed(ValidSlot) then
+      begin
+      PTC_SendLine(ValidSlot,ProtocolLine(GetChecks));  // Get MNsChecks
+      LastTimeChecksRequested := UTCTime;
+      AddLineToDebugLog('console','Checks requested to '+conexiones[NetMNsChecks.Slot].ip);
+      end;
    end
-else if ( (NetMNsHash.value<>Copy(MyMNsHash,1,5)) and (LastTimeMNHashRequestes+5<UTCTime) and
-          (NetMNsHash.value<>'') ) then
+else if ( (GetConsensus(8)<>Copy(MyMNsHash,1,5)) and (LastTimeMNHashRequestes+5<UTCTime) and
+          (GetConsensus(8)<>'') ) then
    begin
-   PTC_SendLine(NetMNsHash.Slot,ProtocolLine(GetMNsFile));  // Get MNsFile
-   LastTimeMNHashRequestes := UTCTime;
-   AddLineToDebugLog('console','Mns File requested to '+conexiones[NetMNsChecks.Slot].ip);
+   if GetValidSlotForSeed(ValidSlot) then
+      begin
+      PTC_SendLine(ValidSlot,ProtocolLine(GetMNsFile));  // Get MNsFile
+      LastTimeMNHashRequestes := UTCTime;
+      AddLineToDebugLog('console','Mns File requested to '+conexiones[NetMNsChecks.Slot].ip);
+      end;
    end
-else if ( (NetCFGHash.value<>Copy(HashMd5String(GetNosoCFGString),0,5)) and (LasTimeCFGRequest+5<UTCTime) and
-          (NetCFGHash.value<>'') ) then
+// <-- HERE -->
+else if ( (GetConsensus(19)<>Copy(HashMd5String(GetNosoCFGString),0,5)) and (LasTimeCFGRequest+5<UTCTime) and
+          (GetConsensus(19)<>'') ) then
    begin
-   PTC_SendLine(NetCFGHash.Slot,ProtocolLine(GetCFG));  // TO BE IMPLEMENTED
-   LasTimeCFGRequest := UTCTime;
-   AddLineToDebugLog('console','Noso CFG file requested');
+   if GetValidSlotForSeed(ValidSlot) then
+      begin
+      PTC_SendLine(ValidSlot,ProtocolLine(GetCFG));
+      LasTimeCFGRequest := UTCTime;
+      AddLineToDebugLog('console','Noso CFG file requested');
+      end;
    end
-else if ( (GetNMSData.Diff<>NetBestHash.Value) and (LastTimeBestHashRequested+5<UTCTime) ) then
+else if ( (GetConsensus(18)<>Copy(MyGVTsHash,0,5)) and (LasTimeGVTsRequest+5<UTCTime) and
+          (GetConsensus(18)<>'') and (not DownloadGVTs) ) then
    begin
-   {
-   PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));
-   LastTimeBestHashRequested := UTCTime.ToInt64;
-   AddLineToDebugLog('console','Requesting besthash');
-   }
-   end
-else if ( (NetGVTSHash.Value<>MyGVTsHash) and (LasTimeGVTsRequest+5<UTCTime) and (NetGVTSHash.Value<>'')
-        and (not DownloadGVTs) ) then
-   begin
-   // REQUEST GVTS
-   PTC_SendLine(NetGVTSHash.Slot,ProtocolLine(GetGVTs));  // Get MNsFile
-   LasTimeGVTsRequest := UTCTime;
-   AddLineToDebugLog('console','GVTs File requested to '+conexiones[NetMNsChecks.Slot].ip);
+   if GetValidSlotForSeed(ValidSlot) then
+      begin
+      PTC_SendLine(ValidSlot,ProtocolLine(GetGVTs));
+      LasTimeGVTsRequest := UTCTime;
+      AddLineToDebugLog('console','GVTs File requested to '+conexiones[NetMNsChecks.Slot].ip);
+      end;
    end;
-if IsAllSynced=0 then Last_ActualizarseConLaRed := Last_ActualizarseConLaRed+5;
+if IsAllSynced=0 then Last_SyncWithMainnet := Last_SyncWithMainnet+5;
 End;
 
 Procedure AddNewBot(linea:string);

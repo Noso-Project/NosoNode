@@ -812,7 +812,7 @@ var
   ArrMNChecks : array of TMNCheck;
   MNsRandomWait : Integer= 0;
 
-  Last_ActualizarseConLaRed : int64 = 0;
+  Last_SyncWithMainnet : int64 = 0;
   NetSumarioHash : NetworkData;
     SumaryRebuilded : boolean = false;
     LastTimeRequestSumary  : int64 = 0;

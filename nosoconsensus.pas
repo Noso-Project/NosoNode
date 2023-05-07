@@ -73,8 +73,10 @@ Const
 
 var
   Consensus : TConsensus;
-  NConsensus : array[0..19] of string = ('Resume','Peers','LBlock','Pending','Delta','Headers','Version','UTCTime','MNsHash','MNsCount','LBHash','BestDiff',
-                                         'LBTimeEnd','LBMiner','ChecksCount','LBPoW','LBDiff','Summary','GVTs','NosoCFG');
+  NConsensus : array[0..19] of string = ({0}'Resume','Peers','LBlock','Pending','Delta',
+                                         {5}'Headers','Version','UTCTime','MNsHash','MNsCount',
+                                         {10}'LBHash','BestDiff','LBTimeEnd','LBMiner','ChecksCount',
+                                         {15}'LBPoW','LBDiff','Summary','GVTs','NosoCFG');
   Css_TotalNodes    : integer = 0;
   Css_ReachedNodes  : integer = 0;
   Css_ValidNodes    : Integer = 0;
