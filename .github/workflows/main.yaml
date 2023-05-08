@@ -118,7 +118,7 @@ jobs:
         name: nosonode ${{ steps.vars.outputs.tag }}
         body_path: releasenotes.txt
         files: |
-          Noso/*.tar.gz
-          Noso/*.zip
+          nosonode/*.tar.gz
+          nosonode/*.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
