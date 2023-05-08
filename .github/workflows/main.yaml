@@ -16,7 +16,7 @@ jobs:
     runs-on: ${{ matrix.operating-system }}
     strategy:
       matrix:
-        operating-system: [ubuntu-latest, windows-latest]
+        operating-system: [ubuntu-20.04, ubuntu-latest, windows-latest]
         lazarus-versions: [stable, 2.0.12]
     steps:
     - uses: actions/cache@v2
@@ -67,6 +67,7 @@ jobs:
           ls -al
           ls -al windows-latest
           ls -al ubuntu-latest
+          ls -al ubuntu-20.04
       - name: Package Windows
         run: |
           cp windows-latest/Noso.exe .
@@ -79,8 +80,16 @@ jobs:
           tag=${{ github.event.ref }}
           tag=${tag#"refs/tags/"}
           chmod +x Noso
-          tar -zcvf noso-${tag}-x86_64-linux.tgz Noso
-          zip -r noso-${tag}-x86_64-linux.zip Noso
+          tar -zcvf noso-${tag}-x86_64-ubuntu-latest.tgz Noso
+          zip -r noso-${tag}-x86_64-ubuntu-latest.zip Noso
+      - name: Package Linux
+        run: |
+          cp ubuntu-20.04/Noso .
+          tag=${{ github.event.ref }}
+          tag=${tag#"refs/tags/"}
+          chmod +x Noso
+          tar -zcvf noso-${tag}-x86_64-ubuntu-20-04.tgz Noso
+          zip -r noso-${tag}-x86_64-ubuntu-20-04.zip Noso
       - name: Upload Release
         uses: softprops/action-gh-release@v1
         with:
