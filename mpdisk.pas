@@ -158,7 +158,7 @@ var
   SourceStr : String = '';
 Begin
 counter := 0;
-SourceStr := Parameter(GetNosoCFGString,1);
+SourceStr := Parameter(GetNosoCFGString,1)+GetVerificatorsText;
 SourceStr := StringReplace(SourceStr,':',' ',[rfReplaceAll, rfIgnoreCase]);
 SetLength(ListaNodos,0);
 Repeat

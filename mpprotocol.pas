@@ -284,10 +284,10 @@ for contador := 1 to MaxConecciones do
    begin
    if ( (LengthIncoming(contador) > 200) and (not IsSeedNode(Conexiones[contador].ip)) ) then
       begin
-      AddLineToDebugLog('console','POSSIBLE ATTACK FROM: '+Conexiones[contador].ip);
-      UpdateBotData(conexiones[contador].ip);
-      CerrarSlot(contador);
-      continue;
+      //AddLineToDebugLog('console','POSSIBLE ATTACK FROM: '+Conexiones[contador].ip);
+      //UpdateBotData(conexiones[contador].ip);
+      //CerrarSlot(contador);
+      //continue;
       end;
    While LengthIncoming(contador) > 0 do
       begin

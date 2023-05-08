@@ -51,6 +51,7 @@ Procedure CreditMNVerifications();
 Function GetMNsAddresses():String;
 Function GetMNsFileData():String;
 Procedure FillMNsArray(TValue:String);
+Function GetVerificatorsText():string;
 Procedure SetMN_FileText(Tvalue:String);
 Function GetMN_FileText():String;
 Procedure SaveMNsFile(GotText:string);
@@ -71,6 +72,7 @@ var
   CurrSynctus : string;
   VerifiedNodes : String;
   UnconfirmedIPs : integer;
+  TopVerificators : string;
   CSVerNodes    : TRTLCriticalSection;
   CSMNsChecks   : TRTLCriticalSection;
   DecVerThreads : TRTLCriticalSection;
@@ -642,6 +644,7 @@ var
   ThisMN    : TMNsData;
   TempArray : array of TMNsData;
   Added     : boolean = false;
+  VerificatorsCount : integer;
 Begin
 BeginPerformance('FillMNsArray');
 SetLength(ArrayMNsData,0);
@@ -681,11 +684,25 @@ for counter := 0 to length(TempArray)-1 do
 EndPerformance('FillMNsArray');
 End;
 
+Function GetVerificatorsText():string;
+var
+  counter  : integer;
+  VerCount : integer;
+Begin
+Result := '';
+VerCount :=  (length(ArrayMNsData) div 10)+3;
+for counter := 0 to VerCount-1 do
+  begin
+  Result:= Result+ArrayMNsData[counter].ipandport+':';
+  end;
+End;
+
 Procedure SetMN_FileText(Tvalue:String);
 Begin
 EnterCriticalSection(CSMN_FileText);
 MN_FileText := Tvalue;
 FillMNsArray(TValue);
+FillNodeList;
 LeaveCriticalSection(CSMN_FileText);
 End;
 
@@ -693,6 +710,7 @@ Function GetMN_FileText():String;
 Begin
 EnterCriticalSection(CSMN_FileText);
 Result := MN_FileText;
+FillMNsArray(result);
 LeaveCriticalSection(CSMN_FileText);
 End;
 

@@ -24,7 +24,7 @@ Function HashrateToShow(speed:int64):String;
 Function Int2Curr(LValue: int64): string;
 Procedure RunExternalProgram(ProgramToRun:String);
 Function GetStackRequired(block:integer):int64;
-Function GetMNsPercentage(block:integer):integer;
+Function GetMNsPercentage(block:integer;MainnetMode:String='NORMAL'):integer;
 Function GetPoSPercentage(block:integer):integer;
 Function GetDevPercentage(block:integer):integer;
 Function GetMinimumFee(amount:int64):Int64;
@@ -185,10 +185,11 @@ Function GetStackRequired(block:integer):int64;
 Begin
   result := (GetSupply(block)*20) div 10000;
   if result > 1100000000000 then result := 1100000000000;
+  if block > 110000 then result := 1050000000000;
 End;
 
 {Returns the MNs percentage for the specified block (0 to 10000)}
-Function GetMNsPercentage(block:integer):integer;
+Function GetMNsPercentage(block:integer;MainnetMode:String='NORMAL'):integer;
 Begin
   result := 0;
   if block >= 48010{MNBlockStart} then
@@ -196,6 +197,7 @@ Begin
     result := 2000{MNsPercentage} + (((block-48010{MNBlockStart}) div 4000) * 100);
     if block >= 88400{PoSBlockEnd} then Inc(Result,1000);
     if result > 6000 then result := 6000;
+    if MainnetMode = 'MNSONLY' then result := 90000;
     end;
 End;
 

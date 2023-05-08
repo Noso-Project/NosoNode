@@ -592,6 +592,8 @@ if NumeroConexiones = 0 then  // Desconectado
    EnterCriticalSection(CSIdsProcessed);
    Setlength(ArrayOrderIDsProcessed,0); // clear processed Orders
    LeaveCriticalSection(CSIdsProcessed);
+   ClearMNsChecks();
+   ClearMNsList();
    MyConStatus := 0;
    if Form1.Server.Active then
       begin
@@ -659,7 +661,9 @@ if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = Getco
    AddLineToDebugLog('console','Updated!');   //Updated!
    if RPCAuto then  ProcessLinesAdd('RPCON');
    if StrToIntDef(GetConsensus(3),0)<GetPendingCount then
+      begin
       setlength(PendingTxs,0);
+      end;
    PTC_SendLine(ValidSlot,ProtocolLine(5));  // Get pending
    LastTimePendingRequested := UTCTime;
    // Get MNS
@@ -670,13 +674,19 @@ if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = Getco
    end;
 if MyConStatus = 3 then
    begin
+   GetValidSlotForSeed(ValidSlot);
    if ((StrToIntDef(NetPendingTrxs.Value,0)>GetPendingCount) and (LastTimePendingRequested+5<UTCTime) and
       (length(ArrayCriptoOp)=0) ) then
       begin
       ClearReceivedOrdersIDs();
-      PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));  // Get pending
+      PTC_SendLine(ValidSlot,ProtocolLine(5));  // Get pending
       LastTimePendingRequested := UTCTime;
       //AddLineToDebugLog('console','Pending requested to '+conexiones[NetPendingTrxs.Slot].ip);
+      end;
+   if ( (StrToIntDef(GetCOnsensus(3),0) > GetPendingCount) and (LastTimePendingRequested+5<UTCTime)) then
+      begin
+      PTC_SendLine(ValidSlot,ProtocolLine(5));  // Get pending
+      LastTimePendingRequested := UTCTime;
       end;
    if ( (not MyMNIsListed) and (Form1.Server.Active) and (UTCTime>LastTimeReportMyMN+5)
         and (BlockAge>10+MNsRandomWait) and (BlockAge<495) and(1=1) ) then
@@ -1055,7 +1065,12 @@ else if ((copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) an
         (copy(MySumarioHash,0,5)<>GetConsensus(17)) and (SummaryLastop = mylastblock)) then
    begin
    AddLineToDebugLog('console','Reqsum?');
-   UndoneLastBlock();
+   if GetValidSlotForSeed(ValidSlot) then
+     begin
+     PTC_SendLine(ValidSlot,ProtocolLine(6)); // Getsumary
+     AddLineToDebugLog('console',rs2003); //'sumary file requested'
+     LastTimeRequestsumary := UTCTime;
+     end;
    end
 else if ( (mylastblock = NLBV) and ( (copy(MyResumenhash,0,5) <> GetConsensus(5)) or
    (MyLastBlockHash<>GetConsensus(10)) ) ) then
@@ -1181,7 +1196,7 @@ Begin
   Result := false;
   For counter := 1 to MaxConecciones do
     begin
-    if ( (IsSeedNode(conexiones[counter].ip)) and (conexiones[counter].MerkleHash = GetConsensus(0)) ) then
+    if ( (conexiones[counter].MerkleHash = GetConsensus(0)) ) then
       begin
       result := true;
       slot := counter;

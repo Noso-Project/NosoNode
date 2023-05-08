@@ -277,7 +277,6 @@ else if UpperCase(Command) = 'CHECKHEADERS' then BuildHeaderFile(StrToIntDef(par
 else if UpperCase(Command) = 'REBUILDHEADERS' then RebuildHeadersFile()
 
 // CONSULTING
-else if UpperCase(Command) = 'NETRATE' then AddLineToDebugLog('console','Average Mainnet hashrate: '+HashrateToShow(MainNetHashrate))
 else if UpperCase(Command) = 'LISTGVT' then ListGVTs()
 else if UpperCase(Command) = 'SYSTEM' then ShowSystemInfo(Linetext)
 else if UpperCase(Command) = 'NOSOCFG' then AddLineToDebugLog('console',GetNosoCFGString)
@@ -1730,6 +1729,7 @@ var
 Begin
 Total := Length(ArrayMNsData);
 verifis := (total div 10)+3;
+AddLineToDebugLog('console',GetVerificatorsText);
 AddLineToDebugLog('console','Masternodes  : '+IntToStr(total));
 AddLineToDebugLog('console','Verificators : '+IntToStr(verifis));
 for counter := 0 to verifis-1 do

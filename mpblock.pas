@@ -317,7 +317,7 @@ if not errored then
       until ThisParam = '';
 
       MNsCount := Length(MNsAddressess);
-      MNsTotalReward := ((GetBlockReward(Numero)+MinerFee)*GetMNsPercentage(Numero)) div 10000;
+      MNsTotalReward := ((GetBlockReward(Numero)+MinerFee)*GetMNsPercentage(Numero,GetNosoCFGString(0))) div 10000;
       if MNsCount>0 then MNsReward := MNsTotalReward div MNsCount
       else MNsReward := 0;
       MNsTotalReward := MNsCount * MNsReward;

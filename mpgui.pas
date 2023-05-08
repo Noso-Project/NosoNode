@@ -386,7 +386,7 @@ if LastUpdateDataPanel <> UTCTime then
    form1.DataPanel.Cells[3,4]:= format('%s / %s',[Copy(HashMd5String(GetNosoCFGString),0,5),GetConsensus(19)]);
    form1.DataPanel.Cells[3,5]:= format('%s / %s',[Copy(MyGVTsHash,0,5),GetConsensus(18)]);
    form1.DataPanel.Cells[3,6]:= format('%s / %s',[Copy(MyMNsHash,0,5),GetConsensus(8)]);
-   form1.DataPanel.Cells[3,7]:= format('(%d)  %d/%s (%d)',[GetMNsChecksCount,GetMNsListLength,NetMNsCount.Value,LengthWaitingMNs]);
+   form1.DataPanel.Cells[3,7]:= format('(%d)  %d/%s (%d)',[GetMNsChecksCount,GetMNsListLength,GetConsensus(9),LengthWaitingMNs]);
    LastUpdateDataPanel := UTCTime;
    end;
 
