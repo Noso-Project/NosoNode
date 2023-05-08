@@ -958,10 +958,10 @@ End;
 Function IsAllSynced():integer;
 Begin
 result := 0;
-if MyLastBlock <> StrToIntDef(NetLastBlock.Value,0) then result := 1;
-if MyLastBlockHash <> NetLastBlockHash.Value then result := 2;
-if MySumarioHash <> NetSumarioHash.Value then result := 3;
-if MyResumenHash <> NetResumenHash.Value then result := 4;
+if MyLastBlock     <> StrToIntDef(GetConsensus(cLastBlock),0) then result := 1;
+if MyLastBlockHash <> GetConsensus(cLBHash) then result := 2;
+if Copy(MySumarioHash,0,5)   <> GetConsensus(cSumHash) then result := 3;
+if Copy(MyResumenHash,0,5)   <> GetConsensus(cHeaders) then result := 4;
 {
 if Copy(MyMNsHash,1,5) <>  NetMNsHash.value then result := 5;
 if MyGVTsHash <> NetGVTSHash.Value then result := 6;
