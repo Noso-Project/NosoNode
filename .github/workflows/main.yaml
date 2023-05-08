@@ -61,6 +61,27 @@ jobs:
       run: |
         lazbuild -B --bm=Release "Noso.lpi"
         mv Noso nosonode-x86_64-ubuntu-20-04
+        
+    - name: Upload binary (Windows)
+      if: ${{ (matrix.operating-system == 'windows-latest')  &&  (matrix.lazarus-versions == 'stable') }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: nosonode
+        path: nosonode-x86_64-win64.exe
+
+    - name: Upload binary (Ubuntu)
+      if: ${{ (matrix.operating-system == 'ubuntu-latest')  &&  (matrix.lazarus-versions == 'stable') }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: nosonode
+        path: nosonode-x86_64-ubuntu-latest
+        
+    - name: Upload binary (Ubuntu)
+      if: ${{ (matrix.operating-system == 'ubuntu-20.04')  &&  (matrix.lazarus-versions == 'stable') }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: nosonode
+        path: nosonode-x86_64-ubuntu-20-04
 
   package-release:
     if: contains(github.ref, '/tags/')
@@ -81,11 +102,11 @@ jobs:
       uses: actions/download-artifact@v2
 
     - name: List files
-      run: ls -alF Noso
+      run: ls -alF nosonode
 
     - name: Create release files
       run: |
-        cd Noso
+        cd nosonode
         chmod +x nosonode-x86_64-ubuntu-latest nosoearn-x86_64-ubuntu-20-04
         zip -r nosonode-${{ steps.vars.outputs.tag }}-x86_64-win64.zip nosonode-x86_64-win64.exe
         tar -zcvf nosonode-${{ steps.vars.outputs.tag }}-x86_64-ubuntu-latest.tar.gz nosonode-x86_64-ubuntu-latest
