@@ -1,39 +1,37 @@
 name: Build NosoWallet
 
 on:
-  pull_request:
   push:
-    paths-ignore:
-    - "README.md"
-    - "lastrelease.txt"
-    branches:
-      - "*"
-    tags:
-      - "*"
+    branches: [ main ]
+    tags: [ "*" ]
+    paths-ignore: [ "README.md", "changelog.txt", "releasenotes.txt" ]
 
+  pull_request:
+    branches: [ main ]
+    
 jobs:
   build:
+    name: Build and test
     runs-on: ${{ matrix.operating-system }}
+    
     strategy:
       matrix:
-        operating-system: [ubuntu-20.04, ubuntu-latest, windows-latest]
-        lazarus-versions: [stable, 2.0.12]
+        operating-system: [ ubuntu-20.04, ubuntu-latest, windows-latest, macos-latest ]
+        lazarus-versions: [ stable]
+        
     steps:
-    - uses: actions/cache@v2
+    - name: Checkout Repository
+      uses: actions/checkout@v3
       with:
-        path: |
-          ~/.cache/instantfpc
-          ~/.lazarus
-          /usr/share/lazarus/${{ matrix.lazarus-versions }}
-          /usr/bin/lazbuild
-        key: ${{ runner.os }}-laz-${{ matrix.lazarus-versions }}-v1
-        restore-keys: |
-          ${{ runner.os }}-laz-
+        clean: true
+        set-safe-directory: true
+
     - name: Install Lazarus
-      uses: gcarreno/setup-lazarus@v3.0.16
+      uses: gcarreno/setup-lazarus@v3.2
       with:
         lazarus-version: ${{ matrix.lazarus-versions }}
-    - uses: actions/checkout@v2
+        with-cache: false
+
     - name: Unzip packages
       run: unzip -q Packages/\*.zip -d Packages
     - name: Install packages
@@ -45,74 +43,61 @@ jobs:
         lazbuild -qqq Packages/CryptoLib4Pascal-master/CryptoLib/src/Packages/FPC/CryptoLib4PascalPackage.lpk
         lazbuild -qqq Packages/lazbarcodes/packages/lazbarcodes_runtimeonly.lpk
         lazbuild -qqq Packages/lazbarcodes/packages/lazbarcodes.lpk
-    - name: Build the Main Application
-      run: lazbuild -B --bm="Release" "Noso.lpi"
-    - uses: actions/upload-artifact@v2
-      with:
-        name: ${{ matrix.operating-system }}
-        path: |
-          Noso
-          Noso.exe
+        
+    - name: Build the Main App (Windows)
+      if: ${{ matrix.operating-system == 'windows-latest' }}
+      run: |
+        lazbuild -B --bm=Release "Noso.lpi"
+        mv Noso.exe nosonode-x86_64-win64.exe
+
+    - name: Build the Main App (Ubuntu)
+      if: ${{ matrix.operating-system == 'ubuntu-latest' }}
+      run: |
+        lazbuild -B --bm=Release "Noso.lpi"
+        mv Noso nosonode-x86_64-ubuntu-latest
+
+    - name: Build the Main App (Ubuntu)
+      if: ${{ matrix.operating-system == 'ubuntu-20.04' }}
+      run: |
+        lazbuild -B --bm=Release "Noso.lpi"
+        mv Noso nosonode-x86_64-ubuntu-20-04
 
   package-release:
     if: contains(github.ref, '/tags/')
-    name: Package and Upload
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
-      - uses: actions/download-artifact@v2
-        name: Download Artifacts
-      - name: List everything
-        run: |
-          ls -al
-          ls -al windows-latest
-          ls -al ubuntu-latest
-          ls -al ubuntu-20.04
-      - name: Package Windows
-        run: |
-          cp windows-latest/Noso.exe .
-          tag=${{ github.event.ref }}
-          tag=${tag#"refs/tags/"}
-          zip noso-${tag}-x86_64-win64.zip Noso.exe
-      - name: Package Linux
-        run: |
-          cp ubuntu-latest/Noso .
-          tag=${{ github.event.ref }}
-          tag=${tag#"refs/tags/"}
-          chmod +x Noso
-          tar -zcvf noso-${tag}-x86_64-ubuntu-latest.tgz Noso
-          zip -r noso-${tag}-x86_64-ubuntu-latest.zip Noso
-      - name: Package Linux
-        run: |
-          cp ubuntu-20.04/Noso .
-          tag=${{ github.event.ref }}
-          tag=${tag#"refs/tags/"}
-          chmod +x Noso
-          tar -zcvf noso-${tag}-x86_64-ubuntu-20-04.tgz Noso
-          zip -r noso-${tag}-x86_64-ubuntu-20-04.zip Noso
-      - name: Upload Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            noso-*.zip
-            noso-*.tgz
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  trigger-downstream:
-    if: contains(github.ref, '/tags/')
-    name: Trigger Downstream
+    name: Package and create GitHub Release
     runs-on: ubuntu-latest
-    needs: [package-release]
+    needs: build
+
     steps:
-      - name: noso-docker
-        run: |
-          tag=${{ github.event.ref }}
-          tag=${tag#"refs/tags/"}
-          curl \
-            -XPOST \
-            -u "leviable:${{ secrets.NOSO_DOCKER_PAT }}" \
-            -H "Accept: application/vnd.github.everest-preview+json" \
-            -H "Content-Type: application/json" \
-            --data '{"ref": "main", "inputs": {"noso_tag": "'"${tag}"'"}}' \
-            https://api.github.com/repos/Noso-Project/noso-docker/actions/workflows/main.yaml/dispatches
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Set output
+      id: vars
+      run: echo "tag=${GITHUB_REF#refs/*/}" >> ${GITHUB_OUTPUT}
+
+    - name: Download the Release binary
+      uses: actions/download-artifact@v2
+
+    - name: List files
+      run: ls -alF Noso
+
+    - name: Create release files
+      run: |
+        cd Noso
+        chmod +x nosonode-x86_64-ubuntu-latest nosoearn-x86_64-ubuntu-20-04
+        zip -r nosonode-${{ steps.vars.outputs.tag }}-x86_64-win64.zip nosonode-x86_64-win64.exe
+        tar -zcvf nosonode-${{ steps.vars.outputs.tag }}-x86_64-ubuntu-latest.tar.gz nosonode-x86_64-ubuntu-latest
+        tar -zcvf nosonode-${{ steps.vars.outputs.tag }}-x86_64-ubuntu-20-04.tar.gz nosonode-x86_64-ubuntu-20-04
+
+    - name: Create GitHub release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: nosonode ${{ steps.vars.outputs.tag }}
+        body_path: releasenotes.txt
+        files: |
+          Noso/*.tar.gz
+          Noso/*.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
