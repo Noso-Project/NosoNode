@@ -33,14 +33,13 @@ Uses
 Function CreateDevPaymentOrder(number:integer;timestamp,amount:int64):TOrderData;
 Begin
 Result := Default(TOrderData);
-
 Result.Block      := number;
 //Result.OrderID    :='';
 Result.OrderLines := 1;
 Result.OrderType  := 'PROJCT';
 Result.TimeStamp  := timestamp-1;
 Result.Reference  := 'null';
-Result.TrxLine    :=1;
+Result.TrxLine    := 1;
 Result.sender     := 'COINBASE';
 Result.Address    := 'COINBASE';
 Result.Receiver   := 'NpryectdevepmentfundsGE';
@@ -49,6 +48,25 @@ Result.AmmountTrf := amount;
 Result.Signature  := 'COINBASE';
 Result.TrfrID     := GetTransferHash(Result.TimeStamp.ToString+'COINBASE'+'NpryectdevepmentfundsGE'+IntToStr(amount)+IntToStr(MyLastblock));
 Result.OrderID    := {GetOrderHash(}'1'+Result.TrfrID{)};
+End;
+
+Function CreateNosoPayOrder(number:integer;AddSend,AddReceive:string;timestamp,amount:int64):TOrderData;
+Begin
+Result := Default(TOrderData);
+Result.Block      := number;
+Result.OrderLines := 1;
+Result.OrderType  := 'TRFR';
+Result.TimeStamp  := timestamp-1;
+Result.Reference  := 'null';
+Result.TrxLine    := 1;
+Result.sender     := AddSend;
+Result.Address    := AddSend;
+Result.Receiver   := AddReceive;
+Result.AmmountFee := 0;
+Result.AmmountTrf := amount;
+Result.Signature  := 'Directive';
+Result.TrfrID     := GetTransferHash(Result.TimeStamp.ToString+'TRFR'+AddSend+IntToStr(amount)+IntToStr(MyLastblock));
+Result.OrderID    := '1'+GetOrderHash(Result.TrfrID);
 End;
 
 // Build the default block 0
@@ -93,6 +111,12 @@ var
 
   MNsFileText   : String = '';
   GVTsTransfered : integer = 0;
+  NosoPayData    : string = '';
+    NPDOrder     : TOrderData;
+    NPDBlock     : integer;
+    NPDSource    : string;
+    NPDTarget    : string;
+    NPDAmount    : int64;
 
 
 Begin
@@ -196,6 +220,31 @@ if not errored then
             end;
          end;
       end;
+   // Proyect payments
+   if GetNosoCFGString(6) <>'' then
+      begin
+      NosoPayData := GetNosoCFGString(6);
+      NosoPayData :=StringReplace(NosoPayData,':','',[rfReplaceAll, rfIgnoreCase]);
+      NosoPayData :=StringReplace(NosoPayData,',',' ',[rfReplaceAll, rfIgnoreCase]);
+      NPDBlock := StrToIntdef(Parameter(NosoPayData,0),0);
+      if NPDBlock = numero then
+         begin
+         NPDSource := Parameter(NosoPayData,1);
+         NPDTarget := Parameter(NosoPayData,2);
+         if ( (IsValidHashAddress(NPDTarget)) and (IsValidHashAddress(NPDSource)) ) then
+            begin
+            NPDAmount := StrToInt64def(Parameter(NosoPayData,3),0);
+            if SummaryValidPay(NPDSource,NPDamount,NPDBlock) then
+               begin
+               CreditTo(NPDTarget,NPDAmount,NPDBlock);
+               NPDOrder := CreateNosoPayOrder(NPDBlock,NPDSource,NPDTarget,TimeStamp,NPDAmount);
+               insert(NPDOrder,ListaOrdenes,length(listaordenes));
+               RemoveCFGData(GetNosoCFGString(6),6);
+               AddLineToDebugLog('console','Nosopay order '+NPDOrder.OrderID);
+               end;
+            end;
+         end;
+      end;
    // Project funds payment
    if numero >= PoSBlockEnd then
       begin
@@ -296,7 +345,9 @@ if not errored then
    SummaryLastop := numero;
    // Limpiar las pendientes
    for contador := 0 to length(ListaDirecciones)-1 do
+      begin
       ListaDirecciones[contador].Pending:=0;
+      end;
    // Definir la cabecera del bloque *****
    BlockHeader := Default(BlockHeaderData);
    BlockHeader.Number := Numero;

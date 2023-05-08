@@ -208,7 +208,7 @@ var
   contador : integer = 0;
 Begin
 // datapanel
-form1.DataPanel.Cells[0,0]:=rs0504;  //'Balance'
+form1.DataPanel.Cells[0,0]:= 'Merkle';
 form1.DataPanel.Cells[0,1]:=rs0505; //'Server'
 form1.DataPanel.Cells[0,2]:=rs0506;  //'Connections'
 form1.DataPanel.Cells[0,3]:=rs0507;  //'Headers'
@@ -217,14 +217,14 @@ form1.DataPanel.Cells[0,5]:=rs0509;  //Lastblock
 form1.DataPanel.Cells[0,6]:=rs0510;  //'Blocks'
 form1.DataPanel.Cells[0,7]:=rs0511;  //'Pending'
 
-form1.DataPanel.Cells[2,0]:=rs0518;  //'Next Miner'
-form1.DataPanel.Cells[2,1]:=rs0519;  //'Hashing'
-form1.DataPanel.Cells[2,2]:='Clients';  //'Target'
-form1.DataPanel.Cells[2,3]:='Reward';  //
-form1.DataPanel.Cells[2,4]:='Block Time';  //
-form1.DataPanel.Cells[2,5]:='GVTs';  //'Pool Balance'
-form1.DataPanel.Cells[2,6]:='Masternodes';     //'mainnet Time'
-form1.DataPanel.Cells[2,7]:='MNs #';     //'Masternodes'
+form1.DataPanel.Cells[2,0]:= 'PoP Info';
+form1.DataPanel.Cells[2,1]:= 'Next';
+form1.DataPanel.Cells[2,2]:= 'Clients';
+form1.DataPanel.Cells[2,3]:= '';
+form1.DataPanel.Cells[2,4]:= 'NosoCFG';
+form1.DataPanel.Cells[2,5]:='GVTs';
+form1.DataPanel.Cells[2,6]:='Masternodes';
+form1.DataPanel.Cells[2,7]:='MNsCount';
 
 Form1.SGridSC.Cells[0,0]:=rs0501;  //'Destination'
 Form1.SGridSC.Cells[0,1]:=rs0502;  //'Amount'
@@ -285,6 +285,7 @@ Const
   LocalLastUpdate     : int64 = 0;
   LastUpdateProcesses : int64 = 0;
   LastUpdateConsensus : int64 = 0;
+  LastUpdateDataPanel : int64 = 0;
 var
   contador : integer = 0;
   LocalProcesses      : TProcessCopy;
@@ -367,21 +368,40 @@ LastUpdateProcesses := UTCTime;
 if LocalLastUpdate = UTCTime then exit;
 LocalLastUpdate := UTCTime;
 
+if LastUpdateDataPanel <> UTCTime then
+   begin
+   form1.DataPanel.Cells[1,0]:= copy(GetConsensus(0),0,5);
+   form1.DataPanel.Cells[1,1]:= NodeServerInfo;
+   form1.DataPanel.Cells[1,2]:= IntToStr(GetTotalConexiones)+' ('+IntToStr(MyConStatus)+') ['+IntToStr(G_TotalPings)+']';
+   form1.DataPanel.Cells[1,3]:= Format('%s / %s',[copy(myResumenHash,0,5),GetConsensus(5)]);
+   form1.DataPanel.Cells[1,4]:= format('%s / %s',[Copy(MySumarioHash,0,5),GetConsensus(17)]);
+   form1.DataPanel.Cells[1,5]:= format('%s / %s',[Copy(MyLastBlockHash,0,5),copy(GetConsensus(10),0,5)]);
+   form1.DataPanel.Cells[1,6]:= format('%d / %s',[MyLastBlock,GetConsensus(2)]);
+   form1.DataPanel.Cells[1,7]:= format('(%d)  %d/%s',[length(ArrayCriptoOp),GetPendingCount,GetConsensus(3)]);
+   {<-- -->}
+   form1.DataPanel.Cells[3,0]:= format('[%s] %s...',[BestHashReadeable(GetNMSData.Diff),Copy(GetNMSData.Miner,1,8)]);
+   form1.DataPanel.Cells[3,1]:= Format('[%s] %s Noso',[BlockAge.ToString,Copy(Int2curr(GetBlockReward(Mylastblock+1)),0,5)]);
+   form1.DataPanel.Cells[3,2]:= GEtOutgoingconnections.ToString+'/'+GetClientReadThreads.ToString;
+   form1.DataPanel.Cells[3,3]:= '';
+   form1.DataPanel.Cells[3,4]:= format('%s / %s',[Copy(HashMd5String(GetNosoCFGString),0,5),GetConsensus(19)]);
+   form1.DataPanel.Cells[3,5]:= format('%s / %s',[Copy(MyGVTsHash,0,5),GetConsensus(18)]);
+   form1.DataPanel.Cells[3,6]:= format('%s / %s',[Copy(MyMNsHash,0,5),GetConsensus(8)]);
+   form1.DataPanel.Cells[3,7]:= format('(%d)  %d/%s (%d)',[GetMNsChecksCount,GetMNsListLength,NetMNsCount.Value,LengthWaitingMNs]);
+   LastUpdateDataPanel := UTCTime;
+   end;
+
 if U_DataPanel then
    begin
-   form1.DataPanel.Cells[1,1]:=NodeServerInfo;
-   form1.DataPanel.Cells[1,3]:=copy(myResumenHash,0,5)+'/'+copy(NetResumenHash.Value,0,5)+'('+IntToStr(NetResumenHash.Porcentaje)+')';
-   form1.DataPanel.Cells[1,4]:=Copy(MySumarioHash,0,5)+'/'+Copy(NetSumarioHash.Value,0,5)+'('+IntToStr(NetSumarioHash.Porcentaje)+')';
-   form1.DataPanel.Cells[1,6]:=IntToStr(MyLastBlock)+'/'+NetLastBlock.Value+'('+IntToStr(NetLastBlock.Porcentaje)+')';
-   form1.DataPanel.Cells[1,5]:=Copy(MyLastBlockHash,0,5)+'/'+copy(NetLastBlockHash.Value,0,5)+'('+IntToStr(NetLastBlockHash.Porcentaje)+')';
+
+
+
+
+
    U_DataPanel := false;
    end;
 
-form1.DataPanel.Cells[3,0]:=Copy(GetNMSData.Miner,1,10)+'...';
-form1.DataPanel.Cells[3,1]:=BestHashReadeable(GetNMSData.Diff);
-form1.DataPanel.Cells[3,2]:=GEtOutgoingconnections.ToString+'/'+GetClientReadThreads.ToString;
-form1.DataPanel.Cells[3,3]:=Int2curr(GetBlockReward(Mylastblock+1));
-form1.DataPanel.Cells[3,4]:='('+Copy(HashMd5String(GetNosoCFGString),0,5)+'/'+NetCFGHash.value+') '+BlockAge.ToString;
+
+
 
 
 // update nodes grid
@@ -411,12 +431,7 @@ if ((U_MNsGrid) or (UTCTime>U_MNsGrid_Last+59)) then
 // Esta se muestra siempre aparte ya que la funcion GetTotalConexiones es la que permite
 // verificar si los clientes siguen conectados
 BeginPerformance('UpdateGUITime');
-form1.DataPanel.Cells[1,2]:=IntToStr(GetTotalConexiones)+' ('+IntToStr(MyConStatus)+') ['+IntToStr(G_TotalPings)+']';
-form1.DataPanel.Cells[1,7]:= format(rs0517,[length(ArrayCriptoOp),GetPendingCount,NetPendingTrxs.Value]);
-form1.DataPanel.Cells[1,0]:= Int2Curr(GetWalletBalance)+' '+CoinSimbol;
-form1.DataPanel.Cells[3,5]:= Copy(MyGVTsHash,0,5)+'/'+Copy(NetGVTSHash.Value,0,5);//GVTs data
-form1.DataPanel.Cells[3,6]:= Copy(MyMNsHash,0,5)+'/'+NetMNsHash.Value;
-form1.DataPanel.Cells[3,7]:= format('(%d)  %d/%s (%d)',[GetMNsChecksCount,GetMNsListLength,NetMNsCount.Value,LengthWaitingMNs]);
+
 EndPerformance('UpdateGUITime');
 
 if U_DirPanel then
@@ -430,7 +445,7 @@ if U_DirPanel then
       else form1.Direccionespanel.Cells[0,contador+1] := ListaDirecciones[contador].Hash;
       form1.Direccionespanel.Cells[1,contador+1] := Int2Curr(ListaDirecciones[contador].Balance-ListaDirecciones[contador].pending);
       end;
-   form1.LabelBigBalance.Caption := form1.DataPanel.Cells[1,0];
+   form1.LabelBigBalance.Caption := Int2Curr(GetWalletBalance)+' '+CoinSimbol;
    U_DirPanel := false;
    EndPerformance('UpdateDirPanel');
    end;

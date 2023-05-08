@@ -910,11 +910,6 @@ msgstr ""
 msgid "Reference"
 msgstr ""
 
-#: translation.rs0504
-msgctxt "translation.rs0504"
-msgid "Balance"
-msgstr ""
-
 #: translation.rs0505
 msgid "Server"
 msgstr ""
@@ -969,14 +964,6 @@ msgstr ""
 #: translation.rs0517
 #, object-pascal-format
 msgid "(%d)  %d/%s"
-msgstr ""
-
-#: translation.rs0518
-msgid "Next Miner"
-msgstr ""
-
-#: translation.rs0519
-msgid "Best Hash"
 msgstr ""
 
 #: translation.rs1000

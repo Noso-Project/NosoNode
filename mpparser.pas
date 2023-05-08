@@ -294,6 +294,8 @@ else if UpperCase(Command) = 'DELNODE' then RemoveCFGData(parameter(linetext,1),
 else if UpperCase(Command) = 'ADDPOOL' then AddCFGData(parameter(linetext,1),3)
 else if UpperCase(Command) = 'DELPOOL' then RemoveCFGData(parameter(linetext,1),3)
 else if UpperCase(Command) = 'RESTORECFG' then RestoreCFGData()
+else if UpperCase(Command) = 'ADDNOSOPAY' then AddCFGData(parameter(linetext,1),6)
+else if UpperCase(Command) = 'DELNOSOPAY' then RemoveCFGData(parameter(linetext,1),6)
 else if UpperCase(Command) = 'ISALLSYNCED' then AddLineToDebugLog('console',IsAllsynced.ToString)
 else if UpperCase(Command) = 'FREEZED' then Totallocked()
 

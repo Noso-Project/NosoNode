@@ -105,7 +105,6 @@ resourcestring
   rs0501 = 'Destination';
   rs0502 = 'Amount';
   rs0503 = 'Reference';
-  rs0504 = 'Balance';
   rs0505 = 'Server';
   rs0506 = 'Connections';
   rs0507 = 'Headers';
@@ -119,8 +118,6 @@ resourcestring
   rs0515 = 'Balance';
   rs0516 = 'Masternodes: (%d) %s';
   rs0517 = '(%d)  %d/%s';
-  rs0518 = 'Next Miner';
-  rs0519 = 'Best Hash';
   //mpDisk
   rs1000 = 'Processing block %d (%d %%)';
   rs1001 = '----- ERROR ----'+Slinebreak+'Block: %d';

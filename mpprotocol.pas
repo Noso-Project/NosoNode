@@ -1060,6 +1060,8 @@ if not errored then
    if UpperCase(TCommand) = 'DELPOOLHOST' then RemoveCFGData(TParam,4);
    if UpperCase(TCommand) = 'ADDLOCKED' then AddCFGData(TParam,5);
    if UpperCase(TCommand) = 'DELLOCKED' then RemoveCFGData(TParam,5);
+   if UpperCase(TCommand) = 'ADDNOSOPAY' then AddCFGData(TParam,6);
+   if UpperCase(TCommand) = 'DELNOSOPAY' then RemoveCFGData(TParam,6);
    if UpperCase(TCommand) = 'RESTORECFG' then RestoreCFGData;
    OutgoingMsjsAdd(TextLine);
    end;
@@ -1175,13 +1177,10 @@ REPEAT
       else
          begin
          Inc(TotalErrors);
-         //AddLineToDebugLog('console',Format('Error updating headers: %d not after %d',[numero,LastBlockOnSummary]));
          end;
       end;
    inc(counter);
 UNTIL ThisHeader='';
-//if TotalErrors>0 then AddLineToDebugLog('console',Format('Errors updating headers: %d',[TotalErrors]));
-//if TotalReceived>0 then AddLineToDebugLog('console',Format('Headers Received: %d',[TotalReceived]));
 MyResumenHash := HashMD5File(ResumenFilename);
 if copy(MyResumenHash,0,5) <> GetConsensus(5) then
    begin
@@ -1234,6 +1233,7 @@ var
 Begin
 if ( (Length(DataToSet)>0) and (DataToSet[Length(DataToSet)] <> ':') and (CFGIndex>0) ) then
    DataToSet := DataToSet+':';
+if ((CFGIndex = 0) and (DatatoSet = '') ) then exit;
 LCFGStr := GetNosoCFGString();
 SetLength(LArrString,0);
 Repeat
@@ -1252,6 +1252,7 @@ LasTimeCFGRequest:= UTCTime+5;
 SaveNosoCFGFile(FinalStr);
 SetNosoCFGString(FinalStr);
 FillNodeList;
+SetNodesArray(GetNosoCFGString(1));
 End;
 
 
@@ -1274,16 +1275,24 @@ Repeat
       Insert(ThisData,LArrString,LEngth(LArrString));
    Inc(Counter);
 until thisData = '';
+if CFGIndex+1 > LEngth(LArrString) then
+   begin
+   repeat
+      Insert('',LArrString,LEngth(LArrString));
+   until CFGIndex+1 = LEngth(LArrString);
+   end;
 DataStr := LArrString[CFGIndex];
 DataStr := DataStr+DataToAdd;
 LArrString[CFGIndex] := DataStr;
 For counter := 0 to length(LArrString)-1 do
    FinalStr := FinalStr+' '+LArrString[counter];
-FinalStr := Trim(FinalStr);
+If FinalStr[1] = ' ' then delete(FinalStr,1,1);
+//FinalStr := Trim(FinalStr);
 LasTimeCFGRequest:= UTCTime+5;
 SaveNosoCFGFile(FinalStr);
 SetNosoCFGString(FinalStr);
-FillNodeList;;
+FillNodeList;
+SetNodesArray(GetNosoCFGString(1));
 End;
 
 Procedure RemoveCFGData(DataToRemove:String;CFGIndex:Integer);
@@ -1313,10 +1322,12 @@ LArrString[CFGIndex] := DataStr;
 For counter := 0 to length(LArrString)-1 do
    FinalStr := FinalStr+' '+LArrString[counter];
 FinalStr := Trim(FinalStr);
+If FinalStr[1] = ' ' then delete(FinalStr,1,1);
 LasTimeCFGRequest:= UTCTime+5;
 SaveNosoCFGFile(FinalStr);
 SetNosoCFGString(FinalStr);
 FillNodeList;
+SetNodesArray(GetNosoCFGString(1));
 End;
 
 Procedure RestoreCFGData();
@@ -1324,6 +1335,7 @@ Begin
 LasTimeCFGRequest:= UTCTime+5;
 SaveNosoCFGFile(DefaultNosoCFG);
 SetNosoCFGString(DefaultNosoCFG);
+SetNodesArray(GetNosoCFGString(1));
 FillNodeList;
 AddLineToDebugLog('Console','NosoCFG restarted');
 End;

@@ -964,11 +964,6 @@ msgstr "Cantitate"
 msgid "Reference"
 msgstr "Referinţă"
 
-#: translation.rs0504
-msgctxt "translation.rs0504"
-msgid "Balance"
-msgstr "Balanţă"
-
 #: translation.rs0505
 msgid "Server"
 msgstr "Server"
@@ -1023,14 +1018,6 @@ msgstr ""
 #: translation.rs0517
 #, object-pascal-format
 msgid "(%d)  %d/%s"
-msgstr ""
-
-#: translation.rs0518
-msgid "Next Miner"
-msgstr ""
-
-#: translation.rs0519
-msgid "Best Hash"
 msgstr ""
 
 #: translation.rs1000

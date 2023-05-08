@@ -1,4 +1,4 @@
-# NosoWallet
+# Nosonode
 [![Build Status](https://github.com/Noso-Project/NosoWallet/workflows/Build%20NosoWallet/badge.svg?branch=main)](https://github.com/Noso-Project/NosoWallet/actions)
 [![Supports Windows](https://img.shields.io/badge/support-Windows-blue?logo=Windows)](https://github.com/Noso-Project/NosoWallet/releases/latest)
 [![Supprts Linux](https://img.shields.io/badge/support-Linux-yellow?logo=Linux)](https://github.com/Noso-Project/NosoWallet/releases/latest)
@@ -6,11 +6,11 @@
 [![Latest Release](https://img.shields.io/github/v/release/Noso-Project/NosoWallet?label=latest%20release)](https://github.com/Noso-Project/NosoWallet/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/Noso-Project/NosoWallet/total)](https://github.com/Noso-Project/NosoWallet/releases)
 
-## Running the wallet
+## Running the node
 
 This software does not need to be installed.
 
-You just need to download the appropriate Windows or Linux(Beta) version, uncompress the arquive and run it from the folder.
+You just need to download the appropriate binary, uncompress the arquive and run it from the folder.
 
 ## Building from source
 

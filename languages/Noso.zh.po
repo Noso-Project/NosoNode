@@ -966,11 +966,6 @@ msgstr "数量"
 msgid "Reference"
 msgstr "参考"
 
-#: translation.rs0504
-msgctxt "translation.rs0504"
-msgid "Balance"
-msgstr "余额"
-
 #: translation.rs0505
 msgid "Server"
 msgstr "服务器"
@@ -1025,14 +1020,6 @@ msgstr ""
 #: translation.rs0517
 #, object-pascal-format
 msgid "(%d)  %d/%s"
-msgstr ""
-
-#: translation.rs0518
-msgid "Next Miner"
-msgstr ""
-
-#: translation.rs0519
-msgid "Best Hash"
 msgstr ""
 
 #: translation.rs1000

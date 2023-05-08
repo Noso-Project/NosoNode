@@ -628,7 +628,7 @@ CONST
   SubVersion = 'Aa1';
   OficialRelease = false;
   VersionRequired = '0.3.3Aa6';
-  BuildDate = 'April 2023';
+  BuildDate = 'May 2023';
   {Developer addresses}
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
@@ -3033,7 +3033,7 @@ Procedure UpdateStatusBar();
 Begin
 if Form1.Server.Active then Form1.StaSerImg.Visible:=true
 else Form1.StaSerImg.Visible:=false;
-Form1.StaConLab.Caption:=IntToStr(GetTotalConexiones);
+Form1.StaConLab.Caption:=IntToStr(GetTotalVerifiedConnections);
 if MyConStatus = 0 then Form1.StaConLab.Color:= clred;
 if MyConStatus = 1 then Form1.StaConLab.Color:= clyellow;
 if MyConStatus = 2 then Form1.StaConLab.Color:= claqua;

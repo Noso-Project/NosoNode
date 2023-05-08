@@ -30,6 +30,7 @@ Procedure DecClientReadThreads();
 Function GetClientReadThreads():integer;
 function ConnectClient(Address,Port:String):integer;
 function GetTotalConexiones():integer;
+function GetTotalVerifiedConnections():Integer;
 function CerrarClientes(ServerToo:Boolean=True):string;
 Procedure LeerLineasDeClientes();
 Procedure VerifyConnectionStatus();
@@ -515,7 +516,16 @@ for counter := 1 to MaxConecciones do
 EndPerformance('GetTotalConexiones');
 End;
 
-// Cierra todas las conexiones salientes
+function GetTotalVerifiedConnections():Integer;
+var
+  counter:integer;
+Begin
+result := 0;
+for counter := 1 to MaxConecciones do
+   if conexiones[Counter].Autentic then result := result + 1;
+End;
+
+// Close all outgoing connections
 function CerrarClientes(ServerToo:Boolean=True):string;
 var
   Contador: integer;
@@ -565,6 +575,7 @@ End;
 Procedure VerifyConnectionStatus();
 var
   NumeroConexiones : integer = 0;
+  ValidSlot        : integer;
 Begin
 TRY
 if ( (CONNECT_Try) and (UTCTime>StrToInt64Def(CONNECT_LastTime,UTCTime)+5) ) then
@@ -638,29 +649,22 @@ if STATUS_Connected then
    UpdateNetworkData();
    if Last_SyncWithMainnet+4<UTCTime then SyncWithMainnet();
    end;
-if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = NetLastBlock.Value)
-     and (MySumarioHash=NetSumarioHash.Value) and(MyResumenhash = NetResumenHash.Value) ) then
+if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = Getconsensus(2))
+     and (copy(MySumarioHash,0,5)=GetConsensus(17)) and(copy(MyResumenhash,0,5) = GetConsensus(5)) ) then
    begin
+   GetValidSlotForSeed(ValidSlot);
    ClearReceivedOrdersIDs;
    SetNMSData('','','','','','');
    MyConStatus := 3;
    AddLineToDebugLog('console','Updated!');   //Updated!
    if RPCAuto then  ProcessLinesAdd('RPCON');
-   if StrToIntDef(NetPendingTrxs.Value,0)<GetPendingCount then
-      begin
+   if StrToIntDef(GetConsensus(3),0)<GetPendingCount then
       setlength(PendingTxs,0);
-      end;
-   if 1=1 {((StrToIntDef(NetPendingTrxs.Value,0)>GetPendingCount) and (LastTimePendingRequested+5<UTCTime.ToInt64)
-      and (not CriptoThreadRunning) )} then
-      begin
-      PTC_SendLine(NetPendingTrxs.Slot,ProtocolLine(5));  // Get pending
-      LastTimePendingRequested := UTCTime;
-      //AddLineToDebugLog('console','Pending requested to '+conexiones[NetPendingTrxs.Slot].ip);
-      end;
+   PTC_SendLine(ValidSlot,ProtocolLine(5));  // Get pending
+   LastTimePendingRequested := UTCTime;
    // Get MNS
-   PTC_SendLine(NetMNsHash.Slot,ProtocolLine(11));  // Get MNs
+   PTC_SendLine(ValidSlot,ProtocolLine(11));  // Get MNs
    LastTimeMNsRequested := UTCTime;
-   AddLineToDebugLog('console','Master nodes requested');
    OutgoingMsjsAdd(ProtocolLine(ping));
    Form1.imagenes.GetBitmap(0,form1.ConnectButton.Glyph);
    end;
@@ -995,7 +999,7 @@ if ((Copy(MyResumenhash,0,5) <> GetConsensus(cHeaders)) and (NLBV>mylastblock)) 
             LastTimeRequestResumen := UTCTime;
             end;
          end
-      else // If less than 144 block just update heades
+      else // If less than 144 block just update headers
          begin
          if GetValidSlotForSeed(ValidSlot) then
             begin
