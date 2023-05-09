@@ -48,40 +48,40 @@ jobs:
       if: ${{ matrix.operating-system == 'windows-latest' }}
       run: |
         lazbuild -B --bm=Release "Noso.lpi"
-        mv Noso.exe nosonode-x86_64-win64.exe
+        mv Noso.exe noso-x86_64-win64.exe
 
     - name: Build the Main App (Ubuntu)
       if: ${{ matrix.operating-system == 'ubuntu-latest' }}
       run: |
         lazbuild -B --bm=Release "Noso.lpi"
-        mv Noso nosonode-x86_64-ubuntu-latest
+        mv Noso noso-x86_64-linuxnew
 
     - name: Build the Main App (Ubuntu)
       if: ${{ matrix.operating-system == 'ubuntu-20.04' }}
       run: |
         lazbuild -B --bm=Release "Noso.lpi"
-        mv Noso nosonode-x86_64-ubuntu-20-04
+        mv Noso noso-x86_64-linux
         
     - name: Upload binary (Windows)
       if: ${{ (matrix.operating-system == 'windows-latest')  &&  (matrix.lazarus-versions == 'stable') }}
       uses: actions/upload-artifact@v2
       with:
-        name: nosonode
-        path: nosonode-x86_64-win64.exe
+        name: noso
+        path: noso-x86_64-win64.exe
 
     - name: Upload binary (Ubuntu)
       if: ${{ (matrix.operating-system == 'ubuntu-latest')  &&  (matrix.lazarus-versions == 'stable') }}
       uses: actions/upload-artifact@v2
       with:
-        name: nosonode
-        path: nosonode-x86_64-ubuntu-latest
+        name: noso
+        path: noso-x86_64-linuxnew
         
     - name: Upload binary (Ubuntu)
       if: ${{ (matrix.operating-system == 'ubuntu-20.04')  &&  (matrix.lazarus-versions == 'stable') }}
       uses: actions/upload-artifact@v2
       with:
-        name: nosonode
-        path: nosonode-x86_64-ubuntu-20-04
+        name: noso
+        path: noso-x86_64-linux
 
   package-release:
     if: contains(github.ref, '/tags/')
@@ -102,23 +102,23 @@ jobs:
       uses: actions/download-artifact@v2
 
     - name: List files
-      run: ls -alF nosonode
+      run: ls -alF noso
 
     - name: Create release files
       run: |
-        cd nosonode
-        chmod +x nosonode-x86_64-ubuntu-latest nosoearn-x86_64-ubuntu-20-04
-        zip -r nosonode-${{ steps.vars.outputs.tag }}-x86_64-win64.zip nosonode-x86_64-win64.exe
-        tar -zcvf nosonode-${{ steps.vars.outputs.tag }}-x86_64-ubuntu-latest.tar.gz nosonode-x86_64-ubuntu-latest
-        tar -zcvf nosonode-${{ steps.vars.outputs.tag }}-x86_64-ubuntu-20-04.tar.gz nosonode-x86_64-ubuntu-20-04
+        cd noso
+        chmod +x noso-x86_64-linuxnew noso-x86_64-linux
+        zip -r noso-${{ steps.vars.outputs.tag }}-x86_64-win64.zip noso-x86_64-win64.exe
+        tar -zcvf noso-${{ steps.vars.outputs.tag }}-x86_64-linuxnew.tar.gz nosonode-x86_64-linuxnew
+        tar -zcvf noso-${{ steps.vars.outputs.tag }}-x86_64-linux.tar.gz nosonode-x86_64-linux
 
     - name: Create GitHub release
       uses: softprops/action-gh-release@v1
       with:
-        name: nosonode ${{ steps.vars.outputs.tag }}
+        name: noso ${{ steps.vars.outputs.tag }}
         body_path: releasenotes.txt
         files: |
-          nosonode/*.tar.gz
-          nosonode/*.zip
+          noso/*.tar.gz
+          noso/*.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
