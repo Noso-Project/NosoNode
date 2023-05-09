@@ -257,7 +257,7 @@ else if UpperCase(Command) = 'CHECKUPDATES' then AddLineToDebugLog('console',Get
 else if UpperCase(Command) = 'ZIPSUMARY' then ZipSumary()
 else if UpperCase(Command) = 'ZIPHEADERS' then ZipHeaders()
 else if UpperCase(Command) = 'GETPOS' then AddLineToDebugLog('console', GetPoSPercentage(StrToIntdef(Parameter(linetext,1),Mylastblock)).ToString )
-else if UpperCase(Command) = 'GETMNS' then AddLineToDebugLog('console', GetMNsPercentage(StrToIntdef(Parameter(linetext,1),Mylastblock)).ToString )
+else if UpperCase(Command) = 'GETMNS' then AddLineToDebugLog('console', GetMNsPercentage(StrToIntdef(Parameter(linetext,1),Mylastblock),GetNosoCFGString(0)).ToString )
 else if UpperCase(Command) = 'CLOSESTARTON' then WO_CloseStart := true
 else if UpperCase(Command) = 'CLOSESTARTOFF' then WO_CloseStart := false
 else if UpperCase(Command) = 'DT' then DebugTest(LineText)

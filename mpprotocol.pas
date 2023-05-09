@@ -1127,7 +1127,7 @@ var
 Begin
 startpos := Pos('$',Linea);
 Content := Copy(Linea,Startpos+1,Length(linea));
-if Copy(HAshMD5String(Content),0,5) = NetCFGHash.Value then
+if Copy(HAshMD5String(Content),0,5) = GetCOnsensus(19) then
    begin
    SaveNosoCFGFile(content);
    SetNosoCFGString(content);
@@ -1135,7 +1135,7 @@ if Copy(HAshMD5String(Content),0,5) = NetCFGHash.Value then
    AddLineToDebugLog('Console','Noso CFG updated!');
    end
 else
-   AddLineToDebugLog('Console',Format('Failed CFG: %s <> %s',[Copy(HAshMD5String(Content),0,5),NetCFGHash.Value]));
+   AddLineToDebugLog('Console',Format('Failed CFG: %s <> %s',[Copy(HAshMD5String(Content),0,5),GetCOnsensus(19)]));
 End;
 
 Procedure PTC_SendUpdateHeaders(Slot:integer;Linea:String);

@@ -240,7 +240,6 @@ if not errored then
                NPDOrder := CreateNosoPayOrder(NPDBlock,NPDSource,NPDTarget,TimeStamp,NPDAmount);
                insert(NPDOrder,ListaOrdenes,length(listaordenes));
                RemoveCFGData(GetNosoCFGString(6),6);
-               AddLineToDebugLog('console','Nosopay order '+NPDOrder.OrderID);
                end;
             end;
          end;

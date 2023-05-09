@@ -1057,9 +1057,8 @@ else if ((copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) an
    end
 // Blockchain status issues starts here
 else if ((copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) and
-        (copy(MySumarioHash,0,5)<>GetConsensus(17)) and (SummaryLastop = mylastblock)) then
+        (copy(MySumarioHash,0,5)<>GetConsensus(17)) and (SummaryLastop = mylastblock) and (LastTimeRequestsumary+5 < UTCTime)) then
    begin
-   AddLineToDebugLog('console','Reqsum?');
    if GetValidSlotForSeed(ValidSlot) then
      begin
      PTC_SendLine(ValidSlot,ProtocolLine(6)); // Getsumary

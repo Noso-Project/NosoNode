@@ -197,7 +197,7 @@ Begin
     result := 2000{MNsPercentage} + (((block-48010{MNBlockStart}) div 4000) * 100);
     if block >= 88400{PoSBlockEnd} then Inc(Result,1000);
     if result > 6000 then result := 6000;
-    if MainnetMode = 'MNSONLY' then result := 90000;
+    if MainnetMode = 'MNSONLY' then result := 9000;
     end;
 End;
 
