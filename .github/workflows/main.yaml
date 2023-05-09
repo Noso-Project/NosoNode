@@ -109,6 +109,8 @@ jobs:
         cd noso
         chmod +x noso-x86_64-linuxnew noso-x86_64-linux
         zip -r noso-${{ steps.vars.outputs.tag }}-x86_64-win64.zip noso-x86_64-win64.exe
+        zip -r noso-${{ steps.vars.outputs.tag }}-x86_64-linuxnew.zip noso-x86_64-linuxnew
+        zip -r noso-${{ steps.vars.outputs.tag }}-x86_64-linux.zip noso-x86_64-linux
         tar -zcvf noso-${{ steps.vars.outputs.tag }}-x86_64-linuxnew.tar.gz noso-x86_64-linuxnew
         tar -zcvf noso-${{ steps.vars.outputs.tag }}-x86_64-linux.tar.gz noso-x86_64-linux
 
