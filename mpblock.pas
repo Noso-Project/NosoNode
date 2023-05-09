@@ -66,7 +66,7 @@ Result.AmmountFee := 0;
 Result.AmmountTrf := amount;
 Result.Signature  := 'Directive';
 Result.TrfrID     := GetTransferHash(Result.TimeStamp.ToString+'TRFR'+AddSend+IntToStr(amount)+IntToStr(MyLastblock));
-Result.OrderID    := '1'+GetOrderHash(Result.TrfrID);
+Result.OrderID    := GetOrderHash('1'+Result.TrfrID);
 End;
 
 // Build the default block 0
