@@ -69,7 +69,6 @@ Procedure WebWallet();
 Procedure ExportKeys(linea:string);
 
 // CONSULTING
-Function MainNetHashrate(blocks:integer = 100):int64;
 Procedure ListGVTs();
 
 // 0.2.1 DEBUG
@@ -1527,32 +1526,6 @@ AddLineToDebugLog('console','Existing: '+Length(arrgvts).ToString);
 for counter := 0 to length(arrgvts)-1 do
    AddLineToDebugLog('console',Format('%.2d %s',[counter,arrgvts[counter].owner]));
 UpdateMyGVTsList
-End;
-
-Function MainNetHashrate(blocks:integer = 100):int64;
-var
-  counter : integer;
-  TotalRate : double = 0;
-  Header : BlockHeaderData;
-  ThisBlockDiff : string;
-  ThisBlockValue : integer;
-  TotalBlocksCalculated : integer = 100;
-  ResultStr : string = '';
-Begin
-TotalBlocksCalculated := blocks;
-For counter:= MyLastblock downto Mylastblock-(TotalBlocksCalculated-1) do
-   begin
-   Header := LoadBlockDataHeader(counter);
-   ThisBlockDiff := Parameter(Header.Solution,1);
-   ThisBlockValue := GetDiffHashrate(ThisBlockDiff);
-   TotalRate := TotalRate+(ThisBlockValue/100);
-   ResultStr := ResultStr+Format('[%s]-',[FormatFloat('0.00',ThisBlockValue/100)]);
-   end;
-//AddLineToDebugLog('console',ResultStr);
-TotalRate := TotalRate/TotalBlocksCalculated;
-//AddLineToDebugLog('console',format('Average: %s',[FormatFloat('0.00',TotalRate)]));
-TotalRate := Power(16,TotalRate);
-Result := Round(TotalRate/575);
 End;
 
 function ShowPrivKey(linea:String;ToConsole:boolean = false):String;
