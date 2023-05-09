@@ -1,1 +1,1 @@
-0.3.3Aa6 {win64hash} {linux64hash} {signature}
+0.3.4Aa4 {win64hash} {linux64hash} {signature}
