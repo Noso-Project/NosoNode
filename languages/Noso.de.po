@@ -137,6 +137,11 @@ msgstr ""
 msgid "Active JSON-RPC server at launch"
 msgstr "Aktiver JSON-RPC-Server beim Start"
 
+#: tform1.cb_backrpcaddresses.caption
+msgctxt "tform1.cb_backrpcaddresses.caption"
+msgid "Backup new addresses keys"
+msgstr ""
+
 #: tform1.cb_fullnode.caption
 #, fuzzy
 #| msgid "Download blockchain"
@@ -160,7 +165,7 @@ msgstr "Automatische Verbindung beim Start"
 #, fuzzy
 #| msgid "Install automatically new official releases"
 msgctxt "tform1.cb_wo_autoupdate.caption"
-msgid "Update automatically (Recommended)"
+msgid "auto-update (recommended for unattended nodes) "
 msgstr "Neue offizielle Versionen automatisch installieren"
 
 #: tform1.cb_wo_multisend.caption
@@ -259,14 +264,6 @@ msgstr "Zeitüberschreitung beim Verbinden (ms)"
 #: tform1.label4.caption
 msgid "Read time out (ms)"
 msgstr "Zeitüberschreitung beim Lesen (ms)"
-
-#: tform1.label5.caption
-msgid "History orders showed"
-msgstr "Historische Aufträge zeigen"
-
-#: tform1.label6.caption
-msgid "PoS addresses warning days"
-msgstr "PoS Adressen Warntage"
 
 #: tform1.label7.caption
 msgid "Wallet language"
@@ -503,10 +500,6 @@ msgstr ""
 
 #: tform1.tabsheet1.caption
 msgid "Seeds"
-msgstr ""
-
-#: tform1.tabsheet2.caption
-msgid "Validators"
 msgstr ""
 
 #: tform1.tabsheet8.caption

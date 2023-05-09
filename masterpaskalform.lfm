@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 836
+  Left = 441
   Height = 560
-  Top = 96
+  Top = 174
   Width = 400
   Caption = 'Noso'
   ClientHeight = 540
@@ -318,7 +318,7 @@ object Form1: TForm1
     Height = 468
     Top = 38
     Width = 400
-    ActivePage = TabMonitor
+    ActivePage = tabOptions
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
     Font.CharSet = ANSI_CHARSET
@@ -327,7 +327,7 @@ object Form1: TForm1
     Font.Pitch = fpVariable
     Font.Quality = fqDraft
     ParentFont = False
-    TabIndex = 3
+    TabIndex = 2
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
@@ -928,9 +928,9 @@ object Form1: TForm1
         Height = 440
         Top = 0
         Width = 392
-        ActivePage = Tab_Options_About
+        ActivePage = Tab_Options_Trade
         Align = alClient
-        TabIndex = 4
+        TabIndex = 3
         TabOrder = 0
         object TabOpt_Wallet: TTabSheet
           Caption = 'Wallet'
@@ -1080,88 +1080,28 @@ object Form1: TForm1
           end
           object Panel4: TPanel
             Left = 0
-            Height = 27
+            Height = 0
             Top = 131
             Width = 384
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 27
-            ClientWidth = 384
             TabOrder = 7
-            object SE_WO_ShowOrders: TSpinEdit
-              AnchorSideTop.Control = Label5
-              AnchorSideTop.Side = asrCenter
-              Left = 8
-              Height = 23
-              Top = 4
-              Width = 72
-              BorderSpacing.Left = 8
-              BorderSpacing.Top = 4
-              Increment = 100
-              MaxValue = 1000
-              MinValue = 100
-              OnChange = SE_WO_ShowOrdersChange
-              TabOrder = 0
-              Value = 500
-            end
-            object Label5: TLabel
-              AnchorSideLeft.Control = SE_WO_ShowOrders
-              AnchorSideLeft.Side = asrBottom
-              Left = 88
-              Height = 15
-              Top = 8
-              Width = 118
-              BorderSpacing.Left = 8
-              BorderSpacing.Top = 4
-              Caption = 'History orders showed'
-              ParentColor = False
-            end
           end
           object Panel5: TPanel
             Left = 0
-            Height = 27
-            Top = 158
+            Height = 0
+            Top = 131
             Width = 384
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 27
-            ClientWidth = 384
             TabOrder = 8
-            object SE_WO_PosWarning: TSpinEdit
-              AnchorSideTop.Control = Label6
-              AnchorSideTop.Side = asrCenter
-              AnchorSideRight.Side = asrCenter
-              Left = 8
-              Height = 23
-              Top = 4
-              Width = 72
-              BorderSpacing.Left = 8
-              BorderSpacing.Top = 4
-              MaxValue = 30
-              MinValue = 1
-              OnChange = SE_WO_PosWarningChange
-              TabOrder = 0
-              Value = 5
-            end
-            object Label6: TLabel
-              AnchorSideLeft.Control = SE_WO_PosWarning
-              AnchorSideLeft.Side = asrBottom
-              Left = 88
-              Height = 15
-              Top = 8
-              Width = 147
-              BorderSpacing.Left = 8
-              BorderSpacing.Top = 4
-              Caption = 'PoS addresses warning days'
-              ParentColor = False
-            end
           end
           object Panel6: TPanel
             Left = 0
             Height = 0
-            Top = 185
+            Top = 131
             Width = 384
             Align = alTop
             AutoSize = True
@@ -1171,7 +1111,7 @@ object Form1: TForm1
           object CB_WO_Multisend: TCheckBox
             Left = 8
             Height = 19
-            Top = 189
+            Top = 135
             Width = 376
             Align = alTop
             BorderSpacing.Left = 8
@@ -1183,7 +1123,7 @@ object Form1: TForm1
           object CB_FullNode: TCheckBox
             Left = 8
             Height = 19
-            Top = 212
+            Top = 158
             Width = 376
             Align = alTop
             BorderSpacing.Left = 8
@@ -1197,19 +1137,19 @@ object Form1: TForm1
           object CB_WO_Autoupdate: TCheckBox
             Left = 8
             Height = 19
-            Top = 235
+            Top = 181
             Width = 376
             Align = alTop
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
-            Caption = 'Update automatically (Recommended)'
+            Caption = 'auto-update (recommended for unattended nodes) '
             OnChange = CB_WO_AutoupdateChange
             TabOrder = 10
           end
           object Panel7: TPanel
             Left = 0
             Height = 28
-            Top = 277
+            Top = 223
             Width = 384
             Align = alTop
             AutoSize = True
@@ -1259,7 +1199,7 @@ object Form1: TForm1
             Left = 8
             Height = 19
             Hint = 'Run as unattended Masternode'
-            Top = 258
+            Top = 204
             Width = 376
             Align = alTop
             BorderSpacing.Left = 8
@@ -1497,7 +1437,7 @@ object Form1: TForm1
           object CB_RPCFilter: TCheckBox
             Left = 8
             Height = 19
-            Top = 146
+            Top = 169
             Width = 376
             Align = alTop
             BorderSpacing.Left = 8
@@ -1509,7 +1449,7 @@ object Form1: TForm1
           object MemoRPCWhitelist: TMemo
             Left = 8
             Height = 82
-            Top = 169
+            Top = 192
             Width = 368
             Align = alTop
             BorderSpacing.Left = 8
@@ -1534,7 +1474,7 @@ object Form1: TForm1
           object Panel15: TPanel
             Left = 0
             Height = 46
-            Top = 50
+            Top = 73
             Width = 384
             Align = alTop
             AutoSize = True
@@ -1568,7 +1508,7 @@ object Form1: TForm1
           object Panel16: TPanel
             Left = 0
             Height = 46
-            Top = 96
+            Top = 119
             Width = 384
             Align = alTop
             AutoSize = True
@@ -1598,6 +1538,18 @@ object Form1: TForm1
               BorderSpacing.Right = 8
               TabOrder = 0
             end
+          end
+          object CB_BACKRPCaddresses: TCheckBox
+            Left = 8
+            Height = 19
+            Top = 54
+            Width = 376
+            Align = alTop
+            BorderSpacing.Left = 8
+            BorderSpacing.Top = 4
+            Caption = 'Backup new addresses keys'
+            OnChange = CB_BACKRPCaddressesChange
+            TabOrder = 6
           end
         end
         object Tab_Options_Trade: TTabSheet
@@ -2149,9 +2101,9 @@ object Form1: TForm1
         Height = 440
         Top = 0
         Width = 392
-        ActivePage = TabConsensus
+        ActivePage = TabMonitorMonitor
         Align = alClient
-        TabIndex = 6
+        TabIndex = 2
         TabOrder = 0
         object TabDebug_Log: TTabSheet
           Caption = 'Log'
@@ -2292,9 +2244,9 @@ object Form1: TForm1
             Height = 412
             Top = 0
             Width = 384
-            ActivePage = TabFiles
+            ActivePage = TabThreads
             Align = alClient
-            TabIndex = 1
+            TabIndex = 0
             TabOrder = 0
             OnResize = PC_ProcessesResize
             object TabThreads: TTabSheet
@@ -2642,9 +2594,6 @@ object Form1: TForm1
                   'Peers'
                 )
               end
-            end
-            object TabSheet2: TTabSheet
-              Caption = 'Validators'
             end
           end
         end

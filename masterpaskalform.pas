@@ -273,6 +273,7 @@ type
     ButStopDoctor: TButton;
     Button1: TButton;
     Button2: TButton;
+    CB_BACKRPCaddresses: TCheckBox;
     CB_WO_Autoupdate: TCheckBox;
     CBBlockexists: TCheckBox;
     CBBlockhash: TCheckBox;
@@ -343,7 +344,6 @@ type
     TabGVTs: TTabSheet;
     TabConsensus: TTabSheet;
     TabSheet1: TTabSheet;
-    TabSheet2: TTabSheet;
     TabThreads: TTabSheet;
     TabFiles: TTabSheet;
     TextQRcode: TStaticText;
@@ -377,8 +377,6 @@ type
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
-    Label5: TLabel;
-    Label6: TLabel;
     LabAbout: TLabel;
     LabelBigBalance: TLabel;
     Latido : TTimer;
@@ -444,8 +442,6 @@ type
     SE_WO_RTOT: TSpinEdit;
     SE_WO_MinPeers: TSpinEdit;
     SE_WO_CTOT: TSpinEdit;
-    SE_WO_ShowOrders: TSpinEdit;
-    SE_WO_PosWarning: TSpinEdit;
     SG_Monitor: TStringGrid;
     SystrayIcon: TTrayIcon;
     tabOptions: TTabSheet;
@@ -473,6 +469,7 @@ type
     procedure Button1Click(sender: TObject);
     procedure Button2Click(sender: TObject);
     procedure CBRunNodeAloneChange(sender: TObject);
+    procedure CB_BACKRPCaddressesChange(Sender: TObject);
     procedure CB_RPCFilterChange(sender: TObject);
     procedure CB_WO_AutoupdateChange(sender: TObject);
     procedure CBAutoIPClick(sender: TObject);
@@ -577,8 +574,6 @@ type
     procedure SE_WO_MinPeersChange(sender: TObject);
     procedure SE_WO_CTOTChange(sender: TObject);
     procedure SE_WO_RTOTChange(sender: TObject);
-    procedure SE_WO_ShowOrdersChange(sender: TObject);
-    procedure SE_WO_PosWarningChange(sender: TObject);
     procedure CB_WO_MultisendChange(sender: TObject);
       // RPC
     procedure CB_RPC_ONChange(sender: TObject);
@@ -616,7 +611,7 @@ CONST
                             {4}'nosofish.xyz;8082:nosopool.estripa.online;8082:pool.nosomn.com;8082:159.196.1.198;8082: '+
                             {5}'NpryectdevepmentfundsGE:';
 
-  ProgramVersion = '0.3.4';
+  ProgramVersion = '0.3.5';
   {$IFDEF WINDOWS}
   RestartFileName = 'launcher.bat';
   updateextension = 'zip';
@@ -625,7 +620,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa5';
+  SubVersion = 'Aa1';
   OficialRelease = false;
   VersionRequired = '0.3.3Aa6';
   BuildDate = 'May 2023';
@@ -1667,11 +1662,9 @@ if WO_CloseStart then
       SendOutMsgsThread := TThreadSendOutMsjs.Create(true);
       SendOutMsgsThread.FreeOnTerminate:=true;
       SendOutMsgsThread.Start;
-
-      KeepConnectThread := TThreadKeepConnect.Create(true);
-      KeepConnectThread.FreeOnTerminate:=true;
-      KeepConnectThread.Start;
-
+      //KeepConnectThread := TThreadKeepConnect.Create(true);
+      //KeepConnectThread.FreeOnTerminate:=true;
+      //KeepConnectThread.Start;
    AddLineToDebugLog('events',TimeToStr(now)+rs0029); NewLogLines := NewLogLines-1; //'Noso session started'
    info(rs0029);  //'Noso session started'
    infopanel.BringToFront;
@@ -1731,14 +1724,14 @@ CB_WO_ToTray.Checked := WO_ToTray;
 SE_WO_MinPeers.Value := MinConexToWork;
 SE_WO_CTOT.Value:= ConnectTimeOutTime;
 SE_WO_RTOT.Value:= ReadTimeOutTIme;
-SE_WO_ShowOrders.Value:= ShowedOrders;
-SE_WO_PosWarning.Value := WO_PosWarning;
 CB_WO_Multisend.Checked:=WO_Multisend;
 CB_WO_Autoupdate.Checked := WO_AutoUpdate;
 CB_FullNode.Checked := WO_FullNode;
 // RPC
 LE_Rpc_Port.Text := IntToStr(RPCPort);
 LE_Rpc_Pass.Text := RPCPass;
+CB_BACKRPCaddresses.Checked := RPCSaveNew;
+
 CB_RPCFilter.Checked:=RPCFilter;
 MemoRPCWhitelist.Text:=RPCWhitelist;
 if not RPCFilter then MemoRPCWhitelist.Enabled:=false;
@@ -3221,25 +3214,6 @@ if not G_Launching then
    end;
 end;
 
-procedure TForm1.SE_WO_ShowOrdersChange(sender: TObject);
-begin
-if not G_Launching then
-   begin
-   ShowedOrders := SE_WO_ShowOrders.Value;
-   S_AdvOpt := true;
-   end;
-end;
-
-procedure TForm1.SE_WO_PosWarningChange(sender: TObject);
-begin
-if not G_Launching then
-   begin
-   WO_PosWarning := SE_WO_PosWarning.Value;
-   U_DirPanel := true;
-   S_AdvOpt := true;
-   end;
-end;
-
 procedure TForm1.CB_WO_AutoupdateChange(sender: TObject);
 Begin
 if not G_Launching then
@@ -3629,6 +3603,15 @@ End;
 procedure TForm1.CBRunNodeAloneChange(sender: TObject);
 begin
 WO_OmmitMemos:= CBRunNodeAlone.Checked;
+end;
+
+procedure TForm1.CB_BACKRPCaddressesChange(Sender: TObject);
+begin
+if not G_Launching then
+   begin
+   if CB_BACKRPCaddresses.Checked then RPCSaveNew := true
+   else RPCSaveNew := false;
+   end;
 end;
 
 // Set MN IP to Auto

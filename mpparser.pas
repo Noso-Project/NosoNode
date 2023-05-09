@@ -1361,15 +1361,9 @@ for counter := MyLastBlock downto MyLastBlock- BlockCount do
          begin
          if ArrTrxs[contador2].Receiver = addtoshow then // incoming order
             begin
-            //{
-            if ArrTrxs[contador2].sender = 'N3aXz2RGwj8LAZgtgyyXNRkfQ1EMnFC' then Inc(sumpool1,ArrTrxs[contador2].AmmountTrf);
-            if ArrTrxs[contador2].sender = 'N2ophUoAzJw9LtgXbYMiB4u5jWWGJF7' then Inc(sumpool2,ArrTrxs[contador2].AmmountTrf);
-            if ArrTrxs[contador2].sender = 'N3ESwXxCAR4jw3GVHgmKiX9zx1ojWEf' then Inc(sumpool3,ArrTrxs[contador2].AmmountTrf);
-            if ArrTrxs[contador2].sender = 'N3pzgU2jpvhjW6cSJL8zW8Rzj5fJdFa' then Inc(sumpool4,ArrTrxs[contador2].AmmountTrf);
             incomingtrx += 1;
             inccoins := inccoins+ArrTrxs[contador2].AmmountTrf;
             transSL.Add(IntToStr(Counter)+'] '+ArrTrxs[contador2].sender+'<-- '+Int2curr(ArrTrxs[contador2].AmmountTrf));
-            //}
             end;
          if ArrTrxs[contador2].sender = addtoshow then // outgoing order
             begin
@@ -1420,12 +1414,6 @@ While TransSL.Count >0 do
    TransSL.Delete(0);
    end;
 TransSL.Free;
-{
-AddLineToDebugLog('console','Propool  paid : '+Int2curr(sumpool4));
-AddLineToDebugLog('console','Estripa  paid : '+Int2curr(sumpool2));
-AddLineToDebugLog('console','NosoMN   paid : '+Int2curr(sumpool1));
-AddLineToDebugLog('console','Gonefish paid : '+Int2curr(sumpool3));
-}
 End;
 
 // Shows the total fees paid in the whole blockchain
@@ -1790,6 +1778,7 @@ var
   TotalCoins    : int64 = 0;
   AsExpected    : string = '';
   NegativeCount : integer = 0;
+  EmptyCount    : integer = 0;
 Begin
   AssignFile(SumFile,SummaryFileName);
     TRY
@@ -1797,11 +1786,8 @@ Begin
     While not eof(SumFile) do
       begin
       blockread(sumfile,ThisRecord,sizeof(ThisRecord));
-      if thisrecord.Balance<0 then
-        begin
-        Inc(NegativeCount);
-        AddLineToDebugLog('console',Format('%s : %s',[ThisRecord.Hash,Int2curr(ThisRecord.Balance)]));
-        end;
+      if thisrecord.Balance<0 then Inc(NegativeCount);
+      if thisrecord.Balance=0 then Inc(EmptyCount);
       inc(TotalCoins,ThisRecord.Balance);
       Inc(currpos);
       end;
@@ -1809,10 +1795,9 @@ Begin
     EXCEPT
     END;{Try}
   if TotalCoins = GetSupply(MyLastBlock) then AsExpected := '✓'
-  else AsExpected := '✗ '+Int2curr(TotalCoins-GetSupply(MyLastBlock));
+  else AsExpected := '('+Int2curr(TotalCoins-GetSupply(MyLastBlock))+')';
   AddLineToDebugLog('console',Int2Curr(Totalcoins)+' '+CoinSimbol+' '+AsExpected);
-  AddLineToDebugLog('console','Negative  : '+NegativeCount.ToString);
-  AddLineToDebugLog('console','Addresses : '+currpos.ToString);
+  AddLineToDebugLog('console',format('Addresses (%d): %d (%d empty)',[NegativeCount,currpos,EmptyCount]));
 End;
 
 Procedure ShowConsensus();

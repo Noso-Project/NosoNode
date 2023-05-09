@@ -664,8 +664,6 @@ if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = Getco
       begin
       setlength(PendingTxs,0);
       end;
-   PTC_SendLine(ValidSlot,ProtocolLine(5));  // Get pending
-   LastTimePendingRequested := UTCTime;
    // Get MNS
    PTC_SendLine(ValidSlot,ProtocolLine(11));  // Get MNs
    LastTimeMNsRequested := UTCTime;
@@ -675,16 +673,10 @@ if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = Getco
 if MyConStatus = 3 then
    begin
    GetValidSlotForSeed(ValidSlot);
-   if ((StrToIntDef(NetPendingTrxs.Value,0)>GetPendingCount) and (LastTimePendingRequested+5<UTCTime) and
+   if ((StrToIntDef(GetConsensus(3),0)>GetPendingCount) and (LastTimePendingRequested+5<UTCTime) and
       (length(ArrayCriptoOp)=0) ) then
       begin
       ClearReceivedOrdersIDs();
-      PTC_SendLine(ValidSlot,ProtocolLine(5));  // Get pending
-      LastTimePendingRequested := UTCTime;
-      //AddLineToDebugLog('console','Pending requested to '+conexiones[NetPendingTrxs.Slot].ip);
-      end;
-   if ( (StrToIntDef(GetCOnsensus(3),0) > GetPendingCount) and (LastTimePendingRequested+5<UTCTime)) then
-      begin
       PTC_SendLine(ValidSlot,ProtocolLine(5));  // Get pending
       LastTimePendingRequested := UTCTime;
       end;
@@ -941,7 +933,7 @@ End;
 
 Procedure UpdateNetworkData();
 Begin
-NetLastBlock := UpdateNetworkLastBlock; // Buscar cual es el ultimo bloque por consenso
+NetLastBlock     := UpdateNetworkLastBlock; // Buscar cual es el ultimo bloque por consenso
 NetLastBlockHash := UpdateNetworkLastBlockHash;
 NetSumarioHash   := UpdateNetworkSumario; // Busca el hash del sumario por consenso
 NetPendingTrxs   := UpdateNetworkPendingTrxs;
@@ -1031,7 +1023,7 @@ else if ((Copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock <NLBV)) th
       if GetValidSlotForSeed(ValidSlot) then
          begin
          PTC_SendLine(ValidSlot,ProtocolLine(8)); // lastblock
-         if WO_FullNode then AddLineToDebugLog('console','LastBlock requested from block '+IntToStr(mylastblock)) //'LastBlock requested from block '
+         if WO_FullNode then AddLineToDebugLog('console','LastBlock requested from block '+IntToStr(mylastblock)+' to '+conexiones[ValidSlot].ip) //'LastBlock requested from block '
          else
             begin
             LastDownBlock := NLBV-SecurityBlocks;
@@ -1058,7 +1050,10 @@ else if ((copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) an
          end;
       end
    else
+      begin
       CompleteSumary();
+      //BuildHeaderFile(SummaryLastop);
+      end;
    end
 // Blockchain status issues starts here
 else if ((copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) and
@@ -1110,7 +1105,7 @@ else if ((StrToIntDef(GetConsensus(14),0)>GetMNsChecksCount) and (LastTimeChecks
       begin
       PTC_SendLine(ValidSlot,ProtocolLine(GetChecks));  // Get MNsChecks
       LastTimeChecksRequested := UTCTime;
-      AddLineToDebugLog('console','Checks requested to '+conexiones[NetMNsChecks.Slot].ip);
+      AddLineToDebugLog('console','Checks requested to '+conexiones[ValidSlot].ip);
       end;
    end
 else if ( (GetConsensus(8)<>Copy(MyMNsHash,1,5)) and (LastTimeMNHashRequestes+5<UTCTime) and
@@ -1120,7 +1115,7 @@ else if ( (GetConsensus(8)<>Copy(MyMNsHash,1,5)) and (LastTimeMNHashRequestes+5<
       begin
       PTC_SendLine(ValidSlot,ProtocolLine(GetMNsFile));  // Get MNsFile
       LastTimeMNHashRequestes := UTCTime;
-      AddLineToDebugLog('console','Mns File requested to '+conexiones[NetMNsChecks.Slot].ip);
+      AddLineToDebugLog('console','Mns File requested to '+conexiones[ValidSlot].ip);
       end;
    end
 // <-- HERE -->
@@ -1141,7 +1136,7 @@ else if ( (GetConsensus(18)<>Copy(MyGVTsHash,0,5)) and (LasTimeGVTsRequest+5<UTC
       begin
       PTC_SendLine(ValidSlot,ProtocolLine(GetGVTs));
       LasTimeGVTsRequest := UTCTime;
-      AddLineToDebugLog('console','GVTs File requested to '+conexiones[NetMNsChecks.Slot].ip);
+      AddLineToDebugLog('console','GVTs File requested to '+conexiones[ValidSlot].ip);
       end;
    end;
 if IsAllSynced=0 then Last_SyncWithMainnet := Last_SyncWithMainnet+5;
