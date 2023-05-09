@@ -616,7 +616,7 @@ CONST
                             {4}'nosofish.xyz;8082:nosopool.estripa.online;8082:pool.nosomn.com;8082:159.196.1.198;8082: '+
                             {5}'NpryectdevepmentfundsGE:';
 
-  ProgramVersion = '0.4.0';
+  ProgramVersion = '0.3.4';
   {$IFDEF WINDOWS}
   RestartFileName = 'launcher.bat';
   updateextension = 'zip';

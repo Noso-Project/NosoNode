@@ -7,10 +7,9 @@ Version 0.4.0Aa1
 - Implemented thread manager on nosodebug.
 - Optimized AppFileName.
 - Implemented nosounit.
-- Mode STOP implemented.
-- (im) message added.
 - Consensus TAB added.
 - New consensus system.
+- Just too many improvements to list all...
 
 Version 0.3.3Aa6
 
