@@ -267,7 +267,7 @@ End;
 function GetFee(monto:int64):Int64;
 Begin
 Result := monto div Comisiontrfr;
-if result < MinimunFee then result := MinimunFee;
+if result < MinimunFee then result := 1000000;//MinimunFee;
 End;
 
 // Obtiene una orden de envio de fondos desde una direccion
@@ -348,14 +348,14 @@ var
   Diferencia : int64;
 Begin
 Disponible := monto;
-if ( (disponible < MinimunFee) or (Disponible<0) ) then
+if ( (disponible < 1000000{MinimunFee}) or (Disponible<0) ) then
    begin
    result := 0;
    exit;
    end;
 maximo     := (Disponible * Comisiontrfr) div (Comisiontrfr+1);
 comision   := maximo div Comisiontrfr;
-if Comision < MinimunFee then Comision := MinimunFee;
+if Comision < 1000000{MinimunFee} then Comision := 1000000{MinimunFee};
 Envio      := maximo + comision;
 Diferencia := Disponible-envio;
 result     := maximo+diferencia;

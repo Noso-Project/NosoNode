@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, MasterPaskalForm, Dialogs, Forms, nosotime, FileUtil, LCLType,
   lclintf, controls, mpBlock, Zipper, mpcoin, mpMn, nosodebug,
   {$IFDEF WINDOWS}Win32Proc, {$ENDIF}
-  translation, strutils,nosogeneral, nosocrypto, nosounit;
+  translation, strutils,nosogeneral, nosocrypto, nosounit, nosoconsensus;
 
 Procedure VerificarArchivos();
 
@@ -970,6 +970,7 @@ var
   StartBlock, finishblock : integer;
   counter : integer;
 Begin
+if copy(MySumarioHash,0,5) = GetConsensus(17) then exit;
 RebuildingSumary := true;
 StartBlock := SummaryLastop+1;
 finishblock := Mylastblock;
@@ -988,7 +989,7 @@ SummaryLastop := finishblock;
 RebuildingSumary := false;
 UpdateMyData();
 ZipSumary;
-AddLineToDebugLog('console','Sumary completed from '+IntToStr(StartBlock)+' to '+IntToStr(finishblock));
+AddLineToDebugLog('console',format('Summary completed from %d to %d (%s)',[StartBlock-1,finishblock,Copy(MySumarioHash,0,5)]));
 info('Sumary completed');
 End;
 

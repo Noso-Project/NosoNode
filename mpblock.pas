@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils,MasterPaskalForm, fileutil, mpcoin, dialogs, math,
-  nosotime, mpMN, nosodebug,nosogeneral,nosocrypto, nosounit;
+  nosotime, mpMN, nosodebug,nosogeneral,nosocrypto, nosounit, strutils;
 
 Procedure CrearBloqueCero();
 Procedure BuildNewBlock(Numero,TimeStamp: Int64; TargetHash, Minero, Solucion:String);
@@ -120,7 +120,12 @@ var
 
 
 Begin
-if GetNosoCFGString(0) = 'STOP' then exit;
+if GetNosoCFGString(0) = 'STOP' then
+   begin
+   ClearAllPending;
+   exit;
+   end;
+if AnsiContainsStr(GetNosoCFGString(0),'EMPTY') then ClearAllPending;
 BuildingBlock := Numero;
 BeginPerformance('BuildNewBlock');
 if ((numero>0) and (Timestamp < lastblockdata.TimeEnd)) then

@@ -197,7 +197,7 @@ Begin
     result := 2000{MNsPercentage} + (((block-48010{MNBlockStart}) div 4000) * 100);
     if block >= 88400{PoSBlockEnd} then Inc(Result,1000);
     if result > 6000 then result := 6000;
-    if MainnetMode = 'MNSONLY' then result := 9000;
+    if AnsiContainsStr(MainnetMode,'MNSONLY') then result := 9000;
     end;
 End;
 
@@ -225,7 +225,7 @@ End;
 Function GetMinimumFee(amount:int64):Int64;
 Begin
   Result := amount div 10000{Comisiontrfr};
-  if result < 10{MinimunFee} then result := 10{MinimunFee};
+  if result < 1000000{MinimunFee} then result := 1000000{MinimunFee};
 End;
 
 {Returns the maximum that can be sent from the specified amount}
@@ -236,11 +236,11 @@ var
   Envio      : int64;
   Diferencia : int64;
 Begin
-  if amount < 10{MinimunFee} then
+  if amount < 1000000{MinimunFee} then
     exit(0);
   maximo     := (amount * 10000{Comisiontrfr}) div (10000{Comisiontrfr}+1);
   comision   := maximo div 10000{Comisiontrfr};
-  if Comision < 10{MinimunFee} then Comision := 10{MinimunFee};
+  if Comision < 1000000{MinimunFee} then Comision := 1000000{MinimunFee};
   Envio      := maximo + comision;
   Diferencia := amount-envio;
   result     := maximo+diferencia;

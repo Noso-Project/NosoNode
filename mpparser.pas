@@ -1504,8 +1504,8 @@ Begin
 monto := StrToInt64Def(Parameter(LineText,1),0);
 gmts := GetMaximunToSend(monto);
 fee := monto-gmts;
-if fee<MinimunFee then fee := MinimunFee;
-if monto <= MinimunFee then
+if fee<1000000{MinimunFee} then fee := 1000000{MinimunFee};
+if monto <= 1000000{MinimunFee} then
    begin
    gmts := 0;
    fee  := 0;
@@ -1752,6 +1752,7 @@ var
   AsExpected    : string = '';
   NegativeCount : integer = 0;
   EmptyCount    : integer = 0;
+  LastRecord    : integer = -1;
 Begin
   AssignFile(SumFile,SummaryFileName);
     TRY
@@ -1759,6 +1760,7 @@ Begin
     While not eof(SumFile) do
       begin
       blockread(sumfile,ThisRecord,sizeof(ThisRecord));
+      if lastrecord < 0 then LastRecord := ThisRecord.LastOP;
       if thisrecord.Balance<0 then Inc(NegativeCount);
       if thisrecord.Balance=0 then Inc(EmptyCount);
       inc(TotalCoins,ThisRecord.Balance);
@@ -1769,6 +1771,7 @@ Begin
     END;{Try}
   if TotalCoins = GetSupply(MyLastBlock) then AsExpected := '✓'
   else AsExpected := '('+Int2curr(TotalCoins-GetSupply(MyLastBlock))+')';
+  AddLineToDebugLog('console',format('Block : %d',[LastRecord]));
   AddLineToDebugLog('console',Int2Curr(Totalcoins)+' '+CoinSimbol+' '+AsExpected);
   AddLineToDebugLog('console',format('Addresses (%d): %d (%d empty)',[NegativeCount,currpos,EmptyCount]));
 End;

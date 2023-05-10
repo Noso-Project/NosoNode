@@ -31,6 +31,7 @@ Function GetClientReadThreads():integer;
 function ConnectClient(Address,Port:String):integer;
 function GetTotalConexiones():integer;
 function GetTotalVerifiedConnections():Integer;
+function GetTotalSyncedConnections():Integer;
 function CerrarClientes(ServerToo:Boolean=True):string;
 Procedure LeerLineasDeClientes();
 Procedure VerifyConnectionStatus();
@@ -295,10 +296,9 @@ LeaveCriticalSection(CSNodesList);
 EndPerformance('CerrarSlot');
 End;
 
-// Intenta conectar a los nodos
+// Try connection to nodes
 Procedure ConnectToServers();
 var
-  //contador : integer = 0;
   proceder : boolean = true;
   Success : boolean = false;
   Intentos : integer = 0;
@@ -312,9 +312,9 @@ if not CONNECT_Try then
    AddLineToDebugLog('events',TimeToStr(now)+'Trying connection to servers'); //'Trying connection to servers'
    CONNECT_Try := true;
    end;
-if OutGoing >= MaxOutgoingConnections then proceder := false;
+//if OutGoing >= MaxOutgoingConnections then proceder := false;
 if getTotalConexiones >= MaxConecciones then Proceder := false;
-if GetSeedConnections>=3 then proceder := false;
+if GetTotalSyncedConnections>=3 then proceder := false;
 if proceder then
    begin
    rannumber := random(length(ListaNodos));
@@ -523,6 +523,15 @@ Begin
 result := 0;
 for counter := 1 to MaxConecciones do
    if conexiones[Counter].Autentic then result := result + 1;
+End;
+
+function GetTotalSyncedConnections():Integer;
+var
+  counter:integer;
+Begin
+result := 0;
+for counter := 1 to MaxConecciones do
+   if conexiones[Counter].MerkleHash = GetCOnsensus(0) then result := result + 1;
 End;
 
 // Close all outgoing connections
@@ -1061,6 +1070,7 @@ else if ((copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) an
    begin
    if GetValidSlotForSeed(ValidSlot) then
      begin
+     AddLineToDebugLog('console',format('%s <> %s',[copy(MySumarioHash,0,5),GetConsensus(17)]));
      PTC_SendLine(ValidSlot,ProtocolLine(6)); // Getsumary
      AddLineToDebugLog('console',rs2003); //'sumary file requested'
      LastTimeRequestsumary := UTCTime;
@@ -1095,7 +1105,7 @@ else if ( (StrToIntDef(GetConsensus(9),0)>GetMNsListLength) and (LastTimeMNsRequ
       LeaveCriticalSection(CSMNsIPCheck);
       PTC_SendLine(ValidSlot,ProtocolLine(11));  // Get MNsList
       LastTimeMNsRequested := UTCTime;
-      AddLineToDebugLog('console','MNs reports requested');
+      //AddLineToDebugLog('console','MNs reports requested');
       end;
    end
 else if ((StrToIntDef(GetConsensus(14),0)>GetMNsChecksCount) and (LastTimeChecksRequested+5<UTCTime)) then
@@ -1104,7 +1114,7 @@ else if ((StrToIntDef(GetConsensus(14),0)>GetMNsChecksCount) and (LastTimeChecks
       begin
       PTC_SendLine(ValidSlot,ProtocolLine(GetChecks));  // Get MNsChecks
       LastTimeChecksRequested := UTCTime;
-      AddLineToDebugLog('console','Checks requested to '+conexiones[ValidSlot].ip);
+      //AddLineToDebugLog('console','Checks requested to '+conexiones[ValidSlot].ip);
       end;
    end
 else if ( (GetConsensus(8)<>Copy(MyMNsHash,1,5)) and (LastTimeMNHashRequestes+5<UTCTime) and

@@ -611,7 +611,7 @@ CONST
                             {4}'nosofish.xyz;8082:nosopool.estripa.online;8082:pool.nosomn.com;8082:159.196.1.198;8082: '+
                             {5}'NpryectdevepmentfundsGE:';
 
-  ProgramVersion = '0.3.7';
+  ProgramVersion = '0.3.8';
   {$IFDEF WINDOWS}
   RestartFileName = 'launcher.bat';
   updateextension = 'zip';
@@ -622,7 +622,7 @@ CONST
   {$ENDIF}
   SubVersion = 'Aa1';
   OficialRelease = false;
-  VersionRequired = '0.3.3Aa6';
+  VersionRequired = '0.3.8Aa1';
   BuildDate = 'May 2023';
   {Developer addresses}
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -644,7 +644,8 @@ CONST
   CoinSimbol = 'NOSO';               // Coin symbol
   CoinName = 'Noso';                // Coin name
   CoinChar = 'N';                   // Char for addresses
-  MinimunFee = 10;                  // Minimun fee for transfer
+  MinimunFee = 10;
+  NewMinFee  = 1000000;              // Minimun fee for transfer
   ComisionBlockCheck = 0;           // +- 90 days
   DeadAddressFee = 0;               // unactive acount fee
   ComisionScrow = 200;              // Coin/BTC market comision = 0.5%
@@ -1087,10 +1088,10 @@ if Continuar then
             if Downloaded and SavedToFile then
                begin
                AddLineToDebugLog('console',format(rs0087,[copy(HashMD5File(SummaryFileName),1,5)])); //'Sumary file received'
+               UpdateMyData();
                CreateSumaryIndex();
                UpdateWalletFromSumario;
                LastTimeRequestSumary := 0;
-               UpdateMyData();
                end;
             MemStream.Free;
             DownloadSumary := false;
@@ -3026,7 +3027,7 @@ Procedure UpdateStatusBar();
 Begin
 if Form1.Server.Active then Form1.StaSerImg.Visible:=true
 else Form1.StaSerImg.Visible:=false;
-Form1.StaConLab.Caption:=IntToStr(GetTotalVerifiedConnections);
+Form1.StaConLab.Caption:=IntToStr(GetTotalSyncedConnections);
 if MyConStatus = 0 then Form1.StaConLab.Color:= clred;
 if MyConStatus = 1 then Form1.StaConLab.Color:= clyellow;
 if MyConStatus = 2 then Form1.StaConLab.Color:= claqua;

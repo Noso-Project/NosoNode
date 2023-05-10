@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, mpgui, FPJSON, jsonparser, mpCoin, mpRed, mpBlock,nosodebug,
-  nosogeneral, nosocrypto, nosounit;
+  nosogeneral, nosocrypto, nosounit, nosoconsensus;
 
 Procedure SetRPCPort(LineText:string);
 Procedure setRPCpassword(newpassword:string);
@@ -534,7 +534,8 @@ End;
 function RPC_Mainnetinfo(NosoPParams:string):string;
 Begin
 result := format('mainnetinfo'#127'%s'#127'%s'#127'%s'#127'%s'#127'%s'#127'%d',
-       [NetLastBlock.Value,NetLastBlockHash.Value,NetResumenHash.Value,NetSumarioHash.Value,NetPendingTrxs.Value,GetSupply(StrToIntDef(NetLastBlock.Value,0))]);
+       [GetConsensus(2),Copy(GetConsensus(10),0,5),copy(GetConsensus(15),0,5),copy(GetConsensus(17),0,5),
+       GetConsensus(3),GetSupply(StrToIntDef(GetConsensus(2),0))]);
 End;
 
 function RPC_PendingOrders(NosoPParams:string):string;
