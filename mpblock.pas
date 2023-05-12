@@ -401,7 +401,8 @@ if not errored then
       end;
    CheckForMyPending;
    if DIreccionEsMia(Minero)>-1 then showglobo('Miner','Block found!');
-   U_DataPanel := true;
+
+   U_DirPanel := true;
    OutText(format('Block built: %d (%d ms)',[numero,EndPerformance('BuildNewBlock')]),true);
    end
 else
@@ -409,6 +410,7 @@ else
    OutText('Failed to build the block',true);
    end;
 BuildingBlock := 0;
+U_DataPanel := true;
 End;
 
 Function GetDiffHashrate(bestdiff:String):integer;

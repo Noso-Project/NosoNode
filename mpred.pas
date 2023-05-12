@@ -68,6 +68,7 @@ Function GetSyncTus():String;
 function GetMiIP():String;
 Function NodeServerInfo():String;
 Procedure ClearReceivedOrdersIDs();
+function SendOrderToNode(OrderString:String):String;
 
 implementation
 
@@ -298,18 +299,22 @@ End;
 
 // Try connection to nodes
 Procedure ConnectToServers();
+const
+  LastTrySlot : integer = 0;
+  LAstTryTime : int64 = 0;
+  Unables     : integer = 0;
 var
-  proceder : boolean = true;
-  Success : boolean = false;
-  Intentos : integer = 0;
-  rannumber : integer;
+  proceder  : boolean = true;
+  Loops     : integer = 0;
   OutGoing  : integer;
 Begin
+if ((BlockAge <=10) or (blockAge>=595)) then exit;
+if LastTryTime >= UTCTime then exit;
 OutGoing := GetOutGoingConnections;
 BeginPerformance('ConnectToServers');
 if not CONNECT_Try then
    begin
-   AddLineToDebugLog('events',TimeToStr(now)+'Trying connection to servers'); //'Trying connection to servers'
+   AddLineToDebugLog('events',TimeToStr(now)+' Trying connection to nodes'); //'Trying connection to servers'
    CONNECT_Try := true;
    end;
 //if OutGoing >= MaxOutgoingConnections then proceder := false;
@@ -317,21 +322,21 @@ if getTotalConexiones >= MaxConecciones then Proceder := false;
 if GetTotalSyncedConnections>=3 then proceder := false;
 if proceder then
    begin
-   rannumber := random(length(ListaNodos));
    REPEAT
-   Inc(rannumber);
-   if rannumber >=length(ListaNodos) then rannumber := 0;
-   if ((GetSlotFromIP(ListaNodos[rannumber].ip)=0) AND (GetFreeSlot()>0) and (ListaNodos[rannumber].ip<>MN_Ip)) then
+   Inc(LastTrySlot);
+   if LastTrySlot >=length(ListaNodos) then LastTrySlot := 0;
+   if ((GetSlotFromIP(ListaNodos[LastTrySlot].ip)=0) AND (GetFreeSlot()>0) and (ListaNodos[LastTrySlot].ip<>MN_Ip)) then
       begin
-      if ConnectClient(ListaNodos[rannumber].ip,ListaNodos[rannumber].port) > 0 then Inc(OutGoing);
-      //Success := true;
+      if ConnectClient(ListaNodos[LastTrySlot].ip,ListaNodos[LastTrySlot].port) > 0 then Inc(OutGoing);
       end;
-   intentos+=1;
+   Inc(Loops);
    CONNECT_LastTime := IntTOStr(UTCTime+60);
-   UNTIL ((Success) or (intentos = length(ListaNodos)) or (OutGoing=MaxOutgoingConnections));
+   UNTIL ( (Loops >= 5) or (OutGoing=MaxOutgoingConnections));
    end;
-if  ( (not Form1.Server.Active) and(IsSeedNode(MN_IP)) and (GetOutGoingConnections=0) and (WO_autoserver) )then
-   forceserver;
+if  ( (not Form1.Server.Active) and(IsSeedNode(MN_IP)) and
+      (GetOutGoingConnections=0) and (WO_autoserver) )then Inc(Unables)
+else Unables := 0;
+if Unables >= 10 then forceserver;
 CONNECT_LastTime := UTCTimeStr;
 EndPerformance('ConnectToServers');
 End;
@@ -1015,7 +1020,7 @@ if ((Copy(MyResumenhash,0,5) <> GetConsensus(cHeaders)) and (NLBV>mylastblock)) 
          if GetValidSlotForSeed(ValidSlot) then
             begin
             PTC_SendLine(ValidSlot,ProtocolLine(18)); // GetResumen
-            AddLineToDebugLog('console','Headers update requested to '+conexiones[ValidSlot].ip); //'Headers update requested'
+            AddLineToDebugLog('console',Format('Headers update (%d) requested from %s',[mylastblock,conexiones[ValidSlot].ip]));
             LastTimeRequestResumen := UTCTime;
             end;
          end;
@@ -1194,16 +1199,20 @@ Result := resultado;
 end;
 
 Function GetValidSlotForSeed(out Slot:integer):boolean;
+const
+  SlotCount : integer = 0;
 var
   counter : integer;
 Begin
   Result := false;
-  For counter := 1 to MaxConecciones do
+  for counter := 1 to MaxConecciones do
     begin
-    if ( (conexiones[counter].MerkleHash = GetConsensus(0)) ) then
+    Inc(SlotCount);
+    if SlotCount > MaxConecciones then SlotCount := 1;
+    if ( (conexiones[SlotCount].MerkleHash = GetConsensus(0)) ) then
       begin
       result := true;
-      slot := counter;
+      slot := SlotCount;
       break;
       end;
     end;
@@ -1480,6 +1489,43 @@ Begin
 EnterCriticalSection(CSIdsProcessed);
 Setlength(ArrayOrderIDsProcessed,0); // clear processed Orders
 LeaveCriticalSection(CSIdsProcessed);
+End;
+
+// Sends a order to the mainnet
+function SendOrderToNode(OrderString:String):String;
+var
+  Client    : TidTCPClient;
+  RanNode   : integer;
+  ThisNode  : NodeData;
+  TrysCount : integer = 0;
+  WasOk     : Boolean = false;
+Begin
+  Result := '';
+  Client := TidTCPClient.Create(nil);
+    REPEAT
+    Inc(TrysCount);
+    if GetValidSlotForSeed(RanNode) then
+      begin
+      Client.Host:=conexiones[RanNode].ip;
+      Client.Port:=conexiones[RanNode].ListeningPort;
+      Client.ConnectTimeout:= 3000;
+      Client.ReadTimeout:=3000;
+        TRY
+        Client.Connect;
+        Client.IOHandler.WriteLn(OrderString);
+        Result := Client.IOHandler.ReadLn(IndyTextEncoding_UTF8);
+        WasOK := True;
+        EXCEPT on E:Exception do
+          begin
+
+          end;
+        END{Try};
+
+      end;
+      UNTIL ( (WasOk) or (TrysCount=3) );
+  if result <> '' then U_DirPanel := true;
+  if client.Connected then Client.Disconnect();
+  client.Free;
 End;
 
 END. // END UNIT

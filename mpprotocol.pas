@@ -830,7 +830,7 @@ else if ( (order.OrderType='TRFR') and  (Not IsValidHashAddress(Order.Receiver))
 else if IsAddressLocked(Order.Address) then
    result := 11
 else if ( (AnsiContainsStr(GetNosoCFGString(0),'EMPTY')) or (AnsiContainsStr(GetNosoCFGString(0),'STOP')) ) then
-   result := 11
+   result := 12
 else result := 0;
 End;
 
@@ -1164,6 +1164,7 @@ Begin
 if MyResumenHash = NetResumenHash.Value then exit;
 startpos := Pos('$',Linea);
 Content := Copy(Linea,Startpos+1,Length(linea));
+//AddLineToDebugLog('console','Content: '+Linea);
 REPEAT
    ThisHeader := Parameter(Content,counter);
    If thisheader<>'' then
@@ -1187,7 +1188,7 @@ MyResumenHash := HashMD5File(ResumenFilename);
 if copy(MyResumenHash,0,5) <> GetConsensus(5) then
    begin
    ForceCompleteHeadersDownload := true;
-   AddLineToDebugLog('Console',Format('Update headers failed: %s <> %s',[MyResumenHash,GetConsensus(5)]));
+   AddLineToDebugLog('Console',Format('Update headers failed (%d) : %s <> %s',[TotalErrors,Copy(MyResumenHash,0,5),GetConsensus(5)]));
    end
 else
    begin

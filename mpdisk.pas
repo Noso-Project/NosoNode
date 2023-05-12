@@ -1174,7 +1174,7 @@ assignfile(FileResumen,ResumenFilename);
    closefile(FileResumen);
    EXCEPT on E:Exception do
       begin
-      AddLineToDebugLog('events',TimeToStr(now)+'Error retrieving headers size');
+      AddLineToDebugLog('events',TimeToStr(now)+'Error retrieving headers size: '+E.Message);
       end;
    END;{TRY}
 LeaveCriticalSection(CSHeadAccess);
@@ -1226,17 +1226,19 @@ End;
 
 Function LastHeaders(FromBlock:integer):String;
 var
-  Dato: ResumenData;
+  Dato  : ResumenData;
+  FSize : integer;
 Begin
 result := '';
 if FromBlock<MyLastBlock-1008 then exit;
 BeginPerformance('LastHeaders');
+assignfile(FileResumen,ResumenFilename);
 EnterCriticalSection(CSHeadAccess);
 TRY
-assignfile(FileResumen,ResumenFilename);
 reset(FileResumen);
+FSize := Filesize(FileResumen);
 Dato := Default(ResumenData);
-seek(fileResumen,FromBlock-10);
+seek(fileResumen,FromBlock-20);
 While not Eof(fileResumen) do
    begin
    Read(fileResumen,dato);

@@ -358,9 +358,15 @@ else if objecttype = 'newaddress' then
 else if objecttype = 'sendfunds' then
    begin
    if parameter(mystring,1) = 'ERROR' then
-      resultado.Add('result','Failed')
+      begin
+      resultado.Add('valid',false);
+      resultado.add('result',StrToIntDef(parameter(mystring,2),-1));
+      end
    else
+      begin
+      resultado.Add('valid',True);
       resultado.Add('result',parameter(mystring,1));
+      end
    end
 else if objecttype = 'islocaladdress' then
    begin
@@ -704,20 +710,23 @@ var
   destination,  reference : string;
   amount : int64;
   resultado : string;
+  ErrorCode : integer;
 Begin
 destination := Parameter(NosoPParams,0);
 amount := StrToInt64Def(Parameter(NosoPParams,1),0);
 reference := Parameter(NosoPParams,2); if reference = '' then reference := 'null';
 //AddLineToDebugLog('console','Send to '+destination+' '+int2curr(amount)+' with reference: '+reference);
 Resultado := SendFunds('sendto '+destination+' '+IntToStr(amount)+' '+Reference);
-if resultado = '' then
-   begin
-   result := 'sendfunds'#127'ERROR';
-   end
-else
-   begin
-   result := 'sendfunds'#127+resultado;
-   end;
+
+if ( (Resultado <>'') and (Parameter(Resultado,0)<>'ERROR') ) then
+     begin
+     result := 'sendfunds'#127+resultado;
+     end
+  else
+     begin
+     ErrorCode := StrToIntDef(Parameter(Resultado,1),0);
+     result := 'sendfunds'#127+'ERROR'#127+IntToStr(ErrorCode);
+     end;
 End;
 
 

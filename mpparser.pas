@@ -67,6 +67,7 @@ Procedure TestNetwork(LineText:string);
 Procedure ShowPendingTrxs();
 Procedure WebWallet();
 Procedure ExportKeys(linea:string);
+Procedure NewAddressFromKeys(inputline:string);
 
 // CONSULTING
 Procedure ListGVTs();
@@ -249,7 +250,7 @@ else if UpperCase(Command) = 'HISTORY' then ShowAddressHistory(LineText)
 else if UpperCase(Command) = 'TOTALFEES' then ShowTotalFees()
 else if UpperCase(Command) = 'SUPPLY' then AddLineToDebugLog('console','Current supply: '+Int2Curr(GetSupply(MyLastBlock)))
 else if UpperCase(Command) = 'GMTS' then showgmts(LineText)
-else if UpperCase(Command) = 'SHOWPRIVKEY' then ShowPrivKey(LineText, true)
+else if UpperCase(Command) = 'SHOWKEYS' then ShowPrivKey(LineText, true)
 else if UpperCase(Command) = 'SHOWPENDING' then ShowPendingTrxs()
 else if UpperCase(Command) = 'WEBWAL' then WebWallet()
 else if UpperCase(Command) = 'EXPKEYS' then ExportKeys(LineText)
@@ -267,7 +268,7 @@ else if UpperCase(Command) = 'NOSOHASH' then AddLineToDebugLog('console',Nosohas
 else if UpperCase(Command) = 'PENDING' then AddLineToDebugLog('console',PendingRawInfo)
 else if UpperCase(Command) = 'HEADER' then AddLineToDebugLog('console',ShowBlockHeaders(StrToIntDef(parameter(linetext,1),-1)))
 else if UpperCase(Command) = 'HEADSIZE' then AddLineToDebugLog('console',GetHeadersSize.ToString)
-
+else if UpperCase(Command) = 'NEWFROMKEYS' then NewAddressFromKeys(LineText)
 // New system
 
 else if UpperCase(Command) = 'SUMARY' then ShowSumary()
@@ -831,7 +832,10 @@ if procesar then
       OrderString := orderstring+GetStringfromOrder(ArrayTrfrs[contador])+' $';
       end;
    Setlength(orderstring,length(orderstring)-2);
-   OutgoingMsjsAdd(OrderString);
+   OrderString := StringReplace(OrderString,'PSK','NSLORDER',[]);
+   result := SendOrderToNode(OrderString);
+   AddLineToDebugLog('console','Node result: '+result);
+   //OutgoingMsjsAdd(OrderString);
    EndPerformance('SendFunds');
    end // End procesar
 else
@@ -1271,6 +1275,7 @@ if IsValidHashAddress(addtoshow) then
   begin
   addhash := addtoshow;
   addalias := GetAddressAlias(addtoshow);
+  sumposition := GetIndexPosition(AddToShow,LRecord,false);
   end
 else
   begin
@@ -1289,7 +1294,8 @@ else
    pending := GetAddressPendingPays(addhash);
    AddLineToDebugLog('console','Address   : '+addhash+slinebreak+
                     'Alias     : '+AddAlias+slinebreak+
-                    'Sumary    : '+Int2curr(onsumary)+slinebreak+
+                    format('Summary   : %s (%d)',[Int2curr(onsumary),sumposition])+slinebreak+
+                    //'Sumary    : '+Int2curr(onsumary)+slinebreak+
                     'Incoming  : '+Int2Curr(GetAddressIncomingpays(AddHash))+slinebreak+
                     'Outgoing  : '+Int2curr(pending)+slinebreak+
                     'Available : '+int2curr(onsumary-pending));
@@ -1542,7 +1548,7 @@ if sumposition<0 then
    end
 else
    begin
-   result := ListaDirecciones[sumposition].PrivateKey;
+   result := ListaDirecciones[sumposition].PublicKey+' '+ListaDirecciones[sumposition].PrivateKey;
    end;
 if ToConsole then AddLineToDebugLog('console',Result);
 End;
@@ -1787,6 +1793,22 @@ Begin
      LText := Format('%0:12s',[NConsensus[counter]]);
      AddLineToDebugLog('console',Format('%0:2s %s -> %s',[Counter.ToString,LText,Consensus[counter]]));
      end;
+End;
+
+Procedure NewAddressFromKeys(inputline:string);
+var
+  Newadd : WalletData;
+  PubKey,PrivKey : String;
+Begin
+  Newadd := Default(WalletData);
+  NewAdd.PublicKey :=parameter(inputline,1);
+  NewAdd.PrivateKey:=parameter(inputline,2);
+  NewAdd.Hash      :=GetAddressFromPublickey(NewAdd.PublicKey);
+  SetLength(ListaDirecciones,Length(ListaDirecciones)+1);
+  ListaDirecciones[Length(ListaDirecciones)-1] := NewAdd;
+  S_Wallet := true;
+  U_DirPanel := true;
+  AddLineToDebugLog('console',GetAddressFromPublicKey(parameter(inputline,1)))
 End;
 
 

@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, MasterPaskalForm, nosotime, graphics, strutils, forms, controls, grids,stdctrls,
   ExtCtrls, buttons, editbtn , menus, Clipbrd, IdContext, LCLTranslator, nosodebug, nosogeneral,
-  nosocrypto, nosoconsensus;
+  nosocrypto, nosoconsensus,nosounit;
 
 type
   TFormInicio = class(Tform)
@@ -389,22 +389,7 @@ if LastUpdateDataPanel <> UTCTime then
    form1.DataPanel.Cells[3,7]:= format('(%d)  %d/%s (%d)',[GetMNsChecksCount,GetMNsListLength,GetConsensus(9),LengthWaitingMNs]);
    LastUpdateDataPanel := UTCTime;
    end;
-
-if U_DataPanel then
-   begin
-
-
-
-
-
-   U_DataPanel := false;
-   end;
-
-
-
-
-
-// update nodes grid
+        // update nodes grid
 if ((U_MNsGrid) or (UTCTime>U_MNsGrid_Last+59)) then
    begin
    //{
@@ -428,8 +413,6 @@ if ((U_MNsGrid) or (UTCTime>U_MNsGrid_Last+59)) then
    U_MNsGrid := false;
    end;
 
-// Esta se muestra siempre aparte ya que la funcion GetTotalConexiones es la que permite
-// verificar si los clientes siguen conectados
 BeginPerformance('UpdateGUITime');
 
 EndPerformance('UpdateGUITime');
@@ -443,7 +426,7 @@ if U_DirPanel then
       if ListaDirecciones[contador].Custom<>'' then
         form1.Direccionespanel.Cells[0,contador+1] := ListaDirecciones[contador].Custom
       else form1.Direccionespanel.Cells[0,contador+1] := ListaDirecciones[contador].Hash;
-      form1.Direccionespanel.Cells[1,contador+1] := Int2Curr(ListaDirecciones[contador].Balance-ListaDirecciones[contador].pending);
+      form1.Direccionespanel.Cells[1,contador+1] := Int2Curr(GetAddressBalanceIndexed(ListaDirecciones[contador].hash)-ListaDirecciones[contador].pending);
       end;
    form1.LabelBigBalance.Caption := Int2Curr(GetWalletBalance)+' '+CoinSimbol;
    U_DirPanel := false;
