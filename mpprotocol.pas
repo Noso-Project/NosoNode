@@ -831,6 +831,8 @@ else if IsAddressLocked(Order.Address) then
    result := 11
 else if ( (AnsiContainsStr(GetNosoCFGString(0),'EMPTY')) or (AnsiContainsStr(GetNosoCFGString(0),'STOP')) ) then
    result := 12
+else if origen <> Order.Address then
+   result := 13
 else result := 0;
 End;
 

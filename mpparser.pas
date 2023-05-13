@@ -68,6 +68,7 @@ Procedure ShowPendingTrxs();
 Procedure WebWallet();
 Procedure ExportKeys(linea:string);
 Procedure NewAddressFromKeys(inputline:string);
+Procedure CheckWallet(inputline:string);
 
 // CONSULTING
 Procedure ListGVTs();
@@ -268,7 +269,8 @@ else if UpperCase(Command) = 'NOSOHASH' then AddLineToDebugLog('console',Nosohas
 else if UpperCase(Command) = 'PENDING' then AddLineToDebugLog('console',PendingRawInfo)
 else if UpperCase(Command) = 'HEADER' then AddLineToDebugLog('console',ShowBlockHeaders(StrToIntDef(parameter(linetext,1),-1)))
 else if UpperCase(Command) = 'HEADSIZE' then AddLineToDebugLog('console',GetHeadersSize.ToString)
-else if UpperCase(Command) = 'NEWFROMKEYS' then NewAddressFromKeys(LineText)
+//else if UpperCase(Command) = 'NEWFROMKEYS' then NewAddressFromKeys(LineText)
+else if UpperCase(Command) = 'CHECKWALLET' then CheckWallet(LineText)
 
 // New system
 
@@ -385,7 +387,7 @@ var
 Begin
 for contador := 0 to length(Listadirecciones)-1 do
    begin
-   totalEnSumario := totalEnSumario+Listadirecciones[contador].Balance;
+   totalEnSumario := totalEnSumario+GetAddressBalanceIndexed(Listadirecciones[contador].Hash);
    end;
 result := totalEnSumario-MontoOutgoing;
 End;
@@ -1806,14 +1808,41 @@ Begin
   NewAdd.PublicKey :=parameter(inputline,1);
   NewAdd.PrivateKey:=parameter(inputline,2);
   NewAdd.Hash      :=GetAddressFromPublickey(NewAdd.PublicKey);
-  //SetLength(ListaDirecciones,Length(ListaDirecciones)+1);
-  //ListaDirecciones[Length(ListaDirecciones)-1] := NewAdd;
-  //S_Wallet := true;
-  //U_DirPanel := true;
-  AddLineToDebugLog('console','Old : '+OldGetAddressFromPublicKey(parameter(inputline,1)));
-  AddLineToDebugLog('console','New : '+GetAddressFromPublicKey(parameter(inputline,1)))
+  SetLength(ListaDirecciones,Length(ListaDirecciones)+1);
+  ListaDirecciones[Length(ListaDirecciones)-1] := NewAdd;
+  S_Wallet := true;
+  U_DirPanel := true;
 End;
 
+
+
+Procedure CheckWallet(inputline:string);
+var
+  counter   : integer;
+  ToFix     : boolean = false;
+  Issues    : integer = 0;
+  Fixed     : integer = 0;
+  WrongHash : integer =0;
+Begin
+  if Uppercase(Parameter(inputline,1)) = 'FIX' then ToFix := true;
+  for counter := 0 to high(listadirecciones) do
+    begin
+    if listadirecciones[counter].Hash <> GetAddressFromPublicKey(Listadirecciones[counter].PublicKey) then
+      begin
+      inc(Issues);inc(wronghash);
+      if ToFix then
+        begin
+        listadirecciones[counter].Hash := GetAddressFromPublicKey(Listadirecciones[counter].PublicKey);
+        Inc(Fixed);
+        end;
+      end;
+    end;
+  if issues = 0 then AddLineToDebugLog('console','No issues');
+  if issues > 0 then
+    begin
+    AddLineToDebugLog('console',format('Issues: %d -> Fixed: %d',[issues,fixed]));
+    end;
+end;
 
 END. // END UNIT
 

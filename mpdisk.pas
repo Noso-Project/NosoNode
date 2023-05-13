@@ -663,6 +663,7 @@ End;
 Procedure CargarWallet(wallet:String);
 var
   contador : integer = 0;
+  Fixed    : integer = 0;
 Begin
    TRY
    if fileExists(wallet) then
@@ -683,6 +684,8 @@ Begin
       AddLineToDebugLog('events',TimeToStr(now)+'Error loading wallet from file: '+e.Message);
    END;{TRY}
    //UpdateWalletFromSumario();
+   if Fixed > 0 then
+      AddLineToDebugLog('console',format('Fixed addresses: %d',[Fixed]));
    SaveWalletFile();
 End;
 

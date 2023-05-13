@@ -695,6 +695,7 @@ if MyConStatus = 3 then
       PTC_SendLine(ValidSlot,ProtocolLine(5));  // Get pending
       LastTimePendingRequested := UTCTime;
       end;
+   if GetAddressBalanceIndexed(MN_Funds) < GetStackRequired(MyLastBlock) then LastTimeReportMyMN := NextBlockTimeStamp+5;
    if ( (not MyMNIsListed) and (Form1.Server.Active) and (UTCTime>LastTimeReportMyMN+5)
         and (BlockAge>10+MNsRandomWait) and (BlockAge<495) and(1=1) ) then
      begin
@@ -1533,6 +1534,11 @@ var
   WasOk     : Boolean = false;
 Begin
   Result := '';
+  if MyConStatus<3 then
+     begin
+     Result := 'ERROR 20';
+     exit;
+     end;
   Client := TidTCPClient.Create(nil);
     REPEAT
     Inc(TrysCount);
@@ -1549,13 +1555,13 @@ Begin
         WasOK := True;
         EXCEPT on E:Exception do
           begin
-
+          Result := 'ERROR 19';
           end;
         END{Try};
-
       end;
       UNTIL ( (WasOk) or (TrysCount=3) );
   if result <> '' then U_DirPanel := true;
+  if result = '' then result := 'ERROR 21';
   if client.Connected then Client.Disconnect();
   client.Free;
 End;

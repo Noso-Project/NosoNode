@@ -1316,9 +1316,9 @@ While not terminated do
    NewAddrss := 0;
    if length(ArrayCriptoOp)>0 then
       begin
-      if ArrayCriptoOp[0].tipo = 0 then // actualizar balance
+      if ArrayCriptoOp[0].tipo = 0 then
          begin
-         //MyCurrentBalance := GetWalletBalance(); DEPRECATED
+
          end
       else if ArrayCriptoOp[0].tipo = 1 then // Crear direccion
          begin

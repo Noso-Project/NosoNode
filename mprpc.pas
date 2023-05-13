@@ -718,14 +718,18 @@ reference := Parameter(NosoPParams,2); if reference = '' then reference := 'null
 //AddLineToDebugLog('console','Send to '+destination+' '+int2curr(amount)+' with reference: '+reference);
 Resultado := SendFunds('sendto '+destination+' '+IntToStr(amount)+' '+Reference);
 
-if ( (Resultado <>'') and (Parameter(Resultado,0)<>'ERROR') ) then
+if ( (Resultado <>'') and (Parameter(Resultado,0)<>'ERROR') and (copy(resultado,0,2)='OR')) then
      begin
      result := 'sendfunds'#127+resultado;
      end
-  else
+  else if (Parameter(Resultado,0)='ERROR') then
      begin
      ErrorCode := StrToIntDef(Parameter(Resultado,1),0);
      result := 'sendfunds'#127+'ERROR'#127+IntToStr(ErrorCode);
+     end
+  else
+     begin
+     result := 'sendfunds'#127+'ERROR'#127+'999';
      end;
 End;
 

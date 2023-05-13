@@ -679,10 +679,14 @@ Const
 var
   blocknumber : integer;
 Begin
-if BlockUndoneTime+30>UTCTime then exit;
+//if BlockUndoneTime+30>UTCTime then exit;
 blocknumber:= MyLastBlock;
-Highest := BlockNumber;
-if BlockNumber < Highest then exit;
+if BlockNumber < Highest then
+   begin
+   AddLineToDebugLog('Console','Can not undo block '+mylastblock.ToString);
+   exit;
+   end
+else Highest := BlockNumber;
 if BlockNumber = 0 then exit;
 if MyConStatus = 3 then
    begin
