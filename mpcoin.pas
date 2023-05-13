@@ -278,7 +278,7 @@ var
   OrderInfo : Torderdata;
 Begin
 BeginPerformance('SendFundsFromAddress');
-MontoDisponible := ListaDirecciones[DireccionEsMia(origen)].Balance-GetAddressPendingPays(Origen);
+MontoDisponible := GetAddressBalanceIndexed(ListaDirecciones[DireccionEsMia(origen)].Hash)-GetAddressPendingPays(Origen);
 if MontoDisponible>comision then ComisionTrfr := Comision
 else comisiontrfr := montodisponible;
 if montodisponible>monto+comision then montotrfr := monto

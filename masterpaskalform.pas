@@ -64,6 +64,14 @@ type
       Constructor Create(CreateSuspended : boolean);
     end;
 
+  TThreadIndexer = class(TThread)
+    protected
+      procedure Execute; override;
+    public
+      Constructor Create(CreateSuspended : boolean);
+    end;
+
+
   TUpdateMNs = class(TThread)
     protected
       procedure Execute; override;
@@ -256,6 +264,11 @@ type
        SeedNode  : string;
        NTPNodes  : string;
        Pools     : string;
+       end;
+
+  TOrdIndex = record
+       block  : integer;
+       orders : string;
        end;
 
   { TForm1 }
@@ -611,7 +624,7 @@ CONST
                             {4}'nosofish.xyz;8082:nosopool.estripa.online;8082:pool.nosomn.com;8082:159.196.1.198;8082: '+
                             {5}'NpryectdevepmentfundsGE:';
 
-  ProgramVersion = '0.3.9';
+  ProgramVersion = '0.4.0';
   {$IFDEF WINDOWS}
   RestartFileName = 'launcher.bat';
   updateextension = 'zip';
@@ -653,9 +666,9 @@ CONST
   MNsPercentage = 2000;
   PosStackCoins = 20;               // PoS stack ammoount: supply*20 / PoSStack
   PoSBlockStart : integer = 8425;   // first block with PoSPayment
-  PoSBlockEnd   : integer = 88500;  // Not definitive yetttt
+  PoSBlockEnd   : integer = 88500;  // To verify
   MNBlockStart  : integer = 48010;  // First block with MNpayments
-  InitialBlockDiff = 60;            // Dificultad durante los 20 primeros bloques
+  InitialBlockDiff = 60;            // First 20 blocks diff
   GenesysTimeStamp = 1615132800;    // 1615132800;
   AvailableMarkets = '/LTC';
   SendDirectToPeer = false;
@@ -703,6 +716,7 @@ var
   SendOutMsgsThread : TThreadSendOutMsjs;
 
   KeepConnectThread : TThreadKeepConnect;
+  IndexerThread     : TThreadIndexer;
 
   ThreadMNs : TUpdateMNs;
   CryptoThread : TCryptoThread;
@@ -738,6 +752,8 @@ var
 
 
   ArrayOrderIDsProcessed : array of string;
+  ArrayOrdIndex : array of TOrdIndex;
+  MyLastOrdIndex : integer = 0;
 
     U_DirPanel : boolean = false;
   FileBotData : File of BotData;
@@ -1274,7 +1290,7 @@ While not terminated do
          RunMNVerification();
          end;
       end;
-   WHile LengthWaitingMNs > 0 do
+   While LengthWaitingMNs > 0 do
       begin
       TextLine := GetWaitingMNs;
       if not IsIPMNAlreadyProcessed(TextLine) then
@@ -1429,6 +1445,55 @@ Begin
   CloseOpenThread('KeepConnect');
 End;
 
+//****************
+// *** INDEXER ***
+//****************
+
+constructor TThreadIndexer.Create(CreateSuspended : boolean);
+begin
+  inherited Create(CreateSuspended);
+end;
+
+procedure TThreadIndexer.Execute;
+var
+  resultorder : TOrderGroup;
+  ArrTrxs     : TBlockOrdersArray;
+  Counter     : integer;
+  NewRec      : TOrdIndex;
+  IsCompleted : boolean = false;
+Begin
+  AddNewOpenThread('Indexer',UTCTime);
+  MyLastOrdIndex := GetMyLastUpdatedBlock-1008;
+  if MyLastOrdIndex < 0 then MyLastOrdIndex := 0;
+  AddlineToDebugLog('console',format('Indexer starts at block %d',[MyLastOrdIndex]));
+  while not terminated do
+    begin
+    if MyLastOrdIndex < MyLAstBlock then
+      begin
+      NewRec := Default(TOrdIndex);
+      NewRec.block:=MyLastOrdIndex;
+      ArrTrxs := GetBlockTrxs(MyLastOrdIndex);
+      if length(ArrTrxs)>0 then
+        begin
+        for counter := 0 to high(ArrTrxs) do
+          begin
+          NewRec.orders:=NewRec.orders+ArrTrxs[counter].OrderID+',';
+          end;
+
+        end;
+      Insert(NewRec,ArrayOrdIndex,Length(ArrayOrdIndex));
+      Inc(MyLastOrdIndex);
+      if ( (MyLastOrdIndex = MyLastBlock) and (IsCompleted = false) ) then
+        begin
+        AddlineToDebugLog('console',format('OrderIDs index updated at block %d',[MyLastOrdIndex]));
+        IsCompleted := true;
+        end;
+      end;
+    sleep(10);
+    end;
+  CloseOpenThread('Indexer');
+End;
+
 //***********************
 // *** FORM RELATIVES ***
 //***********************
@@ -1472,6 +1537,7 @@ CreateFormInicio();
 CreateFormSlots();
 SetLength(ArrayOrderIDsProcessed,0);
 SetLength(ArrayMNsData,0);
+SetLength(ArrayOrdIndex,0);
 end;
 
 // Form destroy
@@ -1666,6 +1732,9 @@ if WO_CloseStart then
       //KeepConnectThread := TThreadKeepConnect.Create(true);
       //KeepConnectThread.FreeOnTerminate:=true;
       //KeepConnectThread.Start;
+      IndexerThread := TThreadIndexer.Create(true);
+      IndexerThread.FreeOnTerminate:=true;
+      IndexerThread.Start;
    AddLineToDebugLog('events',TimeToStr(now)+rs0029); NewLogLines := NewLogLines-1; //'Noso session started'
    info(rs0029);  //'Noso session started'
    infopanel.BringToFront;

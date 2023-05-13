@@ -671,7 +671,7 @@ Begin
       setlength(ListaDirecciones,0);
       reset(FileWallet);
       setlength(ListaDirecciones,FileSize(FileWallet));
-      for contador := 0 to Length(ListaDirecciones)-1 do
+      for contador := 0 to FileSize(FileWallet)-1 do
          begin
          seek(FileWallet,contador);
          Read(FileWallet,ListaDirecciones[contador]);
@@ -679,11 +679,11 @@ Begin
          end;
       closefile(FileWallet);
       end;
-   UpdateWalletFromSumario();
-   SaveWalletFile();                         // Permite corregir cualquier problema con los pending
    EXCEPT on E:Exception do
-      AddLineToDebugLog('events',TimeToStr(now)+'Error loading wallet from file');
+      AddLineToDebugLog('events',TimeToStr(now)+'Error loading wallet from file: '+e.Message);
    END;{TRY}
+   //UpdateWalletFromSumario();
+   SaveWalletFile();
 End;
 
 // Save wallet data to disk
@@ -1071,6 +1071,7 @@ if GVTsTrfer>0 then
    SaveGVTs;
    UpdateMyGVTsList;
    end;
+U_DirPanel := true;
 End;
 
 // adds a header at the end of headers file

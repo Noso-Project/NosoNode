@@ -57,6 +57,7 @@ function GetOutGoingConnections():integer;
 function GetIncomingConnections():integer;
 Function GetSeedConnections():integer;
 Function GetValidSlotForSeed(out Slot:integer):boolean;
+Function BlockFromIndex(LOrderID:String):integer;
 function GetOrderDetails(orderid:string):TOrderGroup;
 function GetOrderSources(orderid:string):string;
 Function GetNodeStatusString():string;
@@ -1231,6 +1232,23 @@ for contador := 1 to MaxConecciones do
    end;
 end;
 
+Function BlockFromIndex(LOrderID:String):integer;
+var
+  counter : integer;
+Begin
+  BeginPerformance('BlockFromIndex');
+  result := -1;
+  for counter := length(ArrayOrdIndex)-1 downto 0 do
+    begin
+    if AnsiContainsStr(ArrayOrdIndex[counter].orders,LOrderID) then
+      begin
+      result := ArrayOrdIndex[counter].block;
+      break;
+      end;
+    end;
+  EndPerformance('BlockFromIndex');
+End;
+
 function GetOrderDetails(orderid:string):TOrderGroup;
 var
   counter,counter2 : integer;
@@ -1238,6 +1256,8 @@ var
   resultorder : TOrderGroup;
   ArrTrxs : TBlockOrdersArray;
   LastBlockToCheck : integer = 0;
+  FirstBlockToCheck : integer;
+  TryonIndex       : integer = -1;
   CopyPendings : array of Torderdata;
 Begin
 BeginPerformance('GetOrderDetails');
@@ -1276,7 +1296,19 @@ else
    if WO_FullNode then LastBlockToCheck := 1
    else LastBlockToCheck := mylastblock-SecurityBlocks;
    if LastBlockToCheck<1 then LastBlockToCheck := 1;
-   for counter := mylastblock downto LastBlockToCheck do
+   TryonIndex :=  BlockFromIndex(orderid);
+   if TryonIndex >= 0 then
+      begin
+      AddLineToDebugLog('console', 'Order found on index!');
+      FirstBlockToCheck := TryonIndex;
+      end
+   else
+     begin
+     FirstBlockToCheck := mylastblock;
+     AddLineToDebugLog('console', 'Order not on index');
+     end;
+
+   for counter := FirstBlockToCheck downto LastBlockToCheck do
       begin
       ArrTrxs := GetBlockTrxs(counter);
       if length(ArrTrxs)>0 then

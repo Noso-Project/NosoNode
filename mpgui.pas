@@ -220,7 +220,7 @@ form1.DataPanel.Cells[0,7]:=rs0511;  //'Pending'
 form1.DataPanel.Cells[2,0]:= 'PoP Info';
 form1.DataPanel.Cells[2,1]:= 'Next';
 form1.DataPanel.Cells[2,2]:= 'Clients';
-form1.DataPanel.Cells[2,3]:= '';
+form1.DataPanel.Cells[2,3]:= 'OrdIndex';
 form1.DataPanel.Cells[2,4]:= 'NosoCFG';
 form1.DataPanel.Cells[2,5]:='GVTs';
 form1.DataPanel.Cells[2,6]:='Masternodes';
@@ -292,6 +292,7 @@ var
   FileProcs           : TFileMCopy;
   LConsensus          : TNodeConsensus;
 Begin
+BeginPerformance('UpdateGUITime');
 //Update Monitor Grid
 if ( (form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor) and (LastUpdateMonitor<>UTCTime) ) then
    begin
@@ -365,7 +366,7 @@ if LastUpdateConsensus <> UTCTime then
       end;
    end;
 LastUpdateProcesses := UTCTime;
-if LocalLastUpdate = UTCTime then exit;
+//if LocalLastUpdate = UTCTime then exit;
 LocalLastUpdate := UTCTime;
 
 if LastUpdateDataPanel <> UTCTime then
@@ -382,7 +383,7 @@ if LastUpdateDataPanel <> UTCTime then
    form1.DataPanel.Cells[3,0]:= format('[%s] %s...',[BestHashReadeable(GetNMSData.Diff),Copy(GetNMSData.Miner,1,8)]);
    form1.DataPanel.Cells[3,1]:= Format('[%s] %s Noso',[BlockAge.ToString,Copy(Int2curr(GetBlockReward(Mylastblock+1)),0,5)]);
    form1.DataPanel.Cells[3,2]:= GEtOutgoingconnections.ToString+'/'+GetClientReadThreads.ToString;
-   form1.DataPanel.Cells[3,3]:= '';
+   form1.DataPanel.Cells[3,3]:= Format('%d (%d)',[MyLastOrdIndex,length(ArrayOrdIndex)]);
    form1.DataPanel.Cells[3,4]:= format('%s / %s',[Copy(HashMd5String(GetNosoCFGString),0,5),GetConsensus(19)]);
    form1.DataPanel.Cells[3,5]:= format('%s / %s',[Copy(MyGVTsHash,0,5),GetConsensus(18)]);
    form1.DataPanel.Cells[3,6]:= format('%s / %s',[Copy(MyMNsHash,0,5),GetConsensus(8)]);
@@ -412,11 +413,6 @@ if ((U_MNsGrid) or (UTCTime>U_MNsGrid_Last+59)) then
    form1.LabelNodesHash.Caption:='Count: '+GetMNsListLength.ToString;
    U_MNsGrid := false;
    end;
-
-BeginPerformance('UpdateGUITime');
-
-EndPerformance('UpdateGUITime');
-
 if U_DirPanel then
    begin
    BeginPerformance('UpdateDirPanel');
@@ -432,6 +428,7 @@ if U_DirPanel then
    U_DirPanel := false;
    EndPerformance('UpdateDirPanel');
    end;
+EndPerformance('UpdateGUITime');
 End;
 
 // Actualiza la informacion de la label info

@@ -674,11 +674,15 @@ end;
 
 // Deshacer el ultimo bloque
 Procedure UndoneLastBlock();
+Const
+  Highest : integer = 0;
 var
   blocknumber : integer;
 Begin
 if BlockUndoneTime+30>UTCTime then exit;
 blocknumber:= MyLastBlock;
+Highest := BlockNumber;
+if BlockNumber < Highest then exit;
 if BlockNumber = 0 then exit;
 if MyConStatus = 3 then
    begin

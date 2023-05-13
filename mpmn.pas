@@ -79,6 +79,7 @@ var
   CSMNsFile     : TRTLCriticalSection;
   CSMNsIPCheck  : TRTLCriticalSection;
   CSMN_FileText : TRTLCriticalSection;
+  CSMN_Contract : TRTLCriticalSection;
 
 implementation
 
@@ -883,6 +884,7 @@ InitCriticalSection(CSMNsChecks);
 InitCriticalSection(CSMNsFile);
 InitCriticalSection(CSMNsIPCheck);
 InitCriticalSection(CSMN_FileText);
+InitCriticalSection(CSMN_Contract);
 
 SetLength(ArrayIPsProcessed,0);
 
@@ -893,6 +895,7 @@ DoneCriticalSection(CSMNsChecks);
 DoneCriticalSection(CSMNsFile);
 DoneCriticalSection(CSMNsIPCheck);
 DoneCriticalSection(CSMN_FileText);
+DoneCriticalSection(CSMN_Contract);
 
 END. // End UNIT
 

@@ -269,6 +269,7 @@ else if UpperCase(Command) = 'PENDING' then AddLineToDebugLog('console',PendingR
 else if UpperCase(Command) = 'HEADER' then AddLineToDebugLog('console',ShowBlockHeaders(StrToIntDef(parameter(linetext,1),-1)))
 else if UpperCase(Command) = 'HEADSIZE' then AddLineToDebugLog('console',GetHeadersSize.ToString)
 else if UpperCase(Command) = 'NEWFROMKEYS' then NewAddressFromKeys(LineText)
+
 // New system
 
 else if UpperCase(Command) = 'SUMARY' then ShowSumary()
@@ -281,6 +282,7 @@ else if UpperCase(Command) = 'LISTGVT' then ListGVTs()
 else if UpperCase(Command) = 'SYSTEM' then ShowSystemInfo(Linetext)
 else if UpperCase(Command) = 'NOSOCFG' then AddLineToDebugLog('console',GetNosoCFGString)
 else if UpperCase(Command) = 'FUNDS' then AddLineToDebugLog('console','Project funds: '+Int2curr(GetAddressAvailable('NpryectdevepmentfundsGE')))
+else if UpperCase(Command) = 'SUMINDEXSIZE' then AddLineToDebugLog('console',IntToStr(SumIndexLength))
 
 // 0.2.1 DEBUG
 else if UpperCase(Command) = 'BLOCKPOS' then ShowBlockPos(LineText)
@@ -784,7 +786,7 @@ if procesar then
    montoToShow := Monto;
    comisionToShow := Comision;
    Restante := monto+comision;
-   if WO_Multisend then CoinsAvailable := ListaDirecciones[0].Balance-GetAddressPendingPays(ListaDirecciones[0].Hash)
+   if WO_Multisend then CoinsAvailable := GetAddressBalanceIndexed(ListaDirecciones[0].Hash)-GetAddressPendingPays(ListaDirecciones[0].Hash)
    else CoinsAvailable := GetWalletBalance;
    if Restante > CoinsAvailable then
       begin
@@ -802,7 +804,7 @@ if procesar then
    while monto > 0 do
       begin
       BeginPerformance('SendFundsVerify');
-      if ListaDirecciones[contador].Balance-GetAddressPendingPays(ListaDirecciones[contador].Hash) > 0 then
+      if GetAddressBalanceIndexed(ListaDirecciones[contador].Hash)-GetAddressPendingPays(ListaDirecciones[contador].Hash) > 0 then
          begin
          trxLinea := TrxLinea+1;
          Setlength(ArrayTrfrs,length(arraytrfrs)+1);
@@ -1804,11 +1806,12 @@ Begin
   NewAdd.PublicKey :=parameter(inputline,1);
   NewAdd.PrivateKey:=parameter(inputline,2);
   NewAdd.Hash      :=GetAddressFromPublickey(NewAdd.PublicKey);
-  SetLength(ListaDirecciones,Length(ListaDirecciones)+1);
-  ListaDirecciones[Length(ListaDirecciones)-1] := NewAdd;
-  S_Wallet := true;
-  U_DirPanel := true;
-  AddLineToDebugLog('console',GetAddressFromPublicKey(parameter(inputline,1)))
+  //SetLength(ListaDirecciones,Length(ListaDirecciones)+1);
+  //ListaDirecciones[Length(ListaDirecciones)-1] := NewAdd;
+  //S_Wallet := true;
+  //U_DirPanel := true;
+  AddLineToDebugLog('console','Old : '+OldGetAddressFromPublicKey(parameter(inputline,1)));
+  AddLineToDebugLog('console','New : '+GetAddressFromPublicKey(parameter(inputline,1)))
 End;
 
 

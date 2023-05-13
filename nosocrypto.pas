@@ -27,7 +27,8 @@ Function HashMD5File(FileToHash:String):String;
 Function IsValid58(base58text:string):boolean;
 Function GetStringSigned(StringtoSign, PrivateKey:String):String;
 Function VerifySignedString(StringToVerify,B64String,PublicKey:String):boolean;
-function GetAddressFromPublicKey(PubKey:String):String;
+function OldGetAddressFromPublicKey(PubKey:String):String;
+function GetAddressFromPublicKey(const PubKey: String): String;
 Function GenerateNewAddress(out pubkey:String;out privkey:String):String;
 Function IsValidHashAddress(Address:String):boolean;
 Function GetTransferHash(TextLine:string):String;
@@ -45,7 +46,7 @@ Function B16ToB36(const sHex: String): String;
 Function B16ToB58(const sHex: String): String;
 Function B58ToB10(const sVal: String): String;
 Function B58ToB16(const sVal: String): String;
-Function ChecksumBase58(const S: String): string;
+Function ChecksumBase58(const S: String): integer;
 Function BMB58resumen(numero58:string):string;
 
 Const
@@ -212,7 +213,7 @@ Begin
 End;
 
 {Returns the hash address from the provided publickey}
-function GetAddressFromPublicKey(PubKey:String):String;
+function OldGetAddressFromPublicKey(PubKey:String):String;
 var
   PubSHAHashed,Hash1,Hash2,clave:String;
   sumatoria : string;
@@ -225,6 +226,35 @@ clave := B10toB58(sumatoria);
 hash2 := hash1+clave;
 Result := 'N'+hash2;
 End;
+
+function GetAddressFromPublicKey(const PubKey: String): String;
+var
+  s_data, s_cksum, s_cksum_hex: AnsiString;
+  hashSHA256: String;
+  hashRMD160: TBytes;
+begin
+  Result := EmptyStr;
+  if PubKey.IsEmpty then
+    Exit;
+  { SHA256 PubKey string hash }
+  hashSHA256 := THashFactory.TCrypto.CreateSHA2_256
+    .ComputeString(PubKey, TEncoding.ANSI)
+    .ToString;
+  { RIPEMD160 hash of SHA256 PubKey hash }
+  hashRMD160 := THashFactory.TCrypto.CreateRIPEMD160
+    .ComputeString(hashSHA256, TEncoding.ANSI)
+    .GetBytes;
+  { Encode RIPEMD160 hash as Base58 string }
+  s_data := TBase58.BitCoin.Encode(hashRMD160);
+  { Get s_data checksum in HEX }
+  s_cksum_hex := HexStr(ChecksumBase58(s_data), 4);
+  { Encode checksum as Base58 string }
+  s_cksum := TBase58.BitCoin.Encode(
+    TConverters.ConvertHexStringToBytes(s_cksum_hex)
+  );
+  { Concat all }
+  Result := Concat('N', s_data, s_cksum);
+end;
 
 {Generates a new keys pair and returns the hash}
 Function GenerateNewAddress(out pubkey:String;out privkey:String):String;
@@ -568,14 +598,14 @@ Begin
   Result := TrimLeadingCeros(Result);
 End;
 
-Function ChecksumBase58(const S: String): string;
+Function ChecksumBase58(const S: String): integer;
 var
   C: Char;
   Total: integer = 0;
 Begin
   for C in S do
     Inc(Total, Pos(C, B58Alphabet)-1);
-  Result := IntToStr(Total);
+  Result := Total;
 End;
 
 // RETURN THE SUMATORY OF A BASE58
