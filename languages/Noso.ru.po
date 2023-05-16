@@ -11,10 +11,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 3.0.1\n"
 
-#: tform1.barcodeqr1.hint
-msgid "Click on image to close it"
-msgstr "Нажмите на изображение, чтобы закрыть его"
-
 #: tform1.bcopyaddr.hint
 msgid "Copy address to clipboard"
 msgstr "Скопировать адрес в буфер обмена"
@@ -63,10 +59,6 @@ msgstr "Создать новый адрес"
 msgctxt "tform1.bokcustom.hint"
 msgid "Confirm"
 msgstr "Подтвердить"
-
-#: tform1.bqrcode.hint
-msgid "Show QR code"
-msgstr "Показать QR-код"
 
 #: tform1.bsavenodeoptions.caption
 msgid "Save"
@@ -382,22 +374,6 @@ msgstr "Отправить"
 msgctxt "tform1.scbitsend1.caption"
 msgid "Transfer"
 msgstr ""
-
-#: tform1.speedbutton2.caption
-msgid "A"
-msgstr ""
-
-#: tform1.speedbutton2.hint
-msgid "Show address"
-msgstr "Показать адрес"
-
-#: tform1.speedbutton3.caption
-msgid "K"
-msgstr ""
-
-#: tform1.speedbutton3.hint
-msgid "Show Keys"
-msgstr "Показать ключи"
 
 #: tform1.staconlab.caption
 msgid "0"

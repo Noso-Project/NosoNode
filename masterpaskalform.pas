@@ -10,7 +10,7 @@ uses
   fileutil, Clipbrd, Menus, formexplore, lclintf, ComCtrls, Spin,
   strutils, math, IdHTTPServer, IdCustomHTTPServer,
   IdHTTP, fpJSON, Types, DefaultTranslator, LCLTranslator, translation, nosodebug,
-  ubarcodes, IdComponent,nosogeneral,nosocrypto, nosounit, nosoconsensus;
+  IdComponent,nosogeneral,nosocrypto, nosounit, nosoconsensus;
 
 type
 
@@ -274,8 +274,6 @@ type
   { TForm1 }
 
   TForm1 = class(TForm)
-    BarcodeQR1: TBarcodeQR;
-    BQRCode: TSpeedButton;
     BitBtnDonate: TBitBtn;
     BitBtnWeb: TBitBtn;
     BSaveNodeOptions: TBitBtn;
@@ -337,12 +335,9 @@ type
     PanelDoctor: TPanel;
     Panel7: TPanel;
     Panel9: TPanel;
-    PanelQRImg: TPanel;
     SCBitSend1: TBitBtn;
     SG_OpenThreads: TStringGrid;
     SG_FileProcs: TStringGrid;
-    SpeedButton2: TSpeedButton;
-    SpeedButton3: TSpeedButton;
     SpinDoctor1: TSpinEdit;
     SpinDoctor2: TSpinEdit;
     StaRPCimg: TImage;
@@ -359,7 +354,6 @@ type
     TabSheet1: TTabSheet;
     TabThreads: TTabSheet;
     TabFiles: TTabSheet;
-    TextQRcode: TStaticText;
     StaTimeLab: TLabel;
     SCBitSend: TBitBtn;
     SCBitClea: TBitBtn;
@@ -471,10 +465,8 @@ type
     TabWallet: TTabSheet;
     TabConsole: TTabSheet;
 
-    procedure BarcodeQR1Click(sender: TObject);
     procedure BitBtnDonateClick(sender: TObject);
     procedure BitBtnWebClick(sender: TObject);
-    procedure BQRCodeClick(sender: TObject);
     procedure BSaveNodeOptionsClick(sender: TObject);
     procedure BTestNodeClick(sender: TObject);
     procedure ButStartDoctorClick(sender: TObject);
@@ -518,8 +510,6 @@ type
     procedure SCBitSend1Click(sender: TObject);
     procedure SG_MonitorResize(sender: TObject);
     procedure SG_OpenThreadsResize(Sender: TObject);
-    procedure SpeedButton2Click(sender: TObject);
-    procedure SpeedButton3Click(sender: TObject);
     procedure StaConLabDblClick(sender: TObject);
     procedure SGConSeedsResize(Sender: TObject);
     procedure TabNodeOptionsShow(sender: TObject);
@@ -602,7 +592,6 @@ type
 Procedure InicializarFormulario();
 Procedure CerrarPrograma();
 Procedure UpdateStatusBar();
-Procedure GenerateCode();
 Procedure CompleteInicio();
 Procedure UpdateMyGVTsList();
 
@@ -633,7 +622,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa1';
+  SubVersion = 'Aa2';
   OficialRelease = false;
   VersionRequired = '0.3.8Aa1';
   BuildDate = 'May 2023';
@@ -654,7 +643,7 @@ CONST
   HalvingSteps = 10;                // total number of halvings
   Comisiontrfr = 10000;             // ammount/Comisiontrfr = 0.01 % of the ammount
   ComisionCustom = 200000;          // 0.05 % of the Initial reward
-  CoinSimbol = 'NOSO';               // Coin symbol
+  CoinSimbol = 'NOSO';              // Coin symbol
   CoinName = 'Noso';                // Coin name
   CoinChar = 'N';                   // Char for addresses
   MinimunFee = 10;
@@ -953,17 +942,20 @@ End;
 
 procedure TUpdateLogs.UpdateConsole();
 Begin
-form1.MemoConsola.Lines.Add(LastLogLine);
+if not WO_OmmitMemos then
+  form1.MemoConsola.Lines.Add(LastLogLine);
 End;
 
 procedure TUpdateLogs.UpdateEvents();
 Begin
-form1.MemoLog.Lines.Add(LastLogLine);
+if not WO_OmmitMemos then
+  form1.MemoLog.Lines.Add(LastLogLine);
 End;
 
 procedure TUpdateLogs.UpdateExceps();
 Begin
-form1.MemoExceptLog.Lines.Add(LastLogLine);
+if not WO_OmmitMemos then
+  form1.MemoExceptLog.Lines.Add(LastLogLine);
 End;
 
 procedure TUpdateLogs.Execute;
@@ -1579,22 +1571,19 @@ form1.RPCServer.Free;
 end;
 
 // RESIZE MAIN FORM (Lot of things to add here)
-procedure TForm1.FormResize(sender: TObject);
-begin
-//infopanel.Left:=(Form1.Width div 2)-150;
-//infopanel.Top:=((Form1.Height-560) div 2)+245;
-InfoPanel.Left:=
-  (Form1.ClientWidth div 2) -
-  (InfoPanel.Width div 2);
+Procedure TForm1.FormResize(sender: TObject);
+  Begin
+  //infopanel.Left:=(Form1.Width div 2)-150;
+  //infopanel.Top:=((Form1.Height-560) div 2)+245;
+  InfoPanel.Left:=
+    (Form1.ClientWidth div 2) -
+    (InfoPanel.Width div 2);
 
-InfoPanel.Top:=
-  (Form1.ClientHeight div 2) -
-  (InfoPanel.Height div 2);
+  InfoPanel.Top:=
+    (Form1.ClientHeight div 2) -
+    (InfoPanel.Height div 2);
 
-PanelQRImg.Left:=
-  (TabAddresses.ClientWidth div 2) -
-  (PanelQRImg.Width div 2);
-end;
+End;
 
 // Form show
 procedure TForm1.FormShow(sender: TObject);
@@ -1641,7 +1630,8 @@ If Protocolo > 0 then
       end
    end;
 RestartTimer.Enabled:=false;
-StaTimeLab.Caption:=TimestampToDate(UTCTime);
+if not WO_OmmitMemos then
+  StaTimeLab.Caption:=TimestampToDate(UTCTime);
 if G_CloseRequested then
    begin
    if 1=1 then
@@ -1662,6 +1652,7 @@ var
   contador : integer;
   LastRelease : String = '';
 Begin
+Form1.InfoPanel.Visible:=false;
 AddNewOpenThread('Main',UTCTime);
 // A partir de aqui se inicializa todo
 // Enable units variables
@@ -1801,6 +1792,7 @@ CB_FullNode.Checked := WO_FullNode;
 LE_Rpc_Port.Text := IntToStr(RPCPort);
 LE_Rpc_Pass.Text := RPCPass;
 CB_BACKRPCaddresses.Checked := RPCSaveNew;
+CBRunNodeAlone.Checked:=WO_OmmitMemos;
 
 CB_RPCFilter.Checked:=RPCFilter;
 MemoRPCWhitelist.Text:=RPCWhitelist;
@@ -1828,47 +1820,11 @@ Form1.EditSCMont.Text:=IntToStr(DefaultDonation)+'.00000000';
 Form1.MemoSCCon.Text:='Donation';
 end;
 
-procedure TForm1.BarcodeQR1Click(sender: TObject);
-begin
-form1.PanelQRImg.Visible:=false;
-form1.DireccionesPanel.Enabled:=true;
-end;
-
 // visit web button
-procedure TForm1.BitBtnWebClick(sender: TObject);
-begin
-OpenDocument('https://nosocoin.com');
-end;
-
-Procedure GenerateCode();
-begin
-form1.BarcodeQR1.Text:=form1.Direccionespanel.Cells[0,form1.Direccionespanel.Row];
-end;
-
-procedure TForm1.BQRCodeClick(sender: TObject);
-begin
-GenerateCode();
-form1.DireccionesPanel.Enabled:=false;
-form1.TextQRcode.caption := form1.Direccionespanel.Cells[0,form1.Direccionespanel.Row];
-form1.PanelQRImg.Visible:=true;
-end;
-
-// Show address on QRCode
-procedure TForm1.SpeedButton2Click(sender: TObject);
-begin
-form1.BarcodeQR1.Text:=form1.Direccionespanel.Cells[0,form1.Direccionespanel.Row];
-form1.TextQRcode.caption := form1.Direccionespanel.Cells[0,form1.Direccionespanel.Row];
-end;
-
-// Show keys on QR code
-procedure TForm1.SpeedButton3Click(sender: TObject);
-var
-  index : integer;
-begin
-form1.TextQRcode.caption := 'KEYS: '+form1.Direccionespanel.Cells[0,form1.Direccionespanel.Row];
-index := form1.Direccionespanel.Row-1;
-form1.BarcodeQR1.Text:=ListaDirecciones[index].PublicKey+' '+ListaDirecciones[index].PrivateKey;
-end;
+Procedure TForm1.BitBtnWebClick(sender: TObject);
+Begin
+  OpenDocument('https://nosocoin.com');
+End;
 
 // Double click open conexions slots form
 procedure TForm1.StaConLabDblClick(sender: TObject);
@@ -2041,7 +1997,7 @@ if G_CloseRequested then CerrarPrograma();
 if form1.SystrayIcon.Visible then
    form1.SystrayIcon.Hint:=Coinname+' Ver. '+ProgramVersion+SubVersion+SLINEBREAK+LabelBigBalance.Caption;
 if FormSlots.Visible then UpdateSlotsGrid();
-ConnectedRotor +=1; if ConnectedRotor>6 then ConnectedRotor := 0;
+Inc(ConnectedRotor); if ConnectedRotor>6 then ConnectedRotor := 0;
 UpdateStatusBar;
 if ( (UTCTime mod 3600=3590) and (LastBotClear<>UTCTimeStr) and (Form1.Server.Active) ) then
    ProcessLinesAdd('delbot all');
@@ -2212,8 +2168,6 @@ form1.DireccionesPanel.ColWidths[0]:= 260;form1.DireccionesPanel.ColWidths[1]:= 
 form1.DireccionesPanel.FocusRectVisible:=false;
 
 form1.SGConSeeds.FocusRectVisible:=false;
-
-Form1.BQRCode.Parent:=form1.DireccionesPanel;
 Form1.BDefAddr.Parent:=form1.DireccionesPanel;
 form1.BCustomAddr.Parent:=form1.DireccionesPanel;
 form1.BCopyAddr.Parent:=form1.DireccionesPanel;
@@ -3094,6 +3048,7 @@ End;
 // Actualizar barra de estado
 Procedure UpdateStatusBar();
 Begin
+if WO_OmmitMemos then exit;
 if Form1.Server.Active then Form1.StaSerImg.Visible:=true
 else Form1.StaSerImg.Visible:=false;
 Form1.StaConLab.Caption:=IntToStr(GetTotalSyncedConnections);
@@ -3672,7 +3627,11 @@ End;
 
 procedure TForm1.CBRunNodeAloneChange(sender: TObject);
 begin
-WO_OmmitMemos:= CBRunNodeAlone.Checked;
+if not G_Launching then
+   begin
+   if CBRunNodeAlone.Checked then WO_OmmitMemos := true
+   else WO_OmmitMemos := false;
+   end;
 end;
 
 procedure TForm1.CB_BACKRPCaddressesChange(Sender: TObject);

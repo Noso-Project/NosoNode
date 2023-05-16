@@ -35,6 +35,8 @@ Function IsValid58(base58text:string):boolean;
 Function GetStringSigned(StringtoSign, PrivateKey:String):String;
 Function VerifySignedString(StringToVerify,B64String,PublicKey:String):boolean;
 function GetAddressFromPublicKey(PubKey:String):String;
+function NewGetAddressFromPublicKey(PubKey:String):String;
+function FutureGetAddressFromPublicKey(const PubKey: String): String;
 Function GenerateNewAddress(out pubkey:String;out privkey:String):String;
 Function IsValidHashAddress(Address:String):boolean;
 Function GetTransferHash(TextLine:string):String;
@@ -54,6 +56,7 @@ Function B58ToB10(const sVal: String): String;
 Function B58ToB16(const sVal: String): String;
 Function ChecksumBase58(const S: String): integer;
 Function BMB58resumen(numero58:string):string;
+Function BMB58resumenInt(numero58:string):integer;
 
 // Big Maths
 function ClearLeadingCeros(numero:string):string;
@@ -245,6 +248,51 @@ clave := BMDecTo58(sumatoria);
 hash2 := hash1+clave;
 Result := 'N'+hash2;
 End;
+
+function NewGetAddressFromPublicKey(PubKey:String):String;
+var
+  PubSHAHashed,Hash1,Hash2,clave:String;
+  sumatoria : string;
+Begin
+PubSHAHashed := HashSha256String(PubKey);
+Hash1 := HashMD160String(PubSHAHashed);
+hash1 := B16toB58(Hash1);
+sumatoria := BMB58resumen(Hash1);
+clave := B10toB58(sumatoria);
+hash2 := hash1+clave;
+Result := 'N'+hash2;
+End;
+
+function FutureGetAddressFromPublicKey(const PubKey: String): String;
+var
+  s_data, s_cksum, s_cksum_hex: AnsiString;
+  hashSHA256: String;
+  hashRMD160: TBytes;
+begin
+  Result := EmptyStr;
+  if PubKey.IsEmpty then
+    Exit;
+  { SHA256 PubKey string hash }
+  hashSHA256 := THashFactory.TCrypto.CreateSHA2_256
+    .ComputeString(PubKey, TEncoding.ANSI)
+    .ToString;
+  { RIPEMD160 hash of SHA256 PubKey hash }
+  hashRMD160 := THashFactory.TCrypto.CreateRIPEMD160
+    .ComputeString(hashSHA256, TEncoding.ANSI)
+    .GetBytes;
+  // Quitar ceros al string aqui
+  { Encode RIPEMD160 hash as Base58 string }
+  s_data := TBase58.BitCoin.Encode(hashRMD160);
+  if s_data[1]='1' then delete(s_Data,1,1);
+  { Get s_data checksum in HEX }
+  s_cksum_hex := HexStr(ChecksumBase58(s_data), 4);
+  { Encode checksum as Base58 string }
+  s_cksum := TBase58.BitCoin.Encode(
+    TConverters.ConvertHexStringToBytes(s_cksum_hex)
+  );
+  { Concat all }
+  Result := Concat('N', s_data, s_cksum);
+end;
 
 {Generates a new keys pair and returns the hash}
 Function GenerateNewAddress(out pubkey:String;out privkey:String):String;
@@ -611,6 +659,19 @@ for counter := 1 to length(numero58) do
 result := IntToStr(total);
 End;
 
+// RETURN THE SUMATORY OF A BASE58
+Function BMB58resumenInt(numero58:string):integer;
+var
+  counter, total : integer;
+Begin
+total := 0;
+for counter := 1 to length(numero58) do
+   begin
+   total := total+Pos(numero58[counter],B58Alphabet)-1;
+   end;
+result := total;
+End;
+
 {$REGION Big maths}
 
 // *****************************************************************************
@@ -721,7 +782,7 @@ for count := length(numero2) downto 1 do
    end;
 for count := 0 to length(sumandos)-1 do
    TotalSuma := BMAdicion(Sumandos[count],totalsuma);
-result := ClearLeadingCeros(TotalSuma);
+result := TotalSuma;//ClearLeadingCeros(TotalSuma);
 End;
 
 // DIVIDES TWO NUMBERS

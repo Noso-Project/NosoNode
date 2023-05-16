@@ -69,6 +69,7 @@ Procedure WebWallet();
 Procedure ExportKeys(linea:string);
 Procedure NewAddressFromKeys(inputline:string);
 Procedure CheckWallet(inputline:string);
+Procedure TestHashGeneration(inputline:string);
 
 // CONSULTING
 Procedure ListGVTs();
@@ -271,6 +272,7 @@ else if UpperCase(Command) = 'HEADER' then AddLineToDebugLog('console',ShowBlock
 else if UpperCase(Command) = 'HEADSIZE' then AddLineToDebugLog('console',GetHeadersSize.ToString)
 //else if UpperCase(Command) = 'NEWFROMKEYS' then NewAddressFromKeys(LineText)
 else if UpperCase(Command) = 'CHECKWALLET' then CheckWallet(LineText)
+else if UpperCase(Command) = 'TESTHASH' then TestHashGeneration(LineText)
 
 // New system
 
@@ -1763,6 +1765,12 @@ var
   NegativeCount : integer = 0;
   EmptyCount    : integer = 0;
   LastRecord    : integer = -1;
+  NodeAddresses : integer = 0;
+  NodeAmount    : int64 = 0;
+  SNAddresses   : integer = 0;
+  SNAmount      : int64 = 0;
+  NanoAddresses : integer = 0;
+  NanoAmount    : int64 = 0;
 Begin
   AssignFile(SumFile,SummaryFileName);
     TRY
@@ -1774,6 +1782,21 @@ Begin
       if thisrecord.Balance<0 then Inc(NegativeCount);
       if thisrecord.Balance=0 then Inc(EmptyCount);
       inc(TotalCoins,ThisRecord.Balance);
+      if ThisRecord.Balance >= 1050000000000 then
+        begin
+        Inc(NodeAddresses);
+        Inc(NodeAmount,ThisRecord.Balance);
+        end;
+      if ( (ThisRecord.Balance >= 10500000000) and (ThisRecord.Balance<1050000000000) ) then
+        begin
+        Inc(SNAddresses);
+        Inc(SNAmount,ThisRecord.Balance);
+        end;
+      if ( (ThisRecord.Balance > 0) and (ThisRecord.Balance<10500000000) ) then
+        begin
+        Inc(NanoAddresses);
+        Inc(NanoAmount,ThisRecord.Balance);
+        end;
       Inc(currpos);
       end;
     CloseFile(SumFile);
@@ -1784,6 +1807,9 @@ Begin
   AddLineToDebugLog('console',format('Block : %d',[LastRecord]));
   AddLineToDebugLog('console',Int2Curr(Totalcoins)+' '+CoinSimbol+' '+AsExpected);
   AddLineToDebugLog('console',format('Addresses (%d): %d (%d empty)',[NegativeCount,currpos,EmptyCount]));
+  AddLineToDebugLog('console',format('>= 10500      : %d (%s Noso)',[NodeAddresses,int2curr(NodeAmount)]));
+  AddLineToDebugLog('console',format('105 - 10500   : %d (%s Noso)',[SNAddresses,int2curr(SNAmount)]));
+  AddLineToDebugLog('console',format('<105          : %d (%s Noso)',[NanoAddresses,int2curr(NanoAmount)]));
 End;
 
 Procedure ShowConsensus();
@@ -1801,7 +1827,7 @@ End;
 
 Procedure NewAddressFromKeys(inputline:string);
 var
-  Newadd : WalletData;
+  Newadd         : WalletData;
   PubKey,PrivKey : String;
 Begin
   Newadd := Default(WalletData);
@@ -1813,8 +1839,6 @@ Begin
   S_Wallet := true;
   U_DirPanel := true;
 End;
-
-
 
 Procedure CheckWallet(inputline:string);
 var
@@ -1830,6 +1854,7 @@ Begin
     if listadirecciones[counter].Hash <> GetAddressFromPublicKey(Listadirecciones[counter].PublicKey) then
       begin
       inc(Issues);inc(wronghash);
+      AddLineToDebugLog('console',format('Address hash missmatch -> %s',[listadirecciones[counter].Hash]));
       if ToFix then
         begin
         listadirecciones[counter].Hash := GetAddressFromPublicKey(Listadirecciones[counter].PublicKey);
@@ -1843,6 +1868,37 @@ Begin
     AddLineToDebugLog('console',format('Issues: %d -> Fixed: %d',[issues,fixed]));
     end;
 end;
+
+Procedure TestHashGeneration(inputline:string);
+var
+  NewAddress          : WalletData;
+  PubKey,PriKey       : string;
+  counter             : integer;
+  FutureHAsh          : String;
+  Correct             : integer = 0;
+  Fails1              : integer = 0;
+Begin
+  BeginPerformance('TestHashGeneration');
+  for counter := 1 to StrToIntDef(Parameter(inputline,1),100) do
+    begin
+    NewAddress := Default(WalletData);
+    NewAddress.Hash:=GenerateNewAddress(PubKey,PriKey);
+    NewAddress.PublicKey:=pubkey;
+    NewAddress.PrivateKey:=PriKey;
+    FutureHash := FutureGetAddressFromPublicKey(pubkey);
+    if NewAddress.Hash=FutureHash then Inc(Correct)
+    else
+      begin
+      Inc(Fails1);
+      AddLineToDebugLog('console',format('%s -> New %s',[NewAddress.Hash,FutureHash]));
+      AddLineToDebugLog('console',format('Key -> %s',[pubkey]));
+      end;
+    Application.ProcessMessages;
+    if counter mod 1000 = 0 then AddLineToDebugLog('console',format('Tested: %d',[counter]));
+    end;
+  AddLineToDebugLog('console',format('Correct: %d // Fails : %d ',[Correct,Fails1]));
+  AddLineToDebugLog('console',format('%d ms',[EndPerformance('TestHashGeneration')]));
+End;
 
 END. // END UNIT
 

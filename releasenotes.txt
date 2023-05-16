@@ -1,3 +1,8 @@
+Version 0.4.0Aa2
+
+- Removed QR codes support.
+- Completely remove GUI interactions with WO_OmmitMemos.
+
 Version 0.4.0Aa1
 
 - Improved orderID creation time.

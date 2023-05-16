@@ -11,10 +11,6 @@ msgstr ""
 "X-Generator: Poedit 3.0\n"
 "Language: ro_RO\n"
 
-#: tform1.barcodeqr1.hint
-msgid "Click on image to close it"
-msgstr "Click pe imagine pentru a o inchide"
-
 #: tform1.bcopyaddr.hint
 msgid "Copy address to clipboard"
 msgstr "Copiază adresa în clipboard"
@@ -63,10 +59,6 @@ msgstr "Generează o nouă adresă"
 msgctxt "tform1.bokcustom.hint"
 msgid "Confirm"
 msgstr "Confirmă"
-
-#: tform1.bqrcode.hint
-msgid "Show QR code"
-msgstr "Afișează codul QR"
 
 #: tform1.bsavenodeoptions.caption
 msgid "Save"
@@ -381,22 +373,6 @@ msgstr "Trimite"
 #: tform1.scbitsend1.caption
 msgctxt "tform1.scbitsend1.caption"
 msgid "Transfer"
-msgstr ""
-
-#: tform1.speedbutton2.caption
-msgid "A"
-msgstr ""
-
-#: tform1.speedbutton2.hint
-msgid "Show address"
-msgstr ""
-
-#: tform1.speedbutton3.caption
-msgid "K"
-msgstr ""
-
-#: tform1.speedbutton3.hint
-msgid "Show Keys"
 msgstr ""
 
 #: tform1.staconlab.caption

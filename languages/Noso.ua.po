@@ -12,10 +12,6 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 "X-Generator: Poedit 3.0.1\n"
 
-#: tform1.barcodeqr1.hint
-msgid "Click on image to close it"
-msgstr "Натисніть на зображення, щоб закрити його"
-
 #: tform1.bcopyaddr.hint
 msgid "Copy address to clipboard"
 msgstr "Скопіювати адресу в буфер обміну"
@@ -64,10 +60,6 @@ msgstr "Згенерувати нову адресу"
 msgctxt "tform1.bokcustom.hint"
 msgid "Confirm"
 msgstr "Підтвердьте"
-
-#: tform1.bqrcode.hint
-msgid "Show QR code"
-msgstr "Показати QR-код"
 
 #: tform1.bsavenodeoptions.caption
 msgid "Save"
@@ -382,22 +374,6 @@ msgstr "Надіслати"
 #: tform1.scbitsend1.caption
 msgctxt "tform1.scbitsend1.caption"
 msgid "Transfer"
-msgstr ""
-
-#: tform1.speedbutton2.caption
-msgid "A"
-msgstr ""
-
-#: tform1.speedbutton2.hint
-msgid "Show address"
-msgstr ""
-
-#: tform1.speedbutton3.caption
-msgid "K"
-msgstr ""
-
-#: tform1.speedbutton3.hint
-msgid "Show Keys"
 msgstr ""
 
 #: tform1.staconlab.caption

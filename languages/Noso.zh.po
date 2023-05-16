@@ -13,10 +13,6 @@ msgstr ""
 "X-Generator: Poedit 3.0\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
-#: tform1.barcodeqr1.hint
-msgid "Click on image to close it"
-msgstr "单击图像将其关闭"
-
 #: tform1.bcopyaddr.hint
 msgid "Copy address to clipboard"
 msgstr "将地址复制到剪贴板"
@@ -65,10 +61,6 @@ msgstr "生成新地址"
 msgctxt "tform1.bokcustom.hint"
 msgid "Confirm"
 msgstr "确认"
-
-#: tform1.bqrcode.hint
-msgid "Show QR code"
-msgstr "显示二维码"
 
 #: tform1.bsavenodeoptions.caption
 msgid "Save"
@@ -383,22 +375,6 @@ msgstr "发送"
 #: tform1.scbitsend1.caption
 msgctxt "tform1.scbitsend1.caption"
 msgid "Transfer"
-msgstr ""
-
-#: tform1.speedbutton2.caption
-msgid "A"
-msgstr ""
-
-#: tform1.speedbutton2.hint
-msgid "Show address"
-msgstr ""
-
-#: tform1.speedbutton3.caption
-msgid "K"
-msgstr ""
-
-#: tform1.speedbutton3.hint
-msgid "Show Keys"
 msgstr ""
 
 #: tform1.staconlab.caption

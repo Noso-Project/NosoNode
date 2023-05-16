@@ -351,6 +351,8 @@ BeginPerformance('CreateADV');
    writeln(FileAdvOptions,'MultiSend '+BoolToStr(WO_MultiSend,true));
    writeln(FileAdvOptions,'//Po files language code');
    writeln(FileAdvOptions,'Language '+(WO_Language));
+   writeln(FileAdvOptions,'//No GUI refresh');
+   writeln(FileAdvOptions,'NoGUI '+BoolToStr(WO_OmmitMemos,true));
    writeln(FileAdvOptions,'//Po files last update');
    writeln(FileAdvOptions,'PoUpdate '+(WO_LastPoUpdate));
    writeln(FileAdvOptions,'//Close the launch form automatically');
@@ -443,6 +445,7 @@ Begin
       if parameter(linea,0) ='PoUpdate' then WO_LastPoUpdate:=Parameter(linea,1);
       if parameter(linea,0) ='Closestart' then WO_CloseStart:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='Autoupdate' then WO_AutoUpdate:=StrToBool(Parameter(linea,1));
+      if parameter(linea,0) ='NoGUI' then WO_OmmitMemos:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='FormState' then
          begin
          FormState_Top    := StrToIntDef(Parameter(linea,1),0);

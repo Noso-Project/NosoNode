@@ -1,10 +1,6 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8"
 
-#: tform1.barcodeqr1.hint
-msgid "Click on image to close it"
-msgstr ""
-
 #: tform1.bcopyaddr.hint
 msgid "Copy address to clipboard"
 msgstr ""
@@ -48,10 +44,6 @@ msgstr ""
 #: tform1.bokcustom.hint
 msgctxt "tform1.bokcustom.hint"
 msgid "Confirm"
-msgstr ""
-
-#: tform1.bqrcode.hint
-msgid "Show QR code"
 msgstr ""
 
 #: tform1.bsavenodeoptions.caption
@@ -349,22 +341,6 @@ msgstr ""
 #: tform1.scbitsend1.caption
 msgctxt "tform1.scbitsend1.caption"
 msgid "Transfer"
-msgstr ""
-
-#: tform1.speedbutton2.caption
-msgid "A"
-msgstr ""
-
-#: tform1.speedbutton2.hint
-msgid "Show address"
-msgstr ""
-
-#: tform1.speedbutton3.caption
-msgid "K"
-msgstr ""
-
-#: tform1.speedbutton3.hint
-msgid "Show Keys"
 msgstr ""
 
 #: tform1.staconlab.caption

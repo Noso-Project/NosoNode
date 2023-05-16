@@ -11,10 +11,6 @@ msgstr ""
 "Language: es\n"
 "X-Generator: Poedit 3.0\n"
 
-#: tform1.barcodeqr1.hint
-msgid "Click on image to close it"
-msgstr "Click en la imagen para cerrarla"
-
 #: tform1.bcopyaddr.hint
 msgid "Copy address to clipboard"
 msgstr "Copiar direccion al portapapeles"
@@ -65,10 +61,6 @@ msgstr "Crear nueva direccion"
 msgctxt "tform1.bokcustom.hint"
 msgid "Confirm"
 msgstr "Confirmar"
-
-#: tform1.bqrcode.hint
-msgid "Show QR code"
-msgstr "Mostar codigo QR"
 
 #: tform1.bsavenodeoptions.caption
 msgid "Save"
@@ -388,22 +380,6 @@ msgstr "Enviar"
 #: tform1.scbitsend1.caption
 msgctxt "tform1.scbitsend1.caption"
 msgid "Transfer"
-msgstr ""
-
-#: tform1.speedbutton2.caption
-msgid "A"
-msgstr ""
-
-#: tform1.speedbutton2.hint
-msgid "Show address"
-msgstr ""
-
-#: tform1.speedbutton3.caption
-msgid "K"
-msgstr ""
-
-#: tform1.speedbutton3.hint
-msgid "Show Keys"
 msgstr ""
 
 #: tform1.staconlab.caption

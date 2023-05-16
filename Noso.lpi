@@ -185,7 +185,7 @@
     <RunParams>
       <FormatVersion Value="2"/>
     </RunParams>
-    <RequiredPackages Count="5">
+    <RequiredPackages Count="4">
       <Item1>
         <PackageName Value="SimpleBaseLib4PascalPackage"/>
       </Item1>
@@ -193,14 +193,11 @@
         <PackageName Value="indylaz"/>
       </Item2>
       <Item3>
-        <PackageName Value="lazbarcodes"/>
+        <PackageName Value="CryptoLib4PascalPackage"/>
       </Item3>
       <Item4>
-        <PackageName Value="CryptoLib4PascalPackage"/>
-      </Item4>
-      <Item5>
         <PackageName Value="LCL"/>
-      </Item5>
+      </Item4>
     </RequiredPackages>
     <Units Count="21">
       <Unit0>

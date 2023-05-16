@@ -12,10 +12,6 @@ msgstr ""
 "Language: id_ID\n"
 "X-Generator: Poedit 3.0\n"
 
-#: tform1.barcodeqr1.hint
-msgid "Click on image to close it"
-msgstr "Klik pada gambar untuk menutupnya"
-
 #: tform1.bcopyaddr.hint
 msgid "Copy address to clipboard"
 msgstr "Salin alamat ke papan klip"
@@ -64,10 +60,6 @@ msgstr "Buat alamat baru"
 msgctxt "tform1.bokcustom.hint"
 msgid "Confirm"
 msgstr "Konfirmasi"
-
-#: tform1.bqrcode.hint
-msgid "Show QR code"
-msgstr "Tampilkan QR code"
 
 #: tform1.bsavenodeoptions.caption
 msgid "Save"
@@ -382,22 +374,6 @@ msgstr "Kirim"
 #: tform1.scbitsend1.caption
 msgctxt "tform1.scbitsend1.caption"
 msgid "Transfer"
-msgstr ""
-
-#: tform1.speedbutton2.caption
-msgid "A"
-msgstr ""
-
-#: tform1.speedbutton2.hint
-msgid "Show address"
-msgstr ""
-
-#: tform1.speedbutton3.caption
-msgid "K"
-msgstr ""
-
-#: tform1.speedbutton3.hint
-msgid "Show Keys"
 msgstr ""
 
 #: tform1.staconlab.caption

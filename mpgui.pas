@@ -153,6 +153,7 @@ var
   contador : integer;
   CurrentUTC : int64;
 Begin
+if WO_OmmitMemos then exit;
 BeginPerformance('UpdateSlotsGrid');
 CurrentUTC := UTCTime;
 if CurrentUTC>SlotsLastUpdate then
@@ -292,6 +293,7 @@ var
   FileProcs           : TFileMCopy;
   LConsensus          : TNodeConsensus;
 Begin
+if WO_OmmitMemos then exit;
 BeginPerformance('UpdateGUITime');
 //Update Monitor Grid
 if ( (form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor) and (LastUpdateMonitor<>UTCTime) ) then
@@ -434,6 +436,7 @@ End;
 // Actualiza la informacion de la label info
 Procedure Info(text:string);
 Begin
+if WO_OmmitMemos then exit;
 Form1.InfoPanel.Caption:=copy(text,1,40);
 InfoPanelTime := Length(text)*50;If InfoPanelTime<1000 then InfoPanelTime:= 1000;
 Form1.InfoPanel.Visible:=true;

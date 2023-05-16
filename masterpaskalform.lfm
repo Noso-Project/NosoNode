@@ -318,7 +318,7 @@ object Form1: TForm1
     Height = 468
     Top = 38
     Width = 400
-    ActivePage = TabWallet
+    ActivePage = TabMonitor
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
     Font.CharSet = ANSI_CHARSET
@@ -327,7 +327,7 @@ object Form1: TForm1
     Font.Pitch = fpVariable
     Font.Quality = fqDraft
     ParentFont = False
-    TabIndex = 0
+    TabIndex = 3
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
@@ -577,18 +577,6 @@ object Form1: TForm1
               Visible = False
             end
           end
-          object BQRCode: TSpeedButton
-            Left = 144
-            Height = 18
-            Hint = 'Show QR code'
-            Top = 2
-            Width = 18
-            Images = Imagenes
-            ImageIndex = 64
-            OnClick = BQRCodeClick
-            ShowHint = True
-            ParentShowHint = False
-          end
           object BDefAddr: TSpeedButton
             Left = 168
             Height = 18
@@ -681,65 +669,6 @@ object Form1: TForm1
               Images = Imagenes
               ImageIndex = 17
               OnClick = BOkCustomClick
-              ShowHint = True
-              ParentShowHint = False
-            end
-          end
-          object PanelQRImg: TPanel
-            Left = 72
-            Height = 250
-            Top = 8
-            Width = 250
-            BorderStyle = bsSingle
-            ClientHeight = 246
-            ClientWidth = 246
-            TabOrder = 3
-            Visible = False
-            object BarcodeQR1: TBarcodeQR
-              Left = 40
-              Height = 200
-              Hint = 'Click on image to close it'
-              Top = 8
-              Width = 200
-              StrictSize = True
-              OnClick = BarcodeQR1Click
-              Text = 'TBarcodeQR'
-            end
-            object TextQRcode: TStaticText
-              Left = 1
-              Height = 30
-              Top = 215
-              Width = 244
-              Align = alBottom
-              Alignment = taCenter
-              Font.CharSet = ANSI_CHARSET
-              Font.Color = clBlack
-              Font.Height = -13
-              Font.Name = 'Consolas'
-              Font.Pitch = fpFixed
-              Font.Quality = fqDraft
-              ParentFont = False
-              TabOrder = 0
-            end
-            object SpeedButton2: TSpeedButton
-              Left = 1
-              Height = 22
-              Hint = 'Show address'
-              Top = 8
-              Width = 23
-              Caption = 'A'
-              OnClick = SpeedButton2Click
-              ShowHint = True
-              ParentShowHint = False
-            end
-            object SpeedButton3: TSpeedButton
-              Left = 1
-              Height = 22
-              Hint = 'Show Keys'
-              Top = 32
-              Width = 23
-              Caption = 'K'
-              OnClick = SpeedButton3Click
               ShowHint = True
               ParentShowHint = False
             end
@@ -928,9 +857,9 @@ object Form1: TForm1
         Height = 440
         Top = 0
         Width = 392
-        ActivePage = Tab_Options_Trade
+        ActivePage = TabOpt_Wallet
         Align = alClient
-        TabIndex = 3
+        TabIndex = 0
         TabOrder = 0
         object TabOpt_Wallet: TTabSheet
           Caption = 'Wallet'
@@ -2101,9 +2030,9 @@ object Form1: TForm1
         Height = 440
         Top = 0
         Width = 392
-        ActivePage = TabMonitorMonitor
+        ActivePage = TabNodes
         Align = alClient
-        TabIndex = 2
+        TabIndex = 4
         TabOrder = 0
         object TabDebug_Log: TTabSheet
           Caption = 'Log'
