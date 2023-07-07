@@ -3,7 +3,7 @@ unit nosounit;
 {
 Nosounit 1.0
 January 8th 2023
-Noso project unit to manage summary
+Noso project unit to handle summary
 }
 
 {$mode ObjFPC}{$H+}

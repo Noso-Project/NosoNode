@@ -100,6 +100,8 @@ resourcestring
   rs0089 = 'Receiving GVTs file';
   rs0090 = 'Error Receiving GVTs from %s (%s)';
   rs0091 = 'SERVER: Error creating stream from GVTs: %s';
+  rs0092 = 'Error Receiving psos from %s (%s)';
+  rs0093 = 'PSOs file received: %s';
   //mpGUI
   rs0500 = 'Noso Launcher';
   rs0501 = 'Destination';

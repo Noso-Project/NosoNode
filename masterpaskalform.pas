@@ -10,7 +10,7 @@ uses
   fileutil, Clipbrd, Menus, formexplore, lclintf, ComCtrls, Spin,
   strutils, math, IdHTTPServer, IdCustomHTTPServer,
   IdHTTP, fpJSON, Types, DefaultTranslator, LCLTranslator, translation, nosodebug,
-  IdComponent,nosogeneral,nosocrypto, nosounit, nosoconsensus;
+  IdComponent,nosogeneral,nosocrypto, nosounit, nosoconsensus, nosopsos;
 
 type
 
@@ -134,6 +134,7 @@ type
      GVTsHash      : string[32];
      CFGHash       : string[32];
      MerkleHash    : string[32];
+     PSOHash       : string[32];
      end;
 
   WalletData = Packed Record
@@ -293,6 +294,7 @@ type
     CBRunNodeAlone: TCheckBox;
     ComboBoxLang: TComboBox;
     Edit2: TEdit;
+    OffersGrid: TStringGrid;
     Label1: TLabel;
     Label14: TLabel;
     Label15: TLabel;
@@ -316,6 +318,7 @@ type
     Label7: TLabel;
     MemoDoctor: TMemo;
     PageControl2: TPageControl;
+    PCNodes: TPageControl;
     PC_Processes: TPageControl;
     Panel10: TPanel;
     Panel11: TPanel;
@@ -352,6 +355,9 @@ type
     TabGVTs: TTabSheet;
     TabConsensus: TTabSheet;
     TabSheet1: TTabSheet;
+    TabNodesReported: TTabSheet;
+    TabNodesVerified: TTabSheet;
+    TabSheet2: TTabSheet;
     TabThreads: TTabSheet;
     TabFiles: TTabSheet;
     StaTimeLab: TLabel;
@@ -498,6 +504,7 @@ type
     procedure FormShow(sender: TObject);
     Procedure InicoTimerEjecutar(sender: TObject);
     procedure MemoRPCWhitelistEditingDone(sender: TObject);
+    procedure OffersGridResize(Sender: TObject);
     procedure PC_ProcessesResize(Sender: TObject);
     Procedure RestartTimerEjecutar(sender: TObject);
     Procedure EjecutarInicio();
@@ -602,7 +609,7 @@ CONST
   ValidProtocolCommands : string = '$PING$PONG$GETPENDING$NEWBL$GETRESUMEN$LASTBLOCK$GETCHECKS'+
                                    '$CUSTOMORDERADMINMSGNETREQ$REPORTNODE$GETMNS$BESTHASH$MNREPO$MNCHECK'+
                                    'GETMNSFILEMNFILEGETHEADUPDATE$GETSUMARY$GETGVTSGVTSFILE$SNDGVTGETCFGDATA'+
-                                   'SETCFGDATA';
+                                   'SETCFGDATA$GETPSOS';
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS DELBOT';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
 
@@ -613,7 +620,7 @@ CONST
                             {4}'nosofish.xyz;8082:nosopool.estripa.online;8082:pool.nosomn.com;8082:159.196.1.198;8082: '+
                             {5}'NpryectdevepmentfundsGE:';
 
-  ProgramVersion = '0.4.0';
+  ProgramVersion = '0.4.1';
   {$IFDEF WINDOWS}
   RestartFileName = 'launcher.bat';
   updateextension = 'zip';
@@ -622,9 +629,9 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa2';
+  SubVersion = 'Aa1';
   OficialRelease = false;
-  VersionRequired = '0.3.8Aa1';
+  VersionRequired = '0.4.0Aa1';
   BuildDate = 'May 2023';
   {Developer addresses}
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -782,6 +789,7 @@ var
   DownloadSumary  : Boolean = false;
   DownLoadBlocks  : boolean = false;
   DownLoadGVTs    : boolean = false;
+  DownloadPSOs    : boolean = false;
   CONNECT_LastTime : string = ''; // La ultima vez que se intento una conexion
   CONNECT_Try : boolean = false;
   MySumarioHash : String = '';
@@ -790,6 +798,7 @@ var
   MyResumenHash : String = '';
   MyGVTsHash    : string = '';
   MyCFGHash     : string = '';
+  MyPSOHash     : String = '';
   MyPublicIP : String = '';
   OpenReadClientThreads : integer = 0;
   BlockUndoneTime    : int64 = 0;
@@ -841,6 +850,8 @@ var
     LasTimeGVTsRequest : int64 = 0;
   NetCFGHash           : NetworkData;
     LasTimeCFGRequest  : int64 = 0;
+
+  LasTimePSOsRequest   : int64 = 0;
 
   NMSData : TNMSData;
   BuildNMSBlock : int64 = 0;
@@ -1106,6 +1117,37 @@ if Continuar then
             FTPTime := CloseFileProcess('Get','Summary',CanalCliente[FSlot].Host,GetTickCount64);
             FTPSpeed := (FTPSize div FTPTime);
             AddLineToDebugLog('nodeftp','Downloaded summary from '+CanalCliente[FSlot].Host+' at '+FTPSpeed.ToString+' kb/s');
+            end
+
+         else if Parameter(LLine,0) = 'PSOSFILE' then
+            begin
+            DownloadPSOs := true;
+            AddFileProcess('Get','PSOs',CanalCliente[FSlot].Host,GetTickCount64);
+            AddLineToDebugLog('console','Receivig PSOs'); //'Receiving sumary'
+            MemStream := TMemoryStream.Create;
+            CanalCliente[FSlot].ReadTimeout:=10000;
+               TRY
+               CanalCliente[FSlot].IOHandler.ReadStream(MemStream);
+               FTPsize := MemStream.Size;
+               downloaded := True;
+               EXCEPT ON E:Exception do
+                  begin
+                  AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs0092,[conexiones[fSlot].ip,E.Message])); //'Error Receiving sumary from
+                  downloaded := false;
+                  end;
+               END; {TRY}
+            if Downloaded then SavedToFile := SavePSOsToFile(MemStream);
+            if Downloaded and SavedToFile then
+               begin
+               AddLineToDebugLog('console',format(rs0093,[copy(HashMD5File(SummaryFileName),1,5)])); //'Sumary file received'
+               UpdateMyData();
+               LasTimePSOsRequest := 0;
+               end;
+            MemStream.Free;
+            DownloadPSOs := false;
+            FTPTime := CloseFileProcess('Get','PSOs',CanalCliente[FSlot].Host,GetTickCount64);
+            FTPSpeed := (FTPSize div FTPTime);
+            AddLineToDebugLog('nodeftp','Downloaded PSOs from '+CanalCliente[FSlot].Host+' at '+FTPSpeed.ToString+' kb/s');
             end
 
          else if Parameter(LLine,0) = 'GVTSFILE' then
@@ -2474,6 +2516,24 @@ if GoAhead then
       FTPSpeed := (FTPSize div FTPTime);
       AddLineToDebugLog('nodeftp','Uploaded Summary to '+IPUser+' at '+FTPSpeed.ToString+' kb/s');
       end
+   else if parameter(LLine,4) = '$GETPSOS' then
+      begin
+      AddFileProcess('Send','PSOs',IPUser,GetTickCount64);
+      MemStream := TMemoryStream.Create;
+      FTPSize := GetPSOsAsMemStream(MemStream);
+      if FTPSize>0 then
+         begin
+           TRY
+           Acontext.Connection.IOHandler.WriteLn('PSOSFILE');
+           Acontext.connection.IOHandler.Write(MemStream,0,true);
+           EXCEPT on E:Exception do
+           END; {TRY}
+         end;
+      MemStream.Free;
+      FTPTime := CloseFileProcess('Send','PSOs',IPUser,GetTickCount64);
+      FTPSpeed := (FTPSize div FTPTime);
+      AddLineToDebugLog('nodeftp','Uploaded PSOs to '+IPUser+' at '+FTPSpeed.ToString+' kb/s');
+      end
    else if parameter(LLine,4) = '$LASTBLOCK' then
       begin // START SENDING BLOCKS
       AddFileProcess('Send','Blocks',IPUser,GetTickCount64);
@@ -3718,6 +3778,17 @@ if ( (not G_Launching) and (MemoRPCWhitelist.Text<>RPCWhitelist) ) then
    RPCWhitelist := newlist;
    S_AdvOpt := true;
    end;
+end;
+
+procedure TForm1.OffersGridResize(Sender: TObject);
+var
+  GridWidth : integer;
+Begin
+GridWidth := form1.OffersGrid.Width;
+form1.OffersGrid.ColWidths[0]:= thispercent(15,GridWidth);
+form1.OffersGrid.ColWidths[1]:= thispercent(15,GridWidth);
+form1.OffersGrid.ColWidths[2]:= thispercent(15,GridWidth);
+form1.OffersGrid.ColWidths[3]:= thispercent(55,GridWidth,true);
 end;
 
 

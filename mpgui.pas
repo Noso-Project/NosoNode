@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, MasterPaskalForm, nosotime, graphics, strutils, forms, controls, grids,stdctrls,
   ExtCtrls, buttons, editbtn , menus, Clipbrd, IdContext, LCLTranslator, nosodebug, nosogeneral,
-  nosocrypto, nosoconsensus,nosounit;
+  nosocrypto, nosoconsensus,nosounit, nosopsos;
 
 type
   TFormInicio = class(Tform)
@@ -112,7 +112,7 @@ Procedure CreateFormSlots();
 Begin
 FormSlots := TFormSlots.Createnew(form1);
 FormSlots.caption := coinname+' Slots Monitor';
-FormSlots.SetBounds(0, 0, 860, 410);
+FormSlots.SetBounds(0, 0, 900, 410);
 FormSlots.BorderStyle := bssingle;
 //FormSlots.Position:=poOwnerFormCenter;
 FormSlots.Top:=1;FormSlots.Left:=1;
@@ -121,9 +121,9 @@ FormSlots.ShowInTaskBar:=sTAlways;
 
 GridMSlots := TStringGrid.Create(FormSlots);GridMSlots.Parent:=FormSlots;
 GridMSlots.Font.Name:='consolas'; GridMSlots.Font.Size:=8;
-GridMSlots.Left:=1;GridMSlots.Top:=1;GridMSlots.Height:=408;GridMSlots.width:=854;
+GridMSlots.Left:=1;GridMSlots.Top:=1;GridMSlots.Height:=408;GridMSlots.width:=894;
 GridMSlots.FixedCols:=0;GridMSlots.FixedRows:=1;
-GridMSlots.rowcount := MaxConecciones+1;GridMSlots.ColCount:=22;
+GridMSlots.rowcount := MaxConecciones+1;GridMSlots.ColCount:=23;
 GridMSlots.ScrollBars:=ssVertical;
 GridMSlots.FocusRectVisible:=false;
 GridMSlots.Options:= GridMSlots.Options-[goRangeSelect];
@@ -134,7 +134,7 @@ GridMSlots.ColWidths[9]:= 70;GridMSlots.ColWidths[10]:= 30;GridMSlots.ColWidths[
 GridMSlots.ColWidths[12]:= 40;GridMSlots.ColWidths[13]:= 25;GridMSlots.ColWidths[14]:= 29;
 GridMSlots.ColWidths[15]:= 40;GridMSlots.ColWidths[16]:= 25;GridMSlots.ColWidths[17]:= 80;
 GridMSlots.ColWidths[18]:= 25;GridMSlots.ColWidths[19]:= 40;GridMSlots.ColWidths[20]:= 40;
-GridMSlots.ColWidths[21]:= 40;
+GridMSlots.ColWidths[21]:= 40;GridMSlots.ColWidths[22]:= 40;
 GridMSlots.Enabled := true;
 GridMSlots.Cells[0,0]:='N';GridMSlots.Cells[1,0]:='IP';GridMSlots.Cells[2,0]:='T';
 GridMSlots.Cells[3,0]:='Cx';GridMSlots.Cells[4,0]:='LBl';GridMSlots.Cells[5,0]:='LBlH';
@@ -143,7 +143,7 @@ GridMSlots.Cells[9,0]:='Ver';GridMSlots.Cells[10,0]:='LiP';GridMSlots.Cells[11,0
 GridMSlots.Cells[12,0]:='HeaH';GridMSlots.Cells[13,0]:='Sta';GridMSlots.Cells[14,0]:='Ping';
 GridMSlots.Cells[15,0]:='MNs';GridMSlots.Cells[16,0]:='#';GridMSlots.Cells[17,0]:='Besthash';
 GridMSlots.Cells[18,0]:='MNC';GridMSlots.Cells[19,0]:='GVTs';GridMSlots.Cells[20,0]:='CFG';
-GridMSlots.Cells[21,0]:='Mkl';
+GridMSlots.Cells[21,0]:='Mkl';GridMSlots.Cells[22,0]:='PSO';
 GridMSlots.GridLineWidth := 1;
 GridMSlots.OnPrepareCanvas:= @FormSlots.GridMSlotsPrepareCanvas;
 End;
@@ -182,6 +182,7 @@ if CurrentUTC>SlotsLastUpdate then
       GridMSlots.Cells[19,contador]:= copy(Conexiones[contador].GVTsHash,0,5);
       GridMSlots.Cells[20,contador]:= Conexiones[contador].CFGHash;
       GridMSlots.Cells[21,contador]:= copy(Conexiones[contador].MerkleHash,0,5);
+      GridMSlots.Cells[22,contador]:= copy(Conexiones[contador].PSOHash,0,5);
       end;
    SlotsLastUpdate := CurrentUTC;
    end;
@@ -218,7 +219,7 @@ form1.DataPanel.Cells[0,5]:=rs0509;  //Lastblock
 form1.DataPanel.Cells[0,6]:=rs0510;  //'Blocks'
 form1.DataPanel.Cells[0,7]:=rs0511;  //'Pending'
 
-form1.DataPanel.Cells[2,0]:= 'PoP Info';
+form1.DataPanel.Cells[2,0]:= 'PSOs';
 form1.DataPanel.Cells[2,1]:= 'Next';
 form1.DataPanel.Cells[2,2]:= 'Clients';
 form1.DataPanel.Cells[2,3]:= 'OrdIndex';
@@ -254,6 +255,12 @@ form1.GVTsGrid.Cells[0,0] := '#';
 form1.GVTsGrid.Cells[1,0] := 'Address';
 form1.GVTsGrid.FocusRectVisible:=false;
 
+form1.OffersGrid.Cells[0,0] := 'Mode';
+form1.OffersGrid.Cells[1,0] := 'Expire';
+form1.OffersGrid.Cells[2,0] := 'Fee';
+form1.OffersGrid.Cells[3,0] := 'Owner';
+form1.OffersGrid.FocusRectVisible:=false;
+
 
 NetSumarioHash.Value:='?';
 NetLastBlock.Value:='?';
@@ -287,11 +294,13 @@ Const
   LastUpdateProcesses : int64 = 0;
   LastUpdateConsensus : int64 = 0;
   LastUpdateDataPanel : int64 = 0;
+  LastUpdatePSO       : int64 = 0;
 var
   contador : integer = 0;
   LocalProcesses      : TProcessCopy;
   FileProcs           : TFileMCopy;
   LConsensus          : TNodeConsensus;
+  LPSOs               : TPSOsArray;
 Begin
 if WO_OmmitMemos then exit;
 BeginPerformance('UpdateGUITime');
@@ -334,6 +343,20 @@ if LastUpdateProcesses<> UTCTime then
          Form1.SG_FileProcs.Cells[2,contador+1]:=FileProcs[contador].FiPeer;
          end;
       end;
+   end;
+
+if LastUpdatePSO <> UTCTime then
+   begin
+   LPSOs := GetPSOsCopy;
+   Form1.OffersGrid.RowCount:=Length(LPSOs)+1;
+   for contador := 0 to length(LPSOs)-1 do
+      begin
+      Form1.OffersGrid.Cells[0,contador+1]:=LPSOs[contador].Mode.ToString;
+      Form1.OffersGrid.Cells[1,contador+1]:=LPSOs[contador].Expire.ToString;
+      Form1.OffersGrid.Cells[2,contador+1]:=GetPSOValue(PSOFee,LPSOs[contador].Params);
+      Form1.OffersGrid.Cells[3,contador+1]:=LPSOs[contador].owner;
+      end;
+   LAstUpdatePSO := UTCTime;
    end;
 
 if LastUpdateProcesses<> UTCTime then
@@ -382,7 +405,7 @@ if LastUpdateDataPanel <> UTCTime then
    form1.DataPanel.Cells[1,6]:= format('%d / %s',[MyLastBlock,GetConsensus(2)]);
    form1.DataPanel.Cells[1,7]:= format('(%d)  %d/%s',[length(ArrayCriptoOp),GetPendingCount,GetConsensus(3)]);
    {<-- -->}
-   form1.DataPanel.Cells[3,0]:= format('[%s] %s...',[BestHashReadeable(GetNMSData.Diff),Copy(GetNMSData.Miner,1,8)]);
+   form1.DataPanel.Cells[3,0]:= format('%s / %s',[Copy(MyPSOHash,0,5),GetConsensus(20)]);
    form1.DataPanel.Cells[3,1]:= Format('[%s] %s Noso',[BlockAge.ToString,Copy(Int2curr(GetBlockReward(Mylastblock+1)),0,5)]);
    form1.DataPanel.Cells[3,2]:= GEtOutgoingconnections.ToString+'/'+GetClientReadThreads.ToString;
    form1.DataPanel.Cells[3,3]:= Format('%d (%d)',[MyLastOrdIndex,length(ArrayOrdIndex)]);

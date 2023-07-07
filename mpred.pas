@@ -8,7 +8,7 @@ uses
   Classes, forms, SysUtils, MasterPaskalForm, nosotime, IdContext, IdGlobal, mpGUI, mpDisk,
   mpBlock, fileutil, graphics,  dialogs, strutils, mpcoin, fphttpclient,
   opensslsockets,translation, IdHTTP, IdComponent, IdSSLOpenSSL, mpmn, IdTCPClient,
-  nosodebug,nosogeneral, nosocrypto, nosounit, nosoconsensus;
+  nosodebug,nosogeneral, nosocrypto, nosounit, nosoconsensus, nosopsos;
 
 function GetSlotFromIP(Ip:String):int64;
 function GetSlotFromContext(Context:TidContext):int64;
@@ -48,6 +48,7 @@ function UpdateNetworkBestHash():NetworkData;
 function UpdateNetworkMNsChecks():NetworkData;
 function UpdateNetworkGVTsHash():NetworkData;
 function UpdateNetworkCFGHash():NetworkData;
+Function UpdateNetworkPSOHash():NetworkData;
 Procedure UpdateNetworkData();
 Function IsAllSynced():integer;
 Procedure UpdateMyData();
@@ -947,6 +948,23 @@ if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
 else result := Default(NetworkData);
 End;
 
+Function UpdateNetworkPSOHash():NetworkData;
+var
+  contador : integer = 1;
+Begin
+SetLength(ArrayConsenso,0);
+ConsensoValues := 0;
+for contador := 1 to MaxConecciones do
+   Begin
+   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
+      begin
+      UpdateConsenso(conexiones[contador].PSOHash, contador);
+      end;
+   end;
+if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
+else result := Default(NetworkData);
+End;
+
 Procedure UpdateNetworkData();
 Begin
 NetLastBlock     := UpdateNetworkLastBlock; // Buscar cual es el ultimo bloque por consenso
@@ -987,6 +1005,7 @@ MyResumenHash := HashMD5File(ResumenFilename);
   if MyResumenHash = NetResumenHash.Value then ForceCompleteHeadersDownload := false;
 MyMNsHash     := HashMD5File(MasterNodesFilename);
 MyCFGHash     := Copy(HAshMD5String(GetNosoCFGString),1,5);
+MyPSOHash     := HashMD5File(PSOsFileName);
 End;
 
 // Request necessary files/info to update
@@ -1153,6 +1172,16 @@ else if ( (GetConsensus(18)<>Copy(MyGVTsHash,0,5)) and (LasTimeGVTsRequest+5<UTC
       PTC_SendLine(ValidSlot,ProtocolLine(GetGVTs));
       LasTimeGVTsRequest := UTCTime;
       AddLineToDebugLog('console','GVTs File requested to '+conexiones[ValidSlot].ip);
+      end;
+   end
+else if ( (GetConsensus(20)<>Copy(MyPSOHash,0,5)) and (LasTimePSOsRequest+5<UTCTime) and
+          (GetConsensus(20)<>'') and (not DownloadPSOs) ) then
+   begin
+   if GetValidSlotForSeed(ValidSlot) then
+      begin
+      PTC_SendLine(ValidSlot,ProtocolLine(GetPSOs));
+      LasTimePSOsRequest := UTCTime;
+      AddLineToDebugLog('console','Download PSOs from '+conexiones[ValidSlot].ip);
       end;
    end;
 if IsAllSynced=0 then Last_SyncWithMainnet := Last_SyncWithMainnet+5;
@@ -1381,13 +1410,14 @@ Begin
 //NODESTATUS 1{Peers} 2{LastBlock} 3{Pendings} 4{Delta} 5{headers} 6{version} 7{UTCTime} 8{MNsHash}
 //           9{MNscount} 10{LasBlockHash} 11{BestHashDiff} 12{LastBlockTimeEnd} 13{LBMiner}
 //           14{ChecksCount} 15{LastBlockPoW} 16{LastBlockDiff} 17{summary} 18{GVTs} 19{nosoCFG}
+//           20{PSOHash}
 result := {1}IntToStr(GetTotalConexiones)+' '+{2}IntToStr(MyLastBlock)+' '+{3}GetPendingCount.ToString+' '+
           {4}IntToStr(UTCTime-EngineLastUpdate)+' '+{5}copy(myResumenHash,0,5)+' '+
           {6}ProgramVersion+SubVersion+' '+{7}UTCTimeStr+' '+{8}copy(MyMnsHash,0,5)+' '+{9}GetMNsListLength.ToString+' '+
           {10}MyLastBlockHash+' '+{11}GetNMSData.Diff+' '+{12}IntToStr(LastBlockData.TimeEnd)+' '+
           {13}LastBlockData.AccountMiner+' '+{14}GetMNsChecksCount.ToString+' '+{15}Parameter(LastBlockData.Solution,2)+' '+
           {16}Parameter(LastBlockData.Solution,1)+' '+{17}copy(MySumarioHash,0,5)+' '+{18}copy(MyGVTsHash,0,5)+' '+
-          {19}Copy(HashMD5String(GetNosoCFGString),0,5);
+          {19}Copy(HashMD5String(GetNosoCFGString),0,5)+' '+{20}copy(MyPSOHash,0,5);
 End;
 
 Function IsSafeIP(IP:String):boolean;

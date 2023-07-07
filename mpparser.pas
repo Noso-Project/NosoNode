@@ -7,7 +7,8 @@ interface
 uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, nosotime, mpblock, mpcoin,
   dialogs, fileutil, forms, idglobal, strutils, mpRPC, DateUtils, Clipbrd,translation,
-  idContext, math, mpMN, MPSysCheck, nosodebug, nosogeneral, nosocrypto, nosounit, nosoconsensus;
+  idContext, math, mpMN, MPSysCheck, nosodebug, nosogeneral, nosocrypto, nosounit,
+  nosoconsensus, nosopsos;
 
 procedure ProcessLinesAdd(const ALine: String);
 procedure OutgoingMsjsAdd(const ALine: String);
@@ -70,6 +71,7 @@ Procedure ExportKeys(linea:string);
 Procedure NewAddressFromKeys(inputline:string);
 Procedure CheckWallet(inputline:string);
 Procedure TestHashGeneration(inputline:string);
+Procedure CompareHashes(inputline:string);
 
 // CONSULTING
 Procedure ListGVTs();
@@ -92,6 +94,11 @@ Procedure ShowSumary();
 // CONSENSUS
 
 Procedure ShowConsensus();
+
+// PSOs testing functions
+
+Procedure TestNewPSO(Dataline:String);
+Procedure GetPSOs();
 
 implementation
 
@@ -273,6 +280,8 @@ else if UpperCase(Command) = 'HEADSIZE' then AddLineToDebugLog('console',GetHead
 //else if UpperCase(Command) = 'NEWFROMKEYS' then NewAddressFromKeys(LineText)
 else if UpperCase(Command) = 'CHECKWALLET' then CheckWallet(LineText)
 else if UpperCase(Command) = 'TESTHASH' then TestHashGeneration(LineText)
+else if UpperCase(Command) = 'COMPARE' then CompareHashes(LineText)
+
 
 // New system
 
@@ -314,6 +323,11 @@ else if UpperCase(Command) = 'PEERS' then AddLineToDebugLog('console','Server li
 else if UpperCase(Command) = 'SETRPCPORT' then SetRPCPort(LineText)
 else if UpperCase(Command) = 'RPCON' then SetRPCOn()
 else if UpperCase(Command) = 'RPCOFF' then SetRPCOff()
+
+// PSO
+else if UpperCase(Command) = 'NEWPSO' then TestNewPSO(parameter(linetext,1))
+else if UpperCase(Command) = 'LISTPSOS' then GetPSOs()
+
 
 //EXCHANGE
 else if UpperCase(Command) = 'POST' then PostOffer(LineText)
@@ -1771,6 +1785,7 @@ var
   SNAmount      : int64 = 0;
   NanoAddresses : integer = 0;
   NanoAmount    : int64 = 0;
+  ShortAdd       : integer = 0;
 Begin
   AssignFile(SumFile,SummaryFileName);
     TRY
@@ -1782,6 +1797,7 @@ Begin
       if thisrecord.Balance<0 then Inc(NegativeCount);
       if thisrecord.Balance=0 then Inc(EmptyCount);
       inc(TotalCoins,ThisRecord.Balance);
+      if Length(Thisrecord.Hash) < 28 then Inc(ShortAdd);
       if ThisRecord.Balance >= 1050000000000 then
         begin
         Inc(NodeAddresses);
@@ -1804,7 +1820,7 @@ Begin
     END;{Try}
   if TotalCoins = GetSupply(MyLastBlock) then AsExpected := '✓'
   else AsExpected := '('+Int2curr(TotalCoins-GetSupply(MyLastBlock))+')';
-  AddLineToDebugLog('console',format('Block : %d',[LastRecord]));
+  AddLineToDebugLog('console',format('Block : %d (short: %d)',[LastRecord,shortadd]));
   AddLineToDebugLog('console',Int2Curr(Totalcoins)+' '+CoinSimbol+' '+AsExpected);
   AddLineToDebugLog('console',format('Addresses (%d): %d (%d empty)',[NegativeCount,currpos,EmptyCount]));
   AddLineToDebugLog('console',format('>= 10500      : %d (%s Noso)',[NodeAddresses,int2curr(NodeAmount)]));
@@ -1898,6 +1914,50 @@ Begin
     end;
   AddLineToDebugLog('console',format('Correct: %d // Fails : %d ',[Correct,Fails1]));
   AddLineToDebugLog('console',format('%d ms',[EndPerformance('TestHashGeneration')]));
+End;
+
+Procedure CompareHashes(inputline:string);
+var
+  pubkey : string;
+  hashold,hashnew,hashfuture : string;
+Begin
+  pubkey := parameter(inputline,1);
+  hashold    := GetAddressFromPublicKey(pubkey);
+  hashnew    := NewGetAddressFromPublicKey(pubkey);
+  hashfuture := FutureGetAddressFromPublicKey(pubkey);
+  AddLineToDebugLog('console',format('Original : %s',[hashold]));
+  AddLineToDebugLog('console',format('BaseXtoX : %s',[hashnew]));
+  AddLineToDebugLog('console',format('Future   : %s',[hashfuture]));
+End;
+
+// PSOs testing functions
+
+Procedure TestNewPSO(Dataline:String);
+var
+  LocalParams: string;
+Begin
+  LocalPArams := '1:'+UTCtimeStr+';'+
+                 '2:'+IntToStr(MyLastBlock)+';'+
+                 '3:1;'+
+                 '4:500;'+
+                 '5:2016;';
+  AddNewPSO(1,ListaDirecciones[0].Hash,MyLastBlock+2016,LocalPArams);
+  SavePSOFileToDisk(MyLastBlock);
+  AddLineToDebugLog('console','Added');
+End;
+
+Procedure GetPSOs();
+var
+  Counter : integer;
+Begin
+  for counter := 0 to length(PSOsArray)-1 do
+    begin
+    AddLineToDebugLog('console',PSOSArray[counter].Mode.ToString+','+
+                                PSOSArray[counter].Hash+','+
+                                PSOSArray[counter].owner+','+
+                                PSOSArray[counter].Expire.ToString+','+
+                                GetPSOValue(PSOFee,PSOSArray[counter].Params));
+    end;
 End;
 
 END. // END UNIT

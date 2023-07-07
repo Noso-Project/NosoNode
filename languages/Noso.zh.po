@@ -454,6 +454,14 @@ msgstr "节点"
 msgid "Nodes"
 msgstr "节点"
 
+#: tform1.tabnodesreported.caption
+msgid "Reported"
+msgstr ""
+
+#: tform1.tabnodesverified.caption
+msgid "Verified"
+msgstr ""
+
 #: tform1.taboptions.caption
 msgid "Options"
 msgstr "选项"
@@ -471,6 +479,10 @@ msgstr ""
 
 #: tform1.tabsheet1.caption
 msgid "Seeds"
+msgstr ""
+
+#: tform1.tabsheet2.caption
+msgid "Offers"
 msgstr ""
 
 #: tform1.tabsheet8.caption
@@ -916,6 +928,16 @@ msgstr ""
 #: translation.rs0091
 #, object-pascal-format
 msgid "SERVER: Error creating stream from GVTs: %s"
+msgstr ""
+
+#: translation.rs0092
+#, object-pascal-format
+msgid "Error Receiving psos from %s (%s)"
+msgstr ""
+
+#: translation.rs0093
+#, object-pascal-format
+msgid "PSOs file received: %s"
 msgstr ""
 
 #: translation.rs0500

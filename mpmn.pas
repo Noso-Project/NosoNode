@@ -68,7 +68,7 @@ Function GetWaitingMNs():String;
 var
   ArrayIPsProcessed : array of string;
   OpenVerificators : integer;
-  MNsListCopy : array of TMnode;
+  MNsListCopy : array of TMnode;       // Contains the Nodes data to run the verification
   CurrSynctus : string;
   VerifiedNodes : String;
   UnconfirmedIPs : integer;
@@ -85,6 +85,8 @@ implementation
 
 Uses
   mpParser, mpProtocol, mpDisk, mpRed;
+
+{$REGION ThreadVerificator}
 
 constructor TThreadMNVerificator.Create(const CreatePaused: Boolean; const ConexSlot:Integer);
 begin
@@ -156,6 +158,8 @@ Dec(OpenVerificators);
 LeaveCriticalSection(DecVerThreads);
 CloseOpenThread('VerifyMN '+FSlot.ToString);
 End;
+
+{$ENDREGION}
 
 Function NoVerificators():integer;
 Begin

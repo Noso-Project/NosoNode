@@ -15,6 +15,12 @@ uses
   Classes, SysUtils, Process, StrUtils, IdTCPClient, IdGlobal, fphttpclient,
   opensslsockets, fileutil;
 
+type
+  TStreamHelper = class helper for TStream
+    procedure SetString(const S: string);
+    function  GetString: String;
+  end;
+
 {Generic}
 Function Parameter(LineText:String;ParamNumber:int64;de_limit:string=' '):String;
 Function IsValidIP(IpString:String):boolean;
@@ -42,6 +48,34 @@ function TryCopyFile(Source, destination:string):boolean;
 function TryDeleteFile(filename:string):boolean;
 
 IMPLEMENTATION
+
+{$REGION Stream helper}
+
+procedure TStreamHelper.SetString(const S: String);
+var
+  LSize: Word;
+begin
+  LSize := Length(S);
+  WriteBuffer(LSize, SizeOf(LSize));
+  WriteBuffer(Pointer(S)^, LSize);
+end;
+
+function TStreamHelper.GetString: String;
+var
+  LSize: Word = 0;
+  P: PWord;
+begin
+  ReadBuffer(LSize, SizeOf(LSize));
+  SetLength(Result, LSize);
+  if LSize > 0 then
+  begin
+    ReadBuffer(Pointer(Result)^, LSize);
+    P := Pointer(Result) + LSize;
+    P^ := 0;
+  end;
+end;
+
+{$ENDREGION}
 
 {$REGION Generic}
 

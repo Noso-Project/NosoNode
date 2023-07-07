@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, mpRed, MasterPaskalForm, mpParser, StrUtils, mpDisk, nosotime, mpBlock,
-  Zipper, mpcoin, mpMn, nosodebug, nosogeneral, nosocrypto, nosounit,nosoconsensus;
+  Zipper, mpcoin, mpMn, nosodebug, nosogeneral, nosocrypto, nosounit,nosoconsensus,nosopsos;
 
 function GetPTCEcn():String;
 Function GetOrderFromString(textLine:String):TOrderData;
@@ -86,6 +86,7 @@ CONST
   GetGVTs    = 20;
   GetCFG     = 30;
   SETCFG     = 31;
+  GetPSOs    = 32;
 
 implementation
 
@@ -230,7 +231,8 @@ if tipo = GetCFG then
    Resultado := 'GETCFGDATA';
 if tipo = SETCFG then
    Resultado := 'SETCFGDATA $';
-
+if tipo = GetPSOs then
+   Resultado := '$GETPSOS';
 
 
 Resultado := Encabezado+Resultado;
@@ -486,6 +488,7 @@ conexiones[slot].BestHashDiff := BestHashDiff;
 conexiones[slot].MNChecksCount:=StrToIntDef(MnsCheckCount,0);
 conexiones[slot].GVTsHash     :=Parameter(LineaDeTexto,17);
 conexiones[slot].CFGHash      :=Parameter(LineaDeTexto,18);
+conexiones[slot].PSOHash      :=Parameter(LineaDeTexto,19);;
 conexiones[slot].MerkleHash   :=HashMD5String(PLastBlock+copy(PResumenHash,0,5)+copy(PMNsHash,0,5)+
                                 copy(PLastBlockHash,0,5)+copy(PSumHash,0,5)+
                                 copy(Parameter(LineaDeTexto,17),0,5)+copy(Parameter(LineaDeTexto,18),0,5));
@@ -513,7 +516,8 @@ result :=IntToStr(GetTotalConexiones())+' '+ //
          GetNMSData.Diff+' '+
          GetMNsChecksCount.ToString+' '+
          MyGVTsHash+' '+
-         Copy(HashMD5String(GetNosoCFGString),0,5);
+         Copy(HashMD5String(GetNosoCFGString),0,5)+' '+
+         Copy(MyPSOHash,0,5);
 End;
 
 // Envia las TXs pendientes al slot indicado

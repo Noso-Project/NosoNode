@@ -459,6 +459,14 @@ msgstr "Nodo"
 msgid "Nodes"
 msgstr "Nodos"
 
+#: tform1.tabnodesreported.caption
+msgid "Reported"
+msgstr ""
+
+#: tform1.tabnodesverified.caption
+msgid "Verified"
+msgstr ""
+
 #: tform1.taboptions.caption
 msgid "Options"
 msgstr "Opciones"
@@ -476,6 +484,10 @@ msgstr ""
 
 #: tform1.tabsheet1.caption
 msgid "Seeds"
+msgstr ""
+
+#: tform1.tabsheet2.caption
+msgid "Offers"
 msgstr ""
 
 #: tform1.tabsheet8.caption
@@ -921,6 +933,16 @@ msgstr ""
 #: translation.rs0091
 #, object-pascal-format
 msgid "SERVER: Error creating stream from GVTs: %s"
+msgstr ""
+
+#: translation.rs0092
+#, object-pascal-format
+msgid "Error Receiving psos from %s (%s)"
+msgstr ""
+
+#: translation.rs0093
+#, object-pascal-format
+msgid "PSOs file received: %s"
 msgstr ""
 
 #: translation.rs0500
