@@ -632,7 +632,7 @@ CONST
   SubVersion = 'Aa1';
   OficialRelease = false;
   VersionRequired = '0.4.0Aa1';
-  BuildDate = 'May 2023';
+  BuildDate = 'July 2023';
   {Developer addresses}
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
