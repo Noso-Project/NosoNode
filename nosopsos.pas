@@ -59,12 +59,15 @@ var
   PSOsArray    : Array of TPSOData;
   PSOHeader    : TPSOHeader;
   CS_PSOsArray : TRTLCriticalSection;
+  CS_PSOFile   : TRTLCriticalSection;
 
 IMPLEMENTATION
 
 {$REGION Internal functions}
 
 {$ENDREGION}
+
+{$REGION File access}
 
 Function LoadPSOFileFromDisk():boolean;
 var
@@ -74,6 +77,7 @@ var
 Begin
   Result := false;
   MyStream := TMemoryStream.Create;
+  EnterCriticalSection(CS_PSOFile);
   EnterCriticalSection(CS_PSOsArray);
   PSOHeader := Default(TPSOHeader);
   SetLength(PSOsArray,0);
@@ -102,6 +106,7 @@ Begin
     end;
   MyStream.Free;
   LeaveCriticalSection(CS_PSOsArray);
+  LeaveCriticalSection(CS_PSOFile);
   Result := true;
   If not fileExists(PSOsFileName) then SavePSOFileToDisk(PSOHeader.Block);
 End;
@@ -115,6 +120,7 @@ Begin
   MyStream := TMemoryStream.Create;
   PSOHeader.Block:=BlockNumber;
   EnterCriticalSection(CS_PSOsArray);
+  EnterCriticalSection(CS_PSOFile);
   TRY
     PSOHeader.count:=Length(PSOsArray);
     MyStream.Write(PSOHeader,Sizeof(PSOHeader));
@@ -134,6 +140,7 @@ Begin
   END;
   LeaveCriticalSection(CS_PSOsArray);
   MyStream.SaveToFile(PSOsFileName);
+  LeaveCriticalSection(CS_PSOFile);
   MyStream.Free;
   Result := true;
 End;
@@ -141,27 +148,29 @@ End;
 Function GetPSOsAsMemStream(out LMs:TMemoryStream):int64;
 Begin
   Result := 0;
-  //EnterCriticalSection();
+  EnterCriticalSection(CS_PSOFile);
     TRY
     LMs.LoadFromFile(PSOsFileName);
     result:= LMs.Size;
     LMs.Position:=0;
     EXCEPT ON E:Exception do
     END{Try};
-  //LeaveCriticalSection();
+  LeaveCriticalSection(CS_PSOFile);
 End;
 
 Function SavePSOsToFile(Const LStream:TMemoryStream):Boolean;
 Begin
   result := false;
-  //EnterCriticalSection();
+  EnterCriticalSection(CS_PSOFile);
     TRY
     LStream.SaveToFile(PSOsFileName);
     Result := true;
     EXCEPT ON E:Exception do
     END{Try};
-  //LeaveCriticalSection();
+  LeaveCriticalSection(CS_PSOFile);
 End;
+
+{$ENDREGION}
 
 Function GetPSOValue(LValue:String;LParams:String):string;
 var
@@ -212,11 +221,13 @@ End;
 
 INITIALIZATION
 InitCriticalSection(CS_PSOsArray);
+InitCriticalSection(CS_PSOFile);
 LoadPSOFileFromDisk;
 
 
 FINALIZATION
 DoneCriticalSection(CS_PSOsArray);
+DoneCriticalSection(CS_PSOFile);
 
 
 

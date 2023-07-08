@@ -1022,6 +1022,7 @@ if Continuar then
       Conexiones[fSlot].lastping:=UTCTimeStr;
          TRY
          CanalCliente[FSlot].ReadTimeout:=ReadTimeOutTIme;
+         CanalCliente[FSlot].IOHandler.MaxLineLength:=Maxint;
          LLine := CanalCliente[FSlot].IOHandler.ReadLn(IndyTextEncoding_UTF8);
          if CanalCliente[FSlot].IOHandler.ReadLnTimedout then
             begin

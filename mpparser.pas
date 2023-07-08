@@ -1936,20 +1936,14 @@ Procedure TestNewPSO(Dataline:String);
 var
   LocalParams: string;
 Begin
-  LocalPArams := '1:'+UTCtimeStr+';'+
-                 '2:'+IntToStr(MyLastBlock)+';'+
-                 '3:1;'+
-                 '4:500;'+
-                 '5:2016;';
-  AddNewPSO(1,ListaDirecciones[0].Hash,MyLastBlock+2016,LocalPArams);
-  SavePSOFileToDisk(MyLastBlock);
-  AddLineToDebugLog('console','Added');
+
 End;
 
 Procedure GetPSOs();
 var
   Counter : integer;
 Begin
+  AddLineToDebugLog('console','PSOSs list');
   for counter := 0 to length(PSOsArray)-1 do
     begin
     AddLineToDebugLog('console',PSOSArray[counter].Mode.ToString+','+
