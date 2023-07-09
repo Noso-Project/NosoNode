@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils,MasterPaskalForm, fileutil, mpcoin, dialogs, math,
-  nosotime, mpMN, nosodebug,nosogeneral,nosocrypto, nosounit, strutils;
+  nosotime, mpMN, nosodebug,nosogeneral,nosocrypto, nosounit, strutils,
+  nosopsos;
 
 Procedure CrearBloqueCero();
 Procedure BuildNewBlock(Numero,TimeStamp: Int64; TargetHash, Minero, Solucion:String);
@@ -93,6 +94,7 @@ var
   ArrayLastBlockTrxs : TBlockOrdersArray;
   ExistsInLastBlock : boolean;
   Count2 : integer;
+  NewMNs, ExpiredMNs : integer;
 
   DevsTotalReward : int64 = 0;
   DevOrder        : TOrderData;
@@ -325,9 +327,11 @@ if not errored then
       if MNsCount>0 then MNsReward := MNsTotalReward div MNsCount
       else MNsReward := 0;
       MNsTotalReward := MNsCount * MNsReward;
+      NewMNs := 0;
       For contador := 0 to length(MNsAddressess)-1 do
          begin
          CreditTo(MNsAddressess[contador].address,MNsReward,numero);
+         if AddLockedMM(MNsAddressess[contador].address,numero) then Inc(NewMNs);
          end;
       EndPerformance('NewBLOCK_MNs');
       end;// End of MNS payment procecessing
@@ -403,7 +407,9 @@ if not errored then
    if DIreccionEsMia(Minero)>-1 then showglobo('Miner','Block found!');
 
    U_DirPanel := true;
-   OutText(format('Block built: %d (%d ms)',[numero,EndPerformance('BuildNewBlock')]),true);
+   ExpiredMNs := ClearExpiredLockedMNs(numero);
+   SavePSOFileToDisk(Numero);
+   OutText(format('Block built: %d (%d ms) MNs: + %d / - %d',[numero,EndPerformance('BuildNewBlock'),NewMNs, ExpiredMNs]),true);
    end
 else
    begin

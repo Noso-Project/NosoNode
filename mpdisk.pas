@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, MasterPaskalForm, Dialogs, Forms, nosotime, FileUtil, LCLType,
   lclintf, controls, mpBlock, Zipper, mpcoin, mpMn, nosodebug,
   {$IFDEF WINDOWS}Win32Proc, {$ENDIF}
-  translation, strutils,nosogeneral, nosocrypto, nosounit, nosoconsensus;
+  translation, strutils,nosogeneral, nosocrypto, nosounit, nosoconsensus, nosopsos;
 
 Procedure VerificarArchivos();
 
@@ -139,6 +139,8 @@ OutText('✓ My last block verified: '+MyLastBlock.ToString,false,1);
 
 UpdateWalletFromSumario();
 OutText('✓ Wallet updated',false,1);
+
+LoadPSOFileFromDisk;
 End;
 
 // ***********************

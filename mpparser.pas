@@ -1943,7 +1943,11 @@ Procedure GetPSOs();
 var
   Counter : integer;
 Begin
+  GEtPSOHEadersFromFile;
   AddLineToDebugLog('console','PSOSs list');
+  AddLineToDebugLog('console','Block: '+GetPSOHeaders.Block.ToString);
+  AddLineToDebugLog('console','MNs  : '+GetPSOHeaders.MNsLock.ToString);
+  AddLineToDebugLog('console','PSOs : '+GetPSOHeaders.count.ToString);
   for counter := 0 to length(PSOsArray)-1 do
     begin
     AddLineToDebugLog('console',PSOSArray[counter].Mode.ToString+','+

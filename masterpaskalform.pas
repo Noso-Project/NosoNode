@@ -1140,7 +1140,8 @@ if Continuar then
             if Downloaded then SavedToFile := SavePSOsToFile(MemStream);
             if Downloaded and SavedToFile then
                begin
-               AddLineToDebugLog('console',format(rs0093,[copy(HashMD5File(SummaryFileName),1,5)])); //'Sumary file received'
+               AddLineToDebugLog('console',format(rs0093,[copy(HashMD5File(PSOsFileName),1,5)])); //'PSOs file received'
+               LoadPSOFileFromDisk;
                UpdateMyData();
                LasTimePSOsRequest := 0;
                end;

@@ -405,7 +405,7 @@ if LastUpdateDataPanel <> UTCTime then
    form1.DataPanel.Cells[1,6]:= format('%d / %s',[MyLastBlock,GetConsensus(2)]);
    form1.DataPanel.Cells[1,7]:= format('(%d)  %d/%s',[length(ArrayCriptoOp),GetPendingCount,GetConsensus(3)]);
    {<-- -->}
-   form1.DataPanel.Cells[3,0]:= format('[%d] %s / %s',[PSOHeader.count,Copy(MyPSOHash,0,5),GetConsensus(20)]);
+   //form1.DataPanel.Cells[3,0]:= format('[%d] %s / %s',[GetPSOHeaders.count,Copy(MyPSOHash,0,5),GetConsensus(20)]);
    form1.DataPanel.Cells[3,1]:= Format('[%s] %s Noso',[BlockAge.ToString,Copy(Int2curr(GetBlockReward(Mylastblock+1)),0,5)]);
    form1.DataPanel.Cells[3,2]:= GEtOutgoingconnections.ToString+'/'+GetClientReadThreads.ToString;
    form1.DataPanel.Cells[3,3]:= Format('%d (%d)',[MyLastOrdIndex,length(ArrayOrdIndex)]);

@@ -1005,7 +1005,7 @@ MyResumenHash := HashMD5File(ResumenFilename);
   if MyResumenHash = NetResumenHash.Value then ForceCompleteHeadersDownload := false;
 MyMNsHash     := HashMD5File(MasterNodesFilename);
 MyCFGHash     := Copy(HAshMD5String(GetNosoCFGString),1,5);
-MyPSOHash     := HashMD5File(PSOsFileName);
+//MyPSOHash     := HashMD5File(PSOsFileName);
 End;
 
 // Request necessary files/info to update
@@ -1179,9 +1179,9 @@ else if ( (GetConsensus(20)<>Copy(MyPSOHash,0,5)) and (LasTimePSOsRequest+5<UTCT
    begin
    if GetValidSlotForSeed(ValidSlot) then
       begin
-      PTC_SendLine(ValidSlot,ProtocolLine(GetPSOs));
-      LasTimePSOsRequest := UTCTime;
-      AddLineToDebugLog('console','Download PSOs from '+conexiones[ValidSlot].ip);
+      //PTC_SendLine(ValidSlot,ProtocolLine(GetPSOs));
+      //LasTimePSOsRequest := UTCTime;
+      //AddLineToDebugLog('console','Download PSOs from '+conexiones[ValidSlot].ip);
       end;
    end;
 if IsAllSynced=0 then Last_SyncWithMainnet := Last_SyncWithMainnet+5;
