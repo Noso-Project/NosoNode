@@ -43,7 +43,7 @@ Begin
 result := GetAddressBalanceIndexed(address)-GetAddressPendingPays(address);
 End;
 
-// Devuelve el saldo que una direccion ya tiene comprometido en pendientes
+// Returns the balance an address already have committed to be paid.
 function GetAddressPendingPays(Address:string):int64;
 var
   cont : integer;

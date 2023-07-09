@@ -798,7 +798,6 @@ var
   MyResumenHash : String = '';
   MyGVTsHash    : string = '';
   MyCFGHash     : string = '';
-  MyPSOHash     : String = '';
   MyPublicIP : String = '';
   OpenReadClientThreads : integer = 0;
   BlockUndoneTime    : int64 = 0;

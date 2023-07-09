@@ -1936,14 +1936,21 @@ Procedure TestNewPSO(Dataline:String);
 var
   LocalParams: string;
 Begin
-
+  LocalPArams := '1:'+UTCtimeStr+';'+
+                 '2:'+IntToStr(MyLastBlock)+';'+
+                 '3:1;'+
+                 '4:500;'+
+                 '5:2016;';
+  AddNewPSO(1,ListaDirecciones[0].Hash,MyLastBlock+2016,LocalPArams);
+  SavePSOFileToDisk(MyLastBlock);
+  AddLineToDebugLog('console','Added');
 End;
 
 Procedure GetPSOs();
 var
   Counter : integer;
 Begin
-  GEtPSOHEadersFromFile;
+  //GEtPSOHEadersFromFile;
   AddLineToDebugLog('console','PSOSs list');
   AddLineToDebugLog('console','Block: '+GetPSOHeaders.Block.ToString);
   AddLineToDebugLog('console','MNs  : '+GetPSOHeaders.MNsLock.ToString);
@@ -1954,7 +1961,7 @@ Begin
                                 PSOSArray[counter].Hash+','+
                                 PSOSArray[counter].owner+','+
                                 PSOSArray[counter].Expire.ToString+','+
-                                GetPSOValue(PSOFee,PSOSArray[counter].Params));
+                                PSOSArray[counter].Params);
     end;
 End;
 

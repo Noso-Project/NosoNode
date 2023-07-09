@@ -63,7 +63,7 @@ end;
 function TStreamHelper.GetString: String;
 var
   LSize: Word = 0;
-  P: PWord;
+  P: PByte;
 begin
   ReadBuffer(LSize, SizeOf(LSize));
   SetLength(Result, LSize);

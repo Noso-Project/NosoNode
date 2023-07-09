@@ -1005,7 +1005,6 @@ MyResumenHash := HashMD5File(ResumenFilename);
   if MyResumenHash = NetResumenHash.Value then ForceCompleteHeadersDownload := false;
 MyMNsHash     := HashMD5File(MasterNodesFilename);
 MyCFGHash     := Copy(HAshMD5String(GetNosoCFGString),1,5);
-//MyPSOHash     := HashMD5File(PSOsFileName);
 End;
 
 // Request necessary files/info to update
@@ -1174,7 +1173,7 @@ else if ( (GetConsensus(18)<>Copy(MyGVTsHash,0,5)) and (LasTimeGVTsRequest+5<UTC
       AddLineToDebugLog('console','GVTs File requested to '+conexiones[ValidSlot].ip);
       end;
    end
-else if ( (GetConsensus(20)<>Copy(MyPSOHash,0,5)) and (LasTimePSOsRequest+5<UTCTime) and
+else if ( (GetConsensus(20)<>Copy(PSOFileHash,0,5)) and (LasTimePSOsRequest+5<UTCTime) and
           (GetConsensus(20)<>'') and (not DownloadPSOs) ) then
    begin
    if GetValidSlotForSeed(ValidSlot) then
@@ -1417,7 +1416,7 @@ result := {1}IntToStr(GetTotalConexiones)+' '+{2}IntToStr(MyLastBlock)+' '+{3}Ge
           {10}MyLastBlockHash+' '+{11}GetNMSData.Diff+' '+{12}IntToStr(LastBlockData.TimeEnd)+' '+
           {13}LastBlockData.AccountMiner+' '+{14}GetMNsChecksCount.ToString+' '+{15}Parameter(LastBlockData.Solution,2)+' '+
           {16}Parameter(LastBlockData.Solution,1)+' '+{17}copy(MySumarioHash,0,5)+' '+{18}copy(MyGVTsHash,0,5)+' '+
-          {19}Copy(HashMD5String(GetNosoCFGString),0,5)+' '+{20}copy(MyPSOHash,0,5);
+          {19}Copy(HashMD5String(GetNosoCFGString),0,5)+' '+{20}copy(PSOFileHash,0,5);
 End;
 
 Function IsSafeIP(IP:String):boolean;

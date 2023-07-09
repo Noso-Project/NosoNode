@@ -517,7 +517,7 @@ result :=IntToStr(GetTotalConexiones())+' '+ //
          GetMNsChecksCount.ToString+' '+
          MyGVTsHash+' '+
          Copy(HashMD5String(GetNosoCFGString),0,5)+' '+
-         Copy(MyPSOHash,0,5);
+         Copy(PSOFileHash,0,5);
 End;
 
 // Envia las TXs pendientes al slot indicado

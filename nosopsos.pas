@@ -129,74 +129,32 @@ var
 Begin
   Result := false;
   MyStream := TMemoryStream.Create;
-  //EnterCriticalSection(CS_PSOsArray);
   PSOHeader := Default(TPSOHeader);
   SetLength(PSOsArray,0);
   SetLength(MNSLockArray,0);
   If fileExists(PSOsFileName) then
     begin
-    //EnterCriticalSection(CS_PSOFile);
-    TRY
-      MyStream.LoadFromFile(PSOsFileName);
-    EXCEPT ON E:Exception do
+    MyStream.LoadFromFile(PSOsFileName);
+    MyStream.Position := 0;
+    MyStream.Read(PSOHeader, SizeOf(PSOHeader));
+    for counter := 0 to PSOHeader.MNsLock-1 do
       begin
-      AddLineToDebugLog('console','ERROR 1');
-      exit;
+      MNData := Default(TMNsLock);
+      MyStream.Read(MNData,sizeof(MNData));
+      Insert(MNData,MNSLockArray,length(MNSLockArray));
       end;
-    END;
-    //LeaveCriticalSection(CS_PSOFile);
-      TRY
-      MyStream.Position := 0;
-      MyStream.Read(PSOHeader, SizeOf(PSOHeader));
-      EXCEPT ON E:Exception do
-        begin
-        AddLineToDebugLog('console','ERROR 10');
-        exit;
-        end;
-      END;
-    if PSOHeader.MNsLock>0 then
+    for Counter := 0 to PSOHeader.count-1 do
       begin
-      //EnterCriticalSection(CS_LockedMNs);
-      TRY
-      for counter := 1 to PSOHeader.MNsLock do
-        begin
-        //MNData   := Default(TMNsLock);
-        MNData.address:=MyStream.GetString;
-        MyStream.Read(MNdata.expire,Sizeof(MNdata.expire));
-        Insert(MNData,MNSLockArray,length(MNSLockArray));
-        end;
-      EXCEPT ON E:Exception do
-        begin
-        AddLineToDebugLog('console','ERROR 2');
-        exit;
-        end;
-      END;
-      //LeaveCriticalSection(CS_LockedMNs);
-      end;
-    if PSOHeader.count > 0 then
-      begin
-      TRY
-      For Counter := 1 to PSOHeader.count do
-        begin
-        //NewRec   := Default(TPSOData);
-        MyStream.Read(NewRec.Mode,Sizeof(NewRec.Mode));
-        MyStream.Read(NewRec.Hash,Sizeof(NewRec.Hash));
-        MyStream.Read(NewRec.owner,Sizeof(NewRec.Owner));
-        MyStream.Read(NewRec.Expire,Sizeof(NewRec.Expire));
-        NewRec.Members:=MyStream.GetString;
-        NewRec.Params:=MyStream.GetString;
-        Insert(NewRec,PSOsArray,Length(PSOsArray));
-        end;
-      EXCEPT ON E:Exception do
-        begin
-        AddLineToDebugLog('console','ERROR 3');
-        exit;
-        end;
-      END;
+      NewRec.Mode    := MyStream.ReadWord;
+      NewRec.Hash    := MyStream.GetString;
+      NewRec.Owner   := MyStream.GetString;
+      NewRec.Expire  := MyStream.ReadDWord;
+      NewRec.Members := MyStream.GetString;
+      NewRec.Params  := MyStream.GetString;
+      Insert(NewRec,PSOsArray,Length(PSOsArray));
       end;
     end;
   MyStream.Free;
-  //LeaveCriticalSection(CS_PSOsArray);
   Result := true;
   If not fileExists(PSOsFileName) then SavePSOFileToDisk(PSOHeader.Block)
   else PSOFileHash := HashMD5File(PSOsFileName);
