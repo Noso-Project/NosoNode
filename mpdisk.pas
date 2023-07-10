@@ -22,6 +22,8 @@ Procedure CreateGVTsFile();
 Procedure GetGVTsFileData();
 Procedure SaveGVTs();
 Function ChangeGVTOwner(Lnumber:integer;OldOwner,NewOWner:String): integer;
+Function CountAvailableGVTs():Integer;
+Function GetGVTPrice():int64;
 
 // NosoCFG file handling
 Procedure SaveNosoCFGFile(LStr:String);
@@ -272,9 +274,30 @@ if LNumber > 99 then ErrorCode := 1;
 if ArrGVTs[Lnumber].owner <> OldOwner then ErrorCode := 2;
 if not IsValidHashAddress(NewOWner) then ErrorCode := 3;
 if ErrorCode = 0 then
-   begin
    ArrGVTs[Lnumber].owner := NewOWner;
-   end;
+result := ErrorCode;
+End;
+
+Function CountAvailableGVTs():Integer;
+var
+  counter : integer;
+Begin
+  Result := 0;
+  EnterCriticalSection(CSGVTsArray);
+  for counter := 0 to length(ArrGVTs)-1 do
+     if ArrGVTs[counter].owner = FundsAddress then Inc(Result);
+  LeaveCriticalSection(CSGVTsArray);
+End;
+
+Function GetGVTPrice():int64;
+var
+  available : integer;
+  counter   : integer;
+Begin
+  result   := GVTBaseValue;
+  available:= 40-CountAvailableGVTs;
+  for counter := 1 to available do
+     result := (result *110) div 100;
 End;
 
 Procedure SaveNosoCFGFile(LStr:String);

@@ -604,8 +604,10 @@ Procedure UpdateMyGVTsList();
 
 
 CONST
-  HexAlphabet : string = '0123456789ABCDEF';
-  ReservedWords : string = 'NULL,DELADDR';
+  HexAlphabet    : string = '0123456789ABCDEF';
+  ReservedWords  : string = 'NULL,DELADDR';
+  FundsAddress   : string = 'NpryectdevepmentfundsGE';
+  JackPotAddress : string = 'NPrjectPrtcRandmJacptE5';
   ValidProtocolCommands : string = '$PING$PONG$GETPENDING$NEWBL$GETRESUMEN$LASTBLOCK$GETCHECKS'+
                                    '$CUSTOMORDERADMINMSGNETREQ$REPORTNODE$GETMNS$BESTHASH$MNREPO$MNCHECK'+
                                    'GETMNSFILEMNFILEGETHEADUPDATE$GETSUMARY$GETGVTSGVTSFILE$SNDGVTGETCFGDATA'+
@@ -670,6 +672,7 @@ CONST
   SendDirectToPeer = false;
   SumMarkInterval  = 100;
   SecurityBlocks   = 4000;
+  GVTBaseValue     = 51000000000;
 
 var
   UserFontSize : integer = 8;

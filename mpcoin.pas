@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils,MasterPaskalForm,mpgui,Clipbrd, strutils, nosodebug,nosogeneral,
-  nosocrypto, nosounit,nosotime;
+  nosocrypto, nosounit,nosotime,nosopsos;
 
 function GetAddressAvailable(address:string):int64;
 function GetAddressPendingPays(Address:string):int64;
@@ -63,6 +63,8 @@ if GetPendingCount>0 then
          result := result+CopyPendings[cont].AmmountFee+CopyPendings[cont].AmmountTrf;
       end;
    end;
+if MyLastBlock >= 120000 then
+   if IsLockedMN(Address) then Inc(Result,1050000000000);
 End;
 
 // Returns the pending incomings for the specified address**ONLY HASH ACCEPTED

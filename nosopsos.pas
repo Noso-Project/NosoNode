@@ -48,6 +48,7 @@ Function SavePSOsToFile(Const LStream:TMemoryStream):Boolean;
 // Locked Masternodes control
 Function AddLockedMM(Address:string;block:integer):Boolean;
 Function ClearExpiredLockedMNs(BlockNumber:integer):integer;
+Function IsLockedMN(Address:String):Boolean;
 
 // PSOHeaders control
 Function GetPSOHeaders():TPSOHeader;
@@ -60,7 +61,7 @@ Function GetPSOsCopy():TPSOsArray;
 
 CONST
   PSOsFileName       : string = 'NOSODATA'+DirectorySeparator+'psos.dat';
-  MNsLockExpireLapse : integer = 5;
+  MNsLockExpireLapse : integer = 2016;
   PSOTimestamp       : string = '1';
   PSOBlock           : string = '2';
   PSOAction          : string = '3';
@@ -103,47 +104,46 @@ Begin
   MyStream.Position := 0;
   MyStream.ReadBuffer(LPSOHeader, SizeOf(PSOHeader));
   SetPSOHeaders(LPSOHeader);
-  //MyStream.Free;
-  //Exit;
   for counter := 0 to GetPSOHeaders.MNsLock-1 do
     begin
-    //SetLength(MNSLockArray,length(MNSLockArray)+1);
     MNData := Default(TMNsLock);
     MyStream.Read(MNData,sizeof(MNData));
     AddLineToDebugLog('console',counter.ToString+' '+MNData.address+' '+MNData.expire.ToString );
     Insert(MNData,MNSLockArray,length(MNSLockArray));
-    //MNData.Address := MyStream.GetString;
-    //MNData.Expire  := MyStream.ReadDWord;
-    //MNSLockArray[Length(MNSLockArray)-1] := MNData;
-    //AddLineToDebugLog('console',MNSLockArray[Length(MNSLockArray)-1].Address);
     end;
   MyStream.Free;
 End;
 
 Function LoadPSOFileFromDisk():boolean;
 var
-  MyStream : TMemoryStream;
-  Counter  : integer;
-  NewRec   : TPSOData;
-  MNData   : TMNsLock;
+  MyStream  : TMemoryStream;
+  Counter   : integer;
+  NewRec    : TPSOData;
+  MNData    : TMNsLock;
+  StrSize   : int64;
+  NewHeader : TPSOHeader;
 Begin
   Result := false;
   MyStream := TMemoryStream.Create;
   PSOHeader := Default(TPSOHeader);
   SetLength(PSOsArray,0);
   SetLength(MNSLockArray,0);
-  If fileExists(PSOsFileName) then
+  StrSize := GetPSOsAsMemStream(MyStream);
+  If StrSize > 0 then
     begin
-    MyStream.LoadFromFile(PSOsFileName);
     MyStream.Position := 0;
-    MyStream.Read(PSOHeader, SizeOf(PSOHeader));
-    for counter := 0 to PSOHeader.MNsLock-1 do
+    MyStream.Read(NewHeader, SizeOf(NewHeader));
+    SetPSOHeaders(NewHeader);
+    EnterCriticalSection(CS_LockedMNs);
+    for counter := 0 to NewHeader.MNsLock-1 do
       begin
       MNData := Default(TMNsLock);
       MyStream.Read(MNData,sizeof(MNData));
       Insert(MNData,MNSLockArray,length(MNSLockArray));
       end;
-    for Counter := 0 to PSOHeader.count-1 do
+    LeaveCriticalSection(CS_LockedMNs);
+    EnterCriticalSection(CS_PSOsArray);
+    for Counter := 0 to NewHeader.count-1 do
       begin
       NewRec.Mode    := MyStream.ReadWord;
       NewRec.Hash    := MyStream.GetString;
@@ -153,6 +153,7 @@ Begin
       NewRec.Params  := MyStream.GetString;
       Insert(NewRec,PSOsArray,Length(PSOsArray));
       end;
+    LeaveCriticalSection(CS_PSOsArray);
     end;
   MyStream.Free;
   Result := true;
@@ -162,42 +163,39 @@ End;
 
 Function SavePSOFileToDisk(BlockNumber:integer):boolean;
 var
-  MyStream : TMemoryStream;
-  counter  : integer ;
+  MyStream  : TMemoryStream;
+  counter   : integer ;
+  NewHeader : TPSOHeader;
 Begin
   Result := false;
   MyStream := TMemoryStream.Create;
-  PSOHeader.Block:=BlockNumber;
+  NewHeader := GetPSOHeaders;
+  NewHeader.Block   :=BlockNumber;
+  NewHeader.count   :=Length(PSOsArray);
+  NewHeader.MNsLock :=Length(MNSLockArray);
+  SetPSOHeaders(NewHeader);
   EnterCriticalSection(CS_PSOsArray);
-  EnterCriticalSection(CS_PSOFile);
+
   TRY
-    PSOHeader.count:=Length(PSOsArray);
-    PSOHeader.MNsLock:=Length(MNSLockArray);
-    MyStream.Write(PSOHeader,Sizeof(PSOHeader));
-    if PSOHeader.MNsLock > 0 then
-      begin
-      For counter := 0 to Length(MNSLockArray)-1 do
-        begin
+    MyStream.Write(NewHeader,Sizeof(PSOHeader));
+    EnterCriticalSection(CS_LockedMNs);
+    For counter := 0 to NewHeader.MNsLock-1 do
         MyStream.Write(MNSLockArray[counter],Sizeof(MNSLockArray[counter]));
-        end;
-      end;
-    if PSOHeader.count > 0 then
+    LeaveCriticalSection(CS_LockedMNs);
+    EnterCriticalSection(CS_PSOsArray);
+    For counter := 0 to Length(PSOsArray)-1 do
       begin
-      For counter := 0 to Length(PSOsArray)-1 do
-        begin
-        MyStream.WriteWord(PSOsArray[counter].Mode);
-        MyStream.SetString(PSOsArray[counter].hash);
-        MyStream.SetString(PSOsArray[counter].owner);
-        MyStream.WriteDWord(PSOsArray[counter].Expire);
-        MyStream.SetString(PSOsArray[counter].Members);
-        MyStream.SetString(PSOsArray[counter].Params);
-        end;
+      MyStream.WriteWord(PSOsArray[counter].Mode);
+      MyStream.SetString(PSOsArray[counter].hash);
+      MyStream.SetString(PSOsArray[counter].owner);
+      MyStream.WriteDWord(PSOsArray[counter].Expire);
+      MyStream.SetString(PSOsArray[counter].Members);
+      MyStream.SetString(PSOsArray[counter].Params);
       end;
+    LeaveCriticalSection(CS_PSOsArray);
   EXCEPT ON EXCEPTION DO
   END;
-  LeaveCriticalSection(CS_PSOsArray);
-  MyStream.SaveToFile(PSOsFileName);
-  LeaveCriticalSection(CS_PSOFile);
+  SavePSOsToFile(MyStream);
   MyStream.Free;
   Result := true;
   PSOFileHash := HashMD5File(PSOsFileName);
@@ -277,6 +275,23 @@ Begin
       else Inc(Counter);
       end;
   until IsDone;
+  LeaveCriticalSection(CS_LockedMNs);
+End;
+
+Function IsLockedMN(Address:String):Boolean;
+var
+  counter : integer;
+Begin
+  Result :=False;
+  EnterCriticalSection(CS_LockedMNs);
+  For counter := 0 to length(MNSLockArray)-1 do
+    begin
+    if MNSLockArray[counter].address= address then
+       begin
+       result := true;
+       break;
+       end;
+    end;
   LeaveCriticalSection(CS_LockedMNs);
 End;
 

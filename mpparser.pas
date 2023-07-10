@@ -99,6 +99,7 @@ Procedure ShowConsensus();
 
 Procedure TestNewPSO(Dataline:String);
 Procedure GetPSOs();
+Procedure ShowGVTInfo();
 
 implementation
 
@@ -292,6 +293,7 @@ else if UpperCase(Command) = 'REBUILDHEADERS' then RebuildHeadersFile()
 
 // CONSULTING
 else if UpperCase(Command) = 'LISTGVT' then ListGVTs()
+else if UpperCase(Command) = 'GVTINFO' then ShowGVTInfo()
 else if UpperCase(Command) = 'SYSTEM' then ShowSystemInfo(Linetext)
 else if UpperCase(Command) = 'NOSOCFG' then AddLineToDebugLog('console',GetNosoCFGString)
 else if UpperCase(Command) = 'FUNDS' then AddLineToDebugLog('console','Project funds: '+Int2curr(GetAddressAvailable('NpryectdevepmentfundsGE')))
@@ -1963,6 +1965,12 @@ Begin
                                 PSOSArray[counter].Expire.ToString+','+
                                 PSOSArray[counter].Params);
     end;
+End;
+
+Procedure ShowGVTInfo();
+Begin
+  AddLineToDebugLog('console','Availabe : '+CountAvailableGVTs.ToString);
+  AddLineToDebugLog('console','Price    : '+Int2curr(GetGVTPrice));
 End;
 
 END. // END UNIT
