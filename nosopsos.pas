@@ -315,6 +315,7 @@ End;
 
 {$ENDREGION}
 
+{$REGION PSOs control}
 
 Function GetPSOValue(LValue:String;LParams:String):string;
 var
@@ -362,6 +363,8 @@ Begin
   Result := copy(PSOsArray,0,length(PSOsArray));
   LeaveCriticalSection(CS_PSOsArray);
 End;
+
+{$ENDREGION}
 
 INITIALIZATION
 InitCriticalSection(CS_PSOsArray);

@@ -63,7 +63,7 @@ if GetPendingCount>0 then
          result := result+CopyPendings[cont].AmmountFee+CopyPendings[cont].AmmountTrf;
       end;
    end;
-if MyLastBlock >= 120000 then
+if MyLastBlock >= Update050Block then
    if IsLockedMN(Address) then Inc(Result,1050000000000);
 End;
 

@@ -100,6 +100,7 @@ Procedure ShowConsensus();
 Procedure TestNewPSO(Dataline:String);
 Procedure GetPSOs();
 Procedure ShowGVTInfo();
+Procedure ClearPSOs();
 
 implementation
 
@@ -329,6 +330,7 @@ else if UpperCase(Command) = 'RPCOFF' then SetRPCOff()
 // PSO
 else if UpperCase(Command) = 'NEWPSO' then TestNewPSO(parameter(linetext,1))
 else if UpperCase(Command) = 'LISTPSOS' then GetPSOs()
+else if UpperCase(Command) = 'CLEARPSOS' then CLEARPSOS()
 
 
 //EXCHANGE
@@ -1937,6 +1939,7 @@ End;
 Procedure TestNewPSO(Dataline:String);
 var
   LocalParams: string;
+  LOrder     : TOrderData;
 Begin
   LocalPArams := '1:'+UTCtimeStr+';'+
                  '2:'+IntToStr(MyLastBlock)+';'+
@@ -1971,6 +1974,13 @@ Procedure ShowGVTInfo();
 Begin
   AddLineToDebugLog('console','Availabe : '+CountAvailableGVTs.ToString);
   AddLineToDebugLog('console','Price    : '+Int2curr(GetGVTPrice));
+End;
+
+Procedure ClearPSOs();
+Begin
+  EnterCriticalSection(CS_PSOsArray);
+  Setlength(PSOsArray,0);
+  LeaveCriticalSection(CS_PSOsArray);
 End;
 
 END. // END UNIT

@@ -616,7 +616,7 @@ CONST
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
 
   DefaultNosoCFG : String = {0}'NORMAL '+
-                            {1}'47.87.181.190;8080:47.87.178.205;8080:81.22.38.101;8080:66.151.117.247;8080:47.87.180.219;8080:47.87.137.96;8080:192.3.85.196;8080:192.3.254.186;8080:101.100.138.125;8080:198.46.218.125;8080:63.227.69.162;8080: '+
+                            {1}'47.87.178.205;8080:47.87.180.219;8080:47.87.137.96;8080:192.3.85.196;8080:192.3.254.186;8080:198.46.218.125;8080:140.99.161.224;8080:63.227.69.162;8080:20.199.50.27;8080:45.83.151.30;8080:107.172.21.121;8080:47.87.132.148;8080: '+
                             {2}'ts2.aco.net:hora.roa.es:time.esa.int:time.stdtime.gov.tw:stratum-1.sjc02.svwh.net:ntp1.sp.se:1.de.pool.ntp.org:ntps1.pads.ufrj.br:utcnist2.colorado.edu:tick.usask.ca:ntp1.st.keio.ac.jp: '+
                             {3}'N3ESwXxCAR4jw3GVHgmKiX9zx1ojWEf:N2ophUoAzJw9LtgXbYMiB4u5jWWGJF7:N3aXz2RGwj8LAZgtgyyXNRkfQ1EMnFC:N2MVecGnXGHpN8z4RqwJFXSQP6doVDv: '+
                             {4}'nosofish.xyz;8082:nosopool.estripa.online;8082:pool.nosomn.com;8082:159.196.1.198;8082: '+
@@ -673,6 +673,7 @@ CONST
   SumMarkInterval  = 100;
   SecurityBlocks   = 4000;
   GVTBaseValue     = 51000000000;
+  Update050Block   = 120000;
 
 var
   UserFontSize : integer = 8;
