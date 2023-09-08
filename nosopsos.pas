@@ -99,6 +99,7 @@ var
   LPSOHeader : TPSOHeader;
 Begin
   MyStream := TMemoryStream.Create;
+    TRY
   MyStream.LoadFromFile(PSOsFileName);
   SetLEngth(MNSLockArray,0);
   MyStream.Position := 0;
@@ -110,6 +111,9 @@ Begin
     MyStream.Read(MNData,sizeof(MNData));
     AddLineToDebugLog('console',counter.ToString+' '+MNData.address+' '+MNData.expire.ToString );
     Insert(MNData,MNSLockArray,length(MNSLockArray));
+    end;
+
+    EXCEPT ON E:EXCEPTION DO
     end;
   MyStream.Free;
 End;

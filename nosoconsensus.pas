@@ -341,7 +341,8 @@ Begin
   SetLength(ArrayCon,0);
   for counter := 0 to high(NodesArray) do
     begin
-    AddValue(Parameter(NodesArray[counter].Data,0));
+    if Parameter(NodesArray[counter].Data,0) <> '' then
+      AddValue(Parameter(NodesArray[counter].Data,0));
     end;
   ConHash := GetHighest;
   if conhash = '' then
