@@ -1,8 +1,8 @@
 unit nosodebug;
 
 {
-Nosodebug 1.2
-December 20th, 2022
+Nosodebug 1.3
+September 22th, 2023
 Unit to implement debug functionalities on noso project apps.
 }
 
@@ -51,7 +51,7 @@ Procedure BeginPerformance(Tag:String);
 Function EndPerformance(Tag:String):int64;
 
 Procedure CreateNewLog(LogName: string; LogFileName:String = '');
-Procedure AddLineToDebugLog(LogTag,NewLine : String);
+Procedure ToLog(LogTag,NewLine : String);
 Function GetLogLine(LogTag:string;out LineContent:string):boolean;
 
 Procedure AddNewOpenThread(ThName:String;TimeStamp:int64);
@@ -191,7 +191,7 @@ Begin
 End;
 
 {Adds one line to the specified log}
-Procedure AddLineToDebugLog(LogTag,NewLine : String);
+Procedure ToLog(LogTag,NewLine : String);
 var
   counter : integer;
 Begin

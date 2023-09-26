@@ -52,6 +52,9 @@ Function B10ToB58(const sVal: String): String;
 Function B16ToB10(const sHex: String): String;
 Function B16ToB36(const sHex: String): String;
 Function B16ToB58(const sHex: String): String;
+
+Function B16ToB58Lite1_60(const sHex: String): String;
+
 Function B58ToB10(const sVal: String): String;
 Function B58ToB16(const sVal: String): String;
 Function ChecksumBase58(const S: String): integer;
@@ -585,6 +588,25 @@ Begin
 End;
 
 Function B16ToB58(const sHex: String): String;
+var
+  bytes: TBytes;
+  S: String;
+Begin
+  Result := '1';
+  S := sHex.Trim;
+  if (Length(S) = 0) then
+    Exit;
+  if (Length(S) mod 2) <> 0 then
+    S := Concat('0', S);
+  try
+    bytes := TConverters.ConvertHexStringToBytes(S);
+  except
+    Exit { invalid HEX input }
+  end;
+  Result := TBase58.BitCoin.Encode(TBigInteger.Create(bytes).ToByteArrayUnsigned);
+End;
+
+Function B16ToB58Lite1_60(const sHex: String): String;
 var
   bytes: TBytes;
   S: String;

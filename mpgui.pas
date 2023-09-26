@@ -271,7 +271,7 @@ End;
 Procedure OutText(Texto:String;inctime:boolean = false;canal : integer =0);
 Begin
 if inctime then texto := timetostr(now)+' '+texto;
-if canal = 0 then AddLineToDebugLog('console',texto);
+if canal = 0 then ToLog('console',texto);
 if canal = 1 then  // Salida al grid de inicio
    begin
    gridinicio.RowCount:=gridinicio.RowCount+1;
@@ -282,7 +282,7 @@ if canal = 1 then  // Salida al grid de inicio
    end;
 if canal = 2 then // A consola y label info
    begin
-   AddLineToDebugLog('console',texto);
+   ToLog('console',texto);
    info(texto);
    end;
 End;
@@ -320,7 +320,7 @@ if ( (form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor) and (LastUpdateMonit
             Form1.SG_Monitor.Cells[3,contador+1]:=IntToStr(ArrPerformance[contador].Average);
             Except on E:Exception do
                begin
-               AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format('Error showing ArrPerformance data(%s): %s',[ArrPerformance[contador].tag,E.Message]));
+               ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format('Error showing ArrPerformance data(%s): %s',[ArrPerformance[contador].tag,E.Message]));
                end;
             end;
          end;

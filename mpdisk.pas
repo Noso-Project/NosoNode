@@ -23,7 +23,7 @@ Procedure GetGVTsFileData();
 Procedure SaveGVTs();
 Function ChangeGVTOwner(Lnumber:integer;OldOwner,NewOWner:String): integer;
 Function CountAvailableGVTs():Integer;
-Function GetGVTPrice():int64;
+Function GetGVTPrice(available:integer;ToSell:boolean = false):int64;
 
 // NosoCFG file handling
 Procedure SaveNosoCFGFile(LStr:String);
@@ -204,7 +204,7 @@ Assignfile(archivo, MAsternodesfilename);
 rewrite(archivo);
 Closefile(archivo);
 EXCEPT on E:Exception do
-  AddLineToDebugLog('events',TimeToStr(now)+'Error creating the masternodes file');
+  ToLog('events',TimeToStr(now)+'Error creating the masternodes file');
 END;
 End;
 
@@ -215,7 +215,7 @@ Assignfile(FileGVTs, GVTsFilename);
 rewrite(FileGVTs);
 Closefile(FileGVTs);
 EXCEPT on E:Exception do
-   AddLineToDebugLog('events',TimeToStr(now)+'Error creating the GVTs file');
+   ToLog('events',TimeToStr(now)+'Error creating the GVTs file');
 END;
 MyGVTsHash := HashMD5File(GVTsFilename);
 End;
@@ -237,7 +237,7 @@ For counter := 0 to filesize(FileGVTs)-1 do
    end;
 Closefile(FileGVTs);
 EXCEPT ON E:Exception do
-   AddLineToDebugLog('events',TimeToStr(now)+'Error loading the GVTs from file');
+   ToLog('events',TimeToStr(now)+'Error loading the GVTs from file');
 END;
 MyGVTsHash := HashMD5File(GVTsFilename);
 LeaveCriticalSection(CSGVTsArray);
@@ -259,7 +259,7 @@ For counter := 0 to length(ArrGVTs)-1 do
    end;
 Closefile(FileGVTs);
 EXCEPT ON E:Exception do
-   AddLineToDebugLog('events',TimeToStr(now)+'Error loading the GVTs from file');
+   ToLog('events',TimeToStr(now)+'Error loading the GVTs from file');
 END;
 MyGVTsHash := HashMD5File(GVTsFilename);
 LeaveCriticalSection(CSGVTsArray);
@@ -289,13 +289,13 @@ Begin
   LeaveCriticalSection(CSGVTsArray);
 End;
 
-Function GetGVTPrice():int64;
+Function GetGVTPrice(available:integer;ToSell:boolean = false):int64;
 var
-  available : integer;
   counter   : integer;
 Begin
   result   := GVTBaseValue;
-  available:= 40-CountAvailableGVTs;
+  available:= 40-available;
+  if ToSell then Dec(available,2);
   for counter := 1 to available do
      result := (result *110) div 100;
 End;
@@ -310,7 +310,7 @@ TRY
    rewrite(LFile);
    write(Lfile,LStr);
    EXCEPT on E:Exception do
-      AddLineToDebugLog('events',TimeToStr(now)+'Error creating the NosoCFG file');
+      ToLog('events',TimeToStr(now)+'Error creating the NosoCFG file');
    END;
 FINALLY
 Closefile(LFile);
@@ -329,7 +329,7 @@ TRY
    ReadLn(Lfile,LStr);
    SetNosoCFGString(LStr);
    EXCEPT on E:Exception do
-      AddLineToDebugLog('events',TimeToStr(now)+'Error loading the NosoCFG file');
+      ToLog('events',TimeToStr(now)+'Error loading the NosoCFG file');
    END;
 FINALLY
 Closefile(LFile);
@@ -429,10 +429,10 @@ BeginPerformance('CreateADV');
    writeln(FileAdvOptions,'PosWarning '+IntToStr(WO_PosWarning));
 
    Closefile(FileAdvOptions);
-   if saving then AddLineToDebugLog('events',TimeToStr(now)+'Options file saved');
+   if saving then ToLog('events',TimeToStr(now)+'Options file saved');
    S_AdvOpt := false;
    Except on E:Exception do
-      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error creating/saving AdvOpt file: '+E.Message);
+      ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error creating/saving AdvOpt file: '+E.Message);
    end;
    EndPerformance('CreateADV');
 End;
@@ -504,7 +504,7 @@ Begin
       end;
    Closefile(FileAdvOptions);
    Except on E:Exception do
-      AddLineToDebugLog('events',TimeToStr(now)+'Error loading AdvOpt file');
+      ToLog('events',TimeToStr(now)+'Error loading AdvOpt file');
    end;
 End;
 
@@ -566,7 +566,7 @@ Begin
    closefile(FileBotData);
    SetLength(ListadoBots,0);
    Except on E:Exception do
-      AddLineToDebugLog('events',TimeToStr(now)+'Error creating bot data');
+      ToLog('events',TimeToStr(now)+'Error creating bot data');
    end;
 End;
 
@@ -591,7 +591,7 @@ Begin
       end;
    closefile(FileBotData);
    Except on E:Exception do
-      AddLineToDebugLog('events',TimeToStr(now)+'Error loading bot data');
+      ToLog('events',TimeToStr(now)+'Error loading bot data');
    end;
 End;
 
@@ -643,9 +643,9 @@ if ErrorCode = 0 then
       end;
    Truncate(FileBotData);
    S_BotData := false;
-   AddLineToDebugLog('events',TimeToStr(now)+'Bot file saved: '+inttoStr(length(ListadoBots))+' registers');
+   ToLog('events',TimeToStr(now)+'Bot file saved: '+inttoStr(length(ListadoBots))+' registers');
    EXCEPT on E:Exception do
-         AddLineToDebugLog('events',TimeToStr(now)+'Error saving bots to file :'+E.Message);
+         ToLog('events',TimeToStr(now)+'Error saving bots to file :'+E.Message);
    END; {TRY}
    end;
 {$I-}closefile(FileBotData);{$I+};
@@ -683,7 +683,7 @@ Begin
       closefile(FileWallet);
       end;
    EXCEPT on E:Exception do
-      AddLineToDebugLog('events',TimeToStr(now)+'Error creating wallet file');
+      ToLog('events',TimeToStr(now)+'Error creating wallet file');
    END; {TRY}
 End;
 
@@ -709,11 +709,11 @@ Begin
       closefile(FileWallet);
       end;
    EXCEPT on E:Exception do
-      AddLineToDebugLog('events',TimeToStr(now)+'Error loading wallet from file: '+e.Message);
+      ToLog('events',TimeToStr(now)+'Error loading wallet from file: '+e.Message);
    END;{TRY}
    //UpdateWalletFromSumario();
    if Fixed > 0 then
-      AddLineToDebugLog('console',format('Fixed addresses: %d',[Fixed]));
+      ToLog('console',format('Fixed addresses: %d',[Fixed]));
    SaveWalletFile();
 End;
 
@@ -745,7 +745,7 @@ If IOCode = 0 then
    S_Wallet := false;
    EXCEPT on E:Exception do
       begin
-      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error saving wallet to disk ('+E.Message+')');
+      ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error saving wallet to disk ('+E.Message+')');
       Result := false;
       end;
    END; {TRY}
@@ -754,7 +754,7 @@ If IOCode = 0 then
 IOCode := IOResult;
 if IOCode>0 then
    begin
-   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Unable to close wallet file, error= '+IOCode.ToString );
+   ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Unable to close wallet file, error= '+IOCode.ToString );
    Result := false;
    end;
 EndPerformance('SaveWalletFile');
@@ -846,7 +846,7 @@ UpdateSummaryChanges;
 UpdateMyData();
 CreateSumaryIndex;
 TimeDuration := EndPerformance('RebuildSummary');
-AddLineToDebugLog('console',format('Sumary rebuild time: %d ms',[TimeDuration]));
+ToLog('console',format('Sumary rebuild time: %d ms',[TimeDuration]));
 End;
 
 // Returns the last downloaded block
@@ -869,7 +869,7 @@ BlockFiles := TStringList.Create;
       end;
    Result := LastBlock;
    EXCEPT on E:Exception do
-      AddLineToDebugLog('events',TimeToStr(now)+'Error getting my last updated block');
+      ToLog('events',TimeToStr(now)+'Error getting my last updated block');
    END; {TRY}
 BlockFiles.Free;
 end;
@@ -894,7 +894,7 @@ UnZipper := TUnZipper.Create;
    EXCEPT on E:Exception do
       begin
       Result := false;
-      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error unzipping block file '+filename+': '+E.Message);
+      ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error unzipping block file '+filename+': '+E.Message);
       end;
    END; {TRY}
 if delfile then Trydeletefile(filename);
@@ -931,7 +931,7 @@ Begin
    rewrite(FileResumen);
    closefile(FileResumen);
    Except on E:Exception do
-      AddLineToDebugLog('events',TimeToStr(now)+'Error creating headers file');
+      ToLog('events',TimeToStr(now)+'Error creating headers file');
    end;
 End;
 
@@ -951,7 +951,7 @@ var
   Modified    : boolean = false;
 Begin
 if untilBlock = -1 then untilblock := MyLastBlock;
-AddLineToDebugLog('console','Rebuilding until block '+IntToStr(untilblock)); //'Rebuilding until block '
+ToLog('console','Rebuilding until block '+IntToStr(untilblock)); //'Rebuilding until block '
 contador := fromblock;
 while contador <= untilblock do
    begin
@@ -981,14 +981,14 @@ while contador <= untilblock do
       end;
    if contador mod 10 = 0 then
       begin
-      AddLineToDebugLog('console',Format('Last verified: %d (%d)',[contador,newblocks]));
+      ToLog('console',Format('Last verified: %d (%d)',[contador,newblocks]));
       end;
    Application.ProcessMessages;
    Inc(Contador);
    end;
 if newblocks>0 then
    begin
-   AddLineToDebugLog('console',IntToStr(newblocks)+' added to headers'); //' added to headers'
+   ToLog('console',IntToStr(newblocks)+' added to headers'); //' added to headers'
    U_DirPanel := true;
    end;
 UpdateMyData();
@@ -1005,7 +1005,7 @@ if copy(MySumarioHash,0,5) = GetConsensus(17) then exit;
 RebuildingSumary := true;
 StartBlock := SummaryLastop+1;
 finishblock := Mylastblock;
-AddLineToDebugLog('console','Complete summary');
+ToLog('console','Complete summary');
 for counter := StartBlock to finishblock do
    begin
    AddBlockToSumary(counter, true);
@@ -1020,7 +1020,7 @@ SummaryLastop := finishblock;
 RebuildingSumary := false;
 UpdateMyData();
 ZipSumary;
-AddLineToDebugLog('console',format('Summary completed from %d to %d (%s)',[StartBlock-1,finishblock,Copy(MySumarioHash,0,5)]));
+ToLog('console',format('Summary completed from %d to %d (%s)',[StartBlock-1,finishblock,Copy(MySumarioHash,0,5)]));
 info('Sumary completed');
 End;
 
@@ -1122,7 +1122,7 @@ seek(fileResumen,filesize(fileResumen));
 write(fileResumen,dato);
 closefile(FileResumen);
 EXCEPT on E:Exception do
-   AddLineToDebugLog('events',TimeToStr(now)+'Error adding new register to headers');
+   ToLog('events',TimeToStr(now)+'Error adding new register to headers');
 END;
 LeaveCriticalSection(CSHeadAccess);
 End;
@@ -1140,7 +1140,7 @@ EnterCriticalSection(CSHeadAccess);
    Result := true;
    EXCEPT on E:Exception do
       begin
-      AddLineToDebugLog('events',TimeToStr(now)+'Error deleting last record from headers');
+      ToLog('events',TimeToStr(now)+'Error deleting last record from headers');
       result := false;
       end;
    END;{TRY}
@@ -1166,7 +1166,7 @@ Begin
     END;
   EXCEPT on E:Exception do
     begin
-    AddLineToDebugLog('events',TimeToStr(now)+'Error getting header '+Block.ToString+': '+E.Message);
+    ToLog('events',TimeToStr(now)+'Error getting header '+Block.ToString+': '+E.Message);
     Result.block:=-1;
     end;
   END;
@@ -1189,7 +1189,7 @@ Begin
     closefile(FileResumen);
     END;
   EXCEPT on E:Exception do
-    AddLineToDebugLog('events',TimeToStr(now)+'Error SetHeadersNumber '+Ldata.block.ToString+': '+E.Message);
+    ToLog('events',TimeToStr(now)+'Error SetHeadersNumber '+Ldata.block.ToString+': '+E.Message);
   END;
   LeaveCriticalSection(CSHeadAccess);
 End;
@@ -1206,7 +1206,7 @@ assignfile(FileResumen,ResumenFilename);
    closefile(FileResumen);
    EXCEPT on E:Exception do
       begin
-      AddLineToDebugLog('events',TimeToStr(now)+'Error retrieving headers size: '+E.Message);
+      ToLog('events',TimeToStr(now)+'Error retrieving headers size: '+E.Message);
       end;
    END;{TRY}
 LeaveCriticalSection(CSHeadAccess);
@@ -1230,7 +1230,7 @@ if filesize(FileResumen)>0 then
    end;
 closefile(FileResumen);
 EXCEPT on E:Exception do
-   AddLineToDebugLog('events',TimeToStr(now)+'Error reading headers');
+   ToLog('events',TimeToStr(now)+'Error reading headers');
 END;
 LeaveCriticalSection(CSHeadAccess);
 End;
@@ -1251,7 +1251,7 @@ Read(fileResumen,dato);
 Result := Dato.block.ToString+':'+Dato.blockhash+':'+Dato.SumHash;
 closefile(FileResumen);
 EXCEPT on E:Exception do
-  AddLineToDebugLog('events',TimeToStr(now)+'Error showing header '+Blocknumber.ToString);
+  ToLog('events',TimeToStr(now)+'Error showing header '+Blocknumber.ToString);
 END;
 LeaveCriticalSection(CSHeadAccess);
 End;
@@ -1327,7 +1327,7 @@ else
    writeln(archivo,'./'+AppFileName);
 {$ENDIF}
 EXCEPT on E:Exception do
-   if not G_ClosingAPP then AddLineToDebugLog('events',TimeToStr(now)+'Error creating restart file: '+E.Message);
+   if not G_ClosingAPP then ToLog('events',TimeToStr(now)+'Error creating restart file: '+E.Message);
 END{Try};
 Closefile(archivo);
 End;
@@ -1533,7 +1533,7 @@ Assignfile(archivo, 'restart.txt');
    writeln(archivo,GetCurrentStatus(0));
    Closefile(archivo);
    Except on E:Exception do
-      AddLineToDebugLog('events',TimeToStr(now)+'Error creating restart file');
+      ToLog('events',TimeToStr(now)+'Error creating restart file');
    end;
 End;
 
@@ -1627,7 +1627,7 @@ Begin
 if fromblock = 0 then StartMark := ((GetMyLastUpdatedBlock div SumMarkInterval)-1)*SumMarkInterval
 else StartMark := Fromblock;
 //LoadSummaryFromDisk(MarksDirectory+StartMark.ToString+'.bak');
-AddLineToDebugLog('console','Restoring sumary from '+StartMark.ToString);
+ToLog('console','Restoring sumary from '+StartMark.ToString);
 CompleteSumary;
 End;
 
@@ -1640,7 +1640,7 @@ result := true;
    EXCEPT on E:Exception do
       begin
       result := false;
-      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error deleting file ('+filename+') :'+E.Message);
+      ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error deleting file ('+filename+') :'+E.Message);
       end;
    END;{TRY}
 End;
@@ -1654,7 +1654,7 @@ result := true;
    EXCEPT on E:Exception do
       begin
       result := false;
-      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error copying file ('+Source+') :'+E.Message);
+      ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error copying file ('+Source+') :'+E.Message);
       end;
    END; {TRY}
 End;

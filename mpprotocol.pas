@@ -121,7 +121,7 @@ OrderInfo.Signature  := Parameter(textline,12);
 OrderInfo.TrfrID     := Parameter(textline,13);
 EXCEPT ON E:Exception do
    begin
-   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error GetOrderFromString : '+E.Message);
+   ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error GetOrderFromString : '+E.Message);
    end;
 END;{TRY}
 Result := OrderInfo;
@@ -286,7 +286,7 @@ for contador := 1 to MaxConecciones do
    begin
    if ( (LengthIncoming(contador) > 200) and (not IsSeedNode(Conexiones[contador].ip)) ) then
       begin
-      //AddLineToDebugLog('console','POSSIBLE ATTACK FROM: '+Conexiones[contador].ip);
+      //ToLog('console','POSSIBLE ATTACK FROM: '+Conexiones[contador].ip);
       //UpdateBotData(conexiones[contador].ip);
       //CerrarSlot(contador);
       //continue;
@@ -301,18 +301,18 @@ for contador := 1 to MaxConecciones do
       if ((not IsValidProtocol(ProcessLine)) and (not Conexiones[contador].Autentic)) then
          // La linea no es valida y proviene de una conexion no autentificada
          begin
-         AddLineToDebugLog('console','CONNECTION REJECTED: INVALID PROTOCOL -> '+conexiones[contador].ip+'->'+ProcessLine); //CONNECTION REJECTED: INVALID PROTOCOL ->
+         ToLog('console','CONNECTION REJECTED: INVALID PROTOCOL -> '+conexiones[contador].ip+'->'+ProcessLine); //CONNECTION REJECTED: INVALID PROTOCOL ->
          UpdateBotData(conexiones[contador].ip);
          CerrarSlot(contador);
          end
       else if UpperCase(LineComando) = 'DUPLICATED' then
          begin
-         AddLineToDebugLog('Console','You are already connected to '+conexiones[contador].ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
+         ToLog('Console','You are already connected to '+conexiones[contador].ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
          CerrarSlot(contador);
          end
       else if UpperCase(LineComando) = 'OLDVERSION' then
          begin
-         AddLineToDebugLog('Console','You need update your wallet to connect to '+conexiones[contador].ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
+         ToLog('Console','You need update your wallet to connect to '+conexiones[contador].ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
          CerrarSlot(contador);
          end
       else if UpperCase(LineComando) = '$GETNODES' then PTC_Getnodes(contador)
@@ -331,7 +331,7 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = '$BESTHASH' then
          begin
          PTC_BestHash(ProcessLine,'1.1.1.1');
-         //AddLineToDebugLog('console','Debug: Besthash processed via protocol engine');
+         //ToLog('console','Debug: Besthash processed via protocol engine');
          end
       else if UpperCase(LineComando) = '$MNCHECK' then PTC_MNCheck(ProcessLine)
       else if UpperCase(LineComando) = '$GETCHECKS' then PTC_SendChecks(contador)
@@ -348,7 +348,7 @@ for contador := 1 to MaxConecciones do
 
       else
          Begin  // El comando recibido no se reconoce. Verificar protocolos posteriores.
-         AddLineToDebugLog('Console','Unknown command () in slot: ('+ProcessLine+') '+intToStr(contador)); //Unknown command () in slot: (
+         ToLog('Console','Unknown command () in slot: ('+ProcessLine+') '+intToStr(contador)); //Unknown command () in slot: (
          end;
       end;
    end;
@@ -397,8 +397,8 @@ if slot <= length(conexiones)-1 then
          Conexiones[Slot].context.Connection.IOHandler.WriteLn(Message);
          EXCEPT On E :Exception do
             begin
-            AddLineToDebugLog('Console',E.Message);
-            AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error sending line: '+E.Message);
+            ToLog('Console',E.Message);
+            ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error sending line: '+E.Message);
             CerrarSlot(Slot);
             end;
          END;{TRY}
@@ -416,14 +416,14 @@ if slot <= length(conexiones)-1 then
       CanalCliente[Slot].IOHandler.WriteLn(Message);
       EXCEPT On E :Exception do
          begin
-         AddLineToDebugLog('Console',E.Message);
-         AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error sending line: '+E.Message);
+         ToLog('Console',E.Message);
+         ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error sending line: '+E.Message);
          CerrarSlot(Slot);
          end;
       END;{TRY}
       end;
    end
-else AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Invalid PTC_SendLine slot: '+IntToStr(slot));
+else ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Invalid PTC_SendLine slot: '+IntToStr(slot));
 end;
 
 Procedure ClearOutTextToSlot(slot:integer);
@@ -564,7 +564,7 @@ if GetPendingCount > 0 then
          PTC_SendLine(slot,Encab+'$'+TextLine);
          end;
       end;
-   AddLineToDebugLog('events',TimeToStr(now)+'Sent '+IntToStr(Length(CopyPendingTXs))+' pendingTxs to '+conexiones[slot].ip);
+   ToLog('events',TimeToStr(now)+'Sent '+IntToStr(Length(CopyPendingTXs))+' pendingTxs to '+conexiones[slot].ip);
    SetLength(CopyPendingTXs,0);
    end;
 End;
@@ -586,7 +586,7 @@ if conexiones[slot].tipo='CLI' then
       EXCEPT on E:Exception do
          begin
          Form1.TryCloseServerConnection(Conexiones[Slot].context);
-         AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Error sending headers file ('+E.Message+')');
+         ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Error sending headers file ('+E.Message+')');
          end;
       END; {TRY}
    end;
@@ -597,7 +597,7 @@ if conexiones[slot].tipo='SER' then
       CanalCliente[slot].IOHandler.Write(MemStream,0,true);
       EXCEPT on E:Exception do
          begin
-         AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'CLIENT: Error sending Headers file ('+E.Message+')');
+         ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'CLIENT: Error sending Headers file ('+E.Message+')');
          CerrarSlot(slot);
          end;
       END;{TRY}
@@ -621,7 +621,7 @@ if conexiones[slot].tipo='CLI' then
       EXCEPT on E:Exception do
          begin
          Form1.TryCloseServerConnection(Conexiones[Slot].context);
-         AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Error sending sumary file ('+E.Message+')');
+         ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Error sending sumary file ('+E.Message+')');
          end;
       END; {TRY}
    end;
@@ -632,7 +632,7 @@ if conexiones[slot].tipo='SER' then
       CanalCliente[slot].IOHandler.Write(MemStream,0,true);
       EXCEPT on E:Exception do
          begin
-         AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'CLIENT: Error sending Sumary file ('+E.Message+')');
+         ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'CLIENT: Error sending Sumary file ('+E.Message+')');
          CerrarSlot(slot);
          end;
       END;{TRY}
@@ -662,7 +662,7 @@ EnterCriticalSection(CSHeadAccess);
    MyZipFile.ZipAllFiles;
    result := true;
    EXCEPT ON E:Exception do
-      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error on Zip Headers file: '+E.Message);
+      ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error on Zip Headers file: '+E.Message);
    END{Try};
 MyZipFile.Free;
 LeaveCriticalSection(CSHeadAccess);
@@ -699,7 +699,7 @@ EnterCriticalSection(CSBlocksAccess);
    result := ZipFileName;
    EXCEPT ON E:Exception do
       begin
-      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error zipping block files: '+E.Message);
+      ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error zipping block files: '+E.Message);
       end;
    end;
 LeaveCriticalSection(CSBlocksAccess);
@@ -718,7 +718,7 @@ var
   FileSentOk : Boolean = false;
   ZipFileName:String;
 Begin
-AddLineToDebugLog('Console','********** DEBUG CHECK **********');
+ToLog('Console','********** DEBUG CHECK **********');
 FirstBlock := StrToIntDef(Parameter(textline,5),-1)+1;
 ZipFileName := CreateZipBlockfile(FirstBlock);
 MemStream := TMemoryStream.Create;
@@ -728,7 +728,7 @@ MemStream := TMemoryStream.Create;
    EXCEPT on E:Exception do
       begin
       GetFileOk := false;
-      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error on PTC_SendBlocks: '+E.Message);
+      ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error on PTC_SendBlocks: '+E.Message);
       end;
    END; {TRY}
    if GetFileOk then
@@ -742,7 +742,7 @@ MemStream := TMemoryStream.Create;
             EXCEPT on E:Exception do
                begin
                Form1.TryCloseServerConnection(Conexiones[Slot].context);
-               AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Error sending ZIP blocks file ('+E.Message+')');
+               ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Error sending ZIP blocks file ('+E.Message+')');
                end;
             END; {TRY}
          end;
@@ -754,7 +754,7 @@ MemStream := TMemoryStream.Create;
             FileSentOk := true;
             EXCEPT on E:Exception do
                begin
-               AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'CLIENT: Error sending ZIP blocks file ('+E.Message+')');
+               ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'CLIENT: Error sending ZIP blocks file ('+E.Message+')');
                CerrarSlot(slot);
                END; {TRY}
             end;
@@ -910,7 +910,7 @@ for cont := 0 to NumTransfers-1 do
       begin
       proceder := false;
       ErrorCode := 97;
-      //AddLineToDebugLog('console',format('error: %s <> %s',[senderTrx[cont],TrxArray[cont].Address ]))
+      //ToLog('console',format('error: %s <> %s',[senderTrx[cont],TrxArray[cont].Address ]))
       end;
    if pos(sendersString,senderTrx[cont]) > 0 then
       begin
@@ -924,18 +924,18 @@ for cont := 0 to NumTransfers-1 do
 GenOrderID := GetOrderHash(GenOrderID);
 if TotalFee >= GetMinimumFee(TotalSent) then
    begin
-   //AddLineToDebugLog('console',Format('Order fees match : %d >= %d',[TotalFee,GetFee(TotalSent)]))
+   //ToLog('console',Format('Order fees match : %d >= %d',[TotalFee,GetFee(TotalSent)]))
    end
 else
    begin
-   //AddLineToDebugLog('console',Format('WRONG ORDER FEES : %d >= %d',[TotalFee,GetFee(TotalSent)]));
+   //ToLog('console',Format('WRONG ORDER FEES : %d >= %d',[TotalFee,GetFee(TotalSent)]));
    TodoValido := false;
    ErrorCode := 100;
    end;
 if RecOrderId<>GenOrderID then
    begin
-   //AddLineToDebugLog('console','<-'+RecOrderId);
-   //AddLineToDebugLog('console','->'+GenOrderID);
+   //ToLog('console','<-'+RecOrderId);
+   //ToLog('console','->'+GenOrderID);
    if mylastblock >= 56000 then TodoValido := false;
    if mylastblock >= 56000 then ErrorCode := 101;
    end;
@@ -969,7 +969,7 @@ else
    end;
 EXCEPT ON E:EXCEPTION DO
    begin
-   AddLineToDebugLog('Console','****************************************'+slinebreak+'PTC_Order:'+E.Message);
+   ToLog('Console','****************************************'+slinebreak+'PTC_Order:'+E.Message);
    end;
 END; {TRY}
 End;
@@ -989,7 +989,7 @@ var
   StrTosign  : String = '';
 Begin
 OrderInfo := Default(TOrderData);
-//AddLineToDebugLog('console',TextLine);
+//ToLog('console',TextLine);
 OrderInfo := GetOrderFromString(TextLine);
 Address := GetAddressFromPublicKey(OrderInfo.sender);
 if address <> OrderInfo.Address then ErrorCode := 1;
@@ -1010,7 +1010,7 @@ if ErrorCode= 0 then
    end;
 Result := ErrorCode;
 if ErrorCode > 0 then
-   AddLineToDebugLog('events',TimeToStr(now)+'SendGVT error: '+ErrorCode.ToString);
+   ToLog('events',TimeToStr(now)+'SendGVT error: '+ErrorCode.ToString);
 End;
 
 Procedure PTC_AdminMSG(TextLine:String);
@@ -1030,7 +1030,7 @@ var
   ThDirect := TThreadDirective.Create(true,LParameter);
   ThDirect.FreeOnTerminate:=true;
   ThDirect.Start;
-  AddLineToDebugLog('events',TimeToStr(now)+Format('Directive: %s',[LParameter]));
+  ToLog('events',TimeToStr(now)+Format('Directive: %s',[LParameter]));
   End;
 
 Begin
@@ -1042,12 +1042,12 @@ if AnsiContainsStr(MsgsReceived,hashmsg) then errored := true;
 mensaje := StringReplace(mensaje,'_',' ',[rfReplaceAll, rfIgnoreCase]);
 if not VerifySignedString(msgtime+mensaje,firma,AdminPubKey) then
    begin
-   AddLineToDebugLog('events',TimeToStr(now)+'Directive wrong sign');
+   ToLog('events',TimeToStr(now)+'Directive wrong sign');
    errored := true;
    end;
 if HashMD5String(msgtime+mensaje+firma) <> Hashmsg then
    begin
-   AddLineToDebugLog('events',TimeToStr(now)+'Directive wrong hash');
+   ToLog('events',TimeToStr(now)+'Directive wrong hash');
    errored :=true;
    end;
 if not errored then
@@ -1106,7 +1106,7 @@ if not IsValidPool(Miner) then exitcode := 9;
 if not VerifySignedString(Miner+Hash+TimeStamp,Signature,PublicKey) then
    begin
    Exitcode := 11;
-   //If miner <> 'NpryectdevepmentfundsGE' then AddLineToDebugLog('events',TimeToStr(now)+'Invalid signature from '+miner);
+   //If miner <> 'NpryectdevepmentfundsGE' then ToLog('events',TimeToStr(now)+'Invalid signature from '+miner);
    end;
 if exitcode>0 then
    begin
@@ -1120,7 +1120,7 @@ if ( (Diff<GetNMSData.Diff) and (Copy(Diff,1,7)<>'0000000') ) then // Better has
    SetNMSData(Diff,hash,miner,timestamp,publickey,signature);
    OutgoingMsjsAdd(GetPTCEcn+'$BESTHASH '+Miner+' '+Hash+' '+block+' '+TimeStamp+' '+PublicKey+' '+Signature);
    Result:='True '+Diff+' '+ResultHash;
-   if IPUser <>'1.1.1.1' then AddLineToDebugLog('events',TimeToStr(now)+'Besthash received from '+IPUser+'->'+Miner);
+   if IPUser <>'1.1.1.1' then ToLog('events',TimeToStr(now)+'Besthash received from '+IPUser+'->'+Miner);
    end
 else
    begin
@@ -1140,10 +1140,10 @@ if Copy(HAshMD5String(Content),0,5) = GetCOnsensus(19) then
    SaveNosoCFGFile(content);
    SetNosoCFGString(content);
    FillNodeList;
-   AddLineToDebugLog('Console','Noso CFG updated!');
+   ToLog('Console','Noso CFG updated!');
    end
 else
-   AddLineToDebugLog('Console',Format('Failed CFG: %s <> %s',[Copy(HAshMD5String(Content),0,5),GetCOnsensus(19)]));
+   ToLog('Console',Format('Failed CFG: %s <> %s',[Copy(HAshMD5String(Content),0,5),GetCOnsensus(19)]));
 End;
 
 Procedure PTC_SendUpdateHeaders(Slot:integer;Linea:String);
@@ -1152,8 +1152,8 @@ var
 Begin
 Block := StrToIntDef(Parameter(Linea,5),0);
 PTC_SendLine(slot,ProtocolLine(headupdate)+' $'+LastHeaders(Block));
-//AddLineToDebugLog('console',Format('Blockheaders update sent to %s (%d)',[Conexiones[slot].ip,Block]));
-//AddLineToDebugLog('console','Blockheaders update sent to '+Conexiones[slot].ip);
+//ToLog('console',Format('Blockheaders update sent to %s (%d)',[Conexiones[slot].ip,Block]));
+//ToLog('console','Blockheaders update sent to '+Conexiones[slot].ip);
 End;
 
 Procedure PTC_HeadUpdate(linea:String);
@@ -1170,7 +1170,7 @@ Begin
 if MyResumenHash = NetResumenHash.Value then exit;
 startpos := Pos('$',Linea);
 Content := Copy(Linea,Startpos+1,Length(linea));
-//AddLineToDebugLog('console','Content: '+Linea);
+//ToLog('console','Content: '+Linea);
 REPEAT
    ThisHeader := Parameter(Content,counter);
    If thisheader<>'' then
@@ -1194,11 +1194,11 @@ MyResumenHash := HashMD5File(ResumenFilename);
 if copy(MyResumenHash,0,5) <> GetConsensus(5) then
    begin
    ForceCompleteHeadersDownload := true;
-   AddLineToDebugLog('Console',Format('Update headers failed (%d) : %s <> %s',[TotalErrors,Copy(MyResumenHash,0,5),GetConsensus(5)]));
+   ToLog('Console',Format('Update headers failed (%d) : %s <> %s',[TotalErrors,Copy(MyResumenHash,0,5),GetConsensus(5)]));
    end
 else
    begin
-   AddLineToDebugLog('Console','Headers Updated!');
+   ToLog('Console','Headers Updated!');
    ForceCompleteHeadersDownload := false;
    end;
 End;
@@ -1346,7 +1346,7 @@ SaveNosoCFGFile(DefaultNosoCFG);
 SetNosoCFGString(DefaultNosoCFG);
 SetNodesArray(GetNosoCFGString(1));
 FillNodeList;
-AddLineToDebugLog('Console','NosoCFG restarted');
+ToLog('Console','NosoCFG restarted');
 End;
 
 // Añade una operacion a la espera de cripto
@@ -1362,7 +1362,7 @@ TRY
 Insert(NewOp,ArrayCriptoOp,length(ArrayCriptoOp));
 
 EXCEPT ON E:Exception do
-   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error adding Operation to crypto thread:'+proceso);
+   ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error adding Operation to crypto thread:'+proceso);
 END{Try};
 LeaveCriticalSection(CSCriptoThread);
 End;
@@ -1377,7 +1377,7 @@ if Length(ArrayCriptoOp) > 0 then
    Delete(ArrayCriptoOp,0,1);
    EXCEPT ON E:Exception do
       begin
-      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error removing Operation from crypto thread:'+E.Message);
+      ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error removing Operation from crypto thread:'+E.Message);
       end;
    END{Try};
    end;

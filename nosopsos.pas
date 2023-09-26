@@ -109,7 +109,7 @@ Begin
     begin
     MNData := Default(TMNsLock);
     MyStream.Read(MNData,sizeof(MNData));
-    AddLineToDebugLog('console',counter.ToString+' '+MNData.address+' '+MNData.expire.ToString );
+    ToLog('console',counter.ToString+' '+MNData.address+' '+MNData.expire.ToString );
     Insert(MNData,MNSLockArray,length(MNSLockArray));
     end;
 
@@ -126,12 +126,13 @@ var
   MNData    : TMNsLock;
   StrSize   : int64;
   NewHeader : TPSOHeader;
+  Errored   : boolean = false;
 Begin
   Result := false;
-  MyStream := TMemoryStream.Create;
   PSOHeader := Default(TPSOHeader);
   SetLength(PSOsArray,0);
   SetLength(MNSLockArray,0);
+  MyStream := TMemoryStream.Create;
   StrSize := GetPSOsAsMemStream(MyStream);
   If StrSize > 0 then
     begin
@@ -139,29 +140,41 @@ Begin
     MyStream.Read(NewHeader, SizeOf(NewHeader));
     SetPSOHeaders(NewHeader);
     EnterCriticalSection(CS_LockedMNs);
-    for counter := 0 to NewHeader.MNsLock-1 do
+    TRY
+      for counter := 0 to NewHeader.MNsLock-1 do
+        begin
+        MNData := Default(TMNsLock);
+        MyStream.Read(MNData,sizeof(MNData));
+        Insert(MNData,MNSLockArray,length(MNSLockArray));
+        end;
+    EXCEPT ON E:EXCEPTION do
       begin
-      MNData := Default(TMNsLock);
-      MyStream.Read(MNData,sizeof(MNData));
-      Insert(MNData,MNSLockArray,length(MNSLockArray));
+      errored := true;
       end;
+    END;
     LeaveCriticalSection(CS_LockedMNs);
     EnterCriticalSection(CS_PSOsArray);
-    for Counter := 0 to NewHeader.count-1 do
+    TRY
+      for Counter := 0 to NewHeader.count-1 do
+        begin
+        NewRec.Mode    := MyStream.ReadWord;
+        NewRec.Hash    := MyStream.GetString;
+        NewRec.Owner   := MyStream.GetString;
+        NewRec.Expire  := MyStream.ReadDWord;
+        NewRec.Members := MyStream.GetString;
+        NewRec.Params  := MyStream.GetString;
+        Insert(NewRec,PSOsArray,Length(PSOsArray));
+        end;
+    EXCEPT ON E:EXCEPTION do
       begin
-      NewRec.Mode    := MyStream.ReadWord;
-      NewRec.Hash    := MyStream.GetString;
-      NewRec.Owner   := MyStream.GetString;
-      NewRec.Expire  := MyStream.ReadDWord;
-      NewRec.Members := MyStream.GetString;
-      NewRec.Params  := MyStream.GetString;
-      Insert(NewRec,PSOsArray,Length(PSOsArray));
+      errored := true;
       end;
+    END;
     LeaveCriticalSection(CS_PSOsArray);
     end;
   MyStream.Free;
   Result := true;
-  If not fileExists(PSOsFileName) then SavePSOFileToDisk(PSOHeader.Block)
+  If ( (not fileExists(PSOsFileName)) or (Errored) )then SavePSOFileToDisk(PSOHeader.Block)
   else PSOFileHash := HashMD5File(PSOsFileName);
 End;
 
@@ -179,7 +192,6 @@ Begin
   NewHeader.MNsLock :=Length(MNSLockArray);
   SetPSOHeaders(NewHeader);
   EnterCriticalSection(CS_PSOsArray);
-
   TRY
     MyStream.Write(NewHeader,Sizeof(PSOHeader));
     EnterCriticalSection(CS_LockedMNs);

@@ -1,8 +1,8 @@
 unit NosoTime;
 
 {
-Nosotime 1.2
-December 12th, 2022
+Nosotime 1.3
+September 20th, 2023
 Noso Time Unit for time synchronization on Noso project.
 Requires indy package. (To-do: remove this dependancy)
 
@@ -10,6 +10,7 @@ Changes:
 - Random use of NTP servers.
 - Async process limited to every 5 seconds.
 - Block time related functions.
+- Test NTPs.
 }
 
 {$mode ObjFPC}{$H+}

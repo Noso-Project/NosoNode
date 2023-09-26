@@ -150,7 +150,7 @@ if success then
 If Parameter(Linea,3) <> MN_Ip then Inc(UnconfirmedIPs);
 EXCEPT on E:Exception do
    begin
-   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'CRITICAL MNs VERIFICATION ('+Ip+'): '+E.Message);
+   ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'CRITICAL MNs VERIFICATION ('+Ip+'): '+E.Message);
    end;
 END{BIG TRY};
 EnterCriticalSection(DecVerThreads);
@@ -198,16 +198,16 @@ for counter := 0 to length(MNsListCopy)-1 do
 EnterCriticalSection(DecVerThreads);
 OpenVerificators := Launched;
 LeaveCriticalSection(DecVerThreads);
-AddLineToDebugLog('events',TimeToStr(now)+Format('MNs verification Launched: %d to verify',[Launched]));
+ToLog('events',TimeToStr(now)+Format('MNs verification Launched: %d to verify',[Launched]));
 Repeat
   sleep(100);
   Inc(WaitCycles);
 until ( (NoVerificators= 0) or (WaitCycles = 150) );
-AddLineToDebugLog('events',TimeToStr(now)+Format('MNs verification finish: %d launched, %d Open, %d cycles',[Launched,NoVerificators,WaitCycles ]));
-AddLineToDebugLog('events',TimeToStr(now)+Format('Unconfirmed IPs: %d',[UnconfirmedIPs ]));
+ToLog('events',TimeToStr(now)+Format('MNs verification finish: %d launched, %d Open, %d cycles',[Launched,NoVerificators,WaitCycles ]));
+ToLog('events',TimeToStr(now)+Format('Unconfirmed IPs: %d',[UnconfirmedIPs ]));
 if NoVerificators>0 then
    begin
-   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'*****CRITICAL****'+slinebreak+'Open verificators : '+NoVerificators.ToString);
+   ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'*****CRITICAL****'+slinebreak+'Open verificators : '+NoVerificators.ToString);
    EnterCriticalSection(DecVerThreads);
    OpenVerificators := 0;
    LeaveCriticalSection(DecVerThreads);
@@ -290,16 +290,16 @@ if not VerifySignedString(CheckData.ValidNodes,CheckData.Signature,CheckData.Pub
 if ErrorCode = 0 then
    begin
    AddMNCheck(CheckData);
-   //AddLineToDebugLog('events',TimeToStr(now)+CheckData.ValidNodes);
+   //ToLog('events',TimeToStr(now)+CheckData.ValidNodes);
    if form1.Server.Active then
       outGOingMsjsAdd(GetPTCEcn+ReportInfo);
-   //AddLineToDebugLog('console','Check received from '+CheckData.validnodes);
-   //AddLineToDebugLog('events',TimeToStr(now)+'Good check : (('+Linea+'))');
+   //ToLog('console','Check received from '+CheckData.validnodes);
+   //ToLog('events',TimeToStr(now)+'Good check : (('+Linea+'))');
    end
 else
    begin
-   //AddLineToDebugLog('console','Wrong check from '+CheckData.ValidatorIP+'->'+ErrorCode.ToString);
-   //AddLineToDebugLog('events',TimeToStr(now)+'Wrong MNCheck: (-('+Linea+')-)');
+   //ToLog('console','Wrong check from '+CheckData.ValidatorIP+'->'+ErrorCode.ToString);
+   //ToLog('events',TimeToStr(now)+'Wrong MNCheck: (-('+Linea+')-)');
    end;
 End;
 
@@ -459,7 +459,7 @@ else if ToMNode.hash <> HashMD5String(ToMNode.Ip+IntToStr(ToMNode.Port)+ToMNode.
 if ErrCode>0 then
    begin
    Result := false;
-   //AddLineToDebugLog('console','MASTERNODE REJECTED ERROR: '+ErrCode.ToString);
+   //ToLog('console','MASTERNODE REJECTED ERROR: '+ErrCode.ToString);
    end;
 End;
 
@@ -526,12 +526,12 @@ if GetMNodeFromString(ReportInfo,NewNode) then
       end
    else
       begin
-      //AddLineToDebugLog('console','NO LEGIT Masternode: '+Reportinfo);
+      //ToLog('console','NO LEGIT Masternode: '+Reportinfo);
       end;
    end
 else
    begin
-   //AddLineToDebugLog('console','REJECTED Masternode: '+Reportinfo);
+   //ToLog('console','REJECTED Masternode: '+Reportinfo);
    end;
 End;
 
@@ -620,7 +620,7 @@ Readln(Archivo,Linea);
 Closefile(archivo);
 EXCEPT on E:Exception do
    begin
-   AddLineToDebugLog('events',TimeToStr(now)+'Error Saving masternodes file');
+   ToLog('events',TimeToStr(now)+'Error Saving masternodes file');
    Linea := '';
    end;
 END {TRY};
@@ -733,7 +733,7 @@ Closefile(archivo);
 SetMN_FileText(GotText);
 EXCEPT on E:Exception do
    begin
-   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error Saving masternodes file');
+   ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error Saving masternodes file');
    SetMN_FileText('');
    end;
 END {TRY};
@@ -789,7 +789,7 @@ for counter := 0 to length(ArrMNChecks)-1 do
    begin
    NodesString := ArrMNChecks[counter].ValidNodes;
    NodesString := StringReplace(NodesString,':',' ',[rfReplaceAll]);
-   //AddLineToDebugLog('console',NodesString);
+   //ToLog('console',NodesString);
    IPIndex := 0;
    REPEAT
       begin

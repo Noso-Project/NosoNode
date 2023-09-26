@@ -197,7 +197,7 @@ KeepServerOn := true;
 PortNumber := StrToIntDef(MN_Port,8080);
 if Form1.Server.Active then
    begin
-   AddLineToDebugLog('console','Server Already active'); //'Server Already active'
+   ToLog('console','Server Already active'); //'Server Already active'
    end
 else
    begin
@@ -206,11 +206,11 @@ else
       Form1.Server.Bindings.Clear;
       Form1.Server.DefaultPort:=PortNumber;
       Form1.Server.Active:=true;
-      AddLineToDebugLog('console','Server ENABLED. Listening on port '+PortNumber.ToString);   //Server ENABLED. Listening on port
+      ToLog('console','Server ENABLED. Listening on port '+PortNumber.ToString);   //Server ENABLED. Listening on port
       ServerStartTime := UTCTime;
       U_DataPanel := true;
       EXCEPT on E : Exception do
-        AddLineToDebugLog('events',TimeToStr(now)+'Unable to start Server');       //Unable to start Server
+        ToLog('events',TimeToStr(now)+'Unable to start Server');       //Unable to start Server
       END; {TRY}
    end;
 End;
@@ -223,18 +223,18 @@ Begin
 PortNumber := StrToIntDef(MN_Port,8080);
 if DireccionEsMia(MN_Sign)<0 then
    begin
-   AddLineToDebugLog('console',rs2000); //Sign address not valid
+   ToLog('console',rs2000); //Sign address not valid
    exit;
    end;
 if MyConStatus < 3 then
    begin
-   AddLineToDebugLog('console',rs2001);
+   ToLog('console',rs2001);
    exit;
    end;
 KeepServerOn := true;
 if Form1.Server.Active then
    begin
-   AddLineToDebugLog('console','Server Already active'); //'Server Already active'
+   ToLog('console','Server Already active'); //'Server Already active'
    end
 else
    begin
@@ -243,12 +243,12 @@ else
       Form1.Server.Bindings.Clear;
       Form1.Server.DefaultPort:=PortNumber;
       Form1.Server.Active:=true;
-      AddLineToDebugLog('console','Server ENABLED. Listening on port '+PortNumber.ToString);   //Server ENABLED. Listening on port
+      ToLog('console','Server ENABLED. Listening on port '+PortNumber.ToString);   //Server ENABLED. Listening on port
       ServerStartTime := UTCTime;
       U_DataPanel := true;
       except
       on E : Exception do
-        AddLineToDebugLog('events',TimeToStr(now)+'Unable to start Server');       //Unable to start Server
+        ToLog('events',TimeToStr(now)+'Unable to start Server');       //Unable to start Server
       end;
    end;
 End;
@@ -263,7 +263,7 @@ if not Form1.Server.Active then exit;
 KeepServerOn := false;
    TRY
    Form1.Server.Active:=false;
-   AddLineToDebugLog('console','Server stopped');             //Server stopped
+   ToLog('console','Server stopped');             //Server stopped
    U_DataPanel := true;
    EXCEPT on E:Exception do
       begin
@@ -291,7 +291,7 @@ if conexiones[Slot].tipo='SER' then
    CanalCliente[Slot].Disconnect;
    end;
 EXCEPT on E:Exception do
-  AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error: Closing slot '+IntToStr(Slot)+SLINEBREAK+E.Message);
+  ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error: Closing slot '+IntToStr(Slot)+SLINEBREAK+E.Message);
 END;{Try}
 EnterCriticalSection(CSNodesList);
 Conexiones[Slot] := Default(conectiondata);
@@ -316,7 +316,7 @@ OutGoing := GetOutGoingConnections;
 BeginPerformance('ConnectToServers');
 if not CONNECT_Try then
    begin
-   AddLineToDebugLog('events',TimeToStr(now)+' Trying connection to nodes'); //'Trying connection to servers'
+   ToLog('events',TimeToStr(now)+' Trying connection to nodes'); //'Trying connection to servers'
    CONNECT_Try := true;
    end;
 //if OutGoing >= MaxOutgoingConnections then proceder := false;
@@ -402,7 +402,7 @@ if Conexiones[number].tipo ='RES' then
    end
 else
    begin
-   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error un-reserving slot '+number.ToString);
+   ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error un-reserving slot '+number.ToString);
    end;
 End;
 
@@ -441,7 +441,7 @@ ConContext := Default(TIdContext);
 Slot := ReserveSlot();
 if Address = '127.0.0.1' then
    begin
-   AddLineToDebugLog('events',TimeToStr(now)+'127.0.0.1 is an invalid server address');    //127.0.0.1 is an invalid server address
+   ToLog('events',TimeToStr(now)+'127.0.0.1 is an invalid server address');    //127.0.0.1 is an invalid server address
    errored := true;
    end
 else if Slot = 0 then // No free slots
@@ -478,7 +478,7 @@ if not errored then
    if connectok then
       begin
       SavedSlot := SaveConection('SER',Address,ConContext,slot);
-      AddLineToDebugLog('events',TimeToStr(now)+'Connected TO: '+Address);          //Connected TO:
+      ToLog('events',TimeToStr(now)+'Connected TO: '+Address);          //Connected TO:
       Conexiones[slot].Thread := TThreadClientRead.Create(true, slot);
       Conexiones[slot].Thread.FreeOnTerminate:=true;
       Conexiones[slot].Thread.Start;
@@ -502,7 +502,7 @@ if not errored then
    {
    EXCEPT on E:Exception do
       begin
-      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error Connecting to '+Address+': '+E.Message);
+      ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error Connecting to '+Address+': '+E.Message);
       UnReserveSlot(Slot);
       end;
    END;{Try}
@@ -556,7 +556,7 @@ CONNECT_Try := false;
    Result := 'Clients connections closed'
    EXCEPT on E:EXCEPTION do
       begin
-      AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error closing client');
+      ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error closing client');
       Result := 'Error closing clients';
       end;
    END; {TRY}
@@ -579,7 +579,7 @@ for contador := 1 to Maxconecciones do
      if ( (UTCTime > StrToInt64Def(conexiones[contador].lastping,0)+15) and
         (not conexiones[contador].IsBusy) and (not REbuildingSumary) )then
         begin
-        AddLineToDebugLog('events',TimeToStr(now)+'Conection closed: Time Out Auth -> '+conexiones[contador].ip);   //Conection closed: Time Out Auth ->
+        ToLog('events',TimeToStr(now)+'Conection closed: Time Out Auth -> '+conexiones[contador].ip);   //Conection closed: Time Out Auth ->
         CerrarSlot(contador);
         end;
      if conexiones[contador].IsBusy then conexiones[contador].lastping := UTCTimeStr;
@@ -628,7 +628,7 @@ if NumeroConexiones = 0 then  // Desconectado
    if STATUS_Connected then
       begin
       STATUS_Connected := false;
-      AddLineToDebugLog('console','Disconnected.');       //Disconnected
+      ToLog('console','Disconnected.');       //Disconnected
       G_TotalPings := 0;
       NetSumarioHash.Value:='';
       NetLastBlock.Value:='?';
@@ -644,7 +644,7 @@ if ((NumeroConexiones>0) and (NumeroConexiones<MinConexToWork) and (MyConStatus 
    begin
    MyConStatus:=1;
    G_LastPing := UTCTime;
-   AddLineToDebugLog('console','Connecting...'); //Connecting...
+   ToLog('console','Connecting...'); //Connecting...
    Form1.imagenes.GetBitmap(2,form1.ConnectButton.Glyph);
    end;
 if MyConStatus > 0 then
@@ -660,7 +660,7 @@ if ((NumeroConexiones>=MinConexToWork) and (MyConStatus<2) and (not STATUS_Conne
    STATUS_Connected := true;
    MyConStatus := 2;
    SetNMSData('','','','','','');
-   AddLineToDebugLog('console','Connected.');     //Connected
+   ToLog('console','Connected.');     //Connected
    end;
 if STATUS_Connected then
    begin
@@ -674,7 +674,7 @@ if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = Getco
    ClearReceivedOrdersIDs;
    SetNMSData('','','','','','');
    MyConStatus := 3;
-   AddLineToDebugLog('console','Updated!');   //Updated!
+   ToLog('console','Updated!');   //Updated!
    if RPCAuto then  ProcessLinesAdd('RPCON');
    if StrToIntDef(GetConsensus(3),0)<GetPendingCount then
       begin
@@ -701,13 +701,13 @@ if MyConStatus = 3 then
         and (BlockAge>10+MNsRandomWait) and (BlockAge<495) and(1=1) ) then
      begin
      OutGoingMsjsAdd(ProtocolLine(MNReport));
-     AddLineToDebugLog('events',TimeToStr(now)+'My Masternode reported');
+     ToLog('events',TimeToStr(now)+'My Masternode reported');
      LastTimeReportMyMN := UTCTime;
      end;
    end;
 EXCEPT ON E:Exception do
    begin
-   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2002,[E.Message]));
+   ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2002,[E.Message]));
    end;
 END{Try};
 End;
@@ -1031,7 +1031,7 @@ if ((Copy(MyResumenhash,0,5) <> GetConsensus(cHeaders)) and (NLBV>mylastblock)) 
          if GetValidSlotForSeed(ValidSlot) then
             begin
             PTC_SendLine(ValidSlot,ProtocolLine(7)); // GetResumen
-            AddLineToDebugLog('console','Headers file requested to '+conexiones[ValidSlot].ip); //'Headers file requested'
+            ToLog('console','Headers file requested to '+conexiones[ValidSlot].ip); //'Headers file requested'
             LastTimeRequestResumen := UTCTime;
             end;
          end
@@ -1040,7 +1040,7 @@ if ((Copy(MyResumenhash,0,5) <> GetConsensus(cHeaders)) and (NLBV>mylastblock)) 
          if GetValidSlotForSeed(ValidSlot) then
             begin
             PTC_SendLine(ValidSlot,ProtocolLine(18)); // GetResumen
-            AddLineToDebugLog('console',Format('Headers update (%d) requested from %s',[mylastblock,conexiones[ValidSlot].ip]));
+            ToLog('console',Format('Headers update (%d) requested from %s',[mylastblock,conexiones[ValidSlot].ip]));
             LastTimeRequestResumen := UTCTime;
             end;
          end;
@@ -1057,12 +1057,12 @@ else if ((Copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock <NLBV)) th
       if GetValidSlotForSeed(ValidSlot) then
          begin
          PTC_SendLine(ValidSlot,ProtocolLine(8)); // lastblock
-         if WO_FullNode then AddLineToDebugLog('console','LastBlock requested from block '+IntToStr(mylastblock)+' to '+conexiones[ValidSlot].ip) //'LastBlock requested from block '
+         if WO_FullNode then ToLog('console','LastBlock requested from block '+IntToStr(mylastblock)+' to '+conexiones[ValidSlot].ip) //'LastBlock requested from block '
          else
             begin
             LastDownBlock := NLBV-SecurityBlocks;
             if LastDownBlock<MyLastBlock then LastDownBlock:=MyLastBlock;
-            AddLineToDebugLog('console','LastBlock requested from block '+IntToStr(LastDownBlock));
+            ToLog('console','LastBlock requested from block '+IntToStr(LastDownBlock));
             end;
          LastTimeRequestBlock := UTCTime;
          end;
@@ -1078,7 +1078,7 @@ else if ((copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) an
          if GetValidSlotForSeed(ValidSlot) then
             begin
             PTC_SendLine(ValidSlot,ProtocolLine(6)); // Getsumary
-            AddLineToDebugLog('console',rs2003); //'sumary file requested'
+            ToLog('console',rs2003); //'sumary file requested'
             LastTimeRequestsumary := UTCTime;
             end;
          end;
@@ -1095,16 +1095,16 @@ else if ((copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) an
    begin
    if GetValidSlotForSeed(ValidSlot) then
      begin
-     AddLineToDebugLog('console',format('%s <> %s',[copy(MySumarioHash,0,5),GetConsensus(17)]));
+     ToLog('console',format('%s <> %s',[copy(MySumarioHash,0,5),GetConsensus(17)]));
      PTC_SendLine(ValidSlot,ProtocolLine(6)); // Getsumary
-     AddLineToDebugLog('console',rs2003); //'sumary file requested'
+     ToLog('console',rs2003); //'sumary file requested'
      LastTimeRequestsumary := UTCTime;
      end;
    end
 else if ( (mylastblock = NLBV) and ( (copy(MyResumenhash,0,5) <> GetConsensus(5)) or
    (MyLastBlockHash<>GetConsensus(10)) ) ) then
    begin
-   AddLineToDebugLog('console',MyLastBlockHash+' '+MyLastBlockHash);
+   ToLog('console',MyLastBlockHash+' '+MyLastBlockHash);
    UndoneLastBlock();
    end
 // Update headers
@@ -1116,7 +1116,7 @@ else if ((copy(MyResumenhash,0,5) <> GetConsensus(5)) and (NLBV=mylastblock) and
       ClearAllPending;
       SetNMSData('','','','','','');
       PTC_SendLine(ValidSlot,ProtocolLine(7));
-      AddLineToDebugLog('console','Headers file requested');
+      ToLog('console','Headers file requested');
       LastTimeRequestResumen := UTCTime;
       end;
    end
@@ -1130,7 +1130,7 @@ else if ( (StrToIntDef(GetConsensus(9),0)>GetMNsListLength) and (LastTimeMNsRequ
       LeaveCriticalSection(CSMNsIPCheck);
       PTC_SendLine(ValidSlot,ProtocolLine(11));  // Get MNsList
       LastTimeMNsRequested := UTCTime;
-      //AddLineToDebugLog('console','MNs reports requested');
+      //ToLog('console','MNs reports requested');
       end;
    end
 else if ((StrToIntDef(GetConsensus(14),0)>GetMNsChecksCount) and (LastTimeChecksRequested+5<UTCTime)) then
@@ -1139,7 +1139,7 @@ else if ((StrToIntDef(GetConsensus(14),0)>GetMNsChecksCount) and (LastTimeChecks
       begin
       PTC_SendLine(ValidSlot,ProtocolLine(GetChecks));  // Get MNsChecks
       LastTimeChecksRequested := UTCTime;
-      //AddLineToDebugLog('console','Checks requested to '+conexiones[ValidSlot].ip);
+      //ToLog('console','Checks requested to '+conexiones[ValidSlot].ip);
       end;
    end
 else if ( (GetConsensus(8)<>Copy(MyMNsHash,1,5)) and (LastTimeMNHashRequestes+5<UTCTime) and
@@ -1149,7 +1149,7 @@ else if ( (GetConsensus(8)<>Copy(MyMNsHash,1,5)) and (LastTimeMNHashRequestes+5<
       begin
       PTC_SendLine(ValidSlot,ProtocolLine(GetMNsFile));  // Get MNsFile
       LastTimeMNHashRequestes := UTCTime;
-      AddLineToDebugLog('console','Mns File requested to '+conexiones[ValidSlot].ip);
+      ToLog('console','Mns File requested to '+conexiones[ValidSlot].ip);
       end;
    end
 // <-- HERE -->
@@ -1160,7 +1160,7 @@ else if ( (GetConsensus(19)<>Copy(HashMd5String(GetNosoCFGString),0,5)) and (Las
       begin
       PTC_SendLine(ValidSlot,ProtocolLine(GetCFG));
       LasTimeCFGRequest := UTCTime;
-      AddLineToDebugLog('console','Noso CFG file requested');
+      ToLog('console','Noso CFG file requested');
       end;
    end
 else if ( (GetConsensus(18)<>Copy(MyGVTsHash,0,5)) and (LasTimeGVTsRequest+5<UTCTime) and
@@ -1170,7 +1170,7 @@ else if ( (GetConsensus(18)<>Copy(MyGVTsHash,0,5)) and (LasTimeGVTsRequest+5<UTC
       begin
       PTC_SendLine(ValidSlot,ProtocolLine(GetGVTs));
       LasTimeGVTsRequest := UTCTime;
-      AddLineToDebugLog('console','GVTs File requested to '+conexiones[ValidSlot].ip);
+      ToLog('console','GVTs File requested to '+conexiones[ValidSlot].ip);
       end;
    end
 else if ( (GetConsensus(20)<>Copy(PSOFileHash,0,5)) and (LasTimePSOsRequest+5<UTCTime) and
@@ -1180,7 +1180,7 @@ else if ( (GetConsensus(20)<>Copy(PSOFileHash,0,5)) and (LasTimePSOsRequest+5<UT
       begin
       //PTC_SendLine(ValidSlot,ProtocolLine(GetPSOs));
       //LasTimePSOsRequest := UTCTime;
-      //AddLineToDebugLog('console','Download PSOs from '+conexiones[ValidSlot].ip);
+      //ToLog('console','Download PSOs from '+conexiones[ValidSlot].ip);
       end;
    end;
 if IsAllSynced=0 then Last_SyncWithMainnet := Last_SyncWithMainnet+5;
@@ -1193,7 +1193,7 @@ Begin
 IpToAdd := Parameter(Linea,1);
 if not IsValidIP(IpToAdd) then
    begin
-   AddLineToDebugLog('console','Invalid IP');
+   ToLog('console','Invalid IP');
    end
 else
    begin
@@ -1328,13 +1328,13 @@ else
    TryonIndex :=  BlockFromIndex(orderid);
    if TryonIndex >= 0 then
       begin
-      AddLineToDebugLog('console', 'Order found on index!');
+      ToLog('console', 'Order found on index!');
       FirstBlockToCheck := TryonIndex;
       end
    else
      begin
      FirstBlockToCheck := mylastblock;
-     AddLineToDebugLog('console', 'Order not on index');
+     ToLog('console', 'Order not on index');
      end;
 
    for counter := FirstBlockToCheck downto LastBlockToCheck do
@@ -1439,7 +1439,7 @@ TRY
    //readedLine := Conector.SimpleGet('https://api.binance.com/api/v3/ticker/price?symbol=LTCUSDT');
 EXCEPT on E: Exception do
    begin
-   AddLineToDebugLog('console','ERROR RETRIEVING LAST RELEASE DATA: '+E.Message);
+   ToLog('console','ERROR RETRIEVING LAST RELEASE DATA: '+E.Message);
    end;
 END;//TRY
 Conector.Free;
@@ -1482,7 +1482,7 @@ Inc(Trys);
    result := true;
    EXCEPT ON E:Exception do
       begin
-      AddLineToDebugLog('console',Format('Error downloading release (Try %d): %s',[Trys,E.Message]));
+      ToLog('console',Format('Error downloading release (Try %d): %s',[Trys,E.Message]));
       end;
    END{Try};
 until ( (result = true) or (Trys = 3) );
@@ -1497,7 +1497,7 @@ TRY
 Result := MyLastBlock.ToString+Copy(MyResumenHash,1,3)+Copy(MySumarioHash,1,3)+Copy(MyLastBlockHash,1,3);
 EXCEPT ON E:EXCEPTION do
    begin
-   AddLineToDebugLog('console','****************************************'+slinebreak+'GetSyncTus:'+e.Message);
+   ToLog('console','****************************************'+slinebreak+'GetSyncTus:'+e.Message);
    end;
 END; {TRY}
 End;
@@ -1521,7 +1521,7 @@ TCPclient.IOHandler.WriteLn('GETMIIP');
 Result := TCPclient.IOHandler.ReadLn(IndyTextEncoding_UTF8);
 TCPclient.Disconnect();
 EXCEPT on E:Exception do
-   AddLineToDebugLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error on GetMiIP: '+E.Message)
+   ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error on GetMiIP: '+E.Message)
 END{try};
 TCPClient.Free;
 End;

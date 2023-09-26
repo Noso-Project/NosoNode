@@ -117,7 +117,7 @@ timeStart := GetTickCount64;
    //DeleteFile('NOSODATA'+DirectorySeparator+'1mb.dat');
    Sucess := true;
    EXCEPT ON E:Exception do
-    AddLineToDebugLog('events',TimeToStr(now)+e.Message);
+    ToLog('events',TimeToStr(now)+e.Message);
    END{Try};
 Inc(Trys);
 UNTIL ( (sucess) or (trys=5) );
