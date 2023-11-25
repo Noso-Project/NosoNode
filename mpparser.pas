@@ -1757,6 +1757,7 @@ var
   count    : integer = 0;
   MNMsg    : string;
   ThisBal  : int64;
+  LAstOP   : int64;
 Begin
 sourcestr := GetNosoCFGString(5);
 repeat
@@ -1766,9 +1767,10 @@ if thisadd <> '' then
    ThisBal := GetAddressBalanceIndexed(ThisAdd);
    Inc(Total,ThisBal);
    Inc(count);
+   LastOP := GetAddressLastOP(ThisAdd);
    if AnsiContainsStr(GetMN_FileText,Thisadd) then MNMsg := '[MN]'
    else MNMsg := '';
-   ToLog('console',format('%-35s : %15s  %s',[thisadd,int2curr(ThisBal),MNMsg]));
+   ToLog('console',format('%-35s : %15s  [%5d] %s',[thisadd,int2curr(ThisBal),LastOP,MNMsg]));
    end;
 inc(counter);
 until thisadd = '';
@@ -1795,6 +1797,7 @@ var
   NanoAddresses : integer = 0;
   NanoAmount    : int64 = 0;
   ShortAdd       : integer = 0;
+  TotalOld      : int64 = 0;
 Begin
   AssignFile(SumFile,SummaryFileName);
     TRY
@@ -1822,11 +1825,17 @@ Begin
         Inc(NanoAddresses);
         Inc(NanoAmount,ThisRecord.Balance);
         end;
+      if ( (ThisRecord.LastOP<10000) and (ThisRecord.Balance>100000000) ) then
+        begin
+        ToLog('console',Int2Curr(ThisRecord.Balance));
+        Inc(TotalOld,ThisRecord.Balance);
+        end;
       Inc(currpos);
       end;
     CloseFile(SumFile);
     EXCEPT
     END;{Try}
+    ToLog('console','Total old: '+int2curr(totalold));
   if TotalCoins = GetSupply(MyLastBlock) then AsExpected := '✓'
   else AsExpected := '('+Int2curr(TotalCoins-GetSupply(MyLastBlock))+')';
   ToLog('console',format('Block : %d (short: %d)',[LastRecord,shortadd]));

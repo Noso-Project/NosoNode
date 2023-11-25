@@ -387,6 +387,8 @@ if LastUpdateConsensus <> UTCTime then
          LConsensus := GetNodesArrayIndex(contador);
          Form1.SGConSeeds.Cells[0,contador+1]:= LConsensus.host;
          Form1.SGConSeeds.Cells[1,contador+1]:= LConsensus.peers.ToString;
+         Form1.SGConSeeds.Cells[2,contador+1]:= LConsensus.ConStr;
+         Form1.SGConSeeds.Cells[3,contador+1]:= LConsensus.Block.ToString;
          end;
       end;
    end;
@@ -396,7 +398,7 @@ LocalLastUpdate := UTCTime;
 
 if LastUpdateDataPanel <> UTCTime then
    begin
-   form1.DataPanel.Cells[1,0]:= copy(GetConsensus(0),0,5);
+   form1.DataPanel.Cells[1,0]:= copy(GetConHash('NODESTATUS '+GetNodeStatusString),0,5) + '/'+copy(GetConsensus(0),0,5);
    form1.DataPanel.Cells[1,1]:= NodeServerInfo;
    form1.DataPanel.Cells[1,2]:= IntToStr(GetTotalConexiones)+' ('+IntToStr(MyConStatus)+') ['+IntToStr(G_TotalPings)+']';
    form1.DataPanel.Cells[1,3]:= Format('%s / %s',[copy(myResumenHash,0,5),GetConsensus(5)]);

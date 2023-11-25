@@ -3517,8 +3517,10 @@ var
   GridWidth : integer;
 begin
 GridWidth := form1.SGConSeeds.Width;
-form1.SGConSeeds.ColWidths[0]:= thispercent(50,GridWidth);
-form1.SGConSeeds.ColWidths[1]:= thispercent(50,GridWidth,true);
+form1.SGConSeeds.ColWidths[0]:= thispercent(20,GridWidth);
+form1.SGConSeeds.ColWidths[1]:= thispercent(20,GridWidth);
+form1.SGConSeeds.ColWidths[2]:= thispercent(40,GridWidth);
+form1.SGConSeeds.ColWidths[3]:= thispercent(20,GridWidth,true);
 end;
 
 

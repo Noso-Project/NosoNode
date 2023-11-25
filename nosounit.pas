@@ -80,6 +80,7 @@ Function IsCustomizacionValid(address,custom:string;blocknumber:int64;forceCusto
 Procedure UpdateSummaryChanges();
 Function GetAddressBalanceIndexed(Address:string):int64;
 Function GetAddressAlias(Address:String):string;
+Function GetAddressLastOP(Address:String):int64;
 
 Var
   {Overall variables}
@@ -527,6 +528,17 @@ Begin
   Result := '';
   sumpos := GetIndexPosition(Address,LRecord);
   if ((sumpos>=0) and (LRecord.Custom <> '')) then result := LRecord.Custom;
+End;
+
+{Returns the address last operation block}
+Function GetAddressLastOP(Address:String):int64;
+var
+  sumpos  : int64;
+  LRecord : TSummaryData;
+Begin
+  Result := 0;
+  sumpos := GetIndexPosition(Address,LRecord);
+  if (sumpos>=0) then result := LRecord.LastOP;
 End;
 
 {$ENDREGION}

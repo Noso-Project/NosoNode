@@ -295,9 +295,10 @@ var
 Begin
   result   := GVTBaseValue;
   available:= 40-available;
-  if ToSell then Dec(available,2);
   for counter := 1 to available do
      result := (result *110) div 100;
+  if result < GVTBaseValue then result := GVTBaseValue;
+  if ToSell then Result := (result *85) div 100;
 End;
 
 Procedure SaveNosoCFGFile(LStr:String);
