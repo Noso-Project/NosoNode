@@ -8,7 +8,8 @@ uses
   Classes, SysUtils, MasterPaskalForm, Dialogs, Forms, nosotime, FileUtil, LCLType,
   lclintf, controls, mpBlock, Zipper, mpcoin, mpMn, nosodebug,
   {$IFDEF WINDOWS}Win32Proc, {$ENDIF}
-  translation, strutils,nosogeneral, nosocrypto, nosounit, nosoconsensus, nosopsos;
+  translation, strutils,nosogeneral, nosocrypto, nosounit, nosoconsensus, nosopsos,
+  nosowallcon;
 
 Procedure VerificarArchivos();
 
@@ -49,9 +50,8 @@ Procedure AddBlockToSumary(BlockNumber:integer;SaveAndUpdate:boolean = true);
 Procedure CompleteSumary();
 
 Procedure SaveUpdatedFiles();
-Procedure CrearWallet();
-Procedure CargarWallet(wallet:String);
-Function SaveWalletFile(): boolean;
+
+// Wallet
 Function ValidateAddressOnDisk(LHashAddress:string):Boolean;
 Procedure SaveWalletBak(LData:WalletData);
 
@@ -122,7 +122,7 @@ GetCFGDataFromFile;
 OutText('✓ NosoCFG file ok',false,1);
 
 
-if not FileExists (WalletFilename) then CrearWallet() else CargarWallet(WalletFilename);
+if not FileExists (WalletFilename) then CreateNewWallet else LoadWallet(WalletFilename);
 OutText('✓ Wallet file ok',false,1);
 if not Fileexists(BotDataFilename) then CrearBotData() else CargarBotData();
 OutText('✓ Bots file ok',false,1);
@@ -400,7 +400,7 @@ BeginPerformance('CreateADV');
    writeln(FileAdvOptions,'MNPort '+(MN_Port));
    writeln(FileAdvOptions,'//Masternode funds address');
    writeln(FileAdvOptions,'MNFunds '+(MN_Funds));
-   if MN_Sign = '' then MN_Sign := ListaDirecciones[0].Hash;
+   if MN_Sign = '' then MN_Sign := GetWallArrIndex(0).Hash;
    writeln(FileAdvOptions,'//Masternode sign address');
    writeln(FileAdvOptions,'MNSign '+(MN_Sign));
    writeln(FileAdvOptions,'//Use automatic IP detection for masternode');
@@ -658,108 +658,8 @@ End;
 Procedure SaveUpdatedFiles();
 Begin
 if S_BotData then SaveBotData();
-if S_Wallet then SaveWalletFile();
+if S_Wallet then SaveWalletToFile();
 if S_AdvOpt then CreateADV(true);
-End;
-
-// Creates a new wallet
-Procedure CrearWallet();
-var
-  NewAddress : WalletData;
-  PubKey,PriKey : string;
-Begin
-   TRY
-   if not fileexists (WalletFilename) then // asegurarse de no borrar una cartera previa
-      begin
-      assignfile(FileWallet,WalletFilename);
-      setlength(ListaDirecciones,1);
-      rewrite(FileWallet);
-      NewAddress := Default(WalletData);
-      NewAddress.Hash:=GenerateNewAddress(PubKey,PriKey);
-      NewAddress.PublicKey:=pubkey;
-      NewAddress.PrivateKey:=PriKey;
-      listadirecciones[0] := NewAddress;
-      seek(FileWallet,0);
-      write(FileWallet,listadirecciones[0]);
-      closefile(FileWallet);
-      end;
-   EXCEPT on E:Exception do
-      ToLog('events',TimeToStr(now)+'Error creating wallet file');
-   END; {TRY}
-End;
-
-// Load a wallet from disk
-Procedure CargarWallet(wallet:String);
-var
-  contador : integer = 0;
-  Fixed    : integer = 0;
-Begin
-   TRY
-   if fileExists(wallet) then
-      begin
-      assignfile(FileWallet,Wallet);
-      setlength(ListaDirecciones,0);
-      reset(FileWallet);
-      setlength(ListaDirecciones,FileSize(FileWallet));
-      for contador := 0 to FileSize(FileWallet)-1 do
-         begin
-         seek(FileWallet,contador);
-         Read(FileWallet,ListaDirecciones[contador]);
-         ListaDirecciones[contador].Pending:=0;
-         end;
-      closefile(FileWallet);
-      end;
-   EXCEPT on E:Exception do
-      ToLog('events',TimeToStr(now)+'Error loading wallet from file: '+e.Message);
-   END;{TRY}
-   //UpdateWalletFromSumario();
-   if Fixed > 0 then
-      ToLog('console',format('Fixed addresses: %d',[Fixed]));
-   SaveWalletFile();
-End;
-
-// Save wallet data to disk
-Function SaveWalletFile(): boolean;
-var
-  contador : integer = 0;
-  previous : int64;
-  IOCode   : integer;
-Begin
-EnterCriticalSection(CSWallet);
-Result := true;
-BeginPerformance('SaveWalletFile');
-Trycopyfile (WalletFilename,WalletFilename+'.bak');
-assignfile(FileWallet,WalletFilename);
-{$I-}reset(FileWallet);{$I+}
-IOCode := IOResult;
-If IOCode = 0 then
-   begin
-   TRY
-   for contador := 0 to Length(ListaDirecciones)-1 do
-      begin
-      seek(FileWallet,contador);
-      Previous := ListaDirecciones[contador].Pending;
-      ListaDirecciones[contador].Pending := 0;
-      write(FileWallet,ListaDirecciones[contador]);
-      ListaDirecciones[contador].Pending := Previous;
-      end;
-   S_Wallet := false;
-   EXCEPT on E:Exception do
-      begin
-      ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error saving wallet to disk ('+E.Message+')');
-      Result := false;
-      end;
-   END; {TRY}
-   end;
-{$I-}closefile(FileWallet);{$I+}
-IOCode := IOResult;
-if IOCode>0 then
-   begin
-   ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Unable to close wallet file, error= '+IOCode.ToString );
-   Result := false;
-   end;
-EndPerformance('SaveWalletFile');
-LeaveCriticalSection(CSWallet);
 End;
 
 Function ValidateAddressOnDisk(LHashAddress:string):Boolean;
@@ -812,14 +712,16 @@ var
   ThisExists : boolean = false;
   SumPos : int64;
   ThisRecord : TSummaryData;
+  ThisData   : WalletData;
 Begin
-for contador := 0 to high(ListaDirecciones) do
+for contador := 0 to LenWallArr-1 do
    begin
-   SumPos := GetIndexPosition(ListaDirecciones[contador].Hash,thisRecord);
-   ListaDirecciones[contador].Balance := thisRecord.Balance;
-   ListaDirecciones[contador].LastOP  := thisRecord.LastOP;
-   ListaDirecciones[contador].score   := thisRecord.score;
-   ListaDirecciones[contador].Custom  := thisRecord.Custom;
+   ThisData := GetWallArrIndex(contador);
+   SumPos := GetIndexPosition(ThisData.Hash,thisRecord);
+   ThisData.Balance := thisRecord.Balance;
+   ThisData.LastOP  := thisRecord.LastOP;
+   ThisData.score  := thisRecord.score;
+   ThisData.Custom  := thisRecord.Custom;
    end;
 S_Wallet := true;
 U_Dirpanel := true;

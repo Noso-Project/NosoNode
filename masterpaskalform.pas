@@ -10,7 +10,7 @@ uses
   fileutil, Clipbrd, Menus, formexplore, lclintf, ComCtrls, Spin,
   strutils, math, IdHTTPServer, IdCustomHTTPServer,
   IdHTTP, fpJSON, Types, DefaultTranslator, LCLTranslator, translation, nosodebug,
-  IdComponent,nosogeneral,nosocrypto, nosounit, nosoconsensus, nosopsos;
+  IdComponent,nosogeneral,nosocrypto, nosounit, nosoconsensus, nosopsos, NosoWallCon;
 
 type
 
@@ -137,6 +137,7 @@ type
      PSOHash       : string[32];
      end;
 
+  {
   WalletData = Packed Record
      Hash : String[40]; // El hash publico o direccion
      Custom : String[40]; // En caso de que la direccion este personalizada
@@ -147,7 +148,7 @@ type
      Score : int64; // estado del registro de la direccion.
      LastOP : int64;// tiempo de la ultima operacion en UnixTime.
      end;
-
+  }
   {
   SumarioData = Packed Record
      Hash : String[40];    // El hash publico o direccion
@@ -759,7 +760,7 @@ var
   FileBotData : File of BotData;
     S_BotData : Boolean = false;
   LastBotClear: string = '';
-  FileWallet : file of WalletData;
+  //FileWallet : file of WalletData;
     S_Wallet : boolean = false;
   FileResumen : file of ResumenData;
     S_Resumen : Boolean = false;
@@ -780,7 +781,7 @@ var
 
   ListadoBots      :  array of BotData;
   ListaNodos       : array of NodeData;
-  ListaDirecciones : array of walletData; // Wallet addresses
+  //WalletArray : array of walletData; // Wallet addresses
   PendingTXs       : Array of TOrderData;
   OutgoingMsjs     : TStringlist;
   ArrayConsenso    : array of NetworkData;
@@ -906,7 +907,7 @@ var
   // Filename variables
 
   BotDataFilename     :string= 'NOSODATA'+DirectorySeparator+'botdata.psk';
-  WalletFilename      :string= 'NOSODATA'+DirectorySeparator+'wallet.pkw';
+  //WalletFilename      :string= 'NOSODATA'+DirectorySeparator+'wallet.pkw';
   BlockDirectory      :string= 'NOSODATA'+DirectorySeparator+'BLOCKS'+DirectorySeparator;
   MarksDirectory      :string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator;
   GVTMarksDirectory   :string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator+'GVTS'+DirectorySeparator;
@@ -1365,8 +1366,7 @@ While not terminated do
          NewAddress.Hash:=GenerateNewAddress(PubKey,PriKey);
          NewAddress.PublicKey:=pubkey;
          NewAddress.PrivateKey:=PriKey;
-         SetLength(ListaDirecciones,Length(ListaDirecciones)+1);
-         ListaDirecciones[Length(ListaDirecciones)-1] := NewAddress;
+         InsertToWallArr(NewAddress);
          S_Wallet := true;
          U_DirPanel := true;
          Inc(NewAddrss);
@@ -1990,18 +1990,18 @@ if (ACol=1)  then
    ts.Alignment := taRightJustify;
    (sender as TStringGrid).Canvas.TextStyle := ts;
 
-   if ((aRow>0) and (ListaDirecciones[aRow-1].Balance>posrequired) and (ListaDirecciones[aRow-1].Balance>(posrequired+(WO_PosWarning*140*10000000))) ) then
+   if ((aRow>0) and (GetWallArrIndex(aRow-1).Balance>posrequired) and (GetWallArrIndex(aRow-1).Balance>(posrequired+(WO_PosWarning*140*10000000))) ) then
       begin
       (sender as TStringGrid).Canvas.Brush.Color :=  clmoneygreen;
       (sender as TStringGrid).Canvas.font.Color :=  clblack;
       end;
-   if ((aRow>0) and (ListaDirecciones[aRow-1].Balance>posrequired) and (ListaDirecciones[aRow-1].Balance< (posrequired+(WO_PosWarning*140*10000000))) ) then
+   if ((aRow>0) and (GetWallArrIndex(aRow-1).Balance>posrequired) and (GetWallArrIndex(aRow-1).Balance< (posrequired+(WO_PosWarning*140*10000000))) ) then
       begin
       (sender as TStringGrid).Canvas.Brush.Color :=  clYellow;
       (sender as TStringGrid).Canvas.font.Color :=  clblack;
       end
    end;
-if ( (ACol = 0) and (ARow>0) and (AnsiContainsStr(GetNosoCFGString(5),ListaDirecciones[aRow-1].Hash)) ) then
+if ( (ACol = 0) and (ARow>0) and (AnsiContainsStr(GetNosoCFGString(5),GetWallArrIndex(aRow-1).Hash)) ) then
    begin
    (sender as TStringGrid).Canvas.Brush.Color :=  clRed;
    (sender as TStringGrid).Canvas.font.Color :=  clblack;
@@ -2092,6 +2092,8 @@ if GoAhead then
    if RestartNosoAfterQuit then CrearRestartfile();
    CloseAllforms();
    CloseLine('Forms closed');
+   SaveWalletToFile();
+   CloseLine('Wallet file saved');
    sleep(100);
    CloseLine(CerrarClientes(false));
    sleep(100);
@@ -2925,9 +2927,9 @@ End;
 // Copia el hash de la direccion al portapapeles
 Procedure TForm1.BCopyAddrClick(sender: TObject);
 Begin
-if ListaDirecciones[DireccionesPanel.Row-1].custom <> '' then
-  Clipboard.AsText:= ListaDirecciones[DireccionesPanel.Row-1].custom
-else Clipboard.AsText:= ListaDirecciones[DireccionesPanel.Row-1].Hash;
+if GetWallArrIndex(DireccionesPanel.Row-1).custom <> '' then
+  Clipboard.AsText:= GetWallArrIndex(DireccionesPanel.Row-1).custom
+else Clipboard.AsText:= GetWallArrIndex(DireccionesPanel.Row-1).Hash;
 info('Copied to clipboard');//'Copied to clipboard'
 End;
 
@@ -2973,7 +2975,7 @@ End;
 Procedure TForm1.SBSCMaxOnClick(sender:TObject);
 Begin
 if not WO_MultiSend then EditSCMont.Text:=Int2curr(GetMaximunToSend(GetWalletBalance))
-else EditSCMont.Text:=Int2Curr(GetMaximunToSend(ListaDirecciones[0].Balance-ListaDirecciones[0].pending))
+else EditSCMont.Text:=Int2Curr(GetMaximunToSend(GetWallArrIndex(0).Balance-GetWallArrIndex(0).pending))
 End;
 
 // verifica el destino que marca para enviar coins
@@ -3473,16 +3475,16 @@ var
   myRect    : TRect;
   ColWidth : Integer;
 Begin
-if ( (aRow>0) and (aCol=0) and (AnsiContainsstr(GetMN_FileText,ListaDirecciones[aRow-1].Hash)) ) then
+if ( (aRow>0) and (aCol=0) and (AnsiContainsstr(GetMN_FileText,GetWallArrIndex(aRow-1).Hash)) ) then
    begin
    ColWidth := (sender as TStringGrid).ColWidths[0];
-   Bitmap:=TBitmap.Create;
+   Bitmap        := TBitmap.Create;
    Imagenes.GetBitmap(68,Bitmap);
-   myRect := Arect;
-   myrect.Left:=ColWidth-20;
-   myRect.Right := ColWidth-4;
-   myrect.top:=myrect.Top+2;
-   myrect.Bottom:=myrect.Top+18;
+   myRect        := Arect;
+   myrect.Left   := ColWidth-20;
+   myRect.Right  := ColWidth-4;
+   myrect.top    := myrect.Top+2;
+   myrect.Bottom := myrect.Top+18;
    (sender as TStringGrid).Canvas.StretchDraw(myRect,bitmap);
    Bitmap.free
    end;

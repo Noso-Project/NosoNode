@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, nosotime, mpblock, mpcoin,
   dialogs, fileutil, forms, idglobal, strutils, mpRPC, DateUtils, Clipbrd,translation,
   idContext, math, mpMN, MPSysCheck, nosodebug, nosogeneral, nosocrypto, nosounit,
-  nosoconsensus, nosopsos;
+  nosoconsensus, nosopsos,nosowallcon;
 
 procedure ProcessLinesAdd(const ALine: String);
 procedure OutgoingMsjsAdd(const ALine: String);
@@ -344,7 +344,7 @@ else if UpperCase(Command) = 'POST' then PostOffer(LineText)
 else ToLog('console','Unknown command: '+Command);  // Unknow command
 end;
 
-// Crea una nueva direccion y la añade a listadirecciones
+// Crea una nueva direccion y la añade a WalletArray
 procedure NuevaDireccion(linetext:string);
 var
   cantidad : integer;
@@ -410,9 +410,9 @@ var
   contador : integer = 0;
   totalEnSumario : Int64 = 0;
 Begin
-for contador := 0 to length(Listadirecciones)-1 do
+for contador := 0 to length(WalletArray)-1 do
    begin
-   totalEnSumario := totalEnSumario+GetAddressBalanceIndexed(Listadirecciones[contador].Hash);
+   totalEnSumario := totalEnSumario+GetAddressBalanceIndexed(WalletArray[contador].Hash);
    end;
 result := totalEnSumario-MontoOutgoing;
 End;
@@ -483,11 +483,11 @@ Procedure ShowWallet();
 var
   contador : integer = 0;
 Begin
-for contador := 0 to length(ListaDirecciones)-1 do
+for contador := 0 to length(WalletArray)-1 do
    begin
-   ToLog('console',Listadirecciones[contador].Hash);
+   ToLog('console',WalletArray[contador].Hash);
    end;
-ToLog('console',IntToStr(Length(ListaDirecciones))+' addresses.');
+ToLog('console',IntToStr(Length(WalletArray))+' addresses.');
 ToLog('console',Int2Curr(GetWalletBalance)+' '+CoinSimbol);
 End;
 
@@ -544,8 +544,8 @@ for contador := 0 to filesize(CarteraFile)-1 do
    Read(CarteraFile,DatoLeido);
    if ((DireccionEsMia(DatoLeido.Hash) < 0) and (IsValidHashAddress(DatoLeido.Hash))) then
       begin
-      setlength(ListaDirecciones,Length(ListaDirecciones)+1);
-      ListaDirecciones[length(ListaDirecciones)-1] := DatoLeido;
+      setlength(WalletArray,Length(WalletArray)+1);
+      WalletArray[length(WalletArray)-1] := DatoLeido;
       Nuevos := nuevos+1;
       end;
    end;
@@ -596,16 +596,16 @@ var
   OldData, NewData: walletData;
 Begin
 Numero := StrToIntDef(Parameter(linetext,1),-1);
-if ((Numero < 0) or (numero > length(ListaDirecciones)-1)) then
+if ((Numero < 0) or (numero > length(WalletArray)-1)) then
    OutText('Invalid address number.',false,2)  //'Invalid address number.'
 else if numero = 0 then
    OutText('Address 0 is already the default.',false,2) //'Address 0 is already the default.'
 else
    begin
-   OldData := ListaDirecciones[0];
-   NewData := ListaDirecciones[numero];
-   ListaDirecciones[numero] := OldData;
-   ListaDirecciones[0] := NewData;
+   OldData := WalletArray[0];
+   NewData := WalletArray[numero];
+   WalletArray[numero] := OldData;
+   WalletArray[0] := NewData;
    OutText('New default address: '+NewData.Hash,false,2); //'New default address: '
    S_Wallet := true;
    U_DirPanel := true;
@@ -693,7 +693,7 @@ if DireccionEsMia(address)<0 then
    ToLog('console','Invalid address');  //'Invalid address'
    procesar := false;
    end;
-if ListaDirecciones[DireccionEsMia(address)].Custom <> '' then
+if WalletArray[DireccionEsMia(address)].Custom <> '' then
    begin
    ToLog('console','Address already have a custom alias'); //'Address already have a custom alias'
    procesar := false;
@@ -708,7 +708,7 @@ if IsValidHashAddress(addalias) then
    ToLog('console','Alias can not be a valid address'); //'Alias can not be a valid address'
    procesar := false;
    end;
-if ListaDirecciones[DireccionEsMia(address)].Balance < Customizationfee then
+if WalletArray[DireccionEsMia(address)].Balance < Customizationfee then
    begin
    ToLog('console','Insufficient balance'); //'Insufficient balance'
    procesar := false;
@@ -737,7 +737,7 @@ if procesar then
    CurrTime := UTCTimeStr;
    TrfrHash := GetTransferHash(CurrTime+Address+addalias);
    OrderHash := GetOrderHash('1'+currtime+TrfrHash);
-   AddCriptoOp(2,'Customize this '+address+' '+addalias+'$'+ListaDirecciones[DireccionEsMia(address)].PrivateKey,
+   AddCriptoOp(2,'Customize this '+address+' '+addalias+'$'+WalletArray[DireccionEsMia(address)].PrivateKey,
            ProtocolLine(9)+    // CUSTOM
            OrderHash+' '+  // OrderID
            '1'+' '+        // OrderLines
@@ -745,12 +745,12 @@ if procesar then
            CurrTime+' '+   // Timestamp
            'null'+' '+     // reference
            '1'+' '+        // Trxline
-           ListaDirecciones[DireccionEsMia(address)].PublicKey+' '+    // sender
-           ListaDirecciones[DireccionEsMia(address)].Hash+' '+    // address
+           WalletArray[DireccionEsMia(address)].PublicKey+' '+    // sender
+           WalletArray[DireccionEsMia(address)].Hash+' '+    // address
            AddAlias+' '+   // receiver
            IntToStr(Customizationfee)+' '+  // Amountfee
            '0'+' '+                         // amount trfr
-           '[[RESULT]] '+//GetStringSigned('Customize this '+address+' '+addalias,ListaDirecciones[DireccionEsMia(address)].PrivateKey)+' '+
+           '[[RESULT]] '+//GetStringSigned('Customize this '+address+' '+addalias,WalletArray[DireccionEsMia(address)].PrivateKey)+' '+
            TrfrHash);      // trfrhash
    end;
 End;
@@ -813,7 +813,7 @@ if procesar then
    montoToShow := Monto;
    comisionToShow := Comision;
    Restante := monto+comision;
-   if WO_Multisend then CoinsAvailable := GetAddressBalanceIndexed(ListaDirecciones[0].Hash)-GetAddressPendingPays(ListaDirecciones[0].Hash)
+   if WO_Multisend then CoinsAvailable := GetAddressBalanceIndexed(WalletArray[0].Hash)-GetAddressPendingPays(WalletArray[0].Hash)
    else CoinsAvailable := GetWalletBalance;
    if Restante > CoinsAvailable then
       begin
@@ -831,11 +831,11 @@ if procesar then
    while monto > 0 do
       begin
       BeginPerformance('SendFundsVerify');
-      if GetAddressBalanceIndexed(ListaDirecciones[contador].Hash)-GetAddressPendingPays(ListaDirecciones[contador].Hash) > 0 then
+      if GetAddressBalanceIndexed(WalletArray[contador].Hash)-GetAddressPendingPays(WalletArray[contador].Hash) > 0 then
          begin
          trxLinea := TrxLinea+1;
          Setlength(ArrayTrfrs,length(arraytrfrs)+1);
-         ArrayTrfrs[length(arraytrfrs)-1]:= SendFundsFromAddress(ListaDirecciones[contador].Hash,
+         ArrayTrfrs[length(arraytrfrs)-1]:= SendFundsFromAddress(WalletArray[contador].Hash,
                                             Destination,monto, comision, reference, CurrTime,TrxLinea);
          comision := comision-ArrayTrfrs[length(arraytrfrs)-1].AmmountFee;
          monto := monto-ArrayTrfrs[length(arraytrfrs)-1].AmmountTrf;
@@ -932,7 +932,7 @@ if GVTOwner=Destination then
    exit;
    end;
 // TEMP FILTER
-if GVTOwner<>ListaDirecciones[0].Hash then
+if GVTOwner<>WalletArray[0].Hash then
    begin
    if showOutput then ToLog('console','Actually only project GVTs can be transfered');
    exit;
@@ -941,7 +941,7 @@ OrderTime := UTCTimeStr;
 TrfrHash := GetTransferHash(OrderTime+GVTOwner+Destination);
 OrderHash := GetOrderHash('1'+OrderTime+TrfrHash);
 StrTosign := 'Transfer GVT '+GVTNumStr+' '+Destination+OrderTime;
-Signature := GetStringSigned(StrTosign,ListaDirecciones[DireccionEsMia(GVTOwner)].PrivateKey);
+Signature := GetStringSigned(StrTosign,WalletArray[DireccionEsMia(GVTOwner)].PrivateKey);
 ResultStr := ProtocolLine(21)+ // sndGVT
              OrderHash+' '+  // OrderID
              '1'+' '+        // OrderLines
@@ -949,8 +949,8 @@ ResultStr := ProtocolLine(21)+ // sndGVT
              OrderTime+' '+   // Timestamp
              GVTNumStr+' '+     // reference
              '1'+' '+        // Trxline
-             ListaDirecciones[DireccionEsMia(GVTOwner)].PublicKey+' '+    // sender
-             ListaDirecciones[DireccionEsMia(GVTOwner)].Hash+' '+        // address
+             WalletArray[DireccionEsMia(GVTOwner)].PublicKey+' '+    // sender
+             WalletArray[DireccionEsMia(GVTOwner)].Hash+' '+        // address
              Destination+' '+   // receiver
              IntToStr(Customizationfee)+' '+  // Amountfee
              '0'+' '+                         // amount trfr
@@ -959,7 +959,7 @@ ResultStr := ProtocolLine(21)+ // sndGVT
 OutgoingMsjsAdd(ResultStr);
 if showoutput then
    begin
-   ToLog('console','GVT '+GVTNumStr+' transfered from '+ListaDirecciones[DireccionEsMia(GVTOwner)].Hash+' to '+Destination);
+   ToLog('console','GVT '+GVTNumStr+' transfered from '+WalletArray[DireccionEsMia(GVTOwner)].Hash+' to '+Destination);
    ToLog('console','Order: '+OrderHash);
    //ToLog('console',StrToSign);
    end;
@@ -1103,8 +1103,8 @@ if ( (AddIndex<0) or (direccion='') ) then
 else
    begin
    currtime := UTCTimeStr;
-   Pubkey   := ListaDirecciones[AddIndex].PublicKey;
-   Privkey  := ListaDirecciones[AddIndex].PrivateKey;
+   Pubkey   := WalletArray[AddIndex].PublicKey;
+   Privkey  := WalletArray[AddIndex].PrivateKey;
    Certificate := GetCertificate(Pubkey,privkey,currtime);
    ToLog('console',direccion+' owner cert: '+slinebreak+Certificate);
    end;
@@ -1199,7 +1199,7 @@ else
    mensaje := copy(linetext,11,length(linetext));
    //Mensaje := parameter(linetext,1);
    currtime := UTCTimeStr;
-   firma := GetStringSigned(currtime+mensaje,ListaDirecciones[DireccionEsMia(AdminHash)].PrivateKey);
+   firma := GetStringSigned(currtime+mensaje,WalletArray[DireccionEsMia(AdminHash)].PrivateKey);
    hashmsg := HashMD5String(currtime+mensaje+firma);
    mensaje := StringReplace(mensaje,' ','_',[rfReplaceAll, rfIgnoreCase]);
    OutgoingMsjsAdd(GetPTCEcn+'ADMINMSG '+currtime+' '+mensaje+' '+firma+' '+hashmsg);
@@ -1281,7 +1281,7 @@ if DireccionEsMia(addresshash) >= 0 then
   begin
   Assignfile(newfile,'tempwallet.pkw');
   rewrite(newfile);
-  Data := ListaDirecciones[DireccionEsMia(addresshash)];
+  Data := WalletArray[DireccionEsMia(addresshash)];
   write(newfile,data);
   closefile(newfile);
   ToLog('console','Address exported to tempwallet.pkw');
@@ -1577,7 +1577,7 @@ if sumposition<0 then
    end
 else
    begin
-   result := ListaDirecciones[sumposition].PublicKey+' '+ListaDirecciones[sumposition].PrivateKey;
+   result := WalletArray[sumposition].PublicKey+' '+WalletArray[sumposition].PrivateKey;
    end;
 if ToConsole then ToLog('console',Result);
 End;
@@ -1612,9 +1612,9 @@ var
   contador : integer;
   ToClipboard : String = '';
 Begin
-for contador := 0 to length(ListaDirecciones)-1 do
+for contador := 0 to length(WalletArray)-1 do
    begin
-   ToClipboard := ToClipboard+(Listadirecciones[contador].Hash)+',';
+   ToClipboard := ToClipboard+(WalletArray[contador].Hash)+',';
    end;
 Setlength(ToClipboard,length(ToClipboard)-1);
 Clipboard.AsText := ToClipboard;
@@ -1635,7 +1635,7 @@ if sumposition<0 then
    end
 else
    begin
-   Resultado := ListaDirecciones[sumposition].PublicKey+' '+ListaDirecciones[sumposition].PrivateKey;
+   Resultado := WalletArray[sumposition].PublicKey+' '+WalletArray[sumposition].PrivateKey;
    Clipboard.AsText := Resultado;
    ToLog('console',rs1505);
    end;
@@ -1657,7 +1657,7 @@ var
   errorMessage : string = '';
 Begin
 FromAddress := Parameter(LineText,1);
-if UPPERCASE(FromAddress) = 'DEF' then FromAddress := ListaDirecciones[0].Hash;
+if UPPERCASE(FromAddress) = 'DEF' then FromAddress := WalletArray[0].Hash;
 if UPPERCASE(Parameter(linetext,2)) = 'MAX' then Amount := GetMaximunToSend(GetAddressAvailable(FromAddress))
 else Amount := StrToInt64Def(Parameter(linetext,2),0);
 Market := UpperCase(Parameter(LineText,3));
@@ -1809,7 +1809,11 @@ Begin
       if thisrecord.Balance<0 then Inc(NegativeCount);
       if thisrecord.Balance=0 then Inc(EmptyCount);
       inc(TotalCoins,ThisRecord.Balance);
-      if Length(Thisrecord.Hash) < 28 then Inc(ShortAdd);
+      if Length(Thisrecord.Hash) < 28 then
+        begin
+        Inc(ShortAdd);
+        ToLog('console',ThisRecord.Hash);
+        end;
       if ThisRecord.Balance >= 1050000000000 then
         begin
         Inc(NodeAddresses);
@@ -1827,9 +1831,10 @@ Begin
         end;
       if ( (ThisRecord.LastOP<10000) and (ThisRecord.Balance>100000000) ) then
         begin
-        ToLog('console',Int2Curr(ThisRecord.Balance));
         Inc(TotalOld,ThisRecord.Balance);
         end;
+      if not IsValidHashAddress(ThisRecord.Hash) then
+        ToLog('console',ThisRecord.Hash);
       Inc(currpos);
       end;
     CloseFile(SumFile);
@@ -1868,8 +1873,8 @@ Begin
   NewAdd.PublicKey :=parameter(inputline,1);
   NewAdd.PrivateKey:=parameter(inputline,2);
   NewAdd.Hash      :=GetAddressFromPublickey(NewAdd.PublicKey);
-  SetLength(ListaDirecciones,Length(ListaDirecciones)+1);
-  ListaDirecciones[Length(ListaDirecciones)-1] := NewAdd;
+  SetLength(WalletArray,Length(WalletArray)+1);
+  WalletArray[Length(WalletArray)-1] := NewAdd;
   S_Wallet := true;
   U_DirPanel := true;
 End;
@@ -1883,15 +1888,15 @@ var
   WrongHash : integer =0;
 Begin
   if Uppercase(Parameter(inputline,1)) = 'FIX' then ToFix := true;
-  for counter := 0 to high(listadirecciones) do
+  for counter := 0 to high(WalletArray) do
     begin
-    if listadirecciones[counter].Hash <> GetAddressFromPublicKey(Listadirecciones[counter].PublicKey) then
+    if WalletArray[counter].Hash <> GetAddressFromPublicKey(WalletArray[counter].PublicKey) then
       begin
       inc(Issues);inc(wronghash);
-      ToLog('console',format('Address hash missmatch -> %s',[listadirecciones[counter].Hash]));
+      ToLog('console',format('Address hash missmatch -> %s',[WalletArray[counter].Hash]));
       if ToFix then
         begin
-        listadirecciones[counter].Hash := GetAddressFromPublicKey(Listadirecciones[counter].PublicKey);
+        WalletArray[counter].Hash := GetAddressFromPublicKey(WalletArray[counter].PublicKey);
         Inc(Fixed);
         end;
       end;
@@ -1961,7 +1966,7 @@ Begin
                  '3:1;'+
                  '4:500;'+
                  '5:2016;';
-  AddNewPSO(1,ListaDirecciones[0].Hash,MyLastBlock+2016,LocalPArams);
+  AddNewPSO(1,WalletArray[0].Hash,MyLastBlock+2016,LocalPArams);
   SavePSOFileToDisk(MyLastBlock);
   ToLog('console','Added');
 End;

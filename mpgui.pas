@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, MasterPaskalForm, nosotime, graphics, strutils, forms, controls, grids,stdctrls,
   ExtCtrls, buttons, editbtn , menus, Clipbrd, IdContext, LCLTranslator, nosodebug, nosogeneral,
-  nosocrypto, nosoconsensus,nosounit, nosopsos;
+  nosocrypto, nosoconsensus,nosounit, nosopsos, nosowallcon;
 
 type
   TFormInicio = class(Tform)
@@ -233,14 +233,14 @@ Form1.SGridSC.Cells[0,1]:=rs0502;  //'Amount'
 Form1.SGridSC.Cells[0,2]:=rs0503;  //'reference'
 
 //Direccionespanel
-form1.Direccionespanel.RowCount:=length(listadirecciones)+1;
+form1.Direccionespanel.RowCount   := LenWallArr+1;
 form1.Direccionespanel.Cells[0,0] := rs0514;  //'Address'
 form1.Direccionespanel.Cells[1,0] := rs0515;  //'Balance'
 
-for contador := 0 to length(ListaDirecciones)-1 do
+for contador := 0 to LenWallArr-1 do
    begin
-   form1.Direccionespanel.Cells[0,contador+1] := ListaDirecciones[contador].Hash;
-   form1.Direccionespanel.Cells[1,contador+1] := Int2Curr(ListaDirecciones[contador].Balance);
+   form1.Direccionespanel.Cells[0,contador+1] := GetWallArrIndex(contador).Hash;
+   form1.Direccionespanel.Cells[1,contador+1] := Int2Curr(GetWallArrIndex(contador).Balance);
    end;
 
 // Nodes Grid
@@ -443,13 +443,13 @@ if ((U_MNsGrid) or (UTCTime>U_MNsGrid_Last+59)) then
 if U_DirPanel then
    begin
    BeginPerformance('UpdateDirPanel');
-   form1.Direccionespanel.RowCount:=length(listadirecciones)+1;
-   for contador := 0 to length(ListaDirecciones)-1 do
+   form1.Direccionespanel.RowCount:=LenWallArr+1;
+   for contador := 0 to LenWallArr-1 do
       begin
-      if ListaDirecciones[contador].Custom<>'' then
-        form1.Direccionespanel.Cells[0,contador+1] := ListaDirecciones[contador].Custom
-      else form1.Direccionespanel.Cells[0,contador+1] := ListaDirecciones[contador].Hash;
-      form1.Direccionespanel.Cells[1,contador+1] := Int2Curr(GetAddressBalanceIndexed(ListaDirecciones[contador].hash)-ListaDirecciones[contador].pending);
+      if GetWallArrIndex(contador).Custom<>'' then
+        form1.Direccionespanel.Cells[0,contador+1] := GetWallArrIndex(contador).Custom
+      else form1.Direccionespanel.Cells[0,contador+1] := GetWallArrIndex(contador).Hash;
+      form1.Direccionespanel.Cells[1,contador+1] := Int2Curr(GetAddressBalanceIndexed(GetWallArrIndex(contador).hash)-GetWallArrIndex(contador).pending);
       end;
    form1.LabelBigBalance.Caption := Int2Curr(GetWalletBalance)+' '+CoinSimbol;
    U_DirPanel := false;

@@ -1,8 +1,8 @@
 UNIT nosocrypto;
 
 {
-Unit nosocrypto 1.2
-December 18th, 2022
+Unit nosocrypto 1.3
+December 4th, 2023
 Noso Unit for crypto functions
 Requires: cryptohashlib , mpsignerutils
 }
@@ -300,12 +300,21 @@ end;
 {Generates a new keys pair and returns the hash}
 Function GenerateNewAddress(out pubkey:String;out privkey:String):String;
 var
-  KeysPair: TKeyPair;
+  KeysPair : TKeyPair;
+  IsDone   : boolean = false;
+  HashAdd  : String;
 Begin
-  KeysPair := TSignerUtils.GenerateECKeyPair(TKeyType.SECP256K1);
-  pubkey   := Keyspair.PublicKey;
-  PrivKey  := KeysPair.PrivateKey;
-  Result   := GetAddressFromPublicKey(pubkey);
+  Repeat
+    KeysPair := TSignerUtils.GenerateECKeyPair(TKeyType.SECP256K1);
+    HashAdd := GetAddressFromPublicKey(pubkey);
+    if length(HashAdd) >= 28 then
+      begin
+      pubkey   := Keyspair.PublicKey;
+      PrivKey  := KeysPair.PrivateKey;
+      Result   := HashAdd;
+      IsDone   := true;
+      end;
+  until IsDone;
 End;
 
 {Checks if a string is a valid address hash}

@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalform, mpcoin, mpgui, IdTCPClient, IdGlobal,
-  strutils, nosodebug, nosogeneral, nosocrypto, nosotime, nosounit;
+  strutils, nosodebug, nosogeneral, nosocrypto, nosotime, nosounit,nosowallcon;
 
 Type
 
@@ -212,8 +212,8 @@ if NoVerificators>0 then
    OpenVerificators := 0;
    LeaveCriticalSection(DecVerThreads);
    end;
-DataLine := MN_IP+' '+MyLastBlock.ToString+' '+MN_Sign+' '+ListaDirecciones[DireccionEsMia(MN_Sign)].PublicKey+' '+
-            VerifiedNodes+' '+GetStringSigned(VerifiedNodes,ListaDirecciones[DireccionEsMia(MN_Sign)].PrivateKey);
+DataLine := MN_IP+' '+MyLastBlock.ToString+' '+MN_Sign+' '+WalletArray[DireccionEsMia(MN_Sign)].PublicKey+' '+
+            VerifiedNodes+' '+GetStringSigned(VerifiedNodes,WalletArray[DireccionEsMia(MN_Sign)].PrivateKey);
 OutGoingMsjsAdd(ProtocolLine(MNCheck)+DataLine);
 Result := Launched.ToString+':'+VerifiedNodes
 End;
@@ -303,8 +303,8 @@ else
    end;
 End;
 
-{MN_IP+' '+MyLastBlock.ToString+' '+MN_Sign+' '+ListaDirecciones[DireccionEsMia(MN_Sign)].PublicKey+' '+
-            VerifiedNodes+' '+GetStringSigned(VerifiedNodes,ListaDirecciones[DireccionEsMia(MN_Sign)].PrivateKey); }
+{MN_IP+' '+MyLastBlock.ToString+' '+MN_Sign+' '+WalletArray[DireccionEsMia(MN_Sign)].PublicKey+' '+
+            VerifiedNodes+' '+GetStringSigned(VerifiedNodes,WalletArray[DireccionEsMia(MN_Sign)].PrivateKey); }
 
 Function GetStringFromMNCheck(Data:TMNCheck): String;
 Begin
@@ -856,8 +856,8 @@ SignAddressIndex := DireccionEsMia(MN_Sign);
 if SignAddressIndex<0 then result := ''
 else
    begin
-   PublicKey := ListaDirecciones[SignAddressIndex].PublicKey;
-   result := CurrentTime+' '+PublicKey+' '+GetStringSigned(TextToSign,ListaDirecciones[SignAddressIndex].PrivateKey)+' '+ReportHash;
+   PublicKey := WalletArray[SignAddressIndex].PublicKey;
+   result := CurrentTime+' '+PublicKey+' '+GetStringSigned(TextToSign,WalletArray[SignAddressIndex].PrivateKey)+' '+ReportHash;
    end;
 EndPerformance('GetMNSignature');
 End;

@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils,MasterPaskalForm, fileutil, mpcoin, dialogs, math,
   nosotime, mpMN, nosodebug,nosogeneral,nosocrypto, nosounit, strutils,
-  nosopsos;
+  nosopsos,nosowallcon;
 
 Procedure CrearBloqueCero();
 Procedure BuildNewBlock(Numero,TimeStamp: Int64; TargetHash, Minero, Solucion:String);
@@ -352,9 +352,9 @@ if not errored then
    EndPerformance('NewBLOCK_SaveSum');
    SummaryLastop := numero;
    // Limpiar las pendientes
-   for contador := 0 to length(ListaDirecciones)-1 do
+   for contador := 0 to length(WalletArray)-1 do
       begin
-      ListaDirecciones[contador].Pending:=0;
+      WalletArray[contador].Pending:=0;
       end;
    // Definir la cabecera del bloque *****
    BlockHeader := Default(BlockHeaderData);

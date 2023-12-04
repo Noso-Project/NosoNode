@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils,MasterPaskalForm,mpgui,Clipbrd, strutils, nosodebug,nosogeneral,
-  nosocrypto, nosounit,nosotime,nosopsos;
+  nosocrypto, nosounit,nosotime,nosopsos,nosowallcon;
 
 function GetAddressAvailable(address:string):int64;
 function GetAddressPendingPays(Address:string):int64;
@@ -191,8 +191,8 @@ var
 Begin
 Result := -1;
 if ((direccion ='') or (length(direccion)<5)) then exit;
-for contador := 0 to high(Listadirecciones) do
-   if ((ListaDirecciones[contador].Hash = direccion) or (ListaDirecciones[contador].Custom = direccion )) then
+for contador := 0 to high(WalletArray) do
+   if ((WalletArray[contador].Hash = direccion) or (WalletArray[contador].Custom = direccion )) then
       Exit(contador);
 End;
 
@@ -204,7 +204,7 @@ Begin
 DireccionEnvia := order.address;
 if DireccionEsMia(DireccionEnvia)>=0 then
    begin
-   ListaDirecciones[DireccionEsMia(DireccionEnvia)].Pending:=ListaDirecciones[DireccionEsMia(DireccionEnvia)].Pending+
+   WalletArray[DireccionEsMia(DireccionEnvia)].Pending:=WalletArray[DireccionEsMia(DireccionEnvia)].Pending+
       Order.AmmountFee+order.AmmountTrf;
    montooutgoing := montooutgoing+Order.AmmountFee+order.AmmountTrf;
    if not form1.ImageOut.Visible then form1.ImageOut.Visible:= true;
@@ -280,7 +280,7 @@ var
   OrderInfo : Torderdata;
 Begin
 BeginPerformance('SendFundsFromAddress');
-MontoDisponible := GetAddressBalanceIndexed(ListaDirecciones[DireccionEsMia(origen)].Hash)-GetAddressPendingPays(Origen);
+MontoDisponible := GetAddressBalanceIndexed(WalletArray[DireccionEsMia(origen)].Hash)-GetAddressPendingPays(Origen);
 if MontoDisponible>comision then ComisionTrfr := Comision
 else comisiontrfr := montodisponible;
 if montodisponible>monto+comision then montotrfr := monto
@@ -293,14 +293,14 @@ OrderInfo.OrderType  := 'TRFR';
 OrderInfo.TimeStamp  := StrToInt64(OrderTime);
 OrderInfo.reference    := reference;
 OrderInfo.TrxLine    := linea;
-OrderInfo.sender     := ListaDirecciones[DireccionEsMia(origen)].PublicKey;
-OrderInfo.Address    := ListaDirecciones[DireccionEsMia(origen)].Hash;
+OrderInfo.sender     := WalletArray[DireccionEsMia(origen)].PublicKey;
+OrderInfo.Address    := WalletArray[DireccionEsMia(origen)].Hash;
 OrderInfo.Receiver   := Destino;
 OrderInfo.AmmountFee := ComisionTrfr;
 OrderInfo.AmmountTrf := montotrfr;
 OrderInfo.Signature  := GetStringSigned(ordertime+origen+destino+IntToStr(montotrfr)+
                      IntToStr(comisiontrfr)+IntToStr(linea),
-                     ListaDirecciones[DireccionEsMia(origen)].PrivateKey);
+                     WalletArray[DireccionEsMia(origen)].PrivateKey);
 OrderInfo.TrfrID     := GetTransferHash(ordertime+origen+destino+IntToStr(monto)+IntToStr(MyLastblock));
 Result := OrderInfo;
 EndPerformance('SendFundsFromAddress');
@@ -327,8 +327,8 @@ else
       if DireccionEsMia(DireccionEnvia)>=0 then
          begin
          MontoOutgoing := MontoOutgoing+PendingTxs[counter].AmmountFee+PendingTxs[counter].AmmountTrf;
-         ListaDirecciones[DireccionEsMia(DireccionEnvia)].Pending:=
-           ListaDirecciones[DireccionEsMia(DireccionEnvia)].Pending+
+         WalletArray[DireccionEsMia(DireccionEnvia)].Pending:=
+           WalletArray[DireccionEsMia(DireccionEnvia)].Pending+
            PendingTxs[counter].AmmountFee+PendingTxs[counter].AmmountTrf;
          end;
       If DireccionEsMia(PendingTxs[counter].Receiver)>=0 then
@@ -386,8 +386,8 @@ var
 Begin
 result := 0;
 PosRequired := (GetSupply(MyLastBlock+1)*PosStackCoins) div 10000;
-for contador := 0 to length(ListaDirecciones)-1 do
-   if ListaDirecciones[contador].Balance > PosRequired then result +=1;
+for contador := 0 to length(WalletArray)-1 do
+   if WalletArray[contador].Balance > PosRequired then result +=1;
 End;
 
 function GetBlockHeaders(numberblock:integer):string;
