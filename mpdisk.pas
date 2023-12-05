@@ -720,7 +720,7 @@ for contador := 0 to LenWallArr-1 do
    SumPos := GetIndexPosition(ThisData.Hash,thisRecord);
    ThisData.Balance := thisRecord.Balance;
    ThisData.LastOP  := thisRecord.LastOP;
-   ThisData.score  := thisRecord.score;
+   ThisData.score   := thisRecord.score;
    ThisData.Custom  := thisRecord.Custom;
    end;
 S_Wallet := true;

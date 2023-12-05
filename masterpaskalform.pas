@@ -781,7 +781,6 @@ var
 
   ListadoBots      :  array of BotData;
   ListaNodos       : array of NodeData;
-  //WalletArray : array of walletData; // Wallet addresses
   PendingTXs       : Array of TOrderData;
   OutgoingMsjs     : TStringlist;
   ArrayConsenso    : array of NetworkData;
@@ -2975,7 +2974,7 @@ End;
 Procedure TForm1.SBSCMaxOnClick(sender:TObject);
 Begin
 if not WO_MultiSend then EditSCMont.Text:=Int2curr(GetMaximunToSend(GetWalletBalance))
-else EditSCMont.Text:=Int2Curr(GetMaximunToSend(GetWallArrIndex(0).Balance-GetWallArrIndex(0).pending))
+else EditSCMont.Text:=Int2Curr(GetMaximunToSend(GetWallArrIndex(DireccionesPAnel.Row-1).Balance-GetWallArrIndex(0).pending))
 End;
 
 // verifica el destino que marca para enviar coins
@@ -3610,7 +3609,7 @@ var
   ServerActivated : boolean = false;
   IPToUse : String;
 Begin
-if DireccionEsMia(LabeledEdit9.Text) < 0 then
+if WallAddIndex(LabeledEdit9.Text) < 0 then
    begin
    info(rs0081); // Invalid sign address
    exit;
@@ -3756,7 +3755,7 @@ form1.GVTsGrid.RowCount:=1;
 EnterCriticalSection(CSGVTsArray);
 for counter := 0 to length(ArrGVTs)-1 do
    begin
-   if DireccionEsMia(ArrGVTs[counter].owner) >= 0 then
+   if WallAddIndex(ArrGVTs[counter].owner) >= 0 then
       begin
       form1.GVTsGrid.RowCount:=form1.GVTsGrid.RowCount+1;
       form1.GVTsGrid.Cells[0,form1.GVTsGrid.RowCount-1] := ArrGVTs[counter].number;

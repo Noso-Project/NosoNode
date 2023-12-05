@@ -212,8 +212,8 @@ if NoVerificators>0 then
    OpenVerificators := 0;
    LeaveCriticalSection(DecVerThreads);
    end;
-DataLine := MN_IP+' '+MyLastBlock.ToString+' '+MN_Sign+' '+WalletArray[DireccionEsMia(MN_Sign)].PublicKey+' '+
-            VerifiedNodes+' '+GetStringSigned(VerifiedNodes,WalletArray[DireccionEsMia(MN_Sign)].PrivateKey);
+DataLine := MN_IP+' '+MyLastBlock.ToString+' '+MN_Sign+' '+GetWallArrIndex(WallAddIndex(MN_Sign)).PublicKey+' '+
+            VerifiedNodes+' '+GetStringSigned(VerifiedNodes,GetWallArrIndex(WallAddIndex(MN_Sign)).PrivateKey);
 OutGoingMsjsAdd(ProtocolLine(MNCheck)+DataLine);
 Result := Launched.ToString+':'+VerifiedNodes
 End;
@@ -302,9 +302,6 @@ else
    //ToLog('events',TimeToStr(now)+'Wrong MNCheck: (-('+Linea+')-)');
    end;
 End;
-
-{MN_IP+' '+MyLastBlock.ToString+' '+MN_Sign+' '+WalletArray[DireccionEsMia(MN_Sign)].PublicKey+' '+
-            VerifiedNodes+' '+GetStringSigned(VerifiedNodes,WalletArray[DireccionEsMia(MN_Sign)].PrivateKey); }
 
 Function GetStringFromMNCheck(Data:TMNCheck): String;
 Begin
@@ -852,12 +849,12 @@ result := '';
 CurrentTime := UTCTimeStr;
 TextToSign := CurrentTime+' '+MN_IP+' '+MyLastBlock.ToString+' '+MyLastBlockHash;
 ReportHash := HashMD5String(TextToSign);
-SignAddressIndex := DireccionEsMia(MN_Sign);
+SignAddressIndex := WallAddIndex(MN_Sign);
 if SignAddressIndex<0 then result := ''
 else
    begin
-   PublicKey := WalletArray[SignAddressIndex].PublicKey;
-   result := CurrentTime+' '+PublicKey+' '+GetStringSigned(TextToSign,WalletArray[SignAddressIndex].PrivateKey)+' '+ReportHash;
+   PublicKey := GetWallArrIndex(SignAddressIndex).PublicKey;
+   result := CurrentTime+' '+PublicKey+' '+GetStringSigned(TextToSign,GetWallArrIndex(SignAddressIndex).PrivateKey)+' '+ReportHash;
    end;
 EndPerformance('GetMNSignature');
 End;

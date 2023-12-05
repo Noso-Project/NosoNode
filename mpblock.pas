@@ -352,10 +352,7 @@ if not errored then
    EndPerformance('NewBLOCK_SaveSum');
    SummaryLastop := numero;
    // Limpiar las pendientes
-   for contador := 0 to length(WalletArray)-1 do
-      begin
-      WalletArray[contador].Pending:=0;
-      end;
+   ClearWallPendings;
    // Definir la cabecera del bloque *****
    BlockHeader := Default(BlockHeaderData);
    BlockHeader.Number := Numero;
@@ -404,7 +401,7 @@ if not errored then
       OutgoingMsjsAdd(ProtocolLine(ping));
       end;
    CheckForMyPending;
-   if DIreccionEsMia(Minero)>-1 then showglobo('Miner','Block found!');
+   if WallAddIndex(Minero)>-1 then showglobo('Miner','Block found!');
 
    U_DirPanel := true;
    ExpiredMNs := ClearExpiredLockedMNs(numero);

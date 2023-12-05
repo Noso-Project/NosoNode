@@ -15,20 +15,23 @@ uses
 
 TYPE
   WalletData = Packed Record
-    Hash : String[40]; // El hash publico o direccion
-    Custom : String[40]; // En caso de que la direccion este personalizada
-    PublicKey : String[255]; // clave publica
+    Hash : String[40];        // El hash publico o direccion
+    Custom : String[40];      // En caso de que la direccion este personalizada
+    PublicKey : String[255];  // clave publica
     PrivateKey : String[255]; // clave privada
-    Balance : int64; // el ultimo saldo conocido de la direccion
-    Pending : int64; // el ultimo saldo de pagos pendientes
-    Score : int64; // estado del registro de la direccion.
-    LastOP : int64;// tiempo de la ultima operacion en UnixTime.
+    Balance : int64;          // el ultimo saldo conocido de la direccion
+    Pending : int64;          // el ultimo saldo de pagos pendientes
+    Score : int64;            // estado del registro de la direccion.
+    LastOP : int64;           // tiempo de la ultima operacion en UnixTime.
     end;
 
 Procedure ClearWalletArray();
 Procedure InsertToWallArr(LData:WalletData);
 Function GetWallArrIndex(Index:integer):WalletData;
+Function WallAddIndex(Address:String):integer;
 Function LenWallArr():Integer;
+Function ChangeWallArrPos(PosA,PosB:integer):boolean;
+Procedure ClearWallPendings();
 
 function CreateNewWallet():Boolean;
 Function SaveWalletToFile():boolean;
@@ -67,10 +70,51 @@ Begin
   LeaveCriticalSection(CS_WalletArray);
 End;
 
+Function WallAddIndex(Address:String):integer;
+var
+  counter : integer;
+Begin
+  Result := -1;
+  if ((Address ='') or (length(Address)<5)) then exit;
+  EnterCriticalSection(CS_WalletArray);
+  for counter := 0 to high(WalletArray) do
+    if ((WalletArray[counter].Hash = Address) or (WalletArray[counter].Custom = Address )) then
+      Begin
+      Result := counter;
+      break;
+      end;
+  LeaveCriticalSection(CS_WalletArray);
+End;
+
 Function LenWallArr():Integer;
 Begin
   EnterCriticalSection(CS_WalletArray);
   Result := Length(WalletArray);
+  LeaveCriticalSection(CS_WalletArray);
+End;
+
+Function ChangeWallArrPos(PosA,PosB:integer):boolean;
+var
+  oldData,NewData : WalletData;
+Begin
+  if posA>LenWallArr-1 then exit;
+  if posB>LenWallArr-1 then exit;
+  if posA=posB then Exit;
+  OldData := GetWallArrIndex(posA);
+  NewData := GetWallArrIndex(posB);
+  EnterCriticalSection(CS_WalletArray);
+  WalletArray[posA] := NewData;
+  WalletArray[posB] := OldData;
+  LeaveCriticalSection(CS_WalletArray);
+End;
+
+Procedure ClearWallPendings();
+var
+  counter : integer;
+Begin
+  EnterCriticalSection(CS_WalletArray);
+  for counter := 0 to length(WalletArray)-1 do
+    WalletArray[counter].pending := 0;
   LeaveCriticalSection(CS_WalletArray);
 End;
 

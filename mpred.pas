@@ -8,7 +8,7 @@ uses
   Classes, forms, SysUtils, MasterPaskalForm, nosotime, IdContext, IdGlobal, mpGUI, mpDisk,
   mpBlock, fileutil, graphics,  dialogs, strutils, mpcoin, fphttpclient,
   opensslsockets,translation, IdHTTP, IdComponent, IdSSLOpenSSL, mpmn, IdTCPClient,
-  nosodebug,nosogeneral, nosocrypto, nosounit, nosoconsensus, nosopsos;
+  nosodebug,nosogeneral, nosocrypto, nosounit, nosoconsensus, nosopsos,nosowallcon;
 
 function GetSlotFromIP(Ip:String):int64;
 function GetSlotFromContext(Context:TidContext):int64;
@@ -221,7 +221,7 @@ var
   PortNumber : integer;
 Begin
 PortNumber := StrToIntDef(MN_Port,8080);
-if DireccionEsMia(MN_Sign)<0 then
+if WallAddIndex(MN_Sign)<0 then
    begin
    ToLog('console',rs2000); //Sign address not valid
    exit;
