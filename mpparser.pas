@@ -319,6 +319,8 @@ else if UpperCase(Command) = 'DELNOSOPAY' then RemoveCFGData(parameter(linetext,
 else if UpperCase(Command) = 'ISALLSYNCED' then ToLog('console',IsAllsynced.ToString)
 else if UpperCase(Command) = 'FREEZED' then Totallocked()
 
+else if UpperCase(Command) = 'ADDFROMPUB' then ToLog('console',GetAddressFromPublicKey(parameter(linetext,1)))
+
 // 0.4.0
 else if UpperCase(Command) = 'CONSENSUS' then ShowConsensus()
 else if UpperCase(Command) = 'VALIDATE' then ToLog('console',BoolToStr(ValidateAddressOnDisk(parameter(linetext,1)),true))

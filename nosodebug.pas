@@ -63,6 +63,10 @@ Procedure AddFileProcess(FiType, FiFile, FiPeer:String;TimeStamp:int64);
 Function CloseFileProcess(FiType, FiFile, FiPeer:String;TimeStamp:int64):int64;
 Function GetFileProcessCopy():TFileMCopy;
 
+Procedure InitDeepDeb(LFileName:String);
+Procedure ToDeepDeb(LLine:String);
+Function GetDeepDebLine(out LineContent:string):boolean;
+
 var
   ArrPerformance : array of TPerformance;
   NosoDebug_UsePerformance : boolean = false;
@@ -71,8 +75,13 @@ var
   ArrNDSLs       : array of TStringList;
   ArrProcess     : Array of TCoreManager;
   CS_ThManager   : TRTLCriticalSection;
+
   ArrFileMgr     : Array of TFileManager;
   CS_FileManager : TRTLCriticalSection;
+
+  SLDeepDebLog   : TStringList;
+  CS_DeepDeb     : TRTLCriticalSection;
+  DeepDebFilename: String = '';
 
 IMPLEMENTATION
 
@@ -132,10 +141,11 @@ End;
 {$REGION Logs}
 
 {private: verify that the file for the log exists}
-Procedure InitializeLogFile(Filename:String);
+Function InitializeLogFile(Filename:String):boolean;
 var
   LFile : textfile;
 Begin
+  Result := true;
   if not fileexists(Filename) then
     begin
       TRY
@@ -143,7 +153,10 @@ Begin
       rewrite(LFile);
       Closefile(LFile);
       EXCEPT on E:Exception do
-
+        begin
+        ToDeepDeb('Nosodebug,InitializeLogFile,'+E.Message);
+        Result := false;
+        end;
       END; {Try}
     end;
 End;
@@ -162,7 +175,7 @@ Begin
       TRY
         Writeln(LFile, TextLine);
       Except on E:Exception do
-
+        ToDeepDeb('Nosodebug,SaveTextToDisk,'+E.Message);
       END; {Try}
     Closefile(LFile);
     end
@@ -170,7 +183,7 @@ Begin
    {$I-}Closefile(LFile){$I+};
 End;
 
-{creates a new block and assigns an optional file to save it}
+{Creates a new log and assigns an optional file to save it}
 Procedure CreateNewLog(LogName: string; LogFileName:String = '');
 var
   NewData : TLogND;
@@ -346,11 +359,43 @@ Begin
   LeaveCriticalSection(CS_FileManager);
 End;
 
+{$ENDREGION}
+
+{$REGION Deep debug control}
+
+Procedure InitDeepDeb(LFileName:String);
+Begin
+  if DeepDebFilename<>'' then Exit;
+  if InitializeLogFile(LFileName) then
+    DeepDebFilename := LFileName;
+End;
+
+
+Procedure ToDeepDeb(LLine:String);
+Begin
+  EnterCriticalSection(CS_DeepDeb);
+  SLDeepDebLog.Add(LLine);
+  LeaveCriticalSection(CS_DeepDeb);
+End;
+
+Function GetDeepDebLine(out LineContent:string):boolean;
+Begin
+  result := false;
+  if SLDeepDebLog.Count>0 then
+    begin
+    EnterCriticalSection(CS_DeepDeb);
+    LineContent := SLDeepDebLog[0];
+    SLDeepDebLog.Delete(0);
+    Result := true;
+    if DeepDebFilename<>'' then SaveTextToDisk(DateTimeToStr(Now)+' '+LineContent,DeepDebFilename);
+    LeaveCriticalSection(CS_DeepDeb);
+    end;
+End;
 
 {$ENDREGION}
 
-
 INITIALIZATION
+  SLDeepDebLog := TStringList.Create;
   Setlength(ArrPerformance,0);
   Setlength(ArrNDLogs,0);
   Setlength(ArrNDCSs,0);
@@ -359,11 +404,15 @@ INITIALIZATION
   Setlength(ArrFileMgr,0);
   InitCriticalSection(CS_ThManager);
   InitCriticalSection(CS_FileManager);
+  InitCriticalSection(CS_DeepDeb);
+
 
 FINALIZATION
   DoneCriticalSection(CS_ThManager);
   DoneCriticalSection(CS_FileManager);
+  DoneCriticalSection(CS_DeepDeb);
   FreeAllLogs;
+  SLDeepDebLog.Free;
 
 END. {END UNIT}
 

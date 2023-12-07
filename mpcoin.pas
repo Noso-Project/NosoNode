@@ -418,11 +418,14 @@ if Length(PendingTXs) > 0 then
    LeaveCriticalSection(CSPending);
    for counter := 0 to Length(CopyPendingTXs)-1 do
       begin
-      ThisPending:=CopyPendingTXs[counter].OrderType+','+
+      ThisPending:=CopyPendingTXs[counter].OrderID+','+
+                   CopyPendingTXs[counter].TimeStamp.ToString+','+
+                   CopyPendingTXs[counter].OrderType+','+
                    CopyPendingTXs[counter].Address+','+
                    CopyPendingTXs[counter].Receiver+','+
                    CopyPendingTXs[counter].AmmountTrf.ToString+','+
-                   CopyPendingTXs[counter].AmmountFee.ToString{+','+CopyPendingTXs[counter].TimeStamp.ToString};
+                   CopyPendingTXs[counter].AmmountFee.ToString+','+
+                   CopyPendingTXs[counter].Reference{+','+CopyPendingTXs[counter].TimeStamp.ToString};
       result := result+ThisPending+' ';
       end;
    Trim(result);

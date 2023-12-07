@@ -146,6 +146,7 @@ var
   MyStream : TMemoryStream;
   Counter  : integer;
 Begin
+  Result := true;
   MyStream:= TMemoryStream.Create;
   MyStream.Position:=0;
   EnterCriticalSection(CS_WalletArray);
@@ -155,7 +156,14 @@ Begin
     end;
   LeaveCriticalSection(CS_WalletArray);
   EnterCriticalSection(CS_WalletFile);
-  MyStream.SaveToFile(WalletFilename);
+    TRY
+    MyStream.SaveToFile(WalletFilename);
+    EXCEPT ON E:EXCEPTION DO
+      begin
+      ToDeepDeb('NosoWallcon,SaveWalletToFile,'+E.Message);
+      Result := false;
+      end;
+    END;
   LeaveCriticalSection(CS_WalletFile);
   MyStream.Free;
 End;

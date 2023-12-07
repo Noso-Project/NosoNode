@@ -1702,6 +1702,7 @@ Form1.InfoPanel.Visible:=false;
 AddNewOpenThread('Main',UTCTime);
 // A partir de aqui se inicializa todo
 // Enable units variables
+InitDeepDeb('NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'deepdeb.txt');
 NosoDebug_UsePerformance := true;
 UpdateLogsThread := TUpdateLogs.Create(true);
 UpdateLogsThread.FreeOnTerminate:=true;
