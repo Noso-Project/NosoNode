@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, nosotime, mpblock, mpcoin,
   dialogs, fileutil, forms, idglobal, strutils, mpRPC, DateUtils, Clipbrd,translation,
   idContext, math, mpMN, MPSysCheck, nosodebug, nosogeneral, nosocrypto, nosounit,
-  nosoconsensus, nosopsos,nosowallcon;
+  nosoconsensus, nosopsos,nosowallcon, nosoheaders;
 
 procedure ProcessLinesAdd(const ALine: String);
 procedure OutgoingMsjsAdd(const ALine: String);
@@ -323,7 +323,7 @@ else if UpperCase(Command) = 'ADDFROMPUB' then ToLog('console',GetAddressFromPub
 
 // 0.4.0
 else if UpperCase(Command) = 'CONSENSUS' then ShowConsensus()
-else if UpperCase(Command) = 'VALIDATE' then ToLog('console',BoolToStr(ValidateAddressOnDisk(parameter(linetext,1)),true))
+else if UpperCase(Command) = 'VALIDATE' then ToLog('console',BoolToStr(VerifyAddressOnDisk(parameter(linetext,1)),true))
 // P2P
 else if UpperCase(Command) = 'PEERS' then ToLog('console','Server list: '+IntToStr(form1.ClientsCount)+'/'+IntToStr(GetIncomingConnections))
 
@@ -1687,7 +1687,7 @@ var
   errorMessage : string = '';
 Begin
 FromAddress := Parameter(LineText,1);
-if UPPERCASE(FromAddress) = 'DEF' then FromAddress := WalletArray[0].Hash;
+if UPPERCASE(FromAddress) = 'DEF' then FromAddress := GetWallArrIndex(0).Hash;
 if UPPERCASE(Parameter(linetext,2)) = 'MAX' then Amount := GetMaximunToSend(GetAddressAvailable(FromAddress))
 else Amount := StrToInt64Def(Parameter(linetext,2),0);
 Market := UpperCase(Parameter(LineText,3));
@@ -1966,7 +1966,7 @@ Begin
                  '3:1;'+
                  '4:500;'+
                  '5:2016;';
-  AddNewPSO(1,WalletArray[0].Hash,MyLastBlock+2016,LocalPArams);
+  AddNewPSO(1,GetWallArrIndex(0).Hash,MyLastBlock+2016,LocalPArams);
   SavePSOFileToDisk(MyLastBlock);
   ToLog('console','Added');
 End;

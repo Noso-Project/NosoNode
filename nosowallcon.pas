@@ -14,6 +14,7 @@ uses
   Classes, SysUtils, nosodebug,nosocrypto;
 
 TYPE
+
   WalletData = Packed Record
     Hash : String[40];        // El hash publico o direccion
     Custom : String[40];      // En caso de que la direccion este personalizada
@@ -32,10 +33,15 @@ Function WallAddIndex(Address:String):integer;
 Function LenWallArr():Integer;
 Function ChangeWallArrPos(PosA,PosB:integer):boolean;
 Procedure ClearWallPendings();
+Procedure SetPendingForAddress(Index:integer;value:int64);
+Function SaveAddresstoFile(FileName:string;LData:WalletData):boolean;
 
 function CreateNewWallet():Boolean;
+Function GetWalletAsStream(out LStream:TMemoryStream):int64;
 Function SaveWalletToFile():boolean;
 Function LoadWallet(wallet:String):Boolean;
+Function VerifyAddressOnDisk(HashAddress:String):boolean;
+
 
 
 var
@@ -118,6 +124,33 @@ Begin
   LeaveCriticalSection(CS_WalletArray);
 End;
 
+Procedure SetPendingForAddress(Index:integer;value:int64);
+Begin
+  if Index > LenWallArr-1 then exit;
+  EnterCriticalSection(CS_WalletArray);
+  WalletArray[Index].pending := value;
+  LeaveCriticalSection(CS_WalletArray);
+End;
+
+// Saves an address info to a specific file
+Function SaveAddresstoFile(FileName:string;LData:WalletData):boolean;
+var
+  TempFile : File of WalletData;
+Begin
+  Result := true;
+  AssignFile(TempFile,FileName);
+  TRY
+    rewrite(TempFile);
+    write(TempFile,Ldata);
+    CloseFile(TempFile);
+  EXCEPT on E:Exception do
+    begin
+    Result := false;
+    ToDeepDeb('NosoWallcon,SaveAddresstoFile,'+E.Message);
+    end;
+  END;
+End;
+
 // Creates a new wallet file with a new generated address
 function CreateNewWallet():Boolean;
 var
@@ -136,8 +169,27 @@ Begin
     SaveWalletToFile;
     end;
    EXCEPT on E:Exception do
-      ToLog('events',TimeToStr(now)+'Error creating wallet file');
+     begin
+     ToDeepDeb('NosoWallcon,CreateNewWallet,'+E.Message);
+     end;
    END; {TRY}
+End;
+
+// Load the wallet file into a memory stream
+Function GetWalletAsStream(out LStream:TMemoryStream):int64;
+Begin
+  Result := 0;
+  EnterCriticalSection(CS_WalletFile);
+    TRY
+    LStream.LoadFromFile(WalletFilename);
+    result:= LStream.Size;
+    LStream.Position:=0;
+    EXCEPT ON E:Exception do
+      begin
+      ToDeepDeb('NosoWallcon,GetWalletAsStream,'+E.Message);
+      end;
+    END{Try};
+  LeaveCriticalSection(CS_WalletFile);
 End;
 
 // Save the wallet array to the file
@@ -175,27 +227,53 @@ var
   Counter     : integer;
   Records     : integer;
 Begin
+  Result := true;
   MyStream := TMemoryStream.Create;
-  TRY
   if fileExists(wallet) then
     begin
-    EnterCriticalSection(CS_WalletFile);
-    MyStream.LoadFromFile(wallet);
-    LeaveCriticalSection(CS_WalletFile);
-    Records := MyStream.Size div sizeof(WalletData);
-    MyStream.Position:=0;
-    ClearWalletArray;
-    For counter := 0 to records-1 do
+    Records := GetWalletAsStream(MyStream) div sizeof(WalletData);
+    if Records > 0 then
       begin
-      MyStream.Read(ThisAddress,Sizeof(WalletData));
-      InsertToWallArr(ThisAddress);
-      end;
-    end;
-  EXCEPT ON E:EXCEPTION do
-    begin
+      ClearWalletArray;
+      For counter := 0 to records-1 do
+        begin
+        MyStream.Read(ThisAddress,Sizeof(WalletData));
+        InsertToWallArr(ThisAddress);
+        end;
+      end
+    else result := false;
+    end
+  else result := false;
+  MyStream.Free;
+End;
 
-    end;
-  end;
+Function VerifyAddressOnDisk(HashAddress:String):boolean;
+var
+  MyStream    : TMemoryStream;
+  ThisAddress : WalletData;
+  Counter     : integer;
+  Records     : integer;
+Begin
+  Result := false;
+  MyStream := TMemoryStream.Create;
+  if fileExists(WalletFilename) then
+    begin
+    Records := GetWalletAsStream(MyStream) div sizeof(WalletData);
+    if Records > 0 then
+      begin
+      For counter := 0 to records-1 do
+        begin
+        MyStream.Read(ThisAddress,Sizeof(WalletData));
+        if ThisAddress.Hash=HashAddress then
+          begin
+          result := true;
+          break;
+          end;
+        end;
+      end
+    else result := false;
+    end
+  else result := false;
   MyStream.Free;
 End;
 

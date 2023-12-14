@@ -32,6 +32,7 @@ function RPC_PendingOrders(NosoPParams:string):string;
 function RPC_GetPeers(NosoPParams:string):string;
 function RPC_BlockOrders(NosoPParams:string):string;
 function RPC_Blockmns(NosoPParams:string):string;
+Function RPC_WalletBalance(NosoPParams:string):string;
 function RPC_NewAddress(NosoPParams:string):string;
 Function RPC_ValidateAddress(NosoPParams:string):string;
 function RPC_SendFunds(NosoPParams:string):string;
@@ -371,6 +372,10 @@ else if objecttype = 'sendfunds' then
 else if objecttype = 'islocaladdress' then
    begin
    resultado.Add('result',StrToBool(parameter(mystring,1)))
+   end
+else if objecttype = 'walletbalance' then
+   begin
+   resultado.Add('balance',StrToInt64(parameter(mystring,1)))
    end;
 
 result := resultado.AsJSON;
@@ -413,6 +418,7 @@ else
       else if method = 'getpeers' then result := GetJSONResponse(RPC_GetPeers(NosoPParams),jsonid)
       else if method = 'getblockorders' then result := GetJSONResponse(RPC_BlockOrders(NosoPParams),jsonid)
       else if method = 'getblockmns' then result := GetJSONResponse(RPC_BlockMNs(NosoPParams),jsonid)
+      else if method = 'getwalletbalance' then result := GetJSONResponse(RPC_WalletBalance(NosoPParams),jsonid)
       else if method = 'getnewaddress' then result := GetJSONResponse(RPC_NewAddress(NosoPParams),jsonid)
       else if method = 'islocaladdress' then result := GetJSONResponse(RPC_ValidateAddress(NosoPParams),jsonid)
       else if method = 'sendfunds' then result := GetJSONResponse(RPC_SendFunds(NosoPParams),jsonid)
@@ -670,6 +676,14 @@ else
 
 End;
 
+Function RPC_WalletBalance(NosoPParams:string):string;
+var
+  LData : int64;
+Begin
+  LData := GetWalletBalance;
+  result := format('walletbalance'#127'%d',[LData]);
+End;
+
 function RPC_NewAddress(NosoPParams:string):string;
 var
   TotalNumber : integer;
@@ -688,7 +702,7 @@ for counter := 1 to totalnumber do
    NewAddress.PublicKey:=pubkey;
    NewAddress.PrivateKey:=PriKey;
    InsertToWallArr(NewAddress);
-   if RPCSaveNew then SaveWalletBak(NewAddress);
+   if RPCSaveNew then SaveAddresstoFile(RPCBakDirectory+NewAddress.Hash+'.pkw',NewAddress);
    Result := result+NewAddress.Hash+#127;
    end;
 trim(result);
@@ -699,7 +713,7 @@ End;
 
 Function RPC_ValidateAddress(NosoPParams:string):string;
 Begin
-  If ValidateAddressOnDisk(Parameter(NosoPParams,0)) then
+  If VerifyAddressOnDisk(Parameter(NosoPParams,0)) then
     result := 'islocaladdress'#127'True'
   else result := 'islocaladdress'#127'False';
 End;

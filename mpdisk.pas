@@ -9,7 +9,7 @@ uses
   lclintf, controls, mpBlock, Zipper, mpcoin, mpMn, nosodebug,
   {$IFDEF WINDOWS}Win32Proc, {$ENDIF}
   translation, strutils,nosogeneral, nosocrypto, nosounit, nosoconsensus, nosopsos,
-  nosowallcon;
+  nosowallcon, nosoheaders;
 
 Procedure VerificarArchivos();
 
@@ -51,15 +51,11 @@ Procedure CompleteSumary();
 
 Procedure SaveUpdatedFiles();
 
-// Wallet
-Function ValidateAddressOnDisk(LHashAddress:string):Boolean;
-Procedure SaveWalletBak(LData:WalletData);
-
 function GetMyLastUpdatedBlock():int64;
 
 Function UnzipBlockFile(filename:String;delFile:boolean):boolean;
 function UnZipUpdateFromRepo(Tver,TArch:String):boolean;
-Procedure CreateResumen();
+
 Procedure RebuildHeadersFile();
 Procedure BuildHeaderFile(fromblock: integer; untilblock:integer=-1);
 Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
@@ -132,7 +128,7 @@ FillNodeList;  // Fills the hardcoded seed nodes list
 if not Fileexists(SummaryFileName) then CreateNewSummaryFile(FileExists(BlockDirectory+'0.blk'));
 CreateSumaryIndex();
 OutText('✓ Sumary file ok',false,1);
-if not Fileexists(ResumenFilename) then CreateResumen();
+if not Fileexists(ResumenFilename) then CreateHeadersFile();
 OutText('✓ Headers file ok',false,1);
 
 if not FileExists(BlockDirectory+'0.blk') then CrearBloqueCero();
@@ -662,49 +658,6 @@ if S_Wallet then SaveWalletToFile();
 if S_AdvOpt then CreateADV(true);
 End;
 
-Function ValidateAddressOnDisk(LHashAddress:string):Boolean;
-var
-  counter  : integer;
-  ThisData : WalletData;
-Begin
-  Result := false;
-  assignfile(FileWallet,WalletFilename);
-  EnterCriticalSection(CSWallet);
-  TRY
-    reset(FileWallet);
-    for counter := 0 to filesize(filewallet)-1 do
-       begin
-       seek(FileWallet,counter);
-       Read(FileWallet,ThisData);
-       if ThisData.Hash = LHashAddress then
-          begin
-          result := true;
-          break;
-          end;
-       end;
-    CloseFile(FileWallet);
-  EXCEPT on E:Exception do
-    begin
-    end;
-  END;
-  LeaveCriticalSection(CSWallet);
-End;
-
-Procedure SaveWalletBak(LData:WalletData);
-var
-  TempFile : File of WalletData;
-Begin
-  AssignFile(TempFile,RPCBakDirectory+Ldata.Hash+'.pkw');
-  TRY
-    rewrite(TempFile);
-    write(TempFile,Ldata);
-    CloseFile(TempFile);
-  EXCEPT on E:Exception do
-    begin
-    end;
-  END;
-End;
-
 // Updates wallet addresses balance from sumary
 Procedure UpdateWalletFromSumario();
 var
@@ -824,18 +777,6 @@ UnZipper := TUnZipper.Create;
       end;
    END{Try};
 UnZipper.Free;
-End;
-
-// Creates header file
-Procedure CreateResumen();
-Begin
-   try
-   assignfile(FileResumen,ResumenFilename);
-   rewrite(FileResumen);
-   closefile(FileResumen);
-   Except on E:Exception do
-      ToLog('events',TimeToStr(now)+'Error creating headers file');
-   end;
 End;
 
 Procedure RebuildHeadersFile();
@@ -1013,21 +954,21 @@ Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
 var
   Dato: ResumenData;
 Begin
-EnterCriticalSection(CSHeadAccess);
-TRY
-assignfile(FileResumen,ResumenFilename);
-reset(FileResumen);
-Dato := Default(ResumenData);
-Dato.block:=Numero;
-Dato.blockhash:=hash;
-Dato.SumHash:=sumhash;
-seek(fileResumen,filesize(fileResumen));
-write(fileResumen,dato);
-closefile(FileResumen);
-EXCEPT on E:Exception do
-   ToLog('events',TimeToStr(now)+'Error adding new register to headers');
-END;
-LeaveCriticalSection(CSHeadAccess);
+  EnterCriticalSection(CSHeadAccess);
+  TRY
+    assignfile(FileResumen,ResumenFilename);
+    reset(FileResumen);
+    Dato := Default(ResumenData);
+    Dato.block:=Numero;
+    Dato.blockhash:=hash;
+    Dato.SumHash:=sumhash;
+    seek(fileResumen,filesize(fileResumen));
+    write(fileResumen,dato);
+    closefile(FileResumen);
+  EXCEPT on E:Exception do
+    ToLog('events',TimeToStr(now)+'Error adding new register to headers');
+  END;
+  LeaveCriticalSection(CSHeadAccess);
 End;
 
 // Deletes last header from headers file

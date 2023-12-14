@@ -10,7 +10,8 @@ uses
   fileutil, Clipbrd, Menus, formexplore, lclintf, ComCtrls, Spin,
   strutils, math, IdHTTPServer, IdCustomHTTPServer,
   IdHTTP, fpJSON, Types, DefaultTranslator, LCLTranslator, translation, nosodebug,
-  IdComponent,nosogeneral,nosocrypto, nosounit, nosoconsensus, nosopsos, NosoWallCon;
+  IdComponent,nosogeneral,nosocrypto, nosounit, nosoconsensus, nosopsos, NosoWallCon,
+  nosoheaders;
 
 type
 
@@ -183,12 +184,13 @@ type
      Slot : integer;       // en que slots estan esos peers
      end;
 
+  {
   ResumenData = Packed Record
      block : integer;
      blockhash : string[32];
      SumHash : String[32];
      end;
-
+  }
   {
   BlockOrdersArray = Array of OrderData;
   }
@@ -762,7 +764,6 @@ var
   LastBotClear: string = '';
   //FileWallet : file of WalletData;
     S_Wallet : boolean = false;
-  FileResumen : file of ResumenData;
     S_Resumen : Boolean = false;
 
   FileGVTs    : file of TGVT;
@@ -879,7 +880,6 @@ var
   CSClientReads : TRTLCriticalSection;
   CSGVTsArray   : TRTLCriticalSection;
   CSNosoCFGStr  : TRTLCriticalSection;
-  CSWallet      : TRTLCriticalSection;
 
   // old system
   CSMNsArray    : TRTLCriticalSection;
@@ -915,7 +915,7 @@ var
   ExceptLogFilename   :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'exceptlog.txt';
   ConsoleLogFilename  :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'console.txt';
   NodeFTPLogFilename  :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'nodeftp.txt';
-  ResumenFilename     :string= 'NOSODATA'+DirectorySeparator+'blchhead.nos';
+  //ResumenFilename     :string= 'NOSODATA'+DirectorySeparator+'blchhead.nos';
   EventLogFilename    :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'eventlog.txt';
   AdvOptionsFilename  :string= 'NOSODATA'+DirectorySeparator+'advopt.txt';
   MasterNodesFilename :string= 'NOSODATA'+DirectorySeparator+'masternodes.txt';
@@ -982,6 +982,9 @@ While not terminated do
   while GetLogLine('events',lastlogline) do Synchronize(@UpdateEvents);
   while GetLogLine('exceps',lastlogline) do Synchronize(@UpdateExceps);
   GetLogLine('nodeftp',lastlogline);
+  // Deep debug
+  Repeat
+  until not GetDeepDebLine(lastlogline);
   end;
 End;
 
@@ -1560,7 +1563,6 @@ InitCriticalSection(CSNMSData);
 InitCriticalSection(CSClientReads);
 InitCriticalSection(CSGVTsArray);
 InitCriticalSection(CSNosoCFGStr);
-InitCriticalSection(CSWallet);
 
 InitCriticalSection(CSIdsProcessed);
 InitCriticalSection(CSNodesList);
@@ -1599,7 +1601,6 @@ DoneCriticalSection(CSNMSData);
 DoneCriticalSection(CSClientReads);
 DoneCriticalSection(CSGVTsArray);
 DoneCriticalSection(CSNosoCFGStr);
-DoneCriticalSection(CSWallet);
 DoneCriticalSection(CSIdsProcessed);
 DoneCriticalSection(CSNodesList);
 for contador := 1 to MaxConecciones do
@@ -3137,10 +3138,6 @@ End;
 
 // Chequea el estado de todo para actualizar los botones del menu principal
 Procedure Tform1.CheckMMCaptions(sender:TObject);
-var
-  contador: integer;
-  version : string;
-  MenuItem : TMenuItem;
 Begin
 if Form1.Server.Active then form1.MainMenu.Items[0].Items[0].Caption:=rs0077 //Stop server
 else form1.MainMenu.Items[0].Items[0].Caption:=rs0076; // Start server

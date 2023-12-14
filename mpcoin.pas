@@ -186,22 +186,24 @@ End;
 Procedure VerifyIfPendingIsMine(order:Torderdata);
 var
   DireccionEnvia: string;
+  SendIndex     : integer;
 Begin
-DireccionEnvia := order.address;
-if WallAddIndex(DireccionEnvia)>=0 then
-   begin
-   WalletArray[WallAddIndex(DireccionEnvia)].Pending:=WalletArray[WallAddIndex(DireccionEnvia)].Pending+
-      Order.AmmountFee+order.AmmountTrf;
-   montooutgoing := montooutgoing+Order.AmmountFee+order.AmmountTrf;
-   if not form1.ImageOut.Visible then form1.ImageOut.Visible:= true;
-   end;
-if WallAddIndex(Order.Receiver)>=0 then
-   begin
-   montoincoming := montoincoming+order.AmmountTrf;
-   ShowGlobo('Incoming transfer',Int2curr(order.AmmountTrf));
-   if not form1.ImageInc.Visible then form1.ImageInc.Visible:= true;
-   end;
-U_DirPanel := true;
+  DireccionEnvia := order.address;
+  SendIndex      := WallAddIndex(DireccionEnvia);
+  if SendIndex>=0 then
+    begin
+    SetPendingForAddress(SendIndex,GetWallArrIndex(SendIndex).Pending+Order.AmmountFee+order.AmmountTrf);
+    //WalletArray[WallAddIndex(DireccionEnvia)].Pending:=WalletArray[WallAddIndex(DireccionEnvia)].Pending+Order.AmmountFee+order.AmmountTrf;
+    montooutgoing := montooutgoing+Order.AmmountFee+order.AmmountTrf;
+    if not form1.ImageOut.Visible then form1.ImageOut.Visible:= true;
+    end;
+  if WallAddIndex(Order.Receiver)>=0 then
+    begin
+    montoincoming := montoincoming+order.AmmountTrf;
+    ShowGlobo('Incoming transfer',Int2curr(order.AmmountTrf));
+    if not form1.ImageInc.Visible then form1.ImageInc.Visible:= true;
+    end;
+  U_DirPanel := true;
 End;
 
 // Devuelve si una direccion ya posee un alias
@@ -266,7 +268,7 @@ var
   OrderInfo : Torderdata;
 Begin
 BeginPerformance('SendFundsFromAddress');
-MontoDisponible := GetAddressBalanceIndexed(WalletArray[WallAddIndex(origen)].Hash)-GetAddressPendingPays(Origen);
+MontoDisponible := GetAddressBalanceIndexed(GetWallArrIndex(WallAddIndex(origen)).Hash)-GetAddressPendingPays(Origen);
 if MontoDisponible>comision then ComisionTrfr := Comision
 else comisiontrfr := montodisponible;
 if montodisponible>monto+comision then montotrfr := monto
@@ -279,14 +281,14 @@ OrderInfo.OrderType  := 'TRFR';
 OrderInfo.TimeStamp  := StrToInt64(OrderTime);
 OrderInfo.reference    := reference;
 OrderInfo.TrxLine    := linea;
-OrderInfo.sender     := WalletArray[WallAddIndex(origen)].PublicKey;
-OrderInfo.Address    := WalletArray[WallAddIndex(origen)].Hash;
+OrderInfo.sender     := GetWallArrIndex(WallAddIndex(origen)).PublicKey;
+OrderInfo.Address    := GetWallArrIndex(WallAddIndex(origen)).Hash;
 OrderInfo.Receiver   := Destino;
 OrderInfo.AmmountFee := ComisionTrfr;
 OrderInfo.AmmountTrf := montotrfr;
 OrderInfo.Signature  := GetStringSigned(ordertime+origen+destino+IntToStr(montotrfr)+
                      IntToStr(comisiontrfr)+IntToStr(linea),
-                     WalletArray[WallAddIndex(origen)].PrivateKey);
+                     GetWallArrIndex(WallAddIndex(origen)).PrivateKey);
 OrderInfo.TrfrID     := GetTransferHash(ordertime+origen+destino+IntToStr(monto)+IntToStr(MyLastblock));
 Result := OrderInfo;
 EndPerformance('SendFundsFromAddress');
@@ -297,6 +299,7 @@ Procedure CheckForMyPending();
 var
   counter : integer = 0;
   DireccionEnvia : string;
+  AddIndex       : integer;
 Begin
 MontoIncoming := 0;
 MontoOutgoing := 0;
@@ -310,11 +313,12 @@ else
    for counter := 0 to GetPendingCount-1 do
       begin
       DireccionEnvia := PendingTxs[counter].Address;
-      if WallAddIndex(DireccionEnvia)>=0 then
+      AddIndex := WallAddIndex(DireccionEnvia);
+      if AddIndex >= 0 then
          begin
          MontoOutgoing := MontoOutgoing+PendingTxs[counter].AmmountFee+PendingTxs[counter].AmmountTrf;
-         WalletArray[WallAddIndex(DireccionEnvia)].Pending:=
-           WalletArray[WallAddIndex(DireccionEnvia)].Pending+PendingTxs[counter].AmmountFee+PendingTxs[counter].AmmountTrf;
+         SetPendingForAddress(AddIndex,GetWallArrIndex(AdDIndex).Pending+PendingTxs[counter].AmmountFee+PendingTxs[counter].AmmountTrf);
+         //WalletArray[WallAddIndex(DireccionEnvia)].Pending:=WalletArray[WallAddIndex(DireccionEnvia)].Pending+PendingTxs[counter].AmmountFee+PendingTxs[counter].AmmountTrf;
          end;
       If WallAddIndex(PendingTxs[counter].Receiver)>=0 then
          MontoIncoming := MontoIncoming+PendingTxs[counter].AmmountTrf;

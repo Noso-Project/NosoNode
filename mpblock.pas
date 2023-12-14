@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils,MasterPaskalForm, fileutil, mpcoin, dialogs, math,
   nosotime, mpMN, nosodebug,nosogeneral,nosocrypto, nosounit, strutils,
-  nosopsos,nosowallcon;
+  nosopsos,nosowallcon,nosoheaders;
 
 Procedure CrearBloqueCero();
 Procedure BuildNewBlock(Numero,TimeStamp: Int64; TargetHash, Minero, Solucion:String);

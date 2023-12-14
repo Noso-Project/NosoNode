@@ -8,7 +8,8 @@ uses
   Classes, forms, SysUtils, MasterPaskalForm, nosotime, IdContext, IdGlobal, mpGUI, mpDisk,
   mpBlock, fileutil, graphics,  dialogs, strutils, mpcoin, fphttpclient,
   opensslsockets,translation, IdHTTP, IdComponent, IdSSLOpenSSL, mpmn, IdTCPClient,
-  nosodebug,nosogeneral, nosocrypto, nosounit, nosoconsensus, nosopsos,nosowallcon;
+  nosodebug,nosogeneral, nosocrypto, nosounit, nosoconsensus, nosopsos,nosowallcon,
+  nosoheaders;
 
 function GetSlotFromIP(Ip:String):int64;
 function GetSlotFromContext(Context:TidContext):int64;
