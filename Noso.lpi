@@ -199,7 +199,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="24">
+    <Units Count="25">
       <Unit0>
         <Filename Value="Noso.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -313,6 +313,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="NosoHeaders"/>
       </Unit23>
+      <Unit24>
+        <Filename Value="nosonosocfg.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="NosoNosoCFG"/>
+      </Unit24>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

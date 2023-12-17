@@ -63,7 +63,7 @@ Procedure AddFileProcess(FiType, FiFile, FiPeer:String;TimeStamp:int64);
 Function CloseFileProcess(FiType, FiFile, FiPeer:String;TimeStamp:int64):int64;
 Function GetFileProcessCopy():TFileMCopy;
 
-Procedure InitDeepDeb(LFileName:String);
+Procedure InitDeepDeb(LFileName:String;SysInfo:String='');
 Procedure ToDeepDeb(LLine:String);
 Function GetDeepDebLine(out LineContent:string):boolean;
 
@@ -141,7 +141,7 @@ End;
 {$REGION Logs}
 
 {private: verify that the file for the log exists}
-Function InitializeLogFile(Filename:String):boolean;
+Function InitializeLogFile(Filename:String;OptionText:string = ''):boolean;
 var
   LFile : textfile;
 Begin
@@ -151,6 +151,8 @@ Begin
       TRY
       Assignfile(LFile, Filename);
       rewrite(LFile);
+      if OptionText <> '' then
+        Writeln(LFile,OptionText);
       Closefile(LFile);
       EXCEPT on E:Exception do
         begin
@@ -363,11 +365,14 @@ End;
 
 {$REGION Deep debug control}
 
-Procedure InitDeepDeb(LFileName:String);
+Procedure InitDeepDeb(LFileName:String;SysInfo:String='');
 Begin
   if DeepDebFilename<>'' then Exit;
-  if InitializeLogFile(LFileName) then
+  if InitializeLogFile(LFileName,SysInfo) then
+    begin
     DeepDebFilename := LFileName;
+    ToDeepDeb(SysInfo);
+    end;
 End;
 
 

@@ -11,7 +11,8 @@ uses
   translation, strutils,nosogeneral, nosocrypto, nosounit, nosoconsensus, nosopsos,
   nosowallcon, nosoheaders;
 
-Procedure VerificarArchivos();
+Function FileStructure():integer;
+Procedure VerifyFiles();
 
 // *** New files system
 // Nodes file
@@ -86,21 +87,29 @@ implementation
 Uses
   mpParser, mpGUI, mpRed, mpProtocol;
 
-// Complete file verification
-Procedure VerificarArchivos();
-var
-  contador : integer;
+// Builds the file structure
+Function FileStructure():integer;
 Begin
-if not directoryexists(BlockDirectory) then CreateDir(BlockDirectory);
-OutText('✓ Block folder ok',false,1);
-if not directoryexists(UpdatesDirectory) then CreateDir(UpdatesDirectory);
-OutText('✓ Updates folder ok',false,1);
-if not directoryexists(MarksDirectory) then CreateDir(MarksDirectory);
-OutText('✓ Marks folder ok',false,1);
-if not directoryexists(GVTMarksDirectory) then CreateDir(GVTMarksDirectory);
-OutText('✓ GVTs Marks folder ok',false,1);
-if not directoryexists(RPCBakDirectory) then CreateDir(RPCBakDirectory);
-OutText('✓ RPC bak folder ok',false,1);
+  Result := 0;
+  if not directoryexists('NOSODATA') then
+    if not CreateDir('NOSODATA') then Inc(Result);
+  if not directoryexists(LogsDirectory) then
+    if not CreateDir(LogsDirectory) then Inc(Result);
+  if not directoryexists(BlockDirectory) then
+    if not CreateDir(BlockDirectory) then Inc(Result);
+  if not directoryexists(UpdatesDirectory) then
+    if not CreateDir(UpdatesDirectory) then Inc(Result);
+  if not directoryexists(MarksDirectory) then
+    if not CreateDir(MarksDirectory) then Inc(Result);
+  if not directoryexists(GVTMarksDirectory) then
+    if not CreateDir(GVTMarksDirectory) then Inc(Result);
+  if not directoryexists(RPCBakDirectory) then
+    if not CreateDir(RPCBakDirectory) then Inc(Result);
+End;
+
+// Complete file verification
+Procedure VerifyFiles();
+Begin
 
 if not FileExists (AdvOptionsFilename) then CreateADV(false) else LoadADV();
 OutText('✓ Advanced options loaded',false,1);
@@ -113,13 +122,18 @@ if not FileExists(GVTsFilename) then CreateGVTsFile;
 GetGVTsFileData;
 OutText('✓ GVTs file ok',false,1);
 
-if not FileExists(NosoCFGFilename) then SaveNosoCFGFile(DefaultNosoCFG);
+if not FileExists(NosoCFGFilename) then
+  begin
+  SaveNosoCFGFile(DefaultNosoCFG);
+  GetCFGDataFromFile;
+  SetCFGData(GetRepoFile('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos'),1);
+  end;
 GetCFGDataFromFile;
 OutText('✓ NosoCFG file ok',false,1);
 
-
 if not FileExists (WalletFilename) then CreateNewWallet else LoadWallet(WalletFilename);
 OutText('✓ Wallet file ok',false,1);
+
 if not Fileexists(BotDataFilename) then CrearBotData() else CargarBotData();
 OutText('✓ Bots file ok',false,1);
 

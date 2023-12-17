@@ -65,6 +65,7 @@ function GetOrderSources(orderid:string):string;
 Function GetNodeStatusString():string;
 Function IsSafeIP(IP:String):boolean;
 Function GetLastRelease():String;
+Function GetRepoFile(LurL:String):String;
 Function GetOS():string;
 Function GetLastVerZipFile(version,LocalOS:string):boolean;
 Function GetSyncTus():String;
@@ -1441,6 +1442,25 @@ TRY
 EXCEPT on E: Exception do
    begin
    ToLog('console','ERROR RETRIEVING LAST RELEASE DATA: '+E.Message);
+   end;
+END;//TRY
+Conector.Free;
+result := readedLine;
+End;
+
+Function GetRepoFile(LurL:String):String;
+var
+  readedLine : string = '';
+  Conector : TFPHttpClient;
+Begin
+Conector := TFPHttpClient.Create(nil);
+conector.ConnectTimeout:=1000;
+conector.IOTimeout:=1000;
+TRY
+   readedLine := Conector.SimpleGet(LurL);
+EXCEPT on E: Exception do
+   begin
+   ToDeepDeb('mpRed,GetRepoFile,'+E.Message);
    end;
 END;//TRY
 Conector.Free;

@@ -284,6 +284,11 @@ else if UpperCase(Command) = 'HEADSIZE' then ToLog('console',GetHeadersSize.ToSt
 //else if UpperCase(Command) = 'NEWFROMKEYS' then NewAddressFromKeys(LineText)
 else if UpperCase(Command) = 'TESTHASH' then TestHashGeneration(LineText)
 else if UpperCase(Command) = 'COMPARE' then CompareHashes(LineText)
+else if UpperCase(Command) = 'GETREPOSEEDS' then ToLog('console',GetRepoFile('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos'))
+else if UpperCase(Command) = 'FORCEREPOSEEDS' then
+  begin
+  SetCFGData(GetRepoFile('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos'),1);
+  end
 
 
 // New system

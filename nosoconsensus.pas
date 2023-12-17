@@ -252,6 +252,7 @@ Begin
     NodesArray[length(NodesArray)-1].peers  := 0;
     end;
   LeaveCriticalSection(CSNodesArray);
+  LastConsensusTime := 0;
 End;
 
 Function GetNodesArrayIndex(LIndex:integer):TNodeConsensus;

@@ -356,8 +356,8 @@ function GetCurrentStatus(mode:integer):String;
 var
   Resultado : string = '';
 Begin
-resultado := resultado+'ServerON: '+BoolToStr(Form1.Server.Active,true)+' ';
-resultado := resultado+'CONNECT_Try: '+BoolToStr(CONNECT_Try,true)+slinebreak;
+resultado := resultado+   'ServerON    : '+BoolToStr(Form1.Server.Active,true)+' ';
+resultado := resultado+   'CONNECT_Try : '+BoolToStr(CONNECT_Try,true)+slinebreak;
 if mode = 1 then
    begin
    resultado := resultado+'Date        : '+FormatDateTime('dd MMMM YYYY HH:MM:SS.zzz', Now)+slinebreak;

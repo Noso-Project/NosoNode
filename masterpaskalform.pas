@@ -510,7 +510,7 @@ type
     procedure OffersGridResize(Sender: TObject);
     procedure PC_ProcessesResize(Sender: TObject);
     Procedure RestartTimerEjecutar(sender: TObject);
-    Procedure EjecutarInicio();
+    Procedure StartProgram();
     Procedure ConsoleLineKeyup(sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Grid1PrepareCanvas(sender: TObject; aCol, aRow: Integer; aState: TGridDrawState);
     procedure Grid2PrepareCanvas(sender: TObject; aCol, aRow: Integer; aState: TGridDrawState);
@@ -599,7 +599,7 @@ type
 
   end;
 
-Procedure InicializarFormulario();
+Procedure InitMainForm();
 Procedure CerrarPrograma();
 Procedure UpdateStatusBar();
 Procedure CompleteInicio();
@@ -915,8 +915,10 @@ var
   ExceptLogFilename   :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'exceptlog.txt';
   ConsoleLogFilename  :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'console.txt';
   NodeFTPLogFilename  :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'nodeftp.txt';
+  DeepDebLogFilename  :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'deepdeb.txt';
   //ResumenFilename     :string= 'NOSODATA'+DirectorySeparator+'blchhead.nos';
   EventLogFilename    :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'eventlog.txt';
+  ResumeLogFilename   :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'report.txt';
   AdvOptionsFilename  :string= 'NOSODATA'+DirectorySeparator+'advopt.txt';
   MasterNodesFilename :string= 'NOSODATA'+DirectorySeparator+'masternodes.txt';
   ZipHeadersFileName  :string= 'NOSODATA'+DirectorySeparator+'blchhead.zip';
@@ -1659,7 +1661,7 @@ end;
 Procedure TForm1.InicoTimerEjecutar(sender: TObject);
 Begin
 InicioTimer.Enabled:=false;
-EjecutarInicio;
+StartProgram;
 End;
 
 // Auto restarts the app from hangs
@@ -1693,32 +1695,30 @@ if G_CloseRequested then
 else RestartTimer.Enabled:=true;
 End;
 
-// Ejecuta todo el proceso de carga y lo muestra en el form inicio
-Procedure TForm1.EjecutarInicio();
-var
-  contador : integer;
-  LastRelease : String = '';
+// Start the application
+Procedure TForm1.StartProgram();
 Begin
 Form1.InfoPanel.Visible:=false;
 AddNewOpenThread('Main',UTCTime);
-// A partir de aqui se inicializa todo
-// Enable units variables
-InitDeepDeb('NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'deepdeb.txt');
+if FileStructure > 0 then
+  begin
+  Application.MessageBox('There was an error creating the files structure and the program will close.', 'NosoNode Error', MB_ICONINFORMATION);
+  Halt();
+  end;
+MixTxtFiles([DeepDebLogFilename,ConsoleLogFilename,EventLogFilename,ExceptLogFilename,NodeFTPLogFilename],ResumeLogFilename,true);
+InitDeepDeb(DeepDebLogFilename,'Starting DeepDebug session');
 NosoDebug_UsePerformance := true;
 UpdateLogsThread := TUpdateLogs.Create(true);
 UpdateLogsThread.FreeOnTerminate:=true;
 UpdateLogsThread.Start;
-if not directoryexists(LogsDirectory) then CreateDir(LogsDirectory);
 CreateNewLog('console',ConsoleLogFilename);
 CreateNewLog('events',EventLogFilename);
 CreateNewLog('exceps',ExceptLogFilename);
 CreateNewLog('nodeftp',NodeFTPLogFilename);
-if not directoryexists('NOSODATA') then CreateDir('NOSODATA');
-OutText(rs0022,false,1); //'✓ Data directory ok'
-// finalizar la inicializacion
-InicializarFormulario();
+OutText(rs0022,false,1); //'✓ Files tree ok'
+InitMainForm();
 OutText(rs0023,false,1); //✓ GUI initialized
-VerificarArchivos();
+VerifyFiles();
 InicializarGUI();
 //InitTime();
 GetTimeOffset(PArameter(GetNosoCFGString,2));
@@ -2186,7 +2186,7 @@ if GoAhead then
 End;
 
 // Run time creation of form components
-Procedure InicializarFormulario();
+Procedure InitMainForm();
 var
   contador : integer = 0;
 Begin

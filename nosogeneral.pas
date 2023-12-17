@@ -46,6 +46,8 @@ function SaveTextToDisk(const aFileName: TFileName; const aText: String): Boolea
 Function LoadTextFromDisk(const aFileName: TFileName): string;
 function TryCopyFile(Source, destination:string):boolean;
 function TryDeleteFile(filename:string):boolean;
+Function MixTxtFiles(ListFiles : array of string;Destination:String;DeleteSources:boolean=true):boolean ;
+
 
 IMPLEMENTATION
 
@@ -393,6 +395,39 @@ Begin
   result := deletefile(filename);
 End;
 
+Function MixTxtFiles(ListFiles : array of string;Destination:String;DeleteSources:boolean=true):boolean ;
+var
+  count      : integer = 0;
+  FinalFile  : TStringList;
+  ThisFile   : TStringList;
+  Added      : integer = 0;
+  Index      : integer;
+Begin
+  FinalFile := TStringList.Create;
+  ThisFile := TStringList.Create;
+  while count < Length(Listfiles) do
+    begin
+    if FileExists(ListFiles[count]) then
+      begin
+      ThisFile.Clear;
+      ThisFile.LoadFromFile(ListFiles[count]);
+      FinalFile.Add('-----> '+ListFiles[count]);
+      Index := 0;
+      While Index < ThisFile.count do
+        begin
+        FinalFile.Add(ThisFile[index]);
+        inc(index);
+        end;
+      Inc(added);
+      end;
+    if DeleteSources then Deletefile(ListFiles[count]);
+    Inc(Count);
+    end;
+  if Added > 0 then
+    FinalFile.SaveToFile(Destination);
+  FinalFile.Free;
+  ThisFile.Free;
+End;
 
 {$ENDREGION}
 
