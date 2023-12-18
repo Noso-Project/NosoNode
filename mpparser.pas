@@ -236,7 +236,6 @@ else if UpperCase(Command) = 'DELBOT' then DeleteBot(LineText)
 else if UpperCase(Command) = 'CRIPTO' then showCriptoThreadinfo()
 else if UpperCase(Command) = 'BLOCK' then ParseShowBlockInfo(LineText)
 else if UpperCase(Command) = 'TESTNET' then TestNetwork(LineText)
-else if UpperCase(Command) = 'RUNDIAG' then RunDiagnostico(LineText)
 else if UpperCase(Command) = 'RESTART' then Parse_RestartNoso()
 else if UpperCase(Command) = 'SND' then ShowNetworkDataInfo()
 else if UpperCase(Command) = 'OSVERSION' then ToLog('console',OsVersion)
@@ -280,7 +279,7 @@ else if UpperCase(Command) = 'BASE58SUM' then ToLog('console',BMB58resumen(param
 else if UpperCase(Command) = 'NOSOHASH' then ToLog('console',Nosohash(parameter(linetext,1)))
 else if UpperCase(Command) = 'PENDING' then ToLog('console',PendingRawInfo)
 else if UpperCase(Command) = 'HEADER' then ToLog('console',ShowBlockHeaders(StrToIntDef(parameter(linetext,1),-1)))
-else if UpperCase(Command) = 'HEADSIZE' then ToLog('console',GetHeadersSize.ToString)
+else if UpperCase(Command) = 'HEADSIZE' then ToLog('console',GetHeadersHeigth.ToString)
 //else if UpperCase(Command) = 'NEWFROMKEYS' then NewAddressFromKeys(LineText)
 else if UpperCase(Command) = 'TESTHASH' then TestHashGeneration(LineText)
 else if UpperCase(Command) = 'COMPARE' then CompareHashes(LineText)
@@ -289,6 +288,7 @@ else if UpperCase(Command) = 'FORCEREPOSEEDS' then
   begin
   SetCFGData(GetRepoFile('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos'),1);
   end
+else if UpperCase(Command) = 'FIXHEADERS' then ToLog('console',FIXHEADERS(MyLastBlock).ToString)
 
 
 // New system
@@ -572,27 +572,28 @@ var
   Dato: ResumenData;
   Found : boolean = false;
   StartBlock : integer = 0;
+  counter : integer = 100000;
+  Errors : integer = 0;
 Begin
-EnterCriticalSection(CSHeadAccess);
 StartBlock := number - 10;
 If StartBlock < 0 then StartBlock := 0;
 TRY
 assignfile(FileResumen,ResumenFilename);
 reset(FileResumen);
-Seek(FileResumen,StartBlock);
    REPEAT
+   Seek(FileResumen,counter);
    read(fileresumen, dato);
-   if Dato.block= number then
-      begin
-      ToLog('console',IntToStr(dato.block)+' '+copy(dato.blockhash,1,5)+' '+copy(dato.SumHash,1,5));
-      Found := true;
-      end;
-   UNTIL ((Found) or (eof(FileResumen)) );
+   //ToLog('console',IntToStr(dato.block)+' '+copy(dato.blockhash,1,5)+' '+copy(dato.SumHash,1,5));
+   if dato.blockhash='MISS' then Inc(Errors);
+   if dato.sumhash='MISS' then Inc(Errors);
+   Inc(Counter);
+
+   UNTIL eof(fileresumen);
 closefile(FileResumen);
+ToLog('Console','Errors : '+Errors.ToString);
 EXCEPT ON E:Exception do
    ToLog('console','Error: '+E.Message)
 END;{TRY}
-LeaveCriticalSection(CSHeadAccess);
 End;
 
 // Cambiar la primera direccion de la wallet

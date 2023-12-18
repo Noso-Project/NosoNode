@@ -394,7 +394,7 @@ if not errored then
    MySumarioHash := HashMD5File(SummaryFileName);
    MyMNsHash     := HashMD5File(MasterNodesFilename);
    // Actualizar el arvhivo de cabeceras
-   AddBlchHead(Numero,MyLastBlockHash,MySumarioHash);
+   AddRecordToHeaders(Numero,MyLastBlockHash,MySumarioHash);
    MyResumenHash := HashMD5File(ResumenFilename);
    if ( (Numero>0) and (form1.Server.Active) ) then
       begin
@@ -718,7 +718,7 @@ UpdateMyGVTsList;
 // Actualizar la cartera
 UpdateWalletFromSumario();
 // actualizar el archivo de cabeceras
-DelBlChHeadLast(blocknumber);
+  RemoveHeadersLastRecord;
 // Borrar archivo del ultimo bloque
 trydeletefile(BlockDirectory +IntToStr(MyLastBlock)+'.blk');
 // Actualizar mi informacion

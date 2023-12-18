@@ -49,6 +49,7 @@ type
 
 Procedure BeginPerformance(Tag:String);
 Function EndPerformance(Tag:String):int64;
+Function PerformanceToFile(Destination:String):boolean;
 
 Procedure CreateNewLog(LogName: string; LogFileName:String = '');
 Procedure ToLog(LogTag,NewLine : String);
@@ -134,6 +135,29 @@ Begin
       end;
     end;
   Result := duration;
+End;
+
+Function PerformanceToFile(Destination:String):boolean;
+var
+  counter  : integer;
+  Lines    : TStringList;
+  ThisLine : String;
+  Tag,count,max,average : string;
+Begin
+  Result := true;
+  Lines := TStringlist.Create;
+  Lines.Add('TAG                                           Count        Max    Average');
+  for counter := 0 to high(ArrPerformance) do
+    begin
+    Tag := Format('%0:-40s',[ArrPerformance[counter].tag]);
+    Count   := Format('%0:10s',[IntToStr(ArrPerformance[counter].Count)]);
+    Max     := Format('%0:10s',[IntToStr(ArrPerformance[counter].Max)]);
+    Average := Format('%0:10s',[IntToStr(ArrPerformance[counter].Average)]);
+    ThisLine := Format('%s %s %s %s',[Tag,count,max,average]);
+    Lines.Add(ThisLine);
+    end;
+  Lines.SaveToFile(Destination);
+  Lines.Free;
 End;
 
 {$ENDREGION}

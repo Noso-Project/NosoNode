@@ -1183,7 +1183,7 @@ REPEAT
       sumhash := Parameter(ThisHeader,2);
       LastBlockOnSummary := GetHeadersLastBlock();
       if numero = LastBlockOnSummary+1 then
-         AddBlchHead(numero,blockhash,sumhash)
+         AddRecordToHeaders(Numero,blockhash,sumhash)
       else
          begin
          Inc(TotalErrors);

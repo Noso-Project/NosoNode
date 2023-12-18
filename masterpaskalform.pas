@@ -919,6 +919,7 @@ var
   //ResumenFilename     :string= 'NOSODATA'+DirectorySeparator+'blchhead.nos';
   EventLogFilename    :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'eventlog.txt';
   ResumeLogFilename   :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'report.txt';
+  PerformanceFIlename :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'performance.txt';
   AdvOptionsFilename  :string= 'NOSODATA'+DirectorySeparator+'advopt.txt';
   MasterNodesFilename :string= 'NOSODATA'+DirectorySeparator+'masternodes.txt';
   ZipHeadersFileName  :string= 'NOSODATA'+DirectorySeparator+'blchhead.zip';
@@ -1705,7 +1706,7 @@ if FileStructure > 0 then
   Application.MessageBox('There was an error creating the files structure and the program will close.', 'NosoNode Error', MB_ICONINFORMATION);
   Halt();
   end;
-MixTxtFiles([DeepDebLogFilename,ConsoleLogFilename,EventLogFilename,ExceptLogFilename,NodeFTPLogFilename],ResumeLogFilename,true);
+MixTxtFiles([DeepDebLogFilename,ConsoleLogFilename,EventLogFilename,ExceptLogFilename,NodeFTPLogFilename,PerformanceFIlename],ResumeLogFilename,true);
 InitDeepDeb(DeepDebLogFilename,'Starting DeepDebug session');
 NosoDebug_UsePerformance := true;
 UpdateLogsThread := TUpdateLogs.Create(true);
@@ -2079,6 +2080,7 @@ if not G_ClosingAPP then
 LeaveCriticalSection(CSClosingApp);
 if GoAhead then
    begin
+   PerformanceToFile(PerformanceFilename);
    EarlyRestart := form1.Server.Active;
    Form1.Latido.Enabled:=false; // Stopped the latido
    form1.RestartTimer.Enabled:=false;

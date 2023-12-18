@@ -59,11 +59,8 @@ function UnZipUpdateFromRepo(Tver,TArch:String):boolean;
 
 Procedure RebuildHeadersFile();
 Procedure BuildHeaderFile(fromblock: integer; untilblock:integer=-1);
-Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
-Function DelBlChHeadLast(Block:integer): boolean;
 Function GetHeadersNumber(Block:integer):ResumenData;
 Function SetHeadersNumber(LData:ResumenData):boolean;
-Function GetHeadersSize():integer;
 Function GetHeadersLastBlock():integer;
 Function ShowBlockHeaders(BlockNumber:Integer):String;
 Function LastHeaders(FromBlock:integer):String;
@@ -71,7 +68,6 @@ Function LastHeaders(FromBlock:integer):String;
 Procedure CreateLauncherFile(IncludeUpdate:boolean = false);
 Procedure RestartNoso();
 Procedure NewDoctor();
-Procedure RunDiagnostico(linea:string);
 Procedure CrearRestartfile();
 Procedure RestartConditions();
 function OSVersion: string;
@@ -963,55 +959,13 @@ if GVTsTrfer>0 then
 U_DirPanel := true;
 End;
 
-// adds a header at the end of headers file
-Procedure AddBlchHead(Numero: int64; hash,sumhash:string);
-var
-  Dato: ResumenData;
-Begin
-  EnterCriticalSection(CSHeadAccess);
-  TRY
-    assignfile(FileResumen,ResumenFilename);
-    reset(FileResumen);
-    Dato := Default(ResumenData);
-    Dato.block:=Numero;
-    Dato.blockhash:=hash;
-    Dato.SumHash:=sumhash;
-    seek(fileResumen,filesize(fileResumen));
-    write(fileResumen,dato);
-    closefile(FileResumen);
-  EXCEPT on E:Exception do
-    ToLog('events',TimeToStr(now)+'Error adding new register to headers');
-  END;
-  LeaveCriticalSection(CSHeadAccess);
-End;
-
-// Deletes last header from headers file
-Function DelBlChHeadLast(Block:integer): boolean;
-Begin
-EnterCriticalSection(CSHeadAccess);
-   TRY
-   assignfile(FileResumen,ResumenFilename);
-   reset(FileResumen);
-   seek(fileResumen,filesize(fileResumen)-1);
-   truncate(fileResumen);
-   closefile(FileResumen);
-   Result := true;
-   EXCEPT on E:Exception do
-      begin
-      ToLog('events',TimeToStr(now)+'Error deleting last record from headers');
-      result := false;
-      end;
-   END;{TRY}
-LeaveCriticalSection(CSHeadAccess);
-End;
-
 // Returns the specific headers data
 Function GetHeadersNumber(Block:integer):ResumenData;
 var
   Dato: ResumenData;
 Begin
   result :=Default(ResumenData);
-  if Block>GetHeadersSize then exit;
+  if Block>GetHeadersHeigth then exit;
   assignfile(FileResumen,ResumenFilename);
   EnterCriticalSection(CSHeadAccess);
   TRY
@@ -1034,7 +988,7 @@ End;
 Function SetHeadersNumber(LData:ResumenData):boolean;
 Begin
   Result := false;
-  if Ldata.block>GetHeadersSize+1 then exit;
+  if Ldata.block>GetHeadersHeigth+1 then exit;
   assignfile(FileResumen,ResumenFilename);
   EnterCriticalSection(CSHeadAccess);
   TRY
@@ -1050,24 +1004,6 @@ Begin
     ToLog('events',TimeToStr(now)+'Error SetHeadersNumber '+Ldata.block.ToString+': '+E.Message);
   END;
   LeaveCriticalSection(CSHeadAccess);
-End;
-
-// Returns the last block added to headers
-Function GetHeadersSize():integer;
-Begin
-result := -1;
-EnterCriticalSection(CSHeadAccess);
-assignfile(FileResumen,ResumenFilename);
-   TRY
-   reset(FileResumen);
-   Result := filesize(fileResumen)-1;
-   closefile(FileResumen);
-   EXCEPT on E:Exception do
-      begin
-      ToLog('events',TimeToStr(now)+'Error retrieving headers size: '+E.Message);
-      end;
-   END;{TRY}
-LeaveCriticalSection(CSHeadAccess);
 End;
 
 Function GetHeadersLastBlock():integer;
@@ -1267,117 +1203,6 @@ form1.ButStartDoctor.Visible:=true;
 form1.ButStopDoctor.Visible:=false;
 form1.MemoDoctor.Lines.Add(format('BlockHash errors: %d',[BlockHashErrors]));
 form1.MemoDoctor.Lines.Add(format('SumHash errors  : %d',[SumHashErrors]));
-End;
-
-// Runs doctor tool
-Procedure RunDiagnostico(linea:string);
-var
-  cont : integer;
-  lastblock : integer;
-  dato : ResumenData;
-  fixfiles: boolean = false;
-  errores : integer = 0;
-  fixed : integer = 0;
-  porcentaje : integer;
-  badBlockHashes : string = '';
-Begin
-CloseAllforms();
-CerrarClientes();
-StopServer();
-//setlength(CriptoOpsTIPO,0);
-RunningDoctor := true;
-if UpperCase(parameter(linea,1)) = 'FIX' then fixfiles := true;
-lastblock := GetMyLastUpdatedBlock;
-forminicio.Caption:='Noso Doctor';
-GridInicio.RowCount:=0;
-FormInicio.BorderIcons:=FormInicio.BorderIcons-[bisystemmenu];
-forminicio.visible := true;
-form1.Visible:=false;
-if lastblock = 0 then
-   begin
-   outtext('You can not run diagnostic now',false,1);
-   RunningDoctor := false;
-   FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
-   exit;
-   end;
-{
-outtext('Blocks to check: '+IntToStr(lastblock+1),false,1);
-outtext('Checking block files 0 %',false,1);
-for cont := 0 to lastblock do
-   begin
-   gridinicio.RowCount := gridinicio.RowCount-1;
-   if not fileexists(BlockDirectory+IntToStr(cont)+'.blk') then
-      begin
-      errores +=1;
-      end;
-   EngineLastUpdate := UTCTime.ToInt64;
-   porcentaje := (cont * 100) div lastblock;
-   outtext('Checking block files '+inttostr(porcentaje)+' %',false,1);
-   end;
-outtext('Missing blocks: '+IntToStr(errores),false,1);
-errores := 0;
-}
-outtext('Block hash correct 0 %',false,1);
-assignfile(FileResumen,ResumenFilename);
-reset(FileResumen);
-for cont := 0 to lastblock do
-   begin
-   EngineLastUpdate := UTCTime;
-   Seek(FileResumen,cont);
-   Read(FileResumen,dato);
-   gridinicio.RowCount := gridinicio.RowCount-1;
-   if HashMD5File(BlockDirectory+IntToStr(cont)+'.blk')<> dato.blockhash then
-      begin
-      errores +=1;
-      badBlockHashes := badBlockHashes+IntToStr(cont)+',';
-      if fixfiles then
-         begin
-         fixed +=1;
-         dato.block:=cont;
-         dato.blockhash:=HashMD5File(BlockDirectory+IntToStr(cont)+'.blk');
-         Seek(FileResumen,cont);
-         write(FileResumen,dato);
-         end;
-      end;
-   porcentaje := (cont * 100) div lastblock;
-   outtext('Block hash correct '+inttostr(porcentaje)+' %',false,1);
-   end;
-outtext('Wrong block hashes: '+IntToStr(errores),false,1);
-outtext('Numbers: '+badBlockHashes,false,1);
-errores := 0;
-{
-outtext('Sumary hash correct 0 %',false,1);
-for cont := 1 to lastblock do
-   begin
-   EngineLastUpdate := UTCTime.ToInt64;
-   Seek(FileResumen,cont);
-   Read(FileResumen,dato);
-   gridinicio.RowCount := gridinicio.RowCount-1;
-   if cont = 1 then RebuildSumario(cont)
-   else AddBlockToSumary(cont);
-   if HashMD5File(SummaryFileName) <> dato.SumHash then
-      begin
-      errores +=1;
-      if fixfiles then
-         begin
-         fixed +=1;
-         dato.block:=cont;
-         dato.SumHash:=HashMD5File(SummaryFileName);
-         Seek(FileResumen,cont);
-         write(FileResumen,dato);
-         end
-      end;
-   porcentaje := (cont * 100) div lastblock;
-   outtext('Sumary hash correct '+IntToStr(porcentaje)+' %',false,1);
-   end;
-closefile(FileResumen);
-outtext('Wrong sumary hashes: '+IntToStr(errores),false,1);
-errores := 0;
-}
-//outtext('Errors: '+IntToStr(errores)+' / Fixed: '+IntToStr(fixed),false,1);
-RunningDoctor := false;
-FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
-UpdateMyData();
 End;
 
 // Creates autorestart file
