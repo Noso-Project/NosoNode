@@ -870,9 +870,7 @@ var
   // Critical Sections
   CSProcessLines: TRTLCriticalSection;
   CSOutgoingMsjs: TRTLCriticalSection;
-  CSHeadAccess  : TRTLCriticalSection;
   CSBlocksAccess: TRTLCriticalSection;
-  CSSumary      : TRTLCriticalSection;
   CSPending     : TRTLCriticalSection;
   CSCriptoThread: TRTLCriticalSection;
   CSClosingApp  : TRTLCriticalSection;
@@ -1068,27 +1066,14 @@ if Continuar then
                   downloaded := false;
                   end;
                END; {TRY}
-            if Downloaded then
-               begin
-               Errored := false;
-               EnterCriticalSection(CSHeadAccess);
-                  TRY
-                  MemStream.SaveToFile(ResumenFilename);
-                  Errored := False;
-                  EXCEPT on E:Exception do
-                     begin
-                     Errored := true;
-                     ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error saving headers to file: '+E.Message);
-                     end;
-                  END; {TRY}
-               LeaveCriticalSection(CSHeadAccess);
-               end;
-            if Downloaded and not errored then
+            if Downloaded then SavedToFile := SaveStreamAsHeaders(MemStream);
+            if Downloaded and SavedToFile then
                begin
                ToLog('console',format(rs0005,[copy(HashMD5File(ResumenFilename),1,5)])); //'Headers file received'
                LastTimeRequestResumen := 0;
                UpdateMyData();
-               end;
+               end
+            else ToLog('console','Something happened downloading headers');
             MemStream.Free;
             DownloadHeaders := false;
             FTPTime := CloseFileProcess('Get','Headers',CanalCliente[FSlot].Host,GetTickCount64);
@@ -1552,9 +1537,7 @@ OutgoingMsjs       := TStringlist.Create;
 Randomize;
 InitCriticalSection(CSProcessLines);
 InitCriticalSection(CSOutgoingMsjs);
-InitCriticalSection(CSHeadAccess);
 InitCriticalSection(CSBlocksAccess);
-InitCriticalSection(CSSumary);
 InitCriticalSection(CSPending);
 InitCriticalSection(CSCriptoThread);
 InitCriticalSection(CSMNsArray);
@@ -1590,9 +1573,7 @@ var
 begin
 DoneCriticalSection(CSProcessLines);
 DoneCriticalSection(CSOutgoingMsjs);
-DoneCriticalSection(CSHeadAccess);
 DoneCriticalSection(CSBlocksAccess);
-DoneCriticalSection(CSSumary);
 DoneCriticalSection(CSPending);
 DoneCriticalSection(CSCriptoThread);
 DoneCriticalSection(CSMNsArray);
@@ -2432,14 +2413,8 @@ if GoAhead then
          END; {TRY}
       if GetfileOk then
          begin
-         EnterCriticalSection(CSHeadAccess);
-            TRY
-            MemStream.SaveToFile(ResumenFilename);
+         if SaveStreamAsHeaders(MemStream) then
             ToLog('console',Format(rs0047,[copy(HashMD5File(ResumenFilename),1,5)]));//'Headers file received'
-            EXCEPT ON E:EXCEPTION do
-               ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error saving Headers received on server: '+E.Message)
-            END; {TRY};
-         LeaveCriticalSection(CSHeadAccess);
          end;
       UpdateMyData();
       LastTimeRequestResumen := 0;
@@ -2479,19 +2454,8 @@ if GoAhead then
       begin
       AddFileProcess('Send','Headers',IPUser,GetTickCount64);
       MemStream := TMemoryStream.Create;
-         TRY
-         EnterCriticalSection(CSHeadAccess);
-         MemStream.LoadFromFile(ResumenFilename);
-         FTPSize := Memstream.Size;
-         LeaveCriticalSection(CSHeadAccess);
-         GetFileOk := true;
-         EXCEPT on E:Exception do
-            begin
-            GetFileOk := false;
-            //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0049,[E.Message]));//SERVER: Error creating stream from headers: %s',[E.Message]));
-            end;
-         END; {TRY}
-      if GetFileOk then
+      FTPSize := GetHeadersAsMemStream(MemStream);
+      if FTPSize>0 then
          begin
             TRY
             Acontext.Connection.IOHandler.WriteLn('RESUMENFILE');
@@ -2499,7 +2463,7 @@ if GoAhead then
             EXCEPT on E:Exception do
                begin
                Form1.TryCloseServerConnection(Conexiones[Slot].context);
-               //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0051,[E.Message]));
+               ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0051,[E.Message]));
                end;
             END; {TRY}
          end;
@@ -2741,17 +2705,8 @@ if GoAhead then
    else if parameter(LLine,0) = 'GETZIPSUMARY' then  //
       begin
       MemStream := TMemoryStream.Create;
-      EnterCriticalSection(CSSumary);
-         TRY
-         MemStream.LoadFromFile(ZipSumaryFileName);
-         GetFileOk := true;
-         EXCEPT on E:Exception do
-            begin
-            GetFileOk := false;
-            ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0049,[E.Message])); //'SERVER: Error creating stream from headers: %s',[E.Message]));
-            end;
-         END; {TRY}
-      LeaveCriticalSection(CSSumary);
+      if GetSummaryAsMemStream(MemStream) > 0 then GetFileOk := true
+      else GetFileOk := false;
       if GetFileOk then
          begin
             TRY

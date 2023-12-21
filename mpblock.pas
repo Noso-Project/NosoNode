@@ -150,10 +150,7 @@ if not errored then
    SetLength(ListaOrdenes,0);
    SetLength(IgnoredTrxs,0);
    // Generate summary copy
-   EnterCriticalSection(CSSumary);
-   trydeletefile(SummaryFileName+'.bak');
-   trycopyfile(SummaryFileName,SummaryFileName+'.bak');
-   LeaveCriticalSection(CSSumary);
+   CreateSumaryBackup();
 
    // Generate GVT copy
    EnterCriticalSection(CSGVTsArray);
@@ -702,10 +699,8 @@ if MyConStatus = 3 then
    ClearReceivedOrdersIDs;
    end;
 // recover summary
-EnterCriticalSection(CSSumary);
-Trydeletefile(SummaryFileName);
-Trycopyfile(SummaryFileName+'.bak',SummaryFileName);
-LeaveCriticalSection(CSSumary);
+RestoreSumaryBackup();
+
 CreateSumaryIndex;
 // recover GVTs file
 EnterCriticalSection(CSGVTsArray);

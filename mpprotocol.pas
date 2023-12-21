@@ -576,9 +576,7 @@ var
   MemStream   : TMemoryStream;
 Begin
 MemStream := TMemoryStream.Create;
-EnterCriticalSection(CSHeadAccess);
-MemStream.LoadFromFile(ResumenFilename);
-LeaveCriticalSection(CSHeadAccess);
+GetHeadersAsMemStream(MemStream);
 if conexiones[slot].tipo='CLI' then
    begin
       TRY
@@ -611,9 +609,7 @@ var
   MemStream   : TMemoryStream;
 Begin
 MemStream := TMemoryStream.Create;
-EnterCriticalSection(CSSumary);
-MemStream.LoadFromFile(SummaryFileName);
-LeaveCriticalSection(CSSumary);
+GetSummaryAsMemStream(MemStream);
 if conexiones[slot].tipo='CLI' then
    begin
       TRY
@@ -641,7 +637,7 @@ if conexiones[slot].tipo='SER' then
 MemStream.Free;
 End;
 
-// Zips the headers file
+// Zips the headers file. Uses deprecated methods, to be removed...
 Function ZipHeaders():boolean;
 var
   MyZipFile: TZipper;
@@ -650,7 +646,6 @@ Begin
 result := false;
 MyZipFile := TZipper.Create;
 MyZipFile.FileName := ZipHeadersFileName;
-EnterCriticalSection(CSHeadAccess);
    TRY
    {$IFDEF WINDOWS}
    archivename:= StringReplace(ResumenFilename,'\','/',[rfReplaceAll]);
@@ -666,7 +661,6 @@ EnterCriticalSection(CSHeadAccess);
       ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error on Zip Headers file: '+E.Message);
    END{Try};
 MyZipFile.Free;
-LeaveCriticalSection(CSHeadAccess);
 End;
 
 // Creates the zip block file
@@ -1152,9 +1146,7 @@ var
   Block : integer;
 Begin
 Block := StrToIntDef(Parameter(Linea,5),0);
-PTC_SendLine(slot,ProtocolLine(headupdate)+' $'+LastHeaders(Block));
-//ToLog('console',Format('Blockheaders update sent to %s (%d)',[Conexiones[slot].ip,Block]));
-//ToLog('console','Blockheaders update sent to '+Conexiones[slot].ip);
+PTC_SendLine(slot,ProtocolLine(headupdate)+' $'+LastHeadersString(Block));
 End;
 
 Procedure PTC_HeadUpdate(linea:String);

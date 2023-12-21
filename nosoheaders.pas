@@ -25,6 +25,12 @@ Function CreateHeadersFile():boolean;
 Function AddRecordToHeaders(BlockNumber:int64;BlockHash,SumHash:String):boolean;
 Function RemoveHeadersLastRecord():Boolean;
 Function GetHeadersHeigth():integer;
+Function GetHeadersLastBlock():Integer;
+Function GetHeadersAsMemStream(out LMs:TMemoryStream):int64;
+Function SaveStreamAsHeaders(Const LStream:TMemoryStream):Boolean;
+Function LastHeadersString(FromBlock:integer):String;
+
+// For tests
 Function FixHeaders(LastBlock:integer = -1):integer;
 
 var
@@ -117,6 +123,94 @@ Begin
   LeaveCriticalSection(CS_HeadersFile);
 End;
 
+// Returns the block number of the last record on headers
+Function GetHeadersLastBlock():Integer;
+var
+  ThisData : ResumenData;
+Begin
+  Result := 0;
+  ThisData := Default(ResumenData);
+  assignfile(FileResumen,ResumenFilename);
+  EnterCriticalSection(CS_HeadersFile);
+  TRY
+    reset(FileResumen);
+    if filesize(FileResumen)>0 then
+      begin
+      seek(fileResumen,filesize(FileResumen)-1);
+      Read(fileResumen,ThisData);
+      result := ThisData.block;
+      end;
+    CloseFile(FileResumen);
+  EXCEPT on E:Exception do
+    begin
+    ToDeepDeb('NosoHeaders,GetHeadersLastBlock,'+E.Message);
+    end;
+  END;
+  LeaveCriticalSection(CS_HeadersFile);
+End;
+
+// Returns the headers file as a STREAM
+Function GetHeadersAsMemStream(out LMs:TMemoryStream):int64;
+Begin
+  Result := 0;
+  EnterCriticalSection(CS_HeadersFile);
+    TRY
+      LMs.LoadFromFile(ResumenFilename);
+      result:= LMs.Size;
+      LMs.Position:=0;
+    EXCEPT ON E:Exception do
+      begin
+      ToDeepDeb('NosoHeaders,GetHeadersAsMemStream,'+E.Message);
+      end;
+    END;
+  LeaveCriticalSection(CS_HeadersFile);
+End;
+
+// Save a provided stream as the headers file
+Function SaveStreamAsHeaders(Const LStream:TMemoryStream):Boolean;
+Begin
+  result := false;
+  EnterCriticalSection(CS_HeadersFile);
+    TRY
+    LStream.SaveToFile(ResumenFilename);
+    Result := true;
+    EXCEPT ON E:Exception do
+      begin
+      ToDeepDeb('NosoHeaders,SaveStreamAsHeaders,'+E.Message);
+      end;
+    END{Try};
+  LeaveCriticalSection(CS_HeadersFile);
+End;
+
+// Returns the string for headers updates
+Function LastHeadersString(FromBlock:integer):String;
+var
+  ThisData : ResumenData;
+Begin
+  result := '';
+  if FromBlock<GetHeadersLastBlock-1008 then exit;
+  assignfile(FileResumen,ResumenFilename);
+  EnterCriticalSection(CS_HeadersFile);
+  TRY
+    reset(FileResumen);
+    ThisData := Default(ResumenData);
+    seek(fileResumen,FromBlock-20);
+    While not Eof(fileResumen) do
+      begin
+      Read(fileResumen,ThisData);
+      Result := Result+ThisData.block.ToString+':'+ThisData.blockhash+':'+ThisData.SumHash+' ';
+      end;
+    closefile(FileResumen);
+  EXCEPT on E:Exception do
+    begin
+    ToDeepDeb('NosoHeaders,LastHeadersString,'+E.Message);
+    end;
+  END;
+  LeaveCriticalSection(CS_HeadersFile);
+  Result := Trim(Result);
+End;
+
+// Only a test function; should be removed
 Function FixHeaders(LastBlock:integer = -1):integer;
 var
   TempArray : array of ResumenData;

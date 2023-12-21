@@ -70,6 +70,8 @@ Function ZipSumary():boolean;
 Function CreateSumaryIndex():int64;
 Function GetSummaryAsMemStream(out LMs:TMemoryStream):int64;
 Function SaveSummaryToFile(Const LStream:TMemoryStream):Boolean;
+Function CreateSumaryBackup():Boolean;
+Function RestoreSumaryBackup():Boolean;
 Function SumIndexLength():int64;
 Procedure ResetBlockRecords();
 Function GetIndexPosition(LText:String;out RecordData:TSummaryData; IsAlias:boolean = false):int64;
@@ -197,6 +199,20 @@ Begin
     Result := true;
     EXCEPT ON E:Exception do
     END{Try};
+  LeaveCriticalSection(CS_SummaryDisk);
+End;
+
+Function CreateSumaryBackup():Boolean;
+Begin
+  EnterCriticalSection(CS_SummaryDisk);
+  Result:= TryCopyFile(SummaryFileName,SummaryFileName+'.bak');
+  LeaveCriticalSection(CS_SummaryDisk);
+End;
+
+Function RestoreSumaryBackup():Boolean;
+Begin
+  EnterCriticalSection(CS_SummaryDisk);
+  Result := Trycopyfile(SummaryFileName+'.bak',SummaryFileName);
   LeaveCriticalSection(CS_SummaryDisk);
 End;
 

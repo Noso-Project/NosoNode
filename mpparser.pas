@@ -268,7 +268,6 @@ else if UpperCase(Command) = 'WEBWAL' then WebWallet()
 else if UpperCase(Command) = 'EXPKEYS' then ExportKeys(LineText)
 else if UpperCase(Command) = 'CHECKUPDATES' then ToLog('console',GetLastRelease)
 else if UpperCase(Command) = 'ZIPSUMARY' then ZipSumary()
-else if UpperCase(Command) = 'ZIPHEADERS' then ZipHeaders()
 else if UpperCase(Command) = 'GETPOS' then ToLog('console', GetPoSPercentage(StrToIntdef(Parameter(linetext,1),Mylastblock)).ToString )
 else if UpperCase(Command) = 'GETMNS' then ToLog('console', GetMNsPercentage(StrToIntdef(Parameter(linetext,1),Mylastblock),GetNosoCFGString(0)).ToString )
 else if UpperCase(Command) = 'CLOSESTARTON' then WO_CloseStart := true
@@ -278,7 +277,6 @@ else if UpperCase(Command) = 'TT' then DebugTest2(LineText)
 else if UpperCase(Command) = 'BASE58SUM' then ToLog('console',BMB58resumen(parameter(linetext,1)))
 else if UpperCase(Command) = 'NOSOHASH' then ToLog('console',Nosohash(parameter(linetext,1)))
 else if UpperCase(Command) = 'PENDING' then ToLog('console',PendingRawInfo)
-else if UpperCase(Command) = 'HEADER' then ToLog('console',ShowBlockHeaders(StrToIntDef(parameter(linetext,1),-1)))
 else if UpperCase(Command) = 'HEADSIZE' then ToLog('console',GetHeadersHeigth.ToString)
 //else if UpperCase(Command) = 'NEWFROMKEYS' then NewAddressFromKeys(LineText)
 else if UpperCase(Command) = 'TESTHASH' then TestHashGeneration(LineText)
@@ -295,8 +293,6 @@ else if UpperCase(Command) = 'FIXHEADERS' then ToLog('console',FIXHEADERS(MyLast
 
 else if UpperCase(Command) = 'SUMARY' then ShowSumary()
 else if UpperCase(Command) = 'REBUILDSUM' then RebuildSummary()
-else if UpperCase(Command) = 'CHECKHEADERS' then BuildHeaderFile(StrToIntDef(parameter(linetext,1),0),StrToIntDef(parameter(linetext,2),-1))
-else if UpperCase(Command) = 'REBUILDHEADERS' then RebuildHeadersFile()
 
 // CONSULTING
 else if UpperCase(Command) = 'LISTGVT' then ListGVTs()
@@ -587,7 +583,6 @@ reset(FileResumen);
    if dato.blockhash='MISS' then Inc(Errors);
    if dato.sumhash='MISS' then Inc(Errors);
    Inc(Counter);
-
    UNTIL eof(fileresumen);
 closefile(FileResumen);
 ToLog('Console','Errors : '+Errors.ToString);

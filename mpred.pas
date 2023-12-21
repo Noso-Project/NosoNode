@@ -1088,7 +1088,6 @@ else if ((copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) an
    else
       begin
       CompleteSumary();
-      //BuildHeaderFile(SummaryLastop);
       end;
    end
 // Blockchain status issues starts here

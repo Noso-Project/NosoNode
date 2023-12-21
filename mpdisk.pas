@@ -57,14 +57,6 @@ function GetMyLastUpdatedBlock():int64;
 Function UnzipBlockFile(filename:String;delFile:boolean):boolean;
 function UnZipUpdateFromRepo(Tver,TArch:String):boolean;
 
-Procedure RebuildHeadersFile();
-Procedure BuildHeaderFile(fromblock: integer; untilblock:integer=-1);
-Function GetHeadersNumber(Block:integer):ResumenData;
-Function SetHeadersNumber(LData:ResumenData):boolean;
-Function GetHeadersLastBlock():integer;
-Function ShowBlockHeaders(BlockNumber:Integer):String;
-Function LastHeaders(FromBlock:integer):String;
-
 Procedure CreateLauncherFile(IncludeUpdate:boolean = false);
 Procedure RestartNoso();
 Procedure NewDoctor();
@@ -789,66 +781,6 @@ UnZipper := TUnZipper.Create;
 UnZipper.Free;
 End;
 
-Procedure RebuildHeadersFile();
-Begin
-  CreateNewSummaryFile(true);
-  BuildHeaderFile(0,-1);
-End;
-
-// Rebuild headers file
-Procedure BuildHeaderFile(fromblock: integer; untilblock:integer=-1);
-var
-  Dato        : ResumenData;
-  Contador    : integer = 0;
-  CurrHash    : String = '';
-  newblocks   : integer = 0;
-  Modified    : boolean = false;
-Begin
-if untilBlock = -1 then untilblock := MyLastBlock;
-ToLog('console','Rebuilding until block '+IntToStr(untilblock)); //'Rebuilding until block '
-contador := fromblock;
-while contador <= untilblock do
-   begin
-   Modified := false;
-   dato := GetHeadersNumber(contador);
-   if  Contador <> Dato.block then
-      begin
-      Dato.block := contador;
-      Modified   := true;
-      end;
-   CurrHash := HashMD5File(BlockDirectory+IntToStr(contador)+'.blk');
-   if  CurrHash <> Dato.blockhash then
-      begin
-      Dato.blockhash:=CurrHash;
-      Modified := true;
-      end;
-   if contador > SummaryLastop then
-      begin
-      Inc(NewBlocks);
-      AddBlockToSumary(contador);
-      Dato.SumHash:=HashMD5File(SummaryFileName);
-      Modified := true;
-      end;
-   if modified then
-      begin
-      SetHeadersNumber(Dato);
-      end;
-   if contador mod 10 = 0 then
-      begin
-      ToLog('console',Format('Last verified: %d (%d)',[contador,newblocks]));
-      end;
-   Application.ProcessMessages;
-   Inc(Contador);
-   end;
-if newblocks>0 then
-   begin
-   ToLog('console',IntToStr(newblocks)+' added to headers'); //' added to headers'
-   U_DirPanel := true;
-   end;
-UpdateMyData();
-U_Dirpanel := true;
-End;
-
 // COmpletes the sumary from LAstUpdate to Lastblock
 Procedure CompleteSumary();
 var
@@ -957,126 +889,6 @@ if GVTsTrfer>0 then
    UpdateMyGVTsList;
    end;
 U_DirPanel := true;
-End;
-
-// Returns the specific headers data
-Function GetHeadersNumber(Block:integer):ResumenData;
-var
-  Dato: ResumenData;
-Begin
-  result :=Default(ResumenData);
-  if Block>GetHeadersHeigth then exit;
-  assignfile(FileResumen,ResumenFilename);
-  EnterCriticalSection(CSHeadAccess);
-  TRY
-    TRY
-    reset(FileResumen);
-    seek(fileResumen,Block);
-    Read(fileResumen,Result);
-    FINALLY
-    closefile(FileResumen);
-    END;
-  EXCEPT on E:Exception do
-    begin
-    ToLog('events',TimeToStr(now)+'Error getting header '+Block.ToString+': '+E.Message);
-    Result.block:=-1;
-    end;
-  END;
-  LeaveCriticalSection(CSHeadAccess);
-End;
-
-Function SetHeadersNumber(LData:ResumenData):boolean;
-Begin
-  Result := false;
-  if Ldata.block>GetHeadersHeigth+1 then exit;
-  assignfile(FileResumen,ResumenFilename);
-  EnterCriticalSection(CSHeadAccess);
-  TRY
-    TRY
-    reset(FileResumen);
-    seek(fileResumen,Ldata.block);
-    write(fileResumen,Ldata);
-    Result := true;
-    FINALLY
-    closefile(FileResumen);
-    END;
-  EXCEPT on E:Exception do
-    ToLog('events',TimeToStr(now)+'Error SetHeadersNumber '+Ldata.block.ToString+': '+E.Message);
-  END;
-  LeaveCriticalSection(CSHeadAccess);
-End;
-
-Function GetHeadersLastBlock():integer;
-var
-  Dato: ResumenData;
-Begin
-result := 0;
-EnterCriticalSection(CSHeadAccess);
-TRY
-assignfile(FileResumen,ResumenFilename);
-reset(FileResumen);
-Dato := Default(ResumenData);
-if filesize(FileResumen)>0 then
-   begin
-   seek(fileResumen,filesize(FileResumen)-1);
-   Read(fileResumen,dato);
-   result := Dato.block;
-   end;
-closefile(FileResumen);
-EXCEPT on E:Exception do
-   ToLog('events',TimeToStr(now)+'Error reading headers');
-END;
-LeaveCriticalSection(CSHeadAccess);
-End;
-
-Function ShowBlockHeaders(BlockNumber:Integer):String;
-var
-  Dato: ResumenData;
-Begin
-result :='';
-if BlockNumber=-1 then BlockNumber:= MyLastBlock;
-EnterCriticalSection(CSHeadAccess);
-TRY
-assignfile(FileResumen,ResumenFilename);
-reset(FileResumen);
-Dato := Default(ResumenData);
-seek(fileResumen,BlockNumber);
-Read(fileResumen,dato);
-Result := Dato.block.ToString+':'+Dato.blockhash+':'+Dato.SumHash;
-closefile(FileResumen);
-EXCEPT on E:Exception do
-  ToLog('events',TimeToStr(now)+'Error showing header '+Blocknumber.ToString);
-END;
-LeaveCriticalSection(CSHeadAccess);
-End;
-
-Function LastHeaders(FromBlock:integer):String;
-var
-  Dato  : ResumenData;
-  FSize : integer;
-Begin
-result := '';
-if FromBlock<MyLastBlock-1008 then exit;
-BeginPerformance('LastHeaders');
-assignfile(FileResumen,ResumenFilename);
-EnterCriticalSection(CSHeadAccess);
-TRY
-reset(FileResumen);
-FSize := Filesize(FileResumen);
-Dato := Default(ResumenData);
-seek(fileResumen,FromBlock-20);
-While not Eof(fileResumen) do
-   begin
-   Read(fileResumen,dato);
-   Result := Result+Dato.block.ToString+':'+Dato.blockhash+':'+Dato.SumHash+' ';
-   end;
-closefile(FileResumen);
-Result := Trim(Result);
-EXCEPT on E:Exception do
-
-END;{TRY}
-LeaveCriticalSection(CSHeadAccess);
-EndPerformance('LastHeaders');
 End;
 
 // Creates a bat file for restart
