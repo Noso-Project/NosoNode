@@ -605,7 +605,7 @@ else if numero = 0 then
 else
    begin
    ChangeWallArrPos(0,Numero);
-   //S_Wallet := true;
+   S_Wallet := true;
    U_DirPanel := true;
    end;
 End;

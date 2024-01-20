@@ -11,7 +11,7 @@ Stand alone unit to control wallet addresses file.
 interface
 
 uses
-  Classes, SysUtils, nosodebug,nosocrypto;
+  Classes, SysUtils, nosodebug,nosocrypto,nosogeneral;
 
 TYPE
 
@@ -199,15 +199,15 @@ var
   Counter  : integer;
 Begin
   Result := true;
+  TryCopyFile(WalletFilename,WalletFilename+'.bak');
   MyStream:= TMemoryStream.Create;
   MyStream.Position:=0;
+  EnterCriticalSection(CS_WalletFile);
   EnterCriticalSection(CS_WalletArray);
   for Counter := 0 to length(WalletArray)-1 do
     begin
     MyStream.Write(WalletArray[counter],SizeOf(WalletData));
     end;
-  LeaveCriticalSection(CS_WalletArray);
-  EnterCriticalSection(CS_WalletFile);
     TRY
     MyStream.SaveToFile(WalletFilename);
     EXCEPT ON E:EXCEPTION DO
@@ -216,8 +216,11 @@ Begin
       Result := false;
       end;
     END;
+  LeaveCriticalSection(CS_WalletArray);
   LeaveCriticalSection(CS_WalletFile);
   MyStream.Free;
+  If result = true then TryCopyFile(WalletFilename,WalletFilename+'.bak')
+  else TryCopyFile(WalletFilename+'.bak',WalletFilename);
 End;
 
 Function LoadWallet(wallet:String):Boolean;

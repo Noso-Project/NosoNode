@@ -9,7 +9,7 @@ uses
   lclintf, controls, mpBlock, Zipper, mpcoin, mpMn, nosodebug,
   {$IFDEF WINDOWS}Win32Proc, {$ENDIF}
   translation, strutils,nosogeneral, nosocrypto, nosounit, nosoconsensus, nosopsos,
-  nosowallcon, nosoheaders;
+  nosowallcon, nosoheaders, nosonosocfg;
 
 Function FileStructure():integer;
 Procedure VerifyFiles();
@@ -97,6 +97,8 @@ End;
 
 // Complete file verification
 Procedure VerifyFiles();
+var
+  defseeds : string = '';
 Begin
 
 if not FileExists (AdvOptionsFilename) then CreateADV(false) else LoadADV();
@@ -114,7 +116,14 @@ if not FileExists(NosoCFGFilename) then
   begin
   SaveNosoCFGFile(DefaultNosoCFG);
   GetCFGDataFromFile;
-  SetCFGData(GetRepoFile('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos'),1);
+  Defseeds := GetRepoFile('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos');
+  if DefSeeds = '' then Defseeds := GetRepoFile('https://api.nosocoin.com/nodes/seed');
+  if defseeds <> '' then
+    begin
+    SetCFGData(Defseeds,1);
+    Tolog('console','Defaults seeds downloaded from trustable source');
+    end
+  else ToLog('console','Unable to download default seeds. Please, use a fallback');
   end;
 GetCFGDataFromFile;
 OutText('✓ NosoCFG file ok',false,1);
@@ -303,17 +312,20 @@ Procedure SaveNosoCFGFile(LStr:String);
 var
   LFile : Textfile;
 Begin
-Assignfile(LFile, NosoCFGFilename);
-TRY
-   TRY
-   rewrite(LFile);
-   write(Lfile,LStr);
-   EXCEPT on E:Exception do
+  SaveCFGToFile(LStr);
+  {
+  Assignfile(LFile, NosoCFGFilename);
+  TRY
+    TRY
+    rewrite(LFile);
+    write(Lfile,LStr);
+    EXCEPT on E:Exception do
       ToLog('events',TimeToStr(now)+'Error creating the NosoCFG file');
-   END;
-FINALLY
-Closefile(LFile);
-END; {TRY}
+     END;
+  FINALLY
+    Closefile(LFile);
+  END; {TRY}
+  }
 End;
 
 Procedure GetCFGDataFromFile();
@@ -321,18 +333,18 @@ var
   LFile : Textfile;
   LStr  : string = '';
 Begin
-Assignfile(LFile, NosoCFGFilename);
-TRY
-   TRY
-   reset(LFile);
-   ReadLn(Lfile,LStr);
-   SetNosoCFGString(LStr);
-   EXCEPT on E:Exception do
+  Assignfile(LFile, NosoCFGFilename);
+  TRY
+    TRY
+    reset(LFile);
+    ReadLn(Lfile,LStr);
+    SetNosoCFGString(LStr);
+    EXCEPT on E:Exception do
       ToLog('events',TimeToStr(now)+'Error loading the NosoCFG file');
-   END;
-FINALLY
-Closefile(LFile);
-END; {TRY}
+    END;
+  FINALLY
+    Closefile(LFile);
+  END; {TRY}
 End;
 
 Procedure SetNosoCFGString(LStr:string);
@@ -559,14 +571,16 @@ End;
 // Creates bots file
 Procedure CrearBotData();
 Begin
-   try
-   assignfile(FileBotData,BotDataFilename);
-   rewrite(FileBotData);
-   closefile(FileBotData);
-   SetLength(ListadoBots,0);
-   Except on E:Exception do
-      ToLog('events',TimeToStr(now)+'Error creating bot data');
-   end;
+  TRY
+  assignfile(FileBotData,BotDataFilename);
+  rewrite(FileBotData);
+  closefile(FileBotData);
+  SetLength(ListadoBots,0);
+  EXCEPT on E:Exception do
+    begin
+    ToLog('events',TimeToStr(now)+'Error creating bot data');
+    end;
+  END;
 End;
 
 // Load bots from file
@@ -656,7 +670,11 @@ End;
 Procedure SaveUpdatedFiles();
 Begin
 if S_BotData then SaveBotData();
-if S_Wallet then SaveWalletToFile();
+if S_Wallet then
+  begin
+  SaveWalletToFile();
+  S_Wallet := false;
+  end;
 if S_AdvOpt then CreateADV(true);
 End;
 

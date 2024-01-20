@@ -634,10 +634,10 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Aa1';
+  SubVersion = 'Aa3';
   OficialRelease = false;
   VersionRequired = '0.4.1Ba1';
-  BuildDate = 'September 2023';
+  BuildDate = 'December 2023';
   {Developer addresses}
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
@@ -904,7 +904,7 @@ var
   // Filename variables
 
   BotDataFilename     :string= 'NOSODATA'+DirectorySeparator+'botdata.psk';
-  //WalletFilename      :string= 'NOSODATA'+DirectorySeparator+'wallet.pkw';
+  //WalletFilename    :string= 'NOSODATA'+DirectorySeparator+'wallet.pkw';
   BlockDirectory      :string= 'NOSODATA'+DirectorySeparator+'BLOCKS'+DirectorySeparator;
   MarksDirectory      :string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator;
   GVTMarksDirectory   :string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator+'GVTS'+DirectorySeparator;
@@ -1067,7 +1067,7 @@ if Continuar then
                   end;
                END; {TRY}
             if Downloaded then SavedToFile := SaveStreamAsHeaders(MemStream);
-            if Downloaded and SavedToFile then
+            if ((Downloaded) and (SavedToFile)) then
                begin
                ToLog('console',format(rs0005,[copy(HashMD5File(ResumenFilename),1,5)])); //'Headers file received'
                LastTimeRequestResumen := 0;
@@ -1099,7 +1099,7 @@ if Continuar then
                   end;
                END; {TRY}
             if Downloaded then SavedToFile := SaveSummaryToFile(MemStream);
-            if Downloaded and SavedToFile then
+            if ((Downloaded) and (SavedToFile)) then
                begin
                ToLog('console',format(rs0087,[copy(HashMD5File(SummaryFileName),1,5)])); //'Sumary file received'
                UpdateMyData();
@@ -2076,8 +2076,6 @@ if GoAhead then
    if RestartNosoAfterQuit then CrearRestartfile();
    CloseAllforms();
    CloseLine('Forms closed');
-   SaveWalletToFile();
-   CloseLine('Wallet file saved');
    sleep(100);
    CloseLine(CerrarClientes(false));
    sleep(100);
@@ -2932,8 +2930,10 @@ End;
 // Pegar el monto maximo en su edit
 Procedure TForm1.SBSCMaxOnClick(sender:TObject);
 Begin
-if not WO_MultiSend then EditSCMont.Text:=Int2curr(GetMaximunToSend(GetWalletBalance))
-else EditSCMont.Text:=Int2Curr(GetMaximunToSend(GetWallArrIndex(DireccionesPAnel.Row-1).Balance-GetWallArrIndex(0).pending))
+  if not WO_MultiSend then
+    EditSCMont.Text:=Int2curr(GetMaximunToSend(GetWalletBalance))
+  else
+    EditSCMont.Text:=Int2Curr(GetMaximunToSend(GetWallArrIndex(DireccionesPAnel.Row-1).Balance))
 End;
 
 // verifica el destino que marca para enviar coins

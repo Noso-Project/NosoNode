@@ -15,7 +15,7 @@ uses
   Classes, SysUtils, strutils,
   HlpHashFactory, md5,
   ClpConverters,ClpBigInteger,SbpBase58,
-  mpsignerutils, base64;
+  mpsignerutils, base64, NosoDebug;
 
 Type
 
@@ -306,8 +306,8 @@ var
 Begin
   Repeat
     KeysPair := TSignerUtils.GenerateECKeyPair(TKeyType.SECP256K1);
-    HashAdd := GetAddressFromPublicKey(pubkey);
-    if length(HashAdd) >= 28 then
+    HashAdd := GetAddressFromPublicKey(Keyspair.PublicKey);
+    if length(HashAdd) >= 20 then
       begin
       pubkey   := Keyspair.PublicKey;
       PrivKey  := KeysPair.PrivateKey;
