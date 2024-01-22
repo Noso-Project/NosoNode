@@ -1,1 +1,1 @@
-0.4.2Ba1 0.4.2Ba2 {win64hash} {linux64hash} {signature}
+0.4.2Ba1 0.4.2Ba3 {win64hash} {linux64hash} {signature}

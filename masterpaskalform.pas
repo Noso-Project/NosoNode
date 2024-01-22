@@ -634,7 +634,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ba2';
+  SubVersion = 'Ba3';
   OficialRelease = false;
   VersionRequired = '0.4.1Ba1';
   BuildDate = 'January 2024';
@@ -1996,7 +1996,7 @@ Procedure TForm1.LatidoEjecutar(sender: TObject);
 Begin
 if EngineLastUpdate <> UTCtime then EngineLastUpdate := UTCtime;
 Form1.Latido.Enabled:=false;
-if ( (UTCTime >= BuildNMSBlock) and (BuildNMSBlock>0) and (MyConStatus=3) and (MyLastBlock=GetCOnsensus(2)) ) then
+if ( (UTCTime >= BuildNMSBlock) and (BuildNMSBlock>0) and (MyConStatus=3) and (MyLastBlock=StrToIntDef(GetCOnsensus(2),-1)) ) then
    begin
    ToLog('events','Starting construction of block '+(MyLastBlock+1).ToString);
    BuildNewBlock(MyLastBlock+1,BuildNMSBlock,MyLastBlockHash,GetNMSData.Miner,GetNMSData.Hash);
