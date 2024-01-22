@@ -1044,8 +1044,7 @@ if ( (GetConsensus(8)<>Copy(MyMNsHash,1,5)) and (LastTimeMNHashRequestes+5<UTCTi
     PTC_SendLine(ValidSlot,ProtocolLine(GetMNsFile));  // Get MNsFile
     LastTimeMNHashRequestes := UTCTime;
     ToLog('console','Mns File requested to '+conexiones[ValidSlot].ip);
-    end
-  else ToLog('console','Unable to find a valid slot');
+    end;
   end;
 
 // *** update headers
@@ -1142,9 +1141,9 @@ if ( (GetConsensus(20)<>Copy(PSOFileHash,0,5)) and (LasTimePSOsRequest+5<UTCTime
    begin
    if GetValidSlotForSeed(ValidSlot) then
       begin
-      //PTC_SendLine(ValidSlot,ProtocolLine(GetPSOs));
-      //LasTimePSOsRequest := UTCTime;
-      //ToLog('console','Download PSOs from '+conexiones[ValidSlot].ip);
+      PTC_SendLine(ValidSlot,ProtocolLine(GetPSOs));
+      LasTimePSOsRequest := UTCTime;
+      ToLog('console','Requested PSOs from '+conexiones[ValidSlot].ip);
       end;
    end;
 
