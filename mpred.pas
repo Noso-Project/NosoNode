@@ -1020,7 +1020,36 @@ if BuildingBlock>0 then exit;
 if GetConsensus = '' then exit;
 if ((BlockAge <10) or (blockAge>595)) then exit;
 NLBV := StrToIntDef(GetConsensus(cLastBlock),0);
-if ((Copy(MyResumenhash,0,5) <> GetConsensus(cHeaders)) and (NLBV>mylastblock)) then  // Request headers
+
+// *** New Synchronization methods
+
+// *** Update CFG file.
+if ( (GetConsensus(19)<>Copy(HashMd5String(GetNosoCFGString),0,5)) and (LasTimeCFGRequest+5<UTCTime) and
+          (GetConsensus(19)<>'') ) then
+  begin
+  if GetValidSlotForSeed(ValidSlot) then
+    begin
+    PTC_SendLine(ValidSlot,ProtocolLine(GetCFG));
+    LasTimeCFGRequest := UTCTime;
+    ToLog('console','Noso CFG file requested');
+    end;
+  end;
+
+// *** Update MNs file
+if ( (GetConsensus(8)<>Copy(MyMNsHash,1,5)) and (LastTimeMNHashRequestes+5<UTCTime) and
+          (GetConsensus(8)<>'') ) then
+  begin
+  if GetValidSlotForSeed(ValidSlot) then
+    begin
+    PTC_SendLine(ValidSlot,ProtocolLine(GetMNsFile));  // Get MNsFile
+    LastTimeMNHashRequestes := UTCTime;
+    ToLog('console','Mns File requested to '+conexiones[ValidSlot].ip);
+    end
+  else ToLog('console','Unable to find a valid slot');
+  end;
+
+// *** update headers
+if Copy(MyResumenhash,0,5) <> GetConsensus(cHeaders) then  // Request headers
    begin
    ClearAllPending;
    SetNMSData('','','','','','');
@@ -1047,8 +1076,10 @@ if ((Copy(MyResumenhash,0,5) <> GetConsensus(cHeaders)) and (NLBV>mylastblock)) 
             end;
          end;
       end;
-   end
-else if ((Copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock <NLBV)) then  // request up to 100 blocks
+   end;
+
+// *** Update blocks
+if ((Copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock <NLBV)) then  // request up to 100 blocks
    begin
    ClearAllPending;
    SetNMSData('','','','','','');
@@ -1069,8 +1100,10 @@ else if ((Copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock <NLBV)) th
          LastTimeRequestBlock := UTCTime;
          end;
       end;
-   end
-else if ((copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) and
+   end;
+
+// Update summary
+if ((copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) and
         (MySumarioHash<>GetConsensus(17)) and (SummaryLastop < mylastblock)) then
    begin  // complete or download summary
    if (SummaryLastop+(2*SumMarkInterval) < mylastblock) then
@@ -1089,9 +1122,60 @@ else if ((copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) an
       begin
       CompleteSumary();
       end;
-   end
+   end;
+
+// Update GVTs file
+if ( (GetConsensus(18)<>Copy(MyGVTsHash,0,5)) and (LasTimeGVTsRequest+5<UTCTime) and
+          (GetConsensus(18)<>'') and (not DownloadGVTs) ) then
+   begin
+   if GetValidSlotForSeed(ValidSlot) then
+      begin
+      PTC_SendLine(ValidSlot,ProtocolLine(GetGVTs));
+      LasTimeGVTsRequest := UTCTime;
+      ToLog('console','GVTs File requested to '+conexiones[ValidSlot].ip);
+      end;
+   end;
+
+// Update PSOs file
+if ( (GetConsensus(20)<>Copy(PSOFileHash,0,5)) and (LasTimePSOsRequest+5<UTCTime) and
+          (GetConsensus(20)<>'') and (not DownloadPSOs) ) then
+   begin
+   if GetValidSlotForSeed(ValidSlot) then
+      begin
+      //PTC_SendLine(ValidSlot,ProtocolLine(GetPSOs));
+      //LasTimePSOsRequest := UTCTime;
+      //ToLog('console','Download PSOs from '+conexiones[ValidSlot].ip);
+      end;
+   end;
+
+// *** Request reported MNs
+if ( (StrToIntDef(GetConsensus(9),0)>GetMNsListLength) and (LastTimeMNsRequested+5<UTCTime)
+           and (LengthWaitingMNs = 0) and (BlockAge>30) and (IsAllSynced=0) ) then
+   begin
+   if GetValidSlotForSeed(ValidSlot) then
+      begin
+      EnterCriticalSection(CSMNsIPCheck);
+      Setlength(ArrayIPsProcessed,0);
+      LeaveCriticalSection(CSMNsIPCheck);
+      PTC_SendLine(ValidSlot,ProtocolLine(11));  // Get MNsList
+      LastTimeMNsRequested := UTCTime;
+      ToLog('console','MNs reports requested');
+      end;
+   end;
+
+// *** Request MNs verifications
+if ((StrToIntDef(GetConsensus(14),0)>GetMNsChecksCount) and (LastTimeChecksRequested+5<UTCTime) and (IsAllSynced=0) ) then
+   begin
+   if GetValidSlotForSeed(ValidSlot) then
+      begin
+      PTC_SendLine(ValidSlot,ProtocolLine(GetChecks));  // Get MNsChecks
+      LastTimeChecksRequested := UTCTime;
+      ToLog('console','Checks requested to '+conexiones[ValidSlot].ip);
+      end;
+   end;
+
 // Blockchain status issues starts here
-else if ((copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) and
+if ((copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) and
         (copy(MySumarioHash,0,5)<>GetConsensus(17)) and (SummaryLastop = mylastblock) and (LastTimeRequestsumary+5 < UTCTime)) then
    begin
    if GetValidSlotForSeed(ValidSlot) then
@@ -1120,71 +1204,9 @@ else if ((copy(MyResumenhash,0,5) <> GetConsensus(5)) and (NLBV=mylastblock) and
       ToLog('console','Headers file requested');
       LastTimeRequestResumen := UTCTime;
       end;
-   end
-else if ( (StrToIntDef(GetConsensus(9),0)>GetMNsListLength) and (LastTimeMNsRequested+5<UTCTime)
-           and (LengthWaitingMNs = 0) and (BlockAge>30) ) then
-   begin
-   if GetValidSlotForSeed(ValidSlot) then
-      begin
-      EnterCriticalSection(CSMNsIPCheck);
-      Setlength(ArrayIPsProcessed,0);
-      LeaveCriticalSection(CSMNsIPCheck);
-      PTC_SendLine(ValidSlot,ProtocolLine(11));  // Get MNsList
-      LastTimeMNsRequested := UTCTime;
-      //ToLog('console','MNs reports requested');
-      end;
-   end
-else if ((StrToIntDef(GetConsensus(14),0)>GetMNsChecksCount) and (LastTimeChecksRequested+5<UTCTime)) then
-   begin
-   if GetValidSlotForSeed(ValidSlot) then
-      begin
-      PTC_SendLine(ValidSlot,ProtocolLine(GetChecks));  // Get MNsChecks
-      LastTimeChecksRequested := UTCTime;
-      //ToLog('console','Checks requested to '+conexiones[ValidSlot].ip);
-      end;
-   end
-else if ( (GetConsensus(8)<>Copy(MyMNsHash,1,5)) and (LastTimeMNHashRequestes+5<UTCTime) and
-          (GetConsensus(8)<>'') ) then
-   begin
-   if GetValidSlotForSeed(ValidSlot) then
-      begin
-      PTC_SendLine(ValidSlot,ProtocolLine(GetMNsFile));  // Get MNsFile
-      LastTimeMNHashRequestes := UTCTime;
-      ToLog('console','Mns File requested to '+conexiones[ValidSlot].ip);
-      end;
-   end
-// <-- HERE -->
-else if ( (GetConsensus(19)<>Copy(HashMd5String(GetNosoCFGString),0,5)) and (LasTimeCFGRequest+5<UTCTime) and
-          (GetConsensus(19)<>'') ) then
-   begin
-   if GetValidSlotForSeed(ValidSlot) then
-      begin
-      PTC_SendLine(ValidSlot,ProtocolLine(GetCFG));
-      LasTimeCFGRequest := UTCTime;
-      ToLog('console','Noso CFG file requested');
-      end;
-   end
-else if ( (GetConsensus(18)<>Copy(MyGVTsHash,0,5)) and (LasTimeGVTsRequest+5<UTCTime) and
-          (GetConsensus(18)<>'') and (not DownloadGVTs) ) then
-   begin
-   if GetValidSlotForSeed(ValidSlot) then
-      begin
-      PTC_SendLine(ValidSlot,ProtocolLine(GetGVTs));
-      LasTimeGVTsRequest := UTCTime;
-      ToLog('console','GVTs File requested to '+conexiones[ValidSlot].ip);
-      end;
-   end
-else if ( (GetConsensus(20)<>Copy(PSOFileHash,0,5)) and (LasTimePSOsRequest+5<UTCTime) and
-          (GetConsensus(20)<>'') and (not DownloadPSOs) ) then
-   begin
-   if GetValidSlotForSeed(ValidSlot) then
-      begin
-      //PTC_SendLine(ValidSlot,ProtocolLine(GetPSOs));
-      //LasTimePSOsRequest := UTCTime;
-      //ToLog('console','Download PSOs from '+conexiones[ValidSlot].ip);
-      end;
    end;
-if IsAllSynced=0 then Last_SyncWithMainnet := Last_SyncWithMainnet+5;
+
+if IsAllSynced=0 then Last_SyncWithMainnet := UTCTime;
 End;
 
 Procedure AddNewBot(linea:string);

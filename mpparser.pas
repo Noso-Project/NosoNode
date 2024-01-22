@@ -94,6 +94,7 @@ Procedure ShowSumary();
 // CONSENSUS
 
 Procedure ShowConsensus();
+Procedure ShowConsensusStats();
 
 // PSOs testing functions
 
@@ -338,6 +339,8 @@ else if UpperCase(Command) = 'NEWPSO' then TestNewPSO(parameter(linetext,1))
 else if UpperCase(Command) = 'LISTPSOS' then GetPSOs()
 else if UpperCase(Command) = 'CLEARPSOS' then CLEARPSOS()
 else if UpperCase(Command) = 'SHOWPSOS' then ShowMNsLocked()
+
+else if UpperCase(Command) = 'CONSTATS' then ShowConsensusStats()
 
 
 
@@ -2025,6 +2028,11 @@ Begin
     ToLog('console',MNSLockArray[counter].address + ' ' +MNSLockArray[counter].expire.ToString());
     end;
   LeaveCriticalSection(CS_LockedMNs);
+End;
+
+Procedure ShowConsensusStats();
+Begin
+  ToLog('Console',GetConsensus(8)+' '+Copy(MyMNsHash,1,5));
 End;
 
 END. // END UNIT

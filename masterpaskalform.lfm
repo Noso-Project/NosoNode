@@ -4,7 +4,7 @@ object Form1: TForm1
   Top = 183
   Width = 640
   Caption = 'Noso'
-  ClientHeight = 560
+  ClientHeight = 540
   ClientWidth = 640
   Constraints.MinHeight = 560
   Constraints.MinWidth = 600
@@ -16,7 +16,7 @@ object Form1: TForm1
   OnShow = FormShow
   OnWindowStateChange = FormWindowStateChange
   Position = poDesktopCenter
-  LCLVersion = '3.0.0.3'
+  LCLVersion = '2.2.6.0'
   object InfoPanel: TPanel
     Left = 32
     Height = 40
@@ -316,7 +316,7 @@ object Form1: TForm1
     AnchorSideTop.Control = TopPanel
     AnchorSideBottom.Control = StatusPanel
     Left = 0
-    Height = 488
+    Height = 468
     Top = 38
     Width = 640
     ActivePage = TabWallet
@@ -332,11 +332,11 @@ object Form1: TForm1
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
-      ClientHeight = 460
+      ClientHeight = 440
       ClientWidth = 632
       object TabWalletMain: TPageControl
         Left = 0
-        Height = 460
+        Height = 440
         Top = 0
         Width = 632
         ActivePage = TabAddresses
@@ -345,11 +345,11 @@ object Form1: TForm1
         TabOrder = 0
         object TabAddresses: TTabSheet
           Caption = 'Addresses'
-          ClientHeight = 432
+          ClientHeight = 412
           ClientWidth = 624
           object DireccionesPanel: TStringGrid
             Left = 0
-            Height = 297
+            Height = 277
             Top = 0
             Width = 624
             Align = alClient
@@ -371,7 +371,7 @@ object Form1: TForm1
           object PanelSend: TPanel
             Left = 0
             Height = 135
-            Top = 297
+            Top = 277
             Width = 624
             Align = alBottom
             BevelColor = clBlack
@@ -454,10 +454,10 @@ object Form1: TForm1
               Font.Name = 'Consolas'
               Font.Pitch = fpFixed
               Font.Quality = fqDraft
-              ParentFont = False
-              TabOrder = 1
               OnChange = EditSCDestChange
               OnContextPopup = DisablePopUpMenu
+              ParentFont = False
+              TabOrder = 1
             end
             object EditSCMont: TEdit
               Left = 144
@@ -471,13 +471,13 @@ object Form1: TForm1
               Font.Name = 'Consolas'
               Font.Pitch = fpFixed
               Font.Quality = fqDraft
+              OnChange = EditSCMontChange
+              OnContextPopup = DisablePopUpMenu
+              OnKeyPress = EditMontoOnKeyUp
               ParentFont = False
               ReadOnly = True
               TabOrder = 2
               Text = '0.00000000'
-              OnChange = EditSCMontChange
-              OnContextPopup = DisablePopUpMenu
-              OnKeyPress = EditMontoOnKeyUp
             end
             object ImgSCDest: TImage
               Left = 369
@@ -502,9 +502,9 @@ object Form1: TForm1
               Font.Pitch = fpFixed
               Font.Quality = fqDraft
               MaxLength = 64
+              OnContextPopup = DisablePopUpMenu
               ParentFont = False
               TabOrder = 3
-              OnContextPopup = DisablePopUpMenu
             end
             object SCBitClea: TBitBtn
               Left = 11
@@ -656,10 +656,10 @@ object Form1: TForm1
               Font.Name = 'Consolas'
               Font.Pitch = fpFixed
               Font.Quality = fqDraft
-              ParentFont = False
-              TabOrder = 0
               OnContextPopup = DisablePopUpMenu
               OnKeyUp = EditCustomKeyUp
+              ParentFont = False
+              TabOrder = 0
             end
             object BOkCustom: TSpeedButton
               Left = 231
@@ -677,12 +677,12 @@ object Form1: TForm1
         end
         object TabGVTs: TTabSheet
           Caption = 'GVTs'
-          ClientHeight = 432
+          ClientHeight = 412
           ClientWidth = 624
           TabVisible = False
           object GVTsGrid: TStringGrid
             Left = 0
-            Height = 366
+            Height = 346
             Top = 0
             Width = 624
             Align = alClient
@@ -697,7 +697,7 @@ object Form1: TForm1
           object PanelTransferGVT: TPanel
             Left = 0
             Height = 66
-            Top = 366
+            Top = 346
             Width = 624
             Align = alBottom
             ClientHeight = 66
@@ -786,11 +786,11 @@ object Form1: TForm1
         end
         object TabSheet2: TTabSheet
           Caption = 'Offers'
-          ClientHeight = 432
+          ClientHeight = 412
           ClientWidth = 624
           object OffersGrid: TStringGrid
             Left = 0
-            Height = 432
+            Height = 412
             Top = 0
             Width = 624
             Align = alClient
@@ -807,11 +807,11 @@ object Form1: TForm1
     end
     object TabConsole: TTabSheet
       Caption = 'Console'
-      ClientHeight = 460
+      ClientHeight = 440
       ClientWidth = 632
       object MemoConsola: TMemo
         Left = 0
-        Height = 258
+        Height = 238
         Top = 0
         Width = 632
         Align = alClient
@@ -822,20 +822,20 @@ object Form1: TForm1
         Font.Name = 'Consolas'
         Font.Pitch = fpFixed
         Font.Quality = fqDraft
+        OnContextPopup = CheckConsolePopUp
         ParentFont = False
         PopupMenu = ConsolePopUp2
         ParentShowHint = False
         ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 0
-        OnContextPopup = CheckConsolePopUp
       end
       object ConsoleLine: TEdit
         AnchorSideTop.Control = MemoConsola
         AnchorSideBottom.Control = DataPanel
         Left = 0
         Height = 22
-        Top = 258
+        Top = 238
         Width = 632
         Align = alBottom
         Color = clBlack
@@ -845,16 +845,16 @@ object Form1: TForm1
         Font.Name = 'Consolas'
         Font.Pitch = fpFixed
         Font.Quality = fqDraft
+        OnContextPopup = CheckConsoLinePopUp
+        OnKeyUp = ConsoleLineKeyup
         ParentFont = False
         PopupMenu = ConsoLinePopUp2
         TabOrder = 1
-        OnContextPopup = CheckConsoLinePopUp
-        OnKeyUp = ConsoleLineKeyup
       end
       object DataPanel: TStringGrid
         Left = 0
         Height = 180
-        Top = 280
+        Top = 260
         Width = 632
         Align = alBottom
         ColCount = 4
@@ -870,11 +870,11 @@ object Form1: TForm1
     end
     object tabOptions: TTabSheet
       Caption = 'Options'
-      ClientHeight = 460
+      ClientHeight = 440
       ClientWidth = 632
       object PageControl1: TPageControl
         Left = 0
-        Height = 460
+        Height = 440
         Top = 0
         Width = 632
         ActivePage = TabOpt_Wallet
@@ -883,7 +883,7 @@ object Form1: TForm1
         TabOrder = 0
         object TabOpt_Wallet: TTabSheet
           Caption = 'Wallet'
-          ClientHeight = 432
+          ClientHeight = 412
           ClientWidth = 624
           object CB_WO_AutoConnect: TCheckBox
             Left = 8
@@ -894,8 +894,8 @@ object Form1: TForm1
             BorderSpacing.Left = 8
             BorderSpacing.Top = 8
             Caption = 'Auto connect at start'
-            TabOrder = 0
             OnChange = CB_WO_AutoConnectChange
+            TabOrder = 0
           end
           object CB_WO_ToTray: TCheckBox
             Left = 8
@@ -906,8 +906,8 @@ object Form1: TForm1
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
             Caption = 'Minimize to tray'
-            TabOrder = 1
             OnChange = CB_WO_ToTrayChange
+            TabOrder = 1
           end
           object Panel1: TPanel
             Left = 0
@@ -1066,8 +1066,8 @@ object Form1: TForm1
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
             Caption = 'Send coins only from default address'
-            TabOrder = 3
             OnChange = CB_WO_MultisendChange
+            TabOrder = 3
           end
           object CB_FullNode: TCheckBox
             Left = 8
@@ -1079,9 +1079,9 @@ object Form1: TForm1
             BorderSpacing.Top = 4
             Caption = 'Download complete blockchain'
             Checked = True
+            OnChange = CB_FullNodeChange
             State = cbChecked
             TabOrder = 2
-            OnChange = CB_FullNodeChange
           end
           object CB_WO_Autoupdate: TCheckBox
             Left = 8
@@ -1092,8 +1092,8 @@ object Form1: TForm1
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
             Caption = 'auto-update (recommended for unattended nodes) '
-            TabOrder = 10
             OnChange = CB_WO_AutoupdateChange
+            TabOrder = 10
           end
           object Panel7: TPanel
             Left = 0
@@ -1138,10 +1138,10 @@ object Form1: TForm1
                 'id'
                 'ru'
               )
-              Style = csOwnerDrawFixed
-              TabOrder = 0
               OnChange = ComboBoxLangChange
               OnDrawItem = ComboBoxLangDrawItem
+              Style = csOwnerDrawFixed
+              TabOrder = 0
             end
           end
           object CBRunNodeAlone: TCheckBox
@@ -1154,15 +1154,15 @@ object Form1: TForm1
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
             Caption = 'Stop memos outputs (BETA)'
+            OnChange = CBRunNodeAloneChange
             ParentShowHint = False
             ShowHint = True
             TabOrder = 12
-            OnChange = CBRunNodeAloneChange
           end
         end
         object TabNodeOptions: TTabSheet
           Caption = 'Node'
-          ClientHeight = 432
+          ClientHeight = 412
           ClientWidth = 624
           OnShow = TabNodeOptionsShow
           object CheckBox4: TCheckBox
@@ -1214,16 +1214,16 @@ object Form1: TForm1
               Height = 19
               Hint = 'Use mainnet auto assigned IP'
               Top = 4
-              Width = 44
+              Width = 46
               Align = alLeft
               BorderSpacing.Left = 8
               BorderSpacing.Top = 4
               BorderSpacing.Right = 20
               Caption = 'Auto'
+              OnClick = CBAutoIPClick
               ParentShowHint = False
               ShowHint = True
               TabOrder = 1
-              OnClick = CBAutoIPClick
             end
           end
           object Panel11: TPanel
@@ -1369,7 +1369,7 @@ object Form1: TForm1
         end
         object Tab_Options_RPC: TTabSheet
           Caption = 'RPC'
-          ClientHeight = 432
+          ClientHeight = 412
           ClientWidth = 624
           object CB_RPC_ON: TCheckBox
             Left = 8
@@ -1380,8 +1380,8 @@ object Form1: TForm1
             BorderSpacing.Left = 8
             BorderSpacing.Top = 8
             Caption = 'Enable JSON-RPC server'
-            TabOrder = 0
             OnChange = CB_RPC_ONChange
+            TabOrder = 0
           end
           object CB_RPCFilter: TCheckBox
             Left = 8
@@ -1392,8 +1392,8 @@ object Form1: TForm1
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
             Caption = 'Accept only whitelist requests'
-            TabOrder = 1
             OnChange = CB_RPCFilterChange
+            TabOrder = 1
           end
           object MemoRPCWhitelist: TMemo
             Left = 8
@@ -1404,9 +1404,9 @@ object Form1: TForm1
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
             BorderSpacing.Right = 8
-            TabOrder = 2
             OnEditingDone = MemoRPCWhitelistEditingDone
             OnExit = MemoRPCWhitelistEditingDone
+            TabOrder = 2
           end
           object CB_AUTORPC: TCheckBox
             Left = 8
@@ -1417,8 +1417,8 @@ object Form1: TForm1
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
             Caption = 'Active JSON-RPC server at launch'
-            TabOrder = 3
             OnChange = CB_AUTORPCChange
+            TabOrder = 3
           end
           object Panel15: TPanel
             Left = 0
@@ -1497,13 +1497,13 @@ object Form1: TForm1
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
             Caption = 'Backup new addresses keys'
-            TabOrder = 6
             OnChange = CB_BACKRPCaddressesChange
+            TabOrder = 6
           end
         end
         object Tab_Options_Trade: TTabSheet
           Caption = 'Trade'
-          ClientHeight = 432
+          ClientHeight = 412
           ClientWidth = 624
           Enabled = False
           TabVisible = False
@@ -1567,7 +1567,7 @@ object Form1: TForm1
         end
         object Tab_Options_About: TTabSheet
           Caption = 'About...'
-          ClientHeight = 432
+          ClientHeight = 412
           ClientWidth = 624
           OnResize = Tab_Options_AboutResize
           object LabAbout: TLabel
@@ -2043,11 +2043,11 @@ object Form1: TForm1
     end
     object TabMonitor: TTabSheet
       Caption = 'Debug'
-      ClientHeight = 460
+      ClientHeight = 440
       ClientWidth = 632
       object PCMonitor: TPageControl
         Left = 0
-        Height = 460
+        Height = 440
         Top = 0
         Width = 632
         ActivePage = TabConsensus
@@ -2056,12 +2056,12 @@ object Form1: TForm1
         TabOrder = 0
         object TabDebug_Log: TTabSheet
           Caption = 'Log'
-          ClientHeight = 432
+          ClientHeight = 412
           ClientWidth = 624
           ParentShowHint = False
           object MemoLog: TMemo
             Left = 0
-            Height = 406
+            Height = 386
             Top = 26
             Width = 624
             Align = alClient
@@ -2096,18 +2096,18 @@ object Form1: TForm1
               Align = alLeft
               BorderSpacing.Left = 10
               Caption = 'Clear'
-              TabOrder = 0
               OnClick = Button1Click
+              TabOrder = 0
             end
           end
         end
         object TabSheet8: TTabSheet
           Caption = 'Except'
-          ClientHeight = 432
+          ClientHeight = 412
           ClientWidth = 624
           object MemoExceptLog: TMemo
             Left = 0
-            Height = 406
+            Height = 386
             Top = 26
             Width = 624
             Align = alClient
@@ -2141,18 +2141,18 @@ object Form1: TForm1
               Align = alLeft
               BorderSpacing.Left = 10
               Caption = 'Clear'
-              TabOrder = 0
               OnClick = Button2Click
+              TabOrder = 0
             end
           end
         end
         object TabMonitorMonitor: TTabSheet
           Caption = 'Performance'
-          ClientHeight = 432
+          ClientHeight = 412
           ClientWidth = 624
           object SG_Monitor: TStringGrid
             Left = 0
-            Height = 432
+            Height = 412
             Top = 0
             Width = 624
             Align = alClient
@@ -2186,11 +2186,11 @@ object Form1: TForm1
         end
         object TabProcesses: TTabSheet
           Caption = 'Processes'
-          ClientHeight = 432
+          ClientHeight = 412
           ClientWidth = 624
           object PC_Processes: TPageControl
             Left = 0
-            Height = 432
+            Height = 412
             Top = 0
             Width = 624
             ActivePage = TabThreads
@@ -2200,11 +2200,11 @@ object Form1: TForm1
             OnResize = PC_ProcessesResize
             object TabThreads: TTabSheet
               Caption = 'Threads'
-              ClientHeight = 404
+              ClientHeight = 384
               ClientWidth = 616
               object SG_OpenThreads: TStringGrid
                 Left = 0
-                Height = 404
+                Height = 384
                 Top = 0
                 Width = 616
                 Align = alClient
@@ -2233,11 +2233,11 @@ object Form1: TForm1
             end
             object TabFiles: TTabSheet
               Caption = 'Files'
-              ClientHeight = 404
+              ClientHeight = 384
               ClientWidth = 616
               object SG_FileProcs: TStringGrid
                 Left = 0
-                Height = 404
+                Height = 384
                 Top = 0
                 Width = 616
                 Align = alClient
@@ -2274,11 +2274,11 @@ object Form1: TForm1
         end
         object TabNodes: TTabSheet
           Caption = 'Nodes'
-          ClientHeight = 432
+          ClientHeight = 412
           ClientWidth = 624
           object PCNodes: TPageControl
             Left = 0
-            Height = 432
+            Height = 412
             Top = 0
             Width = 624
             ActivePage = TabNodesReported
@@ -2287,7 +2287,7 @@ object Form1: TForm1
             TabOrder = 0
             object TabNodesReported: TTabSheet
               Caption = 'Reported'
-              ClientHeight = 404
+              ClientHeight = 384
               ClientWidth = 616
               object PanelNodesHeaders: TPanel
                 Left = 0
@@ -2312,7 +2312,7 @@ object Form1: TForm1
               end
               object GridNodes: TStringGrid
                 Left = 0
-                Height = 372
+                Height = 352
                 Top = 32
                 Width = 616
                 Align = alClient
@@ -2337,7 +2337,7 @@ object Form1: TForm1
         end
         object TabDoctor: TTabSheet
           Caption = 'Doctor'
-          ClientHeight = 432
+          ClientHeight = 412
           ClientWidth = 624
           TabVisible = False
           object PanelDoctor: TPanel
@@ -2359,7 +2359,7 @@ object Form1: TForm1
               Left = 8
               Height = 19
               Top = 8
-              Width = 66
+              Width = 68
               Caption = 'Block file'
               TabOrder = 0
             end
@@ -2367,7 +2367,7 @@ object Form1: TForm1
               Left = 8
               Height = 19
               Top = 32
-              Width = 75
+              Width = 77
               Caption = 'Block hash'
               TabOrder = 1
             end
@@ -2375,7 +2375,7 @@ object Form1: TForm1
               Left = 8
               Height = 19
               Top = 56
-              Width = 97
+              Width = 99
               Caption = 'Summary hash'
               TabOrder = 2
             end
@@ -2393,8 +2393,8 @@ object Form1: TForm1
               Top = 70
               Width = 75
               Caption = 'Start'
-              TabOrder = 3
               OnClick = ButStartDoctorClick
+              TabOrder = 3
             end
             object ButStopDoctor: TButton
               Left = 295
@@ -2402,9 +2402,9 @@ object Form1: TForm1
               Top = 70
               Width = 75
               Caption = 'Stop'
+              OnClick = ButStopDoctorClick
               TabOrder = 4
               Visible = False
-              OnClick = ButStopDoctorClick
             end
             object SpinDoctor1: TSpinEdit
               Left = 296
@@ -2429,7 +2429,7 @@ object Form1: TForm1
           end
           object MemoDoctor: TMemo
             Left = 0
-            Height = 326
+            Height = 306
             Top = 106
             Width = 624
             Align = alClient
@@ -2448,7 +2448,7 @@ object Form1: TForm1
         end
         object TabConsensus: TTabSheet
           Caption = 'Consensus'
-          ClientHeight = 432
+          ClientHeight = 412
           ClientWidth = 624
           object Label1: TLabel
             Left = 2
@@ -2528,7 +2528,7 @@ object Form1: TForm1
           end
           object PageControl2: TPageControl
             Left = 0
-            Height = 366
+            Height = 346
             Top = 66
             Width = 624
             ActivePage = TabSheet1
@@ -2537,11 +2537,11 @@ object Form1: TForm1
             TabOrder = 0
             object TabSheet1: TTabSheet
               Caption = 'Seeds'
-              ClientHeight = 338
+              ClientHeight = 318
               ClientWidth = 616
               object SGConSeeds: TStringGrid
                 Left = 0
-                Height = 338
+                Height = 318
                 Top = 0
                 Width = 616
                 Align = alClient
@@ -2577,7 +2577,7 @@ object Form1: TForm1
   object StatusPanel: TPanel
     Left = 0
     Height = 34
-    Top = 526
+    Top = 506
     Width = 640
     Align = alBottom
     AutoSize = True
