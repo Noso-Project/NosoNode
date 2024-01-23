@@ -1015,10 +1015,20 @@ var
   NLBV          : integer = 0; // network last block value
   LastDownBlock : integer = 0;
   ValidSlot     : integer;
+  ConsenLB      : int64;
+  Removed       : integer = 0;
 Begin
 if BuildingBlock>0 then exit;
 if GetConsensus = '' then exit;
 if ((BlockAge <10) or (blockAge>595)) then exit;
+ConsenLB := StrToIntDef(GetConsensus(2),-1);
+if ( (MyLastBlock > ConsenLB) and (ConsenLB >= 0) ) then
+   begin
+   Removed := RemoveBlocks(ConsenLB);
+   ToLog('console',format('%d blocks deleted',[Removed]));
+   //RestartNoso;
+   Exit;
+   end;
 NLBV := StrToIntDef(GetConsensus(cLastBlock),0);
 
 // *** New Synchronization methods

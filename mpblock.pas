@@ -24,6 +24,7 @@ function GetBlockTrxs(BlockNumber:integer):TBlockOrdersArray;
 Procedure UndoneLastBlock();
 Function GetBlockPoSes(BlockNumber:integer): BlockArraysPos;
 Function GetBlockMNs(BlockNumber:integer): BlockArraysPos;
+Function RemoveBlocks(UpToBlock:int64):integer;
 Function GEtNSLBlkOrdInfo(LineText:String):String;
 
 implementation
@@ -727,6 +728,22 @@ ToLog('console','****************************');
 ToLog('events',TimeToStr(now)+'Block Undone: '+IntToStr(blocknumber));
 U_DataPanel := true;
 BlockUndoneTime := UTCTime;
+End;
+
+Function RemoveBlocks(UpToBlock:int64):integer;
+var
+  Last : int64;
+Begin
+  Result := 0;
+  Repeat
+    Last := GetMyLastUpdatedBlock;
+    If Last >=  UpToBlock then
+      begin
+      trydeletefile(BlockDirectory +IntToStr(Last)+'.blk');
+      Inc(Result);
+      end;
+  until Last < UpToBlock;
+  MyLastBlock := GetMyLastUpdatedBlock;
 End;
 
 Function GEtNSLBlkOrdInfo(LineText:String):String;

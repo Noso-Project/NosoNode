@@ -589,6 +589,9 @@ Var
   Leido : BotData;
   contador: integer = 0;
 Begin
+   // To be removed
+   SetLength(ListadoBots,0);
+   exit;
    try
    assignfile (FileBotData,BotDataFilename);
    contador := 0;
@@ -669,7 +672,7 @@ End;
 // Saves updates files to disk
 Procedure SaveUpdatedFiles();
 Begin
-if S_BotData then SaveBotData();
+// if S_BotData then SaveBotData();
 if S_Wallet then
   begin
   SaveWalletToFile();
