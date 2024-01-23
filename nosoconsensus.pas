@@ -98,6 +98,7 @@ var
   CSConsensus       : TRTLCriticalSection;
   KeepAutoCon       : Boolean = false;
   RunningConsensus  : boolean = false;
+  ActiveRound       : int64 = 0;
 
 {$REGION Thread auto update}
 
@@ -181,7 +182,9 @@ var
   ReadedLine : string;
   Reached    : boolean = false;
   ConHash    : string = '';
+  MyRound    : int64;
 Begin
+  MyRound := ActiveRound;
   ThisNode := GetNodeIndex(slot);
   ReadedLine := RequestLineToPeer(ThisNode.host,ThisNode.port,'NODESTATUS');
   if copy(ReadedLine,1,10) = 'NODESTATUS' then
@@ -201,10 +204,13 @@ Begin
     ThisNode.Peers:= 0;
     ThisNode.Block:= 0;
     end;
-  EnterCriticalSection(CSNodesArray);
-  NodesArray[slot] := ThisNode;
-  LeaveCriticalSection(CSNodesArray);
-  DecOpenThreads(Reached);
+  if MyRound = ActiveRound then
+    begin
+    EnterCriticalSection(CSNodesArray);
+    NodesArray[slot] := ThisNode;
+    LeaveCriticalSection(CSNodesArray);
+    DecOpenThreads(Reached);
+    end;
 End;
 
 {$ENDREGION}
@@ -284,6 +290,7 @@ var
   ThisHigh    : string;
   ConHash     : string;
   ValidNodes  : integer = 0;
+  EndTime   : int64;
 
   Procedure AddValue(Tvalue:String);
   var
@@ -330,6 +337,7 @@ Begin
   if NodesList <> '' then SetNodesArray(NodesList);
   OpenThreads := length(NodesArray);
   ReachedNodes := 0;
+  ActiveRound := UTCTime;
   for counter := 0 to high(NodesArray) do
     begin
     ThisThread := TThreadNodeStatus.Create(True,counter);
@@ -337,9 +345,11 @@ Begin
     ThisThread.Start;
     Sleep(1);
     end;
+  EndTime := UTCTime+5;
   Repeat
     sleep(1);
-  until OpenThreadsValue <= 0;
+  until ( (OpenThreadsValue<= 0) or (UTCTime >= EndTime) );
+  ActiveRound := 0;
   // Get the consensus hash
   SetLength(ArrayCon,0);
   for counter := 0 to high(NodesArray) do
