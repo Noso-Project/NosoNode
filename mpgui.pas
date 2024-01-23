@@ -377,7 +377,7 @@ if LastUpdateConsensus <> UTCTime then
    begin
    if form1.PCMonitor.ActivePage = Form1.TabConsensus then
       begin
-      form1.Label1.Caption:= Format('Last update : %d seconds',[UTCTime-LastConsensusTime]);
+      form1.Label1.Caption:= Format('Last update : %d seconds (OT= %d)',[UTCTime-LastConsensusTime,OpenThreadsValue]);
       form1.Label16.Caption:=Format('Block       : %s',[GetConsensus(2)]);
       form1.Label17.Caption:=Format('Merkle      : %s',[GetConsensus]);
       form1.Label18.Caption:=Format('Consensus   : %d %% (%d/%d)',[Css_Percentage,Css_ReachedNodes,Css_TotalNodes]);

@@ -49,6 +49,8 @@ Type
     count : integer;
     end;
 
+Function OpenThreadsValue():integer;
+
 Function CalculateConsensus(NodesList:string = ''):TConsensus;
 Function GetConsensus(LData : integer = 0): string;
 Function GetRandonNode():String;
