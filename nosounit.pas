@@ -69,6 +69,7 @@ Procedure CreateNewSummaryFile(AddBlockZero:Boolean);
 Function ZipSumary():boolean;
 Function CreateSumaryIndex():int64;
 Function GetSummaryAsMemStream(out LMs:TMemoryStream):int64;
+Function GetZIPSummaryAsMemStream(out LMs:TMemoryStream):int64;
 Function SaveSummaryToFile(Const LStream:TMemoryStream):Boolean;
 Function CreateSumaryBackup():Boolean;
 Function RestoreSumaryBackup():Boolean;
@@ -183,6 +184,19 @@ Begin
   EnterCriticalSection(CS_SummaryDisk);
     TRY
     LMs.LoadFromFile(SummaryFileName);
+    result:= LMs.Size;
+    LMs.Position:=0;
+    EXCEPT ON E:Exception do
+    END{Try};
+  LeaveCriticalSection(CS_SummaryDisk);
+End;
+
+Function GetZIPSummaryAsMemStream(out LMs:TMemoryStream):int64;
+Begin
+  Result := 0;
+  EnterCriticalSection(CS_SummaryDisk);
+    TRY
+    LMs.LoadFromFile(ZipSumaryFileName);
     result:= LMs.Size;
     LMs.Position:=0;
     EXCEPT ON E:Exception do

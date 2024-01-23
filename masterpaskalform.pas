@@ -634,7 +634,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ba4';
+  SubVersion = 'Ba5';
   OficialRelease = false;
   VersionRequired = '0.4.1Ba1';
   BuildDate = 'January 2024';
@@ -2703,7 +2703,7 @@ if GoAhead then
    else if parameter(LLine,0) = 'GETZIPSUMARY' then  //
       begin
       MemStream := TMemoryStream.Create;
-      if GetSummaryAsMemStream(MemStream) > 0 then GetFileOk := true
+      if GetZIPSummaryAsMemStream(MemStream) > 0 then GetFileOk := true
       else GetFileOk := false;
       if GetFileOk then
          begin
