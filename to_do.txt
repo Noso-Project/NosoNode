@@ -4,6 +4,14 @@ Things to be done. (not completely updated yet)
 
 App related.
 
+- Complete the Properlyclosed implementation.
+- Add GETPSOS support for clients.  (done)
+- Implement RPC locked MNs (done)
+- Implement RPC GVTs.
+- Properly close client threads on socket errors. (done)
+- RPC for masternodes
+- RPC for nosocfg
+
 - Complete/Fix "history" command.
 - Not blocking form for critical exceptions.
 - Re-verification step for GVT transfers.
@@ -16,7 +24,6 @@ App related.
 Protocol related.
 
 - Implement multi-sign addresses.
-- Merge MNs with PoS.
 - Complete GVTs implementation.
 - Develope GVT control system.
 - Implement NoBiEx.

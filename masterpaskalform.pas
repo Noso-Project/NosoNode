@@ -634,7 +634,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ba6';
+  SubVersion = 'Ba7';
   OficialRelease = false;
   VersionRequired = '0.4.1Ba1';
   BuildDate = 'January 2024';
@@ -1007,6 +1007,7 @@ var
   FTPTime      : int64;
   FTPSize      : int64;
   FTPSpeed     : int64;
+  ErrMsg       : string;
 begin
 AddNewOpenThread('ReadClient '+FSlot.ToString,UTCTime);
 REPEAT
@@ -1066,14 +1067,15 @@ if Continuar then
                   downloaded := false;
                   end;
                END; {TRY}
-            if Downloaded then SavedToFile := SaveStreamAsHeaders(MemStream);
+            if Downloaded then SavedToFile := SaveStreamAsHeaders(MemStream)
+            else SavedToFile := false;
             if ((Downloaded) and (SavedToFile)) then
                begin
                ToLog('console',format(rs0005,[copy(HashMD5File(ResumenFilename),1,5)])); //'Headers file received'
                LastTimeRequestResumen := 0;
                UpdateMyData();
                end
-            else ToLog('console','Something happened downloading headers');
+            else ToLog('console','Error downloading headers: downloaded: '+booltostr(Downloaded,true)+' / Saved: '+booltostr(SavedToFile,true));
             MemStream.Free;
             DownloadHeaders := false;
             FTPTime := CloseFileProcess('Get','Headers',CanalCliente[FSlot].Host,GetTickCount64);
@@ -1240,9 +1242,9 @@ if Continuar then
 
 EXCEPT ON E:Exception do
    begin
-   ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'*****CRITICAL**** Error inside Client thread: '+E.Message);
-   if AnsiContainsStr(E.Message,'Error # 10053') then KillIt := true;
-   if AnsiContainsStr(E.Message,'10054') then KillIt := true;
+   ErrMsg := E.Message;
+   ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'*****CRITICAL**** Error inside Client thread: '+ErrMsg);
+   if AnsiContainsStr(Uppercase(ErrMsg),'SOCKET') then KillIt := true;
    end;
 END; {TRY}
 UNTIL ( (terminated) or (not CanalCliente[FSlot].Connected) or (KillIt) );
@@ -2663,6 +2665,8 @@ if GoAhead then
       else TryCloseServerConnection(AContext,PTC_BestHash(LLine, IPUSer));
       end
    else if parameter(LLine,0) = 'NSLPEND' then
+      TryCloseServerConnection(AContext,PendingRawInfo(false))
+   else if parameter(LLine,0) = 'NSLPENDFULL' then
       TryCloseServerConnection(AContext,PendingRawInfo)
    else if parameter(LLine,0) = 'NSLBLKORD' then
       TryCloseServerConnection(AContext,GEtNSLBlkOrdInfo(LLine))

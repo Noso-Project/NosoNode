@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, mpgui, FPJSON, jsonparser, mpCoin, mpRed, mpBlock,nosodebug,
-  nosogeneral, nosocrypto, nosounit, nosoconsensus, nosowallcon;
+  nosogeneral, nosocrypto, nosounit, nosoconsensus, nosowallcon,nosopsos;
 
 Procedure SetRPCPort(LineText:string);
 Procedure setRPCpassword(newpassword:string);
@@ -29,6 +29,7 @@ function RPC_Blockinfo(NosoPParams:string):string;
 function RPC_Mininginfo(NosoPParams:string):string;
 function RPC_Mainnetinfo(NosoPParams:string):string;
 function RPC_PendingOrders(NosoPParams:string):string;
+function RPC_LockedMNs(NosoPParams:string):String;
 function RPC_GetPeers(NosoPParams:string):string;
 function RPC_BlockOrders(NosoPParams:string):string;
 function RPC_Blockmns(NosoPParams:string):string;
@@ -287,6 +288,17 @@ else if objecttype = 'pendingorders' then
       end;
    resultado.Add('pendings',ordersarray);
    end
+else if objecttype = 'lockedmns' then
+   begin
+   counter := 1;
+   ordersarray := TJSONArray.Create;
+   while parameter(mystring,counter) <> '' do
+      begin
+      ordersarray.Add(parameter(mystring,counter));
+      Inc(Counter);
+      end;
+   resultado.Add('lockedmns',ordersarray);
+   end
 else if objecttype = 'peers' then
    begin
    counter := 1;
@@ -415,6 +427,7 @@ else
       else if method = 'getmininginfo' then result := GetJSONResponse(RPC_Mininginfo(NosoPParams),jsonid)
       else if method = 'getmainnetinfo' then result := GetJSONResponse(RPC_Mainnetinfo(NosoPParams),jsonid)
       else if method = 'getpendingorders' then result := GetJSONResponse(RPC_PendingOrders(NosoPParams),jsonid)
+      else if method = 'lockedmns' then result := GetJSONResponse(RPC_LockedMNs(NosoPParams),jsonid)
       else if method = 'getpeers' then result := GetJSONResponse(RPC_GetPeers(NosoPParams),jsonid)
       else if method = 'getblockorders' then result := GetJSONResponse(RPC_BlockOrders(NosoPParams),jsonid)
       else if method = 'getblockmns' then result := GetJSONResponse(RPC_BlockMNs(NosoPParams),jsonid)
@@ -557,6 +570,15 @@ Begin
 LData :=PendingRawInfo;
 LData := StringReplace(LData,' ',#127,[rfReplaceAll, rfIgnoreCase]);
 result := format('pendingorders'#127'%s',[LData]);
+End;
+
+function RPC_LockedMNs(NosoPParams:string):String;
+var
+  LData : String;
+Begin
+  LData := LockedMNsRawString;
+  LData := StringReplace(LData,' ',#127,[rfReplaceAll, rfIgnoreCase]);
+  result := format('lockedmns'#127'%s',[LData]);
 End;
 
 function RPC_GetPeers(NosoPParams:string):string;

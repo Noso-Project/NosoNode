@@ -49,6 +49,7 @@ Function SavePSOsToFile(Const LStream:TMemoryStream):Boolean;
 Function AddLockedMM(Address:string;block:integer):Boolean;
 Function ClearExpiredLockedMNs(BlockNumber:integer):integer;
 Function IsLockedMN(Address:String):Boolean;
+Function LockedMNsRawString():String;
 
 // PSOHeaders control
 Function GetPSOHeaders():TPSOHeader;
@@ -330,6 +331,20 @@ Begin
        end;
     end;
   LeaveCriticalSection(CS_LockedMNs);
+End;
+
+Function LockedMNsRawString():String ;
+var
+  counter : integer;
+Begin
+  Result := '';
+  EnterCriticalSection(CS_LockedMNs);
+  for counter := 0 to length(MNSLockArray)-1 do
+    begin
+    Result := Result + MNSLockArray[counter].address+','+MNSLockArray[counter].expire.ToString()+' ';
+    end;
+  LeaveCriticalSection(CS_LockedMNs);
+  Trim(Result);
 End;
 
 {$ENDREGION}

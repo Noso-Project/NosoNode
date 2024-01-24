@@ -573,6 +573,7 @@ var
   StartBlock : integer = 0;
   counter : integer = 100000;
   Errors : integer = 0;
+  ProperlyClosed : boolean = false;
 Begin
 StartBlock := number - 10;
 If StartBlock < 0 then StartBlock := 0;
@@ -580,18 +581,20 @@ TRY
 assignfile(FileResumen,ResumenFilename);
 reset(FileResumen);
    REPEAT
-   Seek(FileResumen,counter);
+   Seek(FileResumen,StartBlock);
    read(fileresumen, dato);
-   //ToLog('console',IntToStr(dato.block)+' '+copy(dato.blockhash,1,5)+' '+copy(dato.SumHash,1,5));
+   ToLog('console',IntToStr(dato.block)+' '+copy(dato.blockhash,1,5)+' '+copy(dato.SumHash,1,5));
    if dato.blockhash='MISS' then Inc(Errors);
    if dato.sumhash='MISS' then Inc(Errors);
-   Inc(Counter);
+   Inc(StartBlock);
    UNTIL eof(fileresumen);
 closefile(FileResumen);
+ProperlyClosed := true;
 ToLog('Console','Errors : '+Errors.ToString);
 EXCEPT ON E:Exception do
    ToLog('console','Error: '+E.Message)
 END;{TRY}
+If not ProperlyClosed then closefile(FileResumen);
 End;
 
 // Cambiar la primera direccion de la wallet

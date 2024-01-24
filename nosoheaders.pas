@@ -64,7 +64,9 @@ End;
 
 Function AddRecordToHeaders(BlockNumber:int64;BlockHash,SumHash:String):boolean;
 var
-  NewData : ResumenData;
+  NewData        : ResumenData;
+  Opened         : boolean = false;
+  PorperlyClosed : boolean = false;
 Begin
   Result := true;
   NewData           := Default(ResumenData);
@@ -74,35 +76,44 @@ Begin
   assignfile(FileResumen,ResumenFilename);
   EnterCriticalSection(CS_HeadersFile);
   TRY
-    reset(FileResumen);
+    reset(FileResumen,1);
+    Opened := true;
     seek(fileResumen,filesize(fileResumen));
     write(fileResumen,NewData);
     closefile(FileResumen);
+    PorperlyClosed := true;
   EXCEPT ON E:EXCEPTION DO
     begin
     ToDeepDeb('NosoHeaders,AddRecordToHeaders,'+E.Message);
     Result := false;
     end;
   END;
+  if ( (opened) and (not PorperlyClosed) ) then closefile(FileResumen);
   LeaveCriticalSection(CS_HeadersFile);
 End;
 
 Function RemoveHeadersLastRecord():Boolean;
+var
+  Opened         : boolean = false;
+  PorperlyClosed : boolean = false;
 Begin
   Result := true;
   assignfile(FileResumen,ResumenFilename);
   EnterCriticalSection(CS_HeadersFile);
   TRY
-    reset(FileResumen);
+    reset(FileResumen,1);
+    Opened := true;
     seek(fileResumen,filesize(fileResumen)-1);
     truncate(fileResumen);
     closefile(FileResumen);
+    PorperlyClosed := true;
   EXCEPT ON E:EXCEPTION DO
     begin
     ToDeepDeb('NosoHeaders,RemoveHeadersLastRecord,'+E.Message);
     Result := false;
     end;
   END;
+  if ( (opened) and (not PorperlyClosed) ) then closefile(FileResumen);
   LeaveCriticalSection(CS_HeadersFile);
 End;
 
@@ -194,7 +205,7 @@ Begin
   TRY
     reset(FileResumen);
     ThisData := Default(ResumenData);
-    seek(fileResumen,FromBlock-20);
+    seek(fileResumen,FromBlock-100);
     While not Eof(fileResumen) do
       begin
       Read(fileResumen,ThisData);

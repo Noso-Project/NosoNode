@@ -26,6 +26,7 @@ function GetPingString():string;
 procedure PTC_SendPending(Slot:int64);
 Procedure PTC_SendResumen(Slot:int64);
 Procedure PTC_SendSumary(Slot:int64);
+Procedure PTC_SendPSOS(Slot:int64);
 Function ZipHeaders():boolean;
 function CreateZipBlockfile(firstblock:integer):string;
 Procedure PTC_SendBlocks(Slot:integer;TextLine:String);
@@ -346,6 +347,7 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = 'HEADUPDATE' then PTC_HeadUpdate(ProcessLine)
       else if UpperCase(LineComando) = '$GETSUMARY' then PTC_SendSumary(contador)
       else if UpperCase(LineComando) = '$SNDGVT' then INC_PTC_SendGVT(GetOpData(ProcessLine), contador)
+      else if UpperCase(LineComando) = '$GETPSOS' then PTC_SendPSOS(contador)
 
       else
          Begin  // El comando recibido no se reconoce. Verificar protocolos posteriores.
@@ -630,6 +632,39 @@ if conexiones[slot].tipo='SER' then
       EXCEPT on E:Exception do
          begin
          ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'CLIENT: Error sending Sumary file ('+E.Message+')');
+         CerrarSlot(slot);
+         end;
+      END;{TRY}
+   end;
+MemStream.Free;
+End;
+
+Procedure PTC_SendPSOS(Slot:int64);
+var
+  MemStream   : TMemoryStream;
+Begin
+MemStream := TMemoryStream.Create;
+GetPSOsAsMemStream(MemStream);
+if conexiones[slot].tipo='CLI' then
+   begin
+      TRY
+      Conexiones[slot].context.Connection.IOHandler.WriteLn('PSOSFILE');
+      Conexiones[slot].context.connection.IOHandler.Write(MemStream,0,true);
+      EXCEPT on E:Exception do
+         begin
+         Form1.TryCloseServerConnection(Conexiones[Slot].context);
+         ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Error sending PSOs file ('+E.Message+')');
+         end;
+      END; {TRY}
+   end;
+if conexiones[slot].tipo='SER' then
+   begin
+      TRY
+      CanalCliente[slot].IOHandler.WriteLn('PSOSFILE');
+      CanalCliente[slot].IOHandler.Write(MemStream,0,true);
+      EXCEPT on E:Exception do
+         begin
+         ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'CLIENT: Error sending PSOs file ('+E.Message+')');
          CerrarSlot(slot);
          end;
       END;{TRY}
