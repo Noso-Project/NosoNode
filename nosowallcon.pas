@@ -1,9 +1,9 @@
 unit NosoWallCon;
 
 {
-nosowallcon 1.0
-Oct 30th, 2023
-Stand alone unit to control wallet addresses file.
+nosowallcon 1.1
+January 26th, 2024
+Stand alone unit to control wallet addresses file and array
 }
 
 {$mode ObjFPC}{$H+}
@@ -11,7 +11,7 @@ Stand alone unit to control wallet addresses file.
 interface
 
 uses
-  Classes, SysUtils, nosodebug,nosocrypto,nosogeneral;
+  Classes, SysUtils, fileutil, nosodebug,nosocrypto,nosogeneral;
 
 TYPE
 
@@ -34,6 +34,8 @@ Function LenWallArr():Integer;
 Function ChangeWallArrPos(PosA,PosB:integer):boolean;
 Procedure ClearWallPendings();
 Procedure SetPendingForAddress(Index:integer;value:int64);
+Function GetAddressFromFile(FileLocation:String;out WalletInfo:WalletData):Boolean;
+Function ImportAddressesFromBackup(BakFolder:String):integer;
 Function SaveAddresstoFile(FileName:string;LData:WalletData):boolean;
 
 function CreateNewWallet():Boolean;
@@ -132,23 +134,82 @@ Begin
   LeaveCriticalSection(CS_WalletArray);
 End;
 
+// Import an address data from a file
+Function GetAddressFromFile(FileLocation:String;out WalletInfo:WalletData):Boolean;
+var
+  TempFile : File of WalletData;
+  Opened   : boolean = false;
+  Closed   : boolean = false;
+Begin
+  result := true;
+  AssignFile(TempFile,FileLocation);
+  TRY
+    Reset(TempFile);
+    Opened := true;
+    Read(TempFile,WalletInfo);
+    CloseFile(TempFile);
+    Closed := true;
+  EXCEPT on E:Exception do
+    begin
+    Result := false;
+    ToDeepDeb('NosoWallcon,GetAddressFromFile,'+E.Message);
+    end;
+  END;
+  If ( (opened) and (not Closed) ) then CloseFile(TempFile);
+End;
+
+// Verify if all baked up keys are present on active wallet
+Function ImportAddressesFromBackup(BakFolder:String):integer;
+Var
+  BakFiles    : TStringList;
+  Counter     : integer = 0;
+  AddressStr  : string;
+  ThisData    : WalletData;
+Begin
+  Result := 0;
+  BakFiles := TStringList.Create;
+  TRY
+    FindAllFiles(BakFiles, BakFolder, '*.pkw', true);
+    while Counter < BakFiles.Count do
+        begin
+        if GetAddressFromFile(BakFiles[Counter],ThisData) then
+          begin
+          InsertToWallArr(ThisData);
+          inc(result);
+          end;
+        Inc(Counter);
+        end;
+    if result > 0 then ToDeepDeb(format('Imported %d addresses from backup files',[result]));
+  EXCEPT on E:Exception do
+    begin
+    ToDeepDeb('NosoWallcon,ImportAddressesFromBackup,'+E.Message);
+    end;
+  END;
+  BakFiles.free;
+End;
+
 // Saves an address info to a specific file
 Function SaveAddresstoFile(FileName:string;LData:WalletData):boolean;
 var
   TempFile : File of WalletData;
+  opened   : boolean = false;
+  Closed   : boolean = false;
 Begin
   Result := true;
   AssignFile(TempFile,FileName);
   TRY
     rewrite(TempFile);
+    opened := true;
     write(TempFile,Ldata);
     CloseFile(TempFile);
+    Closed := true;
   EXCEPT on E:Exception do
     begin
     Result := false;
     ToDeepDeb('NosoWallcon,SaveAddresstoFile,'+E.Message);
     end;
   END;
+  If ( (opened) and (not Closed) ) then CloseFile(TempFile);
 End;
 
 // Creates a new wallet file with a new generated address

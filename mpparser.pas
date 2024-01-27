@@ -1594,6 +1594,7 @@ Procedure ListGVTs();
 var
   counter : integer;
 Begin
+ShowGVTInfo;
 ToLog('console','Existing: '+Length(arrgvts).ToString);
 for counter := 0 to length(arrgvts)-1 do
    ToLog('console',Format('%.2d %s',[counter,arrgvts[counter].owner]));
@@ -2036,6 +2037,7 @@ End;
 Procedure ShowConsensusStats();
 Begin
   ToLog('Console',GetConsensus(8)+' '+Copy(MyMNsHash,1,5));
+  ImportAddressesFromBackup(RPCBakDirectory);
 End;
 
 END. // END UNIT

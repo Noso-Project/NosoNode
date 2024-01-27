@@ -221,6 +221,10 @@ msgctxt "tform1.label18.caption"
 msgid "Merkle"
 msgstr ""
 
+#: tform1.label19.caption
+msgid "Banned methods"
+msgstr ""
+
 #: tform1.label2.caption
 msgid "Minimum connections to work"
 msgstr ""

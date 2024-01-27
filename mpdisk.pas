@@ -99,6 +99,7 @@ End;
 Procedure VerifyFiles();
 var
   defseeds : string = '';
+
 Begin
 
 if not FileExists (AdvOptionsFilename) then CreateADV(false) else LoadADV();
@@ -148,6 +149,7 @@ OutText('✓ My last block verified: '+MyLastBlock.ToString,false,1);
 
 UpdateWalletFromSumario();
 OutText('✓ Wallet updated',false,1);
+ImportAddressesFromBackup(RPCBakDirectory);
 
 LoadPSOFileFromDisk;
 End;
@@ -430,6 +432,8 @@ BeginPerformance('CreateADV');
    writeln(FileAdvOptions,'RPCAuto '+BoolToStr(RPCAuto,true));
    writeln(FileAdvOptions,'//Save addresses keys created on a BAK folder');
    writeln(FileAdvOptions,'RPCSaveNew '+BoolToStr(RPCSaveNew,true));
+   writeln(FileAdvOptions,'//Banned methods for RPC requests');
+   writeln(FileAdvOptions,'RPCBanned '+RPCBanned);
    writeln(FileAdvOptions,'');
 
    writeln(FileAdvOptions,'---Deprecated. To be removed.---');
@@ -474,6 +478,7 @@ Begin
       if parameter(linea,0) ='MultiSend' then WO_MultiSend:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='RPCFilter' then RPCFilter:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='RPCWhiteList' then RPCWhiteList:=Parameter(linea,1);
+      if parameter(linea,0) ='RPCBanned' then RPCBanned:=Parameter(linea,1);
       if parameter(linea,0) ='RPCAuto' then RPCAuto:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='RPCSaveNew' then RPCSaveNew:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='Language' then WO_Language:=Parameter(linea,1);
@@ -509,7 +514,6 @@ Begin
       if parameter(linea,0) ='MNFunds' then MN_Funds:=Parameter(linea,1);
       if parameter(linea,0) ='MNSign' then MN_Sign:=Parameter(linea,1);
       if parameter(linea,0) ='MNAutoIp' then MN_AutoIP:=StrToBool(Parameter(linea,1));
-
       if parameter(linea,0) ='WO_FullNode' then WO_FullNode:=StrToBool(Parameter(linea,1));
 
       end;

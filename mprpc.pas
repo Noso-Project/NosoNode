@@ -5,7 +5,7 @@ unit mpRPC;
 interface
 
 uses
-  Classes, SysUtils, mpgui, FPJSON, jsonparser, mpCoin, mpRed, mpBlock,nosodebug,
+  Classes, SysUtils, mpgui, FPJSON, jsonparser,strutils, mpCoin, mpRed, mpBlock,mpmn,nosodebug,
   nosogeneral, nosocrypto, nosounit, nosoconsensus, nosowallcon,nosopsos;
 
 Procedure SetRPCPort(LineText:string);
@@ -23,6 +23,8 @@ function ParseRPCJSON(jsonreceived:string):string;
 
 function ObjectFromString(MyString:string): string;
 
+function RPC_Restart(NosoPParams:string):string;
+function RPC_Banned(NosoPParams:string):string;
 function RPC_AddressBalance(NosoPParams:string):string;
 function RPC_OrderInfo(NosoPParams:string):string;
 function RPC_Blockinfo(NosoPParams:string):string;
@@ -32,6 +34,7 @@ function RPC_PendingOrders(NosoPParams:string):string;
 function RPC_LockedMNs(NosoPParams:string):String;
 function RPC_GetPeers(NosoPParams:string):string;
 function RPC_BlockOrders(NosoPParams:string):string;
+function RPC_Masternodes(NosoPParams:string):string;
 function RPC_Blockmns(NosoPParams:string):string;
 Function RPC_WalletBalance(NosoPParams:string):string;
 function RPC_NewAddress(NosoPParams:string):string;
@@ -219,6 +222,14 @@ if objecttype = 'test' then
    begin
    resultado.Add('result','testok');
    end
+else if objecttype = 'banned' then
+   begin
+   resultado.Add('result','banned');
+   end
+else if objecttype = 'restart' then
+   begin
+   resultado.Add('result','True');
+   end
 else if objecttype = 'balance' then
    begin
    resultado.Add('valid',StrToBool(parameter(mystring,1)));
@@ -355,7 +366,12 @@ else if objecttype = 'blockmns' then
    resultado.Add('total',StrToInt64Def(parameter(mystring,5),-1));
    resultado.Add('addresses',parameter(mystring,6));
    end
-
+else if objecttype = 'getmasternodes' then
+   begin
+   resultado.Add('block',StrToIntDef(parameter(mystring,1),-1));
+   resultado.Add('count',StrToIntDef(parameter(mystring,2),-1));
+   resultado.Add('nodes',parameter(mystring,3));
+   end
 else if objecttype = 'newaddress' then
    begin
    //resultado.Add('valid',StrToBool(parameter(mystring,1)));
@@ -420,7 +436,10 @@ else
       NosoPParams:= Trim(NosoPParams);
       //ToLog('console',jsonreceived);
       //ToLog('console','NosoPParams: '+NosoPParams);
+      if AnsiContainsStr(RPCBanned,Method) then method := 'banned';
       if method = 'test' then result := GetJSONResponse('test',jsonid)
+      else if method = 'banned' then result := GetJSONResponse(RPC_Banned(NosoPParams),jsonid)
+      else if method = 'restart' then result := GetJSONResponse(RPC_Restart(NosoPParams),jsonid)
       else if method = 'getaddressbalance' then result := GetJSONResponse(RPC_AddressBalance(NosoPParams),jsonid)
       else if method = 'getorderinfo' then result := GetJSONResponse(RPC_OrderInfo(NosoPParams),jsonid)
       else if method = 'getblocksinfo' then result := GetJSONResponse(RPC_Blockinfo(NosoPParams),jsonid)
@@ -431,6 +450,7 @@ else
       else if method = 'getpeers' then result := GetJSONResponse(RPC_GetPeers(NosoPParams),jsonid)
       else if method = 'getblockorders' then result := GetJSONResponse(RPC_BlockOrders(NosoPParams),jsonid)
       else if method = 'getblockmns' then result := GetJSONResponse(RPC_BlockMNs(NosoPParams),jsonid)
+      else if method = 'getmasternodes' then result := GetJSONResponse(RPC_Masternodes(NosoPParams),jsonid)
       else if method = 'getwalletbalance' then result := GetJSONResponse(RPC_WalletBalance(NosoPParams),jsonid)
       else if method = 'getnewaddress' then result := GetJSONResponse(RPC_NewAddress(NosoPParams),jsonid)
       else if method = 'islocaladdress' then result := GetJSONResponse(RPC_ValidateAddress(NosoPParams),jsonid)
@@ -444,6 +464,21 @@ else
 End;
 
 // GET DATA FUNCTIONS
+
+function RPC_Restart(NosoPParams:string):string;
+var
+  ThDirect  : TThreadDirective;
+Begin
+  ThDirect := TThreadDirective.Create(true,'rpcrestart');
+  ThDirect.FreeOnTerminate:=true;
+  ThDirect.Start;
+  result := 'restart';
+End;
+
+function RPC_Banned(NosoPParams:string):string;
+Begin
+  Result := 'banned';
+End;
 
 function RPC_AddressBalance(NosoPParams:string):string;
 var
@@ -666,6 +701,39 @@ else
    else result := result+'0'#127;
    trim(result);
    end;
+End;
+
+function RPC_Masternodes(NosoPParams:string):string;
+var
+  source : String;
+  counter : integer = 1;
+  Block : string;
+  ThisData : String;
+  Nodes    : string = '';
+  Total    : integer = 0;
+  IpAndport,Ip,port,address,age : string;
+Begin
+  Result := '';
+  source:= GetMN_FileText;
+  Block := parameter(source,0);
+  repeat
+  ThisData := parameter(Source,counter);
+  if thisData <> '' then
+    begin
+    ThisData := StringReplace(ThisData,':',' ',[rfReplaceAll]);
+    ipandport:=Parameter(ThisData,0);
+    ipandport := StringReplace(ipandport,';',' ',[rfReplaceAll]);
+    ip := Parameter(ipandport,0);
+    port := Parameter(ipandport,1);
+    address  :=Parameter(ThisData,1);
+    age      :=Parameter(ThisData,2);
+    nodes := nodes+format('[%s,%s,%s,%s]',[ip,port,address,age]);
+    Inc(Total);
+    end;
+  inc(counter);
+  until thisdata = '';
+  Result := 'getmasternodes'#127+Block+#127+IntToStr(Total)+#127+Nodes;
+  Tolog('console',result);
 End;
 
 function RPC_Blockmns(NosoPParams:string):string;

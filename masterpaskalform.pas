@@ -297,6 +297,8 @@ type
     CBRunNodeAlone: TCheckBox;
     ComboBoxLang: TComboBox;
     Edit2: TEdit;
+    Label19: TLabel;
+    Memobannedmethods: TMemo;
     OffersGrid: TStringGrid;
     Label1: TLabel;
     Label14: TLabel;
@@ -506,6 +508,8 @@ type
     Procedure LoadOptionsToPanel();
     procedure FormShow(sender: TObject);
     Procedure InicoTimerEjecutar(sender: TObject);
+    procedure MemobannedmethodsEditingDone(Sender: TObject);
+
     procedure MemoRPCWhitelistEditingDone(sender: TObject);
     procedure OffersGridResize(Sender: TObject);
     procedure PC_ProcessesResize(Sender: TObject);
@@ -634,7 +638,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ba7';
+  SubVersion = 'Ba8';
   OficialRelease = false;
   VersionRequired = '0.4.1Ba1';
   BuildDate = 'January 2024';
@@ -702,6 +706,7 @@ var
   WO_OmmitMemos    : boolean = false;
   RPCFilter        : boolean = true;
   RPCWhitelist     : string = '127.0.0.1,localhost';
+  RPCBanned        : string = '';
   RPCAuto          : boolean = false;
   RPCSaveNew       : boolean = false;
   MN_IP            : string = 'localhost';
@@ -1270,7 +1275,12 @@ var
   TFinished  : boolean = false;
 Begin
 AddNewOpenThread('Directives',UTCTime);
-TimeToRun := 50+(MNsRandomWait*20);
+if command = 'rpcrestart' then
+   begin
+   timetorun := BlockAge+3;
+   command := 'restart';
+   end
+else TimeToRun := 50+(MNsRandomWait*20);
 While not Tfinished do
    begin
    sleep(10);
@@ -1828,6 +1838,7 @@ CBRunNodeAlone.Checked:=WO_OmmitMemos;
 
 CB_RPCFilter.Checked:=RPCFilter;
 MemoRPCWhitelist.Text:=RPCWhitelist;
+Memobannedmethods.Text:=RPCBanned;
 if not RPCFilter then MemoRPCWhitelist.Enabled:=false;
 CB_AUTORPC.Checked:= RPCAuto;
 ComboBoxLang.Text:=WO_Language;
@@ -3746,6 +3757,20 @@ if ( (not G_Launching) and (MemoRPCWhitelist.Text<>RPCWhitelist) ) then
    S_AdvOpt := true;
    end;
 end;
+
+procedure TForm1.MemobannedmethodsEditingDone(Sender: TObject);
+var
+  newlist : string;
+Begin
+if ( (not G_Launching) and (Memobannedmethods.Text<>RPCBanned) ) then
+   begin
+   newlist := trim(Memobannedmethods.Text);
+   newlist := parameter(newlist,0);
+   Memobannedmethods.Text := newlist;
+   RPCBanned := newlist;
+   S_AdvOpt := true;
+   end;
+End;
 
 procedure TForm1.OffersGridResize(Sender: TObject);
 var

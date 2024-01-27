@@ -51,6 +51,7 @@
 {"hash":358036,"name":"tform1.label12.caption","sourcebytes":[80,111,114,116],"value":"Port"},
 {"hash":81892660,"name":"tform1.label13.caption","sourcebytes":[70,117,110,100,115,32,112,97,115,115,119,111,114,100],"value":"Funds password"},
 {"hash":165244291,"name":"tform1.cb_backrpcaddresses.caption","sourcebytes":[66,97,99,107,117,112,32,110,101,119,32,97,100,100,114,101,115,115,101,115,32,107,101,121,115],"value":"Backup new addresses keys"},
+{"hash":194930499,"name":"tform1.label19.caption","sourcebytes":[66,97,110,110,101,100,32,109,101,116,104,111,100,115],"value":"Banned methods"},
 {"hash":5998501,"name":"tform1.tab_options_trade.caption","sourcebytes":[84,114,97,100,101],"value":"Trade"},
 {"hash":228851683,"name":"tform1.checkbox7.caption","sourcebytes":[69,110,97,98,108,101,32,115,111,117,110,100,32,97,108,101,114,116,115],"value":"Enable sound alerts"},
 {"hash":40517522,"name":"tform1.checkbox8.caption","sourcebytes":[67,111,105,110,115,32,102,105,108,116,101,114],"value":"Coins filter"},

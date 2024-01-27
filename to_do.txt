@@ -9,8 +9,9 @@ App related.
 - Implement RPC locked MNs (done)
 - Implement RPC GVTs.
 - Properly close client threads on socket errors. (done)
-- RPC for masternodes
+- RPC for masternodes (done)
 - RPC for nosocfg
+- Develope new certificate methods
 
 - Complete/Fix "history" command.
 - Not blocking form for critical exceptions.
