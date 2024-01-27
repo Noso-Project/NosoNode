@@ -32,7 +32,6 @@ Procedure OutText(Texto:String;inctime:boolean = false;canal : integer =0);
 Procedure ActualizarGUI();
 Procedure Info(text:string);
 Procedure Processhint(sender:TObject);
-Procedure ShowGlobo(Titulo,texto:string);
 Procedure CloseAllForms();
 Procedure UpdateRowHeigth();
 
@@ -490,18 +489,6 @@ if sender=form1.ImageInc then
 if sender=form1.ImageOut then
    begin
    form1.ImageOut.Hint:='Outgoing: '+Int2curr(MontoOutgoing);
-   end;
-End;
-
-// Mostrar el globo del trayicon
-Procedure ShowGlobo(Titulo,texto:string);
-Begin
-if Form1.SystrayIcon.Visible then
-   begin
-   form1.SystrayIcon.BalloonTitle:=Titulo;
-   Form1.SystrayIcon.BalloonHint:=Texto;
-   form1.SystrayIcon.BalloonTimeout:=3000;
-   form1.SystrayIcon.ShowBalloonHint;
    end;
 End;
 

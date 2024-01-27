@@ -20,7 +20,7 @@ Procedure ForceServer();
 procedure StartServer();
 function StopServer():boolean;
 procedure CerrarSlot(Slot:integer);
-Procedure ConnectToServers();
+{Procedure ConnectToServers();}
 Function IsSlotFree(number:integer):Boolean;
 Function IsSlotConnected(number:integer):Boolean;
 function GetFreeSlot():integer;
@@ -228,7 +228,7 @@ if WallAddIndex(MN_Sign)<0 then
    ToLog('console',rs2000); //Sign address not valid
    exit;
    end;
-if MyConStatus < 3 then
+if MyConStatus < 3 then // rs2001 = 'Wallet not updated';
    begin
    ToLog('console',rs2001);
    exit;
@@ -302,6 +302,7 @@ EndPerformance('CerrarSlot');
 End;
 
 // Try connection to nodes
+{
 Procedure ConnectToServers();
 const
   LastTrySlot : integer = 0;
@@ -344,6 +345,7 @@ if Unables >= 10 then forceserver;
 CONNECT_LastTime := UTCTimeStr;
 EndPerformance('ConnectToServers');
 End;
+}
 
 Function IsSlotFree(number:integer):Boolean;
 Begin
@@ -467,7 +469,7 @@ if not errored then
       end;
    CanalCliente[Slot].Host:=Address;
    CanalCliente[Slot].Port:=StrToIntDef(Port,8080);
-   CanalCliente[Slot].ConnectTimeout:= ConnectTimeOutTime;
+   CanalCliente[Slot].ConnectTimeout:= 1000;
    ClearOutTextToSlot(slot);
       TRY
       CanalCliente[Slot].Connect;
@@ -599,7 +601,7 @@ TRY
 if ( (CONNECT_Try) and (UTCTime>StrToInt64Def(CONNECT_LastTime,UTCTime)+5) ) then
    begin
    CONNECT_LastTime := IntTOStr(UTCTime+60);
-   ConnectToServers;
+   //ConnectToServers;
    end;
 NumeroConexiones := GetTotalConexiones;
 if NumeroConexiones = 0 then  // Desconectado
@@ -642,7 +644,7 @@ if NumeroConexiones = 0 then  // Desconectado
       end;
    // Resetear todos los valores
    end;
-if ((NumeroConexiones>0) and (NumeroConexiones<MinConexToWork) and (MyConStatus = 0)) then // Conectando
+if ((NumeroConexiones>0) and (NumeroConexiones<1) and (MyConStatus = 0)) then // Conectando
    begin
    MyConStatus:=1;
    G_LastPing := UTCTime;
@@ -657,7 +659,7 @@ if MyConStatus > 0 then
       OutgoingMsjsAdd(ProtocolLine(ping));
       end;
    end;
-if ((NumeroConexiones>=MinConexToWork) and (MyConStatus<2) and (not STATUS_Connected)) then
+if ((NumeroConexiones>=1) and (MyConStatus<2) and (not STATUS_Connected)) then
    begin
    STATUS_Connected := true;
    MyConStatus := 2;
@@ -678,6 +680,7 @@ if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = Getco
    MyConStatus := 3;
    ToLog('console','Updated!');   //Updated!
    if RPCAuto then  ProcessLinesAdd('RPCON');
+   if WO_AutoServer then ProcessLinesAdd('serveron');
    if StrToIntDef(GetConsensus(3),0)<GetPendingCount then
       begin
       setlength(PendingTxs,0);
@@ -1153,7 +1156,7 @@ if ( (GetConsensus(20)<>Copy(PSOFileHash,0,5)) and (LasTimePSOsRequest+5<UTCTime
       begin
       PTC_SendLine(ValidSlot,ProtocolLine(GetPSOs));
       LasTimePSOsRequest := UTCTime;
-      ToLog('console','Requested PSOs from '+conexiones[ValidSlot].ip);
+      ToLog('console','Requested PSOs to: '+conexiones[ValidSlot].ip);
       end;
    end;
 

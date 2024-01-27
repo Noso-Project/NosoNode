@@ -149,10 +149,6 @@ msgstr "只接受白名单请求"
 msgid "Enable JSON-RPC server"
 msgstr "启用 JSON-RPC 服务器"
 
-#: tform1.cb_wo_autoconnect.caption
-msgid "Auto connect at start"
-msgstr "启动时自动连接"
-
 #: tform1.cb_wo_autoupdate.caption
 #, fuzzy
 #| msgid "Install automatically new official releases"
@@ -163,10 +159,6 @@ msgstr "自动更新版本"
 #: tform1.cb_wo_multisend.caption
 msgid "Send coins only from default address"
 msgstr "仅从默认地址发送硬币"
-
-#: tform1.cb_wo_totray.caption
-msgid "Minimize to tray"
-msgstr "最小化"
 
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
@@ -244,18 +236,6 @@ msgstr ""
 #: tform1.label19.caption
 msgid "Banned methods"
 msgstr ""
-
-#: tform1.label2.caption
-msgid "Minimum connections to work"
-msgstr "连接"
-
-#: tform1.label3.caption
-msgid "Connect time out (ms)"
-msgstr "连接超时（毫秒）"
-
-#: tform1.label4.caption
-msgid "Read time out (ms)"
-msgstr "读取超时（毫秒）"
 
 #: tform1.label7.caption
 msgid "Wallet language"

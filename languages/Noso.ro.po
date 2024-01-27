@@ -147,10 +147,6 @@ msgstr "Acceptă numai cererile din lista albă"
 msgid "Enable JSON-RPC server"
 msgstr "Activează serverul JSON-RPC"
 
-#: tform1.cb_wo_autoconnect.caption
-msgid "Auto connect at start"
-msgstr "Conectare automată la pornire"
-
 #: tform1.cb_wo_autoupdate.caption
 #, fuzzy
 #| msgid "Install automatically new official releases"
@@ -161,10 +157,6 @@ msgstr "Instalează automat noi versiuni oficiale"
 #: tform1.cb_wo_multisend.caption
 msgid "Send coins only from default address"
 msgstr "Trimite monezi numai de la adresa implicită"
-
-#: tform1.cb_wo_totray.caption
-msgid "Minimize to tray"
-msgstr "Minimizează pe bară"
 
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
@@ -242,18 +234,6 @@ msgstr ""
 #: tform1.label19.caption
 msgid "Banned methods"
 msgstr ""
-
-#: tform1.label2.caption
-msgid "Minimum connections to work"
-msgstr "Conexiuni minime pentru a funcţiona"
-
-#: tform1.label3.caption
-msgid "Connect time out (ms)"
-msgstr "Timpul a expirat pentru conectare (ms)"
-
-#: tform1.label4.caption
-msgid "Read time out (ms)"
-msgstr "Timpul a expirat pentru citire (ms)"
 
 #: tform1.label7.caption
 msgid "Wallet language"

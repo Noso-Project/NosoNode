@@ -125,20 +125,12 @@ msgstr ""
 msgid "Enable JSON-RPC server"
 msgstr ""
 
-#: tform1.cb_wo_autoconnect.caption
-msgid "Auto connect at start"
-msgstr ""
-
 #: tform1.cb_wo_autoupdate.caption
 msgid "auto-update (recommended for unattended nodes) "
 msgstr ""
 
 #: tform1.cb_wo_multisend.caption
 msgid "Send coins only from default address"
-msgstr ""
-
-#: tform1.cb_wo_totray.caption
-msgid "Minimize to tray"
 msgstr ""
 
 #: tform1.checkbox4.caption
@@ -212,18 +204,6 @@ msgstr ""
 
 #: tform1.label19.caption
 msgid "Banned methods"
-msgstr ""
-
-#: tform1.label2.caption
-msgid "Minimum connections to work"
-msgstr ""
-
-#: tform1.label3.caption
-msgid "Connect time out (ms)"
-msgstr ""
-
-#: tform1.label4.caption
-msgid "Read time out (ms)"
 msgstr ""
 
 #: tform1.label7.caption

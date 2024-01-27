@@ -200,7 +200,6 @@ Begin
   if WallAddIndex(Order.Receiver)>=0 then
     begin
     montoincoming := montoincoming+order.AmmountTrf;
-    ShowGlobo('Incoming transfer',Int2curr(order.AmmountTrf));
     if not form1.ImageInc.Visible then form1.ImageInc.Visible:= true;
     end;
   U_DirPanel := true;

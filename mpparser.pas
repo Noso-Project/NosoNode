@@ -24,12 +24,8 @@ Procedure ShowSlots();
 Procedure ShowUser_Options();
 function GetWalletBalance(): Int64;
 Procedure ConnectTo(LineText:string);
-Procedure ToTrayON();
-Procedure ToTrayOFF();
 Procedure AutoServerON();
 Procedure AutoServerOFF();
-Procedure AutoConnectON();
-Procedure AutoConnectOFF();
 Procedure ShowWallet();
 Procedure ImportarWallet(LineText:string);
 Procedure ExportarWallet(LineText:string);
@@ -55,8 +51,6 @@ function AvailableUpdates():string;
 Procedure RunUpdate(linea:string);
 Procedure RunGetBeta(linea:string);
 Procedure SendAdminMessage(linetext:string);
-Procedure SetReadTimeOutTIme(LineText:string);
-Procedure SetConnectTimeOutTIme(LineText:string);
 Procedure RequestHeaders();
 Procedure RequestSumary();
 Procedure ShowOrderDetails(LineText:string);
@@ -201,7 +195,7 @@ else if UpperCase(Command) = 'FORCESERVER' then ForceServer()
 else if UpperCase(Command) = 'NODES' then ShowNodes()
 else if UpperCase(Command) = 'BOTS' then ShowBots()
 else if UpperCase(Command) = 'SLOTS' then ShowSlots()
-else if UpperCase(Command) = 'CONNECT' then ConnectToServers()
+{else if UpperCase(Command) = 'CONNECT' then ConnectToServers()}
 else if UpperCase(Command) = 'DISCONNECT' then CerrarClientes()
 else if UpperCase(Command) = 'OFFSET' then ToLog('console','Server: '+NosoT_LastServer+SLINEBREAK+
   'Time offset seconds: '+IntToStr(NosoT_TimeOffset)+slinebreak+'Last update : '+TimeSinceStamp(NosoT_LastUpdate))
@@ -211,8 +205,6 @@ else if UpperCase(Command) = 'BALANCE' then ToLog('console',Int2Curr(GetWalletBa
 else if UpperCase(Command) = 'CONNECTTO' then ConnectTo(Linetext)
 else if UpperCase(Command) = 'AUTOSERVERON' then AutoServerON()
 else if UpperCase(Command) = 'AUTOSERVEROFF' then AutoServerOFF()
-else if UpperCase(Command) = 'AUTOCONNECTON' then AutoConnectON()
-else if UpperCase(Command) = 'AUTOCONNECTOFF' then AutoConnectOFF()
 else if UpperCase(Command) = 'SHOWWALLET' then ShowWallet()
 else if UpperCase(Command) = 'IMPWALLET' then ImportarWallet(LineText)
 else if UpperCase(Command) = 'EXPWALLET' then ExportarWallet(LineText)
@@ -229,8 +221,6 @@ else if UpperCase(Command) = 'SETPORT' then SetServerPort(LineText)
 else if UpperCase(Command) = 'SHA256' then ToLog('console',HashSha256String(Parameter(LineText,1)))
 else if UpperCase(Command) = 'MD5' then ToLog('console',HashMD5String(Parameter(LineText,1)))
 else if UpperCase(Command) = 'MD160' then ToLog('console',HashMD160String(Parameter(LineText,1)))
-else if UpperCase(Command) = 'TOTRAYON' then ToTrayON()
-else if UpperCase(Command) = 'TOTRAYOFF' then ToTrayOFF()
 else if UpperCase(Command) = 'CLEAR' then form1.Memoconsola.Lines.clear
 else if UpperCase(Command) = 'TP' then TestParser(LineText)
 else if UpperCase(Command) = 'DELBOT' then DeleteBot(LineText)
@@ -243,8 +233,6 @@ else if UpperCase(Command) = 'OSVERSION' then ToLog('console',OsVersion)
 else if UpperCase(Command) = 'DIRECTIVE' then SendAdminMessage(linetext)
 else if UpperCase(Command) = 'MYHASH' then ToLog('console',HashMD5File('noso.exe'))
 else if UpperCase(Command) = 'ADDBOT' then AddNewBot(LineText)
-else if UpperCase(Command) = 'SETRTOT' then SetReadTimeOutTIme(LineText)
-else if UpperCase(Command) = 'SETCTOT' then SetConnectTimeOutTIme(LineText)
 else if UpperCase(Command) = 'STATUS' then ToLog('console',GetCurrentStatus(1))
 else if UpperCase(Command) = 'GETCERT' then GetOwnerHash(LineText)
 else if UpperCase(Command) = 'CHECKCERT' then CheckOwnerHash(LineText)
@@ -406,8 +394,6 @@ ToLog('console','Language    : '+WO_Language);
 ToLog('console','Server Port : '+MN_Port);
 ToLog('console','Wallet      : '+WalletFilename);
 ToLog('console','AutoServer  : '+BoolToStr(WO_AutoServer,true));
-ToLog('console','AutoConnect : '+BoolToStr(WO_AutoConnect,true));
-ToLog('console','To Tray     : '+BoolToStr(WO_ToTray,true));
 End;
 
 // Returns the total balance on the wallet
@@ -434,28 +420,6 @@ if StrToIntDef(Port,-1) = -1 then Port := '8080';
 ConnectClient(ip,port);
 End;
 
-Procedure ToTrayON();
-Begin
-WO_ToTray := true;
-//S_Options := true;
-S_AdvOpt := true;
-G_Launching := true;
-form1.CB_WO_ToTray.Checked:=true;
-G_Launching := false;
-ToLog('console','Minimize to tray is now '+'ACTIVE'); //GetNodes option is now  // INACTIVE
-End;
-
-Procedure ToTrayOFF();
-Begin
-WO_ToTray := false;
-//S_Options := true;
-S_AdvOpt := false;
-G_Launching := true;
-form1.CB_WO_ToTray.Checked:=false;
-G_Launching := false;
-ToLog('console','Minimize to tray is now '+'INACTIVE'); //GetNodes option is now  // INACTIVE
-End;
-
 Procedure AutoServerON();
 Begin
 WO_autoserver := true;
@@ -468,20 +432,6 @@ Begin
 WO_autoserver := false;
 S_AdvOpt := true;
 ToLog('console','AutoServer option is now '+'INACTIVE');   //autoserver //inactive
-End;
-
-Procedure AutoConnectON();
-Begin
-WO_AutoConnect := true;
-S_AdvOpt := true;
-ToLog('console','Autoconnect option is now '+'ACTIVE');     //autoconnect // active
-End;
-
-Procedure AutoConnectOFF();
-Begin
-WO_AutoConnect := false;
-S_AdvOpt := true;
-ToLog('console','Autoconnect option is now '+'INACTIVE');    //autoconnect // inactive
 End;
 
 // Shows all the addresses on the wallet
@@ -1243,32 +1193,6 @@ else
    mensaje := StringReplace(mensaje,'_',' ',[rfReplaceAll, rfIgnoreCase]);
    ToLog('console','Directive sent: '+mensaje);
    end;
-End;
-
-Procedure SetReadTimeOutTIme(LineText:string);
-var
-  newvalue : integer;
-Begin
-newvalue := StrToIntDef(parameter(LineText,1),-1);
-if newvalue < 0 then ToLog('console','ReadTimeOutTime= '+IntToStr(ReadTimeOutTIme))
-else
-  begin
-  ReadTimeOutTIme := newvalue;
-  ToLog('console','ReadTimeOutTime set to '+IntToStr(newvalue));
-  end;
-End;
-
-Procedure SetConnectTimeOutTIme(LineText:string);
-var
-  newvalue : integer;
-Begin
-newvalue := StrToIntDef(parameter(LineText,1),-1);
-if newvalue < 0 then ToLog('console','ConnectTimeOutTime= '+IntToStr(ConnectTimeOutTIme))
-else
-  begin
-  ConnectTimeOutTIme := newvalue;
-  ToLog('console','ConnectTimeOutTime set to '+IntToStr(newvalue));
-  end;
 End;
 
 Procedure RequestHeaders();

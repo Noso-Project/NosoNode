@@ -4,7 +4,7 @@ Things to be done. (not completely updated yet)
 
 App related.
 
-- Complete the Properlyclosed implementation.
+- Complete the Properlyclosed implementation.  (done)
 - Add GETPSOS support for clients.  (done)
 - Implement RPC locked MNs (done)
 - Implement RPC GVTs.
@@ -12,6 +12,9 @@ App related.
 - RPC for masternodes (done)
 - RPC for nosocfg
 - Develope new certificate methods
+- Implement multi-sign addresses. ("M" format)
+- Complete GVTs implementation.
+- Check the MNs verification messages count
 
 - Complete/Fix "history" command.
 - Not blocking form for critical exceptions.

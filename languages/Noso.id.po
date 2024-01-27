@@ -148,10 +148,6 @@ msgstr "Hanya terima permintaan daftar putih"
 msgid "Enable JSON-RPC server"
 msgstr "Aktifkan server JSON-RPC"
 
-#: tform1.cb_wo_autoconnect.caption
-msgid "Auto connect at start"
-msgstr "Sambungkan otomatis saat mulai"
-
 #: tform1.cb_wo_autoupdate.caption
 #, fuzzy
 #| msgid "Install automatically new official releases"
@@ -162,10 +158,6 @@ msgstr "Pasang rilis resmi baru secara otomatis"
 #: tform1.cb_wo_multisend.caption
 msgid "Send coins only from default address"
 msgstr "Kirim koin hanya dari alamat bawaan"
-
-#: tform1.cb_wo_totray.caption
-msgid "Minimize to tray"
-msgstr "Minimalkan ke baki"
 
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
@@ -243,18 +235,6 @@ msgstr ""
 #: tform1.label19.caption
 msgid "Banned methods"
 msgstr ""
-
-#: tform1.label2.caption
-msgid "Minimum connections to work"
-msgstr "Koneksi minimum untuk bekerja"
-
-#: tform1.label3.caption
-msgid "Connect time out (ms)"
-msgstr "Waktu sambung habis (ms)"
-
-#: tform1.label4.caption
-msgid "Read time out (ms)"
-msgstr "Waktu baca habis (ms)"
 
 #: tform1.label7.caption
 msgid "Wallet language"

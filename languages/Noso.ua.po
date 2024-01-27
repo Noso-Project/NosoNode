@@ -148,10 +148,6 @@ msgstr "Приймайте лише запити з білого списку"
 msgid "Enable JSON-RPC server"
 msgstr "Увімкнути сервер JSON-RPC"
 
-#: tform1.cb_wo_autoconnect.caption
-msgid "Auto connect at start"
-msgstr "Автоматичне підключення при запуску"
-
 #: tform1.cb_wo_autoupdate.caption
 #, fuzzy
 #| msgid "Install automatically new official releases"
@@ -162,10 +158,6 @@ msgstr "Автоматично встановлюйте нові офіційн�
 #: tform1.cb_wo_multisend.caption
 msgid "Send coins only from default address"
 msgstr "Надсилати монети лише з адреси за замовчуванням"
-
-#: tform1.cb_wo_totray.caption
-msgid "Minimize to tray"
-msgstr "Згорнути до кошика"
 
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
@@ -243,18 +235,6 @@ msgstr ""
 #: tform1.label19.caption
 msgid "Banned methods"
 msgstr ""
-
-#: tform1.label2.caption
-msgid "Minimum connections to work"
-msgstr "Мінімум підключення до роботи"
-
-#: tform1.label3.caption
-msgid "Connect time out (ms)"
-msgstr "Час очікування підключення (мс)"
-
-#: tform1.label4.caption
-msgid "Read time out (ms)"
-msgstr "Час очікування читання (мс)"
 
 #: tform1.label7.caption
 msgid "Wallet language"

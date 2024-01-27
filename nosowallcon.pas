@@ -27,7 +27,7 @@ TYPE
     end;
 
 Procedure ClearWalletArray();
-Procedure InsertToWallArr(LData:WalletData);
+function InsertToWallArr(LData:WalletData):boolean;
 Function GetWallArrIndex(Index:integer):WalletData;
 Function WallAddIndex(Address:String):integer;
 Function LenWallArr():Integer;
@@ -62,11 +62,16 @@ Begin
   LeaveCriticalSection(CS_WalletArray);
 End;
 
-Procedure InsertToWallArr(LData:WalletData);
+function InsertToWallArr(LData:WalletData):boolean;
 Begin
-  EnterCriticalSection(CS_WalletArray);
-  Insert(LData,WalletArray,length(WalletArray));
-  LeaveCriticalSection(CS_WalletArray);
+  result := false;
+  if WallAddIndex(LData.Hash)<0 then
+    begin
+    EnterCriticalSection(CS_WalletArray);
+    Insert(LData,WalletArray,length(WalletArray));
+    LeaveCriticalSection(CS_WalletArray);
+    Result := true;
+    end;
 End;
 
 Function GetWallArrIndex(Index:integer):WalletData;
@@ -174,8 +179,7 @@ Begin
         begin
         if GetAddressFromFile(BakFiles[Counter],ThisData) then
           begin
-          InsertToWallArr(ThisData);
-          inc(result);
+          if InsertToWallArr(ThisData) then inc(result);
           end;
         Inc(Counter);
         end;

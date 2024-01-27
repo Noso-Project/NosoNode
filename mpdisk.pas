@@ -375,16 +375,6 @@ BeginPerformance('CreateADV');
    writeln(FileAdvOptions,'');
 
    writeln(FileAdvOptions,'---Wallet related.---');
-   writeln(FileAdvOptions,'//Connect time-out in miliseconds');
-   writeln(FileAdvOptions,'ctot '+inttoStr(ConnectTimeOutTime));
-   writeln(FileAdvOptions,'//Read time-out in miliseconds');
-   writeln(FileAdvOptions,'rtot '+inttoStr(ReadTimeOutTIme));
-   writeln(FileAdvOptions,'//Connect automatically to mainnet at start');
-   writeln(FileAdvOptions,'AutoConnect '+BoolToStr(WO_AutoConnect,true));
-   writeln(FileAdvOptions,'//Minimize to system tray');
-   writeln(FileAdvOptions,'ToTray '+BoolToStr(WO_ToTray,true));
-   writeln(FileAdvOptions,'//Minimum connections to work');
-   writeln(FileAdvOptions,'MinConexToWork '+IntToStr(MinConexToWork));
    writeln(FileAdvOptions,'//Use all addresses to send funds');
    writeln(FileAdvOptions,'MultiSend '+BoolToStr(WO_MultiSend,true));
    writeln(FileAdvOptions,'//Po files language code');
@@ -463,17 +453,12 @@ Begin
    while not eof(FileAdvOptions) do
       begin
       readln(FileAdvOptions,linea);
-      if parameter(linea,0) ='ctot' then ConnectTimeOutTime:=StrToIntDef(Parameter(linea,1),ConnectTimeOutTime);
-      if parameter(linea,0) ='rtot' then ReadTimeOutTIme:=StrToIntDef(Parameter(linea,1),ReadTimeOutTIme);
       if parameter(linea,0) ='UserFontSize' then UserFontSize:=StrToIntDef(Parameter(linea,1),UserFontSize);
       if parameter(linea,0) ='UserRowHeigth' then UserRowHeigth:=StrToIntDef(Parameter(linea,1),UserRowHeigth);
       if parameter(linea,0) ='RPCPort' then RPCPort:=StrToIntDef(Parameter(linea,1),RPCPort);
       if parameter(linea,0) ='RPCPass' then RPCPass:=Parameter(linea,1);
       if parameter(linea,0) ='ShowedOrders' then ShowedOrders:=StrToIntDef(Parameter(linea,1),ShowedOrders);
       if parameter(linea,0) ='MaxPeers' then MaxPeersAllow:=StrToIntDef(Parameter(linea,1),MaxPeersAllow);
-      if parameter(linea,0) ='AutoConnect' then WO_AutoConnect:=StrToBool(Parameter(linea,1));
-      if parameter(linea,0) ='ToTray' then WO_ToTray:=StrToBool(Parameter(linea,1));
-      if parameter(linea,0) ='MinConexToWork' then MinConexToWork:=StrToIntDef(Parameter(linea,1),MinConexToWork);
       if parameter(linea,0) ='PosWarning' then WO_PosWarning:=StrToIntDef(Parameter(linea,1),WO_PosWarning);
       if parameter(linea,0) ='MultiSend' then WO_MultiSend:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='RPCFilter' then RPCFilter:=StrToBool(Parameter(linea,1));
@@ -1075,7 +1060,6 @@ EXCEPT ON E:Exception do
 END{Try};
 Closefile(archivo);
 server := StrToBoolDef(parameter(linea,1),WO_AutoServer);
-connect := StrToBoolDef(parameter(linea,3),WO_AutoConnect);
 if server then ProcessLinesAdd('SERVERON');
 if connect then ProcessLinesAdd('CONNECT');
 tryDeletefile('restart.txt');

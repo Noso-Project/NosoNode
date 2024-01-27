@@ -39,13 +39,15 @@ Type
   TPSOsArray = Array of TPSOData;
 
   // File access
-Function GEtPSOHEadersFromFile:Boolean;
+Function GetPSOHeadersFromFile:Boolean;
 Function LoadPSOFileFromDisk():boolean;
 Function SavePSOFileToDisk(BlockNumber : integer):boolean;
 Function GetPSOsAsMemStream(out LMs:TMemoryStream):int64;
 Function SavePSOsToFile(Const LStream:TMemoryStream):Boolean;
 
 // Locked Masternodes control
+Function GetLockedMNsCount():Integer;
+Function GetLockedMNIndex(index:integer):TMNsLock;
 Function AddLockedMM(Address:string;block:integer):Boolean;
 Function ClearExpiredLockedMNs(BlockNumber:integer):integer;
 Function IsLockedMN(Address:String):Boolean;
@@ -92,7 +94,7 @@ IMPLEMENTATION
 
 {$REGION File access}
 
-Function GEtPSOHEadersFromFile:Boolean;
+Function GetPSOHeadersFromFile:Boolean;
 var
   MyStream   : TMemoryStream;
   counter    : integer;
@@ -211,16 +213,13 @@ Begin
   NewHeader := GetPSOHeaders;
   NewHeader.Block   :=BlockNumber;
   NewHeader.count   :=Length(PSOsArray);
-  NewHeader.MNsLock :=Length(MNSLockArray);
+  NewHeader.MNsLock :=GetLockedMNsCount;
   SetPSOHeaders(NewHeader);
   EnterCriticalSection(CS_PSOsArray);
-  TRY
+    TRY
     MyStream.Write(NewHeader,Sizeof(PSOHeader));
-    EnterCriticalSection(CS_LockedMNs);
     For counter := 0 to NewHeader.MNsLock-1 do
-        MyStream.Write(MNSLockArray[counter],Sizeof(MNSLockArray[counter]));
-    LeaveCriticalSection(CS_LockedMNs);
-    EnterCriticalSection(CS_PSOsArray);
+        MyStream.Write(GetLockedMNIndex(counter),Sizeof(TMNsLock));
     For counter := 0 to Length(PSOsArray)-1 do
       begin
       MyStream.WriteWord(PSOsArray[counter].Mode);
@@ -231,8 +230,10 @@ Begin
       MyStream.SetString(PSOsArray[counter].Params);
       end;
     LeaveCriticalSection(CS_PSOsArray);
-  EXCEPT ON EXCEPTION DO
-  END;
+    EXCEPT ON E:EXCEPTION DO
+      ToDeepDeb('nosopsos,SavePSOFileToDisk,'+e.Message);
+    END;
+  LeaveCriticalSection(CS_PSOsArray);
   SavePSOsToFile(MyStream);
   MyStream.Free;
   Result := true;
@@ -260,6 +261,9 @@ Begin
     LStream.SaveToFile(PSOsFileName);
     Result := true;
     EXCEPT ON E:Exception do
+      begin
+      ToDeepDeb('nosopsos,SavePSOsToFile,'+e.Message);
+      end;
     END{Try};
   LeaveCriticalSection(CS_PSOFile);
 End;
@@ -267,6 +271,24 @@ End;
 {$ENDREGION}
 
 {$REGION Locked Masternodes}
+
+Function GetLockedMNsCount():Integer;
+Begin
+  EnterCriticalSection(CS_LockedMNs);
+  Result := length(MNSLockArray);
+  LeaveCriticalSection(CS_LockedMNs);
+End;
+
+Function GetLockedMNIndex(index:integer):TMNsLock;
+Begin
+  result := Default(TMNsLock);
+  if index < GetLockedMNsCount then
+    begin
+    EnterCriticalSection(CS_LockedMNs);
+    Result := MNSLockArray[index];
+    LeaveCriticalSection(CS_LockedMNs);
+    end;
+End;
 
 Function AddLockedMM(Address:string;block:integer):Boolean;
 var

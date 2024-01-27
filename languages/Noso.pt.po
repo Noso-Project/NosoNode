@@ -147,10 +147,6 @@ msgstr "Somente aceitar pedidos de endereços autorizados"
 msgid "Enable JSON-RPC server"
 msgstr "Permitir servidor JSON-RPC"
 
-#: tform1.cb_wo_autoconnect.caption
-msgid "Auto connect at start"
-msgstr "Conectar automaticamente no arranque"
-
 #: tform1.cb_wo_autoupdate.caption
 #, fuzzy
 #| msgid "Install automatically new official releases"
@@ -161,10 +157,6 @@ msgstr "Instalar lançamentos oficiais automaticamente"
 #: tform1.cb_wo_multisend.caption
 msgid "Send coins only from default address"
 msgstr "Enviar moedas somente do endereço por defeito"
-
-#: tform1.cb_wo_totray.caption
-msgid "Minimize to tray"
-msgstr "Minimizar para a barra"
 
 #: tform1.checkbox4.caption
 msgid "Run MasterNode"
@@ -242,18 +234,6 @@ msgstr ""
 #: tform1.label19.caption
 msgid "Banned methods"
 msgstr ""
-
-#: tform1.label2.caption
-msgid "Minimum connections to work"
-msgstr "Mínimo de ligações para funcionar"
-
-#: tform1.label3.caption
-msgid "Connect time out (ms)"
-msgstr "Tempo esgotado para conectar (ms)"
-
-#: tform1.label4.caption
-msgid "Read time out (ms)"
-msgstr "Tempo esgotado para leitura (ms)"
 
 #: tform1.label7.caption
 msgid "Wallet language"

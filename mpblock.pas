@@ -399,7 +399,6 @@ if not errored then
       OutgoingMsjsAdd(ProtocolLine(ping));
       end;
    CheckForMyPending;
-   if WallAddIndex(Minero)>-1 then showglobo('Miner','Block found!');
 
    U_DirPanel := true;
    ExpiredMNs := ClearExpiredLockedMNs(numero);

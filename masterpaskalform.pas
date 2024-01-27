@@ -369,8 +369,6 @@ type
     SCBitSend: TBitBtn;
     SCBitClea: TBitBtn;
     CB_AUTORPC: TCheckBox;
-    CB_WO_AutoConnect: TCheckBox;
-    CB_WO_ToTray: TCheckBox;
     CB_FullNode: TCheckBox;
     CB_WO_Multisend: TCheckBox;
     CheckBox4: TCheckBox;
@@ -392,9 +390,6 @@ type
     ImageInc: TImage;
     Imagenes: TImageList;
     LSCTop: TLabel;
-    Label2: TLabel;
-    Label3: TLabel;
-    Label4: TLabel;
     LabAbout: TLabel;
     LabelBigBalance: TLabel;
     Latido : TTimer;
@@ -438,8 +433,6 @@ type
     TabAddresses: TTabSheet;
     TabNodes: TTabSheet;
     TabWalletMain: TPageControl;
-    Panel1: TPanel;
-    Panel2: TPanel;
     Panel3: TPanel;
     Panel4: TPanel;
     Panel5: TPanel;
@@ -457,11 +450,7 @@ type
     Server: TIdTCPServer;
     {PoolServer : TIdTCPServer;}
     RPCServer : TIdHTTPServer;
-    SE_WO_RTOT: TSpinEdit;
-    SE_WO_MinPeers: TSpinEdit;
-    SE_WO_CTOT: TSpinEdit;
     SG_Monitor: TStringGrid;
-    SystrayIcon: TTrayIcon;
     tabOptions: TTabSheet;
     TabOpt_Wallet: TTabSheet;
     TabProcesses: TTabSheet;
@@ -501,7 +490,6 @@ type
     procedure FormCreate(sender: TObject);
     procedure FormDestroy(sender: TObject);
     procedure FormResize(sender: TObject);
-    procedure FormWindowStateChange(sender: TObject);
     procedure GridNodesResize(sender: TObject);
     procedure GVTsGridResize(sender: TObject);
     procedure LE_Rpc_PassEditingDone(sender: TObject);
@@ -533,7 +521,6 @@ type
     procedure IdTCPServer1Connect(AContext: TIdContext);
     procedure IdTCPServer1Disconnect(AContext: TIdContext);
     procedure IdTCPServer1Exception(AContext: TIdContext;AException: Exception);
-    Procedure DoubleClickSysTray(sender: TObject);
     Procedure ConnectCircleOnClick(sender: TObject);
     Procedure BDefAddrOnClick(sender: TObject);
     Procedure BCustomAddrOnClick(sender: TObject);
@@ -586,11 +573,6 @@ type
 
     // OPTIONS
       // WALLET
-    procedure CB_WO_AutoConnectChange(sender: TObject);
-    procedure CB_WO_ToTrayChange(sender: TObject);
-    procedure SE_WO_MinPeersChange(sender: TObject);
-    procedure SE_WO_CTOTChange(sender: TObject);
-    procedure SE_WO_RTOTChange(sender: TObject);
     procedure CB_WO_MultisendChange(sender: TObject);
       // RPC
     procedure CB_RPC_ONChange(sender: TObject);
@@ -638,9 +620,9 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ba8';
+  SubVersion = 'Ba9';
   OficialRelease = false;
-  VersionRequired = '0.4.1Ba1';
+  VersionRequired = '0.4.2Ba4';
   BuildDate = 'January 2024';
   {Developer addresses}
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -685,16 +667,11 @@ CONST
 var
   UserFontSize : integer = 8;
   UserRowHeigth : integer = 22;
-  ReadTimeOutTIme : integer = 1000;
-  ConnectTimeOutTime : integer = 1000;
   RPCPort : integer = 8078;
   RPCPass : string = 'default';
   ShowedOrders : integer = 100;
   MaxPeersAllow : integer = 50;
-  WO_AutoConnect   : boolean = false;
   WO_AutoServer    : boolean = false;
-  WO_ToTray        : boolean = false;
-  MinConexToWork   : integer = 1;
   WO_PosWarning    : int64 = 7;
   WO_MultiSend     : boolean = false;
   WO_Language      : string = 'en';
@@ -1021,7 +998,7 @@ sleep(1);
 continuar := true;
 if CanalCliente[FSlot].IOHandler.InputBufferIsEmpty then
    begin
-   CanalCliente[FSlot].IOHandler.CheckForDataOnSource(ReadTimeOutTIme);
+   CanalCliente[FSlot].IOHandler.CheckForDataOnSource(1000);
    if CanalCliente[FSlot].IOHandler.InputBufferIsEmpty then
       begin
       Continuar := false;
@@ -1034,7 +1011,7 @@ if Continuar then
       Conexiones[fSlot].IsBusy:=true;
       Conexiones[fSlot].lastping:=UTCTimeStr;
          TRY
-         CanalCliente[FSlot].ReadTimeout:=ReadTimeOutTIme;
+         CanalCliente[FSlot].ReadTimeout:=1000;
          CanalCliente[FSlot].IOHandler.MaxLineLength:=Maxint;
          LLine := CanalCliente[FSlot].IOHandler.ReadLn(IndyTextEncoding_UTF8);
          if CanalCliente[FSlot].IOHandler.ReadLnTimedout then
@@ -1249,7 +1226,7 @@ EXCEPT ON E:Exception do
    begin
    ErrMsg := E.Message;
    ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'*****CRITICAL**** Error inside Client thread: '+ErrMsg);
-   if AnsiContainsStr(Uppercase(ErrMsg),'SOCKET') then KillIt := true;
+   if AnsiContainsStr(Uppercase(ErrMsg),'SOCKET ERROR') then KillIt := true;
    end;
 END; {TRY}
 UNTIL ( (terminated) or (not CanalCliente[FSlot].Connected) or (KillIt) );
@@ -1476,12 +1453,29 @@ begin
 end;
 
 procedure TThreadKeepConnect.Execute;
+const
+  LastTrySlot : integer = 0;
+  LAstTryTime : int64 = 0;
+  Unables     : integer = 0;
+var
+  TryThis   : boolean = true;
+  Loops     : integer = 0;
+  OutGoing  : integer;
 Begin
   AddNewOpenThread('KeepConnect',UTCTime);
   while not terminated do
     begin
-
-    sleep(10);
+    TryThis := true;
+    if getTotalConexiones >= MaxConecciones then TryThis := false;
+    if GetTotalSyncedConnections>=3 then TryThis := false;
+    if trythis then
+      begin
+      Inc(LastTrySlot);
+      if LastTrySlot >=length(ListaNodos) then LastTrySlot := 0;
+      if ((GetSlotFromIP(ListaNodos[LastTrySlot].ip)=0) AND (GetFreeSlot()>0) and (ListaNodos[LastTrySlot].ip<>MN_Ip)) then
+        ConnectClient(ListaNodos[LastTrySlot].ip,ListaNodos[LastTrySlot].port);
+      end;
+    sleep(1500);
     end;
   CloseOpenThread('KeepConnect');
 End;
@@ -1745,7 +1739,6 @@ if WO_CloseStart then
    begin
    G_Launching := false;
    if WO_autoserver then KeepServerOn := true;
-   if WO_AutoConnect then ProcessLinesAdd('CONNECT');
    FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
    FirstShow := true;
    SetLength(ArrayCriptoOp,0);
@@ -1762,9 +1755,9 @@ if WO_CloseStart then
       SendOutMsgsThread := TThreadSendOutMsjs.Create(true);
       SendOutMsgsThread.FreeOnTerminate:=true;
       SendOutMsgsThread.Start;
-      //KeepConnectThread := TThreadKeepConnect.Create(true);
-      //KeepConnectThread.FreeOnTerminate:=true;
-      //KeepConnectThread.Start;
+      KeepConnectThread := TThreadKeepConnect.Create(true);
+      KeepConnectThread.FreeOnTerminate:=true;
+      KeepConnectThread.Start;
       IndexerThread := TThreadIndexer.Create(true);
       IndexerThread.FreeOnTerminate:=true;
       IndexerThread.Start;
@@ -1787,7 +1780,6 @@ Procedure CompleteInicio();
 Begin
 G_Launching := false;
 if WO_autoserver then KeepServerOn := true;
-if WO_AutoConnect then ProcessLinesAdd('CONNECT');
 FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
 FirstShow := true;
 SetLength(ArrayCriptoOp,0);
@@ -1822,11 +1814,6 @@ End;
 Procedure TForm1.LoadOptionsToPanel();
 Begin
 // WALLET
-CB_WO_AutoConnect.Checked := WO_AutoConnect;
-CB_WO_ToTray.Checked := WO_ToTray;
-SE_WO_MinPeers.Value := MinConexToWork;
-SE_WO_CTOT.Value:= ConnectTimeOutTime;
-SE_WO_RTOT.Value:= ReadTimeOutTIme;
 CB_WO_Multisend.Checked:=WO_Multisend;
 CB_WO_Autoupdate.Checked := WO_AutoUpdate;
 CB_FullNode.Checked := WO_FullNode;
@@ -1875,17 +1862,6 @@ begin
 formslots.Visible:=true;
 end;
 
-
-// Al minimizar verifica si hay que llevarlo a barra de tareas
-procedure TForm1.FormWindowStateChange(sender: TObject);
-begin
-if WO_ToTray then
-   if Form1.WindowState = wsMinimized then
-      begin
-      SysTrayIcon.visible:=true;
-      form1.hide;
-      end;
-end;
 
 // Chequea las teclas presionadas en la linea de comandos
 Procedure TForm1.ConsoleLineKeyup(sender: TObject; var Key: Word; Shift: TShiftState);
@@ -2033,12 +2009,7 @@ EndPerformance('ParseProtocolLines');
 BeginPerformance('VerifyConnectionStatus');
 VerifyConnectionStatus();
 EndPerformance('VerifyConnectionStatus');
-if ( (KeepServerOn) and (not Form1.Server.Active) and (LastTryServerOn+5<UTCTime)
-      and (MyConStatus = 3) ) then
-   ProcessLinesAdd('serveron');
 if G_CloseRequested then CerrarPrograma();
-if form1.SystrayIcon.Visible then
-   form1.SystrayIcon.Hint:=Coinname+' Ver. '+ProgramVersion+SubVersion+SLINEBREAK+LabelBigBalance.Caption;
 if FormSlots.Visible then UpdateSlotsGrid();
 Inc(ConnectedRotor); if ConnectedRotor>6 then ConnectedRotor := 0;
 UpdateStatusBar;
@@ -2244,13 +2215,6 @@ Form1.Latido.OnTimer:= @form1.LatidoEjecutar;
 Form1.InfoTimer:= TTimer.Create(Form1);
 Form1.InfoTimer.Enabled:=false;Form1.InfoTimer.Interval:=50;
 Form1.InfoTimer.OnTimer:= @form1.InfoTimerEnd;
-
-form1.SystrayIcon := TTrayIcon.Create(form1);
-form1.SystrayIcon.BalloonTimeout:=3000;
-form1.SystrayIcon.BalloonTitle:=CoinName+' Wallet';
-form1.SystrayIcon.Hint:=Coinname+' Ver. '+ProgramVersion+SubVersion;
-form1.SysTrayIcon.OnDblClick:=@form1.DoubleClickSysTray;
-form1.imagenes.GetIcon(48,form1.SystrayIcon.icon);
 
 Form1.Server := TIdTCPServer.Create(Form1);
 Form1.Server.DefaultPort:=DefaultServerPort;
@@ -2814,19 +2778,6 @@ CerrarSlot(GetSlotFromContext(AContext));
 ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Server Excepcion: '+AException.Message);    //Server Excepcion:
 End;
 
-// DOUBLE CLICK TRAY ICON TO RESTORE
-Procedure TForm1.DoubleClickSysTray(sender: TObject);
-Begin
-SysTrayIcon.visible:=false;
-Form1.WindowState:=wsNormal;
-Form1.Show;
-if FormState_Status = 0 then
-   begin
-   form1.Top:=FormState_Top;
-   form1.Left:=FormState_Left;
-   end;
-End;
-
 // Click en conectar
 Procedure TForm1.ConnectCircleOnClick(sender: TObject);
 Begin
@@ -3227,53 +3178,6 @@ End;
 //******************************************************************************
 
 // WALLET
-
-procedure TForm1.CB_WO_AutoConnectChange(sender: TObject);
-begin
-if not G_Launching then
-  begin
-   if CB_WO_AutoConnect.Checked then WO_AutoConnect := true
-   else WO_AutoConnect := false ;
-   S_AdvOpt := true;
-   end;
-end;
-
-procedure TForm1.CB_WO_ToTrayChange(sender: TObject);
-begin
-if not G_Launching then
-   begin
-   if CB_WO_ToTray.Checked then WO_ToTray := true
-   else WO_ToTray := false ;
-   S_AdvOpt := true;
-   end;
-end;
-
-procedure TForm1.SE_WO_MinPeersChange(sender: TObject);
-begin
-if not G_Launching then
-   begin
-   MinConexToWork := SE_WO_MinPeers.Value;
-   S_AdvOpt := true;
-   end;
-end;
-
-procedure TForm1.SE_WO_CTOTChange(sender: TObject);
-begin
-if not G_Launching then
-   begin
-   ConnectTimeOutTime := SE_WO_CTOT.Value;
-   S_AdvOpt := true;
-   end;
-end;
-
-procedure TForm1.SE_WO_RTOTChange(sender: TObject);
-begin
-if not G_Launching then
-   begin
-   ReadTimeOutTIme := SE_WO_RTOT.Value;
-   S_AdvOpt := true;
-   end;
-end;
 
 procedure TForm1.CB_WO_AutoupdateChange(sender: TObject);
 Begin
@@ -3782,7 +3686,6 @@ form1.OffersGrid.ColWidths[1]:= thispercent(15,GridWidth);
 form1.OffersGrid.ColWidths[2]:= thispercent(15,GridWidth);
 form1.OffersGrid.ColWidths[3]:= thispercent(55,GridWidth,true);
 end;
-
 
 
 END. // END PROGRAM

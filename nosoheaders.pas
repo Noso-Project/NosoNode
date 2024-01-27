@@ -76,7 +76,7 @@ Begin
   assignfile(FileResumen,ResumenFilename);
   EnterCriticalSection(CS_HeadersFile);
   TRY
-    reset(FileResumen,1);
+    reset(FileResumen);
     Opened := true;
     seek(fileResumen,filesize(fileResumen));
     write(fileResumen,NewData);
@@ -101,7 +101,7 @@ Begin
   assignfile(FileResumen,ResumenFilename);
   EnterCriticalSection(CS_HeadersFile);
   TRY
-    reset(FileResumen,1);
+    reset(FileResumen);
     Opened := true;
     seek(fileResumen,filesize(fileResumen)-1);
     truncate(fileResumen);
