@@ -93,7 +93,7 @@ msgid "Block hash"
 msgstr ""
 
 #: tform1.cbrunnodealone.caption
-msgid "Stop memos outputs (BETA)"
+msgid "Stop memos outputs (recommended for unattended nodes) "
 msgstr ""
 
 #: tform1.cbrunnodealone.hint
@@ -127,6 +127,10 @@ msgstr ""
 
 #: tform1.cb_wo_autoupdate.caption
 msgid "auto-update (recommended for unattended nodes) "
+msgstr ""
+
+#: tform1.cb_wo_hideempty.caption
+msgid "Hide empty addresses"
 msgstr ""
 
 #: tform1.cb_wo_multisend.caption
@@ -923,7 +927,8 @@ msgid "Wallet restart needed"
 msgstr ""
 
 #: translation.rs0514
-msgid "Address"
+#, object-pascal-format
+msgid "Address (%d)"
 msgstr ""
 
 #: translation.rs0515

@@ -375,6 +375,8 @@ BeginPerformance('CreateADV');
    writeln(FileAdvOptions,'');
 
    writeln(FileAdvOptions,'---Wallet related.---');
+   writeln(FileAdvOptions,'//Hide empty addresses');
+   writeln(FileAdvOptions,'HideEmpty '+BoolToStr(WO_HideEmpty,true));
    writeln(FileAdvOptions,'//Use all addresses to send funds');
    writeln(FileAdvOptions,'MultiSend '+BoolToStr(WO_MultiSend,true));
    writeln(FileAdvOptions,'//Po files language code');
@@ -461,6 +463,7 @@ Begin
       if parameter(linea,0) ='MaxPeers' then MaxPeersAllow:=StrToIntDef(Parameter(linea,1),MaxPeersAllow);
       if parameter(linea,0) ='PosWarning' then WO_PosWarning:=StrToIntDef(Parameter(linea,1),WO_PosWarning);
       if parameter(linea,0) ='MultiSend' then WO_MultiSend:=StrToBool(Parameter(linea,1));
+      if parameter(linea,0) ='HideEmpty' then WO_HideEmpty:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='RPCFilter' then RPCFilter:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='RPCWhiteList' then RPCWhiteList:=Parameter(linea,1);
       if parameter(linea,0) ='RPCBanned' then RPCBanned:=Parameter(linea,1);

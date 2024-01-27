@@ -114,7 +114,7 @@ msgid "Block hash"
 msgstr ""
 
 #: tform1.cbrunnodealone.caption
-msgid "Stop memos outputs (BETA)"
+msgid "Stop memos outputs (recommended for unattended nodes) "
 msgstr ""
 
 #: tform1.cbrunnodealone.hint
@@ -155,6 +155,10 @@ msgstr "Activar servidor JSON-RPC"
 msgctxt "tform1.cb_wo_autoupdate.caption"
 msgid "auto-update (recommended for unattended nodes) "
 msgstr "Instalar automaticamente actualizaciones oficiales"
+
+#: tform1.cb_wo_hideempty.caption
+msgid "Hide empty addresses"
+msgstr ""
 
 #: tform1.cb_wo_multisend.caption
 msgid "Send coins only from default address"
@@ -984,7 +988,9 @@ msgid "Wallet restart needed"
 msgstr "Se requiere reiniciar"
 
 #: translation.rs0514
-msgid "Address"
+#, object-pascal-format, fuzzy, badformat
+#| msgid "Address"
+msgid "Address (%d)"
 msgstr "Direccion"
 
 #: translation.rs0515

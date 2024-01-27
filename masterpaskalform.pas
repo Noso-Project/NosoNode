@@ -295,6 +295,7 @@ type
     CBSummaryhash: TCheckBox;
     CBAutoIP: TCheckBox;
     CBRunNodeAlone: TCheckBox;
+    CB_WO_HideEmpty: TCheckBox;
     ComboBoxLang: TComboBox;
     Edit2: TEdit;
     Label19: TLabel;
@@ -433,10 +434,6 @@ type
     TabAddresses: TTabSheet;
     TabNodes: TTabSheet;
     TabWalletMain: TPageControl;
-    Panel3: TPanel;
-    Panel4: TPanel;
-    Panel5: TPanel;
-    Panel6: TPanel;
     TopPanel: TPanel;
     StatusPanel: TPanel;
     RestartTimer : Ttimer;
@@ -479,6 +476,7 @@ type
     procedure CB_WO_AutoupdateChange(sender: TObject);
     procedure CBAutoIPClick(sender: TObject);
     procedure CB_FullNodeChange(sender: TObject);
+    procedure CB_WO_HideEmptyChange(Sender: TObject);
     procedure ComboBoxLangChange(sender: TObject);
     procedure ComboBoxLangDrawItem(Control: TWinControl; Index: Integer;
       ARect: TRect; State: TOwnerDrawState);
@@ -620,9 +618,9 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ba9';
+  SubVersion = 'Ca1';
   OficialRelease = false;
-  VersionRequired = '0.4.2Ba4';
+  VersionRequired = '0.4.2Ba7';
   BuildDate = 'January 2024';
   {Developer addresses}
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
@@ -674,6 +672,7 @@ var
   WO_AutoServer    : boolean = false;
   WO_PosWarning    : int64 = 7;
   WO_MultiSend     : boolean = false;
+  WO_HideEmpty     : boolean = false;
   WO_Language      : string = 'en';
     WO_LastPoUpdate: string = ProgramVersion+Subversion;
   WO_CloseStart    : boolean = true;
@@ -1814,6 +1813,7 @@ End;
 Procedure TForm1.LoadOptionsToPanel();
 Begin
 // WALLET
+CB_WO_HideEmpty.Checked:=WO_HideEmpty;
 CB_WO_Multisend.Checked:=WO_Multisend;
 CB_WO_Autoupdate.Checked := WO_AutoUpdate;
 CB_FullNode.Checked := WO_FullNode;
@@ -3216,6 +3216,17 @@ if not G_Launching then
    end;
 end;
 
+procedure TForm1.CB_WO_HideEmptyChange(Sender: TObject);
+begin
+if not G_Launching then
+   begin
+   if CB_WO_HideEmpty.Checked then WO_HideEmpty := true
+   else WO_HideEmpty := false ;
+   S_AdvOpt := true;
+   U_DirPanel:= true;
+   end;
+end;
+
 // RPC
 
 procedure TForm1.CB_RPC_ONChange(sender: TObject);
@@ -3686,6 +3697,7 @@ form1.OffersGrid.ColWidths[1]:= thispercent(15,GridWidth);
 form1.OffersGrid.ColWidths[2]:= thispercent(15,GridWidth);
 form1.OffersGrid.ColWidths[3]:= thispercent(55,GridWidth,true);
 end;
+
 
 
 END. // END PROGRAM

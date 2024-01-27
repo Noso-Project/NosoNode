@@ -233,7 +233,7 @@ Form1.SGridSC.Cells[0,2]:=rs0503;  //'reference'
 
 //Direccionespanel
 form1.Direccionespanel.RowCount   := LenWallArr+1;
-form1.Direccionespanel.Cells[0,0] := rs0514;  //'Address'
+form1.Direccionespanel.Cells[0,0] := format(rs0514,[LEnWallArr]);  //'Address'
 form1.Direccionespanel.Cells[1,0] := rs0515;  //'Balance'
 
 for contador := 0 to LenWallArr-1 do
@@ -442,15 +442,19 @@ if ((U_MNsGrid) or (UTCTime>U_MNsGrid_Last+59)) then
 if U_DirPanel then
    begin
    BeginPerformance('UpdateDirPanel');
-   form1.Direccionespanel.RowCount:=LenWallArr+1;
+   //form1.Direccionespanel.RowCount:=LenWallArr+1;
+   form1.Direccionespanel.RowCount:=1;
    for contador := 0 to LenWallArr-1 do
       begin
+      if ( (GetAddressBalanceIndexed(GetWallArrIndex(contador).hash) = 0) and (WO_HideEmpty) ) then continue;
+      form1.Direccionespanel.RowCount:=form1.Direccionespanel.RowCount+1;
       if GetWallArrIndex(contador).Custom<>'' then
-        form1.Direccionespanel.Cells[0,contador+1] := GetWallArrIndex(contador).Custom
+         form1.Direccionespanel.Cells[0,contador+1] := GetWallArrIndex(contador).Custom
       else form1.Direccionespanel.Cells[0,contador+1] := GetWallArrIndex(contador).Hash;
       form1.Direccionespanel.Cells[1,contador+1] := Int2Curr(GetAddressBalanceIndexed(GetWallArrIndex(contador).hash)-GetWallArrIndex(contador).pending);
       end;
    form1.LabelBigBalance.Caption := Int2Curr(GetWalletBalance)+' '+CoinSimbol;
+   form1.Direccionespanel.Cells[0,0] := format(rs0514,[LEnWallArr]);  //'Address'
    U_DirPanel := false;
    EndPerformance('UpdateDirPanel');
    end;

@@ -116,7 +116,7 @@ resourcestring
   rs0511 = 'Pending';
   rs0512 = 'Invalid language: %s';
   rs0513 = 'Wallet restart needed';
-  rs0514 = 'Address';
+  rs0514 = 'Address (%d)';
   rs0515 = 'Balance';
   rs0516 = 'Masternodes: (%d) %s';
   rs0517 = '(%d)  %d/%s';

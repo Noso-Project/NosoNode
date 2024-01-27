@@ -113,7 +113,7 @@ msgid "Block hash"
 msgstr "Hash blok"
 
 #: tform1.cbrunnodealone.caption
-msgid "Stop memos outputs (BETA)"
+msgid "Stop memos outputs (recommended for unattended nodes) "
 msgstr ""
 
 #: tform1.cbrunnodealone.hint
@@ -154,6 +154,10 @@ msgstr "Aktifkan server JSON-RPC"
 msgctxt "tform1.cb_wo_autoupdate.caption"
 msgid "auto-update (recommended for unattended nodes) "
 msgstr "Pasang rilis resmi baru secara otomatis"
+
+#: tform1.cb_wo_hideempty.caption
+msgid "Hide empty addresses"
+msgstr ""
 
 #: tform1.cb_wo_multisend.caption
 msgid "Send coins only from default address"
@@ -978,7 +982,9 @@ msgid "Wallet restart needed"
 msgstr "Diperlukan mulai ulang dompet"
 
 #: translation.rs0514
-msgid "Address"
+#, object-pascal-format, fuzzy, badformat
+#| msgid "Address"
+msgid "Address (%d)"
 msgstr "Alamat"
 
 #: translation.rs0515
