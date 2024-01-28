@@ -30,7 +30,7 @@ Procedure ShowWallet();
 Procedure ImportarWallet(LineText:string);
 Procedure ExportarWallet(LineText:string);
 Procedure ShowBlchHead(number:integer);
-Procedure SetDefaultAddress(linetext:string);
+Function SetDefaultAddress(linetext:string):boolean;
 Procedure ParseShowBlockInfo(LineText:string);
 Procedure ShowBlockInfo(numberblock:integer);
 Procedure CustomizeAddress(linetext:string);
@@ -548,22 +548,28 @@ If not ProperlyClosed then closefile(FileResumen);
 End;
 
 // Cambiar la primera direccion de la wallet
-Procedure SetDefaultAddress(linetext:string);
+Function SetDefaultAddress(linetext:string):boolean;
 var
-  Numero: Integer;
+  Address : string;
+  Index   : integer;
   OldData, NewData: walletData;
 Begin
-Numero := StrToIntDef(Parameter(linetext,1),-1);
-if ((Numero < 0) or (numero > LenWallArr-1)) then
-   OutText('Invalid address number.',false,2)  //'Invalid address number.'
-else if numero = 0 then
-   OutText('Address 0 is already the default.',false,2) //'Address 0 is already the default.'
-else
-   begin
-   ChangeWallArrPos(0,Numero);
-   S_Wallet := true;
-   U_DirPanel := true;
-   end;
+  result := false;
+  Address := Parameter(linetext,1);
+  index := WallAddIndex(Address);
+  if ((index < 0) or (index > LenWallArr-1)) then
+    OutText('Invalid address.',false,2)  //'Invalid address number.'
+  else if index = 0 then
+    OutText('Address is already the default.',false,2) //'Address 0 is already the default.'
+  else
+    begin
+    if ChangeWallArrPos(0,index) then
+      begin
+      S_Wallet := true;
+      U_DirPanel := true;
+      result := true;
+      end;
+    end;
 End;
 
 Procedure ParseShowBlockInfo(LineText:string);
@@ -767,7 +773,7 @@ if procesar then
    montoToShow := Monto;
    comisionToShow := Comision;
    Restante := monto+comision;
-   if WO_Multisend then CoinsAvailable := GetAddressBalanceIndexed(GetWallArrIndex(form1.DireccionesPAnel.Row-1).Hash)-GetAddressPendingPays(GetWallArrIndex(form1.DireccionesPAnel.row-1).Hash)
+   if WO_Multisend then CoinsAvailable := GetAddressBalanceIndexed(GetWallArrIndex(0).Hash)-GetAddressPendingPays(GetWallArrIndex(0).Hash)
    else CoinsAvailable := GetWalletBalance;
    if Restante > CoinsAvailable then
       begin

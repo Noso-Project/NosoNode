@@ -39,6 +39,8 @@ function RPC_Blockmns(NosoPParams:string):string;
 Function RPC_WalletBalance(NosoPParams:string):string;
 function RPC_NewAddress(NosoPParams:string):string;
 Function RPC_ValidateAddress(NosoPParams:string):string;
+Function RPC_SetDefault(NosoPParams:string):string;
+Function RPC_GVTInfo(NosoPParams:string):string;
 function RPC_SendFunds(NosoPParams:string):string;
 
 
@@ -322,6 +324,13 @@ else if objecttype = 'peers' then
    resultado.Add('peers',ordersarray);
    end
 
+else if objecttype = 'gvtinfo' then
+   begin
+   resultado.Add('available',StrToIntDef(parameter(mystring,1),0));
+   resultado.Add('buy',StrToInt64Def(parameter(mystring,2),0));
+   resultado.Add('sell',StrToInt64Def(parameter(mystring,3),0));
+   end
+
 else if objecttype = 'mainnetinfo' then
    begin
    resultado.Add('lastblock',StrToIntDef(parameter(mystring,1),0));
@@ -401,6 +410,12 @@ else if objecttype = 'islocaladdress' then
    begin
    resultado.Add('result',StrToBool(parameter(mystring,1)))
    end
+
+else if objecttype = 'setdefault' then
+   begin
+   resultado.Add('result',StrToBool(parameter(mystring,1)))
+   end
+
 else if objecttype = 'walletbalance' then
    begin
    resultado.Add('balance',StrToInt64(parameter(mystring,1)))
@@ -454,6 +469,8 @@ else
       else if method = 'getwalletbalance' then result := GetJSONResponse(RPC_WalletBalance(NosoPParams),jsonid)
       else if method = 'getnewaddress' then result := GetJSONResponse(RPC_NewAddress(NosoPParams),jsonid)
       else if method = 'islocaladdress' then result := GetJSONResponse(RPC_ValidateAddress(NosoPParams),jsonid)
+      else if method = 'setdefault' then result := GetJSONResponse(RPC_SetDefault(NosoPParams),jsonid)
+      else if method = 'getgvtinfo' then result := GetJSONResponse(RPC_GVTInfo(NosoPParams),jsonid)
       else if method = 'sendfunds' then result := GetJSONResponse(RPC_SendFunds(NosoPParams),jsonid)
       else result := GetJSONErrorCode(402,-1);
       Except on E:Exception do
@@ -806,6 +823,23 @@ Begin
   If VerifyAddressOnDisk(Parameter(NosoPParams,0)) then
     result := 'islocaladdress'#127'True'
   else result := 'islocaladdress'#127'False';
+End;
+
+Function RPC_SetDefault(NosoPParams:string):string;
+var
+  address : string;
+Begin
+  address := Parameter(NosoPParams,0);
+  if SetDefaultAddress('SETDEFAULT '+Address) then result := 'setdefault'#127'True'
+  else result  := 'setdefault'#127'False';
+End;
+
+Function RPC_GVTInfo(NosoPParams:string):string;
+var
+  available:int64;
+Begin
+  available := CountAvailableGVTs;
+  result := 'gvtinfo'#127+IntToStr(available)+#127+IntToStr(GetGVTPrice(Available))+#127+IntToStr(GetGVTPrice(Available,True));
 End;
 
 function RPC_SendFunds(NosoPParams:string):string;

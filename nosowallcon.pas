@@ -110,6 +110,7 @@ Function ChangeWallArrPos(PosA,PosB:integer):boolean;
 var
   oldData,NewData : WalletData;
 Begin
+  Result := false;
   if posA>LenWallArr-1 then exit;
   if posB>LenWallArr-1 then exit;
   if posA=posB then Exit;
@@ -119,6 +120,7 @@ Begin
   WalletArray[posA] := NewData;
   WalletArray[posB] := OldData;
   LeaveCriticalSection(CS_WalletArray);
+  Result := true;
 End;
 
 Procedure ClearWallPendings();

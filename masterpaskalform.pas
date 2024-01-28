@@ -618,7 +618,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ca1';
+  SubVersion = 'Ca2';
   OficialRelease = false;
   VersionRequired = '0.4.2Ba7';
   BuildDate = 'January 2024';
@@ -2793,7 +2793,7 @@ End;
 Procedure TForm1.BDefAddrOnClick(sender: TObject);
 Begin
 if DireccionesPanel.Row > 0 then
-  ProcessLinesAdd('SETDEFAULT '+IntToStr(DireccionesPanel.Row-1));
+  ProcessLinesAdd('SETDEFAULT '+DireccionesPanel.Cells[0,DireccionesPanel.Row]);
 End;
 
 // Mostrar el panel de personalizacion
@@ -2896,10 +2896,15 @@ End;
 // Pegar el monto maximo en su edit
 Procedure TForm1.SBSCMaxOnClick(sender:TObject);
 Begin
+  tolog('console','address: '+GetWallArrIndex(0).Balance.ToString());
   if not WO_MultiSend then
+    begin
     EditSCMont.Text:=Int2curr(GetMaximunToSend(GetWalletBalance))
+    end
   else
-    EditSCMont.Text:=Int2Curr(GetMaximunToSend(GetWallArrIndex(DireccionesPAnel.Row-1).Balance))
+    begin
+    EditSCMont.Text:=Int2Curr(GetMaximunToSend(GetAddressBalanceIndexed(GetWallArrIndex(0).hash)))
+    end;
 End;
 
 // verifica el destino que marca para enviar coins

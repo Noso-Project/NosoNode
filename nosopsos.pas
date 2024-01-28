@@ -229,7 +229,6 @@ Begin
       MyStream.SetString(PSOsArray[counter].Members);
       MyStream.SetString(PSOsArray[counter].Params);
       end;
-    LeaveCriticalSection(CS_PSOsArray);
     EXCEPT ON E:EXCEPTION DO
       ToDeepDeb('nosopsos,SavePSOFileToDisk,'+e.Message);
     END;
