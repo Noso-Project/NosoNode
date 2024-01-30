@@ -2664,20 +2664,8 @@ object Form1: TForm1
       ParentColor = False
       ParentFont = False
     end
-    object ConnectButton: TSpeedButton
-      Left = 4
-      Height = 26
-      Top = 8
-      Width = 26
-      Images = Imagenes
-      ImageIndex = 2
-      OnClick = ConnectCircleOnClick
-      OnMouseEnter = CheckForHint
-      ShowHint = True
-      ParentShowHint = False
-    end
     object ImageInc: TImage
-      Left = 40
+      Left = 8
       Height = 17
       Top = 8
       Width = 17
@@ -2688,7 +2676,7 @@ object Form1: TForm1
       Visible = False
     end
     object ImageOut: TImage
-      Left = 56
+      Left = 24
       Height = 17
       Top = 17
       Width = 17
@@ -3457,6 +3445,7 @@ object Form1: TForm1
       object MenuItem3: TMenuItem
         Caption = 'Connect'
         ImageIndex = 29
+        Visible = False
         OnClick = MMConnect
       end
       object MenuItem4: TMenuItem

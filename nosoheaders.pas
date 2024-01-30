@@ -21,6 +21,7 @@ Type
     SumHash : String[32];
   end;
 
+Function SetHeadersFileName(Filename:String):Boolean;
 Function CreateHeadersFile():boolean;
 Function AddRecordToHeaders(BlockNumber:int64;BlockHash,SumHash:String):boolean;
 Function RemoveHeadersLastRecord():Boolean;
@@ -30,8 +31,7 @@ Function GetHeadersAsMemStream(out LMs:TMemoryStream):int64;
 Function SaveStreamAsHeaders(Const LStream:TMemoryStream):Boolean;
 Function LastHeadersString(FromBlock:integer):String;
 
-// For tests
-Function FixHeaders(LastBlock:integer = -1):integer;
+
 
 var
   FileResumen     : file of ResumenData;
@@ -41,6 +41,13 @@ var
 IMPLEMENTATION
 
 {$REGION Headers file access}
+
+// Sets the headers file path and name
+Function SetHeadersFileName(Filename:String):Boolean;
+Begin
+  ResumenFilename := Filename;
+  assignfile(FileResumen,ResumenFilename);
+End;
 
 // Creates a headers file. If it already exists, rewrite a new empty one.
 Function CreateHeadersFile():boolean;
@@ -73,7 +80,6 @@ Begin
   NewData.block     := BlockNumber;
   NewData.blockhash := BlockHash;
   NewData.SumHash   := SumHash;
-  assignfile(FileResumen,ResumenFilename);
   EnterCriticalSection(CS_HeadersFile);
   TRY
     reset(FileResumen);
@@ -98,7 +104,6 @@ var
   PorperlyClosed : boolean = false;
 Begin
   Result := true;
-  assignfile(FileResumen,ResumenFilename);
   EnterCriticalSection(CS_HeadersFile);
   TRY
     reset(FileResumen);
@@ -118,19 +123,24 @@ Begin
 End;
 
 Function GetHeadersHeigth():integer;
+var
+  Opened         : boolean = false;
+  PorperlyClosed : boolean = false;
 Begin
   Result := -1;
-  assignfile(FileResumen,ResumenFilename);
   EnterCriticalSection(CS_HeadersFile);
   TRY
     reset(FileResumen);
+    Opened := true;
     Result := filesize(fileResumen)-1;
     closefile(FileResumen);
+    PorperlyClosed := true;
   EXCEPT on E:Exception do
     begin
     ToDeepDeb('NosoHeaders,GetHeadersHeigth,'+E.Message);
     end;
   END;
+  if ( (opened) and (not PorperlyClosed) ) then closefile(FileResumen);
   LeaveCriticalSection(CS_HeadersFile);
 End;
 
@@ -138,13 +148,15 @@ End;
 Function GetHeadersLastBlock():Integer;
 var
   ThisData : ResumenData;
+  Opened         : boolean = false;
+  PorperlyClosed : boolean = false;
 Begin
   Result := 0;
   ThisData := Default(ResumenData);
-  assignfile(FileResumen,ResumenFilename);
   EnterCriticalSection(CS_HeadersFile);
   TRY
     reset(FileResumen);
+    Opened := true;
     if filesize(FileResumen)>0 then
       begin
       seek(fileResumen,filesize(FileResumen)-1);
@@ -152,11 +164,13 @@ Begin
       result := ThisData.block;
       end;
     CloseFile(FileResumen);
+    PorperlyClosed := true;
   EXCEPT on E:Exception do
     begin
     ToDeepDeb('NosoHeaders,GetHeadersLastBlock,'+E.Message);
     end;
   END;
+  if ( (opened) and (not PorperlyClosed) ) then closefile(FileResumen);
   LeaveCriticalSection(CS_HeadersFile);
 End;
 
@@ -197,13 +211,15 @@ End;
 Function LastHeadersString(FromBlock:integer):String;
 var
   ThisData : ResumenData;
+  Opened         : boolean = false;
+  PorperlyClosed : boolean = false;
 Begin
   result := '';
   if FromBlock<GetHeadersLastBlock-1008 then exit;
-  assignfile(FileResumen,ResumenFilename);
   EnterCriticalSection(CS_HeadersFile);
   TRY
     reset(FileResumen);
+    Opened := true;
     ThisData := Default(ResumenData);
     seek(fileResumen,FromBlock-100);
     While not Eof(fileResumen) do
@@ -212,57 +228,22 @@ Begin
       Result := Result+ThisData.block.ToString+':'+ThisData.blockhash+':'+ThisData.SumHash+' ';
       end;
     closefile(FileResumen);
+    PorperlyClosed := true;
   EXCEPT on E:Exception do
     begin
     ToDeepDeb('NosoHeaders,LastHeadersString,'+E.Message);
     end;
   END;
+  if ( (opened) and (not PorperlyClosed) ) then closefile(FileResumen);
   LeaveCriticalSection(CS_HeadersFile);
   Result := Trim(Result);
-End;
-
-// Only a test function; should be removed
-Function FixHeaders(LastBlock:integer = -1):integer;
-var
-  TempArray : array of ResumenData;
-  Counter   : integer = 0;
-  ThisData  : ResumenData;
-Begin
-  result := 0;
-  assignfile(FileResumen,ResumenFilename);
-  SetLength(TempArray,0);
-  reset(FileResumen);
-  if LastBlock = -1 then SetLength(TempArray,Filesize(FileResumen))
-  else SetLength(TempArray,LastBlock+1);
-  While not eof(FileResumen) do
-    begin
-    seek(FileResumen, Counter);
-    Read(FileResumen, ThisData);
-    if ( (ThisData.block>0) and (ThisData.Block <length(TempArray)) ) then
-      begin
-      TempArray[ThisData.block] := ThisData;
-      end;
-    Inc(counter);
-    end;
-  for counter := 0 to length(TempArray)-1 do
-    begin
-    if TempArray[counter].block <> counter then
-      begin
-      TempArray[counter].block := counter;
-      TempArray[counter].blockhash:='MISS';
-      TempArray[counter].SumHash:='MISS';
-      Inc(Result);
-      end;
-    seek(FileResumen,counter);
-    write(fileresumen,TempArray[counter]);
-    end;
-  closefile(FileResumen);
 End;
 
 {$ENDREGION}
 
 INITIALIZATION
 InitCriticalSection(CS_HeadersFile);
+assignfile(FileResumen,ResumenFilename);
 
 FINALIZATION
 DoneCriticalSection(CS_HeadersFile);

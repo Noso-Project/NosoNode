@@ -1,1 +1,1 @@
-0.4.2Ca2 0.4.2Ca2 {win64hash} {linux64hash} {signature}
+0.4.2Ca3 0.4.2Ca3 x {LastOfficial} {LastBeta} {TestNet}

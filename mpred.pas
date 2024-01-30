@@ -615,20 +615,6 @@ if NumeroConexiones = 0 then  // Desconectado
    ClearMNsChecks();
    ClearMNsList();
    MyConStatus := 0;
-   if Form1.Server.Active then
-      begin
-      if form1.ConnectButton.Caption='' then
-        begin
-        form1.ConnectButton.Caption:=' ';
-        Form1.imagenes.GetBitmap(1,form1.ConnectButton.Glyph);
-        end
-      else
-         begin
-         Form1.imagenes.GetBitmap(2,form1.ConnectButton.Glyph);
-         form1.ConnectButton.Caption:='';
-         end;
-      end
-   else Form1.imagenes.GetBitmap(2,form1.ConnectButton.Glyph);
    if STATUS_Connected then
       begin
       STATUS_Connected := false;
@@ -640,7 +626,6 @@ if NumeroConexiones = 0 then  // Desconectado
       NetPendingTrxs.Value:='';
       U_Datapanel:= true;
       ClearAllPending; //THREADSAFE
-      Form1.imagenes.GetBitmap(2,form1.ConnectButton.Glyph);
       end;
    // Resetear todos los valores
    end;
@@ -649,7 +634,6 @@ if ((NumeroConexiones>0) and (NumeroConexiones<1) and (MyConStatus = 0)) then //
    MyConStatus:=1;
    G_LastPing := UTCTime;
    ToLog('console','Connecting...'); //Connecting...
-   Form1.imagenes.GetBitmap(2,form1.ConnectButton.Glyph);
    end;
 if MyConStatus > 0 then
    begin
@@ -689,7 +673,6 @@ if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = Getco
    PTC_SendLine(ValidSlot,ProtocolLine(11));  // Get MNs
    LastTimeMNsRequested := UTCTime;
    OutgoingMsjsAdd(ProtocolLine(ping));
-   Form1.imagenes.GetBitmap(0,form1.ConnectButton.Glyph);
    end;
 if MyConStatus = 3 then
    begin

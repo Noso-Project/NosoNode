@@ -449,9 +449,9 @@ if U_DirPanel then
       if ( (GetAddressBalanceIndexed(GetWallArrIndex(contador).hash) = 0) and (WO_HideEmpty) ) then continue;
       form1.Direccionespanel.RowCount:=form1.Direccionespanel.RowCount+1;
       if GetWallArrIndex(contador).Custom<>'' then
-         form1.Direccionespanel.Cells[0,contador+1] := GetWallArrIndex(contador).Custom
-      else form1.Direccionespanel.Cells[0,contador+1] := GetWallArrIndex(contador).Hash;
-      form1.Direccionespanel.Cells[1,contador+1] := Int2Curr(GetAddressBalanceIndexed(GetWallArrIndex(contador).hash)-GetWallArrIndex(contador).pending);
+         form1.Direccionespanel.Cells[0,form1.Direccionespanel.RowCount-1] := GetWallArrIndex(contador).Custom
+      else form1.Direccionespanel.Cells[0,form1.Direccionespanel.RowCount-1] := GetWallArrIndex(contador).Hash;
+      form1.Direccionespanel.Cells[1,form1.Direccionespanel.RowCount-1] := Int2Curr(GetAddressBalanceIndexed(GetWallArrIndex(contador).hash)-GetWallArrIndex(contador).pending);
       end;
    form1.LabelBigBalance.Caption := Int2Curr(GetWalletBalance)+' '+CoinSimbol;
    form1.Direccionespanel.Cells[0,0] := format(rs0514,[LEnWallArr]);  //'Address'
@@ -478,14 +478,6 @@ Procedure Processhint(sender:TObject);
 var
   texto : string = '';
 Begin
-if sender=form1.ConnectButton then
-   begin
-   if MyConStatus = 0 then texto:='Disconnected.'; //'Disconnected'
-   if MyConStatus = 1 then texto:='Connecting...'; //'Connecting...'
-   if MyConStatus = 2 then texto:='Connected.'; //'Connected'
-   if MyConStatus = 3 then texto:='Updated with '+IntToStr(GetTotalConexiones)+' peers'; //'Updated with '+
-   form1.ConnectButton.Hint:=texto;
-   end;
 if sender=form1.ImageInc then
    begin
    form1.ImageInc.Hint:='Incoming: '+Int2curr(MontoIncoming);

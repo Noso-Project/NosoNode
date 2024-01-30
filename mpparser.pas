@@ -275,8 +275,6 @@ else if UpperCase(Command) = 'FORCEREPOSEEDS' then
   begin
   SetCFGData(GetRepoFile('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos'),1);
   end
-else if UpperCase(Command) = 'FIXHEADERS' then ToLog('console',FIXHEADERS(MyLastBlock).ToString)
-
 
 // New system
 
