@@ -318,7 +318,7 @@ object Form1: TForm1
     Height = 488
     Top = 38
     Width = 640
-    ActivePage = TabWallet
+    ActivePage = TabMonitor
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
     Font.CharSet = ANSI_CHARSET
@@ -327,7 +327,7 @@ object Form1: TForm1
     Font.Pitch = fpVariable
     Font.Quality = fqDraft
     ParentFont = False
-    TabIndex = 0
+    TabIndex = 3
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
@@ -1913,9 +1913,9 @@ object Form1: TForm1
         Height = 460
         Top = 0
         Width = 632
-        ActivePage = TabDebug_Log
+        ActivePage = TabConsensus
         Align = alClient
-        TabIndex = 0
+        TabIndex = 5
         TabOrder = 0
         object TabDebug_Log: TTabSheet
           Caption = 'Log'
@@ -2196,117 +2196,6 @@ object Form1: TForm1
             object TabNodesVerified: TTabSheet
               Caption = 'Verified'
             end
-          end
-        end
-        object TabDoctor: TTabSheet
-          Caption = 'Doctor'
-          ClientHeight = 432
-          ClientWidth = 624
-          TabVisible = False
-          object PanelDoctor: TPanel
-            Left = 0
-            Height = 106
-            Top = 0
-            Width = 624
-            Align = alTop
-            BevelOuter = bvNone
-            BorderWidth = 1
-            BorderStyle = bsSingle
-            ClientHeight = 102
-            ClientWidth = 620
-            Color = clBtnHighlight
-            ParentBackground = False
-            ParentColor = False
-            TabOrder = 0
-            object CBBlockexists: TCheckBox
-              Left = 8
-              Height = 19
-              Top = 8
-              Width = 66
-              Caption = 'Block file'
-              TabOrder = 0
-            end
-            object CBBlockhash: TCheckBox
-              Left = 8
-              Height = 19
-              Top = 32
-              Width = 75
-              Caption = 'Block hash'
-              TabOrder = 1
-            end
-            object CBSummaryhash: TCheckBox
-              Left = 8
-              Height = 19
-              Top = 56
-              Width = 97
-              Caption = 'Summary hash'
-              TabOrder = 2
-            end
-            object LabelDoctor: TLabel
-              Left = 8
-              Height = 15
-              Top = 80
-              Width = 41
-              Caption = 'Waiting'
-              ParentColor = False
-            end
-            object ButStartDoctor: TButton
-              Left = 295
-              Height = 25
-              Top = 70
-              Width = 75
-              Caption = 'Start'
-              TabOrder = 3
-              OnClick = ButStartDoctorClick
-            end
-            object ButStopDoctor: TButton
-              Left = 295
-              Height = 25
-              Top = 70
-              Width = 75
-              Caption = 'Stop'
-              TabOrder = 4
-              Visible = False
-              OnClick = ButStopDoctorClick
-            end
-            object SpinDoctor1: TSpinEdit
-              Left = 296
-              Height = 23
-              Top = 8
-              Width = 74
-              MaxValue = 100000
-              MinValue = 1
-              TabOrder = 5
-              Value = 15000
-            end
-            object SpinDoctor2: TSpinEdit
-              Left = 296
-              Height = 23
-              Top = 36
-              Width = 74
-              MaxValue = 100000
-              MinValue = 1
-              TabOrder = 6
-              Value = 35900
-            end
-          end
-          object MemoDoctor: TMemo
-            Left = 0
-            Height = 326
-            Top = 106
-            Width = 624
-            Align = alClient
-            Color = clBlack
-            Font.CharSet = ANSI_CHARSET
-            Font.Color = clWhite
-            Font.Height = -12
-            Font.Name = 'Consolas'
-            Font.Pitch = fpFixed
-            Font.Quality = fqDraft
-            ParentFont = False
-            ReadOnly = True
-            ScrollBars = ssVertical
-            TabOrder = 1
           end
         end
         object TabConsensus: TTabSheet

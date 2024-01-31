@@ -725,6 +725,7 @@ ToLog('console','****************************');
 ToLog('console','Block undone: '+IntToStr(blocknumber)); //'Block undone: '
 ToLog('console','****************************');
 ToLog('events',TimeToStr(now)+'Block Undone: '+IntToStr(blocknumber));
+ToDeepDeb('Block undone: '+Blocknumber.ToString);
 U_DataPanel := true;
 BlockUndoneTime := UTCTime;
 End;

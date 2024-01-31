@@ -284,15 +284,10 @@ type
     BitBtnPending: TBitBtn;
     BitBtnBlocks: TBitBtn;
     BTestNode: TBitBtn;
-    ButStartDoctor: TButton;
-    ButStopDoctor: TButton;
     Button1: TButton;
     Button2: TButton;
     CB_BACKRPCaddresses: TCheckBox;
     CB_WO_Autoupdate: TCheckBox;
-    CBBlockexists: TCheckBox;
-    CBBlockhash: TCheckBox;
-    CBSummaryhash: TCheckBox;
     CBAutoIP: TCheckBox;
     CBRunNodeAlone: TCheckBox;
     CB_WO_HideEmpty: TCheckBox;
@@ -308,7 +303,6 @@ type
     Label17: TLabel;
     Label18: TLabel;
     LabelNodesHash: TLabel;
-    LabelDoctor: TLabel;
     LE_Rpc_Pass: TEdit;
     Label13: TLabel;
     LE_Rpc_Port: TEdit;
@@ -322,7 +316,6 @@ type
     Label9: TLabel;
     LabeledEdit5: TEdit;
     Label7: TLabel;
-    MemoDoctor: TMemo;
     PageControl2: TPageControl;
     PCNodes: TPageControl;
     PC_Processes: TPageControl;
@@ -341,14 +334,11 @@ type
     Panel23: TPanel;
     PanelTransferGVT: TPanel;
     PanelNodesHeaders: TPanel;
-    PanelDoctor: TPanel;
     Panel7: TPanel;
     Panel9: TPanel;
     SCBitSend1: TBitBtn;
     SG_OpenThreads: TStringGrid;
     SG_FileProcs: TStringGrid;
-    SpinDoctor1: TSpinEdit;
-    SpinDoctor2: TSpinEdit;
     StaRPCimg: TImage;
     StaSerImg: TImage;
     StaConLab: TLabel;
@@ -357,7 +347,6 @@ type
     GridNodes: TStringGrid;
     GVTsGrid: TStringGrid;
     SGConSeeds: TStringGrid;
-    TabDoctor: TTabSheet;
     TabGVTs: TTabSheet;
     TabConsensus: TTabSheet;
     TabSheet1: TTabSheet;
@@ -465,8 +454,6 @@ type
     procedure BitBtnWebClick(sender: TObject);
     procedure BSaveNodeOptionsClick(sender: TObject);
     procedure BTestNodeClick(sender: TObject);
-    procedure ButStartDoctorClick(sender: TObject);
-    procedure ButStopDoctorClick(sender: TObject);
     procedure Button1Click(sender: TObject);
     procedure Button2Click(sender: TObject);
     procedure CBRunNodeAloneChange(sender: TObject);
@@ -616,7 +603,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ca3';
+  SubVersion = 'Ca4';
   OficialRelease = false;
   VersionRequired = '0.4.2Ba7';
   BuildDate = 'January 2024';
@@ -893,7 +880,6 @@ var
   ConsoleLogFilename  :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'console.txt';
   NodeFTPLogFilename  :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'nodeftp.txt';
   DeepDebLogFilename  :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'deepdeb.txt';
-  //ResumenFilename     :string= 'NOSODATA'+DirectorySeparator+'blchhead.nos';
   EventLogFilename    :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'eventlog.txt';
   ResumeLogFilename   :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'report.txt';
   PerformanceFIlename :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'performance.txt';
@@ -1904,19 +1890,7 @@ if ((Shift = [ssCtrl]) and (Key = VK_L)) then
    end;
 if ((Shift = [ssCtrl, ssAlt]) and (Key = VK_D)) then
    begin
-   if not Form1.TabDoctor.TabVisible then
-      begin
-      Form1.PageMain.ActivePage:= Form1.TabMonitor;
-      Form1.TabDoctor.TabVisible:= True;
-      Form1.PCMonitor.ActivePage:= Form1.TabDoctor;
-      ToLog('console','Doctor available');
-      end
-   else
-      begin
-      Form1.PCMonitor.ActivePage:= Form1.TabDebug_Log;
-      Form1.TabDoctor.TabVisible:= False;
-      ToLog('console','Doctor closed');
-      end;
+   {ctrl+alt+d}
    end;
 end;
 
@@ -3541,21 +3515,6 @@ if client.Connected then Client.Disconnect();
 if ServerActivated then form1.Server.Active := false;
 client.Free;
 End;
-
-// Execute new doctor
-procedure TForm1.ButStartDoctorClick(sender: TObject);
-begin
-StopDoctor := false;
-ButStartDoctor.Visible:=false;
-ButStopDoctor.Visible:=true;
-NewDoctor;
-end;
-
-// Stop new doctor execution
-procedure TForm1.ButStopDoctorClick(sender: TObject);
-begin
-StopDoctor := true;
-end;
 
 procedure TForm1.Button1Click(sender: TObject);
 Begin

@@ -1,8 +1,8 @@
 unit NosoHeaders;
 
 {
-nosoHeaders 1.0
-Dec 7th, 2023
+nosoHeaders 1.1
+Jan 31th, 2024
 Stand alone unit to control headers file.
 }
 
@@ -84,10 +84,12 @@ Begin
   TRY
     reset(FileResumen);
     Opened := true;
+    ToDeepDeb('NosoHeaders,RemoveHeadersLastRecord,'+'Opened');
     seek(fileResumen,filesize(fileResumen));
     write(fileResumen,NewData);
     closefile(FileResumen);
     PorperlyClosed := true;
+    ToDeepDeb('NosoHeaders,RemoveHeadersLastRecord,'+'Closed');
   EXCEPT ON E:EXCEPTION DO
     begin
     ToDeepDeb('NosoHeaders,AddRecordToHeaders,'+E.Message);
@@ -108,10 +110,12 @@ Begin
   TRY
     reset(FileResumen);
     Opened := true;
+    ToDeepDeb('NosoHeaders,RemoveHeadersLastRecord,'+'Opened');
     seek(fileResumen,filesize(fileResumen)-1);
     truncate(fileResumen);
     closefile(FileResumen);
     PorperlyClosed := true;
+    ToDeepDeb('NosoHeaders,RemoveHeadersLastRecord,'+'Closed');
   EXCEPT ON E:EXCEPTION DO
     begin
     ToDeepDeb('NosoHeaders,RemoveHeadersLastRecord,'+E.Message);
@@ -132,9 +136,11 @@ Begin
   TRY
     reset(FileResumen);
     Opened := true;
+    ToDeepDeb('NosoHeaders,RemoveHeadersLastRecord,'+'Opened');
     Result := filesize(fileResumen)-1;
     closefile(FileResumen);
     PorperlyClosed := true;
+    ToDeepDeb('NosoHeaders,RemoveHeadersLastRecord,'+'Closed');
   EXCEPT on E:Exception do
     begin
     ToDeepDeb('NosoHeaders,GetHeadersHeigth,'+E.Message);
@@ -157,6 +163,7 @@ Begin
   TRY
     reset(FileResumen);
     Opened := true;
+    ToDeepDeb('NosoHeaders,RemoveHeadersLastRecord,'+'Opened');
     if filesize(FileResumen)>0 then
       begin
       seek(fileResumen,filesize(FileResumen)-1);
@@ -165,6 +172,7 @@ Begin
       end;
     CloseFile(FileResumen);
     PorperlyClosed := true;
+    ToDeepDeb('NosoHeaders,RemoveHeadersLastRecord,'+'Closed');
   EXCEPT on E:Exception do
     begin
     ToDeepDeb('NosoHeaders,GetHeadersLastBlock,'+E.Message);
@@ -220,6 +228,7 @@ Begin
   TRY
     reset(FileResumen);
     Opened := true;
+    ToDeepDeb('NosoHeaders,RemoveHeadersLastRecord,'+'Opened');
     ThisData := Default(ResumenData);
     seek(fileResumen,FromBlock-100);
     While not Eof(fileResumen) do
@@ -229,6 +238,7 @@ Begin
       end;
     closefile(FileResumen);
     PorperlyClosed := true;
+    ToDeepDeb('NosoHeaders,RemoveHeadersLastRecord,'+'Closed');
   EXCEPT on E:Exception do
     begin
     ToDeepDeb('NosoHeaders,LastHeadersString,'+E.Message);

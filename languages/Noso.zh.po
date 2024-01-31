@@ -70,14 +70,6 @@ msgstr "保存"
 msgid "Test"
 msgstr ""
 
-#: tform1.butstartdoctor.caption
-msgid "Start"
-msgstr "开始"
-
-#: tform1.butstopdoctor.caption
-msgid "Stop"
-msgstr "停止"
-
 #: tform1.button1.caption
 #, fuzzy
 #| msgid "CLear"
@@ -105,14 +97,6 @@ msgctxt "tform1.cbautoip.hint"
 msgid "Use mainnet auto assigned IP"
 msgstr ""
 
-#: tform1.cbblockexists.caption
-msgid "Block file"
-msgstr "区块文件"
-
-#: tform1.cbblockhash.caption
-msgid "Block hash"
-msgstr "区块哈希"
-
 #: tform1.cbrunnodealone.caption
 msgid "Stop memos outputs (recommended for unattended nodes) "
 msgstr ""
@@ -120,10 +104,6 @@ msgstr ""
 #: tform1.cbrunnodealone.hint
 msgid "Run as unattended Masternode"
 msgstr ""
-
-#: tform1.cbsummaryhash.caption
-msgid "Summary hash"
-msgstr "摘要哈希"
 
 #: tform1.cb_autorpc.caption
 msgid "Active JSON-RPC server at launch"
@@ -258,10 +238,6 @@ msgstr "端口"
 msgctxt "tform1.labelbigbalance.caption"
 msgid "0 NOS"
 msgstr "0 NOS"
-
-#: tform1.labeldoctor.caption
-msgid "Waiting"
-msgstr "等待"
 
 #: tform1.labelnodeshash.caption
 msgid "Count: "
@@ -404,10 +380,6 @@ msgstr "控制台"
 msgctxt "tform1.tabdebug_log.caption"
 msgid "Log"
 msgstr "日志"
-
-#: tform1.tabdoctor.caption
-msgid "Doctor"
-msgstr "修复"
 
 #: tform1.tabfiles.caption
 msgctxt "tform1.tabfiles.caption"

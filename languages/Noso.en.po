@@ -58,14 +58,6 @@ msgstr ""
 msgid "Test"
 msgstr ""
 
-#: tform1.butstartdoctor.caption
-msgid "Start"
-msgstr ""
-
-#: tform1.butstopdoctor.caption
-msgid "Stop"
-msgstr ""
-
 #: tform1.button1.caption
 msgctxt "tform1.button1.caption"
 msgid "Clear"
@@ -90,24 +82,12 @@ msgctxt "tform1.cbautoip.hint"
 msgid "Use mainnet auto assigned IP"
 msgstr ""
 
-#: tform1.cbblockexists.caption
-msgid "Block file"
-msgstr ""
-
-#: tform1.cbblockhash.caption
-msgid "Block hash"
-msgstr ""
-
 #: tform1.cbrunnodealone.caption
 msgid "Stop memos outputs (recommended for unattended nodes) "
 msgstr ""
 
 #: tform1.cbrunnodealone.hint
 msgid "Run as unattended Masternode"
-msgstr ""
-
-#: tform1.cbsummaryhash.caption
-msgid "Summary hash"
 msgstr ""
 
 #: tform1.cb_autorpc.caption
@@ -237,10 +217,6 @@ msgstr ""
 #: tform1.labelbigbalance.caption
 msgctxt "tform1.labelbigbalance.caption"
 msgid "0 NOS"
-msgstr ""
-
-#: tform1.labeldoctor.caption
-msgid "Waiting"
 msgstr ""
 
 #: tform1.labelnodeshash.caption
@@ -382,10 +358,6 @@ msgstr ""
 #: tform1.tabdebug_log.caption
 msgctxt "tform1.tabdebug_log.caption"
 msgid "Log"
-msgstr ""
-
-#: tform1.tabdoctor.caption
-msgid "Doctor"
 msgstr ""
 
 #: tform1.tabfiles.caption

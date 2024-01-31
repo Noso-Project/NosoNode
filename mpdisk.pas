@@ -59,7 +59,6 @@ function UnZipUpdateFromRepo(Tver,TArch:String):boolean;
 
 Procedure CreateLauncherFile(IncludeUpdate:boolean = false);
 Procedure RestartNoso();
-Procedure NewDoctor();
 Procedure CrearRestartfile();
 Procedure RestartConditions();
 function OSVersion: string;
@@ -956,78 +955,6 @@ Procedure RestartNoso();
 Begin
 CreateLauncherFile();
 RunExternalProgram(RestartFilename);
-End;
-
-Procedure NewDoctor();
-var
-  cont : integer;
-  firstB,lastB : integer;
-  dato : ResumenData;
-  WorkLoad : integer;
-  BlockHashErrors : integer = 0;
-  SumHashErrors : integer = 0;
-Begin
-firstB := form1.SpinDoctor1.Value;
-LastB := form1.SpinDoctor2.Value;
-WorkLoad := LastB-FirstB;
-form1.MemoDoctor.Lines.Clear;
-assignfile(FileResumen,ResumenFilename);
-if ((form1.CBBlockhash.Checked) or (form1.CBSummaryhash.Checked)) then
-   reset(FileResumen);
-RunningDoctor := True;
-for cont := firstB to lastB do
-   begin
-   if ((form1.CBBlockhash.Checked) or (form1.CBSummaryhash.Checked)) then
-      begin
-      Seek(FileResumen,cont);
-      Read(FileResumen,dato);
-      end;
-   form1.LabelDoctor.Caption:=format(rs1000,[cont,((Cont-firstB)*100) div Workload]);
-   form1.LabelDoctor.Update;
-   EngineLastUpdate := UTCTime;
-   Application.ProcessMessages;
-   if form1.CBBlockexists.Checked then  // check block file
-      begin
-      if not fileexists(BlockDirectory+IntToStr(cont)+'.blk') then
-         begin
-         form1.MemoDoctor.Lines.Add(format(rs1001,[cont]));
-         form1.MemoDoctor.Lines.Add(format(rs1003,[BlockDirectory+IntToStr(cont)]));
-         end;
-      end;
-   if form1.CBBlockhash.Checked then    // check block hash
-      begin
-      if HashMD5File(BlockDirectory+IntToStr(cont)+'.blk')<> dato.blockhash then
-         begin
-         //form1.MemoDoctor.Lines.Add(format(rs1001,[cont]));
-         //form1.MemoDoctor.Lines.Add(Format(rs1002,[HashMD5File(BlockDirectory+IntToStr(cont)+'.blk'),dato.blockhash]));
-         Dato.blockhash:=HashMD5File(BlockDirectory+IntToStr(cont)+'.blk');
-         Seek(FileResumen,cont);
-         write(FileResumen,dato);
-         Inc(BlockHashErrors);
-         end;
-      end;
-   if form1.CBSummaryhash.Checked then   // Check summary hash
-      begin
-      AddBlockToSumary(cont);
-      if HashMD5File(SummaryFileName) <> dato.SumHash then
-         begin
-         //form1.MemoDoctor.Lines.Add(format(rs1001,[cont]));
-         //form1.MemoDoctor.Lines.Add(format(rs1004,[HashMD5File(SummaryFileName),dato.SumHash]));
-         Dato.SumHash:=HashMD5File(SummaryFileName);
-         Seek(FileResumen,cont);
-         write(FileResumen,dato);
-         Inc(SumHashErrors);
-         end;
-      end;
-   if stopdoctor then break;
-   end;
-RunningDoctor := false;
-if ((form1.CBBlockhash.Checked) or (form1.CBSummaryhash.Checked)) then
-   CloseFile(FileResumen);
-form1.ButStartDoctor.Visible:=true;
-form1.ButStopDoctor.Visible:=false;
-form1.MemoDoctor.Lines.Add(format('BlockHash errors: %d',[BlockHashErrors]));
-form1.MemoDoctor.Lines.Add(format('SumHash errors  : %d',[SumHashErrors]));
 End;
 
 // Creates autorestart file

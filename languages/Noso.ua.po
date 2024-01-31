@@ -69,14 +69,6 @@ msgstr "Зберегти"
 msgid "Test"
 msgstr ""
 
-#: tform1.butstartdoctor.caption
-msgid "Start"
-msgstr "Почати"
-
-#: tform1.butstopdoctor.caption
-msgid "Stop"
-msgstr "Стоп"
-
 #: tform1.button1.caption
 #, fuzzy
 #| msgid "CLear"
@@ -104,14 +96,6 @@ msgctxt "tform1.cbautoip.hint"
 msgid "Use mainnet auto assigned IP"
 msgstr ""
 
-#: tform1.cbblockexists.caption
-msgid "Block file"
-msgstr "Блок файл"
-
-#: tform1.cbblockhash.caption
-msgid "Block hash"
-msgstr "Блок хеш"
-
 #: tform1.cbrunnodealone.caption
 msgid "Stop memos outputs (recommended for unattended nodes) "
 msgstr ""
@@ -119,10 +103,6 @@ msgstr ""
 #: tform1.cbrunnodealone.hint
 msgid "Run as unattended Masternode"
 msgstr ""
-
-#: tform1.cbsummaryhash.caption
-msgid "Summary hash"
-msgstr "Резюме хеш"
 
 #: tform1.cb_autorpc.caption
 msgid "Active JSON-RPC server at launch"
@@ -257,10 +237,6 @@ msgstr "Порт"
 msgctxt "tform1.labelbigbalance.caption"
 msgid "0 NOS"
 msgstr "0 NOS"
-
-#: tform1.labeldoctor.caption
-msgid "Waiting"
-msgstr "Очікування"
 
 #: tform1.labelnodeshash.caption
 msgid "Count: "
@@ -403,10 +379,6 @@ msgstr "Консоль"
 msgctxt "tform1.tabdebug_log.caption"
 msgid "Log"
 msgstr "Журнал"
-
-#: tform1.tabdoctor.caption
-msgid "Doctor"
-msgstr "Лікар"
 
 #: tform1.tabfiles.caption
 msgctxt "tform1.tabfiles.caption"

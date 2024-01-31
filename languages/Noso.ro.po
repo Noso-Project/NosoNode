@@ -68,14 +68,6 @@ msgstr "Salvează"
 msgid "Test"
 msgstr ""
 
-#: tform1.butstartdoctor.caption
-msgid "Start"
-msgstr "Start"
-
-#: tform1.butstopdoctor.caption
-msgid "Stop"
-msgstr "Stop"
-
 #: tform1.button1.caption
 #, fuzzy
 #| msgid "CLear"
@@ -103,14 +95,6 @@ msgctxt "tform1.cbautoip.hint"
 msgid "Use mainnet auto assigned IP"
 msgstr ""
 
-#: tform1.cbblockexists.caption
-msgid "Block file"
-msgstr "Fișierul blocului"
-
-#: tform1.cbblockhash.caption
-msgid "Block hash"
-msgstr "Hash-ul blocului"
-
 #: tform1.cbrunnodealone.caption
 msgid "Stop memos outputs (recommended for unattended nodes) "
 msgstr ""
@@ -118,10 +102,6 @@ msgstr ""
 #: tform1.cbrunnodealone.hint
 msgid "Run as unattended Masternode"
 msgstr ""
-
-#: tform1.cbsummaryhash.caption
-msgid "Summary hash"
-msgstr "Rezumat Hash"
 
 #: tform1.cb_autorpc.caption
 msgid "Active JSON-RPC server at launch"
@@ -256,10 +236,6 @@ msgstr "Port"
 msgctxt "tform1.labelbigbalance.caption"
 msgid "0 NOS"
 msgstr "0 NOS"
-
-#: tform1.labeldoctor.caption
-msgid "Waiting"
-msgstr "În aşteptare"
 
 #: tform1.labelnodeshash.caption
 msgid "Count: "
@@ -402,10 +378,6 @@ msgstr "Consolă"
 msgctxt "tform1.tabdebug_log.caption"
 msgid "Log"
 msgstr "Log"
-
-#: tform1.tabdoctor.caption
-msgid "Doctor"
-msgstr "Doctor"
 
 #: tform1.tabfiles.caption
 msgctxt "tform1.tabfiles.caption"
