@@ -239,12 +239,15 @@ if not errored then
          if ( (IsValidHashAddress(NPDTarget)) and (IsValidHashAddress(NPDSource)) ) then
             begin
             NPDAmount := StrToInt64def(Parameter(NosoPayData,3),0);
-            if SummaryValidPay(NPDSource,NPDamount,NPDBlock) then
+            if NPDAmount > 0 then
                begin
-               CreditTo(NPDTarget,NPDAmount,NPDBlock);
-               NPDOrder := CreateNosoPayOrder(NPDBlock,NPDSource,NPDTarget,TimeStamp,NPDAmount);
-               insert(NPDOrder,ListaOrdenes,length(listaordenes));
-               RemoveCFGData(GetNosoCFGString(6),6);
+               if SummaryValidPay(NPDSource,NPDamount,NPDBlock) then
+                  begin
+                  CreditTo(NPDTarget,NPDAmount,NPDBlock);
+                  NPDOrder := CreateNosoPayOrder(NPDBlock,NPDSource,NPDTarget,TimeStamp,NPDAmount);
+                  insert(NPDOrder,ListaOrdenes,length(listaordenes));
+                  RemoveCFGData(GetNosoCFGString(6),6);
+                  end;
                end;
             end;
          end;

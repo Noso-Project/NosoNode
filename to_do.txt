@@ -1,35 +1,41 @@
-Starting at 0.3.2Ac8
+As for 0.4.2Ca4
 
 Things to be done. (not completely updated yet)
 
 App related.
 
-- Complete the Properlyclosed implementation.  (done)
-- Add GETPSOS support for clients.  (done)
-- Implement RPC locked MNs (done)
+- Complete CFG library.
 - Implement RPC GVTs.
-- Properly close client threads on socket errors. (done)
-- RPC for masternodes (done)
 - RPC for nosocfg
-- Develope new certificate methods
-- Implement multi-sign addresses. ("M" format)
 - Complete GVTs implementation.
 - Check the MNs verification messages count
-
 - Complete/Fix "history" command.
 - Not blocking form for critical exceptions.
 - Re-verification step for GVT transfers.
 - Revisit GetTotalConexiones.
-- Implement RPC functions.
-  * RPC_GetBlockPoS.
-  * RPC_GetBlockMNs.
-  * RPC_GVTsList.
+- Complete the report submit.
+- Migrate GVTs to separate lyb.
+- Migrate Blocks to separate unit.
+- Move client and server to separate units linked to nosonetwork.
+- Move MNs to separate lybrary.
+- ALWAYS, remove deprecated code.
+  * Bots file.
+  * Old minning data.
+  * Deprecated wallet options
+  * Deprecated translation system
+- Order variables by type and region.
 
 Protocol related.
 
 - Implement multi-sign addresses.
 - Complete GVTs implementation.
-- Develope GVT control system.
-- Implement NoBiEx.
-- Implement "lock" and "stop" directives.
+- Develope GVT control/vote system.
+- Implement NoBiEx/Psos.
 - Adjust fee charges/filters.
+- Include multi target trfrs filter.
+- Multisignature for project payments.
+- New addresses format ("M")
+- NEw certificates.
+- Autorization for 3rd part masternodes.
+- Remove token to allow infinite time trxs?
+

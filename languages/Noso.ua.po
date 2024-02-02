@@ -97,11 +97,15 @@ msgid "Use mainnet auto assigned IP"
 msgstr ""
 
 #: tform1.cbrunnodealone.caption
-msgid "Stop memos outputs (recommended for unattended nodes) "
+msgid "Stop GUI (recommended for unattended nodes) "
 msgstr ""
 
 #: tform1.cbrunnodealone.hint
 msgid "Run as unattended Masternode"
+msgstr ""
+
+#: tform1.cbsendreports.caption
+msgid "Send anonymous reports"
 msgstr ""
 
 #: tform1.cb_autorpc.caption

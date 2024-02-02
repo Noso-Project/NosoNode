@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, mpRed, MasterPaskalForm, mpParser, StrUtils, mpDisk, nosotime, mpBlock,
   Zipper, mpcoin, mpMn, nosodebug, nosogeneral, nosocrypto, nosounit,nosoconsensus,nosopsos,
-  nosoheaders;
+  nosoheaders, NosoNosoCFG;
 
 function GetPTCEcn():String;
 Function GetOrderFromString(textLine:String):TOrderData;
@@ -1056,11 +1056,11 @@ var
   var
     ThDirect  : TThreadDirective;
   Begin
-  if not WO_AutoUpdate then exit;
-  ThDirect := TThreadDirective.Create(true,LParameter);
-  ThDirect.FreeOnTerminate:=true;
-  ThDirect.Start;
-  ToLog('events',TimeToStr(now)+Format('Directive: %s',[LParameter]));
+    if not WO_AutoUpdate then exit;
+    ThDirect := TThreadDirective.Create(true,LParameter);
+    ThDirect.FreeOnTerminate:=true;
+    ThDirect.Start;
+    ToLog('events',TimeToStr(now)+Format('Directive: %s',[LParameter]));
   End;
 
 Begin
@@ -1184,6 +1184,7 @@ Block := StrToIntDef(Parameter(Linea,5),0);
 PTC_SendLine(slot,ProtocolLine(headupdate)+' $'+LastHeadersString(Block));
 End;
 
+// This function must go to NosoHeaders
 Procedure PTC_HeadUpdate(linea:String);
 var
   startpos : integer;

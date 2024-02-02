@@ -138,28 +138,6 @@ type
      PSOHash       : string[32];
      end;
 
-  {
-  WalletData = Packed Record
-     Hash : String[40]; // El hash publico o direccion
-     Custom : String[40]; // En caso de que la direccion este personalizada
-     PublicKey : String[255]; // clave publica
-     PrivateKey : String[255]; // clave privada
-     Balance : int64; // el ultimo saldo conocido de la direccion
-     Pending : int64; // el ultimo saldo de pagos pendientes
-     Score : int64; // estado del registro de la direccion.
-     LastOP : int64;// tiempo de la ultima operacion en UnixTime.
-     end;
-  }
-  {
-  SumarioData = Packed Record
-     Hash : String[40];    // El hash publico o direccion
-     Custom : String[40];  // En caso de que la direccion este personalizada
-     Balance : int64;      // el ultimo saldo conocido de la direccion
-     Score : int64;        // estado del registro de la direccion.
-     LastOP : int64;       // tiempo de la ultima operacion en UnixTime.
-     end;
-  }
-
   BlockHeaderData = Packed Record
      Number         : Int64;
      TimeStart      : Int64;
@@ -286,6 +264,7 @@ type
     BTestNode: TBitBtn;
     Button1: TButton;
     Button2: TButton;
+    CBSendReports: TCheckBox;
     CB_BACKRPCaddresses: TCheckBox;
     CB_WO_Autoupdate: TCheckBox;
     CBAutoIP: TCheckBox;
@@ -457,6 +436,7 @@ type
     procedure Button1Click(sender: TObject);
     procedure Button2Click(sender: TObject);
     procedure CBRunNodeAloneChange(sender: TObject);
+    procedure CBSendReportsChange(Sender: TObject);
     procedure CB_BACKRPCaddressesChange(Sender: TObject);
     procedure CB_RPCFilterChange(sender: TObject);
     procedure CB_WO_AutoupdateChange(sender: TObject);
@@ -586,14 +566,15 @@ CONST
                                    'SETCFGDATA$GETPSOSPSOSFILE';
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS DELBOT';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
-
-  DefaultNosoCFG : String = {0}'NORMAL '+
-                            {1}'47.87.178.205;8080:47.87.180.219;8080:47.87.137.96;8080:192.3.85.196;8080:192.3.254.186;8080:198.46.218.125;8080:140.99.161.224;8080:63.227.69.162;8080:20.199.50.27;8080:45.83.151.30;8080:107.172.21.121;8080:47.87.132.148;8080: '+
-                            {2}'ts2.aco.net:hora.roa.es:time.esa.int:time.stdtime.gov.tw:stratum-1.sjc02.svwh.net:ntp1.sp.se:1.de.pool.ntp.org:ntps1.pads.ufrj.br:utcnist2.colorado.edu:tick.usask.ca:ntp1.st.keio.ac.jp: '+
-                            {3}'N3ESwXxCAR4jw3GVHgmKiX9zx1ojWEf:N2ophUoAzJw9LtgXbYMiB4u5jWWGJF7:N3aXz2RGwj8LAZgtgyyXNRkfQ1EMnFC:N2MVecGnXGHpN8z4RqwJFXSQP6doVDv: '+
-                            {4}'nosofish.xyz;8082:nosopool.estripa.online;8082:pool.nosomn.com;8082:159.196.1.198;8082: '+
-                            {5}'NpryectdevepmentfundsGE:';
-
+ {
+  DefaultNosoCFG : String = // CFG parameters
+                            {0 Mainnet mode}'NORMAL '+
+                            {1 Seed nodes  }'47.87.178.205;8080:47.87.180.219;8080:47.87.137.96;8080:192.3.85.196;8080:192.3.254.186;8080:198.46.218.125;8080:140.99.161.224;8080:63.227.69.162;8080:20.199.50.27;8080:45.83.151.30;8080:107.172.21.121;8080:47.87.132.148;8080: '+
+                            {2 NTP servers }'ts2.aco.net:hora.roa.es:time.esa.int:time.stdtime.gov.tw:stratum-1.sjc02.svwh.net:ntp1.sp.se:1.de.pool.ntp.org:ntps1.pads.ufrj.br:utcnist2.colorado.edu:tick.usask.ca:ntp1.st.keio.ac.jp: '+
+                            {3 DEPRECATED  }'N3ESwXxCAR4jw3GVHgmKiX9zx1ojWEf:N2ophUoAzJw9LtgXbYMiB4u5jWWGJF7:N3aXz2RGwj8LAZgtgyyXNRkfQ1EMnFC:N2MVecGnXGHpN8z4RqwJFXSQP6doVDv: '+
+                            {4 DEPRECATED  }'nosofish.xyz;8082:nosopool.estripa.online;8082:pool.nosomn.com;8082:159.196.1.198;8082: '+
+                            {5 FREZZED     }'NpryectdevepmentfundsGE:';
+  }
   ProgramVersion = '0.4.2';
   {$IFDEF WINDOWS}
   RestartFileName = 'launcher.bat';
@@ -664,6 +645,7 @@ var
   WO_AutoUpdate    : Boolean = true;
     UpdateFileSize : int64 = 0;
     FirstTimeUpChe : boolean = true;
+  WO_SendReport    : boolean = false;
   WO_OmmitMemos    : boolean = false;
   RPCFilter        : boolean = true;
   RPCWhitelist     : string = '127.0.0.1,localhost';
@@ -739,7 +721,7 @@ var
     S_AdvOpt : boolean = false;
   PoolTotalHashRate : int64 = 0;
 
-  NosoCFGStr : String = '';
+  //NosoCFGStr : String = '';
   ForcedQuit : boolean = false;
   NewLogLines : integer = 0;
   Conexiones : array [1..MaxConecciones] of conectiondata;
@@ -869,29 +851,30 @@ var
 
   // Filename variables
 
-  BotDataFilename     :string= 'NOSODATA'+DirectorySeparator+'botdata.psk';
-  //WalletFilename    :string= 'NOSODATA'+DirectorySeparator+'wallet.pkw';
-  BlockDirectory      :string= 'NOSODATA'+DirectorySeparator+'BLOCKS'+DirectorySeparator;
-  MarksDirectory      :string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator;
-  GVTMarksDirectory   :string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator+'GVTS'+DirectorySeparator;
-  UpdatesDirectory    :string= 'NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator;
-  LogsDirectory       :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator;
-  ExceptLogFilename   :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'exceptlog.txt';
-  ConsoleLogFilename  :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'console.txt';
-  NodeFTPLogFilename  :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'nodeftp.txt';
-  DeepDebLogFilename  :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'deepdeb.txt';
-  EventLogFilename    :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'eventlog.txt';
-  ResumeLogFilename   :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'report.txt';
-  PerformanceFIlename :string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'performance.txt';
-  AdvOptionsFilename  :string= 'NOSODATA'+DirectorySeparator+'advopt.txt';
-  MasterNodesFilename :string= 'NOSODATA'+DirectorySeparator+'masternodes.txt';
-  ZipHeadersFileName  :string= 'NOSODATA'+DirectorySeparator+'blchhead.zip';
-  GVTsFilename        :string= 'NOSODATA'+DirectorySeparator+'gvts.psk';
-  NosoCFGFilename     :string= 'NOSODATA'+DirectorySeparator+'nosocfg.psk';
-  RPCBakDirectory     :string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator+'RPC'+DirectorySeparator;
-  MontoIncoming : Int64 = 0;
-  MontoOutgoing : Int64 = 0;
-  InfoPanelTime : integer = 0;
+  BotDataFilename     : string= 'NOSODATA'+DirectorySeparator+'botdata.psk';
+  //WalletFilename    : string= 'NOSODATA'+DirectorySeparator+'wallet.pkw';
+  BlockDirectory      : string= 'NOSODATA'+DirectorySeparator+'BLOCKS'+DirectorySeparator;
+  MarksDirectory      : string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator;
+  GVTMarksDirectory   : string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator+'GVTS'+DirectorySeparator;
+  UpdatesDirectory    : string= 'NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator;
+  LogsDirectory       : string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator;
+  ExceptLogFilename   : string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'exceptlog.txt';
+  ConsoleLogFilename  : string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'console.txt';
+  NodeFTPLogFilename  : string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'nodeftp.txt';
+  DeepDebLogFilename  : string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'deepdeb.txt';
+  EventLogFilename    : string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'eventlog.txt';
+  ResumeLogFilename   : string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'report.txt';
+  PerformanceFIlename : string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'performance.txt';
+  AdvOptionsFilename  : string= 'NOSODATA'+DirectorySeparator+'advopt.txt';
+  MasterNodesFilename : string= 'NOSODATA'+DirectorySeparator+'masternodes.txt';
+  ZipHeadersFileName  : string= 'NOSODATA'+DirectorySeparator+'blchhead.zip';
+  GVTsFilename        : string= 'NOSODATA'+DirectorySeparator+'gvts.psk';
+  //NosoCFGFilename     : string= 'NOSODATA'+DirectorySeparator+'nosocfg.psk';
+  ClosedAppFilename   : string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'proclo.dat';
+  RPCBakDirectory     : string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator+'RPC'+DirectorySeparator;
+  MontoIncoming       : Int64 = 0;
+  MontoOutgoing       : Int64 = 0;
+  InfoPanelTime       : integer = 0;
 
 IMPLEMENTATION
 
@@ -1685,6 +1668,12 @@ OutText(rs0022,false,1); //'✓ Files tree ok'
 InitMainForm();
 OutText(rs0023,false,1); //✓ GUI initialized
 VerifyFiles();
+if ( (not fileExists(ClosedAppFilename)) and (WO_Sendreport) ) then
+  begin
+  // Send the report file here
+  OutText('Bug report sent to developers',false,1); //✓ GUI initialized
+  end;
+TryDeleteFile(ClosedAppFilename);
 InicializarGUI();
 //InitTime();
 GetTimeOffset(PArameter(GetNosoCFGString,2));
@@ -1796,6 +1785,7 @@ CB_WO_HideEmpty.Checked:=WO_HideEmpty;
 CB_WO_Multisend.Checked:=WO_Multisend;
 CB_WO_Autoupdate.Checked := WO_AutoUpdate;
 CB_FullNode.Checked := WO_FullNode;
+CBSendReports.checked := WO_SendReport;
 // RPC
 LE_Rpc_Port.Text := IntToStr(RPCPort);
 LE_Rpc_Pass.Text := RPCPass;
@@ -2113,6 +2103,7 @@ if GoAhead then
    END{Try};
    sleep(100);
    if ((not EarlyRestart) and (RestartNosoAfterQuit)) then RestartNoso;
+   CreateProperlyClosedAppFile(ClosedAppFilename);
    form1.Close;
    end;
 End;
@@ -3437,12 +3428,12 @@ end;
 // Save Node options
 procedure TForm1.BSaveNodeOptionsClick(sender: TObject);
 begin
-WO_AutoServer:=CheckBox4.Checked;
-MN_IP:=Trim(LabeledEdit5.Text);
-MN_Port:=Trim(LabeledEdit6.Text);
-MN_Funds:=Trim(LabeledEdit8.Text);
-MN_Sign:=Trim(LabeledEdit9.Text);
-MN_AutoIP:=CBAutoIP.Checked;
+WO_AutoServer :=CheckBox4.Checked;
+MN_IP         :=Trim(LabeledEdit5.Text);
+MN_Port       :=Trim(LabeledEdit6.Text);
+MN_Funds      :=Trim(LabeledEdit8.Text);
+MN_Sign       :=Trim(LabeledEdit9.Text);
+MN_AutoIP     :=CBAutoIP.Checked;
 S_AdvOpt := true;
 if not WO_AutoServer and form1.Server.Active then processlinesadd('serveroff');
 if WO_AutoServer and not form1.Server.Active then processlinesadd('serveron');
@@ -3532,6 +3523,15 @@ if not G_Launching then
    begin
    if CBRunNodeAlone.Checked then WO_OmmitMemos := true
    else WO_OmmitMemos := false;
+   end;
+end;
+
+procedure TForm1.CBSendReportsChange(Sender: TObject);
+begin
+if not G_Launching then
+   begin
+   if CBSendReports.Checked then WO_SendReport := true
+   else WO_SendReport := false;
    end;
 end;
 

@@ -53,6 +53,7 @@ Procedure CompleteSumary();
 Procedure SaveUpdatedFiles();
 
 function GetMyLastUpdatedBlock():int64;
+Function CreateProperlyClosedAppFile(filename:String):Boolean;
 
 Function UnzipBlockFile(filename:String;delFile:boolean):boolean;
 function UnZipUpdateFromRepo(Tver,TArch:String):boolean;
@@ -65,8 +66,6 @@ function OSVersion: string;
 {$IFDEF WINDOWS} Function GetWinVer():string; {$ENDIF}
 Procedure RestoreBlockChain();
 Procedure RestoreSumary(fromBlock:integer=0);
-function TryDeleteFile(filename:string):boolean;
-function TryCopyFile(Source, destination:string):boolean;
 function AppFileName():string;
 
 implementation
@@ -112,7 +111,7 @@ if not FileExists(GVTsFilename) then CreateGVTsFile;
 GetGVTsFileData;
 OutText('✓ GVTs file ok',false,1);
 
-if not FileExists(NosoCFGFilename) then
+if not FileExists(CFGFilename) then
   begin
   SaveNosoCFGFile(DefaultNosoCFG);
   GetCFGDataFromFile;
@@ -197,12 +196,6 @@ Result := false;
 if AnsiContainsStr(GetNosoCFGString(1),ip) then result := true;
 End;
 
-
-// *** BOTS FILE ***
-
-
-// *****************************************************************************
-
 Procedure CreateMasterNodesFile();
 var
   archivo : textfile;
@@ -215,6 +208,10 @@ EXCEPT on E:Exception do
   ToLog('events',TimeToStr(now)+'Error creating the masternodes file');
 END;
 End;
+
+// *** GVTs HANDLING FILE ***
+// *****************************************************************************
+{$REGION GVTs}
 
 Procedure CreateGVTsFile();
 Begin
@@ -309,6 +306,12 @@ Begin
   if ToSell then Result := (result *85) div 100;
 End;
 
+{$ENDREGION}
+
+// *** CFG FILE ***
+// *****************************************************************************
+{$REGION CFG}
+
 Procedure SaveNosoCFGFile(LStr:String);
 var
   LFile : Textfile;
@@ -334,6 +337,8 @@ var
   LFile : Textfile;
   LStr  : string = '';
 Begin
+  GetCFGFromFile;
+  {
   Assignfile(LFile, NosoCFGFilename);
   TRY
     TRY
@@ -346,22 +351,35 @@ Begin
   FINALLY
     Closefile(LFile);
   END; {TRY}
+  }
 End;
 
 Procedure SetNosoCFGString(LStr:string);
 Begin
-EnterCriticalSection(CSNosoCFGStr);
-NosoCFGStr := LStr;
-LEaveCriticalSection(CSNosoCFGStr);
+  SetCFGDataStr(LStr);
+  {
+  EnterCriticalSection(CSNosoCFGStr);
+  NosoCFGStr := LStr;
+  LEaveCriticalSection(CSNosoCFGStr);
+  }
 End;
 
 Function GetNosoCFGString(LParam:integer=-1):String;
 Begin
-EnterCriticalSection(CSNosoCFGStr);
-if LParam<0 then Result := NosoCFGStr
-else Result := Parameter(NosoCFGStr,LParam);
-LeaveCriticalSection(CSNosoCFGStr);
+  result := GetCFGDataStr(LParam);
+  {
+  EnterCriticalSection(CSNosoCFGStr);
+  if LParam<0 then Result := NosoCFGStr
+  else Result := Parameter(NosoCFGStr,LParam);
+  LeaveCriticalSection(CSNosoCFGStr);
+  }
 End;
+
+{$ENDREGION CFG}
+
+// *** OPTIONS FILE ***
+// *****************************************************************************
+{$REGION OPTIONS}
 
 // Creates/Saves Advopt file
 Procedure CreateADV(saving:boolean);
@@ -386,6 +404,9 @@ BeginPerformance('CreateADV');
    writeln(FileAdvOptions,'PoUpdate '+(WO_LastPoUpdate));
    writeln(FileAdvOptions,'//Close the launch form automatically');
    writeln(FileAdvOptions,'Closestart '+BoolToStr(WO_CloseStart,true));
+   writeln(FileAdvOptions,'//Send anonymous report to developers');
+   writeln(FileAdvOptions,'SendReport '+BoolToStr(WO_SendReport,true));
+
    writeln(FileAdvOptions,'//Mainform coordinates. Do not manually change this values');
    writeln(FileAdvOptions,Format('FormState %d %d %d %d %d',[Form1.Top,form1.Left,form1.Width,form1.Height,form1.WindowState]));
    writeln(FileAdvOptions,'');
@@ -461,6 +482,7 @@ Begin
       if parameter(linea,0) ='ShowedOrders' then ShowedOrders:=StrToIntDef(Parameter(linea,1),ShowedOrders);
       if parameter(linea,0) ='MaxPeers' then MaxPeersAllow:=StrToIntDef(Parameter(linea,1),MaxPeersAllow);
       if parameter(linea,0) ='PosWarning' then WO_PosWarning:=StrToIntDef(Parameter(linea,1),WO_PosWarning);
+      if parameter(linea,0) ='SendReport' then WO_SendReport:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='MultiSend' then WO_MultiSend:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='HideEmpty' then WO_HideEmpty:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='RPCFilter' then RPCFilter:=StrToBool(Parameter(linea,1));
@@ -510,6 +532,12 @@ Begin
    end;
 End;
 
+{$ENDREGION}
+
+
+// *** LANGUAGE HANDLING ***
+// *****************************************************************************
+{$REGION LANGUAGE}
 // returns the language to load the
 Function GetLanguage():string;
 var
@@ -558,6 +586,12 @@ begin
   Resource.SaveToFile(filename);
   Resource.Free;
 End;
+
+{$ENDREGION}
+
+// *** BOTS FILE ***
+// *****************************************************************************
+{$REGION BOTS FILE}
 
 // Creates bots file
 Procedure CrearBotData();
@@ -659,6 +693,7 @@ if ErrorCode = 0 then
 EndPerformance('SaveBotData');
 End;
 
+{$ENDREGION}
 
 // Saves updates files to disk
 Procedure SaveUpdatedFiles();
@@ -699,7 +734,6 @@ var
   counter      : integer;
   TimeDuration : int64;
 Begin
-BeginPerformance('RebuildSummary');
 CreateNewSummaryFile(FileExists(BlockDirectory+'0.blk'));
 for counter := 1 to MylastBlock do
    begin
@@ -743,6 +777,23 @@ BlockFiles := TStringList.Create;
    END; {TRY}
 BlockFiles.Free;
 end;
+
+Function CreateProperlyClosedAppFile(filename:String):Boolean;
+var
+  MyStream : TMemoryStream;
+Begin
+  Result := True;
+  MyStream := TMemoryStream.Create;
+  TRY
+    MYStream.SaveToFile(filename);
+  EXCEPT ON E:EXCEPTION DO
+    begin
+    Result := false;
+    ToDeepDeb('MpDisk,CreateProperlyClosedAppFile,'+E.Message);
+    end;
+  END;
+  MyStream.Free;
+End;
 
 Function deleteBlockFiles(fromnumber:integer):integer;
 Begin
@@ -1065,39 +1116,11 @@ ToLog('console','Restoring sumary from '+StartMark.ToString);
 CompleteSumary;
 End;
 
-// Try to delete a file safely
-function TryDeleteFile(filename:string):boolean;
-Begin
-result := true;
-   TRY
-   deletefile(filename);
-   EXCEPT on E:Exception do
-      begin
-      result := false;
-      ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error deleting file ('+filename+') :'+E.Message);
-      end;
-   END;{TRY}
-End;
-
-// Trys to coyy a file safely
-function TryCopyFile(Source, destination:string):boolean;
-Begin
-result := true;
-   TRY
-   copyfile (source,destination);
-   EXCEPT on E:Exception do
-      begin
-      result := false;
-      ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error copying file ('+Source+') :'+E.Message);
-      end;
-   END; {TRY}
-End;
-
 // Returns the name of the app file without path
 function AppFileName():string;
 Begin
-result := ExtractFileName(ParamStr(0));
-// For working path: ExtractFilePAth
+  result := ExtractFileName(ParamStr(0));
+  // For working path: ExtractFilePAth
 End;
 
 

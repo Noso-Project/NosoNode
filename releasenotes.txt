@@ -1,3 +1,9 @@
+Updated after Version 0.4.2Ca5
+
+- Send reports implemented.
+- Fixed bug allowing empty project payments.
+- NOsocfg lyb completed.
+
 Version 0.4.0Aa2
 
 - Removed QR codes support.

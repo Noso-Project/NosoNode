@@ -13,7 +13,7 @@ INTERFACE
 
 uses
   Classes, SysUtils, Process, StrUtils, IdTCPClient, IdGlobal, fphttpclient,
-  opensslsockets, fileutil;
+  opensslsockets, fileutil, nosodebug;
 
 type
   TStreamHelper = class helper for TStream
@@ -358,8 +358,11 @@ Begin
   LStream := TStringStream.Create(aText);
     TRY
     LStream.SaveToFile(aFileName);
-    EXCEPT
-    result := false;
+    EXCEPT On E:Exception do
+      begin
+      result := false;
+      ToDeepDeb('NosoGeneral,SaveTextToDisk,'+E.Message);
+      end;
     END;{Try}
   LStream.Free;
 End;
@@ -373,8 +376,11 @@ Begin
     TRY
     LStream.LoadFromFile(aFileName);
     Result := LStream.DataString;
-    EXCEPT
-    result := '';
+    EXCEPT On E:Exception do
+      begin
+      result := '';
+      ToDeepDeb('NosoGeneral,LoadTextFromDisk,'+E.Message);
+      end;
     END;{Try}
   LStream.Free;
 End;
@@ -385,7 +391,10 @@ Begin
     TRY
     copyfile (source,destination,[cffOverwriteFile],true);
     EXCEPT on E:Exception do
+      begin
       result := false;
+      ToDeepDeb('NosoGeneral,TryCopyFile,'+E.Message);
+      end;
     END; {TRY}
 End;
 
