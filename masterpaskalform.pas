@@ -566,15 +566,7 @@ CONST
                                    'SETCFGDATA$GETPSOSPSOSFILE';
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS DELBOT';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
- {
-  DefaultNosoCFG : String = // CFG parameters
-                            {0 Mainnet mode}'NORMAL '+
-                            {1 Seed nodes  }'47.87.178.205;8080:47.87.180.219;8080:47.87.137.96;8080:192.3.85.196;8080:192.3.254.186;8080:198.46.218.125;8080:140.99.161.224;8080:63.227.69.162;8080:20.199.50.27;8080:45.83.151.30;8080:107.172.21.121;8080:47.87.132.148;8080: '+
-                            {2 NTP servers }'ts2.aco.net:hora.roa.es:time.esa.int:time.stdtime.gov.tw:stratum-1.sjc02.svwh.net:ntp1.sp.se:1.de.pool.ntp.org:ntps1.pads.ufrj.br:utcnist2.colorado.edu:tick.usask.ca:ntp1.st.keio.ac.jp: '+
-                            {3 DEPRECATED  }'N3ESwXxCAR4jw3GVHgmKiX9zx1ojWEf:N2ophUoAzJw9LtgXbYMiB4u5jWWGJF7:N3aXz2RGwj8LAZgtgyyXNRkfQ1EMnFC:N2MVecGnXGHpN8z4RqwJFXSQP6doVDv: '+
-                            {4 DEPRECATED  }'nosofish.xyz;8082:nosopool.estripa.online;8082:pool.nosomn.com;8082:159.196.1.198;8082: '+
-                            {5 FREZZED     }'NpryectdevepmentfundsGE:';
-  }
+
   ProgramVersion = '0.4.2';
   {$IFDEF WINDOWS}
   RestartFileName = 'launcher.bat';
@@ -584,10 +576,11 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ca4';
+  SubVersion = 'Ca5';
   OficialRelease = false;
+  BetaRelease    = true;
   VersionRequired = '0.4.2Ba7';
-  BuildDate = 'January 2024';
+  BuildDate = 'Febraury 2024';
   {Developer addresses}
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
@@ -1685,6 +1678,7 @@ LoadOptionsToPanel();
 form1.Caption:=coinname+format(rs0027,[ProgramVersion,SubVersion]);
 Application.Title := coinname+format(rs0027,[ProgramVersion,SubVersion]);   // Wallet
 ToLog('console',coinname+format(rs0027,[ProgramVersion,SubVersion]));
+If BetaRelease then ToLog('console','*** WARNING ***'+slinebreak+'This is a beta version ('+ProgramVersion+SubVersion+') Use it carefully, do not store funds on its wallet and report any issue to development team.');
 UpdateMyGVTsList;
 OutText(rs0088,false,1); // '✓ My GVTs grid updated';
 if fileexists(RestartFileName) then

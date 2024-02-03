@@ -5,7 +5,7 @@ unit mpSysCheck;
 interface
 
 uses
-  Classes, SysUtils, fphttpclient, mpdisk{$IFDEF Unix} ,Linux {$ENDIF},nosodebug,
+  Classes, SysUtils, fphttpclient{$IFDEF Unix} ,Linux {$ENDIF},nosodebug,
   nosocrypto;
 
 Type
@@ -62,8 +62,6 @@ End;
 
 Function AllocateMem(UpToMb:integer=1024):int64;
 var
-  MemMb    : array of pointer;
-  Finished : boolean = false;
   h: TFPCHeapStatus;
   i: cardinal;
   LastHeapFails: boolean;

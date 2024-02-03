@@ -127,7 +127,12 @@ if not FileExists(CFGFilename) then
 GetCFGDataFromFile;
 OutText('✓ NosoCFG file ok',false,1);
 
-if not FileExists (WalletFilename) then CreateNewWallet else LoadWallet(WalletFilename);
+if not FileExists (WalletFilename) then
+  begin
+  CreateNewWallet;
+  S_AdvOpt := true;
+  end
+else LoadWallet(WalletFilename);
 OutText('✓ Wallet file ok',false,1);
 
 if not Fileexists(BotDataFilename) then CrearBotData() else CargarBotData();
@@ -426,7 +431,7 @@ BeginPerformance('CreateADV');
    writeln(FileAdvOptions,'MNFunds '+(MN_Funds));
    if MN_Sign = '' then MN_Sign := GetWallArrIndex(0).Hash;
    writeln(FileAdvOptions,'//Masternode sign address');
-   writeln(FileAdvOptions,'MNSign '+(MN_Sign));
+   writeln(FileAdvOptions,'MNSign '+MN_Sign);
    writeln(FileAdvOptions,'//Use automatic IP detection for masternode');
    writeln(FileAdvOptions,'MNAutoIp '+BoolToStr(MN_AutoIP,true));
    writeln(FileAdvOptions,'');

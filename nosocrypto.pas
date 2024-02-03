@@ -304,6 +304,7 @@ var
   IsDone   : boolean = false;
   HashAdd  : String;
 Begin
+  Result := '';
   Repeat
     KeysPair := TSignerUtils.GenerateECKeyPair(TKeyType.SECP256K1);
     HashAdd := GetAddressFromPublicKey(Keyspair.PublicKey);

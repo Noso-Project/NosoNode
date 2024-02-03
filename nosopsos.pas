@@ -414,9 +414,9 @@ End;
 
 Function AddNewPSO(LMode:Integer;LOwner:String;LExpire:integer;LParams:String):Boolean;
 var
-  Counter  : integer;
   NewRec   : TPSOData;
 Begin
+  result := true;
   NewRec := Default(TPSOData);
   NewRec.Mode :=Lmode;
   NewRec.owner:=LOwner;

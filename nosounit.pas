@@ -288,9 +288,7 @@ End;
 Function CreateSumaryIndex():int64;
 var
   SumFile : File;
-  Readed : integer = 0;
   ThisRecord : TSummaryData;
-  IndexPosition : int64;
   CurrPos       : int64 = 0;
 Begin
   beginperformance('CreateSumaryIndex');
@@ -522,7 +520,6 @@ End;
 Procedure UpdateSummaryChanges();
 var
   counter     : integer;
-  Position    : integer;
   SumFile     : file;
 Begin
   AssignFile(SumFile,SummaryFileName);

@@ -124,9 +124,6 @@ Begin
 End;
 
 Procedure TThreadAutoConsensus.Execute;
-const
-  LastBlock  : integer = 0;
-  LastTime   : int64 = 0;
 Begin
   Repeat
     if ((BlockAge>=0) and (BlockAge<5)) then LastConsensusTime := 0;

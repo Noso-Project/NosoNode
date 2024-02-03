@@ -412,6 +412,7 @@ var
   Added      : integer = 0;
   Index      : integer;
 Begin
+  Result := true;
   FinalFile := TStringList.Create;
   ThisFile := TStringList.Create;
   while count < Length(Listfiles) do
@@ -436,6 +437,7 @@ Begin
     FinalFile.SaveToFile(Destination);
   FinalFile.Free;
   ThisFile.Free;
+  Result := true;
 End;
 
 {$ENDREGION}

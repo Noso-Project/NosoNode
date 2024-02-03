@@ -1346,7 +1346,7 @@ else
    TryonIndex :=  BlockFromIndex(orderid);
    if TryonIndex >= 0 then
       begin
-      ToLog('console', 'Order found on index!');
+      ToLog('console', 'Order found on index: '+TryOnIndex.ToString());
       FirstBlockToCheck := TryonIndex;
       end
    else

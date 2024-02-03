@@ -170,7 +170,6 @@ Function ImportAddressesFromBackup(BakFolder:String):integer;
 Var
   BakFiles    : TStringList;
   Counter     : integer = 0;
-  AddressStr  : string;
   ThisData    : WalletData;
 Begin
   Result := 0;
