@@ -9,7 +9,7 @@ uses
   lclintf, controls, mpBlock, Zipper, mpcoin, mpMn, nosodebug,
   {$IFDEF WINDOWS}Win32Proc, {$ENDIF}
   translation, strutils,nosogeneral, nosocrypto, nosounit, nosoconsensus, nosopsos,
-  nosowallcon, nosoheaders, nosonosocfg;
+  nosowallcon, nosoheaders, nosonosocfg, nosoblock;
 
 Function FileStructure():integer;
 Procedure VerifyFiles();
@@ -91,6 +91,8 @@ Begin
     if not CreateDir(GVTMarksDirectory) then Inc(Result);
   if not directoryexists(RPCBakDirectory) then
     if not CreateDir(RPCBakDirectory) then Inc(Result);
+  if not directoryexists(BlockDirectory+DBDirectory) then
+    if not CreateDir(BlockDirectory+DBDirectory) then Inc(Result);
 End;
 
 // Complete file verification
@@ -145,6 +147,10 @@ CreateSumaryIndex();
 OutText('✓ Sumary file ok',false,1);
 if not Fileexists(ResumenFilename) then CreateHeadersFile();
 OutText('✓ Headers file ok',false,1);
+
+if not FileExists(BlockDirectory+DBDirectory+DataBaseFilename) then CreateDBFile;
+OutText('✓ Database file ok. Creating index',false,1);
+CreateOrderIDIndex;
 
 if not FileExists(BlockDirectory+'0.blk') then CrearBloqueCero();
 MyLastBlock := GetMyLastUpdatedBlock;

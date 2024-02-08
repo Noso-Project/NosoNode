@@ -11,7 +11,7 @@ uses
   strutils, math, IdHTTPServer, IdCustomHTTPServer,
   IdHTTP, fpJSON, Types, DefaultTranslator, LCLTranslator, translation, nosodebug,
   IdComponent,nosogeneral,nosocrypto, nosounit, nosoconsensus, nosopsos, NosoWallCon,
-  nosoheaders;
+  nosoheaders, nosoblock;
 
 type
 
@@ -138,6 +138,7 @@ type
      PSOHash       : string[32];
      end;
 
+  {
   BlockHeaderData = Packed Record
      Number         : Int64;
      TimeStart      : Int64;
@@ -154,6 +155,7 @@ type
      MinerFee       : Int64;
      Reward         : Int64;
      end;
+   }
 
   NetworkData = Packed Record
      Value : String[64];   // el valor almacenado
@@ -576,7 +578,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ca5';
+  SubVersion = 'Ca6';
   OficialRelease = false;
   BetaRelease    = true;
   VersionRequired = '0.4.2Ba7';
@@ -846,7 +848,7 @@ var
 
   BotDataFilename     : string= 'NOSODATA'+DirectorySeparator+'botdata.psk';
   //WalletFilename    : string= 'NOSODATA'+DirectorySeparator+'wallet.pkw';
-  BlockDirectory      : string= 'NOSODATA'+DirectorySeparator+'BLOCKS'+DirectorySeparator;
+  //BlockDirectory      : string= 'NOSODATA'+DirectorySeparator+'BLOCKS'+DirectorySeparator;
   MarksDirectory      : string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator;
   GVTMarksDirectory   : string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator+'GVTS'+DirectorySeparator;
   UpdatesDirectory    : string= 'NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator;
@@ -1444,41 +1446,13 @@ begin
 end;
 
 procedure TThreadIndexer.Execute;
-var
-  resultorder : TOrderGroup;
-  ArrTrxs     : TBlockOrdersArray;
-  Counter     : integer;
-  NewRec      : TOrdIndex;
-  IsCompleted : boolean = false;
 Begin
   AddNewOpenThread('Indexer',UTCTime);
-  MyLastOrdIndex := GetMyLastUpdatedBlock-1008;
-  if MyLastOrdIndex < 0 then MyLastOrdIndex := 0;
-  ToLog('console',format('Indexer starts at block %d',[MyLastOrdIndex]));
   while not terminated do
     begin
-    if MyLastOrdIndex < MyLAstBlock then
-      begin
-      NewRec := Default(TOrdIndex);
-      NewRec.block:=MyLastOrdIndex;
-      ArrTrxs := GetBlockTrxs(MyLastOrdIndex);
-      if length(ArrTrxs)>0 then
-        begin
-        for counter := 0 to high(ArrTrxs) do
-          begin
-          NewRec.orders:=NewRec.orders+ArrTrxs[counter].OrderID+',';
-          end;
-
-        end;
-      Insert(NewRec,ArrayOrdIndex,Length(ArrayOrdIndex));
-      Inc(MyLastOrdIndex);
-      if ( (MyLastOrdIndex = MyLastBlock) and (IsCompleted = false) ) then
-        begin
-        ToLog('console',format('OrderIDs index updated at block %d',[MyLastOrdIndex]));
-        IsCompleted := true;
-        end;
-      end;
-    sleep(10);
+    if GetMyLastUpdatedBlock > GetDBLastBlock then
+      UpdateBlockDatabase;
+    sleep(1000);
     end;
   CloseOpenThread('Indexer');
 End;
@@ -1648,7 +1622,7 @@ if FileStructure > 0 then
   Halt();
   end;
 MixTxtFiles([DeepDebLogFilename,ConsoleLogFilename,EventLogFilename,ExceptLogFilename,NodeFTPLogFilename,PerformanceFIlename],ResumeLogFilename,true);
-InitDeepDeb(DeepDebLogFilename,'Starting DeepDebug session');
+InitDeepDeb(DeepDebLogFilename,format('( %s - %s )',[ProgramVersion+subversion, OSVersion]));
 NosoDebug_UsePerformance := true;
 UpdateLogsThread := TUpdateLogs.Create(true);
 UpdateLogsThread.FreeOnTerminate:=true;
@@ -1663,10 +1637,14 @@ OutText(rs0023,false,1); //✓ GUI initialized
 VerifyFiles();
 if ( (not fileExists(ClosedAppFilename)) and (WO_Sendreport) ) then
   begin
-  // Send the report file here
-  OutText('Bug report sent to developers',false,1); //✓ GUI initialized
+  if SEndFileViaTCP(ResumeLogFilename,'REPORT','141.11.192.215',18081) then
+    begin
+    OutText('✓ Bug report sent to developers',false,1);
+    TryDeleteFile(ClosedAppFilename);
+    end
+  else OutText('✓ Error sending report to developers',false,1);
   end;
-TryDeleteFile(ClosedAppFilename);
+
 InicializarGUI();
 //InitTime();
 GetTimeOffset(PArameter(GetNosoCFGString,2));
@@ -2268,13 +2246,6 @@ Except on E:Exception do
    //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Error trying close a server client connection ('+E.Message+')');
 end;
 End;
-
-Function SendFileToClient(Message:String;filename:string):Boolean;
-var
-  MyStream   : TMemoryStream;
-Begin
-
-end;
 
 // Node server gets a line
 procedure TForm1.IdTCPServer1Execute(AContext: TIdContext);

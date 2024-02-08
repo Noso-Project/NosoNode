@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, MasterPaskalForm, nosotime, graphics, strutils, forms, controls, grids,stdctrls,
   ExtCtrls, buttons, editbtn , menus, Clipbrd, IdContext, LCLTranslator, nosodebug, nosogeneral,
-  nosocrypto, nosoconsensus,nosounit, nosopsos, nosowallcon;
+  nosocrypto, nosoconsensus,nosounit, nosopsos, nosowallcon,nosoblock;
 
 type
   TFormInicio = class(Tform)
@@ -409,7 +409,7 @@ if LastUpdateDataPanel <> UTCTime then
    form1.DataPanel.Cells[3,0]:= format('[%d - %d] %s / %s',[GEtPSOHeaders.MNsLock,GetPSOHeaders.count,Copy(PSOFileHash,0,5),GetConsensus(20)]);
    form1.DataPanel.Cells[3,1]:= Format('[%s] %s Noso',[BlockAge.ToString,Copy(Int2curr(GetBlockReward(Mylastblock+1)),0,5)]);
    form1.DataPanel.Cells[3,2]:= GEtOutgoingconnections.ToString+'/'+GetClientReadThreads.ToString;
-   form1.DataPanel.Cells[3,3]:= Format('%d (%d)',[MyLastOrdIndex,length(ArrayOrdIndex)]);
+   form1.DataPanel.Cells[3,3]:= Format('%d (%d)',[GetDBLastBlock,GetDBRecords]);
    form1.DataPanel.Cells[3,4]:= format('%s / %s',[Copy(HashMd5String(GetNosoCFGString),0,5),GetConsensus(19)]);
    form1.DataPanel.Cells[3,5]:= format('%s / %s',[Copy(MyGVTsHash,0,5),GetConsensus(18)]);
    form1.DataPanel.Cells[3,6]:= format('%s / %s',[Copy(MyMNsHash,0,5),GetConsensus(8)]);

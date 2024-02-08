@@ -876,9 +876,9 @@ object Form1: TForm1
         Height = 460
         Top = 0
         Width = 632
-        ActivePage = TabNodeOptions
+        ActivePage = Tab_Options_RPC
         Align = alClient
-        TabIndex = 1
+        TabIndex = 2
         TabOrder = 0
         object TabOpt_Wallet: TTabSheet
           Caption = 'Wallet'

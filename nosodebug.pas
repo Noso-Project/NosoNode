@@ -395,7 +395,7 @@ Begin
   if InitializeLogFile(LFileName,SysInfo) then
     begin
     DeepDebFilename := LFileName;
-    ToDeepDeb(SysInfo);
+    //ToDeepDeb(SysInfo);
     end;
 End;
 

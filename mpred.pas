@@ -9,7 +9,7 @@ uses
   mpBlock, fileutil, graphics,  dialogs, strutils, mpcoin, fphttpclient,
   opensslsockets,translation, IdHTTP, IdComponent, IdSSLOpenSSL, mpmn, IdTCPClient,
   nosodebug,nosogeneral, nosocrypto, nosounit, nosoconsensus, nosopsos,nosowallcon,
-  nosoheaders;
+  nosoheaders, nosoblock;
 
 function GetSlotFromIP(Ip:String):int64;
 function GetSlotFromContext(Context:TidContext):int64;
@@ -250,7 +250,7 @@ else
       U_DataPanel := true;
       except
       on E : Exception do
-        ToLog('events',TimeToStr(now)+'Unable to start Server');       //Unable to start Server
+        ToLog('events',TimeToStr(now)+'Unable to start Server: '+e.Message);       //Unable to start Server
       end;
    end;
 End;

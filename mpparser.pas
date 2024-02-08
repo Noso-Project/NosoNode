@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, nosotime, mpblock, mpcoin,
   dialogs, fileutil, forms, idglobal, strutils, mpRPC, DateUtils, Clipbrd,translation,
   idContext, math, mpMN, MPSysCheck, nosodebug, nosogeneral, nosocrypto, nosounit,
-  nosoconsensus, nosopsos,nosowallcon, nosoheaders;
+  nosoconsensus, nosopsos,nosowallcon, nosoheaders, nosoblock;
 
 procedure ProcessLinesAdd(const ALine: String);
 procedure OutgoingMsjsAdd(const ALine: String);
@@ -275,6 +275,10 @@ else if UpperCase(Command) = 'FORCEREPOSEEDS' then
   begin
   SetCFGData(GetRepoFile('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos'),1);
   end
+else if UpperCase(Command) = 'SENDREPORT' then SEndFileViaTCP(ResumeLogFilename,'REPORT','debuglogs.nosocoin.com:18081',18081)
+else if UpperCase(Command) = 'GETDBLB' then ToLog('console',GetDBLastBlock.ToString)
+
+
 
 // New system
 

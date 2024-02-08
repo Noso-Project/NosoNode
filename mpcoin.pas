@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils,MasterPaskalForm,mpgui,Clipbrd, strutils, nosodebug,nosogeneral,
-  nosocrypto, nosounit,nosotime,nosopsos,nosowallcon;
+  nosocrypto, nosounit,nosotime,nosopsos,nosowallcon, nosoblock;
 
 function GetAddressAvailable(address:string):int64;
 function GetAddressPendingPays(Address:string):int64;

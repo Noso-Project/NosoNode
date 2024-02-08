@@ -47,6 +47,7 @@ Function LoadTextFromDisk(const aFileName: TFileName): string;
 function TryCopyFile(Source, destination:string):boolean;
 function TryDeleteFile(filename:string):boolean;
 Function MixTxtFiles(ListFiles : array of string;Destination:String;DeleteSources:boolean=true):boolean ;
+Function SendFileViaTCP(filename,message,host:String;Port:integer):Boolean;
 
 
 IMPLEMENTATION
@@ -438,6 +439,35 @@ Begin
   FinalFile.Free;
   ThisFile.Free;
   Result := true;
+End;
+
+Function SendFileViaTCP(filename,message,host:String;Port:integer):Boolean;
+var
+  Client   : TidTCPClient;
+  MyStream : TMemoryStream;
+Begin
+  Result := true;
+  if not fileExists(filename) then exit(false);
+  MyStream := TMemoryStream.Create;
+  MyStream.LoadFromFile(filename);
+  Client := TidTCPClient.Create(nil);
+  Client.Host:=host;
+  Client.Port:=Port;
+  Client.ConnectTimeout:= 1000;
+  Client.ReadTimeout:=1000;
+  TRY
+    Client.Connect;
+    Client.IOHandler.WriteLn(message);
+    Client.IOHandler.Write(MyStream,0,true);
+  EXCEPT on E:Exception do
+    begin
+    Result := false;
+    ToDeepDeb('NosoGeneral,SendFile,'+E.Message);
+    end;
+  END;{Try}
+  if client.Connected then Client.Disconnect();
+  client.Free;
+  MyStream.Free;
 End;
 
 {$ENDREGION}

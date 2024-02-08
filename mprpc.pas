@@ -38,6 +38,7 @@ function RPC_Masternodes(NosoPParams:string):string;
 function RPC_Blockmns(NosoPParams:string):string;
 Function RPC_WalletBalance(NosoPParams:string):string;
 function RPC_NewAddress(NosoPParams:string):string;
+function RPC_NewAddressFull(NosoPParams:string):string;
 Function RPC_ValidateAddress(NosoPParams:string):string;
 Function RPC_SetDefault(NosoPParams:string):string;
 Function RPC_GVTInfo(NosoPParams:string):string;
@@ -381,6 +382,12 @@ else if objecttype = 'getmasternodes' then
    resultado.Add('count',StrToIntDef(parameter(mystring,2),-1));
    resultado.Add('nodes',parameter(mystring,3));
    end
+else if objecttype = 'newaddressfull' then
+   begin
+   resultado.Add('hash',parameter(mystring,1));
+   resultado.Add('public',parameter(mystring,2));
+   resultado.Add('private',parameter(mystring,3));
+   end
 else if objecttype = 'newaddress' then
    begin
    //resultado.Add('valid',StrToBool(parameter(mystring,1)));
@@ -468,6 +475,7 @@ else
       else if method = 'getmasternodes' then result := GetJSONResponse(RPC_Masternodes(NosoPParams),jsonid)
       else if method = 'getwalletbalance' then result := GetJSONResponse(RPC_WalletBalance(NosoPParams),jsonid)
       else if method = 'getnewaddress' then result := GetJSONResponse(RPC_NewAddress(NosoPParams),jsonid)
+      else if method = 'getnewaddressfull' then result := GetJSONResponse(RPC_NewAddressFull(NosoPParams),jsonid)
       else if method = 'islocaladdress' then result := GetJSONResponse(RPC_ValidateAddress(NosoPParams),jsonid)
       else if method = 'setdefault' then result := GetJSONResponse(RPC_SetDefault(NosoPParams),jsonid)
       else if method = 'getgvtinfo' then result := GetJSONResponse(RPC_GVTInfo(NosoPParams),jsonid)
@@ -800,7 +808,6 @@ var
 Begin
 TotalNumber := StrToIntDef(NosoPParams,1);
 if TotalNumber > 100 then TotalNumber := 100;
-//ToLog('console','TotalNewAddresses: '+IntToStr(TotalNumber));
 result := 'newaddress'#127'true'#127+IntToStr(TotalNumber)+#127;
 for counter := 1 to totalnumber do
    begin
@@ -815,7 +822,25 @@ for counter := 1 to totalnumber do
 trim(result);
 S_Wallet := true;
 U_DirPanel := true;
-//ToLog('console',result);
+End;
+
+function RPC_NewAddressFull(NosoPParams:string):string;
+var
+  counter : integer;
+  NewAddress : WalletData;
+  PubKey,PriKey : string;
+Begin
+  result := 'newaddressfull'#127;
+  NewAddress := Default(WalletData);
+  NewAddress.Hash:=GenerateNewAddress(PubKey,PriKey);
+  NewAddress.PublicKey:=pubkey;
+  NewAddress.PrivateKey:=PriKey;
+  InsertToWallArr(NewAddress);
+  if RPCSaveNew then SaveAddresstoFile(RPCBakDirectory+NewAddress.Hash+'.pkw',NewAddress);
+  Result := result+NewAddress.Hash+#127+NewAddress.PublicKey+#127+NewAddress.PrivateKey;
+  trim(result);
+  S_Wallet := true;
+  U_DirPanel := true;
 End;
 
 Function RPC_ValidateAddress(NosoPParams:string):string;
