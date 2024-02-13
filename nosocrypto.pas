@@ -365,12 +365,12 @@ Begin
     Address     := GetAddressFromPublicKey(Pubkey);
     Signature   := GetStringSigned('OWN'+Address+currtime,PrivKey);
     Certificate := 'OWN:'+Pubkey+':'+Currtime+':'+signature;
-    ToLog('console','To encode: '+certificate);
+    //ToLog('console','To encode: '+certificate);
     Certificate := UPPERCASE(XorEncode(HashSha256String('noso'),certificate));
-    ToLog('console','Encoded: '+certificate);
+    //ToLog('console','Encoded: '+certificate);
     result      :=  B16ToB58('1'+Certificate);
     Checksum    :=  GetCertificateChecksum(Result);
-    ToLog('console','Checksum: '+Checksum);
+    //ToLog('console','Checksum: '+Checksum);
     Result      := Result+Checksum;
   EXCEPT Exit;
   END; {TRY}
@@ -392,9 +392,9 @@ Begin
     if CheckSum <> GetCertificateChecksum(Certificate) then exit;
     Certificate := B58toB16(certificate);
     Certificate := copy(Certificate,2,length(certificate));
-    ToLog('console','To decode: '+certificate);
+    //ToLog('console','To decode: '+certificate);
     Certificate := XorDecode(HashSha256String('noso'), Certificate);
-    ToLog('console','Decoded: '+certificate);
+    //ToLog('console','Decoded: '+certificate);
     DataArray   := SplitString(Certificate,':');
     Address     := GetAddressFromPublicKey(DataArray[1]);
     CertTime    := DataArray[2];

@@ -1453,7 +1453,12 @@ Begin
   AddNewOpenThread('Indexer',UTCTime);
   while not terminated do
     begin
-    if not WO_BlockDB then continue;
+    if not WO_BlockDB then
+       begin
+       sleep(1000);
+       continue;
+       end;
+       continue;
     if GetMyLastUpdatedBlock > GetDBLastBlock then
       begin
       if ( (blockAge>60) and (MyLastBlockHash =getconsensus(10)) ) then UpdateBlockDatabase;
@@ -1641,7 +1646,7 @@ OutText(rs0022,false,1); //'✓ Files tree ok'
 InitMainForm();
 OutText(rs0023,false,1); //✓ GUI initialized
 VerifyFiles();
-if ( (fileExists(ClosedAppFilename)) and (WO_Sendreport) ) then
+if ( (not fileExists(ClosedAppFilename)) and (WO_Sendreport) ) then
   begin
   if SEndFileViaTCP(ResumeLogFilename,'REPORT','debuglogs.nosocoin.com',18081) then
     begin
