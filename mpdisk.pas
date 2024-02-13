@@ -149,9 +149,12 @@ if not Fileexists(ResumenFilename) then CreateHeadersFile();
 OutText('✓ Headers file ok',false,1);
 
 if not FileExists(BlockDirectory+DBDirectory+DataBaseFilename) then CreateDBFile;
-OutText('✓ Database file ok. Creating index',false,1);
-CreateOrderIDIndex;
-
+OutText('✓ Database file ok.',false,1);
+if WO_BlockDB then
+  begin
+  OutText('✓ Loading blocks Database.',false,1);
+  CreateOrderIDIndex;
+  end;
 if not FileExists(BlockDirectory+'0.blk') then CrearBloqueCero();
 MyLastBlock := GetMyLastUpdatedBlock;
 OutText('✓ My last block verified: '+MyLastBlock.ToString,false,1);
@@ -417,6 +420,8 @@ BeginPerformance('CreateADV');
    writeln(FileAdvOptions,'Closestart '+BoolToStr(WO_CloseStart,true));
    writeln(FileAdvOptions,'//Send anonymous report to developers');
    writeln(FileAdvOptions,'SendReport '+BoolToStr(WO_SendReport,true));
+   writeln(FileAdvOptions,'//Keep a blocks database');
+   writeln(FileAdvOptions,'BlocksDB '+BoolToStr(WO_BlockDB,true));
 
    writeln(FileAdvOptions,'//Mainform coordinates. Do not manually change this values');
    writeln(FileAdvOptions,Format('FormState %d %d %d %d %d',[Form1.Top,form1.Left,form1.Width,form1.Height,form1.WindowState]));
@@ -494,6 +499,8 @@ Begin
       if parameter(linea,0) ='MaxPeers' then MaxPeersAllow:=StrToIntDef(Parameter(linea,1),MaxPeersAllow);
       if parameter(linea,0) ='PosWarning' then WO_PosWarning:=StrToIntDef(Parameter(linea,1),WO_PosWarning);
       if parameter(linea,0) ='SendReport' then WO_SendReport:=StrToBool(Parameter(linea,1));
+      if parameter(linea,0) ='BlocksDB' then WO_BlockDB:=StrToBool(Parameter(linea,1));
+
       if parameter(linea,0) ='MultiSend' then WO_MultiSend:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='HideEmpty' then WO_HideEmpty:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='RPCFilter' then RPCFilter:=StrToBool(Parameter(linea,1));

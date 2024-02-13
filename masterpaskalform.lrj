@@ -31,6 +31,7 @@
 {"hash":125610000,"name":"tform1.cbrunnodealone.caption","sourcebytes":[83,116,111,112,32,71,85,73,32,40,114,101,99,111,109,109,101,110,100,101,100,32,102,111,114,32,117,110,97,116,116,101,110,100,101,100,32,110,111,100,101,115,41,32],"value":"Stop GUI (recommended for unattended nodes) "},
 {"hash":59817667,"name":"tform1.cb_wo_hideempty.caption","sourcebytes":[72,105,100,101,32,101,109,112,116,121,32,97,100,100,114,101,115,115,101,115],"value":"Hide empty addresses"},
 {"hash":44320467,"name":"tform1.cbsendreports.caption","sourcebytes":[83,101,110,100,32,97,110,111,110,121,109,111,117,115,32,114,101,112,111,114,116,115],"value":"Send anonymous reports"},
+{"hash":86883977,"name":"tform1.cbkeepblocksdb.caption","sourcebytes":[82,117,110,32,98,108,111,99,107,115,32,100,97,116,97,98,97,115,101,32,40,82,101,115,116,97,114,116,32,110,101,101,100,101,100,41],"value":"Run blocks database (Restart needed)"},
 {"hash":349605,"name":"tform1.tabnodeoptions.caption","sourcebytes":[78,111,100,101],"value":"Node"},
 {"hash":113543317,"name":"tform1.checkbox4.caption","sourcebytes":[82,117,110,32,77,97,115,116,101,114,78,111,100,101],"value":"Run MasterNode"},
 {"hash":1248,"name":"tform1.label8.caption","sourcebytes":[73,80],"value":"IP"},

@@ -81,6 +81,7 @@ Procedure PostOffer(LineText:String);
 
 Procedure DebugTest(linetext:string);
 Procedure DebugTest2(linetext:string);
+Procedure OrdInfo(linetext:string);
 
 Procedure totallocked();
 Procedure ShowSumary();
@@ -277,7 +278,7 @@ else if UpperCase(Command) = 'FORCEREPOSEEDS' then
   end
 else if UpperCase(Command) = 'SENDREPORT' then SEndFileViaTCP(ResumeLogFilename,'REPORT','debuglogs.nosocoin.com:18081',18081)
 else if UpperCase(Command) = 'GETDBLB' then ToLog('console',GetDBLastBlock.ToString)
-
+else if UpperCase(Command) = 'ORDINFO' then OrdInfo(LineText)
 
 
 // New system
@@ -1700,6 +1701,22 @@ ToLog('console','Masternodes  : '+IntToStr(total));
 ToLog('console','Verificators : '+IntToStr(verifis));
 for counter := 0 to verifis-1 do
    ToLog('console',format('%s %s %d',[ArrayMNsData[counter].ipandport,copy(arrayMNsData[counter].address,1,5),ArrayMNsData[counter].age]));
+End;
+
+Procedure OrdInfo(linetext:string);
+var
+  LOrder : TOrderData;
+Begin
+  beginperformance('ordinfo');
+  if GetOrderFromDB(parameter(linetext,1),LOrder) then
+    begin
+    ToLog('console',Lorder.Block.ToString);
+    ToLog('console',Lorder.sender);
+    ToLog('console',Lorder.receiver);
+    ToLog('console',Lorder.AmmountTrf.ToString);
+    end
+  else ToLog('console','Order not found');
+  Endperformance('ordinfo')
 End;
 
 Procedure ShowSystemInfo(Linetext:string);

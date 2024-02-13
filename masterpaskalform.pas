@@ -267,6 +267,7 @@ type
     Button1: TButton;
     Button2: TButton;
     CBSendReports: TCheckBox;
+    CBKeepBlocksDB: TCheckBox;
     CB_BACKRPCaddresses: TCheckBox;
     CB_WO_Autoupdate: TCheckBox;
     CBAutoIP: TCheckBox;
@@ -437,6 +438,7 @@ type
     procedure BTestNodeClick(sender: TObject);
     procedure Button1Click(sender: TObject);
     procedure Button2Click(sender: TObject);
+    procedure CBKeepBlocksDBChange(Sender: TObject);
     procedure CBRunNodeAloneChange(sender: TObject);
     procedure CBSendReportsChange(Sender: TObject);
     procedure CB_BACKRPCaddressesChange(Sender: TObject);
@@ -578,9 +580,9 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Ca6';
-  OficialRelease = false;
-  BetaRelease    = true;
+  SubVersion = 'Cb1';
+  OficialRelease = true;
+  BetaRelease    = false;
   VersionRequired = '0.4.2Ba7';
   BuildDate = 'Febraury 2024';
   {Developer addresses}
@@ -642,6 +644,7 @@ var
     FirstTimeUpChe : boolean = true;
   WO_SendReport    : boolean = false;
   WO_OmmitMemos    : boolean = false;
+  WO_BlockDB       : boolean = false;
   RPCFilter        : boolean = true;
   RPCWhitelist     : string = '127.0.0.1,localhost';
   RPCBanned        : string = '';
@@ -1450,8 +1453,11 @@ Begin
   AddNewOpenThread('Indexer',UTCTime);
   while not terminated do
     begin
+    if not WO_BlockDB then continue;
     if GetMyLastUpdatedBlock > GetDBLastBlock then
-      UpdateBlockDatabase;
+      begin
+      if ( (blockAge>60) and (MyLastBlockHash =getconsensus(10)) ) then UpdateBlockDatabase;
+      end;
     sleep(1000);
     end;
   CloseOpenThread('Indexer');
@@ -1635,14 +1641,14 @@ OutText(rs0022,false,1); //'✓ Files tree ok'
 InitMainForm();
 OutText(rs0023,false,1); //✓ GUI initialized
 VerifyFiles();
-if ( (not fileExists(ClosedAppFilename)) and (WO_Sendreport) ) then
+if ( (fileExists(ClosedAppFilename)) and (WO_Sendreport) ) then
   begin
-  if SEndFileViaTCP(ResumeLogFilename,'REPORT','141.11.192.215',18081) then
+  if SEndFileViaTCP(ResumeLogFilename,'REPORT','debuglogs.nosocoin.com',18081) then
     begin
     OutText('✓ Bug report sent to developers',false,1);
     TryDeleteFile(ClosedAppFilename);
     end
-  else OutText('✓ Error sending report to developers',false,1);
+  else OutText('x Error sending report to developers',false,1);
   end;
 
 InicializarGUI();
@@ -1762,7 +1768,8 @@ CBSendReports.checked := WO_SendReport;
 LE_Rpc_Port.Text := IntToStr(RPCPort);
 LE_Rpc_Pass.Text := RPCPass;
 CB_BACKRPCaddresses.Checked := RPCSaveNew;
-CBRunNodeAlone.Checked:=WO_OmmitMemos;
+CBRunNodeAlone.Checked:= WO_OmmitMemos;
+CBKeepBlocksDB.Checked:= WO_BlockDB;
 
 CB_RPCFilter.Checked:=RPCFilter;
 MemoRPCWhitelist.Text:=RPCWhitelist;
@@ -3481,6 +3488,15 @@ procedure TForm1.Button2Click(sender: TObject);
 Begin
 MemoExceptLog.Lines.Clear;
 End;
+
+procedure TForm1.CBKeepBlocksDBChange(Sender: TObject);
+begin
+if not G_Launching then
+   begin
+   if CBKeepBlocksDB.Checked then WO_BlockDB := true
+   else WO_BlockDB := false;
+   end;
+end;
 
 procedure TForm1.CBRunNodeAloneChange(sender: TObject);
 begin

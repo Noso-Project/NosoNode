@@ -38,12 +38,17 @@ Type
     Reward         : Int64;
     end;
 
+  IntArray = array of integer;
+
 Procedure CreateDBFile();
 Function GetDBRecords():Integer;
 Function AddRecordToDBFile(block,order,source,target:integer):boolean;
 Function GetDBLastBlock():Integer;
 Function UpdateBlockDatabase():Boolean;
+Function InsertToIndex(LData:TDBRecord):boolean;
 Function CreateOrderIDIndex():Boolean;
+Function GetBlockFromOrder(OrderID:string):integer;
+Function GetOrderFromDB(OrderID:String; out OrderInfo:TOrderData):boolean;
 
 function GetMyLastUpdatedBlock():int64;
 function GetBlockTrxs(BlockNumber:integer):TBlockOrdersArray;
@@ -55,12 +60,14 @@ var
   DataBaseFilename    : string = 'blocks_db.nos';
   DBFile              : file of TDBRecord;
   CSDBFile            : TRTLCriticalSection;
+  CSDBIndex           : TRTLCriticalSection;
   OrderIDIndex        : Array of TindexRecord;
 
 IMPLEMENTATION
 
 {$REGION blocks database}
 
+// Creates an empty DB file
 Procedure CreateDBFile();
 Begin
   TRY
@@ -73,6 +80,7 @@ Begin
   END;
 End;
 
+// Returns the records count on file
 Function GetDBRecords():Integer;
 var
   opened : boolean = false;
@@ -94,6 +102,7 @@ Begin
   LeaveCriticalSection(CSDBFile);
 End;
 
+// Add a new record to the File and also to the index
 Function AddRecordToDBFile(block,order,source,target:integer):boolean;
 var
   NewData : TDBRecord;
@@ -121,8 +130,10 @@ Begin
     END;
   if ( (opened) and (not closed) ) then Closefile(DBfile);
   LeaveCriticalSection(CSDBFile);
+  InsertToIndex(NewData);
 End;
 
+// Returns the last block on file
 Function GetDBLastBlock():Integer;
 var
   NewData : TDBRecord;
@@ -151,6 +162,7 @@ Begin
   LeaveCriticalSection(CSDBFile);
 End;
 
+// Calculates the integer for the value
 Function DBIndex(Text:string):integer;
 var
   SubStr : string;
@@ -161,6 +173,7 @@ Begin
   result := StrToInt64(b58toB10(SubStr)) mod 100000;
 End;
 
+// updates file and database to most recent block on disk
 Function UpdateBlockDatabase():Boolean;
 var
   LastUpdated : integer;
@@ -187,11 +200,20 @@ Begin
     end;
 End;
 
+// Insert a value on index
+Function InsertToIndex(LData:TDBRecord):boolean;
+Begin
+  EnterCriticalSEction(CSDBIndex);
+  Insert(LData.block,OrderIDIndex[LData.orderID],length(OrderIDIndex[LData.orderID]));
+  LeaveCriticalSEction(CSDBIndex);
+End;
+
+// Creates the INDEX from the file
 Function CreateOrderIDIndex():Boolean;
 var
   ThisData : TDBRecord;
 Begin
-  beginperformance('CreateOrderIDIndex');
+  BeginPerformance('CreateOrderIDIndex');
   SetLength(OrderIDIndex,0,0);
   SetLength(OrderIDIndex,100000);
     TRY
@@ -207,26 +229,79 @@ Begin
 
       end;
     END;
-  endperformance('CreateOrderIDIndex');
+  EndPerformance('CreateOrderIDIndex');
 End;
 
+// Returns the array of integer of the specified index value
+Function GetDBArray(value:integer;out LArray: IntArray):Boolean;
+Begin
+  result := false;
+  SetLength(LArray,0);
+  EnterCriticalSection(CSDBIndex);
+  if length(OrderIDIndex[value]) > 0 then
+    begin
+    LArray := copy(OrderIDIndex[value],0,length(OrderIDIndex[value]));
+    Result := true;
+    end;
+  LeaveCriticalSection(CSDBIndex);
+End;
+
+// Returns the block number where the order is found, or -1 if none
+Function GetBlockFromOrder(OrderID:string):integer;
+var
+  LValue      : integer;
+  ThisArray   : IntArray;
+  counter     : integer;
+  counter2    : integer;
+  ArrayOrders : TBlockOrdersArray;
+Begin
+  Result := -1;
+  LValue := DBIndex(OrderID);
+  if GetDBArray(LValue,ThisArray) then
+    begin
+    for counter := 0 to length(ThisArray)-1 do
+      begin
+      ArrayOrders := Default(TBlockOrdersArray);
+      ArrayOrders := GetBlockTrxs(ThisArray[counter]);
+      for counter2 := 0 to length(ArrayOrders)-1 do
+        begin
+        if Arrayorders[counter2].OrderID = OrderID then
+          begin
+          Exit(Arrayorders[counter2].Block);
+          end;
+        end;
+      end;
+    end;
+End;
+
+// Returns the order data from its orderID
 Function GetOrderFromDB(OrderID:String; out OrderInfo:TOrderData):boolean;
 var
   IndexValue        : integer;
   Counter, counter2 : integer;
+  ThisArray         : IntArray;
   ArrayOrders       : TBlockOrdersArray;
 Begin
   Result := False;
+  OrderInfo := Default(TOrderData);
   IndexValue := DBIndex(OrderID);
-  if length(OrderIDIndex[IndexValue]) > 0 then
+  if GetDBArray(IndexValue,ThisArray) then
+  //if length(OrderIDIndex[IndexValue]) > 0 then
     begin
-    for counter := 0 to length(OrderIDIndex[IndexValue])-1 do
+    for counter := 0 to length(ThisArray)-1 do
       begin
       ArrayOrders := Default(TBlockOrdersArray);
-      ArrayOrders := GetBlockTrxs(OrderIDIndex[IndexValue][counter]);
+      ArrayOrders := GetBlockTrxs(ThisArray[counter]);
+      for counter2 := 0 to length(ArrayOrders)-1 do
+        begin
+        if Arrayorders[counter2].OrderID = OrderID then
+          begin
+          OrderInfo := Arrayorders[counter2];
+          Exit(True);
+          end;
+        end;
       end;
     end;
-
 End;
 
 {$ENDREGION blocks database}
@@ -255,7 +330,9 @@ Begin
       end;
     Result := LastBlock;
     EXCEPT on E:Exception do
-      ToLog('events',TimeToStr(now)+'Error getting my last updated block');
+      begin
+      //
+      end;
     END; {TRY}
   BlockFiles.Free;
 End;
@@ -296,9 +373,13 @@ End;
 INITIALIZATION
 Assignfile(DBFile,BlockDirectory+DBDirectory+DataBaseFilename);
 InitCriticalSection(CSDBFile);
+InitCriticalSection(CSDBIndex);
+SetLength(OrderIDIndex,0,0);
+SetLength(OrderIDIndex,100000);
 
 FINALIZATION
 DoneCriticalSection(CSDBFile);
+DoneCriticalSection(CSDBIndex);
 
 END.
 

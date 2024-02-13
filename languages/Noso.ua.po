@@ -96,6 +96,10 @@ msgctxt "tform1.cbautoip.hint"
 msgid "Use mainnet auto assigned IP"
 msgstr ""
 
+#: tform1.cbkeepblocksdb.caption
+msgid "Run blocks database (Restart needed)"
+msgstr ""
+
 #: tform1.cbrunnodealone.caption
 msgid "Stop GUI (recommended for unattended nodes) "
 msgstr ""

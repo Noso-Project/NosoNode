@@ -59,7 +59,6 @@ function GetOutGoingConnections():integer;
 function GetIncomingConnections():integer;
 Function GetSeedConnections():integer;
 Function GetValidSlotForSeed(out Slot:integer):boolean;
-Function BlockFromIndex(LOrderID:String):integer;
 function GetOrderDetails(orderid:string):TOrderGroup;
 function GetOrderSources(orderid:string):string;
 Function GetNodeStatusString():string;
@@ -1279,23 +1278,6 @@ for contador := 1 to MaxConecciones do
    end;
 end;
 
-Function BlockFromIndex(LOrderID:String):integer;
-var
-  counter : integer;
-Begin
-  BeginPerformance('BlockFromIndex');
-  result := -1;
-  for counter := length(ArrayOrdIndex)-1 downto 0 do
-    begin
-    if AnsiContainsStr(ArrayOrdIndex[counter].orders,LOrderID) then
-      begin
-      result := ArrayOrdIndex[counter].block;
-      break;
-      end;
-    end;
-  EndPerformance('BlockFromIndex');
-End;
-
 function GetOrderDetails(orderid:string):TOrderGroup;
 var
   counter,counter2 : integer;
@@ -1340,50 +1322,41 @@ if GetPendingCount>0 then
 if orderfound then result := resultorder
 else
    begin
-   if WO_FullNode then LastBlockToCheck := 1
-   else LastBlockToCheck := mylastblock-SecurityBlocks;
-   if LastBlockToCheck<1 then LastBlockToCheck := 1;
-   TryonIndex :=  BlockFromIndex(orderid);
+   TryonIndex := GetBlockFromOrder(orderid);
    if TryonIndex >= 0 then
       begin
       ToLog('console', 'Order found on index: '+TryOnIndex.ToString());
-      FirstBlockToCheck := TryonIndex;
+      ArrTrxs := GetBlockTrxs(TryonIndex);
+      if length(ArrTrxs)>0 then
+        begin
+        for counter2 := 0 to length(ArrTrxs)-1 do
+          begin
+          if ArrTrxs[counter2].OrderID = orderid then
+            begin
+            resultorder.OrderID:=ArrTrxs[counter2].OrderID;
+            resultorder.Block := ArrTrxs[counter2].Block;
+            resultorder.reference:=ArrTrxs[counter2].reference;
+            resultorder.TimeStamp:=ArrTrxs[counter2].TimeStamp;
+            resultorder.receiver:=ArrTrxs[counter2].receiver;
+            if ArrTrxs[counter2].OrderLines=1 then
+              resultorder.sender := ArrTrxs[counter2].sender
+            else
+              resultorder.sender:=resultorder.sender+format('[%s,%d,%d]',[ArrTrxs[counter2].Address,ArrTrxs[counter2].AmmountTrf,ArrTrxs[counter2].AmmountFee]);
+            resultorder.AmmountTrf:=resultorder.AmmountTrf+ArrTrxs[counter2].AmmountTrf;
+            resultorder.AmmountFee:=resultorder.AmmountFee+ArrTrxs[counter2].AmmountFee;
+            resultorder.OrderLines+=1;
+            resultorder.OrderType:=ArrTrxs[counter2].OrderType;
+            orderfound := true;
+            end;
+          end;
+        end;
+      SetLength(ArrTrxs,0);
       end
    else
      begin
      FirstBlockToCheck := mylastblock;
      ToLog('console', 'Order not on index');
      end;
-
-   for counter := FirstBlockToCheck downto LastBlockToCheck do
-      begin
-      ArrTrxs := GetBlockTrxs(counter);
-      if length(ArrTrxs)>0 then
-         begin
-         for counter2 := 0 to length(ArrTrxs)-1 do
-            begin
-            if ArrTrxs[counter2].OrderID = orderid then
-               begin
-               resultorder.OrderID:=ArrTrxs[counter2].OrderID;
-               resultorder.Block := ArrTrxs[counter2].Block;
-               resultorder.reference:=ArrTrxs[counter2].reference;
-               resultorder.TimeStamp:=ArrTrxs[counter2].TimeStamp;
-               resultorder.receiver:=ArrTrxs[counter2].receiver;
-               if ArrTrxs[counter2].OrderLines=1 then
-                  resultorder.sender := ArrTrxs[counter2].sender
-               else
-                  resultorder.sender:=resultorder.sender+format('[%s,%d,%d]',[ArrTrxs[counter2].Address,ArrTrxs[counter2].AmmountTrf,ArrTrxs[counter2].AmmountFee]);
-               resultorder.AmmountTrf:=resultorder.AmmountTrf+ArrTrxs[counter2].AmmountTrf;
-               resultorder.AmmountFee:=resultorder.AmmountFee+ArrTrxs[counter2].AmmountFee;
-               resultorder.OrderLines+=1;
-               resultorder.OrderType:=ArrTrxs[counter2].OrderType;
-               orderfound := true;
-               end;
-            end;
-         end;
-      if orderfound then break;
-      SetLength(ArrTrxs,0);
-      end;
    end;
 result := resultorder;
 EndPerformance('GetOrderDetails');

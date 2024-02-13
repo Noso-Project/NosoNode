@@ -41,6 +41,7 @@ Function GenerateNewAddress(out pubkey:String;out privkey:String):String;
 Function IsValidHashAddress(Address:String):boolean;
 Function GetTransferHash(TextLine:string):String;
 function GetOrderHash(TextLine:string):String;
+Function GetCertificateChecksum(certificate:String):String;
 Function GetCertificate(Pubkey,privkey,currtime:string):string;
 Function CheckCertificate(certificate:string;out TimeStamp:String):string;
 Function CheckHashDiff(Target,ThisHash:String):string;
@@ -58,6 +59,7 @@ Function B16ToB58Lite1_60(const sHex: String): String;
 Function B58ToB10(const sVal: String): String;
 Function B58ToB16(const sVal: String): String;
 Function ChecksumBase58(const S: String): integer;
+Function BMB58resumenNew(numero58:string):string;
 Function BMB58resumen(numero58:string):string;
 Function BMB58resumenInt(numero58:string):integer;
 
@@ -356,33 +358,20 @@ var
   Certificate : String;
   Address     : String;
   Signature   : String;
-
-   Function SplitCertificate(TextData:String):String;
-   var
-     InpuntLength, Tramos, counter: integer;
-     ThisTramo, This58 : string;
-   Begin
-     result :='';
-     InpuntLength := length(TextData);
-     if InpuntLength < 100 then exit;
-     Tramos := InpuntLength div 32;
-     if InpuntLength mod 32 > 0 then tramos := tramos+1;
-     for counter := 0 to tramos-1 do
-       begin
-       ThisTramo := '1'+Copy(TextData,1+(counter*32),32);
-       This58 := B16ToB58(ThisTramo);
-       Result := Result+This58+'0';
-       end;
-   End;
-
+  Checksum    : String;
 Begin
   Result      := '';
   TRY
     Address     := GetAddressFromPublicKey(Pubkey);
-    Signature   := GetStringSigned('I OWN THIS ADDRESS '+Address+currtime,PrivKey);
-    Certificate := Pubkey+':'+Currtime+':'+signature;
+    Signature   := GetStringSigned('OWN'+Address+currtime,PrivKey);
+    Certificate := 'OWN:'+Pubkey+':'+Currtime+':'+signature;
+    ToLog('console','To encode: '+certificate);
     Certificate := UPPERCASE(XorEncode(HashSha256String('noso'),certificate));
-    result      := SplitCertificate(certificate);
+    ToLog('console','Encoded: '+certificate);
+    result      :=  B16ToB58('1'+Certificate);
+    Checksum    :=  GetCertificateChecksum(Result);
+    ToLog('console','Checksum: '+Checksum);
+    Result      := Result+Checksum;
   EXCEPT Exit;
   END; {TRY}
 End;
@@ -394,36 +383,23 @@ var
   Address      : String;
   CertTime     : String;
   Signature    : String;
-
-   Function UnSplitCertificate(TextData:String):String;
-   var
-     counter   :integer;
-     TrunkStr  :string = '';
-   Begin
-     result := '';
-     for counter := 1 to length(TextData) do
-       begin
-       if TextData[counter]<>'0' then TrunkStr := TrunkStr+TextData[counter]
-       else
-         begin
-         TrunkStr := B58toB16(TrunkStr);
-         Delete(TrunkStr,1,1);
-         Result := result+TrunkStr;
-         TrunkStr := '';
-         end;
-       end;
-   End;
-
+  CheckSum     : string;
 Begin
   Result      := '';
   TRY
-    Certificate := UnSplitCertificate(certificate);
+    Checksum    := copy(Certificate,length(certificate)-2,3);
+    Certificate := copy(Certificate,1,length(certificate)-3);
+    if CheckSum <> GetCertificateChecksum(Certificate) then exit;
+    Certificate := B58toB16(certificate);
+    Certificate := copy(Certificate,2,length(certificate));
+    ToLog('console','To decode: '+certificate);
     Certificate := XorDecode(HashSha256String('noso'), Certificate);
+    ToLog('console','Decoded: '+certificate);
     DataArray   := SplitString(Certificate,':');
-    Address     := GetAddressFromPublicKey(DataArray[0]);
-    CertTime    := DataArray[1];
-    Signature   := DataArray[2];
-    if VerifySignedString('I OWN THIS ADDRESS '+Address+CertTime,Signature,DataArray[0]) then
+    Address     := GetAddressFromPublicKey(DataArray[1]);
+    CertTime    := DataArray[2];
+    Signature   := DataArray[3];
+    if VerifySignedString('OWN'+Address+CertTime,Signature,DataArray[1]) then
       {Verified certificate}
       begin
       TimeStamp := CertTime;
@@ -677,6 +653,28 @@ Begin
     Inc(Total, Pos(C, B58Alphabet)-1);
   Result := Total;
 End;
+
+Function GetCertificateChecksum(certificate:String):String;
+Begin
+  Result := BMB58resumenNew(Certificate);
+  Result := B10ToB58(Result);
+  if Length(Result) < 3 then AddChar('1',Result,3);
+End;
+
+// RETURN THE SUMATORY OF A BASE58
+Function BMB58resumenNew(numero58:string):string;
+var
+  counter, total : integer;
+Begin
+total := 0;
+for counter := 1 to length(numero58) do
+   begin
+   total := total+Pos(numero58[counter],B58Alphabet)-1;
+   end;
+Total := Total + length(numero58);
+result := IntToStr(total);
+End;
+
 
 // RETURN THE SUMATORY OF A BASE58
 Function BMB58resumen(numero58:string):string;

@@ -42,6 +42,7 @@ function RPC_NewAddressFull(NosoPParams:string):string;
 Function RPC_ValidateAddress(NosoPParams:string):string;
 Function RPC_SetDefault(NosoPParams:string):string;
 Function RPC_GVTInfo(NosoPParams:string):string;
+Function RPC_CheckCertificate(NosoPParams:string):string;
 function RPC_SendFunds(NosoPParams:string):string;
 
 
@@ -400,6 +401,16 @@ else if objecttype = 'newaddress' then
       end;
    resultado.Add('addresses',ordersarray);
    end
+else if objecttype = 'checkcertificate' then
+   begin
+   if parameter(mystring,1) = 'True' then
+      begin
+      resultado.Add('valid',true);
+      resultado.Add('address',parameter(mystring,2));
+      resultado.Add('signtime',StrToInt64(parameter(mystring,3)));
+      end
+   else resultado.Add('valid',False);
+   end
 else if objecttype = 'sendfunds' then
    begin
    if parameter(mystring,1) = 'ERROR' then
@@ -480,6 +491,7 @@ else
       else if method = 'setdefault' then result := GetJSONResponse(RPC_SetDefault(NosoPParams),jsonid)
       else if method = 'getgvtinfo' then result := GetJSONResponse(RPC_GVTInfo(NosoPParams),jsonid)
       else if method = 'sendfunds' then result := GetJSONResponse(RPC_SendFunds(NosoPParams),jsonid)
+      else if method = 'checkcertificate' then result := GetJSONResponse(RPC_CheckCertificate(NosoPParams),jsonid)
       else result := GetJSONErrorCode(402,-1);
       Except on E:Exception do
          ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'JSON RPC error: '+E.Message);
@@ -865,6 +877,25 @@ var
 Begin
   available := CountAvailableGVTs;
   result := 'gvtinfo'#127+IntToStr(available)+#127+IntToStr(GetGVTPrice(Available))+#127+IntToStr(GetGVTPrice(Available,True));
+End;
+
+Function RPC_CheckCertificate(NosoPParams:string):string;
+var
+  cert     : string;
+  SignTime : string;
+  Address  : string;
+Begin
+  result  := 'checkcertificate'#127;
+  cert := Parameter(NosoPParams,0);
+  Address := CheckCertificate(cert,SignTime);
+  if  Address <> '' then
+    begin
+    Result := result+'True'#127+Address+#127+SignTime;
+    end
+  else
+    begin
+    Result := Result+'False';
+    end;
 End;
 
 function RPC_SendFunds(NosoPParams:string):string;
