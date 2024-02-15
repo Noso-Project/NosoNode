@@ -41,7 +41,7 @@ Function SendGVT(LineText:string;showOutput:boolean=true):string;
 Procedure ShowHalvings();
 Procedure SetServerPort(LineText:string);
 Procedure TestParser(LineText:String);
-Procedure DeleteBot(LineText:String);
+Procedure DeleteBots(LineText:String);
 Procedure showCriptoThreadinfo();
 Procedure Parse_RestartNoso();
 Procedure ShowNetworkDataInfo();
@@ -224,7 +224,7 @@ else if UpperCase(Command) = 'MD5' then ToLog('console',HashMD5String(Parameter(
 else if UpperCase(Command) = 'MD160' then ToLog('console',HashMD160String(Parameter(LineText,1)))
 else if UpperCase(Command) = 'CLEAR' then form1.Memoconsola.Lines.clear
 else if UpperCase(Command) = 'TP' then TestParser(LineText)
-else if UpperCase(Command) = 'DELBOT' then DeleteBot(LineText)
+else if UpperCase(Command) = 'DELBOTS' then DeleteBots(LineText)
 else if UpperCase(Command) = 'CRIPTO' then showCriptoThreadinfo()
 else if UpperCase(Command) = 'BLOCK' then ParseShowBlockInfo(LineText)
 else if UpperCase(Command) = 'TESTNET' then TestNetwork(LineText)
@@ -265,7 +265,6 @@ else if UpperCase(Command) = 'CLOSESTARTOFF' then WO_CloseStart := false
 else if UpperCase(Command) = 'DT' then DebugTest(LineText)
 else if UpperCase(Command) = 'TT' then DebugTest2(LineText)
 else if UpperCase(Command) = 'BASE58SUM' then ToLog('console',BMB58resumen(parameter(linetext,1)))
-else if UpperCase(Command) = 'NOSOHASH' then ToLog('console',Nosohash(parameter(linetext,1)))
 else if UpperCase(Command) = 'PENDING' then ToLog('console',PendingRawInfo)
 else if UpperCase(Command) = 'HEADSIZE' then ToLog('console',GetHeadersHeigth.ToString)
 else if UpperCase(Command) = 'NEWFROMKEYS' then NewAddressFromKeys(LineText)
@@ -990,39 +989,11 @@ repeat
 until not continuar
 End;
 
-// Borra la IP enviada de la lista de bots si existe
-Procedure DeleteBot(LineText:String);
-var
-  IPBot : String;
-  contador : integer;
-  IPDeleted : boolean = false;
+// Delete bots from server
+Procedure DeleteBots(LineText:String);
 Begin
-IPBot := Parameter(linetext,1);
-if IPBot = '' then
-   begin
-   ToLog('console','Invalid IP');
-   end
-else if uppercase(IPBot) = 'ALL' then
-   begin
-   SetLength(ListadoBots,0);
-   LastBotClear := UTCTimeStr;
-   S_BotData := true;
-   ToLog('events','All bots deleted');
-   end
-else
-   begin
-   for contador := 0 to length(ListadoBots)-1 do
-      begin
-      if ListadoBots[contador].ip = IPBot then
-         begin
-         Delete(ListadoBots,Contador,1);
-         S_BotData := true;
-         ToLog('console',IPBot+' deleted from bot list');
-         IPDeleted := true;
-         end;
-      end;
-   if not IPDeleted then ToLog('console','IP do not exists in Bot list');
-   end;
+  SetLength(ListadoBots,0);
+  LastBotClear := UTCTimeStr;
 End;
 
 Procedure showCriptoThreadinfo();

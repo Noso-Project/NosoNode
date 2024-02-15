@@ -88,7 +88,7 @@ if G_launching then
   begin
   CompleteInicio;
   end
-else if RunningDoctor then canclose := false
+//else if RunningDoctor then canclose := false
 else
    begin
    forminicio.Visible:=false;

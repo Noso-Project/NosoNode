@@ -45,7 +45,6 @@ Function GetCertificateChecksum(certificate:String):String;
 Function GetCertificate(Pubkey,privkey,currtime:string):string;
 Function CheckCertificate(certificate:string;out TimeStamp:String):string;
 Function CheckHashDiff(Target,ThisHash:String):string;
-Function NosoHash(source:string):string;
 
 {New base conversion functions}
 function B10ToB16(const sVal: String): String;
@@ -429,73 +428,6 @@ for counter := 1 to 32 do
    Resultado := Resultado+ResChar
    end;
 Result := Resultado;
-End;
-
-{Returns the nosohash of the specified address}
-Function NosoHash(source:string):string;
-var
-  counter : integer;
-  FirstChange : array[1..128] of string;
-  finalHASH : string;
-  ThisSum : integer;
-  charA,charB,charC,charD:integer;
-  Filler : string = '%)+/5;=CGIOSYaegk';
-
-  Function GetClean(number:integer):integer;
-  Begin
-  result := number;
-  if result > 126 then
-     begin
-     repeat
-       result := result-95;
-     until result <= 126;
-     end;
-  End;
-
-  function RebuildHash(incoming : string):string;
-  var
-    counter : integer;
-    resultado2 : string = '';
-    chara,charb, charf : integer;
-  Begin
-  for counter := 1 to length(incoming) do
-     begin
-     chara := Ord(incoming[counter]);
-       if counter < Length(incoming) then charb := Ord(incoming[counter+1])
-       else charb := Ord(incoming[1]);
-     charf := chara+charb; CharF := GetClean(CharF);
-     resultado2 := resultado2+chr(charf);
-     end;
-  result := resultado2
-  End;
-
-Begin
-result := '';
-for counter := 1 to length(source) do
-   if ((Ord(source[counter])>126) or (Ord(source[counter])<33)) then
-      begin
-      source := '';
-      break
-      end;
-if length(source)>63 then source := '';
-repeat source := source+filler;
-until length(source) >= 128;
-source := copy(source,0,128);
-FirstChange[1] := RebuildHash(source);
-for counter := 2 to 128 do FirstChange[counter]:= RebuildHash(firstchange[counter-1]);
-finalHASH := FirstChange[128];
-for counter := 0 to 31 do
-   begin
-   charA := Ord(finalHASH[(counter*4)+1]);
-   charB := Ord(finalHASH[(counter*4)+2]);
-   charC := Ord(finalHASH[(counter*4)+3]);
-   charD := Ord(finalHASH[(counter*4)+4]);
-   thisSum := CharA+charB+charC+charD;
-   ThisSum := GetClean(ThisSum);
-   Thissum := ThisSum mod 16;
-   result := result+IntToHex(ThisSum,1);
-   end;
-Result := HashMD5String(Result);
 End;
 
 {** New base conversion functions **}

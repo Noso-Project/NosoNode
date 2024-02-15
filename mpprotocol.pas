@@ -40,14 +40,15 @@ Function PTC_Order(TextLine:String):String;
 Procedure INC_PTC_SendGVT(TextLine:String;connection:integer);
 Function PTC_SendGVT(TextLine:String):integer;
 Procedure PTC_AdminMSG(TextLine:String);
-Function PTC_BestHash(Linea:string;IPUser:String):String;
 Procedure PTC_CFGData(Linea:String);
 Procedure PTC_SendUpdateHeaders(Slot:integer;Linea:String);
 Procedure PTC_HeadUpdate(linea:String);
 
 Function IsValidPool(PoolAddress:String):boolean;
+{
 Procedure SetNMSData(diff,hash,miner,Timestamp,publicKey,signature:string);
 Function GetNMSData():TNMSData;
+}
 
 Procedure SetCFGData (DataToSet:String;CFGIndex:Integer);
 Procedure AddCFGData(DataToAdd:String;CFGIndex:Integer);
@@ -330,11 +331,6 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = 'ADMINMSG' then PTC_AdminMSG(ProcessLine)
       else if UpperCase(LineComando) = '$REPORTNODE' then PTC_Getnodes(contador) // DEPRECATED
       else if UpperCase(LineComando) = '$MNREPO' then AddWaitingMNs(ProcessLine)//
-      else if UpperCase(LineComando) = '$BESTHASH' then
-         begin
-         PTC_BestHash(ProcessLine,'1.1.1.1');
-         //ToLog('console','Debug: Besthash processed via protocol engine');
-         end
       else if UpperCase(LineComando) = '$MNCHECK' then PTC_MNCheck(ProcessLine)
       else if UpperCase(LineComando) = '$GETCHECKS' then PTC_SendChecks(contador)
       else if UpperCase(LineComando) = 'GETMNSFILE' then PTC_SendLine(contador,ProtocolLine(MNFILE)+' $'+GetMNsFileData)
@@ -516,7 +512,7 @@ result :=IntToStr(GetTotalConexiones())+' '+ //
          IntToStr(port)+' '+
          copy(MyMNsHash,0,5)+' '+
          IntToStr(GetMNsListLength)+' '+
-         GetNMSData.Diff+' '+
+         'null'+' '+ //GetNMSData.Diff
          GetMNsChecksCount.ToString+' '+
          MyGVTsHash+' '+
          Copy(HashMD5String(GetNosoCFGString),0,5)+' '+
@@ -534,10 +530,6 @@ var
 Begin
 Encab := GetPTCEcn;
 TextOrder := encab+'ORDER ';
-// Send the current best hash
-PTC_SendLine(slot,GetPTCEcn+'$BESTHASH '+GetNMSData.Miner+' '+GetNMSData.Hash+' '+(MyLastBlock+1).ToString+' '+GetNMSData.TStamp+ ' '+
-                            GetNMSData.Pkey+' '+GetNMSData.Signat);
-
 if GetPendingCount > 0 then
    begin
    EnterCriticalSection(CSPending);
@@ -1111,53 +1103,6 @@ result := false;
 if AnsiContainsStr(GetNosoCFGString(3),PoolAddress) then result := true;
 End;
 
-Function PTC_BestHash(Linea:string;IPUser:String):String;
-var
-  miner,hash,diff,block : string;
-  ResultHash : string;
-  TimeStamp : string;
-  PublicKey, Signature : string;
-  Exitcode : integer = 0;
-Begin
-Result:= 'False '+GetNMSData.Diff;
-Miner := Parameter(Linea,5);
-Hash  := Parameter(Linea,6);
-block  := Parameter(Linea,7);
-TimeStamp  := Parameter(Linea,8);
-PublicKey  := Parameter(Linea,9);
-Signature  := Parameter(Linea,10);
-If StrToIntDef(Block,0)<>LastBlockData.Number+1 then exitcode := 1;
-if (StrToInt64Def(TimeStamp,0)) mod 600 > 585 then exitcode:=2;
-if not IsValidHashAddress(Miner) then exitcode:=3;
-if Hash+Miner = GetNMSData.Hash+GetNMSData.Miner then exitcode:=4;
-if ((length(hash)<18) or (length(hash)>33)) then exitcode:=7;
-if AnsiContainsStr(Hash,'(') then exitcode:=8;
-if not IsValidPool(Miner) then exitcode := 9;
-if not VerifySignedString(Miner+Hash+TimeStamp,Signature,PublicKey) then
-   begin
-   Exitcode := 11;
-   //If miner <> 'NpryectdevepmentfundsGE' then ToLog('events',TimeToStr(now)+'Invalid signature from '+miner);
-   end;
-if exitcode>0 then
-   begin
-   Result := Result+' '+Exitcode.ToString;
-   exit;
-   end;
-ResultHash := NosoHash(Hash+Miner);
-Diff := CheckHashDiff(MyLastBlockHash,ResultHash);
-if ( (Diff<GetNMSData.Diff) and (Copy(Diff,1,7)<>'0000000') ) then // Better hash
-   begin
-   SetNMSData(Diff,hash,miner,timestamp,publickey,signature);
-   OutgoingMsjsAdd(GetPTCEcn+'$BESTHASH '+Miner+' '+Hash+' '+block+' '+TimeStamp+' '+PublicKey+' '+Signature);
-   Result:='True '+Diff+' '+ResultHash;
-   if IPUser <>'1.1.1.1' then ToLog('events',TimeToStr(now)+'Besthash received from '+IPUser+'->'+Miner);
-   end
-else
-   begin
-   Result := Result+' 5'; // IS not a besthash
-   end;
-End;
-
 Procedure PTC_CFGData(Linea:String);
 var
   startpos : integer;
@@ -1232,6 +1177,7 @@ else
    end;
 End;
 
+{
 Procedure SetNMSData(diff,hash,miner,Timestamp,publicKey,signature:string);
 Begin
 EnterCriticalSection(CSNMSData);
@@ -1259,6 +1205,7 @@ EnterCriticalSection(CSNMSData);
 Result := NMSData;
 LeaveCriticalSection(CSNMSData);
 End;
+}
 
 Procedure SetCFGData(DataToSet:String;CFGIndex:Integer);
 var

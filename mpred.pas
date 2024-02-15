@@ -646,7 +646,6 @@ if ((NumeroConexiones>=1) and (MyConStatus<2) and (not STATUS_Connected)) then
    begin
    STATUS_Connected := true;
    MyConStatus := 2;
-   SetNMSData('','','','','','');
    ToLog('console','Connected.');     //Connected
    end;
 if STATUS_Connected then
@@ -659,7 +658,6 @@ if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = Getco
    begin
    GetValidSlotForSeed(ValidSlot);
    ClearReceivedOrdersIDs;
-   SetNMSData('','','','','','');
    MyConStatus := 3;
    ToLog('console','Updated!');   //Updated!
    if RPCAuto then  ProcessLinesAdd('RPCON');
@@ -1046,7 +1044,6 @@ if ( (GetConsensus(8)<>Copy(MyMNsHash,1,5)) and (LastTimeMNHashRequestes+5<UTCTi
 if Copy(MyResumenhash,0,5) <> GetConsensus(cHeaders) then  // Request headers
    begin
    ClearAllPending;
-   SetNMSData('','','','','','');
    ClearMNsChecks();
    ClearMNsList();
    if ((LastTimeRequestResumen+10 < UTCTime) and (not DownloadHeaders)) then
@@ -1076,7 +1073,6 @@ if Copy(MyResumenhash,0,5) <> GetConsensus(cHeaders) then  // Request headers
 if ((Copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock <NLBV)) then  // request up to 100 blocks
    begin
    ClearAllPending;
-   SetNMSData('','','','','','');
    ClearMNsChecks();
    ClearMNsList();
    if ((LastTimeRequestBlock+5<UTCTime)and (not DownLoadBlocks)) then
@@ -1193,7 +1189,6 @@ else if ((copy(MyResumenhash,0,5) <> GetConsensus(5)) and (NLBV=mylastblock) and
    if GetValidSlotForSeed(ValidSlot) then
       begin
       ClearAllPending;
-      SetNMSData('','','','','','');
       PTC_SendLine(ValidSlot,ProtocolLine(7));
       ToLog('console','Headers file requested');
       LastTimeRequestResumen := UTCTime;
@@ -1404,7 +1399,7 @@ Begin
 result := {1}IntToStr(GetTotalConexiones)+' '+{2}IntToStr(MyLastBlock)+' '+{3}GetPendingCount.ToString+' '+
           {4}IntToStr(UTCTime-EngineLastUpdate)+' '+{5}copy(myResumenHash,0,5)+' '+
           {6}ProgramVersion+SubVersion+' '+{7}UTCTimeStr+' '+{8}copy(MyMnsHash,0,5)+' '+{9}GetMNsListLength.ToString+' '+
-          {10}MyLastBlockHash+' '+{11}GetNMSData.Diff+' '+{12}IntToStr(LastBlockData.TimeEnd)+' '+
+          {10}MyLastBlockHash+' '+{11}{GetNMSData.Diff}'null'+' '+{12}IntToStr(LastBlockData.TimeEnd)+' '+
           {13}LastBlockData.AccountMiner+' '+{14}GetMNsChecksCount.ToString+' '+{15}Parameter(LastBlockData.Solution,2)+' '+
           {16}Parameter(LastBlockData.Solution,1)+' '+{17}copy(MySumarioHash,0,5)+' '+{18}copy(MyGVTsHash,0,5)+' '+
           {19}Copy(HashMD5String(GetNosoCFGString),0,5)+' '+{20}copy(PSOFileHash,0,5);

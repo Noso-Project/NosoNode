@@ -221,6 +221,7 @@ type
        result: string;
        end;
 
+  {
   TNMSData = Packed Record
        Diff   : string;
        Hash   : String;
@@ -229,6 +230,7 @@ type
        Pkey   : string;
        Signat : string;
        end;
+  }
 
   TMNsData  = Packed Record
        ipandport  : string;
@@ -607,9 +609,9 @@ CONST
   CoinChar = 'N';                   // Char for addresses
   MinimunFee = 10;
   NewMinFee  = 1000000;              // Minimun fee for transfer
-  ComisionBlockCheck = 0;           // +- 90 days
-  DeadAddressFee = 0;               // unactive acount fee
-  ComisionScrow = 200;              // Coin/BTC market comision = 0.5%
+  //ComisionBlockCheck = 0;           // +- 90 days
+  //DeadAddressFee = 0;               // unactive acount fee
+  //ComisionScrow = 200;              // Coin/BTC market comision = 0.5%
   PoSPercentage = 1000;             // PoS part: reward * PoS / 10000
   MNsPercentage = 2000;
   PosStackCoins = 20;               // PoS stack ammoount: supply*20 / PoSStack
@@ -660,7 +662,7 @@ var
 
   ConnectedRotor : integer = 0;
   EngineLastUpdate : int64 = 0;
-  StopDoctor : boolean = false;
+  //StopDoctor : boolean = false;
 
   SendOutMsgsThread : TThreadSendOutMsjs;
 
@@ -674,13 +676,13 @@ var
 
   MaxOutgoingConnections : integer = 3;
   FirstShow : boolean = false;
-  RunningDoctor : boolean = false;
+  //RunningDoctor : boolean = false;
 
   G_PoSPayouts, G_PoSEarnings : int64;
   G_MNsPayouts, G_MNsEarnings : int64;
 
 
-  RunDoctorBeforeClose : boolean = false;
+  //RunDoctorBeforeClose : boolean = false;
   RestartNosoAfterQuit : boolean = false;
   ConsensoValues : integer = 0;
   RebuildingSumary : boolean = false;
@@ -701,23 +703,23 @@ var
 
 
   ArrayOrderIDsProcessed : array of string;
-  ArrayOrdIndex : array of TOrdIndex;
-  MyLastOrdIndex : integer = 0;
+  //ArrayOrdIndex : array of TOrdIndex;
+  //MyLastOrdIndex : integer = 0;
 
     U_DirPanel : boolean = false;
-  FileBotData : File of BotData;
-    S_BotData : Boolean = false;
+  //FileBotData : File of BotData;
+  //  S_BotData : Boolean = false;
   LastBotClear: string = '';
   //FileWallet : file of WalletData;
     S_Wallet : boolean = false;
-    S_Resumen : Boolean = false;
+   // S_Resumen : Boolean = false;
 
   FileGVTs    : file of TGVT;
   ArrGVTs     : array of TGVT;
 
   FileAdvOptions : textfile;
     S_AdvOpt : boolean = false;
-  PoolTotalHashRate : int64 = 0;
+  //PoolTotalHashRate : int64 = 0;
 
   //NosoCFGStr : String = '';
   ForcedQuit : boolean = false;
@@ -759,7 +761,7 @@ var
 
 
   LastTimeReportMyMN : int64 = 0;
-  MyMNsCount : integer = 0;
+  //MyMNsCount : integer = 0;
 
   LastBlockData : BlockHeaderData;
   BuildingBlock : integer = 0;
@@ -803,7 +805,6 @@ var
 
   LasTimePSOsRequest   : int64 = 0;
 
-  NMSData : TNMSData;
   BuildNMSBlock : int64 = 0;
 
   // Threads
@@ -820,7 +821,6 @@ var
   CSPending     : TRTLCriticalSection;
   CSCriptoThread: TRTLCriticalSection;
   CSClosingApp  : TRTLCriticalSection;
-  CSNMSData     : TRTLCriticalSection;
   CSClientReads : TRTLCriticalSection;
   CSGVTsArray   : TRTLCriticalSection;
   CSNosoCFGStr  : TRTLCriticalSection;
@@ -1490,7 +1490,6 @@ InitCriticalSection(CSWaitingMNs);
 InitCriticalSection(CSMNsList);
 InitCriticalSection(CSMNsChecks);
 InitCriticalSection(CSClosingApp);
-InitCriticalSection(CSNMSData);
 InitCriticalSection(CSClientReads);
 InitCriticalSection(CSGVTsArray);
 InitCriticalSection(CSNosoCFGStr);
@@ -1508,7 +1507,7 @@ CreateFormInicio();
 CreateFormSlots();
 SetLength(ArrayOrderIDsProcessed,0);
 SetLength(ArrayMNsData,0);
-SetLength(ArrayOrdIndex,0);
+//SetLength(ArrayOrdIndex,0);
 end;
 
 // Form destroy
@@ -1526,7 +1525,6 @@ DoneCriticalSection(CSWaitingMNs);
 DoneCriticalSection(CSMNsList);
 DoneCriticalSection(CSMNsChecks);
 DoneCriticalSection(CSClosingApp);
-DoneCriticalSection(CSNMSData);
 DoneCriticalSection(CSClientReads);
 DoneCriticalSection(CSGVTsArray);
 DoneCriticalSection(CSNosoCFGStr);
@@ -1594,32 +1592,26 @@ End;
 // Auto restarts the app from hangs
 Procedure TForm1.RestartTimerEjecutar(sender: TObject);
 Begin
-If Protocolo > 0 then
-   begin
-   If ((BlockAge<590) and (GetNMSData.Miner<> '')) then
+  if BlockAge<590 then
+    begin
+    if BuildNMSBlock < UTCTime then
       begin
-      if BuildNMSBlock < UTCTime then
-         begin
-         BuildNMSBlock := NextBlockTimeStamp;
-         ToLog('events','Next block time set to: '+TimeStampToDate(BuildNMSBlock));
-         end;
-      end
-   end;
-RestartTimer.Enabled:=false;
-if not WO_OmmitMemos then
-  StaTimeLab.Caption:=TimestampToDate(UTCTime);
-if G_CloseRequested then
-   begin
-   if 1=1 then
-      begin
-      if not G_CloseRequested then
-         begin
-         RestartNosoAfterQuit := true;
-         end;
-      cerrarprograma;
+      BuildNMSBlock := NextBlockTimeStamp;
+      ToLog('events','Next block time set to: '+TimeStampToDate(BuildNMSBlock));
       end;
-   end
-else RestartTimer.Enabled:=true;
+    end;
+  RestartTimer.Enabled:=false;
+  if not WO_OmmitMemos then
+    StaTimeLab.Caption:=TimestampToDate(UTCTime);
+  if G_CloseRequested then
+    begin
+    if not G_CloseRequested then
+      begin
+      RestartNosoAfterQuit := true;
+      end;
+    cerrarprograma;
+    end
+  else RestartTimer.Enabled:=true;
 End;
 
 // Start the application
@@ -1929,7 +1921,7 @@ Form1.Latido.Enabled:=false;
 if ( (UTCTime >= BuildNMSBlock) and (BuildNMSBlock>0) and (MyConStatus=3) and (MyLastBlock=StrToIntDef(GetCOnsensus(2),-1)) ) then
    begin
    ToLog('events','Starting construction of block '+(MyLastBlock+1).ToString);
-   BuildNewBlock(MyLastBlock+1,BuildNMSBlock,MyLastBlockHash,GetNMSData.Miner,GetNMSData.Hash);
+   BuildNewBlock(MyLastBlock+1,BuildNMSBlock,MyLastBlockHash,{GetNMSData.Miner}'NpryectdevepmentfundsGE',{GetNMSData.Hash}'!!!!!!!!!100000000');
    G_MNVerifications := 0;
    end;
 BeginPerformance('ActualizarGUI');
@@ -2576,11 +2568,6 @@ if GoAhead then
       TryCloseServerConnection(AContext,GetVerificationMNLine(IPUser))
    else if parameter(LLine,0) = 'NSLBALANCE' then
       TryCloseServerConnection(AContext,IntToStr(GetAddressAvailable(parameter(LLine,1))))
-   else if parameter(LLine,0) = 'BESTHASH' then
-      begin
-      if ( (not IsBlockOpen) and (not IsSeedNode(IPUSer)) ) then TryCloseServerConnection(AContext,'False '+GetNMSData.Diff+' 6')
-      else TryCloseServerConnection(AContext,PTC_BestHash(LLine, IPUSer));
-      end
    else if parameter(LLine,0) = 'NSLPEND' then
       TryCloseServerConnection(AContext,PendingRawInfo(false))
    else if parameter(LLine,0) = 'NSLPENDFULL' then

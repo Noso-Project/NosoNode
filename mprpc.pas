@@ -28,7 +28,6 @@ function RPC_Banned(NosoPParams:string):string;
 function RPC_AddressBalance(NosoPParams:string):string;
 function RPC_OrderInfo(NosoPParams:string):string;
 function RPC_Blockinfo(NosoPParams:string):string;
-function RPC_Mininginfo(NosoPParams:string):string;
 function RPC_Mainnetinfo(NosoPParams:string):string;
 function RPC_PendingOrders(NosoPParams:string):string;
 function RPC_LockedMNs(NosoPParams:string):String;
@@ -284,14 +283,6 @@ else if objecttype = 'blockinfo' then
    resultado.Add('reward',StrToInt64Def(parameter(mystring,15),-1));
    resultado.Add('hash',parameter(mystring,16));
    end
-else if objecttype = 'mininginfo' then
-   begin
-   resultado.Add('block',StrToInt(parameter(mystring,1)));
-   resultado.Add('target',parameter(mystring,2));
-   resultado.Add('miner',parameter(mystring,3));
-   resultado.Add('diff',parameter(mystring,4));
-   resultado.Add('hash',parameter(mystring,5));
-   end
 else if objecttype = 'pendingorders' then
    begin
    counter := 1;
@@ -476,7 +467,6 @@ else
       else if method = 'getaddressbalance' then result := GetJSONResponse(RPC_AddressBalance(NosoPParams),jsonid)
       else if method = 'getorderinfo' then result := GetJSONResponse(RPC_OrderInfo(NosoPParams),jsonid)
       else if method = 'getblocksinfo' then result := GetJSONResponse(RPC_Blockinfo(NosoPParams),jsonid)
-      else if method = 'getmininginfo' then result := GetJSONResponse(RPC_Mininginfo(NosoPParams),jsonid)
       else if method = 'getmainnetinfo' then result := GetJSONResponse(RPC_Mainnetinfo(NosoPParams),jsonid)
       else if method = 'getpendingorders' then result := GetJSONResponse(RPC_PendingOrders(NosoPParams),jsonid)
       else if method = 'lockedmns' then result := GetJSONResponse(RPC_LockedMNs(NosoPParams),jsonid)
@@ -620,12 +610,6 @@ if NosoPParams <> '' then
    until thisblock = '';
    trim(result);
    end;
-End;
-
-function RPC_Mininginfo(NosoPParams:string):string;
-Begin
-result := format('mininginfo'#127'%d'#127'%s'#127'%s'#127'%s'#127'%s'#127,[mylastblock+1,MyLastBlockHash,GetNMSData.miner,GetNMSData.Diff, GetNMSData.Hash]);
-//ToLog('console','Resultado:'+result);
 End;
 
 function RPC_Mainnetinfo(NosoPParams:string):string;

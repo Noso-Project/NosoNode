@@ -39,10 +39,9 @@ Procedure LoadADV();
 Function GetLanguage():string;
 Procedure ExtractPoFiles();
 Procedure CreateFileFromResource(resourcename,filename:string);
-Procedure CrearBotData();
-Procedure CargarBotData();
+
+
 Procedure UpdateBotData(IPUser:String);
-Procedure SaveBotData();
 
 // sumary
 Procedure UpdateWalletFromSumario();
@@ -136,9 +135,6 @@ if not FileExists (WalletFilename) then
   end
 else LoadWallet(WalletFilename);
 OutText('✓ Wallet file ok',false,1);
-
-if not Fileexists(BotDataFilename) then CrearBotData() else CargarBotData();
-OutText('✓ Bots file ok',false,1);
 
 FillNodeList;  // Fills the hardcoded seed nodes list
 
@@ -611,49 +607,6 @@ End;
 // *****************************************************************************
 {$REGION BOTS FILE}
 
-// Creates bots file
-Procedure CrearBotData();
-Begin
-  TRY
-  assignfile(FileBotData,BotDataFilename);
-  rewrite(FileBotData);
-  closefile(FileBotData);
-  SetLength(ListadoBots,0);
-  EXCEPT on E:Exception do
-    begin
-    ToLog('events',TimeToStr(now)+'Error creating bot data');
-    end;
-  END;
-End;
-
-// Load bots from file
-Procedure CargarBotData();
-Var
-  Leido : BotData;
-  contador: integer = 0;
-Begin
-   // To be removed
-   SetLength(ListadoBots,0);
-   exit;
-   try
-   assignfile (FileBotData,BotDataFilename);
-   contador := 0;
-   reset (FileBotData);
-   SetLength(ListadoBots,0);
-   SetLength(ListadoBots, filesize(FileBotData));
-   while contador < (filesize(FileBotData)) do
-      begin
-      seek (FileBotData, contador);
-      read (FileBotData, Leido);
-      ListadoBots[contador] := Leido;
-      contador := contador + 1;
-      end;
-   closefile(FileBotData);
-   Except on E:Exception do
-      ToLog('events',TimeToStr(now)+'Error loading bot data');
-   end;
-End;
-
 // Modifica la hora del ultimo intento del bot, o lo añade si es la primera vez
 Procedure UpdateBotData(IPUser:String);
 var
@@ -675,48 +628,15 @@ if not updated then
    ListadoBots[Length(listadoBots)-1].ip:=IPUser;
    ListadoBots[Length(listadoBots)-1].LastRefused:=UTCTimeStr;
    end;
-S_BotData := true;
 End;
 
-// Save bots to disk
-Procedure SaveBotData();
-Var
-  contador  : integer = 0;
-  ErrorCode : integer = 0;
-Begin
-BeginPerformance('SaveBotData');
-contador := 0;
-assignfile (FileBotData,BotDataFilename);
-{$I-}reset (FileBotData){$I+};
-ErrorCode := IOResult;
-if ErrorCode = 0 then
-   begin
-   TRY
-   if length(ListadoBots) > 0 then
-      begin
-   for contador := 0 to length(ListadoBots)-1 do
-         begin
-         seek (FileBotData, contador);
-         write (FileBotData, ListadoBots[contador]);
-         end;
-      end;
-   Truncate(FileBotData);
-   S_BotData := false;
-   ToLog('events',TimeToStr(now)+'Bot file saved: '+inttoStr(length(ListadoBots))+' registers');
-   EXCEPT on E:Exception do
-         ToLog('events',TimeToStr(now)+'Error saving bots to file :'+E.Message);
-   END; {TRY}
-   end;
-{$I-}closefile(FileBotData);{$I+};
-EndPerformance('SaveBotData');
-End;
+
 
 {$ENDREGION}
 
 // Saves updates files to disk
 Procedure SaveUpdatedFiles();
 Begin
-// if S_BotData then SaveBotData();
 if S_Wallet then
   begin
   SaveWalletToFile();

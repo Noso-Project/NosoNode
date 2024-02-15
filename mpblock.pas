@@ -367,7 +367,7 @@ if not errored then
    else BlockHeader.Difficult := PoSCount;
    BlockHeader.TargetHash:=TargetHash;
    //if protocolo = 1 then BlockHeader.Solution:= Solucion
-   BlockHeader.Solution:= Solucion+' '+GetNMSData.Diff+' '+PoWTotalReward.ToString+' '+MNsTotalReward.ToString+' '+PosTotalReward.ToString;
+   BlockHeader.Solution:= Solucion+' '+{GetNMSData.Diff}'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF1'+' '+PoWTotalReward.ToString+' '+MNsTotalReward.ToString+' '+PosTotalReward.ToString;
    if numero = 0 then BlockHeader.Solution:='';
    if numero = 0 then BlockHeader.LastBlockHash:='NOSO GENESYS BLOCK'
    else BlockHeader.LastBlockHash:=MyLastBlockHash;
@@ -382,7 +382,6 @@ if not errored then
                         MNsReward, MNsCount,MNsAddressess) then
       ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'*****CRITICAL*****'+slinebreak+'Error building block: '+numero.ToString);
 
-   SetNMSData('','','','','','');
    BuildNMSBlock := 0;
    ZipSumary;
 
@@ -697,7 +696,6 @@ if MyConStatus = 3 then
    //if Form1.Server.Active then Form1.Server.Active := false;
    ClearMNsChecks();
    ClearMNsList();
-   SetNMSData('','','','','','');
    ClearAllPending;
    ClearReceivedOrdersIDs;
    end;
