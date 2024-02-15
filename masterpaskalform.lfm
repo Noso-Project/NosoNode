@@ -318,7 +318,7 @@ object Form1: TForm1
     Height = 488
     Top = 38
     Width = 640
-    ActivePage = tabOptions
+    ActivePage = TabWallet
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
     Font.CharSet = ANSI_CHARSET
@@ -327,7 +327,7 @@ object Form1: TForm1
     Font.Pitch = fpVariable
     Font.Quality = fqDraft
     ParentFont = False
-    TabIndex = 2
+    TabIndex = 0
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
@@ -3353,7 +3353,6 @@ object Form1: TForm1
     Top = 456
     object MenuItem1: TMenuItem
       Caption = 'Network'
-      OnClick = CheckMMCaptions
       object MenuItem2: TMenuItem
         Caption = 'Start Server'
         ImageIndex = 27
@@ -3363,7 +3362,6 @@ object Form1: TForm1
         Caption = 'Connect'
         ImageIndex = 29
         Visible = False
-        OnClick = MMConnect
       end
       object MenuItem4: TMenuItem
         Caption = 'Miner'

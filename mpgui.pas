@@ -259,11 +259,6 @@ form1.OffersGrid.Cells[1,0] := 'Expire';
 form1.OffersGrid.Cells[2,0] := 'Fee';
 form1.OffersGrid.Cells[3,0] := 'Owner';
 form1.OffersGrid.FocusRectVisible:=false;
-
-
-NetSumarioHash.Value:='?';
-NetLastBlock.Value:='?';
-NetResumenHash.Value:='?';
 End;
 
 // Ordena las salidas de informacion
@@ -442,7 +437,6 @@ if ((U_MNsGrid) or (UTCTime>U_MNsGrid_Last+59)) then
 if U_DirPanel then
    begin
    BeginPerformance('UpdateDirPanel');
-   //form1.Direccionespanel.RowCount:=LenWallArr+1;
    form1.Direccionespanel.RowCount:=1;
    for contador := 0 to LenWallArr-1 do
       begin

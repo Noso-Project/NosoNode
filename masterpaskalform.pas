@@ -252,10 +252,10 @@ type
        Pools     : string;
        end;
 
-  TOrdIndex = record
+  {TOrdIndex = record
        block  : integer;
        orders : string;
-       end;
+       end;}
 
   { TForm1 }
 
@@ -417,7 +417,6 @@ type
     PCMonitor: TPageControl;
     PageMain: TPageControl;
     Server: TIdTCPServer;
-    {PoolServer : TIdTCPServer;}
     RPCServer : TIdHTTPServer;
     SG_Monitor: TStringGrid;
     tabOptions: TTabSheet;
@@ -520,8 +519,6 @@ type
       ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo);
 
     // MAIN MENU
-    Procedure CheckMMCaptions(sender:TObject);
-    Procedure MMConnect(sender:TObject);
     Procedure MMImpWallet(sender:TObject);
     Procedure MMExpWallet(sender:TObject);
     Procedure MMQuit(sender:TObject);
@@ -628,12 +625,16 @@ CONST
   Update050Block   = 120000;
 
 var
-  UserFontSize : integer = 8;
-  UserRowHeigth : integer = 22;
-  RPCPort : integer = 8078;
-  RPCPass : string = 'default';
-  ShowedOrders : integer = 100;
-  MaxPeersAllow : integer = 50;
+  Form1            : TForm1;
+  {Options}
+  FileAdvOptions   : textfile;
+  S_AdvOpt         : boolean = false;
+  UserFontSize     : integer = 8;
+  UserRowHeigth    : integer = 22;
+  RPCPort          : integer = 8078;
+  RPCPass          : string = 'default';
+  ShowedOrders     : integer = 100;
+  MaxPeersAllow    : integer = 50;
   WO_AutoServer    : boolean = false;
   WO_PosWarning    : int64 = 7;
   WO_MultiSend     : boolean = false;
@@ -660,31 +661,47 @@ var
   MN_FileText      : String = '';
   WO_FullNode      : boolean = true;
 
-  ConnectedRotor : integer = 0;
-  EngineLastUpdate : int64 = 0;
-  //StopDoctor : boolean = false;
+  {Network}
+  MaxOutgoingConnections : integer = 3;
+  Conexiones       : array [1..MaxConecciones] of conectiondata;
+  SlotLines        : array [1..MaxConecciones] of TStringList;
+  CanalCliente     : array [1..MaxConecciones] of TIdTCPClient;
+  ListadoBots      : array of BotData;
+  ListaNodos       : array of NodeData;
+  PendingTXs       : Array of TOrderData;
+  OutgoingMsjs     : TStringlist;
+  KeepServerOn     : Boolean = false;
+   LastTryServerOn : Int64 = 0;
+   ServerStartTime : Int64 = 0;
+  DownloadHeaders  : boolean = false;
+  DownloadSumary   : Boolean = false;
+  DownLoadBlocks   : boolean = false;
+  DownLoadGVTs     : boolean = false;
+  DownloadPSOs     : boolean = false;
 
+  // Threads
   SendOutMsgsThread : TThreadSendOutMsjs;
-
   KeepConnectThread : TThreadKeepConnect;
   IndexerThread     : TThreadIndexer;
+  ThreadMNs         : TUpdateMNs;
+  CryptoThread      : TCryptoThread;
+  UpdateLogsThread  : TUpdateLogs;
 
-  ThreadMNs : TUpdateMNs;
-  CryptoThread : TCryptoThread;
-  UpdateLogsThread : TUpdateLogs;
-  LastLogLine      : String = '';
-
-  MaxOutgoingConnections : integer = 3;
-  FirstShow : boolean = false;
-  //RunningDoctor : boolean = false;
-
-  G_PoSPayouts, G_PoSEarnings : int64;
-  G_MNsPayouts, G_MNsEarnings : int64;
-
-
-  //RunDoctorBeforeClose : boolean = false;
+  // GUI related
+  ConnectedRotor       : integer = 0;
+  EngineLastUpdate     : int64 = 0;
+  LastLogLine          : String = '';
+  FirstShow            : boolean = false;
   RestartNosoAfterQuit : boolean = false;
-  ConsensoValues : integer = 0;
+  U_DirPanel           : boolean = false;
+
+  // FormState
+  FormState_Top    : integer;
+  FormState_Left   : integer;
+  FormState_Heigth : integer;
+  FormState_Width  : integer;
+  FormState_Status : integer;
+
   RebuildingSumary : boolean = false;
   MyCurrentBalance : Int64 = 0;
   Customizationfee : int64 = InitialReward div ComisionCustom;
@@ -695,7 +712,7 @@ var
   G_TotalPings : Int64 = 0;
   G_MNVerifications : integer = 0;
   G_ClosingAPP : Boolean = false;
-  Form1: TForm1;
+
   LastCommand : string = '';
   ProcessLines : TStringlist;
   StringAvailableUpdates : String = '';
@@ -703,48 +720,13 @@ var
 
 
   ArrayOrderIDsProcessed : array of string;
-  //ArrayOrdIndex : array of TOrdIndex;
-  //MyLastOrdIndex : integer = 0;
-
-    U_DirPanel : boolean = false;
-  //FileBotData : File of BotData;
-  //  S_BotData : Boolean = false;
   LastBotClear: string = '';
-  //FileWallet : file of WalletData;
     S_Wallet : boolean = false;
-   // S_Resumen : Boolean = false;
 
   FileGVTs    : file of TGVT;
   ArrGVTs     : array of TGVT;
 
-  FileAdvOptions : textfile;
-    S_AdvOpt : boolean = false;
-  //PoolTotalHashRate : int64 = 0;
 
-  //NosoCFGStr : String = '';
-  ForcedQuit : boolean = false;
-  NewLogLines : integer = 0;
-  Conexiones : array [1..MaxConecciones] of conectiondata;
-  SlotLines : array [1..MaxConecciones] of TStringList;
-  CanalCliente : array [1..MaxConecciones] of TIdTCPClient;
-
-  ListadoBots      :  array of BotData;
-  ListaNodos       : array of NodeData;
-  PendingTXs       : Array of TOrderData;
-  OutgoingMsjs     : TStringlist;
-  ArrayConsenso    : array of NetworkData;
-
-  // Variables asociadas a la red
-  KeepServerOn : Boolean = false;
-     LastTryServerOn : Int64 = 0;
-     ServerStartTime : Int64 = 0;
-  DownloadHeaders : boolean = false;
-  DownloadSumary  : Boolean = false;
-  DownLoadBlocks  : boolean = false;
-  DownLoadGVTs    : boolean = false;
-  DownloadPSOs    : boolean = false;
-  CONNECT_LastTime : string = ''; // La ultima vez que se intento una conexion
-  CONNECT_Try : boolean = false;
   MySumarioHash : String = '';
   MyLastBlock : integer = 0;
   MyLastBlockHash : String = '';
@@ -753,7 +735,6 @@ var
   MyCFGHash     : string = '';
   MyPublicIP : String = '';
   OpenReadClientThreads : integer = 0;
-  BlockUndoneTime    : int64 = 0;
 
 
   MyMNsHash : String = '';
@@ -775,42 +756,38 @@ var
   MNsRandomWait : Integer= 0;
 
   Last_SyncWithMainnet : int64 = 0;
-  NetSumarioHash : NetworkData;
-    SumaryRebuilded : boolean = false;
+
+  //NetSumarioHash : NetworkData;
+    //SumaryRebuilded : boolean = false;
     LastTimeRequestSumary  : int64 = 0;
-  NetLastBlock : NetworkData;
+  //NetLastBlock : NetworkData;
     LastTimeRequestBlock : int64 = 0;
-  NetLastBlockHash : NetworkData;
-  NetPendingTrxs : NetworkData;
-  NetResumenHash : NetworkData;
+  //NetLastBlockHash : NetworkData;
+  //NetPendingTrxs : NetworkData;
+  //NetResumenHash : NetworkData;
     LastTimeRequestResumen : int64 = 0;
     LastTimePendingRequested : int64 = 0;
     ForceCompleteHeadersDownload : boolean = false;
-  NetMNsHash     : NetworkData;
+  //NetMNsHash     : NetworkData;
     LastTimeMNHashRequestes : int64 = 0;
-  NetMNsCount    : NetworkData;
-  NetBestHash    : NetworkData;
+  //NetMNsCount    : NetworkData;
+  //NetBestHash    : NetworkData;
     LastTimeBestHashRequested : int64 = 0;
     LastTimeMNsRequested   : int64 = 0;
-  NetMNsChecks   : NetworkData;
+  //NetMNsChecks   : NetworkData;
     LastTimeChecksRequested : int64 = 0;
   LastRunMNVerification : int64 = 0;
   // Variables asociadas a mi conexion
   MyConStatus          :  integer = 0;
   STATUS_Connected     : boolean = false;
-  NetGVTSHash          : NetworkData;
+  //NetGVTSHash          : NetworkData;
     LasTimeGVTsRequest : int64 = 0;
-  NetCFGHash           : NetworkData;
+  //NetCFGHash           : NetworkData;
     LasTimeCFGRequest  : int64 = 0;
 
   LasTimePSOsRequest   : int64 = 0;
 
   BuildNMSBlock : int64 = 0;
-
-  // Threads
-  RebulidTrxThread : TThreadID;
-  CriptoOPsThread : TThreadID;
-    CriptoThreadRunning : boolean = false;
 
   ArrayCriptoOp : array of TArrayCriptoOp;
 
@@ -840,16 +817,11 @@ var
      ArrayOutgoing : array[1..MaxConecciones] of array of string;
   CSIncomingArr : array[1..MaxConecciones] of TRTLCriticalSection;
 
-  // FormState
-  FormState_Top    : integer;
-  FormState_Left   : integer;
-  FormState_Heigth : integer;
-  FormState_Width  : integer;
-  FormState_Status : integer;
+
 
   // Filename variables
 
-  BotDataFilename     : string= 'NOSODATA'+DirectorySeparator+'botdata.psk';
+  //BotDataFilename     : string= 'NOSODATA'+DirectorySeparator+'botdata.psk';
   //WalletFilename    : string= 'NOSODATA'+DirectorySeparator+'wallet.pkw';
   //BlockDirectory      : string= 'NOSODATA'+DirectorySeparator+'BLOCKS'+DirectorySeparator;
   MarksDirectory      : string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator;
@@ -1540,7 +1512,6 @@ for contador := 1 to maxconecciones do
 
 form1.Server.free;
 form1.RPCServer.Free;
-{form1.PoolServer.free;}
 
 end;
 
@@ -1703,7 +1674,7 @@ if WO_CloseStart then
       IndexerThread := TThreadIndexer.Create(true);
       IndexerThread.FreeOnTerminate:=true;
       IndexerThread.Start;
-   ToLog('events',TimeToStr(now)+rs0029); NewLogLines := NewLogLines-1; //'Noso session started'
+   ToLog('events',TimeToStr(now)+rs0029); //NewLogLines := NewLogLines-1; //'Noso session started'
    info(rs0029);  //'Noso session started'
    infopanel.BringToFront;
    forminicio.Visible:=false;
@@ -1739,7 +1710,7 @@ Setlength(WaitingMNs,0);
    SendOutMsgsThread := TThreadSendOutMsjs.Create(true);
    SendOutMsgsThread.FreeOnTerminate:=true;
    SendOutMsgsThread.Start;
-ToLog('events',TimeToStr(now)+rs0029); NewLogLines := NewLogLines-1; //'Noso session started'
+ToLog('events',TimeToStr(now)+rs0029); //NewLogLines := NewLogLines-1; //'Noso session started'
 info(rs0029);  //'Noso session started'
 form1.infopanel.BringToFront;
 forminicio.Visible:=false;
@@ -1894,7 +1865,7 @@ if (ACol=1)  then
    ts := (sender as TStringGrid).Canvas.TextStyle;
    ts.Alignment := taRightJustify;
    (sender as TStringGrid).Canvas.TextStyle := ts;
-
+   {
    if ((aRow>0) and (GetWallArrIndex(aRow-1).Balance>posrequired) and (GetWallArrIndex(aRow-1).Balance>(posrequired+(WO_PosWarning*140*10000000))) ) then
       begin
       (sender as TStringGrid).Canvas.Brush.Color :=  clmoneygreen;
@@ -1905,6 +1876,7 @@ if (ACol=1)  then
       (sender as TStringGrid).Canvas.Brush.Color :=  clYellow;
       (sender as TStringGrid).Canvas.font.Color :=  clblack;
       end
+   }
    end;
 if ( (ACol = 0) and (ARow>0) and (AnsiContainsStr(GetNosoCFGString(5),GetWallArrIndex(aRow-1).Hash)) ) then
    begin
@@ -1947,7 +1919,7 @@ if FormSlots.Visible then UpdateSlotsGrid();
 Inc(ConnectedRotor); if ConnectedRotor>6 then ConnectedRotor := 0;
 UpdateStatusBar;
 if ( (UTCTime mod 3600=3590) and (LastBotClear<>UTCTimeStr) and (Form1.Server.Active) ) then
-   ProcessLinesAdd('delbot all');
+   ProcessLinesAdd('delbots');
 if ( (UTCTime mod 600>=570) and (UTCTime>NosoT_LastUpdate+599) ) then
    UpdateOffset(PArameter(GetNosoCFGString,2));
 Form1.Latido.Enabled:=true;
@@ -2976,22 +2948,6 @@ End;
 //******************************************************************************
 // MAINMENU
 //******************************************************************************
-
-// Chequea el estado de todo para actualizar los botones del menu principal
-Procedure Tform1.CheckMMCaptions(sender:TObject);
-Begin
-if Form1.Server.Active then form1.MainMenu.Items[0].Items[0].Caption:=rs0077 //Stop server
-else form1.MainMenu.Items[0].Items[0].Caption:=rs0076; // Start server
-if CONNECT_Try then form1.MainMenu.Items[0].Items[1].Caption:=rs0079 // disconnect
-else form1.MainMenu.Items[0].Items[1].Caption:=rs0078;  // Connect
-End;
-
-// menu principal conexion
-Procedure Tform1.MMConnect(sender:TObject);
-Begin
-if CONNECT_Try then ProcessLinesAdd('disconnect')
-else ProcessLinesAdd('connect');
-End;
 
 // menu principal importar cartera
 Procedure Tform1.MMImpWallet (sender:TObject);

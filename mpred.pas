@@ -36,21 +36,21 @@ function GetTotalSyncedConnections():Integer;
 function CerrarClientes(ServerToo:Boolean=True):string;
 Procedure LeerLineasDeClientes();
 Procedure VerifyConnectionStatus();
-Procedure UpdateConsenso(data:String;Slot:integer);
-Function GetMasConsenso():integer;
-function UpdateNetworkLastBlock():NetWorkData;
-function UpdateNetworkLastBlockHash():NetworkData;
-function UpdateNetworkSumario():NetWorkData;
-function UpdateNetworkPendingTrxs():NetworkData;
-function UpdateNetworkResumenHash():NetworkData;
-function UpdateNetworkMNsHash():NetworkData;
-function UpdateNetworkMNsCount():NetworkData;
-function UpdateNetworkBestHash():NetworkData;
-function UpdateNetworkMNsChecks():NetworkData;
-function UpdateNetworkGVTsHash():NetworkData;
-function UpdateNetworkCFGHash():NetworkData;
-Function UpdateNetworkPSOHash():NetworkData;
-Procedure UpdateNetworkData();
+//Procedure UpdateConsenso(data:String;Slot:integer);
+//Function GetMasConsenso():integer;
+//function UpdateNetworkLastBlock():NetWorkData;
+//function UpdateNetworkLastBlockHash():NetworkData;
+//function UpdateNetworkSumario():NetWorkData;
+//function UpdateNetworkPendingTrxs():NetworkData;
+//function UpdateNetworkResumenHash():NetworkData;
+//function UpdateNetworkMNsHash():NetworkData;
+//function UpdateNetworkMNsCount():NetworkData;
+//function UpdateNetworkBestHash():NetworkData;
+//function UpdateNetworkMNsChecks():NetworkData;
+//function UpdateNetworkGVTsHash():NetworkData;
+//function UpdateNetworkCFGHash():NetworkData;
+//Function UpdateNetworkPSOHash():NetworkData;
+//Procedure UpdateNetworkData();
 Function IsAllSynced():integer;
 Procedure UpdateMyData();
 Procedure SyncWithMainnet();
@@ -300,51 +300,6 @@ LeaveCriticalSection(CSNodesList);
 EndPerformance('CerrarSlot');
 End;
 
-// Try connection to nodes
-{
-Procedure ConnectToServers();
-const
-  LastTrySlot : integer = 0;
-  LAstTryTime : int64 = 0;
-  Unables     : integer = 0;
-var
-  proceder  : boolean = true;
-  Loops     : integer = 0;
-  OutGoing  : integer;
-Begin
-if ((BlockAge <=10) or (blockAge>=595)) then exit;
-if LastTryTime >= UTCTime then exit;
-OutGoing := GetOutGoingConnections;
-BeginPerformance('ConnectToServers');
-if not CONNECT_Try then
-   begin
-   ToLog('events',TimeToStr(now)+' Trying connection to nodes'); //'Trying connection to servers'
-   CONNECT_Try := true;
-   end;
-//if OutGoing >= MaxOutgoingConnections then proceder := false;
-if getTotalConexiones >= MaxConecciones then Proceder := false;
-if GetTotalSyncedConnections>=3 then proceder := false;
-if proceder then
-   begin
-   REPEAT
-   Inc(LastTrySlot);
-   if LastTrySlot >=length(ListaNodos) then LastTrySlot := 0;
-   if ((GetSlotFromIP(ListaNodos[LastTrySlot].ip)=0) AND (GetFreeSlot()>0) and (ListaNodos[LastTrySlot].ip<>MN_Ip)) then
-      begin
-      if ConnectClient(ListaNodos[LastTrySlot].ip,ListaNodos[LastTrySlot].port) > 0 then Inc(OutGoing);
-      end;
-   Inc(Loops);
-   CONNECT_LastTime := IntTOStr(UTCTime+60);
-   UNTIL ( (Loops >= 5) or (OutGoing=MaxOutgoingConnections));
-   end;
-if  ( (not Form1.Server.Active) and(IsSeedNode(MN_IP)) and
-      (GetOutGoingConnections=0) and (WO_autoserver) )then Inc(Unables)
-else Unables := 0;
-if Unables >= 10 then forceserver;
-CONNECT_LastTime := UTCTimeStr;
-EndPerformance('ConnectToServers');
-End;
-}
 
 Function IsSlotFree(number:integer):Boolean;
 Begin
@@ -550,7 +505,6 @@ var
   Contador: integer;
 Begin
 result := '';
-CONNECT_Try := false;
    TRY
    for contador := 1 to MaxConecciones do
       begin
@@ -597,11 +551,6 @@ var
   ValidSlot        : integer;
 Begin
 TRY
-if ( (CONNECT_Try) and (UTCTime>StrToInt64Def(CONNECT_LastTime,UTCTime)+5) ) then
-   begin
-   CONNECT_LastTime := IntTOStr(UTCTime+60);
-   //ConnectToServers;
-   end;
 NumeroConexiones := GetTotalConexiones;
 if NumeroConexiones = 0 then  // Desconectado
    begin
@@ -619,10 +568,6 @@ if NumeroConexiones = 0 then  // Desconectado
       STATUS_Connected := false;
       ToLog('console','Disconnected.');       //Disconnected
       G_TotalPings := 0;
-      NetSumarioHash.Value:='';
-      NetLastBlock.Value:='?';
-      NetResumenHash.Value:='';
-      NetPendingTrxs.Value:='';
       U_Datapanel:= true;
       ClearAllPending; //THREADSAFE
       end;
@@ -650,7 +595,7 @@ if ((NumeroConexiones>=1) and (MyConStatus<2) and (not STATUS_Connected)) then
    end;
 if STATUS_Connected then
    begin
-   UpdateNetworkData();
+   //UpdateNetworkData();
    if Last_SyncWithMainnet+4<UTCTime then SyncWithMainnet();
    end;
 if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = Getconsensus(2))
@@ -697,275 +642,6 @@ EXCEPT ON E:Exception do
 END{Try};
 End;
 
-// Rellena el array consenso
-Procedure UpdateConsenso(data:String;Slot:integer);
-var
-  contador : integer = 0;
-  Maximo : integer;
-  Existia : boolean = false;
-Begin
-ConsensoValues +=1;
-maximo := length(ArrayConsenso);
-while contador < maximo do
-   begin
-   if Data = ArrayConsenso[contador].value then
-      begin
-      ArrayConsenso[contador].count += 1;
-      existia := true;
-      end;
-   contador := contador+1;
-   end;
-if not existia then
-   begin
-   SetLength(ArrayConsenso,length(ArrayConsenso)+1);
-   ArrayConsenso[length(ArrayConsenso)-1].value:=data;
-   ArrayConsenso[length(ArrayConsenso)-1].count:=1;
-   ArrayConsenso[length(ArrayConsenso)-1].slot:=Slot;
-   end;
-End;
-
-// Devuelve la posicion del ArrayConsenso donde esta el dato mas frecuente.
-Function GetMasConsenso():integer;
-var
-  contador, Higher, POsicion : integer;
-Begin
-Higher := 0;
-Posicion := -1;
-for contador := 0 to length(ArrayConsenso)-1 do
-   Begin
-   if ArrayConsenso[contador].count > higher then
-      begin
-      higher := ArrayConsenso[contador].count;
-      Posicion := contador;
-      end;
-   end;
-if Posicion >= 0 then
-  begin
-  ArrayConsenso[Posicion].Porcentaje:=(ArrayConsenso[Posicion].Count*100) div ConsensoValues;
-  end;
-result := Posicion;
-End;
-
-function UpdateNetworkLastBlock():NetworkData;
-var
-  contador : integer = 1;
-Begin
-SetLength(ArrayConsenso,0);
-ConsensoValues := 0;
-for contador := 1 to MaxConecciones do
-   Begin
-   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
-      begin
-      UpdateConsenso(conexiones[contador].Lastblock,contador);
-      end;
-   end;
-if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
-else result := Default(NetworkData);
-End;
-
-function UpdateNetworkLastBlockHash():NetworkData;
-var
-  contador : integer = 1;
-Begin
-SetLength(ArrayConsenso,0);
-ConsensoValues := 0;
-for contador := 1 to MaxConecciones do
-   Begin
-   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
-      begin
-      UpdateConsenso(conexiones[contador].LastblockHash,contador);
-      end;
-   end;
-if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
-else result := Default(NetworkData);
-End;
-
-function UpdateNetworkSumario():NetworkData;
-var
-  contador : integer = 1;
-Begin
-SetLength(ArrayConsenso,0);
-ConsensoValues := 0;
-for contador := 1 to MaxConecciones do
-   Begin
-   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
-      begin
-      UpdateConsenso(conexiones[contador].SumarioHash, contador);
-      end;
-   end;
-if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
-else result := Default(NetworkData);
-End;
-
-function UpdateNetworkPendingTrxs():NetworkData;
-var
-  contador : integer = 1;
-Begin
-SetLength(ArrayConsenso,0);
-ConsensoValues := 0;
-for contador := 1 to MaxConecciones do
-   Begin
-   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
-      begin
-      UpdateConsenso(IntToStr(conexiones[contador].Pending), contador);
-      end;
-   end;
-if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
-else result := Default(NetworkData);
-End;
-
-function UpdateNetworkResumenHash():NetworkData;
-var
-  contador : integer = 1;
-Begin
-SetLength(ArrayConsenso,0);
-ConsensoValues := 0;
-for contador := 1 to MaxConecciones do
-   Begin
-   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
-      begin
-      UpdateConsenso(conexiones[contador].ResumenHash, contador);
-      end;
-   end;
-if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
-else result := Default(NetworkData);
-End;
-
-function UpdateNetworkMNsHash():NetworkData;
-var
-  contador : integer = 1;
-Begin
-SetLength(ArrayConsenso,0);
-ConsensoValues := 0;
-for contador := 1 to MaxConecciones do
-   Begin
-   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
-      begin
-      UpdateConsenso(conexiones[contador].MNsHash, contador);
-      end;
-   end;
-if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
-else result := Default(NetworkData);
-End;
-
-function UpdateNetworkMNsCount():NetworkData;
-var
-  contador : integer = 1;
-Begin
-SetLength(ArrayConsenso,0);
-ConsensoValues := 0;
-for contador := 1 to MaxConecciones do
-   Begin
-   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
-      begin
-      UpdateConsenso(IntToStr(conexiones[contador].MNsCount), contador);
-      end;
-   end;
-if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
-else result := Default(NetworkData);
-End;
-
-function UpdateNetworkBestHash():NetworkData;
-var
-  contador : integer = 1;
-Begin
-SetLength(ArrayConsenso,0);
-ConsensoValues := 0;
-for contador := 1 to MaxConecciones do
-   Begin
-   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
-      begin
-      UpdateConsenso(conexiones[contador].BestHashDiff, contador);
-      end;
-   end;
-if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
-else result := Default(NetworkData);
-End;
-
-function UpdateNetworkMNsChecks():NetworkData;
-var
-  contador : integer = 1;
-Begin
-SetLength(ArrayConsenso,0);
-ConsensoValues := 0;
-for contador := 1 to MaxConecciones do
-   Begin
-   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
-      begin
-      UpdateConsenso(IntToStr(conexiones[contador].MNChecksCount), contador);
-      end;
-   end;
-if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
-else result := Default(NetworkData);
-End;
-
-function UpdateNetworkGVTsHash():NetworkData;
-var
-  contador : integer = 1;
-Begin
-SetLength(ArrayConsenso,0);
-ConsensoValues := 0;
-for contador := 1 to MaxConecciones do
-   Begin
-   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
-      begin
-      UpdateConsenso(conexiones[contador].GVTsHash, contador);
-      end;
-   end;
-if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
-else result := Default(NetworkData);
-End;
-
-function UpdateNetworkCFGHash():NetworkData;
-var
-  contador : integer = 1;
-Begin
-SetLength(ArrayConsenso,0);
-ConsensoValues := 0;
-for contador := 1 to MaxConecciones do
-   Begin
-   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
-      begin
-      UpdateConsenso(conexiones[contador].CFGHash, contador);
-      end;
-   end;
-if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
-else result := Default(NetworkData);
-End;
-
-Function UpdateNetworkPSOHash():NetworkData;
-var
-  contador : integer = 1;
-Begin
-SetLength(ArrayConsenso,0);
-ConsensoValues := 0;
-for contador := 1 to MaxConecciones do
-   Begin
-   if ( (IsSlotConnected(Contador)) and (IsSeedNode(conexiones[contador].ip)) ) then
-      begin
-      UpdateConsenso(conexiones[contador].PSOHash, contador);
-      end;
-   end;
-if GetMasConsenso >= 0 then result := ArrayConsenso[GetMasConsenso]
-else result := Default(NetworkData);
-End;
-
-Procedure UpdateNetworkData();
-Begin
-NetLastBlock     := UpdateNetworkLastBlock; // Buscar cual es el ultimo bloque por consenso
-NetLastBlockHash := UpdateNetworkLastBlockHash;
-NetSumarioHash   := UpdateNetworkSumario; // Busca el hash del sumario por consenso
-NetPendingTrxs   := UpdateNetworkPendingTrxs;
-NetResumenHash   := UpdateNetworkResumenHash;
-NetMNsHash       := UpdateNetworkMNsHash;
-NetMNsCount      := UpdateNetworkMNsCOunt;
-NetBestHash      := UpdateNetworkBestHash;
-NetMNsChecks     := UpdateNetworkMNsChecks;
-NetGVTSHash      := UpdateNetworkGVTsHash;
-NETCFGHash       := UpdateNetworkCFGHash;
-U_DataPanel := true;
-End;
-
 Function IsAllSynced():integer;
 Begin
 result := 0;
@@ -987,7 +663,7 @@ MySumarioHash := HashMD5File(SummaryFileName);
 MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
 LastBlockData := LoadBlockDataHeader(MyLastBlock);
 MyResumenHash := HashMD5File(ResumenFilename);
-  if MyResumenHash = NetResumenHash.Value then ForceCompleteHeadersDownload := false;
+  if MyResumenHash = GetConsensus(5) then ForceCompleteHeadersDownload := false;
 MyMNsHash     := HashMD5File(MasterNodesFilename);
 MyCFGHash     := Copy(HAshMD5String(GetNosoCFGString),1,5);
 End;

@@ -42,17 +42,14 @@ Procedure ShowHalvings();
 Procedure SetServerPort(LineText:string);
 Procedure TestParser(LineText:String);
 Procedure DeleteBots(LineText:String);
-Procedure showCriptoThreadinfo();
 Procedure Parse_RestartNoso();
-Procedure ShowNetworkDataInfo();
 Procedure GetOwnerHash(LineText:string);
 Procedure CheckOwnerHash(LineText:string);
 function AvailableUpdates():string;
 Procedure RunUpdate(linea:string);
 Procedure RunGetBeta(linea:string);
 Procedure SendAdminMessage(linetext:string);
-Procedure RequestHeaders();
-Procedure RequestSumary();
+//Procedure RequestSumary();
 Procedure ShowOrderDetails(LineText:string);
 Procedure ExportAddress(LineText:string);
 Procedure ShowAddressInfo(LineText:string);
@@ -225,11 +222,9 @@ else if UpperCase(Command) = 'MD160' then ToLog('console',HashMD160String(Parame
 else if UpperCase(Command) = 'CLEAR' then form1.Memoconsola.Lines.clear
 else if UpperCase(Command) = 'TP' then TestParser(LineText)
 else if UpperCase(Command) = 'DELBOTS' then DeleteBots(LineText)
-else if UpperCase(Command) = 'CRIPTO' then showCriptoThreadinfo()
 else if UpperCase(Command) = 'BLOCK' then ParseShowBlockInfo(LineText)
 else if UpperCase(Command) = 'TESTNET' then TestNetwork(LineText)
 else if UpperCase(Command) = 'RESTART' then Parse_RestartNoso()
-else if UpperCase(Command) = 'SND' then ShowNetworkDataInfo()
 else if UpperCase(Command) = 'OSVERSION' then ToLog('console',OsVersion)
 else if UpperCase(Command) = 'DIRECTIVE' then SendAdminMessage(linetext)
 else if UpperCase(Command) = 'MYHASH' then ToLog('console',HashMD5File('noso.exe'))
@@ -241,8 +236,7 @@ else if UpperCase(Command) = 'UPDATE' then RunUpdate(LineText)
 else if UpperCase(Command) = 'GETBETA' then RunGetBeta(LineText)
 else if UpperCase(Command) = 'RESTOREBLOCKCHAIN' then RestoreBlockChain()
 else if UpperCase(Command) = 'RESTORESUMARY' then RestoreSumary(StrToIntDef(Parameter(LineText,1),0))
-else if UpperCase(Command) = 'REQHEAD' then RequestHeaders()
-else if UpperCase(Command) = 'REQSUM' then RequestSumary()
+//else if UpperCase(Command) = 'REQSUM' then RequestSumary()
 else if UpperCase(Command) = 'SAVEADV' then CreateADV(true)
 else if UpperCase(Command) = 'ORDER' then ShowOrderDetails(LineText)
 else if UpperCase(Command) = 'ORDERSOURCES' then ToLog('console',GetOrderSources(Parameter(LineText,1)))
@@ -996,26 +990,10 @@ Begin
   LastBotClear := UTCTimeStr;
 End;
 
-Procedure showCriptoThreadinfo();
-Begin
-ToLog('console',Booltostr(CriptoThreadRunning,true)+' '+intToStr(length(ArrayCriptoOp)));
-End;
-
 Procedure Parse_RestartNoso();
 Begin
 RestartNosoAfterQuit := true;
 CerrarPrograma();
-End;
-
-// Muestra la informacion de la red
-// Este procedimiento debe amppliarse para que muestre la informacion solicitada
-Procedure ShowNetworkDataInfo();
-Begin
-ToLog('console','Network last block');
-ToLog('console','Value: '+NetLastBlock.Value);
-ToLog('console','Count: '+IntToStr(NetLastBlock.Count));
-ToLog('console','Percent: '+IntToStr(NetLastBlock.porcentaje));
-ToLog('console','Slot: '+IntToStr(NetLastBlock.slot));
 End;
 
 Procedure GetOwnerHash(LineText:string);
@@ -1173,16 +1151,6 @@ else
    mensaje := StringReplace(mensaje,'_',' ',[rfReplaceAll, rfIgnoreCase]);
    ToLog('console','Directive sent: '+mensaje);
    end;
-End;
-
-Procedure RequestHeaders();
-Begin
-PTC_SendLine(NetResumenHash.Slot,ProtocolLine(7));
-End;
-
-Procedure RequestSumary();
-Begin
-PTC_SendLine(NetResumenHash.Slot,ProtocolLine(6));
 End;
 
 Procedure ShowOrderDetails(LineText:string);

@@ -195,7 +195,7 @@ if tipo = LastBlock then
    if WO_FullNode then Resultado := '$LASTBLOCK '+IntToStr(mylastblock)
    else
       begin
-      LastDownBlock := StrToIntDef(NetLastBlock.Value,0)-SecurityBlocks;
+      LastDownBlock := StrToIntDef(GetConsensus(2),0)-SecurityBlocks;
       if LastDownBlock<MyLastBlock then LastDownBlock:=MyLastBlock;
       Resultado := '$LASTBLOCK '+IntToStr(LastDownBlock);
       end;
@@ -1141,7 +1141,7 @@ var
   TotalErrors : integer = 0;
   TotalReceived: integer = 0;
 Begin
-if MyResumenHash = NetResumenHash.Value then exit;
+if MyResumenHash =GetConsensus(5) then exit;
 startpos := Pos('$',Linea);
 Content := Copy(Linea,Startpos+1,Length(linea));
 //ToLog('console','Content: '+Linea);

@@ -681,7 +681,6 @@ Const
 var
   blocknumber : integer;
 Begin
-//if BlockUndoneTime+30>UTCTime then exit;
 blocknumber:= MyLastBlock;
 if BlockNumber < Highest then
    begin
@@ -728,7 +727,6 @@ ToLog('console','****************************');
 ToLog('events',TimeToStr(now)+'Block Undone: '+IntToStr(blocknumber));
 ToDeepDeb('Block undone: '+Blocknumber.ToString);
 U_DataPanel := true;
-BlockUndoneTime := UTCTime;
 End;
 
 Function RemoveBlocks(UpToBlock:int64):integer;

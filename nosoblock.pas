@@ -182,6 +182,7 @@ var
   ArrayOrders : TBlockOrdersArray;
   ThisOrder   : TOrderData;
 Begin
+  Result := true;
   LastUpdated := GetDBLastBlock;
   UntilBlock  := LastUpdated+1000;
   if untilblock >  GetMyLastUpdatedBlock then untilblock := GetMyLastUpdatedBlock;
@@ -203,6 +204,7 @@ End;
 // Insert a value on index
 Function InsertToIndex(LData:TDBRecord):boolean;
 Begin
+  Result := true;
   EnterCriticalSEction(CSDBIndex);
   Insert(LData.block,OrderIDIndex[LData.orderID],length(OrderIDIndex[LData.orderID]));
   LeaveCriticalSEction(CSDBIndex);
