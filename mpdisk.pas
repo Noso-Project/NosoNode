@@ -463,7 +463,6 @@ BeginPerformance('CreateADV');
    writeln(FileAdvOptions,'---Deprecated. To be removed.---');
    writeln(FileAdvOptions,'UserFontSize '+inttoStr(UserFontSize));
    writeln(FileAdvOptions,'UserRowHeigth '+inttoStr(UserRowHeigth));
-   writeln(FileAdvOptions,'ShowedOrders '+IntToStr(ShowedOrders));
    writeln(FileAdvOptions,'MaxPeers '+IntToStr(MaxPeersAllow));
    writeln(FileAdvOptions,'PosWarning '+IntToStr(WO_PosWarning));
 
@@ -491,7 +490,6 @@ Begin
       if parameter(linea,0) ='UserRowHeigth' then UserRowHeigth:=StrToIntDef(Parameter(linea,1),UserRowHeigth);
       if parameter(linea,0) ='RPCPort' then RPCPort:=StrToIntDef(Parameter(linea,1),RPCPort);
       if parameter(linea,0) ='RPCPass' then RPCPass:=Parameter(linea,1);
-      if parameter(linea,0) ='ShowedOrders' then ShowedOrders:=StrToIntDef(Parameter(linea,1),ShowedOrders);
       if parameter(linea,0) ='MaxPeers' then MaxPeersAllow:=StrToIntDef(Parameter(linea,1),MaxPeersAllow);
       if parameter(linea,0) ='PosWarning' then WO_PosWarning:=StrToIntDef(Parameter(linea,1),WO_PosWarning);
       if parameter(linea,0) ='SendReport' then WO_SendReport:=StrToBool(Parameter(linea,1));

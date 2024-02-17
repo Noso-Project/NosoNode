@@ -293,7 +293,6 @@ else if UpperCase(Command) = 'SUMINDEXSIZE' then ToLog('console',IntToStr(SumInd
 else if UpperCase(Command) = 'BLOCKPOS' then ShowBlockPos(LineText)
 else if UpperCase(Command) = 'BLOCKMNS' then ShowBlockMNs(LineText)
 else if UpperCase(Command) = 'MYIP' then ToLog('console',GetMiIP)
-else if UpperCase(Command) = 'SHOWUPDATES' then ToLog('console',StringAvailableUpdates)
 else if UpperCase(Command) = 'SETMODE' then SetCFGData(parameter(linetext,1),0)
 else if UpperCase(Command) = 'ADDNODE' then AddCFGData(parameter(linetext,1),1)
 else if UpperCase(Command) = 'DELNODE' then RemoveCFGData(parameter(linetext,1),1)

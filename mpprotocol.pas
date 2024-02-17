@@ -1036,6 +1036,8 @@ if ErrorCode > 0 then
 End;
 
 Procedure PTC_AdminMSG(TextLine:String);
+const
+  MsgsReceived : String = '';
 var
   msgtime, mensaje, firma, hashmsg : string;
   msgtoshow : string = '';
@@ -1176,36 +1178,6 @@ else
    ForceCompleteHeadersDownload := false;
    end;
 End;
-
-{
-Procedure SetNMSData(diff,hash,miner,Timestamp,publicKey,signature:string);
-Begin
-EnterCriticalSection(CSNMSData);
-if diff = '' then
-   begin
-   diff      := 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF1';
-   Hash      := '!!!!!!!!!100000000';
-   miner     := 'NpryectdevepmentfundsGE';
-   TimeStamp := (LastBlockData.TimeEnd+10).ToString;
-   PublicKey := '';
-   Signature := '';
-   end;
-NMSData.Diff   := Diff;
-NMSData.Hash   := Hash;
-NMSData.Miner  := Miner;
-NMSData.TStamp := TimeStamp;
-NMSData.Pkey   := PublicKey;
-NMSData.Signat := Signature;
-LeaveCriticalSection(CSNMSData);
-End;
-
-Function GetNMSData():TNMSData;
-Begin
-EnterCriticalSection(CSNMSData);
-Result := NMSData;
-LeaveCriticalSection(CSNMSData);
-End;
-}
 
 Procedure SetCFGData(DataToSet:String;CFGIndex:Integer);
 var

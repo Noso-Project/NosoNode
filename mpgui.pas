@@ -27,7 +27,7 @@ Procedure CreateFormInicio();
 Procedure CreateFormSlots();
 Procedure UpdateSlotsGrid();
 Function GetConnectedPeers():String;
-Procedure InicializarGUI();
+Procedure InitGUI();
 Procedure OutText(Texto:String;inctime:boolean = false;canal : integer =0);
 Procedure ActualizarGUI();
 Procedure Info(text:string);
@@ -204,7 +204,7 @@ Trim(Result);
 End;
 
 // Inicializa el grid donde se muestran los datos
-Procedure InicializarGUI();
+Procedure InitGUI();
 var
   contador : integer = 0;
 Begin

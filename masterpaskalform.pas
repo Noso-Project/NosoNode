@@ -626,6 +626,7 @@ CONST
 
 var
   Form1            : TForm1;
+  Customizationfee : int64 = InitialReward div ComisionCustom;
   {Options}
   FileAdvOptions   : textfile;
   S_AdvOpt         : boolean = false;
@@ -633,7 +634,6 @@ var
   UserRowHeigth    : integer = 22;
   RPCPort          : integer = 8078;
   RPCPass          : string = 'default';
-  ShowedOrders     : integer = 100;
   MaxPeersAllow    : integer = 50;
   WO_AutoServer    : boolean = false;
   WO_PosWarning    : int64 = 7;
@@ -643,8 +643,6 @@ var
     WO_LastPoUpdate: string = ProgramVersion+Subversion;
   WO_CloseStart    : boolean = true;
   WO_AutoUpdate    : Boolean = true;
-    UpdateFileSize : int64 = 0;
-    FirstTimeUpChe : boolean = true;
   WO_SendReport    : boolean = false;
   WO_OmmitMemos    : boolean = false;
   WO_BlockDB       : boolean = false;
@@ -669,6 +667,7 @@ var
   ListadoBots      : array of BotData;
   ListaNodos       : array of NodeData;
   PendingTXs       : Array of TOrderData;
+  ArrayOrderIDsProcessed : array of string;
   OutgoingMsjs     : TStringlist;
   KeepServerOn     : Boolean = false;
    LastTryServerOn : Int64 = 0;
@@ -678,6 +677,8 @@ var
   DownLoadBlocks   : boolean = false;
   DownLoadGVTs     : boolean = false;
   DownloadPSOs     : boolean = false;
+  RebuildingSumary : boolean = false;
+  OpenReadClientThreads : integer = 0;
 
   // Threads
   SendOutMsgsThread : TThreadSendOutMsjs;
@@ -687,13 +688,26 @@ var
   CryptoThread      : TCryptoThread;
   UpdateLogsThread  : TUpdateLogs;
 
-  // GUI related
+  // GUI/APP related
   ConnectedRotor       : integer = 0;
   EngineLastUpdate     : int64 = 0;
   LastLogLine          : String = '';
-  FirstShow            : boolean = false;
   RestartNosoAfterQuit : boolean = false;
   U_DirPanel           : boolean = false;
+  U_DataPanel          : boolean = true;
+  G_ClosingAPP         : Boolean = false;
+  MyCurrentBalance     : Int64 = 0;
+  G_Launching          : boolean = true;
+  G_CloseRequested     : boolean = false;
+  G_LastPing           : int64;
+  G_TotalPings         : Int64 = 0;
+  LastCommand          : string = '';
+  ProcessLines         : TStringlist;
+  LastBotClear         : string = '';
+  S_Wallet             : boolean = false;
+  MontoIncoming        : Int64 = 0;
+  MontoOutgoing        : Int64 = 0;
+  InfoPanelTime        : integer = 0;
 
   // FormState
   FormState_Top    : integer;
@@ -702,29 +716,33 @@ var
   FormState_Width  : integer;
   FormState_Status : integer;
 
-  RebuildingSumary : boolean = false;
-  MyCurrentBalance : Int64 = 0;
-  Customizationfee : int64 = InitialReward div ComisionCustom;
-  MsgsReceived : string = '';
-  G_Launching : boolean = true;   // Indica si el programa se esta iniciando
-  G_CloseRequested : boolean = false;
-  G_LastPing  : int64;            // El segundo del ultimo ping
-  G_TotalPings : Int64 = 0;
-  G_MNVerifications : integer = 0;
-  G_ClosingAPP : Boolean = false;
+  // Masternodes
+  G_MNVerifications  : integer = 0;
+  ArrayMNsData       : array of TMNsData;
+  LastTimeReportMyMN : int64 = 0;
+  MNsArray           : array of TMasterNode;
+  WaitingMNs         : array of String;
+  U_MNsGrid          : boolean = false;
+  U_MNsGrid_Last     : int64 = 0;
 
-  LastCommand : string = '';
-  ProcessLines : TStringlist;
-  StringAvailableUpdates : String = '';
-    U_DataPanel : boolean = true;
+  MNsList   : array of TMnode;
+  ArrMNChecks : array of TMNCheck;
+  MNsRandomWait : Integer= 0;
 
-
-  ArrayOrderIDsProcessed : array of string;
-  LastBotClear: string = '';
-    S_Wallet : boolean = false;
-
+  // GVTS
   FileGVTs    : file of TGVT;
   ArrGVTs     : array of TGVT;
+
+
+
+
+
+
+
+
+
+
+
 
 
   MySumarioHash : String = '';
@@ -734,58 +752,40 @@ var
   MyGVTsHash    : string = '';
   MyCFGHash     : string = '';
   MyPublicIP : String = '';
-  OpenReadClientThreads : integer = 0;
-
-
   MyMNsHash : String = '';
-  ArrayMNsData  : array of TMNsData;
 
 
-  LastTimeReportMyMN : int64 = 0;
-  //MyMNsCount : integer = 0;
+
+
+
+
 
   LastBlockData : BlockHeaderData;
   BuildingBlock : integer = 0;
-  MNsArray   : array of TMasterNode;
-  WaitingMNs : array of String;
-   U_MNsGrid : boolean = false;
-   U_MNsGrid_Last : int64 = 0;
 
-  MNsList   : array of TMnode;
-  ArrMNChecks : array of TMNCheck;
-  MNsRandomWait : Integer= 0;
 
-  Last_SyncWithMainnet : int64 = 0;
+  Last_SyncWithMainnet         : int64 = 0;
+  LastTimeRequestSumary        : int64 = 0;
+  LastTimeRequestBlock         : int64 = 0;
+  LastTimeRequestResumen       : int64 = 0;
+  LastTimePendingRequested     : int64 = 0;
+  ForceCompleteHeadersDownload : boolean = false;
+  LastTimeMNHashRequestes      : int64 = 0;
+  LastTimeBestHashRequested    : int64 = 0;
+  LastTimeMNsRequested         : int64 = 0;
+  LastTimeChecksRequested      : int64 = 0;
+  LastRunMNVerification        : int64 = 0;
+  LasTimeGVTsRequest           : int64 = 0;
+  LasTimeCFGRequest            : int64 = 0;
+  LasTimePSOsRequest           : int64 = 0;
 
-  //NetSumarioHash : NetworkData;
-    //SumaryRebuilded : boolean = false;
-    LastTimeRequestSumary  : int64 = 0;
-  //NetLastBlock : NetworkData;
-    LastTimeRequestBlock : int64 = 0;
-  //NetLastBlockHash : NetworkData;
-  //NetPendingTrxs : NetworkData;
-  //NetResumenHash : NetworkData;
-    LastTimeRequestResumen : int64 = 0;
-    LastTimePendingRequested : int64 = 0;
-    ForceCompleteHeadersDownload : boolean = false;
-  //NetMNsHash     : NetworkData;
-    LastTimeMNHashRequestes : int64 = 0;
-  //NetMNsCount    : NetworkData;
-  //NetBestHash    : NetworkData;
-    LastTimeBestHashRequested : int64 = 0;
-    LastTimeMNsRequested   : int64 = 0;
-  //NetMNsChecks   : NetworkData;
-    LastTimeChecksRequested : int64 = 0;
-  LastRunMNVerification : int64 = 0;
   // Variables asociadas a mi conexion
   MyConStatus          :  integer = 0;
   STATUS_Connected     : boolean = false;
-  //NetGVTSHash          : NetworkData;
-    LasTimeGVTsRequest : int64 = 0;
-  //NetCFGHash           : NetworkData;
-    LasTimeCFGRequest  : int64 = 0;
 
-  LasTimePSOsRequest   : int64 = 0;
+
+
+
 
   BuildNMSBlock : int64 = 0;
 
@@ -802,11 +802,9 @@ var
   CSGVTsArray   : TRTLCriticalSection;
   CSNosoCFGStr  : TRTLCriticalSection;
 
-  // old system
+  //MNs system
   CSMNsArray    : TRTLCriticalSection;
   CSWaitingMNs  : TRTLCriticalSection;
-  //new MNs system
-  CSMNsList     : TRTLCriticalSection;
   CSMNsChecks   : TRTLCriticalSection;
 
   CSIdsProcessed: TRTLCriticalSection;
@@ -820,10 +818,6 @@ var
 
 
   // Filename variables
-
-  //BotDataFilename     : string= 'NOSODATA'+DirectorySeparator+'botdata.psk';
-  //WalletFilename    : string= 'NOSODATA'+DirectorySeparator+'wallet.pkw';
-  //BlockDirectory      : string= 'NOSODATA'+DirectorySeparator+'BLOCKS'+DirectorySeparator;
   MarksDirectory      : string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator;
   GVTMarksDirectory   : string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator+'GVTS'+DirectorySeparator;
   UpdatesDirectory    : string= 'NOSODATA'+DirectorySeparator+'UPDATES'+DirectorySeparator;
@@ -839,12 +833,9 @@ var
   MasterNodesFilename : string= 'NOSODATA'+DirectorySeparator+'masternodes.txt';
   ZipHeadersFileName  : string= 'NOSODATA'+DirectorySeparator+'blchhead.zip';
   GVTsFilename        : string= 'NOSODATA'+DirectorySeparator+'gvts.psk';
-  //NosoCFGFilename     : string= 'NOSODATA'+DirectorySeparator+'nosocfg.psk';
   ClosedAppFilename   : string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'proclo.dat';
   RPCBakDirectory     : string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator+'RPC'+DirectorySeparator;
-  MontoIncoming       : Int64 = 0;
-  MontoOutgoing       : Int64 = 0;
-  InfoPanelTime       : integer = 0;
+
 
 IMPLEMENTATION
 
@@ -865,7 +856,11 @@ Begin
 VSlot:= -1;
 End;
 
-{Thread update logs}
+// ***************
+// *** THREADS ***
+// ***************
+
+{$REGION Thread update logs}
 
 constructor TUpdateLogs.Create(CreateSuspended : boolean);
 Begin
@@ -907,7 +902,15 @@ While not terminated do
   end;
 End;
 
-{ TThreadClientRead }
+{$ENDREGION}
+
+{$REGION Thread Client read}
+
+constructor TThreadClientRead.Create(const CreatePaused: Boolean; const ConexSlot:Integer);
+Begin
+  inherited Create(CreatePaused);
+  FSlot:= ConexSlot;
+End;
 
 procedure TThreadClientRead.Execute;
 var
@@ -1164,11 +1167,9 @@ begin
   CloseOpenThread('ReadClient '+FSlot.ToString);
 End;
 
-constructor TThreadClientRead.Create(const CreatePaused: Boolean; const ConexSlot:Integer);
-begin
-  inherited Create(CreatePaused);
-  FSlot:= ConexSlot;
-end;
+{$ENDREGION}
+
+{$REGION Thread Directive}
 
 constructor TThreadDirective.Create(const CreatePaused: Boolean; const TCommand:string);
 begin
@@ -1199,147 +1200,153 @@ While not Tfinished do
    end;
 End;
 
-{ TForm1 }
+{$ENDREGION}
 
-// ***************
-// *** THREADS ***
-// ***************
+{$REGION Thread Update MNs}
 
 constructor TUpdateMNs.Create(CreateSuspended : boolean);
-begin
+Begin
   inherited Create(CreateSuspended);
-end;
-
-constructor TCryptoThread.Create(CreateSuspended : boolean);
-begin
-  inherited Create(CreateSuspended);
-end;
-
-constructor TThreadSendOutMsjs.Create(CreateSuspended : boolean);
-begin
-  inherited Create(CreateSuspended);
-end;
+End;
 
 // Process the Masternodes reports
 procedure TUpdateMNs.Execute;
 var
   TextLine : String;
 Begin
-AddNewOpenThread('Masternodes',UTCTime);
-Randomize;
-MNsRandomWait := Random(21);
-While not terminated do
-   begin
-   if UTCTime mod 10 = 0 then
+  AddNewOpenThread('Masternodes',UTCTime);
+  Randomize;
+  MNsRandomWait := Random(21);
+  While not terminated do
+    begin
+    if UTCTime mod 10 = 0 then
       begin
       if ( (IsValidator(MN_Ip)) and (BlockAge>500+(MNsRandomWait div 4)) and (Not MNVerificationDone) and
-         (BlockAge<575)and(LastRunMNVerification<>UTCTime) and (MyConStatus = 3) and(NoVerificators=0) ) then
-         begin
-         LastRunMNVerification := UTCTime;
-         RunMNVerification();
-         end;
+        (BlockAge<575)and(LastRunMNVerification<>UTCTime) and (MyConStatus = 3) and(NoVerificators=0) ) then
+        begin
+        LastRunMNVerification := UTCTime;
+        RunMNVerification();
+        end;
       end;
-   While LengthWaitingMNs > 0 do
+    While LengthWaitingMNs > 0 do
       begin
       TextLine := GetWaitingMNs;
       if not IsIPMNAlreadyProcessed(TextLine) then
-         begin
-         CheckMNRepo(TextLine);
-         sleep(1);
-         end;
+        begin
+        CheckMNRepo(TextLine);
+        sleep(1);
+        end;
       end;
-   Sleep(10);
-   end;
+    Sleep(10);
+    end;
 End;
 
-procedure TCryptoThread.Execute;
+{$ENDREGION}
+
+{$REGION Thread Crypto}
+
+constructor TCryptoThread.Create(CreateSuspended : boolean);
+Begin
+  inherited Create(CreateSuspended);
+End;
+
+Procedure TCryptoThread.Execute;
 var
   NewAddrss : integer = 0;
   PosRef : integer; cadena,claveprivada,firma, resultado:string;
   NewAddress : WalletData;
   PubKey,PriKey : string;
 Begin
-AddNewOpenThread('Crypto',UTCTime);
-While not terminated do
-   begin
-   NewAddrss := 0;
-   if length(ArrayCriptoOp)>0 then
+  AddNewOpenThread('Crypto',UTCTime);
+  While not terminated do
+    begin
+    NewAddrss := 0;
+    if length(ArrayCriptoOp)>0 then
       begin
       if ArrayCriptoOp[0].tipo = 0 then
-         begin
+        begin
 
-         end
+        end
       else if ArrayCriptoOp[0].tipo = 1 then // Crear direccion
-         begin
-         NewAddress := Default(WalletData);
-         NewAddress.Hash:=GenerateNewAddress(PubKey,PriKey);
-         NewAddress.PublicKey:=pubkey;
-         NewAddress.PrivateKey:=PriKey;
-         InsertToWallArr(NewAddress);
-         S_Wallet := true;
-         U_DirPanel := true;
-         Inc(NewAddrss);
-         end
+        begin
+        NewAddress := Default(WalletData);
+        NewAddress.Hash:=GenerateNewAddress(PubKey,PriKey);
+        NewAddress.PublicKey:=pubkey;
+        NewAddress.PrivateKey:=PriKey;
+        InsertToWallArr(NewAddress);
+        S_Wallet := true;
+        U_DirPanel := true;
+        Inc(NewAddrss);
+        end
       else if ArrayCriptoOp[0].tipo = 2 then // customizar
-         begin
-         posRef := pos('$',ArrayCriptoOp[0].data);
-         cadena := copy(ArrayCriptoOp[0].data,1,posref-1);
-         claveprivada := copy (ArrayCriptoOp[0].data,posref+1,length(ArrayCriptoOp[0].data));
-         firma := GetStringSigned(cadena,claveprivada);
-         resultado := StringReplace(ArrayCriptoOp[0].result,'[[RESULT]]',firma,[rfReplaceAll, rfIgnoreCase]);
-         OutgoingMsjsAdd(resultado);
-         OutText('Customization sent',false,2);
-         end
+        begin
+        posRef := pos('$',ArrayCriptoOp[0].data);
+        cadena := copy(ArrayCriptoOp[0].data,1,posref-1);
+        claveprivada := copy (ArrayCriptoOp[0].data,posref+1,length(ArrayCriptoOp[0].data));
+        firma := GetStringSigned(cadena,claveprivada);
+        resultado := StringReplace(ArrayCriptoOp[0].result,'[[RESULT]]',firma,[rfReplaceAll, rfIgnoreCase]);
+        OutgoingMsjsAdd(resultado);
+        OutText('Customization sent',false,2);
+        end
       else if ArrayCriptoOp[0].tipo = 3 then // enviar fondos
-         begin
-         TRY
-         Sendfunds(ArrayCriptoOp[0].data);
-         EXCEPT ON E:Exception do
+        begin
+          TRY
+          Sendfunds(ArrayCriptoOp[0].data);
+          EXCEPT ON E:Exception do
             ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2501,[E.Message]));
-         END{Try};
-         end
+          END{Try};
+        end
       else if ArrayCriptoOp[0].tipo = 4 then // recibir customizacion
-         begin
-         TRY
-         PTC_Custom(ArrayCriptoOp[0].data);
-         EXCEPT ON E:Exception do
-            ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2502,[E.Message]));
-         END{Try};
-         end
-       else if ArrayCriptoOp[0].tipo = 5 then // recibir transferencia
-          begin
+        begin
+        TRY
+          PTC_Custom(ArrayCriptoOp[0].data);
+        EXCEPT ON E:Exception do
+          ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2502,[E.Message]));
+        END{Try};
+        end
+      else if ArrayCriptoOp[0].tipo = 5 then // recibir transferencia
+        begin
           TRY
           PTC_Order(ArrayCriptoOp[0].data);
           EXCEPT ON E:Exception do
             ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2503,[E.Message]));
           END{Try};
-          end
-       else if ArrayCriptoOp[0].tipo = 6 then // Send GVT
-          begin
-          TRY
+        end
+      else if ArrayCriptoOp[0].tipo = 6 then // Send GVT
+        begin
+        TRY
           SendGVT(ArrayCriptoOp[0].data);
-          EXCEPT ON E:Exception do
-            ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2504,[E.Message]));
-          END{Try};
-          end
-       else if ArrayCriptoOp[0].tipo = 7 then // Send GVT
-          begin
-          TRY
+        EXCEPT ON E:Exception do
+          ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2504,[E.Message]));
+        END{Try};
+        end
+      else if ArrayCriptoOp[0].tipo = 7 then // Send GVT
+        begin
+        TRY
           PTC_SendGVT(ArrayCriptoOp[0].data);
-          EXCEPT ON E:Exception do
-            ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2505,[E.Message]));
-          END{Try};
-          end
-       else
-          begin
-             ToLog('exceps','Invalid cryptoop: '+ArrayCriptoOp[0].tipo.ToString);
-          end;
+        EXCEPT ON E:Exception do
+          ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs2505,[E.Message]));
+        END{Try};
+        end
+      else
+        begin
+        ToLog('exceps','Invalid cryptoop: '+ArrayCriptoOp[0].tipo.ToString);
+        end;
       DeleteCriptoOp();
       sleep(1);
       end;
-   if NewAddrss > 0 then OutText(IntToStr(NewAddrss)+' new addresses',false,2);
-   Sleep(10);
-   end;
+    if NewAddrss > 0 then OutText(IntToStr(NewAddrss)+' new addresses',false,2);
+    Sleep(10);
+    end;
+End;
+
+{$ENDREGION}
+
+{$REGION Thread Send outgoing msgs}
+
+constructor TThreadSendOutMsjs.Create(CreateSuspended : boolean);
+Begin
+  inherited Create(CreateSuspended);
 End;
 
 // Send the outgoing messages
@@ -1373,14 +1380,14 @@ While not terminated do
    End;
 End;
 
-//***************************
-// *** KEEPCONNECT THREAD ***
-//***************************
+{$ENDREGION}
+
+{$REGION Thread keepConnected}
 
 constructor TThreadKeepConnect.Create(CreateSuspended : boolean);
-begin
+Begin
   inherited Create(CreateSuspended);
-end;
+End;
 
 procedure TThreadKeepConnect.Execute;
 const
@@ -1411,9 +1418,9 @@ Begin
   CloseOpenThread('KeepConnect');
 End;
 
-//****************
-// *** INDEXER ***
-//****************
+{$ENDREGION}
+
+{$REGION Thread Indexer}
 
 constructor TThreadIndexer.Create(CreateSuspended : boolean);
 begin
@@ -1440,124 +1447,116 @@ Begin
   CloseOpenThread('Indexer');
 End;
 
+{$ENDREGION}
+
 //***********************
 // *** FORM RELATIVES ***
 //***********************
 
-// Form create
+{$REGION Form1}
+
 procedure TForm1.FormCreate(sender: TObject);
 var
   counter : integer;
-begin
-ProcessLines       := TStringlist.Create;
-OutgoingMsjs       := TStringlist.Create;
-Randomize;
-InitCriticalSection(CSProcessLines);
-InitCriticalSection(CSOutgoingMsjs);
-InitCriticalSection(CSBlocksAccess);
-InitCriticalSection(CSPending);
-InitCriticalSection(CSCriptoThread);
-InitCriticalSection(CSMNsArray);
-InitCriticalSection(CSWaitingMNs);
-InitCriticalSection(CSMNsList);
-InitCriticalSection(CSMNsChecks);
-InitCriticalSection(CSClosingApp);
-InitCriticalSection(CSClientReads);
-InitCriticalSection(CSGVTsArray);
-InitCriticalSection(CSNosoCFGStr);
+Begin
+  ProcessLines       := TStringlist.Create;
+  OutgoingMsjs       := TStringlist.Create;
+  Randomize;
+  InitCriticalSection(CSProcessLines);
+  InitCriticalSection(CSOutgoingMsjs);
+  InitCriticalSection(CSBlocksAccess);
+  InitCriticalSection(CSPending);
+  InitCriticalSection(CSCriptoThread);
+  InitCriticalSection(CSMNsArray);
+  InitCriticalSection(CSWaitingMNs);
+  InitCriticalSection(CSMNsChecks);
+  InitCriticalSection(CSClosingApp);
+  InitCriticalSection(CSClientReads);
+  InitCriticalSection(CSGVTsArray);
+  InitCriticalSection(CSNosoCFGStr);
+  InitCriticalSection(CSIdsProcessed);
+  InitCriticalSection(CSNodesList);
+  for counter := 1 to MaxConecciones do
+    begin
+    InitCriticalSection(CSOutGoingArr[counter]);
+    InitCriticalSection(CSIncomingArr[counter]);
+    SetLength(ArrayOutgoing[counter],0);
+    end;
+  CreateFormInicio();
+  CreateFormSlots();
+  SetLength(ArrayOrderIDsProcessed,0);
+  SetLength(ArrayMNsData,0);
+End;
 
-InitCriticalSection(CSIdsProcessed);
-InitCriticalSection(CSNodesList);
-for counter := 1 to MaxConecciones do
-   begin
-   InitCriticalSection(CSOutGoingArr[counter]);
-   InitCriticalSection(CSIncomingArr[counter]);
-   SetLength(ArrayOutgoing[counter],0);
-   end;
-
-CreateFormInicio();
-CreateFormSlots();
-SetLength(ArrayOrderIDsProcessed,0);
-SetLength(ArrayMNsData,0);
-//SetLength(ArrayOrdIndex,0);
-end;
-
-// Form destroy
 procedure TForm1.FormDestroy(sender: TObject);
 var
   contador : integer;
-begin
-DoneCriticalSection(CSProcessLines);
-DoneCriticalSection(CSOutgoingMsjs);
-DoneCriticalSection(CSBlocksAccess);
-DoneCriticalSection(CSPending);
-DoneCriticalSection(CSCriptoThread);
-DoneCriticalSection(CSMNsArray);
-DoneCriticalSection(CSWaitingMNs);
-DoneCriticalSection(CSMNsList);
-DoneCriticalSection(CSMNsChecks);
-DoneCriticalSection(CSClosingApp);
-DoneCriticalSection(CSClientReads);
-DoneCriticalSection(CSGVTsArray);
-DoneCriticalSection(CSNosoCFGStr);
-DoneCriticalSection(CSIdsProcessed);
-DoneCriticalSection(CSNodesList);
-for contador := 1 to MaxConecciones do
-   begin
-   DoneCriticalSection(CSOutGoingArr[contador]);
-   DoneCriticalSection(CSIncomingArr[contador]);
-   end;
-for contador := 1 to maxconecciones do
-   If Assigned(SlotLines[contador]) then SlotLines[contador].Free;
-
-form1.Server.free;
-form1.RPCServer.Free;
-
-end;
-
-// RESIZE MAIN FORM (Lot of things to add here)
-Procedure TForm1.FormResize(sender: TObject);
-  Begin
-  //infopanel.Left:=(Form1.Width div 2)-150;
-  //infopanel.Top:=((Form1.Height-560) div 2)+245;
-  InfoPanel.Left:=
-    (Form1.ClientWidth div 2) -
-    (InfoPanel.Width div 2);
-
-  InfoPanel.Top:=
-    (Form1.ClientHeight div 2) -
-    (InfoPanel.Height div 2);
-
+Begin
+  DoneCriticalSection(CSProcessLines);
+  DoneCriticalSection(CSOutgoingMsjs);
+  DoneCriticalSection(CSBlocksAccess);
+  DoneCriticalSection(CSPending);
+  DoneCriticalSection(CSCriptoThread);
+  DoneCriticalSection(CSMNsArray);
+  DoneCriticalSection(CSWaitingMNs);
+  DoneCriticalSection(CSMNsChecks);
+  DoneCriticalSection(CSClosingApp);
+  DoneCriticalSection(CSClientReads);
+  DoneCriticalSection(CSGVTsArray);
+  DoneCriticalSection(CSNosoCFGStr);
+  DoneCriticalSection(CSIdsProcessed);
+  DoneCriticalSection(CSNodesList);
+  for contador := 1 to MaxConecciones do
+    begin
+    DoneCriticalSection(CSOutGoingArr[contador]);
+    DoneCriticalSection(CSIncomingArr[contador]);
+    end;
+  for contador := 1 to maxconecciones do
+    If Assigned(SlotLines[contador]) then SlotLines[contador].Free;
+  form1.Server.free;
+  form1.RPCServer.Free;
 End;
 
-// Form show
-procedure TForm1.FormShow(sender: TObject);
-var
-    Proceder:boolean = true;
-begin
-// Se ejecuta solo la primera vez
-if FirstShow then Proceder:=false;
-//inicializar lo basico para cargar el idioma
-if proceder then
-   begin
-   form1.Visible:=false;
-   forminicio.Visible:=true;
-   Form1.InicioTimer:= TTimer.Create(Form1);
-   Form1.InicioTimer.Enabled:=true;
-   Form1.InicioTimer.Interval:=1;
-   Form1.InicioTimer.OnTimer:= @form1.InicoTimerEjecutar;
+Procedure TForm1.FormResize(sender: TObject);
+Begin
+  InfoPanel.Left:= (Form1.ClientWidth div 2) - (InfoPanel.Width div 2);
+  InfoPanel.Top := (Form1.ClientHeight div 2) - (InfoPanel.Height div 2);
+End;
 
-   Form1.RestartTimer:= TTimer.Create(Form1);
-   Form1.RestartTimer.Enabled:=false;
-   Form1.RestartTimer.Interval:=1000;
-   Form1.RestartTimer.OnTimer:= @form1.RestartTimerEjecutar;
-   end;
-end;
+procedure TForm1.FormShow(sender: TObject);
+Const
+  GoAhead : boolean = true;
+Begin
+  if GoAhead then
+    begin
+    GoAhead := false;
+    form1.Visible:=false;
+    forminicio.Visible:=true;
+    Form1.InicioTimer:= TTimer.Create(Form1);
+    Form1.InicioTimer.Enabled:=true;
+    Form1.InicioTimer.Interval:=1;
+    Form1.InicioTimer.OnTimer:= @form1.InicoTimerEjecutar;
+
+    Form1.RestartTimer:= TTimer.Create(Form1);
+    Form1.RestartTimer.Enabled:=false;
+    Form1.RestartTimer.Interval:=1000;
+    Form1.RestartTimer.OnTimer:= @form1.RestartTimerEjecutar;
+    end;
+End;
+
+// Manual request to close the app
+Procedure TForm1.FormCloseQuery(sender: TObject; var CanClose: boolean);
+Begin
+  G_CloseRequested := true;
+  CanClose:= G_ClosingAPP;
+End;
+
+{$ENDREGION}
 
 Procedure TForm1.InicoTimerEjecutar(sender: TObject);
 Begin
-InicioTimer.Enabled:=false;
-StartProgram;
+  InicioTimer.Enabled:=false;
+  StartProgram;
 End;
 
 // Auto restarts the app from hangs
@@ -1588,77 +1587,72 @@ End;
 // Start the application
 Procedure TForm1.StartProgram();
 Begin
-Form1.InfoPanel.Visible:=false;
-AddNewOpenThread('Main',UTCTime);
-if FileStructure > 0 then
-  begin
-  Application.MessageBox('There was an error creating the files structure and the program will close.', 'NosoNode Error', MB_ICONINFORMATION);
-  Halt();
-  end;
-MixTxtFiles([DeepDebLogFilename,ConsoleLogFilename,EventLogFilename,ExceptLogFilename,NodeFTPLogFilename,PerformanceFIlename],ResumeLogFilename,true);
-InitDeepDeb(DeepDebLogFilename,format('( %s - %s )',[ProgramVersion+subversion, OSVersion]));
-NosoDebug_UsePerformance := true;
-UpdateLogsThread := TUpdateLogs.Create(true);
-UpdateLogsThread.FreeOnTerminate:=true;
-UpdateLogsThread.Start;
-CreateNewLog('console',ConsoleLogFilename);
-CreateNewLog('events',EventLogFilename);
-CreateNewLog('exceps',ExceptLogFilename);
-CreateNewLog('nodeftp',NodeFTPLogFilename);
-OutText(rs0022,false,1); //'✓ Files tree ok'
-InitMainForm();
-OutText(rs0023,false,1); //✓ GUI initialized
-VerifyFiles();
-if ( (not fileExists(ClosedAppFilename)) and (WO_Sendreport) ) then
-  begin
-  if SEndFileViaTCP(ResumeLogFilename,'REPORT','debuglogs.nosocoin.com',18081) then
+  Form1.InfoPanel.Visible:=false;
+  AddNewOpenThread('Main',UTCTime);
+  if FileStructure > 0 then
     begin
-    OutText('✓ Bug report sent to developers',false,1);
-    TryDeleteFile(ClosedAppFilename);
-    end
-  else OutText('x Error sending report to developers',false,1);
-  end;
-
-InicializarGUI();
-//InitTime();
-GetTimeOffset(PArameter(GetNosoCFGString,2));
-OutText('✓ Mainnet time synced',false,1);
-UpdateMyData();
-OutText(rs0024,false,1); //'✓ My data updated'
-// Ajustes a mostrar
-LoadOptionsToPanel();
-form1.Caption:=coinname+format(rs0027,[ProgramVersion,SubVersion]);
-Application.Title := coinname+format(rs0027,[ProgramVersion,SubVersion]);   // Wallet
-ToLog('console',coinname+format(rs0027,[ProgramVersion,SubVersion]));
-If BetaRelease then ToLog('console','*** WARNING ***'+slinebreak+'This is a beta version ('+ProgramVersion+SubVersion+') Use it carefully, do not store funds on its wallet and report any issue to development team.');
-UpdateMyGVTsList;
-OutText(rs0088,false,1); // '✓ My GVTs grid updated';
-if fileexists(RestartFileName) then
-   begin
-   Deletefile(RestartFileName);
-   OutText(rs0069,false,1); // '✓ Launcher file deleted';
-   end;
-if fileexists('restart.txt') then
-   begin
-   RestartConditions();
-   OutText(rs0070,false,1); // '✓ Restart file deleted';
-   end;
-StringAvailableUpdates := AvailableUpdates();
-Form1.Latido.Enabled:=true;
-OutText('Noso is ready',false,1);
-SetNodesArray(GetNosoCFGString(1));
-StartAutoConsensus;
-if WO_CloseStart then
-   begin
-   G_Launching := false;
-   if WO_autoserver then KeepServerOn := true;
-   FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
-   FirstShow := true;
-   SetLength(ArrayCriptoOp,0);
-   Setlength(MNsArray,0);
-   Setlength(MNsList,0);
-   Setlength(ArrMNChecks,0);
-   Setlength(WaitingMNs,0);
+    Application.MessageBox('There was an error creating the files structure and the program will close.', 'NosoNode Error', MB_ICONINFORMATION);
+    Halt();
+    end;
+  MixTxtFiles([DeepDebLogFilename,ConsoleLogFilename,EventLogFilename,ExceptLogFilename,NodeFTPLogFilename,PerformanceFIlename],ResumeLogFilename,true);
+  InitDeepDeb(DeepDebLogFilename,format('( %s - %s )',[ProgramVersion+subversion, OSVersion]));
+  NosoDebug_UsePerformance := true;
+  UpdateLogsThread := TUpdateLogs.Create(true);
+  UpdateLogsThread.FreeOnTerminate:=true;
+  UpdateLogsThread.Start;
+  CreateNewLog('console',ConsoleLogFilename);
+  CreateNewLog('events',EventLogFilename);
+  CreateNewLog('exceps',ExceptLogFilename);
+  CreateNewLog('nodeftp',NodeFTPLogFilename);
+  OutText(rs0022,false,1); //'✓ Files tree ok'
+  InitMainForm();
+  OutText(rs0023,false,1); //✓ GUI initialized
+  VerifyFiles();
+  if ( (not fileExists(ClosedAppFilename)) and (WO_Sendreport) ) then
+    begin
+    if SEndFileViaTCP(ResumeLogFilename,'REPORT','debuglogs.nosocoin.com',18081) then
+      begin
+      OutText('✓ Bug report sent to developers',false,1);
+      end
+    else OutText('x Error sending report to developers',false,1);
+    end;
+  TryDeleteFile(ClosedAppFilename);
+  InitGUI();
+  GetTimeOffset(PArameter(GetNosoCFGString,2));
+  OutText('✓ Mainnet time synced',false,1);
+  UpdateMyData();
+  OutText(rs0024,false,1); //'✓ My data updated'
+  LoadOptionsToPanel();
+  form1.Caption:=coinname+format(rs0027,[ProgramVersion,SubVersion]);
+  Application.Title := coinname+format(rs0027,[ProgramVersion,SubVersion]);   // Wallet
+  ToLog('console',coinname+format(rs0027,[ProgramVersion,SubVersion]));
+  If BetaRelease then ToLog('console','*** WARNING ***'+slinebreak+'This is a beta version ('+ProgramVersion+SubVersion+') Use it carefully, do not store funds on its wallet and report any issue to development team.');
+  UpdateMyGVTsList;
+  OutText(rs0088,false,1); // '✓ My GVTs grid updated';
+  if fileexists(RestartFileName) then
+    begin
+    Deletefile(RestartFileName);
+    OutText(rs0069,false,1); // '✓ Launcher file deleted';
+    end;
+  if fileexists('restart.txt') then
+    begin
+    RestartConditions();
+    OutText(rs0070,false,1); // '✓ Restart file deleted';
+    end;
+  Form1.Latido.Enabled:=true;
+  OutText('Noso is ready',false,1);
+  SetNodesArray(GetNosoCFGString(1));
+  StartAutoConsensus;
+  if WO_CloseStart then
+    begin
+    G_Launching := false;
+    if WO_autoserver then KeepServerOn := true;
+    FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
+    SetLength(ArrayCriptoOp,0);
+    Setlength(MNsArray,0);
+    Setlength(MNsList,0);
+    Setlength(ArrMNChecks,0);
+    Setlength(WaitingMNs,0);
       ThreadMNs := TUpdateMNs.Create(true);
       ThreadMNs.FreeOnTerminate:=true;
       ThreadMNs.Start;
@@ -1674,86 +1668,75 @@ if WO_CloseStart then
       IndexerThread := TThreadIndexer.Create(true);
       IndexerThread.FreeOnTerminate:=true;
       IndexerThread.Start;
-   ToLog('events',TimeToStr(now)+rs0029); //NewLogLines := NewLogLines-1; //'Noso session started'
-   info(rs0029);  //'Noso session started'
-   infopanel.BringToFront;
-   forminicio.Visible:=false;
-   form1.Visible:=true;
-   if FormState_Status = 0 then
+    ToLog('events',TimeToStr(now)+rs0029); //NewLogLines := NewLogLines-1; //'Noso session started'
+    info(rs0029);  //'Noso session started'
+    infopanel.BringToFront;
+    forminicio.Visible:=false;
+    form1.Visible:=true;
+    if FormState_Status = 0 then
       begin
       form1.Top:=FormState_Top;
       form1.Left:=FormState_Left;
       end;
-   Form1.RestartTimer.Enabled:=true;
-   end // CLOSE start form
-else FormInicio.BorderIcons:=FormInicio.BorderIcons-[biminimize]+[bisystemmenu];
+    Form1.RestartTimer.Enabled:=true;
+    end // CLOSE start form
+  else FormInicio.BorderIcons:=FormInicio.BorderIcons-[biminimize]+[bisystemmenu];
 End;
 
 Procedure CompleteInicio();
 Begin
-G_Launching := false;
-if WO_autoserver then KeepServerOn := true;
-FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
-FirstShow := true;
-SetLength(ArrayCriptoOp,0);
-Setlength(MNsArray,0);
-Setlength(MNsList,0);
-Setlength(ArrMNChecks,0);
-
-Setlength(WaitingMNs,0);
-   ThreadMNs := TUpdateMNs.Create(true);
-   ThreadMNs.FreeOnTerminate:=true;
-   ThreadMNs.Start;
-   CryptoThread := TCryptoThread.Create(true);
-   CryptoThread.FreeOnTerminate:=true;
-   CryptoThread.Start;
-   SendOutMsgsThread := TThreadSendOutMsjs.Create(true);
-   SendOutMsgsThread.FreeOnTerminate:=true;
-   SendOutMsgsThread.Start;
-ToLog('events',TimeToStr(now)+rs0029); //NewLogLines := NewLogLines-1; //'Noso session started'
-info(rs0029);  //'Noso session started'
-form1.infopanel.BringToFront;
-forminicio.Visible:=false;
-form1.Visible:=true;
-if FormState_Status = 0 then
-   begin
-   form1.Top:=FormState_Top;
-   form1.Left:=FormState_Left;
-   end;
-Form1.RestartTimer.Enabled:=true;
+  G_Launching := false;
+  if WO_autoserver then KeepServerOn := true;
+  FormInicio.BorderIcons:=FormInicio.BorderIcons+[bisystemmenu];
+  SetLength(ArrayCriptoOp,0);
+  Setlength(MNsArray,0);
+  Setlength(MNsList,0);
+  Setlength(ArrMNChecks,0);
+  Setlength(WaitingMNs,0);
+    ThreadMNs := TUpdateMNs.Create(true);
+    ThreadMNs.FreeOnTerminate:=true;
+    ThreadMNs.Start;
+    CryptoThread := TCryptoThread.Create(true);
+    CryptoThread.FreeOnTerminate:=true;
+    CryptoThread.Start;
+    SendOutMsgsThread := TThreadSendOutMsjs.Create(true);
+    SendOutMsgsThread.FreeOnTerminate:=true;
+    SendOutMsgsThread.Start;
+  ToLog('events',TimeToStr(now)+rs0029); //NewLogLines := NewLogLines-1; //'Noso session started'
+  info(rs0029);  //'Noso session started'
+  form1.infopanel.BringToFront;
+  forminicio.Visible:=false;
+  form1.Visible:=true;
+  if FormState_Status = 0 then
+    begin
+    form1.Top:=FormState_Top;
+    form1.Left:=FormState_Left;
+    end;
+  Form1.RestartTimer.Enabled:=true;
 End;
 
 // Carga las opciones de usuario al panel de opciones
 Procedure TForm1.LoadOptionsToPanel();
 Begin
-// WALLET
-CB_WO_HideEmpty.Checked:=WO_HideEmpty;
-CB_WO_Multisend.Checked:=WO_Multisend;
-CB_WO_Autoupdate.Checked := WO_AutoUpdate;
-CB_FullNode.Checked := WO_FullNode;
-CBSendReports.checked := WO_SendReport;
-// RPC
-LE_Rpc_Port.Text := IntToStr(RPCPort);
-LE_Rpc_Pass.Text := RPCPass;
-CB_BACKRPCaddresses.Checked := RPCSaveNew;
-CBRunNodeAlone.Checked:= WO_OmmitMemos;
-CBKeepBlocksDB.Checked:= WO_BlockDB;
-
-CB_RPCFilter.Checked:=RPCFilter;
-MemoRPCWhitelist.Text:=RPCWhitelist;
-Memobannedmethods.Text:=RPCBanned;
-if not RPCFilter then MemoRPCWhitelist.Enabled:=false;
-CB_AUTORPC.Checked:= RPCAuto;
-ComboBoxLang.Text:=WO_Language;
-
+  // WALLET
+  CB_WO_HideEmpty.Checked   := WO_HideEmpty;
+  CB_WO_Multisend.Checked   := WO_Multisend;
+  CB_WO_Autoupdate.Checked  := WO_AutoUpdate;
+  CB_FullNode.Checked       := WO_FullNode;
+  CBSendReports.checked     := WO_SendReport;
+  // RPC
+  LE_Rpc_Port.Text := IntToStr(RPCPort);
+  LE_Rpc_Pass.Text := RPCPass;
+  CB_BACKRPCaddresses.Checked := RPCSaveNew;
+  CBRunNodeAlone.Checked:= WO_OmmitMemos;
+  CBKeepBlocksDB.Checked:= WO_BlockDB;
+  CB_RPCFilter.Checked:=RPCFilter;
+  MemoRPCWhitelist.Text:=RPCWhitelist;
+  Memobannedmethods.Text:=RPCBanned;
+  if not RPCFilter then MemoRPCWhitelist.Enabled:=false;
+  CB_AUTORPC.Checked:= RPCAuto;
+  ComboBoxLang.Text:=WO_Language;
 End;
-
-// Cuando se solicita cerrar el programa
-procedure TForm1.FormCloseQuery(sender: TObject; var CanClose: boolean);
-begin
-G_CloseRequested := true;
-CanClose:= G_ClosingAPP;
-end;
 
 // Button donate
 procedure TForm1.BitBtnDonateClick(sender: TObject);
