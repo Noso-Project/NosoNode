@@ -90,14 +90,12 @@ if not Form1.RPCServer.Active then
       Form1.RPCServer.DefaultPort:=RPCPort;
       Form1.RPCServer.Active:=true;
       G_Launching := true;
-      form1.CB_RPC_ON.Checked:=true;
       G_Launching := false;
       ToLog('console','RPC server ENABLED');
       EXCEPT on E:Exception do
          begin
          ToLog('console','Unable to start RPC port');
          G_Launching := true;
-         form1.CB_RPC_ON.Checked:=false;
          G_Launching := false;
          end;
       END; {TRY}
@@ -113,7 +111,6 @@ if Form1.RPCServer.Active then
    Form1.RPCServer.Active:=false;
    ToLog('console','RPC server DISABLED');
    G_Launching := true;
-   form1.CB_RPC_ON.Checked:=false;
    G_Launching := false;
    end
 else ToLog('console','RPC server already DISABLED');

@@ -112,7 +112,10 @@ msgid "Send anonymous reports"
 msgstr ""
 
 #: tform1.cb_autorpc.caption
-msgid "Active JSON-RPC server at launch"
+#, fuzzy
+#| msgid "Active JSON-RPC server at launch"
+msgctxt "tform1.cb_autorpc.caption"
+msgid "Enable JSON-RPC server"
 msgstr "Ativar servidor JSON-RPC no arranque"
 
 #: tform1.cb_backrpcaddresses.caption
@@ -130,10 +133,6 @@ msgstr "Baixar a cadeia de blocos"
 #: tform1.cb_rpcfilter.caption
 msgid "Accept only whitelist requests"
 msgstr "Somente aceitar pedidos de endereços autorizados"
-
-#: tform1.cb_rpc_on.caption
-msgid "Enable JSON-RPC server"
-msgstr "Permitir servidor JSON-RPC"
 
 #: tform1.cb_wo_autoupdate.caption
 #, fuzzy
@@ -200,7 +199,7 @@ msgstr "Palavra-passe dos fundos"
 
 #: tform1.label14.caption
 msgctxt "tform1.label14.caption"
-msgid "Transfer"
+msgid "To be updated..."
 msgstr ""
 
 #: tform1.label15.caption
@@ -257,10 +256,6 @@ msgstr "Enviar moedas"
 msgid "Network"
 msgstr "Rede"
 
-#: tform1.menuitem2.caption
-msgid "Start Server"
-msgstr "Iniciar Servidor"
-
 #: tform1.menuitem23.caption
 msgctxt "tform1.menuitem23.caption"
 msgid "CLear"
@@ -285,16 +280,6 @@ msgstr "Copiar"
 msgid "Paste"
 msgstr "Colar"
 
-#: tform1.menuitem3.caption
-msgctxt "tform1.menuitem3.caption"
-msgid "Connect"
-msgstr "Conectar"
-
-#: tform1.menuitem4.caption
-msgctxt "tform1.menuitem4.caption"
-msgid "Miner"
-msgstr "Mineiro"
-
 #: tform1.menuitem5.caption
 msgid "Import Wallet"
 msgstr "Importar Carteira"
@@ -302,11 +287,6 @@ msgstr "Importar Carteira"
 #: tform1.menuitem6.caption
 msgid "Export Wallet"
 msgstr "Exportar Carteira"
-
-#: tform1.menuitem7.caption
-msgctxt "tform1.menuitem7.caption"
-msgid "About..."
-msgstr "Sobre..."
 
 #: tform1.menuitem8.caption
 msgid "Restart"
@@ -341,11 +321,6 @@ msgstr "Confirmar"
 #: tform1.scbitsend.caption
 msgid "Send"
 msgstr "Enviar"
-
-#: tform1.scbitsend1.caption
-msgctxt "tform1.scbitsend1.caption"
-msgid "Transfer"
-msgstr ""
 
 #: tform1.staconlab.caption
 msgid "0"

@@ -409,7 +409,7 @@ BeginPerformance('CreateADV');
    writeln(FileAdvOptions,'//Po files language code');
    writeln(FileAdvOptions,'Language '+(WO_Language));
    writeln(FileAdvOptions,'//No GUI refresh');
-   writeln(FileAdvOptions,'NoGUI '+BoolToStr(WO_OmmitMemos,true));
+   writeln(FileAdvOptions,'NoGUI '+BoolToStr(WO_StopGUI,true));
    writeln(FileAdvOptions,'//Po files last update');
    writeln(FileAdvOptions,'PoUpdate '+(WO_LastPoUpdate));
    writeln(FileAdvOptions,'//Close the launch form automatically');
@@ -461,8 +461,6 @@ BeginPerformance('CreateADV');
    writeln(FileAdvOptions,'');
 
    writeln(FileAdvOptions,'---Deprecated. To be removed.---');
-   writeln(FileAdvOptions,'UserFontSize '+inttoStr(UserFontSize));
-   writeln(FileAdvOptions,'UserRowHeigth '+inttoStr(UserRowHeigth));
    writeln(FileAdvOptions,'MaxPeers '+IntToStr(MaxPeersAllow));
    writeln(FileAdvOptions,'PosWarning '+IntToStr(WO_PosWarning));
 
@@ -486,8 +484,6 @@ Begin
    while not eof(FileAdvOptions) do
       begin
       readln(FileAdvOptions,linea);
-      if parameter(linea,0) ='UserFontSize' then UserFontSize:=StrToIntDef(Parameter(linea,1),UserFontSize);
-      if parameter(linea,0) ='UserRowHeigth' then UserRowHeigth:=StrToIntDef(Parameter(linea,1),UserRowHeigth);
       if parameter(linea,0) ='RPCPort' then RPCPort:=StrToIntDef(Parameter(linea,1),RPCPort);
       if parameter(linea,0) ='RPCPass' then RPCPass:=Parameter(linea,1);
       if parameter(linea,0) ='MaxPeers' then MaxPeersAllow:=StrToIntDef(Parameter(linea,1),MaxPeersAllow);
@@ -507,7 +503,7 @@ Begin
       if parameter(linea,0) ='PoUpdate' then WO_LastPoUpdate:=Parameter(linea,1);
       if parameter(linea,0) ='Closestart' then WO_CloseStart:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='Autoupdate' then WO_AutoUpdate:=StrToBool(Parameter(linea,1));
-      if parameter(linea,0) ='NoGUI' then WO_OmmitMemos:=StrToBool(Parameter(linea,1));
+      if parameter(linea,0) ='NoGUI' then WO_StopGUI:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='FormState' then
          begin
          FormState_Top    := StrToIntDef(Parameter(linea,1),0);

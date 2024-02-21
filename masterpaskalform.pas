@@ -320,7 +320,6 @@ type
     PanelNodesHeaders: TPanel;
     Panel7: TPanel;
     Panel9: TPanel;
-    SCBitSend1: TBitBtn;
     SG_OpenThreads: TStringGrid;
     SG_FileProcs: TStringGrid;
     StaRPCimg: TImage;
@@ -346,7 +345,6 @@ type
     CB_FullNode: TCheckBox;
     CB_WO_Multisend: TCheckBox;
     CheckBox4: TCheckBox;
-    CB_RPC_ON: TCheckBox;
     CB_RPCFilter: TCheckBox;
     CheckBox7: TCheckBox;
     CheckBox8: TCheckBox;
@@ -374,17 +372,13 @@ type
     MemoConsola: TMemo;
     DataPanel: TStringGrid;
     MenuItem1: TMenuItem;
-    MenuItem2: TMenuItem;
     MenuItem23: TMenuItem;
     MenuItem24: TMenuItem;
     MenuItem25: TMenuItem;
     MenuItem26: TMenuItem;
     MenuItem27: TMenuItem;
-    MenuItem3: TMenuItem;
-    MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;
-    MenuItem7: TMenuItem;
     MenuItem8: TMenuItem;
     MenuItem9: TMenuItem;
     DireccionesPanel: TStringGrid;
@@ -418,7 +412,7 @@ type
     PageMain: TPageControl;
     Server: TIdTCPServer;
     RPCServer : TIdHTTPServer;
-    SG_Monitor: TStringGrid;
+    SG_Performance: TStringGrid;
     tabOptions: TTabSheet;
     TabOpt_Wallet: TTabSheet;
     TabProcesses: TTabSheet;
@@ -475,11 +469,10 @@ type
     Procedure ConsoleLineKeyup(sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Grid1PrepareCanvas(sender: TObject; aCol, aRow: Integer; aState: TGridDrawState);
     procedure Grid2PrepareCanvas(sender: TObject; aCol, aRow: Integer; aState: TGridDrawState);
-    Procedure LatidoEjecutar(sender: TObject);
+    Procedure heartbeat(sender: TObject);
     Procedure InfoTimerEnd(sender: TObject);
     function  ClientsCount : Integer ;
-    procedure SCBitSend1Click(sender: TObject);
-    procedure SG_MonitorResize(sender: TObject);
+    procedure SG_PerformanceResize(sender: TObject);
     procedure SG_OpenThreadsResize(Sender: TObject);
     procedure StaConLabDblClick(sender: TObject);
     procedure SGConSeedsResize(Sender: TObject);
@@ -498,8 +491,6 @@ type
     Procedure BNewAddrOnClick(sender: TObject);
     Procedure BCopyAddrClick(sender: TObject);
     Procedure CheckForHint(sender:TObject);
-    Procedure BSendCoinsClick(sender: TObject);
-    Procedure BCLoseSendOnClick(sender: TObject);
     Procedure SBSCPasteOnClick(sender:TObject);
     Procedure SBSCMaxOnClick(sender:TObject);
     Procedure EditSCDestChange(sender:TObject);
@@ -509,7 +500,7 @@ type
     Procedure SCBitSendOnClick(sender:TObject);
     Procedure SCBitCancelOnClick(sender:TObject);
     Procedure SCBitConfOnClick(sender:TObject);
-    Procedure ResetearValoresEnvio(sender:TObject);
+    Procedure ResetSendFundsPanel(sender:TObject);
 
     // NODE SERVER
     Function TryMessageToNode(AContext: TIdContext;message:string):boolean;
@@ -523,8 +514,6 @@ type
     Procedure MMExpWallet(sender:TObject);
     Procedure MMQuit(sender:TObject);
     Procedure MMRestart(sender:TObject);
-    Procedure MMVerWeb(sender:TObject);
-    Procedure MMVerSlots(sender:TObject);
 
     // CONSOLE POPUP
     Procedure CheckConsolePopUp(sender: TObject;MousePos: TPoint;var Handled: Boolean);
@@ -541,7 +530,6 @@ type
       // WALLET
     procedure CB_WO_MultisendChange(sender: TObject);
       // RPC
-    procedure CB_RPC_ONChange(sender: TObject);
     procedure CB_AUTORPCChange(sender: TObject);
     procedure LE_Rpc_PortEditingDone(sender: TObject);
 
@@ -552,10 +540,10 @@ type
   end;
 
 Procedure InitMainForm();
-Procedure CerrarPrograma();
+Procedure CloseeAppSafely();
 Procedure UpdateStatusBar();
 Procedure CompleteInicio();
-Procedure UpdateMyGVTsList();
+
 
 
 CONST
@@ -630,8 +618,6 @@ var
   {Options}
   FileAdvOptions   : textfile;
   S_AdvOpt         : boolean = false;
-  UserFontSize     : integer = 8;
-  UserRowHeigth    : integer = 22;
   RPCPort          : integer = 8078;
   RPCPass          : string = 'default';
   MaxPeersAllow    : integer = 50;
@@ -644,7 +630,7 @@ var
   WO_CloseStart    : boolean = true;
   WO_AutoUpdate    : Boolean = true;
   WO_SendReport    : boolean = false;
-  WO_OmmitMemos    : boolean = false;
+  WO_StopGUI    : boolean = false;
   WO_BlockDB       : boolean = false;
   RPCFilter        : boolean = true;
   RPCWhitelist     : string = '127.0.0.1,localhost';
@@ -870,19 +856,19 @@ End;
 
 procedure TUpdateLogs.UpdateConsole();
 Begin
-if not WO_OmmitMemos then
+if not WO_StopGUI then
   form1.MemoConsola.Lines.Add(LastLogLine);
 End;
 
 procedure TUpdateLogs.UpdateEvents();
 Begin
-if not WO_OmmitMemos then
+if not WO_StopGUI then
   form1.MemoLog.Lines.Add(LastLogLine);
 End;
 
 procedure TUpdateLogs.UpdateExceps();
 Begin
-if not WO_OmmitMemos then
+if not WO_StopGUI then
   form1.MemoExceptLog.Lines.Add(LastLogLine);
 End;
 
@@ -1481,11 +1467,14 @@ Begin
     InitCriticalSection(CSOutGoingArr[counter]);
     InitCriticalSection(CSIncomingArr[counter]);
     SetLength(ArrayOutgoing[counter],0);
+    SlotLines[counter] := TStringlist.Create;
+    CanalCliente[counter] := TIdTCPClient.Create(form1);
     end;
   CreateFormInicio();
   CreateFormSlots();
   SetLength(ArrayOrderIDsProcessed,0);
   SetLength(ArrayMNsData,0);
+  Setlength(PendingTXs,0);
 End;
 
 procedure TForm1.FormDestroy(sender: TObject);
@@ -1553,35 +1542,73 @@ End;
 
 {$ENDREGION}
 
+{$REGION Start app}
+
 Procedure TForm1.InicoTimerEjecutar(sender: TObject);
 Begin
   InicioTimer.Enabled:=false;
   StartProgram;
 End;
 
-// Auto restarts the app from hangs
-Procedure TForm1.RestartTimerEjecutar(sender: TObject);
+// Init the mainform
+Procedure InitMainForm();
 Begin
-  if BlockAge<590 then
-    begin
-    if BuildNMSBlock < UTCTime then
-      begin
-      BuildNMSBlock := NextBlockTimeStamp;
-      ToLog('events','Next block time set to: '+TimeStampToDate(BuildNMSBlock));
-      end;
-    end;
-  RestartTimer.Enabled:=false;
-  if not WO_OmmitMemos then
-    StaTimeLab.Caption:=TimestampToDate(UTCTime);
-  if G_CloseRequested then
-    begin
-    if not G_CloseRequested then
-      begin
-      RestartNosoAfterQuit := true;
-      end;
-    cerrarprograma;
-    end
-  else RestartTimer.Enabled:=true;
+  // Make sure ALL tabs are set correct at startup
+  Form1.PageMain.ActivePage:= Form1.TabWallet;
+  Form1.TabWalletMain.ActivePage:= Form1.TabAddresses;
+  Form1.PageControl1.ActivePage:= Form1.TabOpt_Wallet;
+  Form1.PCMonitor.ActivePage:=form1.TabDebug_Log;
+  // Resize all grids at launch
+  Form1.SG_PerformanceResize(nil);
+  {Add all resize methods here}
+  form1.DataPanel.FocusRectVisible:=false;
+  form1.DataPanel.ColWidths[0]:= 79;
+  form1.DataPanel.ColWidths[1]:= 115;
+  form1.DataPanel.ColWidths[2]:= 79;
+  form1.DataPanel.ColWidths[3]:= 115;
+  Form1.imagenes.GetBitMap(9,Form1.ImageInc.Picture.Bitmap);
+  Form1.imagenes.GetBitmap(10,Form1.Imageout.Picture.Bitmap);
+  form1.DireccionesPanel.Options:= form1.DireccionesPanel.Options+[goRowSelect]-[goRangeSelect];
+  form1.DireccionesPanel.ColWidths[0]:= 260;form1.DireccionesPanel.ColWidths[1]:= 107;
+  form1.DireccionesPanel.FocusRectVisible:=false;
+  form1.SGConSeeds.FocusRectVisible:=false;
+  Form1.BDefAddr.Parent:=form1.DireccionesPanel;
+  form1.BCustomAddr.Parent:=form1.DireccionesPanel;
+  form1.BCopyAddr.Parent:=form1.DireccionesPanel;
+  Form1.BNewAddr.Parent:=form1.DireccionesPanel;
+  Form1.SGridSC.FocusRectVisible:=false;
+  Form1.imagenes.GetBitMap(54,form1.ImgRotor.picture.BitMap);
+  form1.LabAbout.Caption:=CoinName+' project'+SLINEBREAK+'Designed by bermello (imAOG)'+SLINEBREAK+
+                          'Crypto routines by Xor-el'+SLINEBREAK+
+                          'Version '+ProgramVersion+subVersion+SLINEBREAK+'Protocol '+IntToStr(Protocolo)+SLINEBREAK+BuildDate;
+  form1.SG_Performance.FocusRectVisible:=false;
+  form1.SG_Performance.ColWidths[0]:= 142;form1.SG_Performance.ColWidths[1]:= 73;
+  form1.SG_Performance.ColWidths[2]:= 73;form1.SG_Performance.ColWidths[3]:= 73;
+
+  Form1.Latido:= TTimer.Create(Form1);
+  Form1.Latido.Enabled:=false;Form1.Latido.Interval:=200;
+  Form1.Latido.OnTimer:= @form1.heartbeat;
+
+  Form1.InfoTimer:= TTimer.Create(Form1);
+  Form1.InfoTimer.Enabled:=false;Form1.InfoTimer.Interval:=50;
+  Form1.InfoTimer.OnTimer:= @form1.InfoTimerEnd;
+
+  Form1.Server := TIdTCPServer.Create(Form1);
+  Form1.Server.DefaultPort:=DefaultServerPort;
+  Form1.Server.Active:=false;
+  Form1.Server.UseNagle:=true;
+  Form1.Server.TerminateWaitTime:=10000;
+  Form1.Server.OnExecute:=@form1.IdTCPServer1Execute;
+  Form1.Server.OnConnect:=@form1.IdTCPServer1Connect;
+  Form1.Server.OnDisconnect:=@form1.IdTCPServer1Disconnect;
+  Form1.Server.OnException:=@Form1.IdTCPServer1Exception;
+
+  Form1.RPCServer := TIdHTTPServer.Create(Form1);
+  Form1.RPCServer.DefaultPort:=RPCPort;
+  Form1.RPCServer.Active:=false;
+  Form1.RPCServer.UseNagle:=true;
+  Form1.RPCServer.TerminateWaitTime:=5000;
+  Form1.RPCServer.OnCommandGet:=@form1.RPCServerExecute;
 End;
 
 // Start the application
@@ -1715,7 +1742,6 @@ Begin
   Form1.RestartTimer.Enabled:=true;
 End;
 
-// Carga las opciones de usuario al panel de opciones
 Procedure TForm1.LoadOptionsToPanel();
 Begin
   // WALLET
@@ -1728,7 +1754,7 @@ Begin
   LE_Rpc_Port.Text := IntToStr(RPCPort);
   LE_Rpc_Pass.Text := RPCPass;
   CB_BACKRPCaddresses.Checked := RPCSaveNew;
-  CBRunNodeAlone.Checked:= WO_OmmitMemos;
+  CBRunNodeAlone.Checked:= WO_StopGUI;
   CBKeepBlocksDB.Checked:= WO_BlockDB;
   CB_RPCFilter.Checked:=RPCFilter;
   MemoRPCWhitelist.Text:=RPCWhitelist;
@@ -1738,394 +1764,495 @@ Begin
   ComboBoxLang.Text:=WO_Language;
 End;
 
-// Button donate
-procedure TForm1.BitBtnDonateClick(sender: TObject);
-begin
-form1.PageMain.ActivePage := form1.TabWallet;
-form1.TabWalletMain.ActivePage := form1.TabAddresses;
-PanelSend.Visible:=true;
-Form1.EditSCDest.Text:='NpryectdevepmentfundsGE';
-Form1.EditSCMont.Text:=IntToStr(DefaultDonation)+'.00000000';
-Form1.MemoSCCon.Text:='Donation';
-end;
+{$ENDREGION}
 
-// visit web button
-Procedure TForm1.BitBtnWebClick(sender: TObject);
-Begin
-  OpenDocument('https://nosocoin.com');
-End;
+//*********************
+// *** GUI CONTROLS ***
+//*********************
+
+{$REGION GUI controls}
 
 // Double click open conexions slots form
 procedure TForm1.StaConLabDblClick(sender: TObject);
-begin
-formslots.Visible:=true;
-end;
+Begin
+  formslots.Visible:=true;
+End;
 
-
-// Chequea las teclas presionadas en la linea de comandos
+// Check keypress on commandline
 Procedure TForm1.ConsoleLineKeyup(sender: TObject; var Key: Word; Shift: TShiftState);
 var
   LineText : String;
-begin
-LineText := ConsoleLine.Text;
-if Key=VK_RETURN then
-   begin
-   ConsoleLine.Text := '';
-   LastCommand := LineText;
-   if LineText <> '' then ProcessLinesAdd(LineText);
-   end;
-if Key=VK_F3 then
-   Begin
-   ConsoleLine.Text := LastCommand;
-   ConsoleLine.SelStart := Length(ConsoleLine.Text);
-   end;
-if Key=VK_ESCAPE then
-   Begin
-   ConsoleLine.Text := '';
-   ConsoleLine.SelStart := Length(ConsoleLine.Text);
-   end;
-if ((Shift = [ssCtrl]) and (Key = VK_I)) then
-   begin
-   UserRowHeigth := UserRowHeigth+1;
-   ToLog('console','UserRowHeigth:'+inttostr(UserRowHeigth));
-   UpdateRowHeigth();
-   end;
-if ((Shift = [ssCtrl]) and (Key = VK_K)) then
-   begin
-   UserRowHeigth := UserRowHeigth-1;
-   ToLog('console','UserRowHeigth:'+inttostr(UserRowHeigth));
-   UpdateRowHeigth();
-   end;
-if ((Shift = [ssCtrl]) and (Key = VK_O)) then
-   begin
-   UserFontSize := UserFontSize+1;
-   ToLog('console','UserFontSize:'+inttostr(UserFontSize));
-   UpdateRowHeigth();
-   end;
-if ((Shift = [ssCtrl]) and (Key = VK_L)) then
-   begin
-   UserFontSize := UserFontSize-1;
-   ToLog('console','UserFontSize:'+inttostr(UserFontSize));
-   UpdateRowHeigth();
-   end;
-if ((Shift = [ssCtrl, ssAlt]) and (Key = VK_D)) then
-   begin
-   {ctrl+alt+d}
-   end;
-end;
+Begin
+  LineText := ConsoleLine.Text;
+  if Key=VK_RETURN then
+    begin
+    ConsoleLine.Text := '';
+    LastCommand := LineText;
+    if LineText <> '' then ProcessLinesAdd(LineText);
+    end;
+  if Key=VK_F3 then
+    Begin
+    ConsoleLine.Text := LastCommand;
+    ConsoleLine.SelStart := Length(ConsoleLine.Text);
+    end;
+  if Key=VK_ESCAPE then
+    Begin
+    ConsoleLine.Text := '';
+    ConsoleLine.SelStart := Length(ConsoleLine.Text);
+    end;
+  if ((Shift = [ssCtrl]) and (Key = VK_I)) then
+    begin
+    {CTRL+I}
+    end;
+  if ((Shift = [ssCtrl]) and (Key = VK_K)) then
+    begin
+    {CTRL+K}
+    end;
+  if ((Shift = [ssCtrl]) and (Key = VK_O)) then
+    begin
+    {CTRL+O}
+    end;
+  if ((Shift = [ssCtrl]) and (Key = VK_L)) then
+    begin
+    {CTRL+L}
+    end;
+  if ((Shift = [ssCtrl, ssAlt]) and (Key = VK_D)) then
+    begin
+    {ctrl+alt+d}
+    end;
+End;
 
-// Colorea el fondo del data panel adecuadamente
+// Adjust data panel background colors
 procedure TForm1.Grid1PrepareCanvas(sender: TObject; aCol, aRow: Integer;
   aState: TGridDrawState);
 var
   ts: TTextStyle;
-begin
-if ((ACol = 0) or (ACol = 2)) then
-   begin
-   (sender as TStringGrid).Canvas.Brush.Color :=  cl3dlight;
-   ts := (sender as TStringGrid).Canvas.TextStyle;
-   ts.Alignment := taCenter;
-   (sender as TStringGrid).Canvas.TextStyle := ts;
-   end
-else
-   begin
-   ts := (sender as TStringGrid).Canvas.TextStyle;
-   ts.Alignment := taRightJustify;
-   (sender as TStringGrid).Canvas.TextStyle := ts;
-   end;
-end;
+Begin
+  if ((ACol = 0) or (ACol = 2)) then
+    begin
+    (sender as TStringGrid).Canvas.Brush.Color :=  cl3dlight;
+    ts := (sender as TStringGrid).Canvas.TextStyle;
+    ts.Alignment := taCenter;
+    (sender as TStringGrid).Canvas.TextStyle := ts;
+    end
+  else
+    begin
+    ts := (sender as TStringGrid).Canvas.TextStyle;
+    ts.Alignment := taRightJustify;
+    (sender as TStringGrid).Canvas.TextStyle := ts;
+    end;
+End;
 
-// Colorea el fondo del panel de direcciones adecuadamente
+// Color for addresses panel
 procedure TForm1.Grid2PrepareCanvas(sender: TObject; aCol, aRow: Integer;
   aState: TGridDrawState);
 var
   ts: TTextStyle;
   posrequired : int64;
-begin
-posrequired := (GetSupply(MyLastBlock+1)*PosStackCoins) div 10000;
-if (ACol=1)  then
-   begin
-   ts := (sender as TStringGrid).Canvas.TextStyle;
-   ts.Alignment := taRightJustify;
-   (sender as TStringGrid).Canvas.TextStyle := ts;
-   {
-   if ((aRow>0) and (GetWallArrIndex(aRow-1).Balance>posrequired) and (GetWallArrIndex(aRow-1).Balance>(posrequired+(WO_PosWarning*140*10000000))) ) then
+Begin
+  posrequired := (GetSupply(MyLastBlock+1)*PosStackCoins) div 10000;
+  if (ACol=1)  then
+    begin
+    ts := (sender as TStringGrid).Canvas.TextStyle;
+    ts.Alignment := taRightJustify;
+    (sender as TStringGrid).Canvas.TextStyle := ts;
+    {
+    if ((aRow>0) and (GetWallArrIndex(aRow-1).Balance>posrequired) and (GetWallArrIndex(aRow-1).Balance>(posrequired+(WO_PosWarning*140*10000000))) ) then
       begin
       (sender as TStringGrid).Canvas.Brush.Color :=  clmoneygreen;
       (sender as TStringGrid).Canvas.font.Color :=  clblack;
       end;
-   if ((aRow>0) and (GetWallArrIndex(aRow-1).Balance>posrequired) and (GetWallArrIndex(aRow-1).Balance< (posrequired+(WO_PosWarning*140*10000000))) ) then
+    if ((aRow>0) and (GetWallArrIndex(aRow-1).Balance>posrequired) and (GetWallArrIndex(aRow-1).Balance< (posrequired+(WO_PosWarning*140*10000000))) ) then
       begin
       (sender as TStringGrid).Canvas.Brush.Color :=  clYellow;
       (sender as TStringGrid).Canvas.font.Color :=  clblack;
       end
-   }
-   end;
-if ( (ACol = 0) and (ARow>0) and (AnsiContainsStr(GetNosoCFGString(5),GetWallArrIndex(aRow-1).Hash)) ) then
-   begin
-   (sender as TStringGrid).Canvas.Brush.Color :=  clRed;
-   (sender as TStringGrid).Canvas.font.Color :=  clblack;
-   end;
-end;
+    }
+    end;
+  if ( (ACol = 0) and (ARow>0) and (AnsiContainsStr(GetNosoCFGString(5),GetWallArrIndex(aRow-1).Hash)) ) then
+    begin
+    (sender as TStringGrid).Canvas.Brush.Color :=  clRed;
+    (sender as TStringGrid).Canvas.font.Color :=  clblack;
+    end;
+End;
 
-// Ejecutar el ladido del timer
-Procedure TForm1.LatidoEjecutar(sender: TObject);
+// Clear debug memo: Events
+procedure TForm1.Button1Click(sender: TObject);
 Begin
-if EngineLastUpdate <> UTCtime then EngineLastUpdate := UTCtime;
-Form1.Latido.Enabled:=false;
-if ( (UTCTime >= BuildNMSBlock) and (BuildNMSBlock>0) and (MyConStatus=3) and (MyLastBlock=StrToIntDef(GetCOnsensus(2),-1)) ) then
-   begin
-   ToLog('events','Starting construction of block '+(MyLastBlock+1).ToString);
-   BuildNewBlock(MyLastBlock+1,BuildNMSBlock,MyLastBlockHash,{GetNMSData.Miner}'NpryectdevepmentfundsGE',{GetNMSData.Hash}'!!!!!!!!!100000000');
-   G_MNVerifications := 0;
-   end;
-BeginPerformance('ActualizarGUI');
-ActualizarGUI();
-EndPerformance('ActualizarGUI');
-BeginPerformance('SaveUpdatedFiles');
-SaveUpdatedFiles();
-EndPerformance('SaveUpdatedFiles');
-BeginPerformance('ProcesarLineas');
-ProcesarLineas();
-EndPerformance('ProcesarLineas');
-BeginPerformance('LeerLineasDeClientes');
-LeerLineasDeClientes();
-EndPerformance('LeerLineasDeClientes');
-BeginPerformance('ParseProtocolLines');
-ParseProtocolLines();
-EndPerformance('ParseProtocolLines');
-BeginPerformance('VerifyConnectionStatus');
-VerifyConnectionStatus();
-EndPerformance('VerifyConnectionStatus');
-if G_CloseRequested then CerrarPrograma();
-if FormSlots.Visible then UpdateSlotsGrid();
-Inc(ConnectedRotor); if ConnectedRotor>6 then ConnectedRotor := 0;
-UpdateStatusBar;
-if ( (UTCTime mod 3600=3590) and (LastBotClear<>UTCTimeStr) and (Form1.Server.Active) ) then
-   ProcessLinesAdd('delbots');
-if ( (UTCTime mod 600>=570) and (UTCTime>NosoT_LastUpdate+599) ) then
-   UpdateOffset(PArameter(GetNosoCFGString,2));
-Form1.Latido.Enabled:=true;
-end;
+  MemoLog.Lines.Clear;
+End;
 
-//procesa el cierre de la aplicacion
-Procedure CerrarPrograma();
+// Clear debug memo: Exceptions
+procedure TForm1.Button2Click(sender: TObject);
+Begin
+  MemoExceptLog.Lines.Clear;
+End;
+
+// Resize: data panel
+procedure TForm1.DataPanelResize(sender: TObject);
 var
-  counter: integer;
-  GoAhead : boolean = false;
+  GridWidth : integer;
+Begin
+  GridWidth := form1.DataPanel.Width;
+  form1.DataPanel.ColWidths[0]:= thispercent(20,GridWidth);
+  form1.DataPanel.ColWidths[1]:= thispercent(30,GridWidth);
+  form1.DataPanel.ColWidths[2]:= thispercent(20,GridWidth);
+  form1.DataPanel.ColWidths[3]:= thispercent(30,GridWidth);
+End;
+
+// Resize: GridAddresses
+procedure TForm1.DireccionesPanelResize(sender: TObject);
+var
+  GridWidth : integer;
+Begin
+  GridWidth := form1.DireccionesPanel.Width;
+  form1.DireccionesPanel.ColWidths[0]:= thispercent(68,GridWidth);
+  form1.DireccionesPanel.ColWidths[1]:= thispercent(32,GridWidth, true);
+End;
+
+// Resize: grid nodes
+procedure TForm1.GridNodesResize(sender: TObject);
+var
+  GridWidth : integer;
+Begin
+  GridWidth := form1.GridNodes.Width;
+  form1.GridNodes.ColWidths[0]:= thispercent(36,GridWidth);
+  form1.GridNodes.ColWidths[1]:= thispercent(64,GridWidth,true);
+  form1.GridNodes.ColWidths[2]:= thispercent(0,GridWidth);
+  form1.GridNodes.ColWidths[3]:= thispercent(0,GridWidth);
+  form1.GridNodes.ColWidths[4]:= thispercent(0,GridWidth, true);
+End;
+
+// Resize: consensus
+procedure TForm1.SGConSeedsResize(Sender: TObject);
+var
+  GridWidth : integer;
+Begin
+  GridWidth := form1.SGConSeeds.Width;
+  form1.SGConSeeds.ColWidths[0]:= thispercent(20,GridWidth);
+  form1.SGConSeeds.ColWidths[1]:= thispercent(20,GridWidth);
+  form1.SGConSeeds.ColWidths[2]:= thispercent(40,GridWidth);
+  form1.SGConSeeds.ColWidths[3]:= thispercent(20,GridWidth,true);
+End;
+
+
+
+// Resize: Performance
+procedure TForm1.SG_PerformanceResize(sender: TObject);
+var
+  GridWidth : integer;
+Begin
+  GridWidth := form1.SG_Performance.Width;
+  form1.SG_Performance.ColWidths[0]:= thispercent(40,GridWidth);
+  form1.SG_Performance.ColWidths[1]:= thispercent(20,GridWidth);
+  form1.SG_Performance.ColWidths[2]:= thispercent(20,GridWidth);
+  form1.SG_Performance.ColWidths[3]:= thispercent(20,GridWidth,true);
+End;
+
+// Resize: Processes Threads
+procedure TForm1.SG_OpenThreadsResize(Sender: TObject);
+var
+  GridWidth : integer;
+Begin
+  GridWidth := form1.SG_Performance.Width;
+  form1.SG_OpenThreads.ColWidths[0]:= thispercent(70,GridWidth);
+  form1.SG_OpenThreads.ColWidths[1]:= thispercent(30,GridWidth,true);
+End;
+
+// Resize: Processes Files
+procedure TForm1.PC_ProcessesResize(Sender: TObject);
+var
+  GridWidth : integer;
+Begin
+  GridWidth := form1.SG_Performance.Width;
+  form1.SG_FilePRocs.ColWidths[0]:= thispercent(25,GridWidth);
+  form1.SG_FilePRocs.ColWidths[1]:= thispercent(25,GridWidth);
+  form1.SG_FilePRocs.ColWidths[2]:= thispercent(25,GridWidth);
+  form1.SG_FilePRocs.ColWidths[3]:= thispercent(25,GridWidth,true);
+End;
+
+//Resize: About
+procedure TForm1.Tab_Options_AboutResize(sender: TObject);
+Begin
+  ImageOptionsAbout.BorderSpacing.Left:=
+    (Tab_Options_About.ClientWidth div 2) -
+    (ImageOptionsAbout.Width div 2);
+  BitBtnWeb.BorderSpacing.Left:=
+    (Tab_Options_About.ClientWidth div 2) -
+    (BitBtnWeb.Width div 2);
+  BitBtnDonate.BorderSpacing.Left:=
+    (Tab_Options_About.ClientWidth div 2) -
+    (BitBtnDonate.Width div 2);
+End;
+
+// Resize: GVTs grid
+procedure TForm1.GVTsGridResize(sender: TObject);
+var
+  GridWidth : integer;
+Begin
+  GridWidth := form1.GVTsGrid.Width;
+  form1.GVTsGrid.ColWidths[0]:= thispercent(20,GridWidth);
+  form1.GVTsGrid.ColWidths[1]:= thispercent(80,GridWidth,true);
+End;
+
+// Resize: Offers grid
+procedure TForm1.OffersGridResize(Sender: TObject);
+var
+  GridWidth : integer;
+Begin
+  GridWidth := form1.OffersGrid.Width;
+  form1.OffersGrid.ColWidths[0]:= thispercent(15,GridWidth);
+  form1.OffersGrid.ColWidths[1]:= thispercent(15,GridWidth);
+  form1.OffersGrid.ColWidths[2]:= thispercent(15,GridWidth);
+  form1.OffersGrid.ColWidths[3]:= thispercent(55,GridWidth,true);
+End;
+
+{$ENDREGION}
+
+{$REGION To Re-evaluate}
+
+// App heartbeat
+Procedure TForm1.heartbeat(sender: TObject);
+Begin
+  if EngineLastUpdate <> UTCtime then EngineLastUpdate := UTCtime;
+  Form1.Latido.Enabled:=false;
+  if ( (UTCTime >= BuildNMSBlock) and (BuildNMSBlock>0) and (MyConStatus=3) and (MyLastBlock=StrToIntDef(GetCOnsensus(2),-1)) ) then
+    begin
+    ToLog('events','Starting construction of block '+(MyLastBlock+1).ToString);
+    BuildNewBlock(MyLastBlock+1,BuildNMSBlock,MyLastBlockHash,{GetNMSData.Miner}'NpryectdevepmentfundsGE',{GetNMSData.Hash}'!!!!!!!!!100000000');
+    G_MNVerifications := 0;
+    end;
+  BeginPerformance('ActualizarGUI');
+  ActualizarGUI();
+  EndPerformance('ActualizarGUI');
+  BeginPerformance('SaveUpdatedFiles');
+  SaveUpdatedFiles();
+  EndPerformance('SaveUpdatedFiles');
+  BeginPerformance('ProcesarLineas');
+  ProcesarLineas();
+  EndPerformance('ProcesarLineas');
+  BeginPerformance('LeerLineasDeClientes');
+  LeerLineasDeClientes();
+  EndPerformance('LeerLineasDeClientes');
+  BeginPerformance('ParseProtocolLines');
+  ParseProtocolLines();
+  EndPerformance('ParseProtocolLines');
+  BeginPerformance('VerifyConnectionStatus');
+  VerifyConnectionStatus();
+  EndPerformance('VerifyConnectionStatus');
+  if G_CloseRequested then CloseeAppSafely();
+  if FormSlots.Visible then UpdateSlotsGrid();
+  Inc(ConnectedRotor); if ConnectedRotor>6 then ConnectedRotor := 0;
+  UpdateStatusBar;
+  if ( (UTCTime mod 3600=3590) and (LastBotClear<>UTCTimeStr) and (Form1.Server.Active) ) then
+    ProcessLinesAdd('delbots');
+  if ( (UTCTime mod 600>=570) and (UTCTime>NosoT_LastUpdate+599) ) then
+    UpdateOffset(PArameter(GetNosoCFGString,2));
+  Form1.Latido.Enabled:=true;
+End;
+
+// Info label timer
+Procedure TForm1.InfoTimerEnd(sender: TObject);
+Begin
+  InfoPanelTime := InfoPanelTime-50;
+  if InfoPanelTime <= 0 then
+    begin
+    InfoPanelTime := 0;
+    InfoPanel.Caption:='';
+    InfoPanel.sendtoback;
+    end;
+End;
+
+// Displays incoming/outgoing amounts
+Procedure TForm1.CheckForHint(sender:TObject);
+Begin
+  Processhint(sender);
+End;
+
+// Disable default popup menu for a control
+Procedure TForm1.DisablePopUpMenu(sender: TObject;MousePos: TPoint;var Handled: Boolean);
+Begin
+  Handled := True;
+End;
+
+// Updates status bar
+Procedure UpdateStatusBar();
+Begin
+  if WO_StopGUI then exit;
+  if Form1.Server.Active then Form1.StaSerImg.Visible:=true
+  else Form1.StaSerImg.Visible:=false;
+  Form1.StaConLab.Caption:=IntToStr(GetTotalSyncedConnections);
+  if MyConStatus = 0 then Form1.StaConLab.Color:= clred;
+  if MyConStatus = 1 then Form1.StaConLab.Color:= clyellow;
+  if MyConStatus = 2 then Form1.StaConLab.Color:= claqua;
+  if MyConStatus = 3 then Form1.StaConLab.Color:= clgreen;
+  Form1.BitBtnBlocks.Caption:=IntToStr(MyLastBlock);
+  form1.BitBtnPending.Caption:=GetPendingCount.ToString;
+  if form1.RPCServer.active then Form1.StaRPCimg.Visible:=true
+  else Form1.StaRPCimg.Visible:=false;
+  Form1.Imgs32.GetBitMap(ConnectedRotor,form1.ImgRotor.picture.BitMap);
+End;
+
+Procedure TForm1.RestartTimerEjecutar(sender: TObject);
+Begin
+  if BlockAge<590 then
+    begin
+    if BuildNMSBlock < UTCTime then
+      begin
+      BuildNMSBlock := NextBlockTimeStamp;
+      ToLog('events','Next block time set to: '+TimeStampToDate(BuildNMSBlock));
+      end;
+    end;
+  RestartTimer.Enabled:=false;
+  if not WO_StopGUI then
+    StaTimeLab.Caption:=TimestampToDate(UTCTime);
+  if G_CloseRequested then
+    begin
+    if not G_CloseRequested then
+      begin
+      RestartNosoAfterQuit := true;
+      end;
+    CloseeAppSafely;
+    end
+  else RestartTimer.Enabled:=true;
+End;
+
+{$ENDREGION}
+
+{$REGION CloseApp}
+
+Procedure CloseeAppSafely();
+var
+  counter      : integer;
+  GoAhead      : boolean = false;
   EarlyRestart : Boolean;
 
   procedure CloseLine(texto:String);
   Begin
-  gridinicio.RowCount:=gridinicio.RowCount+1;
-  gridinicio.Cells[0,gridinicio.RowCount-1]:=Texto;
-  gridinicio.TopRow:=gridinicio.RowCount;
-  Application.ProcessMessages;
+    gridinicio.RowCount:=gridinicio.RowCount+1;
+    gridinicio.Cells[0,gridinicio.RowCount-1]:=Texto;
+    gridinicio.TopRow:=gridinicio.RowCount;
+    Application.ProcessMessages;
   End;
 
 Begin
-EnterCriticalSection(CSClosingApp);
-if not G_ClosingAPP then
-   begin
-   G_ClosingAPP := true;
-   GoAhead := true;
-   end;
-LeaveCriticalSection(CSClosingApp);
-if GoAhead then
-   begin
-   PerformanceToFile(PerformanceFilename);
-   EarlyRestart := form1.Server.Active;
-   Form1.Latido.Enabled:=false; // Stopped the latido
-   form1.RestartTimer.Enabled:=false;
-   forminicio.Caption:='Closing';
-   gridinicio.RowCount := 0;
-   form1.Visible:=false;
-   forminicio.Visible:=true;
-   FormInicio.BorderIcons:=FormInicio.BorderIcons-[bisystemmenu];
-   CloseLine(rs0030);  //   Closing wallet
-   CreateADV(false); // save advopt
-   sleep(100);
-   if RestartNosoAfterQuit then CrearRestartfile();
-   CloseAllforms();
-   CloseLine('Forms closed');
-   sleep(100);
-   CloseLine(CerrarClientes(false));
-   sleep(100);
-   if ((EarlyRestart) and (RestartNosoAfterQuit)) then RestartNoso;
-   if form1.Server.Active then
+  EnterCriticalSection(CSClosingApp);
+  if not G_ClosingAPP then
+    begin
+    G_ClosingAPP := true;
+    GoAhead := true;
+    end;
+  LeaveCriticalSection(CSClosingApp);
+  if GoAhead then
+    begin
+    PerformanceToFile(PerformanceFilename);
+    EarlyRestart := form1.Server.Active;
+    Form1.Latido.Enabled:=false; // Stopped the latido
+    form1.RestartTimer.Enabled:=false;
+    forminicio.Caption:='Closing';
+    gridinicio.RowCount := 0;
+    form1.Visible:=false;
+    forminicio.Visible:=true;
+    FormInicio.BorderIcons:=FormInicio.BorderIcons-[bisystemmenu];
+    CloseLine(rs0030);  //   Closing wallet
+    CreateADV(false); // save advopt
+    sleep(100);
+    if RestartNosoAfterQuit then CrearRestartfile();
+    CloseAllforms();
+    CloseLine('Forms closed');
+    sleep(100);
+    CloseLine(CerrarClientes(false));
+    sleep(100);
+    if ((EarlyRestart) and (RestartNosoAfterQuit)) then RestartNoso;
+    if form1.Server.Active then
       begin
       if StopServer then CloseLine('Node server stopped')
       else CloseLine('Error closing node server');
       end;
-   sleep(100);
-   If Assigned(ProcessLines) then ProcessLines.Free;
-   CloseLine('Componnents freed');
-   sleep(100);
-   EnterCriticalSection(CSOutgoingMsjs);
-   OutgoingMsjs.clear;
-   LeaveCriticalSection(CSOutgoingMsjs);
-   TRY
-   If Assigned(SendOutMsgsThread) then
-      begin
-      SendOutMsgsThread.Terminate;
-      for counter := 1 to 10 do
-         begin
-         if ( (Assigned(SendOutMsgsThread)) and (not SendOutMsgsThread.Terminated) ) then sleep(1000)
-         else break;
-         end;
-      end;
-
-   if ((Assigned(SendOutMsgsThread)) and (not SendOutMsgsThread.Terminated)) then CloseLine('Out thread NOT CLOSED')
-   else CloseLine('Out thread closed properly');
-   EXCEPT ON E: EXCEPTION DO
+    sleep(100);
+    If Assigned(ProcessLines) then ProcessLines.Free;
+    CloseLine('Componnents freed');
+    sleep(100);
+    EnterCriticalSection(CSOutgoingMsjs);
+    OutgoingMsjs.clear;
+    LeaveCriticalSection(CSOutgoingMsjs);
+    TRY
+      If Assigned(SendOutMsgsThread) then
+        begin
+        SendOutMsgsThread.Terminate;
+        for counter := 1 to 10 do
+          begin
+          if ( (Assigned(SendOutMsgsThread)) and (not SendOutMsgsThread.Terminated) ) then sleep(1000)
+          else break;
+          end;
+        end;
+    if ((Assigned(SendOutMsgsThread)) and (not SendOutMsgsThread.Terminated)) then CloseLine('Out thread NOT CLOSED')
+    else CloseLine('Out thread closed properly');
+    EXCEPT ON E: EXCEPTION DO
       CloseLine('Error closing Out thread');
-   END{Try};
-   sleep(100);
-   If Assigned(OutgoingMsjs) then OutgoingMsjs.Free;
-   EnterCriticalSection(CSCriptoThread);
-   SetLength(ArrayCriptoOp,0);
-   LeaveCriticalSection(CSCriptoThread);
-   TRY
-   If Assigned(CryptoThread) then
+    END{Try};
+    sleep(100);
+    If Assigned(OutgoingMsjs) then OutgoingMsjs.Free;
+    EnterCriticalSection(CSCriptoThread);
+    SetLength(ArrayCriptoOp,0);
+    LeaveCriticalSection(CSCriptoThread);
+    TRY
+    If Assigned(CryptoThread) then
       begin
       CryptoThread.Terminate;
       for counter := 1 to 10 do
-         begin
-         if ( (Assigned(CryptoThread)) and (not CryptoThread.Terminated) ) then sleep(1000)
-         else break;
-         end;
+        begin
+        if ( (Assigned(CryptoThread)) and (not CryptoThread.Terminated) ) then sleep(1000)
+        else break;
+        end;
       end;
-   if ((Assigned(CryptoThread)) and (not CryptoThread.Terminated)) then CloseLine('Crypto thread NOT CLOSED')
-   else CloseLine('Crypto thread closed properly');
-   EXCEPT ON E: EXCEPTION DO
+    if ((Assigned(CryptoThread)) and (not CryptoThread.Terminated)) then CloseLine('Crypto thread NOT CLOSED')
+    else CloseLine('Crypto thread closed properly');
+    EXCEPT ON E: EXCEPTION DO
       CloseLine('Error closing crypto thread');
-   END{Try};
-   sleep(100);
-   TRY
-   If Assigned(UpdateLogsThread) then
+    END{Try};
+    sleep(100);
+    TRY
+    If Assigned(UpdateLogsThread) then
       begin
       UpdateLogsThread.Terminate;
       for counter := 1 to 10 do
-         begin
-         if ( (Assigned(UpdateLogsThread)) and (not UpdateLogsThread.Terminated) ) then sleep(1000)
-         else break;
-         end;
+        begin
+        if ( (Assigned(UpdateLogsThread)) and (not UpdateLogsThread.Terminated) ) then sleep(1000)
+        else break;
+        end;
       end;
-   if ((Assigned(UpdateLogsThread)) and (not UpdateLogsThread.Terminated)) then CloseLine('Updatelogs thread NOT CLOSED')
-   else CloseLine('Updatelogs thread closed properly');
-   EXCEPT ON E: EXCEPTION DO
+    if ((Assigned(UpdateLogsThread)) and (not UpdateLogsThread.Terminated)) then CloseLine('Updatelogs thread NOT CLOSED')
+    else CloseLine('Updatelogs thread closed properly');
+    EXCEPT ON E: EXCEPTION DO
       CloseLine('Error closing Updatelogs thread');
-   END{Try};
-   sleep(100);
-   TRY
-   If Assigned(ThreadMNs) then
+    END{Try};
+    sleep(100);
+    TRY
+    If Assigned(ThreadMNs) then
       begin
       ThreadMNs.Terminate;
       for counter := 1 to 10 do
-         begin
-         if ( (Assigned(ThreadMNs)) and (not ThreadMNs.Terminated) ) then sleep(1000)
-         else break;
-         end;
+        begin
+        if ( (Assigned(ThreadMNs)) and (not ThreadMNs.Terminated) ) then sleep(1000)
+        else break;
+        end;
       end;
-   if ((Assigned(ThreadMNs)) and (not ThreadMNs.Terminated)) then CloseLine('Nodes thread NOT CLOSED')
-   else CloseLine('Nodes thread closed properly');
-   EXCEPT ON E: EXCEPTION DO
+    if ((Assigned(ThreadMNs)) and (not ThreadMNs.Terminated)) then CloseLine('Nodes thread NOT CLOSED')
+    else CloseLine('Nodes thread closed properly');
+    EXCEPT ON E: EXCEPTION DO
       CloseLine('Error closing Nodes thread');
-   END{Try};
-   sleep(100);
-   if ((not EarlyRestart) and (RestartNosoAfterQuit)) then RestartNoso;
-   CreateProperlyClosedAppFile(ClosedAppFilename);
-   form1.Close;
-   end;
+    END{Try};
+    sleep(100);
+    if ((not EarlyRestart) and (RestartNosoAfterQuit)) then RestartNoso;
+    CreateProperlyClosedAppFile(ClosedAppFilename);
+    form1.Close;
+    end;
 End;
 
-// Run time creation of form components
-Procedure InitMainForm();
-var
-  contador : integer = 0;
-Begin
-// Make sure ALL tabs are set correct at startup
-Form1.PageMain.ActivePage:= Form1.TabWallet;
-Form1.TabWalletMain.ActivePage:= Form1.TabAddresses;
-Form1.PageControl1.ActivePage:= Form1.TabOpt_Wallet;
-Form1.PCMonitor.ActivePage:=form1.TabDebug_Log;
+{$ENDREGION}
 
-// Visual components
-
-// Resize all grids at launch
-Form1.SG_MonitorResize(nil);
-
-
-form1.DataPanel.DefaultRowHeight:=UserRowHeigth;
-form1.DataPanel.Font.Size:=UserFontSize;
-form1.DataPanel.FocusRectVisible:=false;
-form1.DataPanel.ColWidths[0]:= 79;
-form1.DataPanel.ColWidths[1]:= 115;
-form1.DataPanel.ColWidths[2]:= 79;
-form1.DataPanel.ColWidths[3]:= 115;
-
-Form1.imagenes.GetBitMap(9,Form1.ImageInc.Picture.Bitmap);
-Form1.imagenes.GetBitmap(10,Form1.Imageout.Picture.Bitmap);
-
-form1.DireccionesPanel.Options:= form1.DireccionesPanel.Options+[goRowSelect]-[goRangeSelect];
-form1.DireccionesPanel.ColWidths[0]:= 260;form1.DireccionesPanel.ColWidths[1]:= 107;
-form1.DireccionesPanel.FocusRectVisible:=false;
-
-form1.SGConSeeds.FocusRectVisible:=false;
-Form1.BDefAddr.Parent:=form1.DireccionesPanel;
-form1.BCustomAddr.Parent:=form1.DireccionesPanel;
-form1.BCopyAddr.Parent:=form1.DireccionesPanel;
-Form1.BNewAddr.Parent:=form1.DireccionesPanel;
-
-Form1.SGridSC.FocusRectVisible:=false;
-
-Form1.imagenes.GetBitMap(54,form1.ImgRotor.picture.BitMap);
-
-form1.LabAbout.Caption:=CoinName+' project'+SLINEBREAK+'Designed by bermello (imAOG)'+SLINEBREAK+
-'Crypto routines by Xor-el'+SLINEBREAK+
-'Version '+ProgramVersion+subVersion+SLINEBREAK+'Protocol '+IntToStr(Protocolo)+SLINEBREAK+BuildDate;
-
-form1.SG_Monitor.FocusRectVisible:=false;
-form1.SG_Monitor.ColWidths[0]:= 142;form1.SG_Monitor.ColWidths[1]:= 73;
-form1.SG_Monitor.ColWidths[2]:= 73;form1.SG_Monitor.ColWidths[3]:= 73;
-
-//Elementos no visuales
-Setlength(PendingTXs,0);
-For contador := 1 to MaxConecciones do
-   begin
-   SlotLines[contador] := TStringlist.Create;
-   CanalCliente[contador] := TIdTCPClient.Create(form1);
-   end;
-
-Form1.Latido:= TTimer.Create(Form1);
-Form1.Latido.Enabled:=false;Form1.Latido.Interval:=200;
-Form1.Latido.OnTimer:= @form1.LatidoEjecutar;
-
-Form1.InfoTimer:= TTimer.Create(Form1);
-Form1.InfoTimer.Enabled:=false;Form1.InfoTimer.Interval:=50;
-Form1.InfoTimer.OnTimer:= @form1.InfoTimerEnd;
-
-Form1.Server := TIdTCPServer.Create(Form1);
-Form1.Server.DefaultPort:=DefaultServerPort;
-Form1.Server.Active:=false;
-Form1.Server.UseNagle:=true;
-Form1.Server.TerminateWaitTime:=10000;
-Form1.Server.OnExecute:=@form1.IdTCPServer1Execute;
-Form1.Server.OnConnect:=@form1.IdTCPServer1Connect;
-Form1.Server.OnDisconnect:=@form1.IdTCPServer1Disconnect;
-Form1.Server.OnException:=@Form1.IdTCPServer1Exception;
-
-
-Form1.RPCServer := TIdHTTPServer.Create(Form1);
-Form1.RPCServer.DefaultPort:=RPCPort;
-Form1.RPCServer.Active:=false;
-Form1.RPCServer.UseNagle:=true;
-Form1.RPCServer.TerminateWaitTime:=5000;
-Form1.RPCServer.OnCommandGet:=@form1.RPCServerExecute;
-
-End;
-
-// Funciones del Servidor RPC
+{$REGION RPC Server}
 
 // A RPC REQUEST ENTERS
 procedure TForm1.RPCServerExecute(AContext: TIdContext;
@@ -2161,49 +2288,52 @@ else if ARequestInfo.Command = 'POST' then
    end;
 End;
 
+{$ENDREGION}
+
 // *****************************
 // *** NODE SERVER FUNCTIONS ***
 // *****************************
+
+{$REGION Node Server}
 
 // returns the number of active connections
 function TForm1.ClientsCount : Integer ;
 var
   Clients : TList;
 Begin
-Clients:= server.Contexts.LockList;
-   TRY
-   Result := Clients.Count ;
-   EXCEPT ON E:Exception do
+  Clients:= server.Contexts.LockList;
+    TRY
+    Result := Clients.Count ;
+    EXCEPT ON E:Exception do
       ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error getting server list count: '+E.Message);
-   END; {TRY}
-server.Contexts.UnlockList;
+    END; {TRY}
+  server.Contexts.UnlockList;
 End ;
 
 // Try message to Node safely
 Function TForm1.TryMessageToNode(AContext: TIdContext;message:string):boolean;
 Begin
-result := true;
-TRY
-Acontext.Connection.IOHandler.WriteLn(message);
-EXCEPT on E:Exception do
-   begin
-   result := false
-   end;
-END;{Try}
+  result := true;
+  TRY
+  Acontext.Connection.IOHandler.WriteLn(message);
+  EXCEPT on E:Exception do
+    begin
+    result := false
+    end;
+  END;{Try}
 End;
 
 // Trys to close a server connection safely
 Procedure TForm1.TryCloseServerConnection(AContext: TIdContext; closemsg:string='');
 Begin
-try
-   if closemsg <>'' then
-      Acontext.Connection.IOHandler.WriteLn(closemsg);
-   AContext.Connection.Disconnect();
-   Acontext.Connection.IOHandler.InputBuffer.Clear;
-Except on E:Exception do
-   ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs0042,[E.Message]));
-   //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Error trying close a server client connection ('+E.Message+')');
-end;
+  TRY
+  if closemsg <>'' then
+    Acontext.Connection.IOHandler.WriteLn(closemsg);
+  AContext.Connection.Disconnect();
+  Acontext.Connection.IOHandler.InputBuffer.Clear;
+  EXCEPT on E:Exception do
+    ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs0042,[E.Message]));
+  END; {TRY}
 End;
 
 // Node server gets a line
@@ -2645,126 +2775,126 @@ procedure TForm1.IdTCPServer1Disconnect(AContext: TIdContext);
 var
   ContextData : TServerTipo;
 Begin
-ContextData:= TServerTipo(AContext.Data);
-if ContextData.Slot>0 then
-   CerrarSlot(ContextData.Slot);
+  ContextData:= TServerTipo(AContext.Data);
+  if ContextData.Slot>0 then
+    CerrarSlot(ContextData.Slot);
 End;
 
 // Excepcion en el servidor
 procedure TForm1.IdTCPServer1Exception(AContext: TIdContext;AException: Exception);
 Begin
-CerrarSlot(GetSlotFromContext(AContext));
-ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Server Excepcion: '+AException.Message);    //Server Excepcion:
+  CerrarSlot(GetSlotFromContext(AContext));
+  ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Server Excepcion: '+AException.Message);    //Server Excepcion:
 End;
 
-// Fija como direccion default a la seleccionada
+{$ENDREGION Node Server}
+
+{$REGION Addresses Stringgrid}
+
+// Set selected address as default
 Procedure TForm1.BDefAddrOnClick(sender: TObject);
 Begin
-if DireccionesPanel.Row > 0 then
-  ProcessLinesAdd('SETDEFAULT '+DireccionesPanel.Cells[0,DireccionesPanel.Row]);
+  if DireccionesPanel.Row > 0 then
+    ProcessLinesAdd('SETDEFAULT '+DireccionesPanel.Cells[0,DireccionesPanel.Row]);
 End;
 
-// Mostrar el panel de personalizacion
+// Shows customization panel
 Procedure TForm1.BCustomAddrOnClick(sender: TObject);
 var
   Address : string;
 Begin
-Address := DireccionesPanel.Cells[0,DireccionesPanel.Row];
-if not IsValidHashAddress(address) then info('Address already customized')
-else if AddressAlreadyCustomized(address) then info('Address already customized')
-else if GetAddressBalanceIndexed(Address)-GetAddressPendingPays(address)< Customizationfee then info('Insufficient funds')
-else
-   begin
-   DireccionesPanel.Enabled:=false;
-   PanelCustom.Visible := true;
-   PanelCustom.BringToFront;
-   EditCustom.SetFocus;
-   end;
+  Address := DireccionesPanel.Cells[0,DireccionesPanel.Row];
+  if not IsValidHashAddress(address) then info('Address already customized')
+  else if AddressAlreadyCustomized(address) then info('Address already customized')
+  else if GetAddressBalanceIndexed(Address)-GetAddressPendingPays(address)< Customizationfee then info('Insufficient funds')
+  else
+    begin
+    DireccionesPanel.Enabled:=false;
+    PanelCustom.Visible := true;
+    PanelCustom.BringToFront;
+    EditCustom.SetFocus;
+    end;
 End;
 
-// Leer la pulsacion de enter en la customizacion de una direccion
+// Get return press on customization panel
 Procedure Tform1.EditCustomKeyUp(sender: TObject; var Key: Word; Shift: TShiftState);
 Begin
-if Key=VK_RETURN then
-   begin
-   ProcessLinesAdd('Customize '+DireccionesPanel.Cells[0,DireccionesPanel.Row]+' '+EditCustom.Text);
-   PanelCustom.Visible := false;
-   EditCustom.Text := '';
-   end;
+  if Key=VK_RETURN then
+    begin
+    ProcessLinesAdd('Customize '+DireccionesPanel.Cells[0,DireccionesPanel.Row]+' '+EditCustom.Text);
+    PanelCustom.Visible := false;
+    EditCustom.Text := '';
+    end;
 End;
 
-// Aceptar la personalizacion
+// Process customization
 Procedure TForm1.BOkCustomClick(sender: TObject);
 Begin
-ProcessLinesAdd('Customize '+DireccionesPanel.Cells[0,DireccionesPanel.Row]+' '+EditCustom.Text);
-PanelCustom.Visible := false;
-EditCustom.Text := '';
+  ProcessLinesAdd('Customize '+DireccionesPanel.Cells[0,DireccionesPanel.Row]+' '+EditCustom.Text);
+  PanelCustom.Visible := false;
+  EditCustom.Text := '';
 End;
 
-// Cerrar el panel de personalizacion cuando el boton sale de el
+// Close customization panel on mouse leave
 Procedure TForm1.PanelCustomMouseLeave(sender: TObject);
 Begin
-PanelCustom.Visible := false;
-DireccionesPanel.Enabled:=true;
+  PanelCustom.Visible := false;
+  DireccionesPanel.Enabled:=true;
 End;
 
-// El boton para crear una nueva direccion
+// New address button
 Procedure TForm1.BNewAddrOnClick(sender: TObject);
 Begin
-ProcessLinesAdd('newaddress');
+  ProcessLinesAdd('newaddress');
 End;
 
-// Copia el hash de la direccion al portapapeles
+// Copy address button
 Procedure TForm1.BCopyAddrClick(sender: TObject);
 Begin
-if GetWallArrIndex(DireccionesPanel.Row-1).custom <> '' then
-  Clipboard.AsText:= GetWallArrIndex(DireccionesPanel.Row-1).custom
-else Clipboard.AsText:= GetWallArrIndex(DireccionesPanel.Row-1).Hash;
-info('Copied to clipboard');//'Copied to clipboard'
+  if GetWallArrIndex(DireccionesPanel.Row-1).custom <> '' then
+    Clipboard.AsText:= GetWallArrIndex(DireccionesPanel.Row-1).custom
+  else Clipboard.AsText:= GetWallArrIndex(DireccionesPanel.Row-1).Hash;
+  info('Copied to clipboard');//'Copied to clipboard'
 End;
 
-// Abre el panel para enviar coins
-Procedure TForm1.BSendCoinsClick(sender: TObject);
+// Grid Addresses DrawCell
+procedure TForm1.DireccionesPanelDrawCell(sender: TObject; aCol, aRow: Integer;
+  aRect: TRect; aState: TGridDrawState);
+var
+  Bitmap    : TBitmap;
+  myRect    : TRect;
+  ColWidth : Integer;
 Begin
-PanelSend.Visible:=true;
+  if ( (aRow>0) and (aCol=0) and (AnsiContainsstr(GetMN_FileText,GetWallArrIndex(aRow-1).Hash)) ) then
+    begin
+    ColWidth := (sender as TStringGrid).ColWidths[0];
+    Bitmap        := TBitmap.Create;
+    Imagenes.GetBitmap(68,Bitmap);
+    myRect        := Arect;
+    myrect.Left   := ColWidth-20;
+    myRect.Right  := ColWidth-4;
+    myrect.top    := myrect.Top+2;
+    myrect.Bottom := myrect.Top+18;
+    (sender as TStringGrid).Canvas.StretchDraw(myRect,bitmap);
+    Bitmap.free
+    end;
 End;
 
-// Cerrar el panel de envio de dinero
-Procedure Tform1.BCLoseSendOnClick(sender: TObject);
-Begin
-PanelSend.Visible:=false;
-End;
+{$ENDREGION Addresses Stringgrid}
 
-// Cada miniciclo del infotimer
-Procedure TForm1.InfoTimerEnd(sender: TObject);
-Begin
-InfoPanelTime := InfoPanelTime-50;
-if InfoPanelTime <= 0 then
-  begin
-  InfoPanelTime := 0;
-  InfoPanel.Caption:='';
-  InfoPanel.sendtoback;
-  end;
-end;
+{$REGION sendfunds panel}
 
-// Procesa el hint a mostrar segun el control
-Procedure TForm1.CheckForHint(sender:TObject);
-Begin
-Processhint(sender);
-End;
-
-// Pegar en el edit de destino de envio de coins
+// Paste on target send funds address
 Procedure TForm1.SBSCPasteOnClick(sender:TObject);
 Begin
-EditSCDest.SetFocus;
-EditSCDest.Text:=Clipboard.AsText;
-EditSCDest.SelStart:=length(EditSCDest.Text);
+  EditSCDest.SetFocus;
+  EditSCDest.Text:=Clipboard.AsText;
+  EditSCDest.SelStart:=length(EditSCDest.Text);
 End;
 
-// Pegar el monto maximo en su edit
+// Paste maximum amount on edit
 Procedure TForm1.SBSCMaxOnClick(sender:TObject);
 Begin
-  tolog('console','address: '+GetWallArrIndex(0).Balance.ToString());
   if not WO_MultiSend then
     begin
     EditSCMont.Text:=Int2curr(GetMaximunToSend(GetWalletBalance))
@@ -2775,20 +2905,20 @@ Begin
     end;
 End;
 
-// verifica el destino que marca para enviar coins
+// Validate send funds target
 Procedure Tform1.EditSCDestChange(sender:TObject);
 Begin
-if EditSCDest.Text = '' then ImgSCDest.Picture.Clear
-else
-   begin
-   EditSCDest.Text :=StringReplace(EditSCDest.Text,' ','',[rfReplaceAll, rfIgnoreCase]);
-   if ((IsValidHashAddress(EditSCDest.Text)) or (AliasAlreadyExists(EditSCDest.Text))) then
-     Form1.imagenes.GetBitmap(17,ImgSCDest.Picture.Bitmap)
-   else Form1.imagenes.GetBitmap(14,ImgSCDest.Picture.Bitmap);
-   end;
+  if EditSCDest.Text = '' then ImgSCDest.Picture.Clear
+  else
+    begin
+    EditSCDest.Text :=StringReplace(EditSCDest.Text,' ','',[rfReplaceAll, rfIgnoreCase]);
+    if ((IsValidHashAddress(EditSCDest.Text)) or (AliasAlreadyExists(EditSCDest.Text))) then
+      Form1.imagenes.GetBitmap(17,ImgSCDest.Picture.Bitmap)
+    else Form1.imagenes.GetBitmap(14,ImgSCDest.Picture.Bitmap);
+    end;
 End;
 
-// Modificar el monto a enviar
+// On send funds amount edit
 Procedure TForm1.EditMontoOnKeyUp(sender: TObject; var Key: char);
 var
   Permitido : string = '1234567890';
@@ -2799,28 +2929,28 @@ var
   ParteDecimal : string;
   PosicionEnElPunto : integer;
 Begin
-if key = chr(27) then
-  begin
-  EditSCMont.Text := '0.00000000';
-  EditSCMont.SelStart := 1;
-  exit;
-  end;
-ultimo := char(key);
-if pos(ultimo,permitido)= 0 then exit;
-Actualmente := EditSCMont.Text;
-PosicionEnElPunto := Length(Actualmente)-9;
-currpos := EditSCMont.SelStart;
-if EditSCMont.SelStart > length(EditSCMont.Text)-9 then // Es un decimal
-   begin
-   Actualmente[currpos+1] := ultimo;
-   EditSCMont.Text:=Actualmente;
-   EditSCMont.SelStart := currpos+1;
-   end;
-if EditSCMont.SelStart <= length(EditSCMont.Text)-9 then // Es un decimal
-   begin
-   ParteEntera := copy(actualmente,1,length(Actualmente)-9);
-   ParteDecimal := copy(actualmente,length(Actualmente)-7,8);
-   if currpos = PosicionEnElPunto then // esta justo antes del punto
+  if key = chr(27) then
+    begin
+    EditSCMont.Text := '0.00000000';
+    EditSCMont.SelStart := 1;
+    exit;
+    end;
+  ultimo := char(key);
+  if pos(ultimo,permitido)= 0 then exit;
+  Actualmente := EditSCMont.Text;
+  PosicionEnElPunto := Length(Actualmente)-9;
+  currpos := EditSCMont.SelStart;
+  if EditSCMont.SelStart > length(EditSCMont.Text)-9 then // Decimal
+    begin
+    Actualmente[currpos+1] := ultimo;
+    EditSCMont.Text:=Actualmente;
+    EditSCMont.SelStart := currpos+1;
+    end;
+  if EditSCMont.SelStart <= length(EditSCMont.Text)-9 then // Decimal
+    begin
+    ParteEntera := copy(actualmente,1,length(Actualmente)-9);
+    ParteDecimal := copy(actualmente,length(Actualmente)-7,8);
+    if currpos = PosicionEnElPunto then // Just before point
       begin
       if length(parteentera)>7 then exit;
       ParteEntera := ParteEntera+Ultimo;
@@ -2829,7 +2959,7 @@ if EditSCMont.SelStart <= length(EditSCMont.Text)-9 then // Es un decimal
       EditSCMont.Text:=Actualmente;
       EditSCMont.SelStart := Length(Actualmente)-9;
       end
-   else
+    else
       begin
       Actualmente[currpos+1] := ultimo;
       ParteEntera := copy(actualmente,1,length(Actualmente)-9);
@@ -2839,109 +2969,88 @@ if EditSCMont.SelStart <= length(EditSCMont.Text)-9 then // Es un decimal
       EditSCMont.SelStart := currpos+1;
       if ((currpos=0) and (ultimo='0')) then EditSCMont.SelStart := 0;
       end;
-   end;
+    end;
 End;
 
-// verifica el monto que se marca para enviar coins
+// Validate send funds amount
 Procedure Tform1.EditSCMontChange(sender:TObject);
 Begin
-if ((StrToInt64Def(StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase]),-1)>0) and
-   (StrToInt64Def(StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase]),-1)<=GetMaximunToSend(GetWalletBalance)))then
-  begin
-  Form1.imagenes.GetBitmap(17,ImgSCMont.Picture.Bitmap);
-  end
-else Form1.imagenes.GetBitmap(14,ImgSCMont.Picture.Bitmap);
-if EditSCMont.Text = '0.00000000' then ImgSCMont.Picture.Clear;
+  if ((StrToInt64Def(StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase]),-1)>0) and
+     (StrToInt64Def(StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase]),-1)<=GetMaximunToSend(GetWalletBalance)))then
+    begin
+    Form1.imagenes.GetBitmap(17,ImgSCMont.Picture.Bitmap);
+    end
+  else Form1.imagenes.GetBitmap(14,ImgSCMont.Picture.Bitmap);
+  if EditSCMont.Text = '0.00000000' then ImgSCMont.Picture.Clear;
 End;
 
-// Desactiva el menu popup de un control
-Procedure TForm1.DisablePopUpMenu(sender: TObject;MousePos: TPoint;var Handled: Boolean);
-Begin
-Handled := True;
-End;
-
-// Cancelar el envio
+// Cancel sendfunds
 Procedure Tform1.SCBitCancelOnClick(sender:TObject);
 Begin
-EditSCDest.Enabled:=true;
-EditSCMont.Enabled:=true;
-MemoSCCon.Enabled:=true;
-SCBitSend.Visible:=true;
-SCBitConf.Visible:=false;
-SCBitCancel.Visible:=false;
+  EditSCDest.Enabled:=true;
+  EditSCMont.Enabled:=true;
+  MemoSCCon.Enabled:=true;
+  SCBitSend.Visible:=true;
+  SCBitConf.Visible:=false;
+  SCBitCancel.Visible:=false;
 End;
 
-// enviar el dinero
+// Accept send funds
 Procedure Tform1.SCBitSendOnClick(sender:TObject);
 Begin
-if ( ( ((AliasAlreadyExists(EditSCDest.Text)) or (IsValidHashAddress(EditSCDest.Text))) ) and
-   (StrToInt64Def(StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase]),-1)>0) and
-   (StrToInt64Def(StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase]),-1)<=GetMaximunToSend(GetWalletBalance)) ) then
-   begin
-   MemoSCCon.Text:=Parameter(MemoSCCon.text,0);
-   EditSCDest.Enabled:=false;
-   EditSCMont.Enabled:=false;
-   MemoSCCon.Enabled:=false;
-   SCBitSend.Visible:=false;
-   SCBitConf.Visible:=true;
-   SCBitCancel.Visible:=true;
-   end
-else info('Invalid parameters');
+  if ( ( ((AliasAlreadyExists(EditSCDest.Text)) or (IsValidHashAddress(EditSCDest.Text))) ) and
+     (StrToInt64Def(StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase]),-1)>0) and
+     (StrToInt64Def(StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase]),-1)<=GetMaximunToSend(GetWalletBalance)) ) then
+    begin
+    MemoSCCon.Text:=Parameter(MemoSCCon.text,0);
+    EditSCDest.Enabled:=false;
+    EditSCMont.Enabled:=false;
+    MemoSCCon.Enabled:=false;
+    SCBitSend.Visible:=false;
+    SCBitConf.Visible:=true;
+    SCBitCancel.Visible:=true;
+    end
+  else info('Invalid parameters');
 End;
 
-// confirmar el envio con los valores
+// Process send funds
 Procedure Tform1.SCBitConfOnClick(sender:TObject);
 Begin
-ProcessLinesAdd('SENDTO '+EditSCDest.Text+' '+
+  ProcessLinesAdd('SENDTO '+EditSCDest.Text+' '+
                           StringReplace(EditSCMont.Text,'.','',[rfReplaceAll, rfIgnoreCase])+' '+
                           MemoSCCon.Text);
-ResetearValoresEnvio(sender);
+  ResetSendFundsPanel(sender);
 End;
 
-// Resetear los valores de envio
-Procedure TForm1.ResetearValoresEnvio(sender:TObject);
+// Clear send funds panel
+Procedure TForm1.ResetSendFundsPanel(sender:TObject);
 Begin
-EditSCDest.Enabled:=true;EditSCDest.Text:='';
-EditSCMont.Enabled:=true;EditSCMont.Text:='0.00000000';
-MemoSCCon.Enabled:=true;MemoSCCon.Text:='';
-SCBitSend.Visible:=true;
-SCBitConf.Visible:=false;
-SCBitCancel.Visible:=false;
+  EditSCDest.Enabled:=true;EditSCDest.Text:='';
+  EditSCMont.Enabled:=true;EditSCMont.Text:='0.00000000';
+  MemoSCCon.Enabled:=true;MemoSCCon.Text:='';
+  SCBitSend.Visible:=true;
+  SCBitConf.Visible:=false;
+  SCBitCancel.Visible:=false;
 End;
 
-// Actualizar barra de estado
-Procedure UpdateStatusBar();
-Begin
-if WO_OmmitMemos then exit;
-if Form1.Server.Active then Form1.StaSerImg.Visible:=true
-else Form1.StaSerImg.Visible:=false;
-Form1.StaConLab.Caption:=IntToStr(GetTotalSyncedConnections);
-if MyConStatus = 0 then Form1.StaConLab.Color:= clred;
-if MyConStatus = 1 then Form1.StaConLab.Color:= clyellow;
-if MyConStatus = 2 then Form1.StaConLab.Color:= claqua;
-if MyConStatus = 3 then Form1.StaConLab.Color:= clgreen;
-Form1.BitBtnBlocks.Caption:=IntToStr(MyLastBlock);
-form1.BitBtnPending.Caption:=GetPendingCount.ToString;
-if form1.RPCServer.active then Form1.StaRPCimg.Visible:=true
-else Form1.StaRPCimg.Visible:=false;
-Form1.Imgs32.GetBitMap(ConnectedRotor,form1.ImgRotor.picture.BitMap);
-
-End;
+{$ENDREGION sendfunds panel }
 
 //******************************************************************************
 // MAINMENU
 //******************************************************************************
 
-// menu principal importar cartera
+{$REGION mainmenu}
+
+// Main Menu: Import Wallet
 Procedure Tform1.MMImpWallet (sender:TObject);
 Begin
-ShowExplorer(GetCurrentDir,'Import Wallet','*.pkw','impwallet (-resultado-)',true);
+  ShowExplorer(GetCurrentDir,'Import Wallet','*.pkw','impwallet (-resultado-)',true);
 End;
 
-// menu principal exportar cartera
+// Main Menu: Export wallet
 Procedure Tform1.MMExpWallet(sender:TObject);
 Begin
-ShowExplorer(GetCurrentDir,'Export Wallet to','*.pkw','expwallet (-resultado-)',false);
+  ShowExplorer(GetCurrentDir,'Export Wallet to','*.pkw','expwallet (-resultado-)',false);
 End;
 
 // menuprincipal restart
@@ -2956,392 +3065,264 @@ Begin
 G_CloseRequested := true;
 End;
 
-// Abrir pagina web
-Procedure TForm1.MMVerWeb(sender:TObject);
-Begin
-OpenDocument('https://nosocoin.com');
-End;
-
-// Abrir form slots
-Procedure TForm1.MMVerSlots(sender:TObject);
-Begin
-FormSlots.Visible:=true;
-End;
+{$ENDREGION mainmenu}
 
 //******************************************************************************
 // ConsolePopUp
 //******************************************************************************
 
-// VErifica que mostrar en el consolepopup
+{$REGION Console popup}
+
+// Validate popup status
 Procedure TForm1.CheckConsolePopUp(sender: TObject;MousePos: TPoint;var Handled: Boolean);
 Begin
-if MemoConsola.Text <> '' then ConsolePopUp2.Items[0].Enabled:= true
-else ConsolePopUp2.Items[0].Enabled:= false;
-if length(Memoconsola.SelText)>0 then ConsolePopUp2.Items[1].Enabled:= true
-else ConsolePopUp2.Items[1].Enabled:= false;
+  if MemoConsola.Text <> '' then ConsolePopUp2.Items[0].Enabled:= true
+  else ConsolePopUp2.Items[0].Enabled:= false;
+  if length(Memoconsola.SelText)>0 then ConsolePopUp2.Items[1].Enabled:= true
+  else ConsolePopUp2.Items[1].Enabled:= false;
 End;
 
+// Clear
 Procedure TForm1.ConsolePopUpClear(sender:TObject);
 Begin
-ProcessLinesAdd('clear');
+  ProcessLinesAdd('clear');
 End;
 
+// Copy
 Procedure TForm1.ConsolePopUpCopy(sender:TObject);
 Begin
-Clipboard.AsText:= Memoconsola.SelText;
-info('Copied to clipboard');
+  Clipboard.AsText:= Memoconsola.SelText;
+  info('Copied to clipboard');
 End;
 
+{$ENDREGION Console popup}
+
 //******************************************************************************
-// LinePopUp
+// CommandLine PopUp
 //******************************************************************************
 
-// VErifica que mostrar en el consolepopup
+{$REGION command line popup}
+
+// Validate command line popup
 Procedure TForm1.CheckConsoLinePopUp(sender: TObject;MousePos: TPoint;var Handled: Boolean);
 Begin
-if ConsoleLine.Text <> '' then ConsoLinePopUp2.Items[0].Enabled:= true
-else ConsoLinePopUp2.Items[0].Enabled:= false;
-if length(ConsoleLine.SelText)>0 then ConsoLinePopUp2.Items[1].Enabled:= true
-else ConsoLinePopUp2.Items[1].Enabled:= false;
-if length(Clipboard.AsText)>0 then ConsoLinePopUp2.Items[2].Enabled:= true
-else ConsoLinePopUp2.Items[2].Enabled:= false;
+  if ConsoleLine.Text <> '' then ConsoLinePopUp2.Items[0].Enabled:= true
+  else ConsoLinePopUp2.Items[0].Enabled:= false;
+  if length(ConsoleLine.SelText)>0 then ConsoLinePopUp2.Items[1].Enabled:= true
+  else ConsoLinePopUp2.Items[1].Enabled:= false;
+  if length(Clipboard.AsText)>0 then ConsoLinePopUp2.Items[2].Enabled:= true
+  else ConsoLinePopUp2.Items[2].Enabled:= false;
 End;
 
+// Clear
 Procedure TForm1.ConsoLinePopUpClear(sender:TObject);
 Begin
-ConsoleLine.Text:='';
-ConsoleLine.Setfocus;
+  ConsoleLine.Text:='';
+  ConsoleLine.Setfocus;
 End;
 
+// Copy
 Procedure TForm1.ConsoLinePopUpCopy(sender:TObject);
 Begin
 Clipboard.AsText:= ConsoleLine.SelText;
 info('Copied to clipboard');
 End;
 
+// Paste
 Procedure TForm1.ConsoLinePopUpPaste(sender:TObject);
 var
   CurrText : String; Currpos : integer;
 Begin
-CurrText := ConsoleLine.Text;
-Currpos := ConsoleLine.SelStart;
-Insert(Clipboard.AsText,CurrText,ConsoleLine.SelStart+1);
-ConsoleLine.Text := CurrText;ConsoleLine.SelStart:=currpos+length(Clipboard.AsText);
-ConsoleLine.Setfocus;
+  CurrText := ConsoleLine.Text;
+  Currpos := ConsoleLine.SelStart;
+  Insert(Clipboard.AsText,CurrText,ConsoleLine.SelStart+1);
+  ConsoleLine.Text := CurrText;ConsoleLine.SelStart:=currpos+length(Clipboard.AsText);
+  ConsoleLine.Setfocus;
 End;
+
+{$ENDREGION command line popup}
 
 //******************************************************************************
 // OPTIONS CONTROLS
 //******************************************************************************
 
-// WALLET
+{$REGION Options: wallet}
 
+// Autoupdate option
 procedure TForm1.CB_WO_AutoupdateChange(sender: TObject);
 Begin
-if not G_Launching then
-   begin
-   if CB_WO_Autoupdate.Checked then
+  if not G_Launching then
+    begin
+    if CB_WO_Autoupdate.Checked then
       begin
       WO_AutoUpdate := true;
       end
-   else
+    else
       begin
       WO_AutoUpdate := false ;
       end;
-   S_AdvOpt := true;
-   end;
-if WO_AutoUpdate then
-   begin
-   {$IFDEF WINDOWS}
-   if ( (not fileexists('libeay32.dll')) or (not fileexists('ssleay32.dll')) ) then
+    S_AdvOpt := true;
+    end;
+  if WO_AutoUpdate then
+    begin
+    {$IFDEF WINDOWS}
+    if ( (not fileexists('libeay32.dll')) or (not fileexists('ssleay32.dll')) ) then
       ToLog('console','Warning: SSL files missed. Auto directive update will not work properly');
-   {$ENDIF}
-   end
-else
-   begin
-   ToLog('console','Auto-update option is disabled. This could cause your node to become inactive on mandatory updates.');
-   end;
+    {$ENDIF}
+    end
+  else
+    begin
+    ToLog('console','Auto-update option is disabled. This could cause your node to become inactive on mandatory updates.');
+    end;
 End;
 
+// Send from multiple addresses
 procedure TForm1.CB_WO_MultisendChange(sender: TObject);
-begin
-if not G_Launching then
-   begin
-   if CB_WO_Multisend.Checked then WO_Multisend := true
-   else WO_Multisend := false ;
-   S_AdvOpt := true;
-   end;
-end;
+Begin
+  if not G_Launching then
+    begin
+    if CB_WO_Multisend.Checked then WO_Multisend := true
+    else WO_Multisend := false ;
+    S_AdvOpt := true;
+    end;
+End;
 
+// hide empty addresses
 procedure TForm1.CB_WO_HideEmptyChange(Sender: TObject);
-begin
-if not G_Launching then
-   begin
-   if CB_WO_HideEmpty.Checked then WO_HideEmpty := true
-   else WO_HideEmpty := false ;
-   S_AdvOpt := true;
-   U_DirPanel:= true;
-   end;
-end;
+Begin
+  if not G_Launching then
+    begin
+    if CB_WO_HideEmpty.Checked then WO_HideEmpty := true
+    else WO_HideEmpty := false ;
+    S_AdvOpt := true;
+    U_DirPanel:= true;
+    end;
+End;
 
-// RPC
-
-procedure TForm1.CB_RPC_ONChange(sender: TObject);
-begin
-if not G_Launching then
-   begin
-   if CB_RPC_ON.Checked then SetRPCOn
-   else SetRPCOff;
-   end;
-end;
-
-procedure TForm1.CB_AUTORPCChange(sender: TObject);
-begin
-if not G_Launching then
-   begin
-   RPCAuto:= CB_AUTORPC.Checked;
-   S_AdvOpt := true;
-   end;
-end;
-
-procedure TForm1.LE_Rpc_PortEditingDone(sender: TObject);
-begin
-if StrToIntDef(LE_Rpc_Port.Text,-1) <> RPCPort then
-   begin
-   SetRPCPort('SETRPCPORT '+LE_Rpc_Port.Text);
-   LE_Rpc_Port.Text := IntToStr(RPCPort);
-   S_AdvOpt := true;
-   info ('New RPC port set');
-   end;
-end;
-
-procedure TForm1.LE_Rpc_PassEditingDone(sender: TObject);
-begin
-if ((not G_Launching) and (LE_Rpc_Pass.Text<>RPCPass)) then
-   begin
-   setRPCpassword(LE_Rpc_Pass.Text);
-   LE_Rpc_Pass.Text:=RPCPass;
-   S_AdvOpt := true;
-   info ('New RPC password set');
-   end;
-end;
-
-procedure TForm1.CB_RPCFilterChange(sender: TObject);
-begin
-if not G_Launching then
-   begin
-   if CB_RPCFilter.Checked then
-      begin
-      RPCFilter := true;
-      MemoRPCWhitelist.Enabled:=true;
-      end
-   else
-      begin
-      RPCFilter := false;
-      MemoRPCWhitelist.Enabled:=false;
-      end;
-   S_AdvOpt := true;
-   end;
-end;
-
+// Change Language (To be deprecated)
 procedure TForm1.ComboBoxLangChange(sender: TObject);
-begin
-Processlinesadd('lang '+ComboBoxLang.Text);
-end;
+Begin
+  Processlinesadd('lang '+ComboBoxLang.Text);
+End;
 
 // Draw item on combobox language
 procedure TForm1.ComboBoxLangDrawItem(Control: TWinControl; Index: Integer;
   ARect: TRect; State: TOwnerDrawState);
 begin
-ComboBoxLang.Canvas.FillRect(ARect);
-if ComboBoxLang.Items[Index] ='en' then
-   begin
-   ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'English');
-   Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 36);
-   end;
-if ComboBoxLang.Items[Index] ='es' then
-   begin
-   ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Español');
-   Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 37);
-   end;
-if ComboBoxLang.Items[Index] ='pt' then
-   begin
-   ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Português');
-   Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 61);
-   end;
-if ComboBoxLang.Items[Index] ='de' then
-   begin
-   ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Deutsch');
-   Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 62);
-   end;
-if ComboBoxLang.Items[Index] ='zh' then
-   begin
-   ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, '中文');
-   Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 63);
-   end;
-if ComboBoxLang.Items[Index] ='ro' then
-   begin
-   ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Română');
-   Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 65);
-   end;
-if ComboBoxLang.Items[Index] ='id' then
-   begin
-   ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Bahasa Indonesia');
-   Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 66);
-   end;
-if ComboBoxLang.Items[Index] ='ru' then
-   begin
-   ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Русский');
-   Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 67);
-   end;
+  ComboBoxLang.Canvas.FillRect(ARect);
+  if ComboBoxLang.Items[Index] ='en' then
+    begin
+    ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'English');
+    Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 36);
+    end;
+  if ComboBoxLang.Items[Index] ='es' then
+    begin
+    ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Español');
+    Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 37);
+    end;
+  if ComboBoxLang.Items[Index] ='pt' then
+    begin
+    ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Português');
+    Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 61);
+    end;
+  if ComboBoxLang.Items[Index] ='de' then
+    begin
+    ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Deutsch');
+    Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 62);
+    end;
+  if ComboBoxLang.Items[Index] ='zh' then
+    begin
+    ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, '中文');
+    Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 63);
+    end;
+  if ComboBoxLang.Items[Index] ='ro' then
+    begin
+    ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Română');
+    Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 65);
+    end;
+  if ComboBoxLang.Items[Index] ='id' then
+    begin
+    ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Bahasa Indonesia');
+    Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 66);
+    end;
+  if ComboBoxLang.Items[Index] ='ru' then
+    begin
+    ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Русский');
+    Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 67);
+    end;
 End;
 
-// Adjust data panel when resizing
-procedure TForm1.DataPanelResize(sender: TObject);
-var
-  GridWidth : integer;
-begin
-GridWidth := form1.DataPanel.Width;
-form1.DataPanel.ColWidths[0]:= thispercent(20,GridWidth);
-form1.DataPanel.ColWidths[1]:= thispercent(30,GridWidth);
-form1.DataPanel.ColWidths[2]:= thispercent(20,GridWidth);
-form1.DataPanel.ColWidths[3]:= thispercent(30,GridWidth);
-end;
-
-// Grid Addresses DrawCell
-procedure TForm1.DireccionesPanelDrawCell(sender: TObject; aCol, aRow: Integer;
-  aRect: TRect; aState: TGridDrawState);
-var
-  Bitmap    : TBitmap;
-  myRect    : TRect;
-  ColWidth : Integer;
+// Options Wallet: Keep blocks Database
+procedure TForm1.CBKeepBlocksDBChange(Sender: TObject);
 Begin
-if ( (aRow>0) and (aCol=0) and (AnsiContainsstr(GetMN_FileText,GetWallArrIndex(aRow-1).Hash)) ) then
-   begin
-   ColWidth := (sender as TStringGrid).ColWidths[0];
-   Bitmap        := TBitmap.Create;
-   Imagenes.GetBitmap(68,Bitmap);
-   myRect        := Arect;
-   myrect.Left   := ColWidth-20;
-   myRect.Right  := ColWidth-4;
-   myrect.top    := myrect.Top+2;
-   myrect.Bottom := myrect.Top+18;
-   (sender as TStringGrid).Canvas.StretchDraw(myRect,bitmap);
-   Bitmap.free
-   end;
+  if not G_Launching then
+    begin
+    if CBKeepBlocksDB.Checked then WO_BlockDB := true
+    else WO_BlockDB := false;
+    end;
 End;
 
-// adjust addresses grid when resizing
-procedure TForm1.DireccionesPanelResize(sender: TObject);
-var
-  GridWidth : integer;
-begin
-GridWidth := form1.DireccionesPanel.Width;
-form1.DireccionesPanel.ColWidths[0]:= thispercent(68,GridWidth);
-form1.DireccionesPanel.ColWidths[1]:= thispercent(32,GridWidth, true);
-end;
-
-// adjust grid nodes when resizing
-procedure TForm1.GridNodesResize(sender: TObject);
-var
-  GridWidth : integer;
-begin
-GridWidth := form1.GridNodes.Width;
-form1.GridNodes.ColWidths[0]:= thispercent(36,GridWidth);
-form1.GridNodes.ColWidths[1]:= thispercent(64,GridWidth,true);
-form1.GridNodes.ColWidths[2]:= thispercent(0,GridWidth);
-form1.GridNodes.ColWidths[3]:= thispercent(0,GridWidth);
-form1.GridNodes.ColWidths[4]:= thispercent(0,GridWidth, true);
-end;
-
-// Adjust seeds on consensus stringgrid
-procedure TForm1.SGConSeedsResize(Sender: TObject);
-var
-  GridWidth : integer;
-begin
-GridWidth := form1.SGConSeeds.Width;
-form1.SGConSeeds.ColWidths[0]:= thispercent(20,GridWidth);
-form1.SGConSeeds.ColWidths[1]:= thispercent(20,GridWidth);
-form1.SGConSeeds.ColWidths[2]:= thispercent(40,GridWidth);
-form1.SGConSeeds.ColWidths[3]:= thispercent(20,GridWidth,true);
-end;
-
-
-
-// Adjust monitor at resize
-procedure TForm1.SG_MonitorResize(sender: TObject);
-var
-  GridWidth : integer;
+// Options Wallet: Stop GUI
+procedure TForm1.CBRunNodeAloneChange(sender: TObject);
 Begin
-GridWidth := form1.SG_Monitor.Width;
-form1.SG_Monitor.ColWidths[0]:= thispercent(40,GridWidth);
-form1.SG_Monitor.ColWidths[1]:= thispercent(20,GridWidth);
-form1.SG_Monitor.ColWidths[2]:= thispercent(20,GridWidth);
-form1.SG_Monitor.ColWidths[3]:= thispercent(20,GridWidth,true);
+  if not G_Launching then
+    begin
+    if CBRunNodeAlone.Checked then WO_StopGUI := true
+    else WO_StopGUI := false;
+    end;
 End;
 
-// Grid openthreads on resize
-procedure TForm1.SG_OpenThreadsResize(Sender: TObject);
-var
-  GridWidth : integer;
+// Options Wallet: Send reports
+procedure TForm1.CBSendReportsChange(Sender: TObject);
 Begin
-GridWidth := form1.SG_Monitor.Width;
-form1.SG_OpenThreads.ColWidths[0]:= thispercent(70,GridWidth);
-form1.SG_OpenThreads.ColWidths[1]:= thispercent(30,GridWidth,true);
+  if not G_Launching then
+    begin
+    if CBSendReports.Checked then WO_SendReport := true
+    else WO_SendReport := false;
+    end;
 End;
 
-// Grid file processes on resize
-procedure TForm1.PC_ProcessesResize(Sender: TObject);
-var
-  GridWidth : integer;
+// Options Wallet: Download complete blockchain
+procedure TForm1.CB_FullNodeChange(sender: TObject);
 Begin
-GridWidth := form1.SG_Monitor.Width;
-form1.SG_FilePRocs.ColWidths[0]:= thispercent(25,GridWidth);
-form1.SG_FilePRocs.ColWidths[1]:= thispercent(25,GridWidth);
-form1.SG_FilePRocs.ColWidths[2]:= thispercent(25,GridWidth);
-form1.SG_FilePRocs.ColWidths[3]:= thispercent(25,GridWidth,true);
+  if not G_Launching then
+    begin
+    if CB_FullNode.Checked then WO_FullNode := true
+    else WO_FullNode := false;
+    S_AdvOpt := true;
+    end;
 End;
+
+{$ENDREGION Options: wallet}
+
+{$REGION Options: Node}
 
 // Load Masternode options when TAB is selected
 procedure TForm1.TabNodeOptionsShow(sender: TObject);
-begin
-CBAutoIP.checked:=MN_AutoIP;
-CheckBox4.Checked:=WO_AutoServer;
-LabeledEdit5.Text:=MN_IP;
-LabeledEdit5.visible:=not MN_AutoIP;
-LabeledEdit6.Text:=MN_Port;
-LabeledEdit8.Text:=MN_Funds;
-LabeledEdit9.Text:=MN_Sign;
-end;
-
-//Adjust the about form on resize
-procedure TForm1.Tab_Options_AboutResize(sender: TObject);
-begin
-  ImageOptionsAbout.BorderSpacing.Left:=
-    (Tab_Options_About.ClientWidth div 2) -
-    (ImageOptionsAbout.Width div 2);
-  BitBtnWeb.BorderSpacing.Left:=
-    (Tab_Options_About.ClientWidth div 2) -
-    (BitBtnWeb.Width div 2);
-  BitBtnDonate.BorderSpacing.Left:=
-    (Tab_Options_About.ClientWidth div 2) -
-    (BitBtnDonate.Width div 2);
-end;
+Begin
+  CBAutoIP.checked:=MN_AutoIP;
+  CheckBox4.Checked:=WO_AutoServer;
+  LabeledEdit5.Text:=MN_IP;
+  LabeledEdit5.visible:=not MN_AutoIP;
+  LabeledEdit6.Text:=MN_Port;
+  LabeledEdit8.Text:=MN_Funds;
+  LabeledEdit9.Text:=MN_Sign;
+End;
 
 // Save Node options
 procedure TForm1.BSaveNodeOptionsClick(sender: TObject);
-begin
-WO_AutoServer :=CheckBox4.Checked;
-MN_IP         :=Trim(LabeledEdit5.Text);
-MN_Port       :=Trim(LabeledEdit6.Text);
-MN_Funds      :=Trim(LabeledEdit8.Text);
-MN_Sign       :=Trim(LabeledEdit9.Text);
-MN_AutoIP     :=CBAutoIP.Checked;
-S_AdvOpt := true;
-if not WO_AutoServer and form1.Server.Active then processlinesadd('serveroff');
-if WO_AutoServer and not form1.Server.Active then processlinesadd('serveron');
-info('Masternode options saved');
-end;
+Begin
+  WO_AutoServer :=CheckBox4.Checked;
+  MN_IP         :=Trim(LabeledEdit5.Text);
+  MN_Port       :=Trim(LabeledEdit6.Text);
+  MN_Funds      :=Trim(LabeledEdit8.Text);
+  MN_Sign       :=Trim(LabeledEdit9.Text);
+  MN_AutoIP     :=CBAutoIP.Checked;
+  S_AdvOpt := true;
+  if not WO_AutoServer and form1.Server.Active then processlinesadd('serveroff');
+  if WO_AutoServer and not form1.Server.Active then processlinesadd('serveron');
+  info('Masternode options saved');
+End;
 
 // Test master node configuration
 procedure TForm1.BTestNodeClick(sender: TObject);
@@ -3351,214 +3332,188 @@ var
   ServerActivated : boolean = false;
   IPToUse : String;
 Begin
-if WallAddIndex(LabeledEdit9.Text) < 0 then
-   begin
-   info(rs0081); // Invalid sign address
-   exit;
-   end;
-if GetAddressBalanceIndexed(LabeledEdit8.Text) < GetStackRequired(MylastBlock) then
-   begin
-   info(rs0082); // Funds address do not owns enough coins
-   exit;
-   end;
-if form1.Server.Active then
-   begin
-   info(rs0080);   //You can not test while server is active
-   exit;
-   end;
-if MyConStatus < 3 then
-   begin
-   info(rs0083);   //You need update the wallet
-   exit;
-   end;
-TRY
-form1.Server.Active := true;
-ServerActivated := true;
-EXCEPT on E:Exception do
-   begin
-   info('Error activating server: '+E.Message);
-   exit;
-   end;
-END;{Try}
-LineResult := '';
-Client := TidTCPClient.Create(nil);
-
-if CBAutoIP.Checked then IPToUse:= GetMiIp()
-else IPToUse := trim(LabeledEdit5.text);
-Client.Host:= IPToUse;
-Client.Port:= StrToIntDef(Trim(LabeledEdit6.Text),8080);
-Client.ConnectTimeout:= 1000;
-Client.ReadTimeout:= 1000;
-
-TRY
-Client.Connect;
-Client.IOHandler.WriteLn('NODESTATUS');
-LineResult := Client.IOHandler.ReadLn(IndyTextEncoding_UTF8);
-EXCEPT on E:Exception do
-   begin
-   info('Cant connect to '+IPToUse);
-   ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error testing masternode: '+E.Message);
-   client.Free;
-   if ServerActivated then form1.Server.Active := false;
-   exit;
-   end;
-END;{Try}
-if LineResult <> '' then info(IPToUse+': OK')
-else info ('Test Failed: '+IPToUse);
-if client.Connected then Client.Disconnect();
-if ServerActivated then form1.Server.Active := false;
-client.Free;
+  if WallAddIndex(LabeledEdit9.Text) < 0 then
+    begin
+    info(rs0081); // Invalid sign address
+    exit;
+    end;
+  if GetAddressBalanceIndexed(LabeledEdit8.Text) < GetStackRequired(MylastBlock) then
+    begin
+    info(rs0082); // Funds address do not owns enough coins
+    exit;
+    end;
+  if form1.Server.Active then
+    begin
+    info(rs0080);   //You can not test while server is active
+    exit;
+    end;
+  if MyConStatus < 3 then
+    begin
+    info(rs0083);   //You need update the wallet
+    exit;
+    end;
+  TRY
+  form1.Server.Active := true;
+  ServerActivated := true;
+  EXCEPT on E:Exception do
+    begin
+    info('Error activating server: '+E.Message);
+    exit;
+    end;
+  END;{Try}
+  LineResult := '';
+  Client := TidTCPClient.Create(nil);
+  if CBAutoIP.Checked then IPToUse:= GetMiIp()
+  else IPToUse := trim(LabeledEdit5.text);
+  Client.Host:= IPToUse;
+  Client.Port:= StrToIntDef(Trim(LabeledEdit6.Text),8080);
+  Client.ConnectTimeout:= 1000;
+  Client.ReadTimeout:= 1000;
+  TRY
+  Client.Connect;
+  Client.IOHandler.WriteLn('NODESTATUS');
+  LineResult := Client.IOHandler.ReadLn(IndyTextEncoding_UTF8);
+  EXCEPT on E:Exception do
+    begin
+    info('Cant connect to '+IPToUse);
+    client.Free;
+    if ServerActivated then form1.Server.Active := false;
+    exit;
+    end;
+  END;{Try}
+  if LineResult <> '' then info(IPToUse+': OK')
+  else info ('Test Failed: '+IPToUse);
+  if client.Connected then Client.Disconnect();
+  if ServerActivated then form1.Server.Active := false;
+  client.Free;
 End;
 
-procedure TForm1.Button1Click(sender: TObject);
+{$ENDREGION Options: Node}
+
+{$REGION Options: RPC}
+
+// Enable/Disable RPC
+procedure TForm1.CB_AUTORPCChange(sender: TObject);
 Begin
-MemoLog.Lines.Clear;
+  if not G_Launching then
+    begin
+    RPCAuto:= CB_AUTORPC.Checked;
+    S_AdvOpt := true;
+    end;
 End;
 
-procedure TForm1.Button2Click(sender: TObject);
+// Edit RPC port
+procedure TForm1.LE_Rpc_PortEditingDone(sender: TObject);
 Begin
-MemoExceptLog.Lines.Clear;
+  if StrToIntDef(LE_Rpc_Port.Text,-1) <> RPCPort then
+    begin
+    SetRPCPort('SETRPCPORT '+LE_Rpc_Port.Text);
+    LE_Rpc_Port.Text := IntToStr(RPCPort);
+    S_AdvOpt := true;
+    info ('New RPC port set');
+    end;
 End;
 
-procedure TForm1.CBKeepBlocksDBChange(Sender: TObject);
-begin
-if not G_Launching then
-   begin
-   if CBKeepBlocksDB.Checked then WO_BlockDB := true
-   else WO_BlockDB := false;
-   end;
-end;
+// Edit RPC password
+procedure TForm1.LE_Rpc_PassEditingDone(sender: TObject);
+Begin
+  if ((not G_Launching) and (LE_Rpc_Pass.Text<>RPCPass)) then
+    begin
+    setRPCpassword(LE_Rpc_Pass.Text);
+    LE_Rpc_Pass.Text:=RPCPass;
+    S_AdvOpt := true;
+    info ('New RPC password set');
+    end;
+End;
 
-procedure TForm1.CBRunNodeAloneChange(sender: TObject);
-begin
-if not G_Launching then
-   begin
-   if CBRunNodeAlone.Checked then WO_OmmitMemos := true
-   else WO_OmmitMemos := false;
-   end;
-end;
+// Enable RPC filter
+procedure TForm1.CB_RPCFilterChange(sender: TObject);
+Begin
+  if not G_Launching then
+    begin
+    if CB_RPCFilter.Checked then
+      begin
+      RPCFilter := true;
+      MemoRPCWhitelist.Enabled:=true;
+      end
+    else
+      begin
+      RPCFilter := false;
+      MemoRPCWhitelist.Enabled:=false;
+      end;
+    S_AdvOpt := true;
+    end;
+End;
 
-procedure TForm1.CBSendReportsChange(Sender: TObject);
-begin
-if not G_Launching then
-   begin
-   if CBSendReports.Checked then WO_SendReport := true
-   else WO_SendReport := false;
-   end;
-end;
-
+// Backup RPC created addresses (to be deprecated, always enable)
 procedure TForm1.CB_BACKRPCaddressesChange(Sender: TObject);
-begin
-if not G_Launching then
-   begin
-   if CB_BACKRPCaddresses.Checked then RPCSaveNew := true
-   else RPCSaveNew := false;
-   end;
-end;
+Begin
+  if not G_Launching then
+    begin
+    if CB_BACKRPCaddresses.Checked then RPCSaveNew := true
+    else RPCSaveNew := false;
+    end;
+End;
 
 // Set MN IP to Auto
 procedure TForm1.CBAutoIPClick(sender: TObject);
 Begin
-if CBAutoIP.Checked then LabeledEdit5.Visible:=false
-else LabeledEdit5.Visible:=true;
+  if CBAutoIP.Checked then LabeledEdit5.Visible:=false
+  else LabeledEdit5.Visible:=true;
 End;
 
-// Enable/Disable download the whole blockchain
-procedure TForm1.CB_FullNodeChange(sender: TObject);
-Begin
-if not G_Launching then
-   begin
-   if CB_FullNode.Checked then
-      begin
-      WO_FullNode := true;
-      end
-   else
-      begin
-      WO_FullNode := false ;
-      end;
-   S_AdvOpt := true;
-   end;
-End;
-
-// Resize GVTs grid
-procedure TForm1.GVTsGridResize(sender: TObject);
-var
-  GridWidth : integer;
-Begin
-GridWidth := form1.GVTsGrid.Width;
-form1.GVTsGrid.ColWidths[0]:= thispercent(20,GridWidth);
-form1.GVTsGrid.ColWidths[1]:= thispercent(80,GridWidth,true);
-End;
-
-// Update my GVTsList
-Procedure UpdateMyGVTsList();
-var
-  counter : integer;
-  Owned   : integer = 0;
-Begin
-form1.GVTsGrid.RowCount:=1;
-EnterCriticalSection(CSGVTsArray);
-for counter := 0 to length(ArrGVTs)-1 do
-   begin
-   if WallAddIndex(ArrGVTs[counter].owner) >= 0 then
-      begin
-      form1.GVTsGrid.RowCount:=form1.GVTsGrid.RowCount+1;
-      form1.GVTsGrid.Cells[0,form1.GVTsGrid.RowCount-1] := ArrGVTs[counter].number;
-      form1.GVTsGrid.Cells[1,form1.GVTsGrid.RowCount-1] := ArrGVTs[counter].owner;
-      Inc(Owned);
-      end;
-   end;
-LeaveCriticalSection(CSGVTsArray);
-Form1.TabGVTs.TabVisible:= Owned>0;
-End;
-
-// Transfer GVT button
-procedure TForm1.SCBitSend1Click(sender: TObject);
-Begin
-if GVTsGrid.Row > 0 then
-   ProcessLinesAdd('sendgvt '+GVTsGrid.Cells[0,GVTsGrid.Row]+' '+edit2.Text);
-End;
-
+// Editing RPC filter memo
 procedure TForm1.MemoRPCWhitelistEditingDone(sender: TObject);
 var
   newlist : string;
-begin
-if ( (not G_Launching) and (MemoRPCWhitelist.Text<>RPCWhitelist) ) then
-   begin
-   newlist := trim(MemoRPCWhitelist.Text);
-   newlist := parameter(newlist,0);
-   MemoRPCWhitelist.Text := newlist;
-   RPCWhitelist := newlist;
-   S_AdvOpt := true;
-   end;
-end;
+Begin
+  if ( (not G_Launching) and (MemoRPCWhitelist.Text<>RPCWhitelist) ) then
+    begin
+    newlist := trim(MemoRPCWhitelist.Text);
+    newlist := parameter(newlist,0);
+    MemoRPCWhitelist.Text := newlist;
+    RPCWhitelist := newlist;
+    S_AdvOpt := true;
+    end;
+End;
 
+// Editing RPC banned memo
 procedure TForm1.MemobannedmethodsEditingDone(Sender: TObject);
 var
   newlist : string;
 Begin
-if ( (not G_Launching) and (Memobannedmethods.Text<>RPCBanned) ) then
-   begin
-   newlist := trim(Memobannedmethods.Text);
-   newlist := parameter(newlist,0);
-   Memobannedmethods.Text := newlist;
-   RPCBanned := newlist;
-   S_AdvOpt := true;
-   end;
+  if ( (not G_Launching) and (Memobannedmethods.Text<>RPCBanned) ) then
+    begin
+    newlist := trim(Memobannedmethods.Text);
+    newlist := parameter(newlist,0);
+    Memobannedmethods.Text := newlist;
+    RPCBanned := newlist;
+    S_AdvOpt := true;
+    end;
 End;
 
-procedure TForm1.OffersGridResize(Sender: TObject);
-var
-  GridWidth : integer;
+{$ENDREGION Options: RPC}
+
+{$REGION Options: About}
+
+ // Button: Options -> About -> donate
+procedure TForm1.BitBtnDonateClick(sender: TObject);
 Begin
-GridWidth := form1.OffersGrid.Width;
-form1.OffersGrid.ColWidths[0]:= thispercent(15,GridWidth);
-form1.OffersGrid.ColWidths[1]:= thispercent(15,GridWidth);
-form1.OffersGrid.ColWidths[2]:= thispercent(15,GridWidth);
-form1.OffersGrid.ColWidths[3]:= thispercent(55,GridWidth,true);
-end;
+  form1.PageMain.ActivePage := form1.TabWallet;
+  form1.TabWalletMain.ActivePage := form1.TabAddresses;
+  PanelSend.Visible:=true;
+  Form1.EditSCDest.Text:='NpryectdevepmentfundsGE';
+  Form1.EditSCMont.Text:=IntToStr(DefaultDonation)+'.00000000';
+  Form1.MemoSCCon.Text:='Donation';
+End;
 
+// Button: Options -> About -> web
+Procedure TForm1.BitBtnWebClick(sender: TObject);
+Begin
+  OpenDocument('https://nosocoin.com');
+End;
 
+{$ENDREGION Options: About}
 
 END. // END PROGRAM
 

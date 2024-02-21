@@ -113,7 +113,10 @@ msgid "Send anonymous reports"
 msgstr ""
 
 #: tform1.cb_autorpc.caption
-msgid "Active JSON-RPC server at launch"
+#, fuzzy
+#| msgid "Active JSON-RPC server at launch"
+msgctxt "tform1.cb_autorpc.caption"
+msgid "Enable JSON-RPC server"
 msgstr "Server JSON-RPC aktif saat diluncurkan"
 
 #: tform1.cb_backrpcaddresses.caption
@@ -131,10 +134,6 @@ msgstr "Unduh blockchain"
 #: tform1.cb_rpcfilter.caption
 msgid "Accept only whitelist requests"
 msgstr "Hanya terima permintaan daftar putih"
-
-#: tform1.cb_rpc_on.caption
-msgid "Enable JSON-RPC server"
-msgstr "Aktifkan server JSON-RPC"
 
 #: tform1.cb_wo_autoupdate.caption
 #, fuzzy
@@ -201,7 +200,7 @@ msgstr "Sandi dana"
 
 #: tform1.label14.caption
 msgctxt "tform1.label14.caption"
-msgid "Transfer"
+msgid "To be updated..."
 msgstr ""
 
 #: tform1.label15.caption
@@ -258,10 +257,6 @@ msgstr "Kirim koin"
 msgid "Network"
 msgstr "Jaringan"
 
-#: tform1.menuitem2.caption
-msgid "Start Server"
-msgstr "Mulai Server"
-
 #: tform1.menuitem23.caption
 msgctxt "tform1.menuitem23.caption"
 msgid "CLear"
@@ -286,16 +281,6 @@ msgstr "Salin"
 msgid "Paste"
 msgstr "Tempel"
 
-#: tform1.menuitem3.caption
-msgctxt "tform1.menuitem3.caption"
-msgid "Connect"
-msgstr "Sambung"
-
-#: tform1.menuitem4.caption
-msgctxt "tform1.menuitem4.caption"
-msgid "Miner"
-msgstr "Penambang"
-
 #: tform1.menuitem5.caption
 msgid "Import Wallet"
 msgstr "Impor Dompet"
@@ -303,11 +288,6 @@ msgstr "Impor Dompet"
 #: tform1.menuitem6.caption
 msgid "Export Wallet"
 msgstr "Ekspor Dompet"
-
-#: tform1.menuitem7.caption
-msgctxt "tform1.menuitem7.caption"
-msgid "About..."
-msgstr "Tentang..."
 
 #: tform1.menuitem8.caption
 msgid "Restart"
@@ -342,11 +322,6 @@ msgstr "Konfirmasi"
 #: tform1.scbitsend.caption
 msgid "Send"
 msgstr "Kirim"
-
-#: tform1.scbitsend1.caption
-msgctxt "tform1.scbitsend1.caption"
-msgid "Transfer"
-msgstr ""
 
 #: tform1.staconlab.caption
 msgid "0"

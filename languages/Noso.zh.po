@@ -114,7 +114,10 @@ msgid "Send anonymous reports"
 msgstr ""
 
 #: tform1.cb_autorpc.caption
-msgid "Active JSON-RPC server at launch"
+#, fuzzy
+#| msgid "Active JSON-RPC server at launch"
+msgctxt "tform1.cb_autorpc.caption"
+msgid "Enable JSON-RPC server"
 msgstr "运行 JSON-RPC 服务器"
 
 #: tform1.cb_backrpcaddresses.caption
@@ -132,10 +135,6 @@ msgstr "下载区块链"
 #: tform1.cb_rpcfilter.caption
 msgid "Accept only whitelist requests"
 msgstr "只接受白名单请求"
-
-#: tform1.cb_rpc_on.caption
-msgid "Enable JSON-RPC server"
-msgstr "启用 JSON-RPC 服务器"
 
 #: tform1.cb_wo_autoupdate.caption
 #, fuzzy
@@ -202,7 +201,7 @@ msgstr "密码"
 
 #: tform1.label14.caption
 msgctxt "tform1.label14.caption"
-msgid "Transfer"
+msgid "To be updated..."
 msgstr ""
 
 #: tform1.label15.caption
@@ -259,10 +258,6 @@ msgstr "发送硬币"
 msgid "Network"
 msgstr "菜单"
 
-#: tform1.menuitem2.caption
-msgid "Start Server"
-msgstr "启动服务器"
-
 #: tform1.menuitem23.caption
 msgctxt "tform1.menuitem23.caption"
 msgid "CLear"
@@ -287,16 +282,6 @@ msgstr "复制"
 msgid "Paste"
 msgstr "粘贴"
 
-#: tform1.menuitem3.caption
-msgctxt "tform1.menuitem3.caption"
-msgid "Connect"
-msgstr "连接"
-
-#: tform1.menuitem4.caption
-msgctxt "tform1.menuitem4.caption"
-msgid "Miner"
-msgstr "矿工"
-
 #: tform1.menuitem5.caption
 msgid "Import Wallet"
 msgstr "导入钱包"
@@ -304,11 +289,6 @@ msgstr "导入钱包"
 #: tform1.menuitem6.caption
 msgid "Export Wallet"
 msgstr "导出钱包"
-
-#: tform1.menuitem7.caption
-msgctxt "tform1.menuitem7.caption"
-msgid "About..."
-msgstr "关于..."
 
 #: tform1.menuitem8.caption
 msgid "Restart"
@@ -343,11 +323,6 @@ msgstr "确认"
 #: tform1.scbitsend.caption
 msgid "Send"
 msgstr "发送"
-
-#: tform1.scbitsend1.caption
-msgctxt "tform1.scbitsend1.caption"
-msgid "Transfer"
-msgstr ""
 
 #: tform1.staconlab.caption
 msgid "0"

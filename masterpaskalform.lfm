@@ -318,7 +318,7 @@ object Form1: TForm1
     Height = 488
     Top = 38
     Width = 640
-    ActivePage = TabWallet
+    ActivePage = tabOptions
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
     Font.CharSet = ANSI_CHARSET
@@ -327,7 +327,7 @@ object Form1: TForm1
     Font.Pitch = fpVariable
     Font.Quality = fqDraft
     ParentFont = False
-    TabIndex = 0
+    TabIndex = 2
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
@@ -338,9 +338,9 @@ object Form1: TForm1
         Height = 460
         Top = 0
         Width = 632
-        ActivePage = TabAddresses
+        ActivePage = TabGVTs
         Align = alClient
-        TabIndex = 0
+        TabIndex = 1
         TabOrder = 0
         object TabAddresses: TTabSheet
           Caption = 'Addresses'
@@ -518,7 +518,7 @@ object Form1: TForm1
               Font.Quality = fqDraft
               Images = Imagenes
               ImageIndex = 20
-              OnClick = ResetearValoresEnvio
+              OnClick = ResetSendFundsPanel
               ParentFont = False
               TabOrder = 4
             end
@@ -709,7 +709,7 @@ object Form1: TForm1
               Width = 622
               Align = alTop
               Alignment = taCenter
-              Caption = 'Transfer'
+              Caption = 'To be updated...'
               Font.CharSet = ANSI_CHARSET
               Font.Color = clBlack
               Font.Height = -16
@@ -720,39 +720,21 @@ object Form1: TForm1
               ParentColor = False
               ParentFont = False
             end
-            object SCBitSend1: TBitBtn
-              Left = 527
-              Height = 43
-              Top = 22
-              Width = 96
-              Align = alRight
-              Caption = 'Transfer'
-              Font.CharSet = ANSI_CHARSET
-              Font.Height = -12
-              Font.Name = 'Segoe UI'
-              Font.Pitch = fpVariable
-              Font.Quality = fqDraft
-              Images = Imagenes
-              ImageIndex = 16
-              OnClick = SCBitSend1Click
-              ParentFont = False
-              TabOrder = 0
-            end
             object Panel23: TPanel
               Left = 1
               Height = 43
               Top = 22
-              Width = 526
+              Width = 622
               Align = alClient
               BevelOuter = bvNone
               ClientHeight = 43
-              ClientWidth = 526
-              TabOrder = 1
+              ClientWidth = 622
+              TabOrder = 0
               object Label15: TLabel
                 Left = 0
                 Height = 17
                 Top = 0
-                Width = 526
+                Width = 622
                 Align = alTop
                 Caption = 'Destination'
                 Font.CharSet = ANSI_CHARSET
@@ -768,7 +750,7 @@ object Form1: TForm1
                 Left = 0
                 Height = 26
                 Top = 17
-                Width = 526
+                Width = 622
                 Align = alClient
                 Color = clBlack
                 Font.CharSet = ANSI_CHARSET
@@ -876,9 +858,9 @@ object Form1: TForm1
         Height = 460
         Top = 0
         Width = 632
-        ActivePage = TabOpt_Wallet
+        ActivePage = Tab_Options_About
         Align = alClient
-        TabIndex = 0
+        TabIndex = 4
         TabOrder = 0
         object TabOpt_Wallet: TTabSheet
           Caption = 'Wallet'
@@ -1238,66 +1220,54 @@ object Form1: TForm1
           Caption = 'RPC'
           ClientHeight = 432
           ClientWidth = 624
-          object CB_RPC_ON: TCheckBox
-            Left = 8
-            Height = 19
-            Top = 8
-            Width = 616
-            Align = alTop
-            BorderSpacing.Left = 8
-            BorderSpacing.Top = 8
-            Caption = 'Enable JSON-RPC server'
-            TabOrder = 0
-            OnChange = CB_RPC_ONChange
-          end
           object CB_RPCFilter: TCheckBox
             Left = 8
             Height = 19
-            Top = 169
+            Top = 142
             Width = 616
             Align = alTop
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
             Caption = 'Accept only whitelist requests'
-            TabOrder = 1
+            TabOrder = 0
             OnChange = CB_RPCFilterChange
           end
           object MemoRPCWhitelist: TMemo
             Left = 8
             Height = 82
-            Top = 192
+            Top = 165
             Width = 608
             Align = alTop
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
             BorderSpacing.Right = 8
-            TabOrder = 2
+            TabOrder = 1
             OnEditingDone = MemoRPCWhitelistEditingDone
             OnExit = MemoRPCWhitelistEditingDone
           end
           object CB_AUTORPC: TCheckBox
             Left = 8
             Height = 19
-            Top = 31
+            Top = 4
             Width = 616
             Align = alTop
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
-            Caption = 'Active JSON-RPC server at launch'
-            TabOrder = 3
+            Caption = 'Enable JSON-RPC server'
+            TabOrder = 2
             OnChange = CB_AUTORPCChange
           end
           object Panel15: TPanel
             Left = 0
             Height = 46
-            Top = 73
+            Top = 46
             Width = 624
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
             ClientHeight = 46
             ClientWidth = 624
-            TabOrder = 4
+            TabOrder = 3
             object Label12: TLabel
               Left = 8
               Height = 15
@@ -1324,14 +1294,14 @@ object Form1: TForm1
           object Panel16: TPanel
             Left = 0
             Height = 46
-            Top = 119
+            Top = 92
             Width = 624
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
             ClientHeight = 46
             ClientWidth = 624
-            TabOrder = 5
+            TabOrder = 4
             object Label13: TLabel
               Left = 8
               Height = 15
@@ -1358,19 +1328,19 @@ object Form1: TForm1
           object CB_BACKRPCaddresses: TCheckBox
             Left = 8
             Height = 19
-            Top = 54
+            Top = 27
             Width = 616
             Align = alTop
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
             Caption = 'Backup new addresses keys'
-            TabOrder = 6
+            TabOrder = 5
             OnChange = CB_BACKRPCaddressesChange
           end
           object Label19: TLabel
             Left = 8
             Height = 15
-            Top = 278
+            Top = 251
             Width = 616
             Align = alTop
             BorderSpacing.Left = 8
@@ -1381,13 +1351,13 @@ object Form1: TForm1
           object Memobannedmethods: TMemo
             Left = 8
             Height = 82
-            Top = 297
+            Top = 270
             Width = 608
             Align = alTop
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
             BorderSpacing.Right = 8
-            TabOrder = 7
+            TabOrder = 6
             OnEditingDone = MemobannedmethodsEditingDone
             OnExit = MemobannedmethodsEditingDone
           end
@@ -1941,9 +1911,9 @@ object Form1: TForm1
         Height = 460
         Top = 0
         Width = 632
-        ActivePage = TabConsensus
+        ActivePage = TabMonitorMonitor
         Align = alClient
-        TabIndex = 5
+        TabIndex = 2
         TabOrder = 0
         object TabDebug_Log: TTabSheet
           Caption = 'Log'
@@ -2041,7 +2011,7 @@ object Form1: TForm1
           Caption = 'Performance'
           ClientHeight = 432
           ClientWidth = 624
-          object SG_Monitor: TStringGrid
+          object SG_Performance: TStringGrid
             Left = 0
             Height = 432
             Top = 0
@@ -2057,7 +2027,7 @@ object Form1: TForm1
             RowCount = 1
             ScrollBars = ssVertical
             TabOrder = 0
-            OnResize = SG_MonitorResize
+            OnResize = SG_PerformanceResize
             Cells = (
               4
               0
@@ -3353,21 +3323,6 @@ object Form1: TForm1
     Top = 456
     object MenuItem1: TMenuItem
       Caption = 'Network'
-      object MenuItem2: TMenuItem
-        Caption = 'Start Server'
-        ImageIndex = 27
-        Visible = False
-      end
-      object MenuItem3: TMenuItem
-        Caption = 'Connect'
-        ImageIndex = 29
-        Visible = False
-      end
-      object MenuItem4: TMenuItem
-        Caption = 'Miner'
-        ImageIndex = 4
-        Visible = False
-      end
       object MenuItem5: TMenuItem
         Caption = 'Import Wallet'
         ImageIndex = 31
@@ -3377,11 +3332,6 @@ object Form1: TForm1
         Caption = 'Export Wallet'
         ImageIndex = 32
         OnClick = MMExpWallet
-      end
-      object MenuItem7: TMenuItem
-        Caption = 'About...'
-        ImageIndex = 48
-        Visible = False
       end
       object MenuItem8: TMenuItem
         Caption = 'Restart'

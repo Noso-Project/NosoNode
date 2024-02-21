@@ -992,7 +992,7 @@ End;
 Procedure Parse_RestartNoso();
 Begin
 RestartNosoAfterQuit := true;
-CerrarPrograma();
+CloseeAppSafely();
 End;
 
 Procedure GetOwnerHash(LineText:string);
@@ -1086,7 +1086,7 @@ if GetLastVerZipFile(Tversion,TArch) then
      {$IFDEF UNIX}Trycopyfile('NOSODATA/UPDATES/Noso','Nosonew');{$ENDIF}
      CreateLauncherFile(true);
      RunExternalProgram(RestartFilename);
-     cerrarprograma();
+     CloseeAppSafely();
      end
    end
 else
@@ -1124,7 +1124,7 @@ if GetLastVerZipFile(Tversion,TArch) then
      {$IFDEF UNIX}Trycopyfile('NOSODATA/UPDATES/Noso','Nosonew');{$ENDIF}
      CreateLauncherFile(true);
      RunExternalProgram(RestartFilename);
-     cerrarprograma();
+     CloseeAppSafely();
      end
    end
 else

@@ -33,7 +33,7 @@ Procedure ActualizarGUI();
 Procedure Info(text:string);
 Procedure Processhint(sender:TObject);
 Procedure CloseAllForms();
-Procedure UpdateRowHeigth();
+Procedure UpdateMyGVTsList();
 
 var
   FormInicio : TFormInicio;
@@ -152,7 +152,7 @@ var
   contador : integer;
   CurrentUTC : int64;
 Begin
-if WO_OmmitMemos then exit;
+if WO_StopGUI then exit;
 BeginPerformance('UpdateSlotsGrid');
 CurrentUTC := UTCTime;
 if CurrentUTC>SlotsLastUpdate then
@@ -296,7 +296,7 @@ var
   LConsensus          : TNodeConsensus;
   LPSOs               : TPSOsArray;
 Begin
-if WO_OmmitMemos then exit;
+if WO_StopGUI then exit;
 BeginPerformance('UpdateGUITime');
 //Update Monitor Grid
 if ( (form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor) and (LastUpdateMonitor<>UTCTime) ) then
@@ -304,14 +304,14 @@ if ( (form1.PCMonitor.ActivePage = Form1.TabMonitorMonitor) and (LastUpdateMonit
    BeginPerformance('UpdateGUIMonitor');
    if length(ArrPerformance)>0 then
       begin
-      Form1.SG_Monitor.RowCount:=Length(ArrPerformance)+1;
+      Form1.SG_Performance.RowCount:=Length(ArrPerformance)+1;
       for contador := 0 to high(ArrPerformance) do
          begin
             try
-            Form1.SG_Monitor.Cells[0,contador+1]:=ArrPerformance[contador].tag;
-            Form1.SG_Monitor.Cells[1,contador+1]:=IntToStr(ArrPerformance[contador].Count);
-            Form1.SG_Monitor.Cells[2,contador+1]:=IntToStr(ArrPerformance[contador].max);
-            Form1.SG_Monitor.Cells[3,contador+1]:=IntToStr(ArrPerformance[contador].Average);
+            Form1.SG_Performance.Cells[0,contador+1]:=ArrPerformance[contador].tag;
+            Form1.SG_Performance.Cells[1,contador+1]:=IntToStr(ArrPerformance[contador].Count);
+            Form1.SG_Performance.Cells[2,contador+1]:=IntToStr(ArrPerformance[contador].max);
+            Form1.SG_Performance.Cells[3,contador+1]:=IntToStr(ArrPerformance[contador].Average);
             Except on E:Exception do
                begin
                ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format('Error showing ArrPerformance data(%s): %s',[ArrPerformance[contador].tag,E.Message]));
@@ -458,7 +458,7 @@ End;
 // Actualiza la informacion de la label info
 Procedure Info(text:string);
 Begin
-if WO_OmmitMemos then exit;
+if WO_StopGUI then exit;
 Form1.InfoPanel.Caption:=copy(text,1,40);
 InfoPanelTime := Length(text)*50;If InfoPanelTime<1000 then InfoPanelTime:= 1000;
 Form1.InfoPanel.Visible:=true;
@@ -494,15 +494,26 @@ Begin
    END; {TRY}
 End;
 
-Procedure UpdateRowHeigth();
+// Update my GVTsList
+Procedure UpdateMyGVTsList();
 var
-  contador : integer;
+  counter : integer;
+  Owned   : integer = 0;
 Begin
-form1.DataPanel.Font.Size:=UserFontSize;
-for contador := 0 to form1.datapanel.RowCount-1 do
+form1.GVTsGrid.RowCount:=1;
+EnterCriticalSection(CSGVTsArray);
+for counter := 0 to length(ArrGVTs)-1 do
    begin
-   form1.DataPanel.RowHeights[contador]:=UserRowHeigth;
+   if WallAddIndex(ArrGVTs[counter].owner) >= 0 then
+      begin
+      form1.GVTsGrid.RowCount:=form1.GVTsGrid.RowCount+1;
+      form1.GVTsGrid.Cells[0,form1.GVTsGrid.RowCount-1] := ArrGVTs[counter].number;
+      form1.GVTsGrid.Cells[1,form1.GVTsGrid.RowCount-1] := ArrGVTs[counter].owner;
+      Inc(Owned);
+      end;
    end;
+LeaveCriticalSection(CSGVTsArray);
+Form1.TabGVTs.TabVisible:= Owned>0;
 End;
 
 END. // END UNIT

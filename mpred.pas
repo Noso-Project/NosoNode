@@ -589,7 +589,7 @@ if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = Getco
    ClearReceivedOrdersIDs;
    MyConStatus := 3;
    ToLog('console','Updated!');   //Updated!
-   if RPCAuto then  ProcessLinesAdd('RPCON');
+   //if RPCAuto then  ProcessLinesAdd('RPCON');
    if WO_AutoServer then ProcessLinesAdd('serveron');
    if StrToIntDef(GetConsensus(3),0)<GetPendingCount then
       begin
@@ -603,6 +603,8 @@ if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = Getco
 if MyConStatus = 3 then
    begin
    GetValidSlotForSeed(ValidSlot);
+   if ( (RPCAuto) and (not Form1.RPCServer.Active) ) then  ProcessLinesAdd('RPCON');
+   if ( (not RPCAuto) and (Form1.RPCServer.Active) ) then  ProcessLinesAdd('RPCOFF');
    if ((StrToIntDef(GetConsensus(3),0)>GetPendingCount) and (LastTimePendingRequested+5<UTCTime) and
       (length(ArrayCriptoOp)=0) ) then
       begin
