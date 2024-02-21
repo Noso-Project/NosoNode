@@ -44,17 +44,6 @@ Procedure PTC_CFGData(Linea:String);
 Procedure PTC_SendUpdateHeaders(Slot:integer;Linea:String);
 Procedure PTC_HeadUpdate(linea:String);
 
-Function IsValidPool(PoolAddress:String):boolean;
-{
-Procedure SetNMSData(diff,hash,miner,Timestamp,publicKey,signature:string);
-Function GetNMSData():TNMSData;
-}
-
-Procedure SetCFGData (DataToSet:String;CFGIndex:Integer);
-Procedure AddCFGData(DataToAdd:String;CFGIndex:Integer);
-Procedure RemoveCFGData(DataToRemove:String;CFGIndex:Integer);
-Procedure RestoreCFGData();
-
 // CS Incoming
 Procedure AddToIncoming(Index:integer;texto:string);
 Function GetIncoming(Index:integer):String;
@@ -390,24 +379,9 @@ if slot <= length(conexiones)-1 then
    begin
    if ((conexiones[Slot].tipo='CLI') and (not conexiones[Slot].IsBusy)) then
       begin
-      if SendDirectToPeer then
-         begin
-         TRY
-         Conexiones[Slot].context.Connection.IOHandler.WriteLn(Message);
-         EXCEPT On E :Exception do
-            begin
-            ToLog('Console',E.Message);
-            ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error sending line: '+E.Message);
-            CerrarSlot(Slot);
-            end;
-         END;{TRY}
-         end
-      else
-         begin
-         EnterCriticalSection(CSOutGoingArr[slot]);
-         Insert(Message,ArrayOutgoing[slot],length(ArrayOutgoing[slot]));
-         LeaveCriticalSection(CSOutGoingArr[slot]);
-         end;
+      EnterCriticalSection(CSOutGoingArr[slot]);
+      Insert(Message,ArrayOutgoing[slot],length(ArrayOutgoing[slot]));
+      LeaveCriticalSection(CSOutGoingArr[slot]);
       end;
    if ((conexiones[Slot].tipo='SER') and (not conexiones[Slot].IsBusy)) then
       begin
@@ -788,7 +762,7 @@ End;
 
 Procedure INC_PTC_Custom(TextLine:String;connection:integer);
 Begin
-AddCriptoOp(4,TextLine,'');
+  AddCriptoOp(4,TextLine,'');
 End;
 
 // Procesa una solicitud de customizacion
@@ -823,8 +797,8 @@ End;
 
 function IsAddressLocked(LAddress:String):boolean;
 Begin
-Result := false;
-If AnsiContainsSTR(GetNosoCFGString(5), LAddress) then result := true;
+  Result := false;
+  If AnsiContainsSTR(GetNosoCFGString(5), LAddress) then result := true;
 End;
 
 // Verify a transfer
@@ -1082,27 +1056,34 @@ if not errored then
    if UpperCase(TCommand) = 'UPDATE' then LaunchDirectiveThread('update '+TParam);
    if UpperCase(TCommand) = 'RESTART' then LaunchDirectiveThread('restart');
    if UpperCase(TCommand) = 'SETMODE' then SetCFGData(TParam,0);
-   if UpperCase(TCommand) = 'ADDNODE' then AddCFGData(TParam,1);
-   if UpperCase(TCommand) = 'DELNODE' then RemoveCFGData(TParam,1);
+   if UpperCase(TCommand) = 'ADDNODE' then
+      begin
+      AddCFGData(TParam,1);
+      FillNodeList;
+      SetNodesArray(GetNosoCFGString(1));
+      end;
+   if UpperCase(TCommand) = 'DELNODE' then
+      begin
+      RemoveCFGData(TParam,1);
+      FillNodeList;
+      SetNodesArray(GetNosoCFGString(1));
+      end;
    if UpperCase(TCommand) = 'ADDNTP' then AddCFGData(TParam,2);
    if UpperCase(TCommand) = 'DELNTP' then RemoveCFGData(TParam,2);
+   {
    if UpperCase(TCommand) = 'ADDPOOLADDRESS' then AddCFGData(TParam,3);
    if UpperCase(TCommand) = 'DELPOOLADDRESS' then RemoveCFGData(TParam,3);
    if UpperCase(TCommand) = 'ADDPOOLHOST' then AddCFGData(TParam,4);
    if UpperCase(TCommand) = 'DELPOOLHOST' then RemoveCFGData(TParam,4);
+   }
    if UpperCase(TCommand) = 'ADDLOCKED' then AddCFGData(TParam,5);
    if UpperCase(TCommand) = 'DELLOCKED' then RemoveCFGData(TParam,5);
    if UpperCase(TCommand) = 'ADDNOSOPAY' then AddCFGData(TParam,6);
    if UpperCase(TCommand) = 'DELNOSOPAY' then RemoveCFGData(TParam,6);
+   if UpperCase(TCommand) = 'CLEARCFG' then ClearCFGData(TParam);
    if UpperCase(TCommand) = 'RESTORECFG' then RestoreCFGData;
    OutgoingMsjsAdd(TextLine);
    end;
-End;
-
-Function IsValidPool(PoolAddress:String):boolean;
-Begin
-result := false;
-if AnsiContainsStr(GetNosoCFGString(3),PoolAddress) then result := true;
 End;
 
 Procedure PTC_CFGData(Linea:String);
@@ -1117,10 +1098,10 @@ if Copy(HAshMD5String(Content),0,5) = GetCOnsensus(19) then
    SaveNosoCFGFile(content);
    SetNosoCFGString(content);
    FillNodeList;
-   ToLog('Console','Noso CFG updated!');
+   ToLog('events','Noso CFG updated!');
    end
 else
-   ToLog('Console',Format('Failed CFG: %s <> %s',[Copy(HAshMD5String(Content),0,5),GetCOnsensus(19)]));
+   ToLog('events',Format('Failed CFG: %s <> %s',[Copy(HAshMD5String(Content),0,5),GetCOnsensus(19)]));
 End;
 
 Procedure PTC_SendUpdateHeaders(Slot:integer;Linea:String);
@@ -1177,124 +1158,6 @@ else
    ToLog('Console','Headers Updated!');
    ForceCompleteHeadersDownload := false;
    end;
-End;
-
-Procedure SetCFGData(DataToSet:String;CFGIndex:Integer);
-var
-  LCFGstr    : String;
-  LArrString : Array of string;
-  DataStr    : String;
-  thisData   : string;
-  Counter    : integer = 0;
-  FinalStr   : string = '';
-Begin
-if ( (Length(DataToSet)>0) and (DataToSet[Length(DataToSet)] <> ':') and (CFGIndex>0) ) then
-   DataToSet := DataToSet+':';
-if ((CFGIndex = 0) and (DatatoSet = '') ) then exit;
-LCFGStr := GetNosoCFGString();
-SetLength(LArrString,0);
-Repeat
-   ThisData := Parameter(LCFGStr,counter);
-   if ThisData <> '' then
-      begin
-      Insert(ThisData,LArrString,LEngth(LArrString));
-      end;
-   Inc(Counter);
-until thisData = '';
-LArrString[CFGIndex] := DataToSet;
-For counter := 0 to length(LArrString)-1 do
-   FinalStr := FinalStr+' '+LArrString[counter];
-FinalStr := Trim(FinalStr);
-LasTimeCFGRequest:= UTCTime+5;
-SaveNosoCFGFile(FinalStr);
-SetNosoCFGString(FinalStr);
-FillNodeList;
-SetNodesArray(GetNosoCFGString(1));
-End;
-
-
-Procedure AddCFGData(DataToAdd:String;CFGIndex:Integer);
-var
-  LCFGstr    : String;
-  LArrString : Array of string;
-  DataStr    : String;
-  thisData   : string;
-  Counter    : integer = 0;
-  FinalStr   : string = '';
-Begin
-if DataToAdd[Length(DataToAdd)] <> ':' then
-   DataToAdd := DataToAdd+':';
-LCFGStr := GetNosoCFGString();
-SetLength(LArrString,0);
-Repeat
-   ThisData := Parameter(LCFGStr,counter);
-   if ThisData <> '' then
-      Insert(ThisData,LArrString,LEngth(LArrString));
-   Inc(Counter);
-until thisData = '';
-if CFGIndex+1 > LEngth(LArrString) then
-   begin
-   repeat
-      Insert('',LArrString,LEngth(LArrString));
-   until CFGIndex+1 = LEngth(LArrString);
-   end;
-DataStr := LArrString[CFGIndex];
-DataStr := DataStr+DataToAdd;
-LArrString[CFGIndex] := DataStr;
-For counter := 0 to length(LArrString)-1 do
-   FinalStr := FinalStr+' '+LArrString[counter];
-If FinalStr[1] = ' ' then delete(FinalStr,1,1);
-//FinalStr := Trim(FinalStr);
-LasTimeCFGRequest:= UTCTime+5;
-SaveNosoCFGFile(FinalStr);
-SetNosoCFGString(FinalStr);
-FillNodeList;
-SetNodesArray(GetNosoCFGString(1));
-End;
-
-Procedure RemoveCFGData(DataToRemove:String;CFGIndex:Integer);
-var
-  LCFGstr    : String;
-  LArrString : Array of string;
-  DataStr    : String;
-  thisData   : string;
-  Counter    : integer = 0;
-  FinalStr   : string = '';
-Begin
-if ( (Length(DataToRemove)>0) and (DataToRemove[Length(DataToRemove)] <> ':') ) then
-   DataToRemove := DataToRemove+':';
-LCFGStr := GetNosoCFGString();
-SetLength(LArrString,0);
-Repeat
-   ThisData := Parameter(LCFGStr,counter);
-   if ThisData <> '' then
-      begin
-      Insert(ThisData,LArrString,LEngth(LArrString));
-      end;
-   Inc(Counter);
-until thisData = '';
-DataStr := LArrString[CFGIndex];
-DataStr := StringReplace(DataStr,DataToRemove,'',[rfReplaceAll, rfIgnoreCase]);
-LArrString[CFGIndex] := DataStr;
-For counter := 0 to length(LArrString)-1 do
-   FinalStr := FinalStr+' '+LArrString[counter];
-FinalStr := Trim(FinalStr);
-If FinalStr[1] = ' ' then delete(FinalStr,1,1);
-LasTimeCFGRequest:= UTCTime+5;
-SaveNosoCFGFile(FinalStr);
-SetNosoCFGString(FinalStr);
-FillNodeList;
-SetNodesArray(GetNosoCFGString(1));
-End;
-
-Procedure RestoreCFGData();
-Begin
-LasTimeCFGRequest:= UTCTime+5;
-SaveNosoCFGFile(DefaultNosoCFG);
-SetNosoCFGString(DefaultNosoCFG);
-SetNodesArray(GetNosoCFGString(1));
-FillNodeList;
-ToLog('Console','NosoCFG restarted');
 End;
 
 // Añade una operacion a la espera de cripto

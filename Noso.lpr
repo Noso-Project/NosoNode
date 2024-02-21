@@ -11,7 +11,7 @@ uses
   mpCoin, mpsignerutils, mpRPC, translation, indylaz, sysutils, LCLTranslator,
   mpMN, mpsyscheck, NosoTime, nosodebug, nosogeneral, nosocrypto, nosounit,
   nosoconsensus, nosopsos, nosowallcon, NosoHeaders, NosoNosoCFG, NosoBlock,
-  NosoNetwork;
+  NosoNetwork, NosoClient;
 
 {$R *.res}
 var

@@ -11,20 +11,26 @@ Stand alone unit to control nosocfg file and functionalitys
 interface
 
 uses
-  Classes, SysUtils, nosodebug, nosogeneral;
+  Classes, SysUtils, nosodebug, nosogeneral, nosotime;
 
 Function SaveCFGToFile(Content:String):Boolean;
 Procedure GetCFGFromFile();
 Procedure SetCFGDataStr(Content:String);
 Function GetCFGDataStr(LParam:integer=-1):String;
+Procedure AddCFGData(DataToAdd:String;CFGIndex:Integer);
+Procedure RemoveCFGData(DataToRemove:String;CFGIndex:Integer);
+Procedure SetCFGData(DataToSet:String;CFGIndex:Integer);
+Procedure RestoreCFGData();
+Procedure ClearCFGData(Index:string);
 
 var
-  CFGFilename     : string= 'NOSODATA'+DirectorySeparator+'nosocfg.psk';
-  CFGFile         : Textfile;
-  CS_CFGFile      : TRTLCriticalSection;
-  CS_CFGData      : TRTLCriticalSection;
-  NosoCFGString   : string = '';
-  DefaultNosoCFG  : String = // CFG parameters
+  CFGFilename       : string= 'NOSODATA'+DirectorySeparator+'nosocfg.psk';
+  CFGFile           : Textfile;
+  CS_CFGFile        : TRTLCriticalSection;
+  CS_CFGData        : TRTLCriticalSection;
+  NosoCFGString     : string = '';
+  LasTimeCFGRequest : int64 = 0;
+  DefaultNosoCFG    : String = // CFG parameters
                             {0 Mainnet mode}'NORMAL '+
                             {1 Seed nodes  }'63.227.69.162;8080:20.199.50.27;8080:107.172.21.121;8080:107.172.214.53;8080:198.23.134.105;8080:107.173.210.55;8080:5.230.55.203;8080:141.11.192.215;8080:4.233.61.8;8080: '+
                             {2 NTP servers }'ts2.aco.net:hora.roa.es:time.esa.int:time.stdtime.gov.tw:stratum-1.sjc02.svwh.net:ntp1.sp.se:1.de.pool.ntp.org:ntps1.pads.ufrj.br:utcnist2.colorado.edu:tick.usask.ca:ntp1.st.keio.ac.jp: '+
@@ -52,7 +58,7 @@ Begin
   LeaveCriticalSection(CS_CFGFile);
 End;
 
-{$ENDREGION}
+{$ENDREGION File access}
 
 {$REGION Data access}
 
@@ -71,7 +77,123 @@ Begin
   LeaveCriticalSection(CS_CFGData);
 End;
 
-{$ENDREGION}
+{$ENDREGION Data access}
+
+{$REGION Management}
+
+Procedure AddCFGData(DataToAdd:String;CFGIndex:Integer);
+var
+  LCFGstr    : String;
+  LArrString : Array of string;
+  DataStr    : String;
+  thisData   : string;
+  Counter    : integer = 0;
+  FinalStr   : string = '';
+Begin
+  if DataToAdd[Length(DataToAdd)] <> ':' then
+    DataToAdd := DataToAdd+':';
+  LCFGStr := GetCFGDataStr();
+  SetLength(LArrString,0);
+  Repeat
+    ThisData := Parameter(LCFGStr,counter);
+    if ThisData <> '' then
+      Insert(ThisData,LArrString,LEngth(LArrString));
+    Inc(Counter);
+  until thisData = '';
+  if CFGIndex+1 > LEngth(LArrString) then
+    begin
+    repeat
+      Insert('',LArrString,LEngth(LArrString));
+    until CFGIndex+1 = LEngth(LArrString);
+    end;
+  DataStr := LArrString[CFGIndex];
+  DataStr := DataStr+DataToAdd;
+  LArrString[CFGIndex] := DataStr;
+  For counter := 0 to length(LArrString)-1 do
+    FinalStr := FinalStr+' '+LArrString[counter];
+  If FinalStr[1] = ' ' then delete(FinalStr,1,1);
+  SaveCFGToFile(FinalStr);
+  LasTimeCFGRequest:= UTCTime+5;
+End;
+
+Procedure RemoveCFGData(DataToRemove:String;CFGIndex:Integer);
+var
+  LCFGstr    : String;
+  LArrString : Array of string;
+  DataStr    : String;
+  thisData   : string;
+  Counter    : integer = 0;
+  FinalStr   : string = '';
+Begin
+  if ( (Length(DataToRemove)>0) and (DataToRemove[Length(DataToRemove)] <> ':') ) then
+    DataToRemove := DataToRemove+':';
+  LCFGStr := GetCFGDataStr();
+  SetLength(LArrString,0);
+  Repeat
+    ThisData := Parameter(LCFGStr,counter);
+    if ThisData <> '' then
+      begin
+      Insert(ThisData,LArrString,LEngth(LArrString));
+      end;
+    Inc(Counter);
+  until thisData = '';
+  DataStr := LArrString[CFGIndex];
+  DataStr := StringReplace(DataStr,DataToRemove,'',[rfReplaceAll, rfIgnoreCase]);
+  LArrString[CFGIndex] := DataStr;
+  For counter := 0 to length(LArrString)-1 do
+    FinalStr := FinalStr+' '+LArrString[counter];
+  FinalStr := Trim(FinalStr);
+  If FinalStr[1] = ' ' then delete(FinalStr,1,1);
+  LasTimeCFGRequest:= UTCTime+5;
+  SaveCFGToFile(FinalStr);
+End;
+
+Procedure SetCFGData(DataToSet:String;CFGIndex:Integer);
+var
+  LCFGstr    : String;
+  LArrString : Array of string;
+  DataStr    : String;
+  thisData   : string;
+  Counter    : integer = 0;
+  FinalStr   : string = '';
+Begin
+  if ( (Length(DataToSet)>0) and (DataToSet[Length(DataToSet)] <> ':') and (CFGIndex>0) ) then
+     DataToSet := DataToSet+':';
+  if ((CFGIndex = 0) and (DatatoSet = '') ) then exit;
+  LCFGStr := GetCFGDataStr();
+  SetLength(LArrString,0);
+  Repeat
+    ThisData := Parameter(LCFGStr,counter);
+    if ThisData <> '' then
+      begin
+      Insert(ThisData,LArrString,LEngth(LArrString));
+      end;
+    Inc(Counter);
+  until thisData = '';
+  LArrString[CFGIndex] := DataToSet;
+  For counter := 0 to length(LArrString)-1 do
+    FinalStr := FinalStr+' '+LArrString[counter];
+  FinalStr := Trim(FinalStr);
+  LasTimeCFGRequest:= UTCTime+5;
+  SaveCFGToFile(FinalStr);
+End;
+
+Procedure RestoreCFGData();
+Begin
+  LasTimeCFGRequest:= UTCTime+5;
+  SaveCFGToFile(DefaultNosoCFG);
+End;
+
+Procedure ClearCFGData(Index:string);
+var
+  LIndex : integer;
+Begin
+  LIndex := StrToIntDef(Index,-1);
+  If LIndex <= 0 then exit;
+  SetCFGData('null:',LIndex);
+End;
+
+{$ENDREGION Management}
 
 INITIALIZATION
 InitCriticalSection(CS_CFGFile);

@@ -594,9 +594,6 @@ CONST
   CoinChar = 'N';                   // Char for addresses
   MinimunFee = 10;
   NewMinFee  = 1000000;              // Minimun fee for transfer
-  //ComisionBlockCheck = 0;           // +- 90 days
-  //DeadAddressFee = 0;               // unactive acount fee
-  //ComisionScrow = 200;              // Coin/BTC market comision = 0.5%
   PoSPercentage = 1000;             // PoS part: reward * PoS / 10000
   MNsPercentage = 2000;
   PosStackCoins = 20;               // PoS stack ammoount: supply*20 / PoSStack
@@ -606,7 +603,6 @@ CONST
   InitialBlockDiff = 60;            // First 20 blocks diff
   GenesysTimeStamp = 1615132800;    // 1615132800;
   AvailableMarkets = '/LTC';
-  SendDirectToPeer = false;
   SumMarkInterval  = 100;
   SecurityBlocks   = 4000;
   GVTBaseValue     = 70000000000;
@@ -762,7 +758,7 @@ var
   LastTimeChecksRequested      : int64 = 0;
   LastRunMNVerification        : int64 = 0;
   LasTimeGVTsRequest           : int64 = 0;
-  LasTimeCFGRequest            : int64 = 0;
+  //LasTimeCFGRequest            : int64 = 0;
   LasTimePSOsRequest           : int64 = 0;
 
   // Variables asociadas a mi conexion
@@ -2356,18 +2352,15 @@ Begin
 GoAhead := true;
 IPUser := AContext.Connection.Socket.Binding.PeerIP;
 slot := GetSlotFromIP(IPUser);
-if not SendDirectToPeer then
-   begin
-   REPEAT
-   LineToSend := GetTextToSlot(slot);
-   if LineToSend <> '' then
-      begin
-      TryMessageToNode(AContext,LineToSend);
-      Inc(LinesSent);
-      end;
-   UNTIL LineToSend='' ;
-   if LinesSent >0 then exit;
-   end;
+  REPEAT
+  LineToSend := GetTextToSlot(slot);
+  if LineToSend <> '' then
+    begin
+    TryMessageToNode(AContext,LineToSend);
+    Inc(LinesSent);
+    end;
+  UNTIL LineToSend='' ;
+  if LinesSent >0 then exit;
 if slot = 0 then
    begin
    TryCloseServerConnection(AContext);

@@ -56,7 +56,7 @@ end;
 
 procedure TThreadUpdateOffset.Execute;
 Begin
-GetTimeOffset(Hosts);
+  GetTimeOffset(Hosts);
 End;
 
 {Returns the data from the specified NTP server [Hostname]}

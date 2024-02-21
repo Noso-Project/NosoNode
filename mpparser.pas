@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, nosotime, mpblock, mpcoin,
   dialogs, fileutil, forms, idglobal, strutils, mpRPC, DateUtils, Clipbrd,translation,
   idContext, math, mpMN, MPSysCheck, nosodebug, nosogeneral, nosocrypto, nosounit,
-  nosoconsensus, nosopsos,nosowallcon, nosoheaders, nosoblock;
+  nosoconsensus, nosopsos,nosowallcon, nosoheaders, nosoblock, nosonosocfg;
 
 procedure ProcessLinesAdd(const ALine: String);
 procedure OutgoingMsjsAdd(const ALine: String);
@@ -303,6 +303,7 @@ else if UpperCase(Command) = 'ADDNOSOPAY' then AddCFGData(parameter(linetext,1),
 else if UpperCase(Command) = 'DELNOSOPAY' then RemoveCFGData(parameter(linetext,1),6)
 else if UpperCase(Command) = 'ISALLSYNCED' then ToLog('console',IsAllsynced.ToString)
 else if UpperCase(Command) = 'FREEZED' then Totallocked()
+else if UpperCase(Command) = 'CLEARCFG' then ClearCFGData(parameter(linetext,1))
 
 else if UpperCase(Command) = 'ADDFROMPUB' then ToLog('console',GetAddressFromPublicKey(parameter(linetext,1)))
 
