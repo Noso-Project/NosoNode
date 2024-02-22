@@ -109,6 +109,7 @@ type
      LastConexion : string[17];
      end;
 
+  {
   conectiondata = Packed Record
      Autentic: boolean;                 // si la conexion esta autenticada por un ping
      Connections : Integer;             // A cuantos pares esta conectado
@@ -137,7 +138,7 @@ type
      MerkleHash    : string[32];
      PSOHash       : string[32];
      end;
-
+  }
   {
   BlockHeaderData = Packed Record
      Number         : Int64;
@@ -643,9 +644,11 @@ var
 
   {Network}
   MaxOutgoingConnections : integer = 3;
+  {
   Conexiones       : array [1..MaxConecciones] of conectiondata;
   SlotLines        : array [1..MaxConecciones] of TStringList;
   CanalCliente     : array [1..MaxConecciones] of TIdTCPClient;
+  }
   ListadoBots      : array of BotData;
   ListaNodos       : array of NodeData;
   PendingTXs       : Array of TOrderData;
@@ -654,11 +657,13 @@ var
   KeepServerOn     : Boolean = false;
    LastTryServerOn : Int64 = 0;
    ServerStartTime : Int64 = 0;
+  {
   DownloadHeaders  : boolean = false;
   DownloadSumary   : Boolean = false;
   DownLoadBlocks   : boolean = false;
   DownLoadGVTs     : boolean = false;
   DownloadPSOs     : boolean = false;
+  }
   RebuildingSumary : boolean = false;
   OpenReadClientThreads : integer = 0;
 
@@ -726,40 +731,44 @@ var
 
 
 
-
-  MySumarioHash : String = '';
-  MyLastBlock : integer = 0;
+  {
+  //MySumarioHash : String = '';
+  MyLastBlock     : integer = 0;
   MyLastBlockHash : String = '';
-  MyResumenHash : String = '';
-  MyGVTsHash    : string = '';
-  MyCFGHash     : string = '';
-  MyPublicIP : String = '';
-  MyMNsHash : String = '';
+  MyResumenHash   : String = '';
+  MyGVTsHash      : string = '';
+  MyCFGHash       : string = '';
+  MyPublicIP      : String = '';
+  MyMNsHash       : String = '';
+  }
 
 
 
 
 
 
-
-  LastBlockData : BlockHeaderData;
+  {LastBlockData : BlockHeaderData;}
   BuildingBlock : integer = 0;
 
 
   Last_SyncWithMainnet         : int64 = 0;
+  {
   LastTimeRequestSumary        : int64 = 0;
   LastTimeRequestBlock         : int64 = 0;
   LastTimeRequestResumen       : int64 = 0;
   LastTimePendingRequested     : int64 = 0;
-  ForceCompleteHeadersDownload : boolean = false;
+  }
+  //ForceCompleteHeadersDownload : boolean = false;
+  {
   LastTimeMNHashRequestes      : int64 = 0;
   LastTimeBestHashRequested    : int64 = 0;
   LastTimeMNsRequested         : int64 = 0;
   LastTimeChecksRequested      : int64 = 0;
   LastRunMNVerification        : int64 = 0;
   LasTimeGVTsRequest           : int64 = 0;
+  }
   //LasTimeCFGRequest            : int64 = 0;
-  LasTimePSOsRequest           : int64 = 0;
+  //LasTimePSOsRequest           : int64 = 0;
 
   // Variables asociadas a mi conexion
   MyConStatus          :  integer = 0;
@@ -812,9 +821,9 @@ var
   ResumeLogFilename   : string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'report.txt';
   PerformanceFIlename : string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'performance.txt';
   AdvOptionsFilename  : string= 'NOSODATA'+DirectorySeparator+'advopt.txt';
-  MasterNodesFilename : string= 'NOSODATA'+DirectorySeparator+'masternodes.txt';
+  {MasterNodesFilename : string= 'NOSODATA'+DirectorySeparator+'masternodes.txt';}
   ZipHeadersFileName  : string= 'NOSODATA'+DirectorySeparator+'blchhead.zip';
-  GVTsFilename        : string= 'NOSODATA'+DirectorySeparator+'gvts.psk';
+  {GVTsFilename        : string= 'NOSODATA'+DirectorySeparator+'gvts.psk';}
   ClosedAppFilename   : string= 'NOSODATA'+DirectorySeparator+'LOGS'+DirectorySeparator+'proclo.dat';
   RPCBakDirectory     : string= 'NOSODATA'+DirectorySeparator+'SUMMARKS'+DirectorySeparator+'RPC'+DirectorySeparator;
 

@@ -199,7 +199,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="28">
+    <Units Count="30">
       <Unit0>
         <Filename Value="Noso.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -333,6 +333,14 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="NosoClient"/>
       </Unit27>
+      <Unit28>
+        <Filename Value="nosogvts.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit28>
+      <Unit29>
+        <Filename Value="nosomasternodes.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit29>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

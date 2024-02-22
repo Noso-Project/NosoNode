@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, mpRed, MasterPaskalForm, mpParser, StrUtils, mpDisk, nosotime, mpBlock,
   Zipper, mpcoin, mpMn, nosodebug, nosogeneral, nosocrypto, nosounit,nosoconsensus,nosopsos,
-  nosoheaders, NosoNosoCFG, nosoblock;
+  nosoheaders, NosoNosoCFG, nosoblock, nosonetwork;
 
 function GetPTCEcn():String;
 Function GetOrderFromString(textLine:String):TOrderData;

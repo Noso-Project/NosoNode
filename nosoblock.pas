@@ -52,6 +52,7 @@ Function GetOrderFromDB(OrderID:String; out OrderInfo:TOrderData):boolean;
 
 function GetMyLastUpdatedBlock():int64;
 function GetBlockTrxs(BlockNumber:integer):TBlockOrdersArray;
+function LoadBlockDataHeader(BlockNumber:integer):BlockHeaderData;
 
 
 var
@@ -368,6 +369,28 @@ Begin
      END;
   MemStr.Free;
   Result := ArrTrxs;
+End;
+
+function LoadBlockDataHeader(BlockNumber:integer):BlockHeaderData;
+var
+  MemStr: TMemoryStream;
+  Header : BlockHeaderData;
+  ArchData : String;
+Begin
+Header := Default(BlockHeaderData);
+ArchData := BlockDirectory+IntToStr(BlockNumber)+'.blk';
+MemStr := TMemoryStream.Create;
+   TRY
+   MemStr.LoadFromFile(ArchData);
+   MemStr.Position := 0;
+   MemStr.Read(Header, SizeOf(Header));
+   EXCEPT ON E:Exception do
+      begin
+      ToLog('console','Error loading Header from block '+IntToStr(BlockNumber)+':'+E.Message);
+      end;
+   END{Try};
+MemStr.Free;
+Result := header;
 End;
 
 {$ENDREGION Blocks Information}

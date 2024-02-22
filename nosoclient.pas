@@ -5,7 +5,8 @@ unit NosoClient;
 INTERFACE
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils,
+  IdContext, IdGlobal, IdTCPClient;
 
 IMPLEMENTATION
 

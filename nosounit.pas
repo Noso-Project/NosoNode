@@ -85,6 +85,10 @@ Function GetAddressBalanceIndexed(Address:string):int64;
 Function GetAddressAlias(Address:String):string;
 Function GetAddressLastOP(Address:String):int64;
 
+// Summary hash related
+Procedure SetSummaryHash();
+Function MySumarioHash:String;
+
 Var
   {Overall variables}
   WorkingPath     : string = '';
@@ -93,6 +97,7 @@ Var
   SummaryFileName     : string = 'NOSODATA'+DirectorySeparator+'sumary.psk';
   ZipSumaryFileName   : string = 'NOSODATA'+DirectorySeparator+'sumary.zip';
   SummaryLastop       : int64;
+  SummaryHashValue    : string = '';
 
 IMPLEMENTATION
 
@@ -102,6 +107,7 @@ var
   CS_SummaryDisk  : TRTLCriticalSection;   {Disk access to summary}
   BlockRecords    : array of TBlockRecords;
   CS_BlockRecs    : TRTLCriticalSection;
+  CS_SummaryHashV : TRTLCriticalSection;
 
 {$REGION Protocol utilitys}
 
@@ -148,6 +154,7 @@ Begin
   EXCEPT on E:Exception do
 
   END; {TRY}
+  SetSummaryHash;
 End;
 
 {Create the zipped summary file}
@@ -214,6 +221,7 @@ Begin
     EXCEPT ON E:Exception do
     END{Try};
   LeaveCriticalSection(CS_SummaryDisk);
+  SetSummaryHash;
 End;
 
 Function CreateSumaryBackup():Boolean;
@@ -544,6 +552,7 @@ Begin
     END;{Try}
   LeaveCriticalSection(CS_SummaryDisk);
   SummaryLastop := ReadSumaryRecordFromDisk(0).LastOp;
+  SetSummaryHash;
 End;
 
 {Returns the address alias name if exists}
@@ -570,16 +579,33 @@ End;
 
 {$ENDREGION}
 
+Procedure SetSummaryHash();
+Begin
+  EnterCriticalSection(CS_SummaryHashV);
+  SummaryHashValue := HashMD5File(SummaryFileName);
+  LeaveCriticalSection(CS_SummaryHashV);
+End;
+
+Function MySumarioHash:String;
+Begin
+  EnterCriticalSection(CS_SummaryHashV);
+  Result := SummaryHashValue;
+  LeaveCriticalSection(CS_SummaryHashV);
+End;
+
 INITIALIZATION
 SetLength(SumaryIndex,0,0);
 SetLength(BlockRecords,0);
 InitCriticalSection(CS_SummaryDisk);
 InitCriticalSection(CS_BlockRecs);
+InitCriticalSection(CS_SummaryHashV);
+
 
 
 FINALIZATION
 DoneCriticalSection(CS_SummaryDisk);
 DoneCriticalSection(CS_BlockRecs);
+DoneCriticalSection(CS_SummaryHashV);
 
 
 END. {End unit}

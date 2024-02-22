@@ -31,7 +31,7 @@ Function GetGVTPrice(available:integer;ToSell:boolean = false):int64;
 Procedure SaveNosoCFGFile(LStr:String);
 Procedure GetCFGDataFromFile();
 Procedure SetNosoCFGString(LStr:string);
-Function GetNosoCFGString(LParam:integer=-1):String;
+{Function GetNosoCFGString(LParam:integer=-1):String;}
 
 Procedure CreateMasterNodesFile();
 Procedure CreateADV(saving:boolean);
@@ -374,6 +374,7 @@ Begin
   }
 End;
 
+{
 Function GetNosoCFGString(LParam:integer=-1):String;
 Begin
   result := GetCFGDataStr(LParam);
@@ -384,6 +385,7 @@ Begin
   LeaveCriticalSection(CSNosoCFGStr);
   }
 End;
+}
 
 {$ENDREGION CFG}
 
@@ -648,6 +650,7 @@ var
   ThisRecord : TSummaryData;
   ThisData   : WalletData;
 Begin
+exit;
 for contador := 0 to LenWallArr-1 do
    begin
    ThisData := GetWallArrIndex(contador);

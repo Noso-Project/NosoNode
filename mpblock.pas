@@ -19,8 +19,8 @@ function GetBlockReward(BlNumber:int64):Int64;
 Function GuardarBloque(NombreArchivo:string;Cabezera:BlockHeaderData;Ordenes:array of TOrderData;
                         PosPay:Int64;PoSnumber:integer;PosAddresses:array of TArrayPos;
                         MNsPay:int64;MNsNumber:Integer;MNsAddresses:array of TArrayPos):boolean;
-function LoadBlockDataHeader(BlockNumber:integer):BlockHeaderData;
-function GetBlockTrxs(BlockNumber:integer):TBlockOrdersArray;
+{function LoadBlockDataHeader(BlockNumber:integer):BlockHeaderData;}
+{function GetBlockTrxs(BlockNumber:integer):TBlockOrdersArray;}
 Procedure UndoneLastBlock();
 Function GetBlockPoSes(BlockNumber:integer): BlockArraysPos;
 Function GetBlockMNs(BlockNumber:integer): BlockArraysPos;
@@ -534,6 +534,7 @@ MemStr.Free;
 EndPerformance('GuardarBloque');
 End;
 
+{
 // Carga la informacion del bloque
 function LoadBlockDataHeader(BlockNumber:integer):BlockHeaderData;
 var
@@ -556,7 +557,9 @@ MemStr := TMemoryStream.Create;
 MemStr.Free;
 Result := header;
 End;
+}
 
+{
 // Devuelve las transacciones del bloque
 function GetBlockTrxs(BlockNumber:integer):TBlockOrdersArray;
 var
@@ -584,6 +587,7 @@ MemStr := TMemoryStream.Create;
 MemStr.Free;
 Result := ArrTrxs;
 End;
+}
 
 Function GetBlockPoSes(BlockNumber:integer): BlockArraysPos;
 var
