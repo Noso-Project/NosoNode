@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, mpgui, FPJSON, jsonparser,strutils, mpCoin, mpRed, mpBlock,mpmn,nosodebug,
-  nosogeneral, nosocrypto, nosounit, nosoconsensus, nosowallcon,nosopsos;
+  nosogeneral, nosocrypto, nosounit, nosoconsensus, nosowallcon,nosopsos,nosonetwork,nosoblock;
 
 Procedure SetRPCPort(LineText:string);
 Procedure setRPCpassword(newpassword:string);

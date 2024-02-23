@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, nosotime, mpblock, mpcoin,
   dialogs, fileutil, forms, idglobal, strutils, mpRPC, DateUtils, Clipbrd,translation,
   idContext, math, mpMN, MPSysCheck, nosodebug, nosogeneral, nosocrypto, nosounit,
-  nosoconsensus, nosopsos,nosowallcon, nosoheaders, nosoblock, nosonosocfg;
+  nosoconsensus, nosopsos,nosowallcon, nosoheaders, nosoblock, nosonosocfg,nosonetwork,nosogvts;
 
 procedure ProcessLinesAdd(const ALine: String);
 procedure OutgoingMsjsAdd(const ALine: String);
@@ -253,7 +253,7 @@ else if UpperCase(Command) = 'EXPKEYS' then ExportKeys(LineText)
 else if UpperCase(Command) = 'CHECKUPDATES' then ToLog('console',GetLastRelease)
 else if UpperCase(Command) = 'ZIPSUMARY' then ZipSumary()
 else if UpperCase(Command) = 'GETPOS' then ToLog('console', GetPoSPercentage(StrToIntdef(Parameter(linetext,1),Mylastblock)).ToString )
-else if UpperCase(Command) = 'GETMNS' then ToLog('console', GetMNsPercentage(StrToIntdef(Parameter(linetext,1),Mylastblock),GetNosoCFGString(0)).ToString )
+else if UpperCase(Command) = 'GETMNS' then ToLog('console', GetMNsPercentage(StrToIntdef(Parameter(linetext,1),Mylastblock),GetCFGDataStr(0)).ToString )
 else if UpperCase(Command) = 'CLOSESTARTON' then WO_CloseStart := true
 else if UpperCase(Command) = 'CLOSESTARTOFF' then WO_CloseStart := false
 else if UpperCase(Command) = 'DT' then DebugTest(LineText)
@@ -283,7 +283,7 @@ else if UpperCase(Command) = 'REBUILDSUM' then RebuildSummary()
 else if UpperCase(Command) = 'LISTGVT' then ListGVTs()
 else if UpperCase(Command) = 'GVTINFO' then ShowGVTInfo()
 else if UpperCase(Command) = 'SYSTEM' then ShowSystemInfo(Linetext)
-else if UpperCase(Command) = 'NOSOCFG' then ToLog('console',GetNosoCFGString)
+else if UpperCase(Command) = 'NOSOCFG' then ToLog('console',GetCFGDataStr)
 else if UpperCase(Command) = 'FUNDS' then ToLog('console','Project funds '+lineEnding+
   'NpryectdevepmentfundsGE: '+Int2curr(GetAddressAvailable('NpryectdevepmentfundsGE'))+lineEnding+
   'NPrjectPrtcRandmJacptE5: '+Int2curr(GetAddressAvailable('NPrjectPrtcRandmJacptE5')))
@@ -1685,7 +1685,7 @@ var
   ThisBal  : int64;
   LAstOP   : int64;
 Begin
-sourcestr := GetNosoCFGString(5);
+sourcestr := GetCFGDataStr(5);
 repeat
 Thisadd := Parameter(sourcestr,counter,':');
 if thisadd <> '' then

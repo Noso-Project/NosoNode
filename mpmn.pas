@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalform, mpcoin, mpgui, IdTCPClient, IdGlobal,
-  strutils, nosodebug, nosogeneral, nosocrypto, nosotime, nosounit,nosowallcon;
+  strutils, nosodebug, nosogeneral, nosocrypto, nosotime, nosounit,nosowallcon,
+  nosonetwork,nosomasternodes;
 
 Type
 

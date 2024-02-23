@@ -11,7 +11,7 @@ uses
   strutils, math, IdHTTPServer, IdCustomHTTPServer,
   IdHTTP, fpJSON, Types, DefaultTranslator, LCLTranslator, translation, nosodebug,
   IdComponent,nosogeneral,nosocrypto, nosounit, nosoconsensus, nosopsos, NosoWallCon,
-  nosoheaders, nosoblock;
+  nosoheaders, nosoblock,nosonetwork,nosogvts,nosomasternodes,nosonosocfg;
 
 type
 
@@ -33,6 +33,7 @@ type
     property Slot: integer read VSlot write VSlot;
   end;
 
+  {
   TThreadClientRead = class(TThread)
    private
      FSlot: Integer;
@@ -41,6 +42,7 @@ type
    public
      constructor Create(const CreatePaused: Boolean; const ConexSlot:Integer);
    end;
+  }
 
   TThreadDirective = class(TThread)
    private
@@ -238,21 +240,22 @@ type
        address    : string;
        age        : integer;
        end;
-
+  {
   TGVT = packed record
        number   : string[2];
        owner    : string[32];
        Hash     : string[64];
        control  : integer;
        end;
-
+  }
+  {
   TNosoCFG = packed record
        NetStatus : string;
        SeedNode  : string;
        NTPNodes  : string;
        Pools     : string;
        end;
-
+  }
   {TOrdIndex = record
        block  : integer;
        orders : string;
@@ -665,7 +668,7 @@ var
   DownloadPSOs     : boolean = false;
   }
   RebuildingSumary : boolean = false;
-  OpenReadClientThreads : integer = 0;
+  //OpenReadClientThreads : integer = 0;
 
   // Threads
   SendOutMsgsThread : TThreadSendOutMsjs;
@@ -712,13 +715,13 @@ var
   U_MNsGrid          : boolean = false;
   U_MNsGrid_Last     : int64 = 0;
 
-  MNsList   : array of TMnode;
-  ArrMNChecks : array of TMNCheck;
+  MNsList       : array of TMnode;
+  ArrMNChecks   : array of TMNCheck;
   MNsRandomWait : Integer= 0;
 
   // GVTS
-  FileGVTs    : file of TGVT;
-  ArrGVTs     : array of TGVT;
+  //FileGVTs    : file of TGVT;
+  //ArrGVTs     : array of TGVT;
 
 
 
@@ -789,8 +792,8 @@ var
   CSPending     : TRTLCriticalSection;
   CSCriptoThread: TRTLCriticalSection;
   CSClosingApp  : TRTLCriticalSection;
-  CSClientReads : TRTLCriticalSection;
-  CSGVTsArray   : TRTLCriticalSection;
+  //CSClientReads : TRTLCriticalSection;
+  //CSGVTsArray   : TRTLCriticalSection;
   CSNosoCFGStr  : TRTLCriticalSection;
 
   //MNs system
@@ -804,7 +807,7 @@ var
   // Outgoing lines, needs to be initialized
   CSOutGoingArr : array[1..MaxConecciones] of TRTLCriticalSection;
      ArrayOutgoing : array[1..MaxConecciones] of array of string;
-  CSIncomingArr : array[1..MaxConecciones] of TRTLCriticalSection;
+  //CSIncomingArr : array[1..MaxConecciones] of TRTLCriticalSection;
 
 
 
@@ -896,7 +899,7 @@ End;
 {$ENDREGION}
 
 {$REGION Thread Client read}
-
+ {
 constructor TThreadClientRead.Create(const CreatePaused: Boolean; const ConexSlot:Integer);
 Begin
   inherited Create(CreatePaused);
@@ -1157,7 +1160,7 @@ begin
   DecClientReadThreads;
   CloseOpenThread('ReadClient '+FSlot.ToString);
 End;
-
+}
 {$ENDREGION}
 
 {$REGION Thread Directive}
@@ -1462,15 +1465,13 @@ Begin
   InitCriticalSection(CSWaitingMNs);
   InitCriticalSection(CSMNsChecks);
   InitCriticalSection(CSClosingApp);
-  InitCriticalSection(CSClientReads);
-  InitCriticalSection(CSGVTsArray);
   InitCriticalSection(CSNosoCFGStr);
   InitCriticalSection(CSIdsProcessed);
   InitCriticalSection(CSNodesList);
   for counter := 1 to MaxConecciones do
     begin
     InitCriticalSection(CSOutGoingArr[counter]);
-    InitCriticalSection(CSIncomingArr[counter]);
+    //InitCriticalSection(CSIncomingArr[counter]);
     SetLength(ArrayOutgoing[counter],0);
     SlotLines[counter] := TStringlist.Create;
     CanalCliente[counter] := TIdTCPClient.Create(form1);
@@ -1495,15 +1496,13 @@ Begin
   DoneCriticalSection(CSWaitingMNs);
   DoneCriticalSection(CSMNsChecks);
   DoneCriticalSection(CSClosingApp);
-  DoneCriticalSection(CSClientReads);
-  DoneCriticalSection(CSGVTsArray);
   DoneCriticalSection(CSNosoCFGStr);
   DoneCriticalSection(CSIdsProcessed);
   DoneCriticalSection(CSNodesList);
   for contador := 1 to MaxConecciones do
     begin
     DoneCriticalSection(CSOutGoingArr[contador]);
-    DoneCriticalSection(CSIncomingArr[contador]);
+    //DoneCriticalSection(CSIncomingArr[contador]);
     end;
   for contador := 1 to maxconecciones do
     If Assigned(SlotLines[contador]) then SlotLines[contador].Free;
@@ -1650,7 +1649,7 @@ Begin
     end;
   TryDeleteFile(ClosedAppFilename);
   InitGUI();
-  GetTimeOffset(PArameter(GetNosoCFGString,2));
+  GetTimeOffset(PArameter(GetCFGDataStr,2));
   OutText('✓ Mainnet time synced',false,1);
   UpdateMyData();
   OutText(rs0024,false,1); //'✓ My data updated'
@@ -1673,7 +1672,7 @@ Begin
     end;
   Form1.Latido.Enabled:=true;
   OutText('Noso is ready',false,1);
-  SetNodesArray(GetNosoCFGString(1));
+  SetNodesArray(GetCFGDataStr(1));
   StartAutoConsensus;
   if WO_CloseStart then
     begin
@@ -1874,7 +1873,7 @@ Begin
       end
     }
     end;
-  if ( (ACol = 0) and (ARow>0) and (AnsiContainsStr(GetNosoCFGString(5),GetWallArrIndex(aRow-1).Hash)) ) then
+  if ( (ACol = 0) and (ARow>0) and (AnsiContainsStr(GetCFGDataStr(5),GetWallArrIndex(aRow-1).Hash)) ) then
     begin
     (sender as TStringGrid).Canvas.Brush.Color :=  clRed;
     (sender as TStringGrid).Canvas.font.Color :=  clblack;
@@ -2052,7 +2051,7 @@ Begin
   if ( (UTCTime mod 3600=3590) and (LastBotClear<>UTCTimeStr) and (Form1.Server.Active) ) then
     ProcessLinesAdd('delbots');
   if ( (UTCTime mod 600>=570) and (UTCTime>NosoT_LastUpdate+599) ) then
-    UpdateOffset(PArameter(GetNosoCFGString,2));
+    UpdateOffset(PArameter(GetCFGDataStr,2));
   Form1.Latido.Enabled:=true;
 End;
 
@@ -2666,7 +2665,7 @@ if GoAhead then
    else if parameter(LLine,0) = 'NSLMNS' then
       TryCloseServerConnection(AContext,GetMN_FileText)
    else if parameter(LLine,0) = 'NSLCFG' then
-      TryCloseServerConnection(AContext,GetNosoCFGString)
+      TryCloseServerConnection(AContext,GetCFGDataStr)
 
    else if parameter(LLine,0) = 'NSLGVT' then
       begin

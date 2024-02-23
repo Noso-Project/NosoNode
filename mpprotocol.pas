@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, mpRed, MasterPaskalForm, mpParser, StrUtils, mpDisk, nosotime, mpBlock,
   Zipper, mpcoin, mpMn, nosodebug, nosogeneral, nosocrypto, nosounit,nosoconsensus,nosopsos,
-  nosoheaders, NosoNosoCFG, nosoblock, nosonetwork;
+  nosoheaders, NosoNosoCFG, nosoblock, nosonetwork,nosogvts;
 
 function GetPTCEcn():String;
 Function GetOrderFromString(textLine:String):TOrderData;
@@ -45,10 +45,10 @@ Procedure PTC_SendUpdateHeaders(Slot:integer;Linea:String);
 Procedure PTC_HeadUpdate(linea:String);
 
 // CS Incoming
-Procedure AddToIncoming(Index:integer;texto:string);
-Function GetIncoming(Index:integer):String;
-Function LengthIncoming(Index:integer):integer;
-Procedure ClearIncoming(Index:integer);
+//Procedure AddToIncoming(Index:integer;texto:string);
+//Function GetIncoming(Index:integer):String;
+//Function LengthIncoming(Index:integer):integer;
+//Procedure ClearIncoming(Index:integer);
 
 Procedure AddCriptoOp(tipo:integer;proceso, resultado:string);
 Procedure DeleteCriptoOp();
@@ -230,7 +230,7 @@ if tipo = GetPSOs then
 Resultado := Encabezado+Resultado;
 Result := resultado;
 End;
-
+{
 Procedure AddToIncoming(Index:integer;texto:string);
 Begin
 EnterCriticalSection(CSIncomingArr[Index]);
@@ -263,7 +263,7 @@ EnterCriticalSection(CSIncomingArr[Index]);
 SlotLines[Index].Clear;
 LeaveCriticalSection(CSIncomingArr[Index]);
 End;
-
+}
 // Procesa todas las lineas procedentes de las conexiones
 Procedure ParseProtocolLines();
 var
@@ -323,7 +323,7 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = '$MNCHECK' then PTC_MNCheck(ProcessLine)
       else if UpperCase(LineComando) = '$GETCHECKS' then PTC_SendChecks(contador)
       else if UpperCase(LineComando) = 'GETMNSFILE' then PTC_SendLine(contador,ProtocolLine(MNFILE)+' $'+GetMNsFileData)
-      else if UpperCase(LineComando) = 'GETCFGDATA' then PTC_SendLine(contador,ProtocolLine(SETCFG)+GetNosoCFGString)
+      else if UpperCase(LineComando) = 'GETCFGDATA' then PTC_SendLine(contador,ProtocolLine(SETCFG)+GetCFGDataStr)
 
       else if UpperCase(LineComando) = 'MNFILE' then PTC_MNFile(ProcessLine)
       else if UpperCase(LineComando) = 'SETCFGDATA' then PTC_CFGData(ProcessLine)
@@ -489,7 +489,7 @@ result :=IntToStr(GetTotalConexiones())+' '+ //
          'null'+' '+ //GetNMSData.Diff
          GetMNsChecksCount.ToString+' '+
          MyGVTsHash+' '+
-         Copy(HashMD5String(GetNosoCFGString),0,5)+' '+
+         Copy(HashMD5String(GetCFGDataStr),0,5)+' '+
          Copy(PSOFileHash,0,5);
 End;
 
@@ -798,7 +798,7 @@ End;
 function IsAddressLocked(LAddress:String):boolean;
 Begin
   Result := false;
-  If AnsiContainsSTR(GetNosoCFGString(5), LAddress) then result := true;
+  If AnsiContainsSTR(GetCFGDataStr(5), LAddress) then result := true;
 End;
 
 // Verify a transfer
@@ -829,7 +829,7 @@ else if ( (order.OrderType='TRFR') and  (Not IsValidHashAddress(Order.Receiver))
    result := 10
 else if IsAddressLocked(Order.Address) then
    result := 11
-else if ( (AnsiContainsStr(GetNosoCFGString(0),'EMPTY')) or (AnsiContainsStr(GetNosoCFGString(0),'STOP')) ) then
+else if ( (AnsiContainsStr(GetCFGDataStr(0),'EMPTY')) or (AnsiContainsStr(GetCFGDataStr(0),'STOP')) ) then
    result := 12
 else if origen <> Order.Address then
    result := 13
@@ -1060,13 +1060,13 @@ if not errored then
       begin
       AddCFGData(TParam,1);
       FillNodeList;
-      SetNodesArray(GetNosoCFGString(1));
+      SetNodesArray(GetCFGDataStr(1));
       end;
    if UpperCase(TCommand) = 'DELNODE' then
       begin
       RemoveCFGData(TParam,1);
       FillNodeList;
-      SetNodesArray(GetNosoCFGString(1));
+      SetNodesArray(GetCFGDataStr(1));
       end;
    if UpperCase(TCommand) = 'ADDNTP' then AddCFGData(TParam,2);
    if UpperCase(TCommand) = 'DELNTP' then RemoveCFGData(TParam,2);

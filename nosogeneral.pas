@@ -13,7 +13,7 @@ INTERFACE
 
 uses
   Classes, SysUtils, Process, StrUtils, IdTCPClient, IdGlobal, fphttpclient,
-  opensslsockets, fileutil, nosodebug;
+  opensslsockets, fileutil, nosodebug, Zipper;
 
 type
   TStreamHelper = class helper for TStream
@@ -48,6 +48,7 @@ function TryCopyFile(Source, destination:string):boolean;
 function TryDeleteFile(filename:string):boolean;
 Function MixTxtFiles(ListFiles : array of string;Destination:String;DeleteSources:boolean=true):boolean ;
 Function SendFileViaTCP(filename,message,host:String;Port:integer):Boolean;
+Function UnzipFile(filename:String;delFile:boolean):boolean;
 
 
 IMPLEMENTATION
@@ -468,6 +469,28 @@ Begin
   if client.Connected then Client.Disconnect();
   client.Free;
   MyStream.Free;
+End;
+
+// Unzip a zip file and (optional) delete it
+Function UnzipFile(filename:String;delFile:boolean):boolean;
+var
+  UnZipper: TUnZipper;
+Begin
+  Result := true;
+  UnZipper := TUnZipper.Create;
+    TRY
+    UnZipper.FileName := filename;
+    UnZipper.OutputPath := '';
+    UnZipper.Examine;
+    UnZipper.UnZipAllFiles;
+    EXCEPT on E:Exception do
+      begin
+      Result := false;
+      ToDeepDeb('NosoGeneral,UnzipFile,'+E.Message);
+      end;
+    END; {TRY}
+  if delfile then Trydeletefile(filename);
+  UnZipper.Free;
 End;
 
 {$ENDREGION}

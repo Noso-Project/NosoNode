@@ -7,7 +7,8 @@ interface
 uses
   Classes, SysUtils,MasterPaskalForm, fileutil, mpcoin, dialogs, math,
   nosotime, mpMN, nosodebug,nosogeneral,nosocrypto, nosounit, strutils,
-  nosopsos,nosowallcon,nosoheaders, nosoblock,nosonosocfg;
+  nosopsos,nosowallcon,nosoheaders, nosoblock,nosonosocfg,nosonetwork,nosogvts,
+  nosomasternodes;
 
 Procedure CrearBloqueCero();
 Procedure BuildNewBlock(Numero,TimeStamp: Int64; TargetHash, Minero, Solucion:String);
@@ -123,12 +124,12 @@ var
 
 
 Begin
-if GetNosoCFGString(0) = 'STOP' then
+if GetCFGDataStr(0) = 'STOP' then
    begin
    ClearAllPending;
    exit;
    end;
-if AnsiContainsStr(GetNosoCFGString(0),'EMPTY') then ClearAllPending;
+if AnsiContainsStr(GetCFGDataStr(0),'EMPTY') then ClearAllPending;
 BuildingBlock := Numero;
 BeginPerformance('BuildNewBlock');
 if ((numero>0) and (Timestamp < lastblockdata.TimeEnd)) then
@@ -226,9 +227,9 @@ if not errored then
          end;
       end;
    // Proyect payments
-   if GetNosoCFGString(6) <>'' then
+   if GetCFGDataStr(6) <>'' then
       begin
-      NosoPayData := GetNosoCFGString(6);
+      NosoPayData := GetCFGDataStr(6);
       NosoPayData :=StringReplace(NosoPayData,':','',[rfReplaceAll, rfIgnoreCase]);
       NosoPayData :=StringReplace(NosoPayData,',',' ',[rfReplaceAll, rfIgnoreCase]);
       NPDBlock := StrToIntdef(Parameter(NosoPayData,0),0);
@@ -246,7 +247,7 @@ if not errored then
                   CreditTo(NPDTarget,NPDAmount,NPDBlock);
                   NPDOrder := CreateNosoPayOrder(NPDBlock,NPDSource,NPDTarget,TimeStamp,NPDAmount);
                   insert(NPDOrder,ListaOrdenes,length(listaordenes));
-                  RemoveCFGData(GetNosoCFGString(6),6);
+                  RemoveCFGData(GetCFGDataStr(6),6);
                   end;
                end;
             end;
@@ -324,7 +325,7 @@ if not errored then
       until ThisParam = '';
 
       MNsCount := Length(MNsAddressess);
-      MNsTotalReward := ((GetBlockReward(Numero)+MinerFee)*GetMNsPercentage(Numero,GetNosoCFGString(0))) div 10000;
+      MNsTotalReward := ((GetBlockReward(Numero)+MinerFee)*GetMNsPercentage(Numero,GetCFGDataStr(0))) div 10000;
       if MNsCount>0 then MNsReward := MNsTotalReward div MNsCount
       else MNsReward := 0;
       MNsTotalReward := MNsCount * MNsReward;
@@ -391,7 +392,7 @@ if not errored then
    MyLastBlock := Numero;
    MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
    LastBlockData := LoadBlockDataHeader(MyLastBlock);
-   MySumarioHash := HashMD5File(SummaryFileName);
+   SetSummaryHash;
    MyMNsHash     := HashMD5File(MasterNodesFilename);
    // Actualizar el arvhivo de cabeceras
    AddRecordToHeaders(Numero,MyLastBlockHash,MySumarioHash);

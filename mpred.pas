@@ -9,7 +9,7 @@ uses
   mpBlock, fileutil, graphics,  dialogs, strutils, mpcoin, fphttpclient,
   opensslsockets,translation, IdHTTP, IdComponent, IdSSLOpenSSL, mpmn, IdTCPClient,
   nosodebug,nosogeneral, nosocrypto, nosounit, nosoconsensus, nosopsos,nosowallcon,
-  nosoheaders, nosoblock, nosonosocfg;
+  nosoheaders, nosoblock, nosonosocfg,nosonetwork,nosogvts;
 
 function GetSlotFromIP(Ip:String):int64;
 function GetSlotFromContext(Context:TidContext):int64;
@@ -25,9 +25,9 @@ Function IsSlotConnected(number:integer):Boolean;
 function GetFreeSlot():integer;
 function ReserveSlot():integer;
 
-Procedure IncClientReadThreads();
-Procedure DecClientReadThreads();
-Function GetClientReadThreads():integer;
+//Procedure IncClientReadThreads();
+//Procedure DecClientReadThreads();
+//Function GetClientReadThreads():integer;
 function ConnectClient(Address,Port:String):integer;
 function GetTotalConexiones():integer;
 function GetTotalVerifiedConnections():Integer;
@@ -36,7 +36,7 @@ function CerrarClientes(ServerToo:Boolean=True):string;
 Procedure LeerLineasDeClientes();
 Procedure VerifyConnectionStatus();
 Function IsAllSynced():integer;
-Procedure UpdateMyData();
+//Procedure UpdateMyData();
 Procedure SyncWithMainnet();
 Procedure AddNewBot(linea:string);
 function GetOutGoingConnections():integer;
@@ -348,6 +348,8 @@ else
    end;
 End;
 
+
+{
 Procedure IncClientReadThreads();
 Begin
 EnterCriticalSection(CSClientReads);
@@ -368,6 +370,7 @@ EnterCriticalSection(CSClientReads);
 Result := OpenReadClientThreads;
 LeaveCriticalSection(CSClientReads);
 End;
+}
 
 // Connects a client and returns the slot
 function ConnectClient(Address,Port:String):integer;
@@ -642,6 +645,7 @@ if MyCFGHash <> NETCFGHash.Value then result := 7;
 }
 End;
 
+{
 // Actualiza mi informacion para compoartirla en la red
 Procedure UpdateMyData();
 Begin
@@ -651,8 +655,9 @@ LastBlockData := LoadBlockDataHeader(MyLastBlock);
 MyResumenHash := HashMD5File(ResumenFilename);
   if MyResumenHash = GetConsensus(5) then ForceCompleteHeadersDownload := false;
 MyMNsHash     := HashMD5File(MasterNodesFilename);
-MyCFGHash     := Copy(HAshMD5String(GetNosoCFGString),1,5);
+MyCFGHash     := Copy(HAshMD5String(GetCFGDataStr),1,5);
 End;
+}
 
 // Request necessary files/info to update
 Procedure SyncWithMainnet();
@@ -679,7 +684,7 @@ NLBV := StrToIntDef(GetConsensus(cLastBlock),0);
 // *** New Synchronization methods
 
 // *** Update CFG file.
-if ( (GetConsensus(19)<>Copy(HashMd5String(GetNosoCFGString),0,5)) and (LasTimeCFGRequest+5<UTCTime) and
+if ( (GetConsensus(19)<>Copy(HashMd5String(GetCFGDataStr),0,5)) and (LasTimeCFGRequest+5<UTCTime) and
           (GetConsensus(19)<>'') ) then
   begin
   if GetValidSlotForSeed(ValidSlot) then
@@ -1064,12 +1069,12 @@ result := {1}IntToStr(GetTotalConexiones)+' '+{2}IntToStr(MyLastBlock)+' '+{3}Ge
           {10}MyLastBlockHash+' '+{11}{GetNMSData.Diff}'null'+' '+{12}IntToStr(LastBlockData.TimeEnd)+' '+
           {13}LastBlockData.AccountMiner+' '+{14}GetMNsChecksCount.ToString+' '+{15}Parameter(LastBlockData.Solution,2)+' '+
           {16}Parameter(LastBlockData.Solution,1)+' '+{17}copy(MySumarioHash,0,5)+' '+{18}copy(MyGVTsHash,0,5)+' '+
-          {19}Copy(HashMD5String(GetNosoCFGString),0,5)+' '+{20}copy(PSOFileHash,0,5);
+          {19}Copy(HashMD5String(GetCFGDataStr),0,5)+' '+{20}copy(PSOFileHash,0,5);
 End;
 
 Function IsSafeIP(IP:String):boolean;
 Begin
-if Pos(IP,Parameter(GetNosoCFGString,1))>0 then result:=true
+if Pos(IP,Parameter(GetCFGDataStr,1))>0 then result:=true
 else result := false;
 End;
 

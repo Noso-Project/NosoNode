@@ -51,6 +51,17 @@ Type
     end;
 
   Procedure UpdateMyData();
+  Procedure IncClientReadThreads();
+  Procedure DecClientReadThreads();
+  Function GetClientReadThreads():integer;
+
+  Procedure AddToIncoming(Index:integer;texto:string);
+  Function GetIncoming(Index:integer):String;
+  Function LengthIncoming(Index:integer):integer;
+  Procedure ClearIncoming(Index:integer);
+
+  Procedure InitializeElements();
+  Procedure ClearElements();
 
 CONST
   MaxConecciones   = 99;
@@ -83,13 +94,16 @@ var
   MyLastBlock     : integer = 0;
   MyLastBlockHash : String = '';
   MyResumenHash   : String = '';
-  MyGVTsHash      : string = '';
+  //MyGVTsHash      : string = '';
   MyCFGHash       : string = '';
   MyPublicIP      : String = '';
   MyMNsHash       : String = '';
   // Local information
-  LastBlockData   : BlockHeaderData;
-
+  LastBlockData         : BlockHeaderData;
+  OpenReadClientThreads : integer = 0;
+  // Critical sections
+  CSClientReads         : TRTLCriticalSection;
+  CSIncomingArr         : array[1..MaxConecciones] of TRTLCriticalSection;
 
 IMPLEMENTATION
 
@@ -273,7 +287,7 @@ begin
             DownloadGVTs := true;
             AddFileProcess('Get','GVTFile',CanalCliente[FSlot].Host,GetTickCount64);
             //ToLog('events',TimeToStr(now)+rs0089); //'Receiving GVTs'
-            //ToLog('console',rs0089); //'Receiving GVTs'
+            ToLog('console','Receiving GVTs file'); //'Receiving GVTs'
             MemStream := TMemoryStream.Create;
             CanalCliente[FSlot].ReadTimeout:=10000;
               TRY
@@ -282,7 +296,7 @@ begin
               downloaded := True;
               EXCEPT ON E:Exception do
                 begin
-                //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs0090,[conexiones[fSlot].ip,E.Message])); //'Error Receiving GVTs from
+                ToLog('console',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format('Error Receiving GVTs from %s (%s)',[conexiones[fSlot].ip,E.Message])); //'Error Receiving GVTs from
                 downloaded := false;
                 end;
               END; {TRY}
@@ -305,7 +319,7 @@ begin
               begin
               ToLog('console','GVTS file downloaded');
               GetGVTsFileData;
-              UpdateMyGVTsList;
+              //UpdateMyGVTsList;
               end;
             MemStream.Free;
             DownloadGVTs := false;
@@ -336,7 +350,7 @@ begin
               END; {TRY}
             If not Errored then
               begin
-              if UnzipBlockFile(BlockDirectory+'blocks.zip',true) then
+              if UnzipFile(BlockDirectory+'blocks.zip',true) then
                 begin
                 MyLastBlock := GetMyLastUpdatedBlock();
                 MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
@@ -372,11 +386,95 @@ begin
   CloseOpenThread('ReadClient '+FSlot.ToString);
 End;
 
+Procedure IncClientReadThreads();
+Begin
+  EnterCriticalSection(CSClientReads);
+  Inc(OpenReadClientThreads);
+  LeaveCriticalSection(CSClientReads);
+End;
+
+Procedure DecClientReadThreads();
+Begin
+  EnterCriticalSection(CSClientReads);
+  Dec(OpenReadClientThreads);
+  LeaveCriticalSection(CSClientReads);
+End;
+
+Function GetClientReadThreads():integer;
+Begin
+  EnterCriticalSection(CSClientReads);
+  Result := OpenReadClientThreads;
+  LeaveCriticalSection(CSClientReads);
+End;
+
 {$ENDREGION Thread Client read}
 
+{$REGION Incoming/outgoing info}
+
+Procedure AddToIncoming(Index:integer;texto:string);
+Begin
+  EnterCriticalSection(CSIncomingArr[Index]);
+  SlotLines[Index].Add(texto);
+  LeaveCriticalSection(CSIncomingArr[Index]);
+End;
+
+Function GetIncoming(Index:integer):String;
+Begin
+  result := '';
+  EnterCriticalSection(CSIncomingArr[Index]);
+  if SlotLines[Index].Count > 0 then
+    begin
+    result := SlotLines[Index][0];
+    SlotLines[index].Delete(0);
+    end;
+  LeaveCriticalSection(CSIncomingArr[Index]);
+End;
+
+Function LengthIncoming(Index:integer):integer;
+Begin
+  EnterCriticalSection(CSIncomingArr[Index]);
+  result := SlotLines[Index].Count;
+  LeaveCriticalSection(CSIncomingArr[Index]);
+End;
+
+Procedure ClearIncoming(Index:integer);
+Begin
+  EnterCriticalSection(CSIncomingArr[Index]);
+  SlotLines[Index].Clear;
+  LeaveCriticalSection(CSIncomingArr[Index]);
+End;
+
+
+{$ENDREGION Incoming/outgoing info}
+
+Procedure InitializeElements();
+var
+  counter: integer;
+Begin
+  for counter := 1 to MaxConecciones do
+    begin
+    InitCriticalSection(CSIncomingArr[counter]);
+    end;
+End;
+
+Procedure ClearElements();
+var
+  counter: integer;
+Begin
+  for counter := 1 to MaxConecciones do
+    begin
+    DoneCriticalSection(CSIncomingArr[counter]);
+    end;
+End;
+
 INITIALIZATION
+InitCriticalSection(CSClientReads);
+InitializeElements();
+
 
 FINALIZATION
+DoneCriticalSection(CSClientReads);
+ClearElements;
 
 END. // End unit
 

@@ -9,7 +9,7 @@ uses
   lclintf, controls, mpBlock, Zipper, mpcoin, mpMn, nosodebug,
   {$IFDEF WINDOWS}Win32Proc, {$ENDIF}
   translation, strutils,nosogeneral, nosocrypto, nosounit, nosoconsensus, nosopsos,
-  nosowallcon, nosoheaders, nosonosocfg, nosoblock;
+  nosowallcon, nosoheaders, nosonosocfg, nosoblock,nosonetwork,nosomasternodes,nosogvts;
 
 Function FileStructure():integer;
 Procedure VerifyFiles();
@@ -20,8 +20,8 @@ Procedure FillNodeList();
 Function IsSeedNode(IP:String):boolean;
 
 // GVTs file handling
-Procedure CreateGVTsFile();
-Procedure GetGVTsFileData();
+//Procedure CreateGVTsFile();
+//Procedure GetGVTsFileData();
 Procedure SaveGVTs();
 Function ChangeGVTOwner(Lnumber:integer;OldOwner,NewOWner:String): integer;
 Function CountAvailableGVTs():Integer;
@@ -31,7 +31,6 @@ Function GetGVTPrice(available:integer;ToSell:boolean = false):int64;
 Procedure SaveNosoCFGFile(LStr:String);
 Procedure GetCFGDataFromFile();
 Procedure SetNosoCFGString(LStr:string);
-{Function GetNosoCFGString(LParam:integer=-1):String;}
 
 Procedure CreateMasterNodesFile();
 Procedure CreateADV(saving:boolean);
@@ -179,7 +178,7 @@ var
   SourceStr : String = '';
 Begin
 counter := 0;
-SourceStr := Parameter(GetNosoCFGString,1)+GetVerificatorsText;
+SourceStr := Parameter(GetCFGDataStr,1)+GetVerificatorsText;
 SourceStr := StringReplace(SourceStr,':',' ',[rfReplaceAll, rfIgnoreCase]);
 SetLength(ListaNodos,0);
 Repeat
@@ -203,7 +202,7 @@ End;
 Function IsSeedNode(IP:String):boolean;
 Begin
 Result := false;
-if AnsiContainsStr(GetNosoCFGString(1),ip) then result := true;
+if AnsiContainsStr(GetCFGDataStr(1),ip) then result := true;
 End;
 
 Procedure CreateMasterNodesFile();
@@ -223,6 +222,7 @@ End;
 // *****************************************************************************
 {$REGION GVTs}
 
+{
 Procedure CreateGVTsFile();
 Begin
 TRY
@@ -234,7 +234,9 @@ EXCEPT on E:Exception do
 END;
 MyGVTsHash := HashMD5File(GVTsFilename);
 End;
+}
 
+{
 // Load GVTs array from file
 Procedure GetGVTsFileData();
 var
@@ -257,7 +259,7 @@ END;
 MyGVTsHash := HashMD5File(GVTsFilename);
 LeaveCriticalSection(CSGVTsArray);
 End;
-
+}
 // Save GVTs array to file
 Procedure SaveGVTs();
 var
@@ -373,19 +375,6 @@ Begin
   LEaveCriticalSection(CSNosoCFGStr);
   }
 End;
-
-{
-Function GetNosoCFGString(LParam:integer=-1):String;
-Begin
-  result := GetCFGDataStr(LParam);
-  {
-  EnterCriticalSection(CSNosoCFGStr);
-  if LParam<0 then Result := NosoCFGStr
-  else Result := Parameter(NosoCFGStr,LParam);
-  LeaveCriticalSection(CSNosoCFGStr);
-  }
-End;
-}
 
 {$ENDREGION CFG}
 
