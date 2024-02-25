@@ -17,6 +17,7 @@ type
 
    { TThreadClientRead }
 
+  {
   TNodeConnectionInfo = class(TObject)
   private
     FTimeLast: Int64;
@@ -24,6 +25,7 @@ type
     constructor Create;
     property TimeLast: int64 read FTimeLast write FTimeLast;
   end;
+  }
 
   TServerTipo = class(TObject)
   private
@@ -571,7 +573,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Cb1';
+  SubVersion = 'Cb2';
   OficialRelease = true;
   BetaRelease    = false;
   VersionRequired = '0.4.2Ba7';
@@ -609,7 +611,7 @@ CONST
   AvailableMarkets = '/LTC';
   SumMarkInterval  = 100;
   SecurityBlocks   = 4000;
-  GVTBaseValue     = 70000000000;
+  //GVTBaseValue     = 70000000000;
   Update050Block   = 120000;
 
 var
@@ -648,7 +650,6 @@ var
   {Network}
   MaxOutgoingConnections : integer = 3;
   {
-  Conexiones       : array [1..MaxConecciones] of conectiondata;
   SlotLines        : array [1..MaxConecciones] of TStringList;
   CanalCliente     : array [1..MaxConecciones] of TIdTCPClient;
   }
@@ -719,20 +720,6 @@ var
   ArrMNChecks   : array of TMNCheck;
   MNsRandomWait : Integer= 0;
 
-  // GVTS
-  //FileGVTs    : file of TGVT;
-  //ArrGVTs     : array of TGVT;
-
-
-
-
-
-
-
-
-
-
-
 
   {
   //MySumarioHash : String = '';
@@ -802,11 +789,11 @@ var
   CSMNsChecks   : TRTLCriticalSection;
 
   CSIdsProcessed: TRTLCriticalSection;
-  // Server handling
-  CSNodesList   : TRTLCriticalSection;
+
+
   // Outgoing lines, needs to be initialized
-  CSOutGoingArr : array[1..MaxConecciones] of TRTLCriticalSection;
-     ArrayOutgoing : array[1..MaxConecciones] of array of string;
+  //CSOutGoingArr : array[1..MaxConecciones] of TRTLCriticalSection;
+     //ArrayOutgoing : array[1..MaxConecciones] of array of string;
   //CSIncomingArr : array[1..MaxConecciones] of TRTLCriticalSection;
 
 
@@ -839,11 +826,13 @@ Uses
 
 {$R *.lfm}
 
+{
 // Identify the pool miners connections
 constructor TNodeConnectionInfo.Create;
 Begin
 FTimeLast:= 0;
 End;
+}
 
 constructor TServerTipo.Create;
 Begin
@@ -1424,6 +1413,7 @@ end;
 procedure TThreadIndexer.Execute;
 Begin
   AddNewOpenThread('Indexer',UTCTime);
+  tolog('console','Starting indexer');
   while not terminated do
     begin
     if not WO_BlockDB then
@@ -1431,10 +1421,12 @@ Begin
        sleep(1000);
        continue;
        end;
-       continue;
     if GetMyLastUpdatedBlock > GetDBLastBlock then
       begin
-      if ( (blockAge>60) and (MyLastBlockHash =getconsensus(10)) ) then UpdateBlockDatabase;
+      if ( (blockAge>60) and (copy(MyLastBlockHash,1,5) =copy(getconsensus(10),1,5)) ) then
+        begin
+        UpdateBlockDatabase;;
+        end;
       end;
     sleep(1000);
     end;
@@ -1465,16 +1457,15 @@ Begin
   InitCriticalSection(CSWaitingMNs);
   InitCriticalSection(CSMNsChecks);
   InitCriticalSection(CSClosingApp);
-  InitCriticalSection(CSNosoCFGStr);
+  //InitCriticalSection(CSNosoCFGStr);
   InitCriticalSection(CSIdsProcessed);
-  InitCriticalSection(CSNodesList);
   for counter := 1 to MaxConecciones do
     begin
-    InitCriticalSection(CSOutGoingArr[counter]);
+    //InitCriticalSection(CSOutGoingArr[counter]);
     //InitCriticalSection(CSIncomingArr[counter]);
-    SetLength(ArrayOutgoing[counter],0);
-    SlotLines[counter] := TStringlist.Create;
-    CanalCliente[counter] := TIdTCPClient.Create(form1);
+    //SetLength(ArrayOutgoing[counter],0);
+    //SlotLines[counter] := TStringlist.Create;
+    //CanalCliente[counter] := TIdTCPClient.Create(form1);
     end;
   CreateFormInicio();
   CreateFormSlots();
@@ -1496,16 +1487,15 @@ Begin
   DoneCriticalSection(CSWaitingMNs);
   DoneCriticalSection(CSMNsChecks);
   DoneCriticalSection(CSClosingApp);
-  DoneCriticalSection(CSNosoCFGStr);
+  //DoneCriticalSection(CSNosoCFGStr);
   DoneCriticalSection(CSIdsProcessed);
-  DoneCriticalSection(CSNodesList);
   for contador := 1 to MaxConecciones do
     begin
-    DoneCriticalSection(CSOutGoingArr[contador]);
+    //DoneCriticalSection(CSOutGoingArr[contador]);
     //DoneCriticalSection(CSIncomingArr[contador]);
     end;
-  for contador := 1 to maxconecciones do
-    If Assigned(SlotLines[contador]) then SlotLines[contador].Free;
+  //for contador := 1 to maxconecciones do
+    //If Assigned(SlotLines[contador]) then SlotLines[contador].Free;
   form1.Server.free;
   form1.RPCServer.Free;
 End;
@@ -1696,9 +1686,12 @@ Begin
       KeepConnectThread := TThreadKeepConnect.Create(true);
       KeepConnectThread.FreeOnTerminate:=true;
       KeepConnectThread.Start;
-      IndexerThread := TThreadIndexer.Create(true);
-      IndexerThread.FreeOnTerminate:=true;
-      IndexerThread.Start;
+      if WO_BlockDB then
+        begin
+        IndexerThread := TThreadIndexer.Create(true);
+        IndexerThread.FreeOnTerminate:=true;
+        IndexerThread.Start;
+        end;
     ToLog('events',TimeToStr(now)+rs0029); //NewLogLines := NewLogLines-1; //'Noso session started'
     info(rs0029);  //'Noso session started'
     infopanel.BringToFront;
@@ -2357,94 +2350,91 @@ var
   LinesSent : integer = 0;
   FTPTime, FTPSize, FTPSpeed : int64;
 Begin
-GoAhead := true;
-IPUser := AContext.Connection.Socket.Binding.PeerIP;
-slot := GetSlotFromIP(IPUser);
-  REPEAT
-  LineToSend := GetTextToSlot(slot);
-  if LineToSend <> '' then
-    begin
-    TryMessageToNode(AContext,LineToSend);
-    Inc(LinesSent);
-    end;
-  UNTIL LineToSend='' ;
+  GoAhead := true;
+  IPUser := AContext.Connection.Socket.Binding.PeerIP;
+  slot := GetSlotFromIP(IPUser);
+    REPEAT
+    LineToSend := GetTextToSlot(slot);
+    if LineToSend <> '' then
+      begin
+      TryMessageToNode(AContext,LineToSend);
+      Inc(LinesSent);
+      end;
+    UNTIL LineToSend='' ;
   if LinesSent >0 then exit;
-if slot = 0 then
-   begin
-   TryCloseServerConnection(AContext);
-   exit;
-   end;
-if ( (MyConStatus <3) and (not IsSeedNode(IPUser)) ) then
-   begin
-   TryCloseServerConnection(AContext,'Closing NODE');
-   exit;
-   end;
-TRY
-LLine := AContext.Connection.IOHandler.ReadLn(IndyTextEncoding_UTF8);
-EXCEPT on E:Exception do
-   begin
-   TryCloseServerConnection(AContext);
-   ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs0045,[IPUser,E.Message]));
-   //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Can not read line from connection '+IPUser+'('+E.Message+')');
-   GoAhead := false;
-   end;
-END{Try};
-if GoAhead then
-   begin
-   conexiones[slot].IsBusy:=true;
-   if Parameter(LLine,0) = 'RESUMENFILE' then
+  if slot = 0 then
+    begin
+    TryCloseServerConnection(AContext);
+    exit;
+    end;
+  if ( (MyConStatus <3) and (not IsSeedNode(IPUser)) ) then
+    begin
+    TryCloseServerConnection(AContext,'Closing NODE');
+    exit;
+    end;
+  TRY
+  LLine := AContext.Connection.IOHandler.ReadLn(IndyTextEncoding_UTF8);
+  EXCEPT on E:Exception do
+    begin
+    TryCloseServerConnection(AContext);
+    ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs0045,[IPUser,E.Message]));
+    GoAhead := false;
+    end;
+  END{Try};
+  if GoAhead then
+    begin
+    SetConexIndexBusy(Slot,true);
+    if Parameter(LLine,0) = 'RESUMENFILE' then
       begin
       MemStream := TMemoryStream.Create;
       DownloadHeaders := true;
-         TRY
-         AContext.Connection.IOHandler.ReadStream(MemStream);
-         GetFileOk := true;
-         EXCEPT ON E:EXCEPTION do
-            begin
-            //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0046,[E.Message])); //'SERVER: Server error receiving headers file ('+E.Message+')');
-            TryCloseServerConnection(AContext);
-            GetFileOk := false;
-            end;
-         END; {TRY}
+        TRY
+        AContext.Connection.IOHandler.ReadStream(MemStream);
+        GetFileOk := true;
+        EXCEPT ON E:EXCEPTION do
+          begin
+          TryCloseServerConnection(AContext);
+          GetFileOk := false;
+          end;
+        END; {TRY}
       if GetfileOk then
-         begin
-         if SaveStreamAsHeaders(MemStream) then
-            ToLog('console',Format(rs0047,[copy(HashMD5File(ResumenFilename),1,5)]));//'Headers file received'
-         end;
+        begin
+        if SaveStreamAsHeaders(MemStream) then
+          ToLog('console',Format(rs0047,[copy(HashMD5File(ResumenFilename),1,5)]));//'Headers file received'
+        end;
       UpdateMyData();
       LastTimeRequestResumen := 0;
       DownloadHeaders := false;
       MemStream.Free;
       end // END GET RESUMEN FILE
    else if LLine = 'BLOCKZIP' then
-      begin
-      BlockZipName := BlockDirectory+'blocks.zip';
-      TryDeleteFile(BlockZipName);
-      MemStream := TMemoryStream.Create;
-      DownLoadBlocks := true;
-         TRY
-         AContext.Connection.IOHandler.ReadStream(MemStream);
-         MemStream.SaveToFile(BlockZipName);
-         GetFileOk := true;
-         EXCEPT ON E:Exception do
-            begin
-            //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0048,[E.Message])); // Server error receiving block file ('+E.Message+')');
-            GetFileOk := false;
-            TryCloseServerConnection(AContext);
-            end;
-         END; {TRY}
-      if GetFileOk then
+     begin
+     BlockZipName := BlockDirectory+'blocks.zip';
+     TryDeleteFile(BlockZipName);
+     MemStream := TMemoryStream.Create;
+     DownLoadBlocks := true;
+       TRY
+       AContext.Connection.IOHandler.ReadStream(MemStream);
+       MemStream.SaveToFile(BlockZipName);
+       GetFileOk := true;
+       EXCEPT ON E:Exception do
          begin
-         if UnzipBlockFile(BlockDirectory+'blocks.zip',true) then
-            begin
-            MyLastBlock := GetMyLastUpdatedBlock();
-            LastTimeRequestBlock := 0;
-            ToLog('events',TimeToStr(now)+format(rs0021,[IntToStr(MyLastBlock)])); //'Blocks received up to '+IntToStr(MyLastBlock));
-            end
+         GetFileOk := false;
+         TryCloseServerConnection(AContext);
          end;
-      MemStream.Free;
-      DownLoadBlocks := false;
-      end
+       END; {TRY}
+       if GetFileOk then
+         begin
+         if UnzipFile(BlockDirectory+'blocks.zip',true) then
+           begin
+           MyLastBlock := GetMyLastUpdatedBlock();
+           LastTimeRequestBlock := 0;
+           ToLog('events',TimeToStr(now)+format(rs0021,[IntToStr(MyLastBlock)])); //'Blocks received up to '+IntToStr(MyLastBlock));
+           end
+         end;
+       MemStream.Free;
+       DownLoadBlocks := false;
+     end
    else if parameter(LLine,4) = '$GETRESUMEN' then
       begin
       AddFileProcess('Send','Headers',IPUser,GetTickCount64);
@@ -2457,7 +2447,7 @@ if GoAhead then
             Acontext.connection.IOHandler.Write(MemStream,0,true);
             EXCEPT on E:Exception do
                begin
-               Form1.TryCloseServerConnection(Conexiones[Slot].context);
+               Form1.TryCloseServerConnection(GetConexIndex(Slot).context);
                ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0051,[E.Message]));
                end;
             END; {TRY}
@@ -2527,7 +2517,7 @@ if GoAhead then
                ToLog('events',TimeToStr(now)+Format(rs0052,[IPUser,BlockZipName])); //SERVER: BlockZip send to '+IPUser+':'+BlockZipName);
                EXCEPT ON E:Exception do
                   begin
-                  Form1.TryCloseServerConnection(Conexiones[Slot].context);
+                  Form1.TryCloseServerConnection(GetConexIndex(Slot).context);
                   //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0053,[E.Message])); //'SERVER: Error sending ZIP blocks file ('+E.Message+')');
                   end
                END; {TRY}
@@ -2542,31 +2532,21 @@ if GoAhead then
 
       else if parameter(LLine,4) = '$GETGVTS' then
          begin
+         AddFileProcess('Send','GVTs',IPUser,GetTickCount64);
          MemStream := TMemoryStream.Create;
-            TRY
-            EnterCriticalSection(CSGVTsArray);
-            MemStream.LoadFromFile(GVTsFilename);
-            LeaveCriticalSection(CSGVTsArray);
-            GetFileOk := true;
-            EXCEPT on E:Exception do
-               begin
-               GetFileOk := false;
-               //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0049,[E.Message]));//SERVER: Error creating stream from headers: %s',[E.Message]));
-               end;
-            END; {TRY}
-         if GetFileOk then
-            begin
-               TRY
-               Acontext.Connection.IOHandler.WriteLn('GVTSFILE');
-               Acontext.connection.IOHandler.Write(MemStream,0,true);
-               EXCEPT on E:Exception do
-                  begin
-                  Form1.TryCloseServerConnection(Conexiones[Slot].context);
-                  //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0051,[E.Message]));
-                  end;
-               END; {TRY}
-            end;
+         FTPSize := GetGVTsAsStream(MemStream);
+         if FTPSize>0 then
+           begin
+             TRY
+             Acontext.Connection.IOHandler.WriteLn('GVTSFILE');
+             Acontext.connection.IOHandler.Write(MemStream,0,true);
+             EXCEPT on E:Exception do
+             END; {TRY}
+           end;
          MemStream.Free;
+         FTPTime := CloseFileProcess('Send','GVTs',IPUser,GetTickCount64);
+         FTPSpeed := (FTPSize div FTPTime);
+         ToLog('nodeftp','Uploaded GVTs to '+IPUser+' at '+FTPSpeed.ToString+' kb/s');
          end // SENDING GVTS FILE
 
    else if AnsiContainsStr(ValidProtocolCommands,Uppercase(parameter(LLine,4))) then
@@ -2585,7 +2565,7 @@ if GoAhead then
       ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0055,[LLine]));
       //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Got unexpected line: '+LLine);
       end;
-   conexiones[slot].IsBusy:=false;
+   SetConexIndexBusy(Slot,false);
    end;
 End;
 
@@ -2603,84 +2583,74 @@ var
   ThisSlot    : integer;
   PeerUTC     : int64;
 Begin
-GoAhead := true;
-ContextData := TServerTipo.Create;
-ContextData.Slot:=0;
-AContext.Data:=ContextData;
-IPUser := AContext.Connection.Socket.Binding.PeerIP;
-if ( (MyConStatus <3) and (not IsSeedNode(IPUser)) ) then
-   begin
-   TryCloseServerConnection(AContext,'Closing NODE');
-   exit;
-   end;
-if KeepServerOn = false then // Reject any new connection if we are closing the server
-   begin
-   TryCloseServerConnection(AContext,'Closing NODE');
-   exit;
-   end;
-TRY
-   LLine := AContext.Connection.IOHandler.ReadLn('',1000,-1,IndyTextEncoding_UTF8);
-   if AContext.Connection.IOHandler.ReadLnTimedout then
+  GoAhead := true;
+  ContextData := TServerTipo.Create;
+  ContextData.Slot:=0;
+  AContext.Data:=ContextData;
+  IPUser := AContext.Connection.Socket.Binding.PeerIP;
+  if ( (MyConStatus <3) and (not IsSeedNode(IPUser)) ) then
+    begin
+    TryCloseServerConnection(AContext,'Closing NODE');
+    exit;
+    end;
+  if KeepServerOn = false then // Reject any new connection if we are closing the server
+    begin
+    TryCloseServerConnection(AContext,'Closing NODE');
+    exit;
+    end;
+  TRY
+    LLine := AContext.Connection.IOHandler.ReadLn('',1000,-1,IndyTextEncoding_UTF8);
+    if AContext.Connection.IOHandler.ReadLnTimedout then
       begin
       TryCloseServerConnection(AContext);
       ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+rs0056);
       //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Timeout reading line from new connection');
       GoAhead := false;
       end;
-EXCEPT on E:Exception do
-   begin
-   TryCloseServerConnection(AContext);
-   ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs0057,[E.Message]));
-   //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Can not read line from new connection ('+E.Message+')');
-   GoAhead := false;
-   end;
-END{Try};
-MiIp        := Parameter(LLine,1);
-Peerversion := Parameter(LLine,2);
-PeerUTC     := StrToInt64Def(Parameter(LLine,3),0);
-if GoAhead then
-   begin
-   if parameter(LLine,0) = 'NODESTATUS' then
+  EXCEPT on E:Exception do
+    begin
+    TryCloseServerConnection(AContext);
+    ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs0057,[E.Message]));
+    //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Can not read line from new connection ('+E.Message+')');
+    GoAhead := false;
+    end;
+  END{Try};
+  MiIp        := Parameter(LLine,1);
+  Peerversion := Parameter(LLine,2);
+  PeerUTC     := StrToInt64Def(Parameter(LLine,3),0);
+  if GoAhead then
+    begin
+    if parameter(LLine,0) = 'NODESTATUS' then
       TryCloseServerConnection(AContext,'NODESTATUS '+GetNodeStatusString)
-   else if parameter(LLine,0) = 'NSLORDER' then
+    else if parameter(LLine,0) = 'NSLORDER' then
       TryCloseServerConnection(AContext,PTC_Order(LLine))
-   else if parameter(LLine,0) = 'NSLCUSTOM' then
+    else if parameter(LLine,0) = 'NSLCUSTOM' then
       TryCloseServerConnection(AContext,PTC_Custom(GetOpData(LLine)).ToString)
-   else if parameter(LLine,0) = 'NSLSENDGVT' then
+    else if parameter(LLine,0) = 'NSLSENDGVT' then
       TryCloseServerConnection(AContext,PTC_SendGVT(LLine).ToString)
-   else if parameter(LLine,0) = 'GETMIIP' then
+    else if parameter(LLine,0) = 'GETMIIP' then
       TryCloseServerConnection(AContext,IPUser)
-   else if parameter(LLine,0) = 'MNVER' then
+    else if parameter(LLine,0) = 'MNVER' then
       TryCloseServerConnection(AContext,GetVerificationMNLine(IPUser))
-   else if parameter(LLine,0) = 'NSLBALANCE' then
+    else if parameter(LLine,0) = 'NSLBALANCE' then
       TryCloseServerConnection(AContext,IntToStr(GetAddressAvailable(parameter(LLine,1))))
-   else if parameter(LLine,0) = 'NSLPEND' then
+    else if parameter(LLine,0) = 'NSLPEND' then
       TryCloseServerConnection(AContext,PendingRawInfo(false))
-   else if parameter(LLine,0) = 'NSLPENDFULL' then
+    else if parameter(LLine,0) = 'NSLPENDFULL' then
       TryCloseServerConnection(AContext,PendingRawInfo)
-   else if parameter(LLine,0) = 'NSLBLKORD' then
+    else if parameter(LLine,0) = 'NSLBLKORD' then
       TryCloseServerConnection(AContext,GEtNSLBlkOrdInfo(LLine))
-   else if parameter(LLine,0) = 'NSLTIME' then
+    else if parameter(LLine,0) = 'NSLTIME' then
       TryCloseServerConnection(AContext,UTCTimeStr)
-   else if parameter(LLine,0) = 'NSLMNS' then
+    else if parameter(LLine,0) = 'NSLMNS' then
       TryCloseServerConnection(AContext,GetMN_FileText)
-   else if parameter(LLine,0) = 'NSLCFG' then
+    else if parameter(LLine,0) = 'NSLCFG' then
       TryCloseServerConnection(AContext,GetCFGDataStr)
-
-   else if parameter(LLine,0) = 'NSLGVT' then
+    else if parameter(LLine,0) = 'NSLGVT' then
       begin
       MemStream := TMemoryStream.Create;
-      EnterCriticalSection(CSGVTsArray);
-         TRY
-         MemStream.LoadFromFile(GVTsFilename);
-         GetFileOk := true;
-         EXCEPT on E:Exception do
-            begin
-            GetFileOk := false;
-            ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0091,[E.Message])); //'SERVER: Error creating stream from GVTs: %s',[E.Message]));
-            end;
-         END; {TRY}
-      LeaveCriticalSection(CSGVTsArray);
+      if GetGVTsAsStream(MemStream) > 0 then GetFileOk := true
+      else GetFileOk := false;
       if GetFileOk then
          begin
             TRY

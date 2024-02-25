@@ -146,6 +146,7 @@ Begin
     TRY
     Reset(DBFile);
     opened := true;
+    Result := 0;
     if Filesize(DBFile)>0 then
       begin
       Seek(DBFile,Filesize(DBFile)-1);

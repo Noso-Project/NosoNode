@@ -24,13 +24,9 @@ Function IsSlotFree(number:integer):Boolean;
 Function IsSlotConnected(number:integer):Boolean;
 function GetFreeSlot():integer;
 function ReserveSlot():integer;
-
-//Procedure IncClientReadThreads();
-//Procedure DecClientReadThreads();
-//Function GetClientReadThreads():integer;
 function ConnectClient(Address,Port:String):integer;
 function GetTotalConexiones():integer;
-function GetTotalVerifiedConnections():Integer;
+//function GetTotalVerifiedConnections():Integer;
 function GetTotalSyncedConnections():Integer;
 function CerrarClientes(ServerToo:Boolean=True):string;
 Procedure LeerLineasDeClientes();
@@ -70,7 +66,7 @@ Begin
 Result := 0;
 for contador := 1 to MaxConecciones do
    begin
-   if conexiones[contador].ip=ip then
+   if GetConexIndex(contador).ip=ip then
       begin
       result := contador;
       break;
@@ -86,7 +82,7 @@ Begin
 Result := 0;
 for contador := 1 to MaxConecciones do
    begin
-   if conexiones[contador].context=Context then
+   if GetConexIndex(contador).context=Context then
       begin
       result := contador;
       break;
@@ -109,69 +105,54 @@ function NodeExists(IPUser,Port:String):integer;
 var
   contador : integer = 0;
 Begin
-Result := -1;
-for contador := 0 to length(ListadoBots)-1 do
-   if ((ListaNodos[contador].ip = IPUser) and (ListaNodos[contador].port = port)) then result := contador;
+  Result := -1;
+  for contador := 0 to length(ListadoBots)-1 do
+    if ((ListaNodos[contador].ip = IPUser) and (ListaNodos[contador].port = port)) then result := contador;
 End;
 
 // Almacena una conexion con sus datos en el array Conexiones
 function SaveConection(tipo,ipuser:String;contextdata:TIdContext;toSlot:integer=-1):integer;
 var
-  contador : integer = 1;
-  Slot     : int64 = 0;
-  FoundSlot: boolean = false;
+  counter   : integer = 1;
+  Slot       : int64 = 0;
+  FoundSlot  : boolean = false;
+  NewValue   : Tconectiondata;
 begin
-if ToSLot<0 then
-   begin
-   EnterCriticalSection(CSNodesList);
-   For contador := 1 to MaxConecciones do
+  NewValue := Default(Tconectiondata);
+  NewValue.Autentic:=false;
+  NewValue.Connections:=0;
+  NewValue.tipo := tipo;
+  NewValue.ip:= ipuser;
+  NewValue.lastping:=UTCTimeStr;
+  NewValue.context:=contextdata;
+  NewValue.Lastblock:='0';
+  NewValue.LastblockHash:='';
+  NewValue.SumarioHash:='';
+  NewValue.ListeningPort:=-1;
+  NewValue.Pending:=0;
+  NewValue.ResumenHash:='';
+  NewValue.ConexStatus:=0;
+  if ToSLot<0 then
+    begin
+    For counter := 1 to MaxConecciones do
       begin
-      if Conexiones[contador].tipo = '' then
-         begin
-         Conexiones[contador] := Default(conectiondata);
-         Conexiones[contador].Autentic:=false;
-         Conexiones[contador].Connections:=0;
-         Conexiones[contador].tipo := tipo;
-         Conexiones[contador].ip:= ipuser;
-         Conexiones[contador].lastping:=UTCTimeStr;
-         Conexiones[contador].context:=contextdata;
-         Conexiones[contador].Lastblock:='0';
-         Conexiones[contador].LastblockHash:='';
-         Conexiones[contador].SumarioHash:='';
-         Conexiones[contador].ListeningPort:=-1;
-         Conexiones[contador].Pending:=0;
-         Conexiones[contador].ResumenHash:='';
-         Conexiones[contador].ConexStatus:=0;
-         ClearIncoming(contador);
-         FoundSlot := true;
-         result := contador;
-         break;
-         end;
+      if GetConexIndex(counter).tipo = '' then
+        begin
+        SetConexIndex(counter,NewValue);
+        ClearIncoming(counter);
+        FoundSlot := true;
+        result := counter;
+        break;
+        end;
       end;
-   LeaveCriticalSection(CSNodesList);
-   if not FoundSlot then Result := 0;
-   end
-else
-   begin
-   EnterCriticalSection(CSNodesList);
-   Conexiones[ToSLot] := Default(conectiondata);
-   Conexiones[ToSLot].Autentic:=false;
-   Conexiones[ToSLot].Connections:=0;
-   Conexiones[ToSLot].tipo := tipo;
-   Conexiones[ToSLot].ip:= ipuser;
-   Conexiones[ToSLot].lastping:=UTCTimeStr;
-   Conexiones[ToSLot].context:=contextdata;
-   Conexiones[ToSLot].Lastblock:='0';
-   Conexiones[ToSLot].LastblockHash:='';
-   Conexiones[ToSLot].SumarioHash:='';
-   Conexiones[ToSLot].ListeningPort:=-1;
-   Conexiones[ToSLot].Pending:=0;
-   Conexiones[ToSLot].ResumenHash:='';
-   Conexiones[ToSLot].ConexStatus:=0;
-   ClearIncoming(ToSLot);
-   result := ToSLot;
-   LeaveCriticalSection(CSNodesList);
-   end;
+    if not FoundSlot then Result := 0;
+    end
+  else
+    begin
+    SetConexIndex(toSlot,NewValue);
+    ClearIncoming(ToSLot);
+    result := ToSLot;
+    end;
 end;
 
 Procedure ForceServer();
@@ -248,7 +229,6 @@ if not Form1.Server.Active then exit;
 KeepServerOn := false;
    TRY
    Form1.Server.Active:=false;
-   ToLog('console','Server stopped');             //Server stopped
    U_DataPanel := true;
    EXCEPT on E:Exception do
       begin
@@ -260,41 +240,38 @@ end;
 // Cierra la conexion del slot especificado
 Procedure CerrarSlot(Slot:integer);
 Begin
-BeginPerformance('CerrarSlot');
-TRY
-if conexiones[Slot].tipo='CLI' then
-   begin
-   ClearIncoming(slot);
-   Conexiones[Slot].context.Connection.Disconnect;
-   Sleep(10);
-   //Conexiones[Slot].Thread.terminate; // free ? WaitFor??
-   end;
-if conexiones[Slot].tipo='SER' then
-   begin
-   ClearIncoming(slot);
-   CanalCliente[Slot].IOHandler.InputBuffer.Clear;
-   CanalCliente[Slot].Disconnect;
-   end;
-EXCEPT on E:Exception do
-  ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error: Closing slot '+IntToStr(Slot)+SLINEBREAK+E.Message);
-END;{Try}
-EnterCriticalSection(CSNodesList);
-Conexiones[Slot] := Default(conectiondata);
-LeaveCriticalSection(CSNodesList);
-EndPerformance('CerrarSlot');
+  BeginPerformance('CerrarSlot');
+  TRY
+  if GetConexIndex(Slot).tipo='CLI' then
+    begin
+    ClearIncoming(slot);
+    GetConexIndex(Slot).context.Connection.Disconnect;
+    Sleep(10);
+    //Conexiones[Slot].Thread.terminate; // free ? WaitFor??
+    end;
+  if GetConexIndex(Slot).tipo='SER' then
+    begin
+    ClearIncoming(slot);
+    CanalCliente[Slot].IOHandler.InputBuffer.Clear;
+    CanalCliente[Slot].Disconnect;
+    end;
+  EXCEPT on E:Exception do
+    ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error: Closing slot '+IntToStr(Slot)+SLINEBREAK+E.Message);
+  END;{Try}
+  SetConexIndex(Slot,Default(Tconectiondata));
+  EndPerformance('CerrarSlot');
 End;
-
 
 Function IsSlotFree(number:integer):Boolean;
 Begin
-result := true;
-if conexiones[number].tipo <> '' then result := false;
+  result := true;
+  if GetConexIndex(number).tipo <> '' then result := false;
 End;
 
 Function IsSlotConnected(number:integer):Boolean;
 Begin
-result := false;
-if ((conexiones[number].tipo = 'SER') or (conexiones[number].tipo = 'CLI')) then result := true;
+  result := false;
+  if ((GetConexIndex(number).tipo = 'SER') or (GetConexIndex(number).tipo = 'CLI')) then result := true;
 End;
 
 // Returns first available slot
@@ -318,59 +295,31 @@ function ReserveSlot():integer;
 var
   contador : integer = 1;
 Begin
-result := 0;
-for contador := 1 to MaxConecciones do
-   begin
-   if IsSlotFree(Contador) then
+  result := 0;
+  for contador := 1 to MaxConecciones do
+    begin
+    if IsSlotFree(Contador) then
       begin
-      EnterCriticalSection(CSNodesList);
-      Conexiones[contador].tipo:='RES';
-      LeaveCriticalSection(CSNodesList);
+      SetConexReserved(contador,True);
       result := contador;
       break;
       end;
-   end;
+    end;
 End;
 
 // Reserves the first available slot
 Procedure UnReserveSlot(number:integer);
 Begin
-if Conexiones[number].tipo ='RES' then
-   begin
-   EnterCriticalSection(CSNodesList);
-   Conexiones[number].tipo :='';
-   LeaveCriticalSection(CSNodesList);
-   CerrarSlot(Number);
-   end
-else
-   begin
-   ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error un-reserving slot '+number.ToString);
-   end;
+  if GetConexIndex(number).tipo ='RES' then
+    begin
+    SetConexReserved(number,False);
+    CerrarSlot(Number);
+    end
+  else
+    begin
+    ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error un-reserving slot '+number.ToString);
+    end;
 End;
-
-
-{
-Procedure IncClientReadThreads();
-Begin
-EnterCriticalSection(CSClientReads);
-Inc(OpenReadClientThreads);
-LeaveCriticalSection(CSClientReads);
-End;
-
-Procedure DecClientReadThreads();
-Begin
-EnterCriticalSection(CSClientReads);
-Dec(OpenReadClientThreads);
-LeaveCriticalSection(CSClientReads);
-End;
-
-Function GetClientReadThreads():integer;
-Begin
-EnterCriticalSection(CSClientReads);
-Result := OpenReadClientThreads;
-LeaveCriticalSection(CSClientReads);
-End;
-}
 
 // Connects a client and returns the slot
 function ConnectClient(Address,Port:String):integer;
@@ -397,16 +346,7 @@ if not errored then
    begin
    if CanalCliente[Slot].Connected then
       begin // Close Slot if it is connected
-      {
-      TRY
-      CanalCliente[Slot].IOHandler.InputBuffer.Clear;
-      CanalCliente[Slot].Disconnect;
-      Conexiones[Slot] := Default(conectiondata);
-      EXCEPT on E:exception do
-         begin
-         end;
-      END;{Try}
-      }
+
       end;
    CanalCliente[Slot].Host:=Address;
    CanalCliente[Slot].Port:=StrToIntDef(Port,8080);
@@ -423,10 +363,12 @@ if not errored then
    if connectok then
       begin
       SavedSlot := SaveConection('SER',Address,ConContext,slot);
+      //ToLog('console',SavedSlot.ToString);
       ToLog('events',TimeToStr(now)+'Connected TO: '+Address);          //Connected TO:
-      Conexiones[slot].Thread := TThreadClientRead.Create(true, slot);
-      Conexiones[slot].Thread.FreeOnTerminate:=true;
-      Conexiones[slot].Thread.Start;
+      StartConexThread(Slot);
+      //Conexiones[slot].Thread := TThreadClientRead.Create(true, slot);
+      //Conexiones[slot].Thread.FreeOnTerminate:=true;
+      //Conexiones[slot].Thread.Start;
       IncClientReadThreads;
       result := Slot;
          TRY
@@ -442,6 +384,7 @@ if not errored then
    else
       begin
       result := 0;
+      UnReserveSlot(Slot);
       CerrarSlot(slot);
       end;
    {
@@ -461,13 +404,14 @@ function GetTotalConexiones():integer;
 var
   counter:integer;
 Begin
-BeginPerformance('GetTotalConexiones');
-result := 0;
-for counter := 1 to MaxConecciones do
-   if IsSlotConnected(Counter) then result := result + 1;
-EndPerformance('GetTotalConexiones');
+  BeginPerformance('GetTotalConexiones');
+  result := 0;
+  for counter := 1 to MaxConecciones do
+    if IsSlotConnected(Counter) then result := result + 1;
+  EndPerformance('GetTotalConexiones');
 End;
 
+{
 function GetTotalVerifiedConnections():Integer;
 var
   counter:integer;
@@ -476,6 +420,7 @@ result := 0;
 for counter := 1 to MaxConecciones do
    if conexiones[Counter].Autentic then result := result + 1;
 End;
+}
 
 function GetTotalSyncedConnections():Integer;
 var
@@ -483,7 +428,7 @@ var
 Begin
 result := 0;
 for counter := 1 to MaxConecciones do
-   if conexiones[Counter].MerkleHash = GetCOnsensus(0) then result := result + 1;
+   if GetConexIndex(Counter).MerkleHash = GetCOnsensus(0) then result := result + 1;
 End;
 
 // Close all outgoing connections
@@ -495,7 +440,7 @@ result := '';
    TRY
    for contador := 1 to MaxConecciones do
       begin
-      if conexiones[contador].tipo='SER' then CerrarSlot(contador);
+      if GetConexIndex(contador).tipo='SER' then CerrarSlot(contador);
       end;
    Result := 'Clients connections closed'
    EXCEPT on E:EXCEPTION do
@@ -506,7 +451,7 @@ result := '';
    END; {TRY}
 if ServerToo then
    begin
-   if form1.Server.active then ProcessLinesAdd('SERVEROFF');
+   if form1.Server.active then StopServer;
    end;
 End;
 

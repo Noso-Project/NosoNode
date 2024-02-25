@@ -237,7 +237,7 @@ Begin
     ToDeepDeb('NosoHeaders,LastHeadersString,'+E.Message);
     end;
   END;
-  if ( (opened) and (not PorperlyClosed) ) then closefile(FileResumen);
+  //if ( (opened) and (not PorperlyClosed) ) then closefile(FileResumen);
   LeaveCriticalSection(CS_HeadersFile);
   Result := Trim(Result);
 End;

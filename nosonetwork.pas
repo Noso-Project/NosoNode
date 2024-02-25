@@ -21,7 +21,7 @@ Type
       constructor Create(const CreatePaused: Boolean; const ConexSlot:Integer);
   end;
 
-  conectiondata = Packed Record
+  Tconectiondata = Packed Record
     Autentic: boolean;                 // si la conexion esta autenticada por un ping
     Connections : Integer;             // A cuantos pares esta conectado
     tipo: string[8];                   // Tipo: SER o CLI
@@ -50,6 +50,13 @@ Type
     PSOHash       : string[32];
     end;
 
+  Function GetConexIndex(Slot:integer): Tconectiondata;
+  Procedure SetConexIndex(Slot: integer; LData:Tconectiondata);
+  Procedure SetConexIndexBusy(LSlot:integer;value:Boolean);
+  Procedure SetConexIndexLastPing(LSlot:integer;value:string);
+  procedure SetConexReserved(LSlot:Integer;Reserved:boolean);
+  procedure StartConexThread(LSlot:Integer);
+
   Procedure UpdateMyData();
   Procedure IncClientReadThreads();
   Procedure DecClientReadThreads();
@@ -68,9 +75,10 @@ CONST
 
 var
   // General
-  Conexiones       : array [1..MaxConecciones] of conectiondata;
+  Conexiones       : array [1..MaxConecciones] of Tconectiondata;
   SlotLines        : array [1..MaxConecciones] of TStringList;
   CanalCliente     : array [1..MaxConecciones] of TIdTCPClient;
+  ArrayOutgoing    : array [1..MaxConecciones] of array of string;
   // Donwloading files
   DownloadHeaders  : boolean = false;
   DownloadSumary   : Boolean = false;
@@ -104,8 +112,62 @@ var
   // Critical sections
   CSClientReads         : TRTLCriticalSection;
   CSIncomingArr         : array[1..MaxConecciones] of TRTLCriticalSection;
+  CSOutGoingArr         : array[1..MaxConecciones] of TRTLCriticalSection;
+  CSConexiones          : TRTLCriticalSection;
 
 IMPLEMENTATION
+
+{$REGION Conexiones control}
+
+Function GetConexIndex(Slot:integer): Tconectiondata;
+Begin
+  if ( (slot < 1) or (Slot > MaxConecciones) ) then result := Default(Tconectiondata);
+  EnterCriticalSection(CSConexiones);
+  Result := Conexiones[Slot];
+  LeaveCriticalSection(CSConexiones);
+End;
+
+Procedure SetConexIndex(Slot: integer; LData:Tconectiondata);
+Begin
+  EnterCriticalSection(CSConexiones);
+  Conexiones[Slot] := LData;
+  LeaveCriticalSection(CSConexiones);
+End;
+
+Procedure SetConexIndexBusy(LSlot:integer;value:Boolean);
+Begin
+  EnterCriticalSection(CSConexiones);
+  Conexiones[LSlot].IsBusy := value;
+  LeaveCriticalSection(CSConexiones);
+End;
+
+Procedure SetConexIndexLastPing(LSlot:integer;value:string);
+Begin
+  EnterCriticalSection(CSConexiones);
+  Conexiones[LSlot].lastping := value;
+  LeaveCriticalSection(CSConexiones);
+End;
+
+procedure SetConexReserved(LSlot:Integer;Reserved:boolean);
+var
+  ToShow : string = '';
+Begin
+  if reserved then ToShow := 'RES';
+  EnterCriticalSection(CSConexiones);
+  Conexiones[LSlot].tipo := ToShow;
+  LeaveCriticalSection(CSConexiones);
+End;
+
+procedure StartConexThread(LSlot:Integer);
+Begin
+  EnterCriticalSection(CSConexiones);
+  Conexiones[Lslot].Thread := TThreadClientRead.Create(true, Lslot);
+  Conexiones[Lslot].Thread.FreeOnTerminate:=true;
+  Conexiones[Lslot].Thread.Start;
+  LeaveCriticalSection(CSConexiones);
+End;
+
+{$ENDREGION Conexiones control}
 
 {$REGION General Data}
 
@@ -162,8 +224,8 @@ begin
       begin
       While not CanalCliente[FSlot].IOHandler.InputBufferIsEmpty do
         begin
-        Conexiones[fSlot].IsBusy:=true;
-        Conexiones[fSlot].lastping:=UTCTimeStr;
+        SetConexIndexBusy(FSlot,true);
+        SetConexIndexLastPing(fSlot,UTCTimeStr);
           TRY
           CanalCliente[FSlot].ReadTimeout:=1000;
           CanalCliente[FSlot].IOHandler.MaxLineLength:=Maxint;
@@ -172,7 +234,7 @@ begin
             begin
             ErrMsg := E.Message;
             ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format('Error Reading lines from slot: %s',[IntToStr(Fslot)+slinebreak+ErrMsg]));
-            Conexiones[fSlot].IsBusy:=false;
+            SetConexIndexBusy(FSlot,false);
             if AnsiContainsStr(Uppercase(ErrMsg),'SOCKET ERROR') then
               begin
               KillIt := true;
@@ -254,7 +316,7 @@ begin
             begin
             DownloadPSOs := true;
             AddFileProcess('Get','PSOs',CanalCliente[FSlot].Host,GetTickCount64);
-            ToLog('console','Receiving PSOs'); //'Receiving psos'
+            //ToLog('console','Receiving PSOs'); //'Receiving psos'
             MemStream := TMemoryStream.Create;
             CanalCliente[FSlot].ReadTimeout:=10000;
               TRY
@@ -279,7 +341,7 @@ begin
             DownloadPSOs := false;
             FTPTime := CloseFileProcess('Get','PSOs',CanalCliente[FSlot].Host,GetTickCount64);
             FTPSpeed := (FTPSize div FTPTime);
-            ToLog('nodeftp','Downloaded PSOs from '+CanalCliente[FSlot].Host+' at '+FTPSpeed.ToString+' kb/s');
+            //ToLog('nodeftp','Downloaded PSOs from '+CanalCliente[FSlot].Host+' at '+FTPSpeed.ToString+' kb/s');
             end
 
           else if Parameter(LLine,0) = 'GVTSFILE' then
@@ -296,7 +358,7 @@ begin
               downloaded := True;
               EXCEPT ON E:Exception do
                 begin
-                ToLog('console',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format('Error Receiving GVTs from %s (%s)',[conexiones[fSlot].ip,E.Message])); //'Error Receiving GVTs from
+                ToLog('console',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format('Error Receiving GVTs from %s (%s)',[GetConexIndex(fSlot).ip,E.Message])); //'Error Receiving GVTs from
                 downloaded := false;
                 end;
               END; {TRY}
@@ -317,7 +379,7 @@ begin
               end;
             if Downloaded and not errored then
               begin
-              ToLog('console','GVTS file downloaded');
+              //ToLog('console','GVTS file downloaded');
               GetGVTsFileData;
               //UpdateMyGVTsList;
               end;
@@ -325,7 +387,7 @@ begin
             DownloadGVTs := false;
             FTPTime := CloseFileProcess('Get','GVTFile',CanalCliente[FSlot].Host,GetTickCount64);
             FTPSpeed := (FTPSize div FTPTime);
-            ToLog('nodeftp','Downloaded GVTs from '+CanalCliente[FSlot].Host+' at '+FTPTime.ToString+' kb/s');
+            //ToLog('nodeftp','Downloaded GVTs from '+CanalCliente[FSlot].Host+' at '+FTPTime.ToString+' kb/s');
             end
 
           else if LLine = 'BLOCKZIP' then
@@ -363,21 +425,21 @@ begin
             DownLoadBlocks := false;
             FTPTime := CloseFileProcess('Get','Blocks',CanalCliente[FSlot].Host,GetTickCount64);
             FTPSpeed := (FTPSize div FTPTime);
-            ToLog('nodeftp','Downloaded blocks from '+CanalCliente[FSlot].Host+' at '+FTPTime.ToString+' kb/s');
+            //ToLog('nodeftp','Downloaded blocks from '+CanalCliente[FSlot].Host+' at '+FTPTime.ToString+' kb/s');
             end // END RECEIVING BLOCKS
         else
           begin
           AddToIncoming(FSlot,LLine);
           end;
         end;
-      Conexiones[fSlot].IsBusy:=false;
+      SetConexIndexBusy(FSlot,false);
       end; // end while client is not empty
     end; // End if continuar
 
     EXCEPT ON E:Exception do
       begin
       ErrMsg := E.Message;
-      ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'*****CRITICAL**** Error inside Client thread: '+ErrMsg);
+      //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'*****CRITICAL**** Error inside Client thread: '+ErrMsg);
       KillIt := true;
       end;
     END; {TRY}
@@ -385,6 +447,12 @@ begin
   DecClientReadThreads;
   CloseOpenThread('ReadClient '+FSlot.ToString);
 End;
+
+//Procedure ProcessLine(LLine:String;)
+
+{$ENDREGION Thread Client read}
+
+{$REGION ClientReadThreads}
 
 Procedure IncClientReadThreads();
 Begin
@@ -407,7 +475,7 @@ Begin
   LeaveCriticalSection(CSClientReads);
 End;
 
-{$ENDREGION Thread Client read}
+{$ENDREGION ClientReadThreads}
 
 {$REGION Incoming/outgoing info}
 
@@ -421,13 +489,13 @@ End;
 Function GetIncoming(Index:integer):String;
 Begin
   result := '';
-  EnterCriticalSection(CSIncomingArr[Index]);
-  if SlotLines[Index].Count > 0 then
+  if LengthIncoming(Index) > 0 then
     begin
+    EnterCriticalSection(CSIncomingArr[Index]);
     result := SlotLines[Index][0];
     SlotLines[index].Delete(0);
+    LeaveCriticalSection(CSIncomingArr[Index]);
     end;
-  LeaveCriticalSection(CSIncomingArr[Index]);
 End;
 
 Function LengthIncoming(Index:integer):integer;
@@ -447,13 +515,21 @@ End;
 
 {$ENDREGION Incoming/outgoing info}
 
+{$REGION Unit related}
+
 Procedure InitializeElements();
 var
   counter: integer;
 Begin
+  InitCriticalSection(CSClientReads);
+  InitCriticalSection(CSConexiones);
   for counter := 1 to MaxConecciones do
     begin
     InitCriticalSection(CSIncomingArr[counter]);
+    SlotLines[counter] := TStringlist.Create;
+    CanalCliente[counter] := TIdTCPClient.Create(nil);
+    InitCriticalSection(CSOutGoingArr[counter]);
+    SetLength(ArrayOutgoing[counter],0);
     end;
 End;
 
@@ -461,20 +537,25 @@ Procedure ClearElements();
 var
   counter: integer;
 Begin
+  DoneCriticalSection(CSClientReads);
+  DoneCriticalSection(CSConexiones);
   for counter := 1 to MaxConecciones do
     begin
     DoneCriticalSection(CSIncomingArr[counter]);
+    SlotLines[counter].Free;
+    CanalCliente[counter].Free;
+    DoneCriticalSection(CSOutGoingArr[counter]);
     end;
 End;
 
+{$ENDREGION Unit related}
+
 INITIALIZATION
-InitCriticalSection(CSClientReads);
-InitializeElements();
+  InitializeElements();
 
 
 FINALIZATION
-DoneCriticalSection(CSClientReads);
-ClearElements;
+  ClearElements;
 
 END. // End unit
 

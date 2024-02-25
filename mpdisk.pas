@@ -22,15 +22,11 @@ Function IsSeedNode(IP:String):boolean;
 // GVTs file handling
 //Procedure CreateGVTsFile();
 //Procedure GetGVTsFileData();
-Procedure SaveGVTs();
-Function ChangeGVTOwner(Lnumber:integer;OldOwner,NewOWner:String): integer;
-Function CountAvailableGVTs():Integer;
-Function GetGVTPrice(available:integer;ToSell:boolean = false):int64;
+//Procedure SaveGVTs();
+//Function ChangeGVTOwner(Lnumber:integer;OldOwner,NewOWner:String): integer;
+//Function CountAvailableGVTs():Integer;
+//Function GetGVTPrice(available:integer;ToSell:boolean = false):int64;
 
-// NosoCFG file handling
-Procedure SaveNosoCFGFile(LStr:String);
-Procedure GetCFGDataFromFile();
-Procedure SetNosoCFGString(LStr:string);
 
 Procedure CreateMasterNodesFile();
 Procedure CreateADV(saving:boolean);
@@ -50,10 +46,10 @@ Procedure CompleteSumary();
 
 Procedure SaveUpdatedFiles();
 
-function GetMyLastUpdatedBlock():int64;
+//function GetMyLastUpdatedBlock():int64;
 Function CreateProperlyClosedAppFile(filename:String):Boolean;
 
-Function UnzipBlockFile(filename:String;delFile:boolean):boolean;
+//Function UnzipBlockFile(filename:String;delFile:boolean):boolean;
 function UnZipUpdateFromRepo(Tver,TArch:String):boolean;
 
 Procedure CreateLauncherFile(IncludeUpdate:boolean = false);
@@ -113,8 +109,8 @@ OutText('✓ GVTs file ok',false,1);
 
 if not FileExists(CFGFilename) then
   begin
-  SaveNosoCFGFile(DefaultNosoCFG);
-  GetCFGDataFromFile;
+  SaveCFGToFile(DefaultNosoCFG);
+  GetCFGFromFile;
   Defseeds := GetRepoFile('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos');
   if DefSeeds = '' then Defseeds := GetRepoFile('https://api.nosocoin.com/nodes/seed');
   if defseeds <> '' then
@@ -124,7 +120,7 @@ if not FileExists(CFGFilename) then
     end
   else ToLog('console','Unable to download default seeds. Please, use a fallback');
   end;
-GetCFGDataFromFile;
+GetCFGFromFile;
 OutText('✓ NosoCFG file ok',false,1);
 
 if not FileExists (WalletFilename) then
@@ -217,166 +213,6 @@ EXCEPT on E:Exception do
   ToLog('events',TimeToStr(now)+'Error creating the masternodes file');
 END;
 End;
-
-// *** GVTs HANDLING FILE ***
-// *****************************************************************************
-{$REGION GVTs}
-
-{
-Procedure CreateGVTsFile();
-Begin
-TRY
-Assignfile(FileGVTs, GVTsFilename);
-rewrite(FileGVTs);
-Closefile(FileGVTs);
-EXCEPT on E:Exception do
-   ToLog('events',TimeToStr(now)+'Error creating the GVTs file');
-END;
-MyGVTsHash := HashMD5File(GVTsFilename);
-End;
-}
-
-{
-// Load GVTs array from file
-Procedure GetGVTsFileData();
-var
-  counter : integer;
-Begin
-EnterCriticalSection(CSGVTsArray);
-Assignfile(FileGVTs, GVTsFilename);
-TRY
-reset(FileGVTs);
-Setlength(ArrGVTs,filesize(FileGVTs));
-For counter := 0 to filesize(FileGVTs)-1 do
-   begin
-   seek(FileGVTs,counter);
-   read(FileGVTs,ArrGVTs[counter]);
-   end;
-Closefile(FileGVTs);
-EXCEPT ON E:Exception do
-   ToLog('events',TimeToStr(now)+'Error loading the GVTs from file');
-END;
-MyGVTsHash := HashMD5File(GVTsFilename);
-LeaveCriticalSection(CSGVTsArray);
-End;
-}
-// Save GVTs array to file
-Procedure SaveGVTs();
-var
-  counter : integer;
-Begin
-Assignfile(FileGVTs, GVTsFilename);
-EnterCriticalSection(CSGVTsArray);
-TRY
-rewrite(FileGVTs);
-For counter := 0 to length(ArrGVTs)-1 do
-   begin
-   seek(FileGVTs,counter);
-   write(FileGVTs,ArrGVTs[counter]);
-   end;
-Closefile(FileGVTs);
-EXCEPT ON E:Exception do
-   ToLog('events',TimeToStr(now)+'Error loading the GVTs from file');
-END;
-MyGVTsHash := HashMD5File(GVTsFilename);
-LeaveCriticalSection(CSGVTsArray);
-End;
-
-Function ChangeGVTOwner(Lnumber:integer;OldOwner,NewOWner:String): integer;
-var
-  ErrorCode : integer = 0;
-Begin
-result := ErrorCode;
-if LNumber > 99 then ErrorCode := 1;
-if ArrGVTs[Lnumber].owner <> OldOwner then ErrorCode := 2;
-if not IsValidHashAddress(NewOWner) then ErrorCode := 3;
-if ErrorCode = 0 then
-   ArrGVTs[Lnumber].owner := NewOWner;
-result := ErrorCode;
-End;
-
-Function CountAvailableGVTs():Integer;
-var
-  counter : integer;
-Begin
-  Result := 0;
-  EnterCriticalSection(CSGVTsArray);
-  for counter := 0 to length(ArrGVTs)-1 do
-     if ArrGVTs[counter].owner = FundsAddress then Inc(Result);
-  LeaveCriticalSection(CSGVTsArray);
-End;
-
-Function GetGVTPrice(available:integer;ToSell:boolean = false):int64;
-var
-  counter   : integer;
-Begin
-  result   := GVTBaseValue;
-  available:= 40-available;
-  for counter := 1 to available do
-     result := (result *110) div 100;
-  if result < GVTBaseValue then result := GVTBaseValue;
-  if ToSell then Result := (result *85) div 100;
-End;
-
-{$ENDREGION}
-
-// *** CFG FILE ***
-// *****************************************************************************
-{$REGION CFG}
-
-Procedure SaveNosoCFGFile(LStr:String);
-var
-  LFile : Textfile;
-Begin
-  SaveCFGToFile(LStr);
-  {
-  Assignfile(LFile, NosoCFGFilename);
-  TRY
-    TRY
-    rewrite(LFile);
-    write(Lfile,LStr);
-    EXCEPT on E:Exception do
-      ToLog('events',TimeToStr(now)+'Error creating the NosoCFG file');
-     END;
-  FINALLY
-    Closefile(LFile);
-  END; {TRY}
-  }
-End;
-
-Procedure GetCFGDataFromFile();
-var
-  LFile : Textfile;
-  LStr  : string = '';
-Begin
-  GetCFGFromFile;
-  {
-  Assignfile(LFile, NosoCFGFilename);
-  TRY
-    TRY
-    reset(LFile);
-    ReadLn(Lfile,LStr);
-    SetNosoCFGString(LStr);
-    EXCEPT on E:Exception do
-      ToLog('events',TimeToStr(now)+'Error loading the NosoCFG file');
-    END;
-  FINALLY
-    Closefile(LFile);
-  END; {TRY}
-  }
-End;
-
-Procedure SetNosoCFGString(LStr:string);
-Begin
-  SetCFGDataStr(LStr);
-  {
-  EnterCriticalSection(CSNosoCFGStr);
-  NosoCFGStr := LStr;
-  LEaveCriticalSection(CSNosoCFGStr);
-  }
-End;
-
-{$ENDREGION CFG}
 
 // *** OPTIONS FILE ***
 // *****************************************************************************
@@ -677,6 +513,7 @@ TimeDuration := EndPerformance('RebuildSummary');
 ToLog('console',format('Sumary rebuild time: %d ms',[TimeDuration]));
 End;
 
+{
 // Returns the last downloaded block
 function GetMyLastUpdatedBlock():int64;
 Var
@@ -701,6 +538,7 @@ BlockFiles := TStringList.Create;
    END; {TRY}
 BlockFiles.Free;
 end;
+}
 
 Function CreateProperlyClosedAppFile(filename:String):Boolean;
 var
@@ -725,6 +563,7 @@ Begin
 End;
 
 // Unzip a zip file and (optional) delete it
+{
 Function UnzipBlockFile(filename:String;delFile:boolean):boolean;
 var
   UnZipper: TUnZipper;
@@ -745,7 +584,7 @@ UnZipper := TUnZipper.Create;
 if delfile then Trydeletefile(filename);
 UnZipper.Free;
 End;
-
+}
 function UnZipUpdateFromRepo(Tver,TArch:String):boolean;
 var
   UnZipper: TUnZipper;

@@ -16,8 +16,6 @@ function GetStringFromBlockHeader(blockheader:BlockHeaderdata):String;
 Function ProtocolLine(tipo:integer):String;
 Procedure ParseProtocolLines();
 function IsValidProtocol(line:String):Boolean;
-Procedure PTC_Getnodes(Slot:integer);
-function GetNodesString():string;
 Procedure PTC_SendLine(Slot:int64;Message:String);
 Procedure ClearOutTextToSlot(slot:integer);
 Function GetTextToSlot(slot:integer):string;
@@ -43,12 +41,6 @@ Procedure PTC_AdminMSG(TextLine:String);
 Procedure PTC_CFGData(Linea:String);
 Procedure PTC_SendUpdateHeaders(Slot:integer;Linea:String);
 Procedure PTC_HeadUpdate(linea:String);
-
-// CS Incoming
-//Procedure AddToIncoming(Index:integer;texto:string);
-//Function GetIncoming(Index:integer):String;
-//Function LengthIncoming(Index:integer):integer;
-//Procedure ClearIncoming(Index:integer);
 
 Procedure AddCriptoOp(tipo:integer;proceso, resultado:string);
 Procedure DeleteCriptoOp();
@@ -168,10 +160,6 @@ Begin
 Encabezado := 'PSK '+IntToStr(protocolo)+' '+ProgramVersion+subversion+' '+UTCTimeStr+' ';
 if tipo = OnlyHeaders then
    resultado := '';
-if tipo = GetNodes then
-   Resultado := '$GETNODES';
-if tipo = Nodes then
-   Resultado := '$NODES'+GetNodesString();
 if tipo = Ping then
    Resultado := '$PING '+GetPingString;
 if tipo = Pong then
@@ -230,40 +218,7 @@ if tipo = GetPSOs then
 Resultado := Encabezado+Resultado;
 Result := resultado;
 End;
-{
-Procedure AddToIncoming(Index:integer;texto:string);
-Begin
-EnterCriticalSection(CSIncomingArr[Index]);
-SlotLines[Index].Add(texto);
-LeaveCriticalSection(CSIncomingArr[Index]);
-End;
 
-Function GetIncoming(Index:integer):String;
-Begin
-result := '';
-EnterCriticalSection(CSIncomingArr[Index]);
-if SlotLines[Index].Count > 0 then
-   begin
-   result := SlotLines[Index][0];
-   SlotLines[index].Delete(0);
-   end;
-LeaveCriticalSection(CSIncomingArr[Index]);
-End;
-
-Function LengthIncoming(Index:integer):integer;
-Begin
-EnterCriticalSection(CSIncomingArr[Index]);
-result := SlotLines[Index].Count;
-LeaveCriticalSection(CSIncomingArr[Index]);
-End;
-
-Procedure ClearIncoming(Index:integer);
-Begin
-EnterCriticalSection(CSIncomingArr[Index]);
-SlotLines[Index].Clear;
-LeaveCriticalSection(CSIncomingArr[Index]);
-End;
-}
 // Procesa todas las lineas procedentes de las conexiones
 Procedure ParseProtocolLines();
 var
@@ -274,16 +229,9 @@ var
   Linecomando : string = '';
   ProcessLine : String;
 Begin
-for contador := 1 to MaxConecciones do
-   begin
-   if ( (LengthIncoming(contador) > 200) and (not IsSeedNode(Conexiones[contador].ip)) ) then
-      begin
-      //ToLog('console','POSSIBLE ATTACK FROM: '+Conexiones[contador].ip);
-      //UpdateBotData(conexiones[contador].ip);
-      //CerrarSlot(contador);
-      //continue;
-      end;
-   While LengthIncoming(contador) > 0 do
+  for contador := 1 to MaxConecciones do
+    begin
+    While LengthIncoming(contador) > 0 do
       begin
       ProcessLine := GetIncoming(contador);
       UsedProtocol := StrToIntDef(Parameter(ProcessLine,1),1);
@@ -304,11 +252,9 @@ for contador := 1 to MaxConecciones do
          end
       else if UpperCase(LineComando) = 'OLDVERSION' then
          begin
-         ToLog('Console','You need update your wallet to connect to '+conexiones[contador].ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
+         ToLog('Console','You need update your node to connect to '+conexiones[contador].ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
          CerrarSlot(contador);
          end
-      else if UpperCase(LineComando) = '$GETNODES' then PTC_Getnodes(contador)
-      else if UpperCase(LineComando) = '$NEWBL' then PTC_Getnodes(contador)   // DEPRECATED
       else if UpperCase(LineComando) = '$PING' then ProcessPing(ProcessLine,contador,true)
       else if UpperCase(LineComando) = '$PONG' then ProcessPing(ProcessLine,contador,false)
       else if UpperCase(LineComando) = '$GETPENDING' then PTC_SendPending(contador)
@@ -318,7 +264,6 @@ for contador := 1 to MaxConecciones do
       else if UpperCase(LineComando) = '$CUSTOM' then INC_PTC_Custom(GetOpData(ProcessLine),contador)
       else if UpperCase(LineComando) = 'ORDER' then INC_PTC_Order(ProcessLine, contador)
       else if UpperCase(LineComando) = 'ADMINMSG' then PTC_AdminMSG(ProcessLine)
-      else if UpperCase(LineComando) = '$REPORTNODE' then PTC_Getnodes(contador) // DEPRECATED
       else if UpperCase(LineComando) = '$MNREPO' then AddWaitingMNs(ProcessLine)//
       else if UpperCase(LineComando) = '$MNCHECK' then PTC_MNCheck(ProcessLine)
       else if UpperCase(LineComando) = '$GETCHECKS' then PTC_SendChecks(contador)
@@ -347,29 +292,6 @@ function IsValidProtocol(line:String):Boolean;
 Begin
 if copy(line,1,4) = 'PSK ' then result := true
 else result := false;
-End;
-
-// Procesa una solicitud de nodos
-Procedure PTC_Getnodes(Slot:integer);
-Begin
-//PTC_SendLine(slot,ProtocolLine(Nodes));
-End;
-
-// Devuelve una cadena con la info de los 50 primeros nodos validos.
-function GetNodesString():string;
-var
-  NodesString : String = '';
-  NodesAdded : integer = 0;
-  Counter : integer;
-Begin
-for counter := 0 to length(ListaNodos)-1 do
-   begin
-   NodesString := NodesString+' '+ListaNodos[counter].ip+':'+ListaNodos[counter].port+':'
-   +ListaNodos[counter].LastConexion+':';
-   NodesAdded := NodesAdded+1;
-   if NodesAdded>50 then break;
-   end;
-result := NodesString;
 End;
 
 // Envia una linea a un determinado slot
@@ -409,7 +331,7 @@ End;
 Function GetTextToSlot(slot:integer):string;
 Begin
 result := '';
-if ( (Slot>1) and (slot<=MaxConecciones) ) then
+if ( (Slot>=1) and (slot<=MaxConecciones) ) then
    begin
    EnterCriticalSection(CSOutGoingArr[slot]);
    if length(ArrayOutgoing[slot])>0 then
@@ -1095,8 +1017,8 @@ startpos := Pos('$',Linea);
 Content := Copy(Linea,Startpos+1,Length(linea));
 if Copy(HAshMD5String(Content),0,5) = GetCOnsensus(19) then
    begin
-   SaveNosoCFGFile(content);
-   SetNosoCFGString(content);
+   SaveCFGToFile(content);
+   SetCFGDataStr(content);
    FillNodeList;
    ToLog('events','Noso CFG updated!');
    end

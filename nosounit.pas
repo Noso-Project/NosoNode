@@ -317,6 +317,7 @@ Begin
     END;{Try}
   Result := EndPerformance('CreateSumaryIndex');
   SummaryLastop := ReadSumaryRecordFromDisk(0).LastOp;
+  SetSummaryHash;
 End;
 
 {Returns the summary index length}
