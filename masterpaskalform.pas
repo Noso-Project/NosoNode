@@ -102,10 +102,12 @@ type
       Constructor Create(CreateSuspended : boolean);
     end;
 
+  {
   BotData = Packed Record
      ip: string[15];
      LastRefused : string[17];
      end;
+  }
 
   NodeData = Packed Record
      ip: string[15];
@@ -653,7 +655,7 @@ var
   SlotLines        : array [1..MaxConecciones] of TStringList;
   CanalCliente     : array [1..MaxConecciones] of TIdTCPClient;
   }
-  ListadoBots      : array of BotData;
+  //ListadoBots      : array of BotData;
   ListaNodos       : array of NodeData;
   PendingTXs       : Array of TOrderData;
   ArrayOrderIDsProcessed : array of string;
@@ -694,7 +696,7 @@ var
   G_TotalPings         : Int64 = 0;
   LastCommand          : string = '';
   ProcessLines         : TStringlist;
-  LastBotClear         : string = '';
+  //LastBotClear         : string = '';
   S_Wallet             : boolean = false;
   MontoIncoming        : Int64 = 0;
   MontoOutgoing        : Int64 = 0;
@@ -2039,8 +2041,7 @@ Begin
   if FormSlots.Visible then UpdateSlotsGrid();
   Inc(ConnectedRotor); if ConnectedRotor>6 then ConnectedRotor := 0;
   UpdateStatusBar;
-  if ( (UTCTime mod 3600=3590) and (LastBotClear<>UTCTimeStr) and (Form1.Server.Active) ) then
-    ProcessLinesAdd('delbots');
+  if ( (UTCTime mod 3600=3590) and (LastBotClear<>UTCTime) and (Form1.Server.Active) ) then DeleteBots;
   if ( (UTCTime mod 600>=570) and (UTCTime>NosoT_LastUpdate+599) ) then
     UpdateOffset(PArameter(GetCFGDataStr,2));
   Form1.Latido.Enabled:=true;
@@ -2662,7 +2663,7 @@ Begin
       MemStream.Free;
       TryCloseServerConnection(AContext);
       end
-   else if parameter(LLine,0) = 'GETZIPSUMARY' then  //
+    else if parameter(LLine,0) = 'GETZIPSUMARY' then  //
       begin
       MemStream := TMemoryStream.Create;
       if GetZIPSummaryAsMemStream(MemStream) > 0 then GetFileOk := true

@@ -349,6 +349,7 @@ End;
 INITIALIZATION
 InitCriticalSection(CS_WalletArray);
 InitCriticalSection(CS_WalletFile);
+SetLength(WalletArray,0);
 
 FINALIZATION
 DoneCriticalSection(CS_WalletArray);

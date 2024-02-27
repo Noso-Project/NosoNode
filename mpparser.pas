@@ -40,7 +40,7 @@ Function SendGVT(LineText:string;showOutput:boolean=true):string;
 Procedure ShowHalvings();
 Procedure SetServerPort(LineText:string);
 Procedure TestParser(LineText:String);
-Procedure DeleteBots(LineText:String);
+//Procedure DeleteBots(LineText:String);
 Procedure Parse_RestartNoso();
 Procedure GetOwnerHash(LineText:string);
 Procedure CheckOwnerHash(LineText:string);
@@ -219,7 +219,6 @@ else if UpperCase(Command) = 'MD5' then ToLog('console',HashMD5String(Parameter(
 else if UpperCase(Command) = 'MD160' then ToLog('console',HashMD160String(Parameter(LineText,1)))
 else if UpperCase(Command) = 'CLEAR' then form1.Memoconsola.Lines.clear
 else if UpperCase(Command) = 'TP' then TestParser(LineText)
-else if UpperCase(Command) = 'DELBOTS' then DeleteBots(LineText)
 else if UpperCase(Command) = 'BLOCK' then ParseShowBlockInfo(LineText)
 else if UpperCase(Command) = 'TESTNET' then TestNetwork(LineText)
 else if UpperCase(Command) = 'RESTART' then Parse_RestartNoso()
@@ -357,9 +356,9 @@ Procedure ShowBots();
 var
   contador : integer = 0;
 Begin
-for contador := 0 to length(ListadoBots) - 1 do
-   ToLog('console',IntToStr(contador)+'- '+ListadoBots[contador].ip);
-ToLog('console',IntToStr(length(ListadoBots))+' bots registered.');  // bots registered
+for contador := 0 to length(BotsList) - 1 do
+   ToLog('console',IntToStr(contador)+'- '+BotsList[contador].ip);
+ToLog('console',IntToStr(length(BotsList))+' bots registered.');  // bots registered
 End;
 
 // Muestras las opciones del usuario
@@ -963,11 +962,13 @@ until not continuar
 End;
 
 // Delete bots from server
+{
 Procedure DeleteBots(LineText:String);
 Begin
-  SetLength(ListadoBots,0);
+  SetLength(BotsList,0);
   LastBotClear := UTCTimeStr;
 End;
+}
 
 Procedure Parse_RestartNoso();
 Begin

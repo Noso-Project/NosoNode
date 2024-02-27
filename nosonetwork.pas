@@ -22,9 +22,9 @@ Type
   end;
 
   Tconectiondata = Packed Record
-    Autentic: boolean;                 // si la conexion esta autenticada por un ping
-    Connections : Integer;             // A cuantos pares esta conectado
-    tipo: string[8];                   // Tipo: SER o CLI
+    Autentic        : boolean;                 // si la conexion esta autenticada por un ping
+    Connections     : Integer;             // A cuantos pares esta conectado
+    tipo            : string[8];                   // Tipo: SER o CLI
     ip: string[20];                    // La IP del par
     lastping: string[15];              // UTCTime del ultimo ping
     context: TIdContext;               // Informacion para los canales cliente
@@ -50,6 +50,11 @@ Type
     PSOHash       : string[32];
     end;
 
+  TBotData = Packed Record
+   ip          : string[15];
+   LastRefused : int64;
+   end;
+
   Procedure ClearOutTextToSlot(slot:integer);
   Function GetTextToSlot(slot:integer):string;
   Procedure TextToSlot(Slot:integer;LText:String);
@@ -71,6 +76,10 @@ Type
   Function LengthIncoming(Index:integer):integer;
   Procedure ClearIncoming(Index:integer);
 
+  Procedure UpdateBotData(IPUser:String);
+  Procedure DeleteBots();
+  function BotExists(IPUser:String):Boolean;
+
   Procedure InitializeElements();
   Procedure ClearElements();
 
@@ -83,6 +92,7 @@ var
   SlotLines        : array [1..MaxConecciones] of TStringList;
   CanalCliente     : array [1..MaxConecciones] of TIdTCPClient;
   ArrayOutgoing    : array [1..MaxConecciones] of array of string;
+  BotsList         : array of TBotData;
   // Donwloading files
   DownloadHeaders  : boolean = false;
   DownloadSumary   : Boolean = false;
@@ -101,6 +111,7 @@ var
   LastTimeRequestResumen       : int64 = 0;
   LastTimePendingRequested     : int64 = 0;
   LasTimePSOsRequest           : int64 = 0;
+  LastBotClear                 : int64 = 0;
   ForceCompleteHeadersDownload : boolean = false;
   // Local data hashes
   MyLastBlock     : integer = 0;
@@ -118,6 +129,7 @@ var
   CSIncomingArr         : array[1..MaxConecciones] of TRTLCriticalSection;
   CSOutGoingArr         : array[1..MaxConecciones] of TRTLCriticalSection;
   CSConexiones          : TRTLCriticalSection;
+  CSBotsList            : TRTLCriticalSection;
 
 IMPLEMENTATION
 
@@ -153,8 +165,6 @@ Begin
 End;
 
 {$ENDREGION ArrayOutgoing}
-
-
 
 {$REGION Conexiones control}
 
@@ -232,12 +242,25 @@ Begin
   FSlot:= ConexSlot;
 End;
 
+Function GetStreamFromClient(Slot:integer;out LStream:TMemoryStream):boolean;
+Begin
+  result := false;
+  LStream.Clear;
+  TRY
+    CanalCliente[Slot].IOHandler.ReadStream(LStream);
+    Result := True;
+  EXCEPT on E:Exception do
+    ToDeepDeb('');
+  END;
+
+End;
+
 procedure TThreadClientRead.Execute;
 var
-  LLine: String;
+  LLine        : String;
   MemStream    : TMemoryStream;
   BlockZipName : string = '';
-  Continuar    : boolean = true;
+  OnBuffer     : boolean = true;
   Errored      : Boolean;
   downloaded   : boolean;
   LineToSend   : string;
@@ -249,17 +272,18 @@ var
   FTPSpeed     : int64;
   ErrMsg       : string;
 begin
+  CanalCliente[FSlot].ReadTimeout:=1000;
+  CanalCliente[FSlot].IOHandler.MaxLineLength:=Maxint;
   AddNewOpenThread('ReadClient '+FSlot.ToString,UTCTime);
   REPEAT
-    TRY
     sleep(10);
-    continuar := true;
+    OnBuffer := true;
     if CanalCliente[FSlot].IOHandler.InputBufferIsEmpty then
       begin
-      CanalCliente[FSlot].IOHandler.CheckForDataOnSource(1000);
+      CanalCliente[FSlot].IOHandler.CheckForDataOnSource(100);
       if CanalCliente[FSlot].IOHandler.InputBufferIsEmpty then
         begin
-        Continuar := false;
+        OnBuffer := false;
         REPEAT
           LineToSend := GetTextToSlot(Fslot);
           if LineToSend <> '' then
@@ -269,128 +293,74 @@ begin
         UNTIL LineToSend='' ;
         end;
       end;
-    if Continuar then
+    if OnBuffer then
       begin
       While not CanalCliente[FSlot].IOHandler.InputBufferIsEmpty do
         begin
         SetConexIndexBusy(FSlot,true);
         SetConexIndexLastPing(fSlot,UTCTimeStr);
+        LLine := '';
           TRY
-          CanalCliente[FSlot].ReadTimeout:=1000;
-          CanalCliente[FSlot].IOHandler.MaxLineLength:=Maxint;
           LLine := CanalCliente[FSlot].IOHandler.ReadLn(IndyTextEncoding_UTF8);
           EXCEPT on E:Exception do
             begin
             ErrMsg := E.Message;
-            ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format('Error Reading lines from slot: %s',[IntToStr(Fslot)+slinebreak+ErrMsg]));
             SetConexIndexBusy(FSlot,false);
-            if AnsiContainsStr(Uppercase(ErrMsg),'SOCKET ERROR') then
-              begin
-              KillIt := true;
-              ToLog('console',Format('Socket error: ',[ErrMsg]));
-              end;
+            KillIt := true;
             continue;
             end;
           END; {TRY}
-        if continuar then
+        if LLine <> '' then
           begin
+          CanalCliente[FSlot].ReadTimeout:=10000;
           if Parameter(LLine,0) = 'RESUMENFILE' then
             begin
             DownloadHeaders := true;
-            AddFileProcess('Get','Headers',CanalCliente[FSlot].Host,GetTickCount64);
-            //ToLog('events',TimeToStr(now)+'Receiving headers'); //'Receiving headers'
-            //ToLog('console',rs0003); //'Receiving headers'
             MemStream := TMemoryStream.Create;
-            CanalCliente[FSlot].ReadTimeout:=10000;
-              TRY
-              CanalCliente[FSlot].IOHandler.ReadStream(MemStream);
-              FTPsize := MemStream.Size;
-              downloaded := True;
-              EXCEPT ON E:Exception do
-                begin
-                //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs0004,[conexiones[fSlot].ip,E.Message])); //'Error Receiving headers from
-                downloaded := false;
-                end;
-              END; {TRY}
-            if Downloaded then SavedToFile := SaveStreamAsHeaders(MemStream)
+            if GetStreamFromClient(FSlot,MemStream) then SavedToFile := SaveStreamAsHeaders(MemStream)
             else SavedToFile := false;
-            if ((Downloaded) and (SavedToFile)) then
+            if SavedToFile then
               begin
-              //ToLog('console',format(rs0005,[copy(HashMD5File(ResumenFilename),1,5)])); //'Headers file received'
               LastTimeRequestResumen := 0;
               UpdateMyData();
               end
-            else ToLog('console','Error downloading headers: downloaded: '+booltostr(Downloaded,true)+' / Saved: '+booltostr(SavedToFile,true));
+            else killit := true;
             MemStream.Free;
             DownloadHeaders := false;
-            FTPTime := CloseFileProcess('Get','Headers',CanalCliente[FSlot].Host,GetTickCount64);
-            FTPSpeed := (FTPSize div FTPTime);
-            ToLog('nodeftp','Downloaded headers from '+CanalCliente[FSlot].Host+' at '+FTPSpeed.ToString+' kb/s');
             end
 
           else if Parameter(LLine,0) = 'SUMARYFILE' then
             begin
             DownloadSumary := true;
-            AddFileProcess('Get','Summary',CanalCliente[FSlot].Host,GetTickCount64);
-            //ToLog('console',rs0085); //'Receiving sumary'
             MemStream := TMemoryStream.Create;
-            CanalCliente[FSlot].ReadTimeout:=10000;
-              TRY
-              CanalCliente[FSlot].IOHandler.ReadStream(MemStream);
-              FTPsize := MemStream.Size;
-              downloaded := True;
-              EXCEPT ON E:Exception do
-                begin
-                //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs0086,[conexiones[fSlot].ip,E.Message])); //'Error Receiving sumary from
-                downloaded := false;
-                end;
-              END; {TRY}
-            if Downloaded then SavedToFile := SaveSummaryToFile(MemStream);
-            if ((Downloaded) and (SavedToFile)) then
+            if GetStreamFromClient(FSlot,MemStream) then SavedToFile := SaveSummaryToFile(MemStream)
+            else SavedToFile := false;
+            if SavedToFile then
               begin
-              //ToLog('console',format(rs0087,[copy(HashMD5File(SummaryFileName),1,5)])); //'Sumary file received'
               UpdateMyData();
               CreateSumaryIndex();
-              //UpdateWalletFromSumario;
               LastTimeRequestSumary := 0;
-              end;
+              end
+            else killit := true;
             MemStream.Free;
             DownloadSumary := false;
-            FTPTime := CloseFileProcess('Get','Summary',CanalCliente[FSlot].Host,GetTickCount64);
-            FTPSpeed := (FTPSize div FTPTime);
-            ToLog('nodeftp','Downloaded summary from '+CanalCliente[FSlot].Host+' at '+FTPSpeed.ToString+' kb/s');
             end
 
           else if Parameter(LLine,0) = 'PSOSFILE' then
             begin
             DownloadPSOs := true;
-            AddFileProcess('Get','PSOs',CanalCliente[FSlot].Host,GetTickCount64);
-            //ToLog('console','Receiving PSOs'); //'Receiving psos'
             MemStream := TMemoryStream.Create;
-            CanalCliente[FSlot].ReadTimeout:=10000;
-              TRY
-              CanalCliente[FSlot].IOHandler.ReadStream(MemStream);
-              FTPsize := MemStream.Size;
-              downloaded := True;
-              EXCEPT ON E:Exception do
-                begin
-                //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs0092,[conexiones[fSlot].ip,E.Message])); //'Error Receiving sumary from
-                downloaded := false;
-                end;
-              END; {TRY}
-            if Downloaded then SavedToFile := SavePSOsToFile(MemStream);
-            if Downloaded and SavedToFile then
+            if GetStreamFromClient(FSlot,MemStream) then SavedToFile := SavePSOsToFile(MemStream)
+            else SavedToFile := false;
+            if SavedToFile then
               begin
-              //ToLog('console',format(rs0093,[copy(HashMD5File(PSOsFileName),1,5)])); //'PSOs file received'
               LoadPSOFileFromDisk;
               UpdateMyData();
               LasTimePSOsRequest := 0;
-              end;
+              end
+            else killit := true;
             MemStream.Free;
             DownloadPSOs := false;
-            FTPTime := CloseFileProcess('Get','PSOs',CanalCliente[FSlot].Host,GetTickCount64);
-            FTPSpeed := (FTPSize div FTPTime);
-            //ToLog('nodeftp','Downloaded PSOs from '+CanalCliente[FSlot].Host+' at '+FTPSpeed.ToString+' kb/s');
             end
 
           else if Parameter(LLine,0) = 'GVTSFILE' then
@@ -400,7 +370,6 @@ begin
             //ToLog('events',TimeToStr(now)+rs0089); //'Receiving GVTs'
             ToLog('console','Receiving GVTs file'); //'Receiving GVTs'
             MemStream := TMemoryStream.Create;
-            CanalCliente[FSlot].ReadTimeout:=10000;
               TRY
               CanalCliente[FSlot].IOHandler.ReadStream(MemStream);
               FTPsize := MemStream.Size;
@@ -439,7 +408,7 @@ begin
             //ToLog('nodeftp','Downloaded GVTs from '+CanalCliente[FSlot].Host+' at '+FTPTime.ToString+' kb/s');
             end
 
-          else if LLine = 'BLOCKZIP' then
+          else if Parameter(LLine,0) = 'BLOCKZIP' then
             begin  // START RECEIVING BLOCKS
             AddFileProcess('Get','Blocks',CanalCliente[FSlot].Host,GetTickCount64);
             //ToLog('events',TimeToStr(now)+rs0006); //'Receiving blocks'
@@ -447,7 +416,6 @@ begin
             TryDeleteFile(BlockZipName);
             MemStream := TMemoryStream.Create;
             DownLoadBlocks := true;
-            CanalCliente[FSlot].ReadTimeout:=10000;
               TRY
               CanalCliente[FSlot].IOHandler.ReadStream(MemStream);
               FTPsize := MemStream.Size;
@@ -476,22 +444,14 @@ begin
             FTPSpeed := (FTPSize div FTPTime);
             //ToLog('nodeftp','Downloaded blocks from '+CanalCliente[FSlot].Host+' at '+FTPTime.ToString+' kb/s');
             end // END RECEIVING BLOCKS
-        else
-          begin
-          AddToIncoming(FSlot,LLine);
+          else
+            begin
+            AddToIncoming(FSlot,LLine);
+            end;
           end;
-        end;
       SetConexIndexBusy(FSlot,false);
       end; // end while client is not empty
-    end; // End if continuar
-
-    EXCEPT ON E:Exception do
-      begin
-      ErrMsg := E.Message;
-      //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'*****CRITICAL**** Error inside Client thread: '+ErrMsg);
-      KillIt := true;
-      end;
-    END; {TRY}
+    end; // End OnBuffer
   UNTIL ( (terminated) or (not CanalCliente[FSlot].Connected) or (KillIt) );
   DecClientReadThreads;
   CloseOpenThread('ReadClient '+FSlot.ToString);
@@ -564,6 +524,58 @@ End;
 
 {$ENDREGION Incoming/outgoing info}
 
+{$REGION Bots array}
+
+Procedure UpdateBotData(IPUser:String);
+var
+  contador : integer = 0;
+  updated : boolean = false;
+Begin
+  EnterCriticalSection(CSBotsList);
+  for contador := 0 to length(BotsList)-1 do
+    begin
+    if BotsList[Contador].ip = IPUser then
+      begin
+      BotsList[Contador].LastRefused:=UTCTime;
+      Updated := true;
+      end;
+    end;
+  LeaveCriticalSection(CSBotsList);
+  if not updated then
+    begin
+    EnterCriticalSection(CSBotsList);
+    SetLength(BotsList,Length(BotsList)+1);
+    BotsList[Length(BotsList)-1].ip:=IPUser;
+    BotsList[Length(BotsList)-1].LastRefused:=UTCTime;
+    LeaveCriticalSection(CSBotsList);
+    end;
+End;
+
+Procedure DeleteBots();
+Begin
+  EnterCriticalSection(CSBotsList);
+  SetLength(BotsList,0);
+  LeaveCriticalSection(CSBotsList);
+  LastBotClear := UTCTime;
+End;
+
+function BotExists(IPUser:String):Boolean;
+var
+  contador : integer = 0;
+Begin
+  Result := false;
+  EnterCriticalSection(CSBotsList);
+  for contador := 0 to length(BotsList)-1 do
+    if BotsList[contador].ip = IPUser then
+      begin
+      result := true;
+      break;
+      end;
+  LeaveCriticalSection(CSBotsList);
+End;
+
+{$ENDREGION Bots array}
+
 {$REGION Unit related}
 
 Procedure InitializeElements();
@@ -572,6 +584,8 @@ var
 Begin
   InitCriticalSection(CSClientReads);
   InitCriticalSection(CSConexiones);
+  InitCriticalSection(CSBotsList);
+  SetLength(BotsList,0);
   for counter := 1 to MaxConecciones do
     begin
     InitCriticalSection(CSIncomingArr[counter]);
@@ -588,6 +602,7 @@ var
 Begin
   DoneCriticalSection(CSClientReads);
   DoneCriticalSection(CSConexiones);
+  DoneCriticalSection(CSBotsList);
   for counter := 1 to MaxConecciones do
     begin
     DoneCriticalSection(CSIncomingArr[counter]);

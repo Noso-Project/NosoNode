@@ -13,8 +13,8 @@ uses
 
 function GetSlotFromIP(Ip:String):int64;
 function GetSlotFromContext(Context:TidContext):int64;
-function BotExists(IPUser:String):Boolean;
-function NodeExists(IPUser,Port:String):integer;
+//function BotExists(IPUser:String):Boolean;
+//function NodeExists(IPUser,Port:String):integer;
 function SaveConection(tipo,ipuser:String;contextdata:TIdContext;toSlot:integer=-1):integer;
 Procedure ForceServer();
 procedure StartServer();
@@ -90,6 +90,7 @@ for contador := 1 to MaxConecciones do
    end;
 end;
 
+{
 // Devuelve si un bot existe o no en la base de datos
 function BotExists(IPUser:String):Boolean;
 var
@@ -99,7 +100,9 @@ Result := false;
 for contador := 0 to length(ListadoBots)-1 do
    if ListadoBots[contador].ip = IPUser then result := true;
 End;
+}
 
+{
 // Devuelve si un Nodo existe o no en la base de datos
 function NodeExists(IPUser,Port:String):integer;
 var
@@ -109,7 +112,7 @@ Begin
   for contador := 0 to length(ListadoBots)-1 do
     if ((ListaNodos[contador].ip = IPUser) and (ListaNodos[contador].port = port)) then result := contador;
 End;
-
+}
 // Almacena una conexion con sus datos en el array Conexiones
 function SaveConection(tipo,ipuser:String;contextdata:TIdContext;toSlot:integer=-1):integer;
 var

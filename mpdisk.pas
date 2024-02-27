@@ -36,7 +36,7 @@ Procedure ExtractPoFiles();
 Procedure CreateFileFromResource(resourcename,filename:string);
 
 
-Procedure UpdateBotData(IPUser:String);
+//Procedure UpdateBotData(IPUser:String);
 
 // sumary
 Procedure UpdateWalletFromSumario();
@@ -427,32 +427,30 @@ End;
 // *** BOTS FILE ***
 // *****************************************************************************
 {$REGION BOTS FILE}
-
+{
 // Modifica la hora del ultimo intento del bot, o lo añade si es la primera vez
 Procedure UpdateBotData(IPUser:String);
 var
   contador : integer = 0;
   updated : boolean = false;
 Begin
-if IsSafeIP(IPUser) then exit;
-for contador := 0 to length(ListadoBots)-1 do
-   begin
-   if ListadoBots[Contador].ip = IPUser then
+  if IsSafeIP(IPUser) then exit;
+  for contador := 0 to length(ListadoBots)-1 do
+    begin
+    if ListadoBots[Contador].ip = IPUser then
       begin
       ListadoBots[Contador].LastRefused:=UTCTimeStr;
       Updated := true;
       end;
-   end;
-if not updated then
-   begin
-   SetLength(ListadoBots,Length(ListadoBots)+1);
-   ListadoBots[Length(listadoBots)-1].ip:=IPUser;
-   ListadoBots[Length(listadoBots)-1].LastRefused:=UTCTimeStr;
-   end;
+    end;
+  if not updated then
+    begin
+    SetLength(ListadoBots,Length(ListadoBots)+1);
+    ListadoBots[Length(listadoBots)-1].ip:=IPUser;
+    ListadoBots[Length(listadoBots)-1].LastRefused:=UTCTimeStr;
+    end;
 End;
-
-
-
+}
 {$ENDREGION}
 
 // Saves updates files to disk
