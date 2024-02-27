@@ -100,7 +100,7 @@ End;
 procedure TFormSlots.GridMSlotsPrepareCanvas(sender: TObject; aCol, aRow: Integer;
   aState: TGridDrawState);
 Begin
-if ( (Arow>0) and (conexiones[Arow].IsBusy) ) then
+if ( (Arow>0) and (GetConexIndex(Arow).IsBusy) ) then
   begin
   (sender as TStringGrid).Canvas.Brush.Color :=  clmoneygreen;
   end;
@@ -149,58 +149,60 @@ End;
 
 Procedure UpdateSlotsGrid();
 var
-  contador : integer;
+  counter   : integer;
   CurrentUTC : int64;
+  LConex     : Tconectiondata;
 Begin
-if WO_StopGUI then exit;
-BeginPerformance('UpdateSlotsGrid');
-CurrentUTC := UTCTime;
-if CurrentUTC>SlotsLastUpdate then
-   begin
-   for contador := 1 to MaxConecciones do
+  if WO_StopGUI then exit;
+  BeginPerformance('UpdateSlotsGrid');
+  CurrentUTC := UTCTime;
+  if CurrentUTC>SlotsLastUpdate then
+    begin
+    for counter := 1 to MaxConecciones do
       begin
-      GridMSlots.Cells[0,contador]:= inttostr(contador);
-      GridMSlots.Cells[1,contador]:= Conexiones[contador].ip;
-      GridMSlots.Cells[2,contador]:= Conexiones[contador].tipo;
-      GridMSlots.Cells[3,contador]:= IntToStr(Conexiones[contador].Connections);
-      GridMSlots.Cells[4,contador]:= Conexiones[contador].Lastblock;
-      GridMSlots.Cells[5,contador]:= copy(Conexiones[contador].LastblockHash,0,5);
-      GridMSlots.Cells[6,contador]:= copy(Conexiones[contador].SumarioHash,0,5);
-      GridMSlots.Cells[7,contador]:= IntToStr(Conexiones[contador].Pending);
-      GridMSlots.Cells[8,contador]:= IntToStr(Conexiones[contador].Protocol);
-      GridMSlots.Cells[9,contador]:= Conexiones[contador].Version;
-      GridMSlots.Cells[10,contador]:= IntToStr(Conexiones[contador].ListeningPort);
-      GridMSlots.Cells[11,contador]:= IntToStr(Conexiones[contador].offset);
-      GridMSlots.Cells[12,contador]:= copy(Conexiones[contador].ResumenHash,0,5);
-      GridMSlots.Cells[13,contador]:= IntToStr(Conexiones[contador].ConexStatus);
-      GridMSlots.Cells[14,contador]:= IntToStr(UTCTime-StrToInt64Def(Conexiones[contador].lastping,UTCTime));
-      GridMSlots.Cells[15,contador]:= Conexiones[contador].MNsHash;
-      GridMSlots.Cells[16,contador]:= IntToStr(Conexiones[contador].MNsCount);
-      GridMSlots.Cells[17,contador]:= Conexiones[contador].BestHashDiff;
-      GridMSlots.Cells[18,contador]:= Conexiones[contador].MNChecksCount.ToString;
-      GridMSlots.Cells[19,contador]:= copy(Conexiones[contador].GVTsHash,0,5);
-      GridMSlots.Cells[20,contador]:= Conexiones[contador].CFGHash;
-      GridMSlots.Cells[21,contador]:= copy(Conexiones[contador].MerkleHash,0,5);
-      GridMSlots.Cells[22,contador]:= copy(Conexiones[contador].PSOHash,0,5);
+      LConex  := GetConexIndex(counter);
+      GridMSlots.Cells[0,counter]  := inttostr(counter);
+      GridMSlots.Cells[1,counter]  := LConex.ip;
+      GridMSlots.Cells[2,counter]  := LConex.tipo;
+      GridMSlots.Cells[3,counter]  := IntToStr(LConex.Connections);
+      GridMSlots.Cells[4,counter]  := LConex.Lastblock;
+      GridMSlots.Cells[5,counter]  := copy(LConex.LastblockHash,0,5);
+      GridMSlots.Cells[6,counter]  := copy(LConex.SumarioHash,0,5);
+      GridMSlots.Cells[7,counter]  := IntToStr(LConex.Pending);
+      GridMSlots.Cells[8,counter]  := IntToStr(LConex.Protocol);
+      GridMSlots.Cells[9,counter]  := LConex.Version;
+      GridMSlots.Cells[10,counter] := IntToStr(LConex.ListeningPort);
+      GridMSlots.Cells[11,counter] := IntToStr(LConex.offset);
+      GridMSlots.Cells[12,counter] := copy(LConex.ResumenHash,0,5);
+      GridMSlots.Cells[13,counter] := IntToStr(LConex.ConexStatus);
+      GridMSlots.Cells[14,counter] := IntToStr(UTCTime-StrToInt64Def(LConex.lastping,UTCTime));
+      GridMSlots.Cells[15,counter] := LConex.MNsHash;
+      GridMSlots.Cells[16,counter] := IntToStr(LConex.MNsCount);
+      GridMSlots.Cells[17,counter] := LConex.BestHashDiff;
+      GridMSlots.Cells[18,counter] := LConex.MNChecksCount.ToString;
+      GridMSlots.Cells[19,counter] := copy(LConex.GVTsHash,0,5);
+      GridMSlots.Cells[20,counter] := LConex.CFGHash;
+      GridMSlots.Cells[21,counter] := copy(LConex.MerkleHash,0,5);
+      GridMSlots.Cells[22,counter] := copy(LConex.PSOHash,0,5);
       end;
-   SlotsLastUpdate := CurrentUTC;
-   end;
-EndPerformance('UpdateSlotsGrid');
+    SlotsLastUpdate := CurrentUTC;
+    end;
+  EndPerformance('UpdateSlotsGrid');
 End;
 
 Function GetConnectedPeers():String;
 var
   counter : integer;
 Begin
-result := '';
-For counter := 1 to MaxConecciones do
-   begin
-   if ( (Conexiones[counter].ip<>'') and (Conexiones[counter].ConexStatus>=3) ) then
+  result := '';
+  For counter := 1 to MaxConecciones do
+    begin
+    if ( (GetConexIndex(counter).ip<>'') and (GetConexIndex(counter).ConexStatus>=3) ) then
       begin
-      Result := result+Conexiones[counter].ip+' ';
+      Result := result+GetConexIndex(counter).ip+' ';
       end;
-   end;
-Trim(Result);
+    end;
+  Trim(Result);
 End;
 
 // Inicializa el grid donde se muestran los datos

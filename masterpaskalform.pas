@@ -561,7 +561,7 @@ CONST
                                    '$CUSTOMORDERADMINMSGNETREQ$REPORTNODE$GETMNS$BESTHASH$MNREPO$MNCHECK'+
                                    'GETMNSFILEMNFILEGETHEADUPDATE$GETSUMARY$GETGVTSGVTSFILE$SNDGVTGETCFGDATA'+
                                    'SETCFGDATA$GETPSOSPSOSFILE';
-  HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS DELBOT';
+  HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS DELBOTS';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
 
   ProgramVersion = '0.4.2';
@@ -1931,8 +1931,6 @@ Begin
   form1.SGConSeeds.ColWidths[2]:= thispercent(40,GridWidth);
   form1.SGConSeeds.ColWidths[3]:= thispercent(20,GridWidth,true);
 End;
-
-
 
 // Resize: Performance
 procedure TForm1.SG_PerformanceResize(sender: TObject);

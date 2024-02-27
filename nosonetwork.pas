@@ -50,6 +50,10 @@ Type
     PSOHash       : string[32];
     end;
 
+  Procedure ClearOutTextToSlot(slot:integer);
+  Function GetTextToSlot(slot:integer):string;
+  Procedure TextToSlot(Slot:integer;LText:String);
+
   Function GetConexIndex(Slot:integer): Tconectiondata;
   Procedure SetConexIndex(Slot: integer; LData:Tconectiondata);
   Procedure SetConexIndexBusy(LSlot:integer;value:Boolean);
@@ -116,6 +120,41 @@ var
   CSConexiones          : TRTLCriticalSection;
 
 IMPLEMENTATION
+
+{$REGION ArrayOutgoing}
+
+Procedure ClearOutTextToSlot(slot:integer);
+Begin
+  EnterCriticalSection(CSOutGoingArr[slot]);
+  SetLength(ArrayOutgoing[slot],0);
+  LeaveCriticalSection(CSOutGoingArr[slot]);
+End;
+
+Function GetTextToSlot(slot:integer):string;
+Begin
+  result := '';
+  if ( (Slot>=1) and (slot<=MaxConecciones) ) then
+    begin
+    EnterCriticalSection(CSOutGoingArr[slot]);
+    if length(ArrayOutgoing[slot])>0 then
+      begin
+      result:= ArrayOutgoing[slot][0];
+      Delete(ArrayOutgoing[slot],0,1);
+      end;
+    LeaveCriticalSection(CSOutGoingArr[slot]);
+    end;
+End;
+
+Procedure TextToSlot(Slot:integer;LText:String);
+Begin
+  EnterCriticalSection(CSOutGoingArr[slot]);
+  Insert(LText,ArrayOutgoing[slot],length(ArrayOutgoing[slot]));
+  LeaveCriticalSection(CSOutGoingArr[slot]);
+End;
+
+{$ENDREGION ArrayOutgoing}
+
+
 
 {$REGION Conexiones control}
 
@@ -218,7 +257,17 @@ begin
     if CanalCliente[FSlot].IOHandler.InputBufferIsEmpty then
       begin
       CanalCliente[FSlot].IOHandler.CheckForDataOnSource(1000);
-      if CanalCliente[FSlot].IOHandler.InputBufferIsEmpty then Continuar := false;
+      if CanalCliente[FSlot].IOHandler.InputBufferIsEmpty then
+        begin
+        Continuar := false;
+        REPEAT
+          LineToSend := GetTextToSlot(Fslot);
+          if LineToSend <> '' then
+            begin
+            CanalCliente[FSlot].IOHandler.Writeln(LineToSend);
+            end;
+        UNTIL LineToSend='' ;
+        end;
       end;
     if Continuar then
       begin

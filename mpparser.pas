@@ -20,7 +20,6 @@ Procedure ParseCommandLine(LineText:string);
 procedure NuevaDireccion(linetext:string);
 Procedure ShowNodes();
 Procedure ShowBots();
-Procedure ShowSlots();
 Procedure ShowUser_Options();
 function GetWalletBalance(): Int64;
 Procedure ConnectTo(LineText:string);
@@ -192,7 +191,6 @@ else if UpperCase(Command) = 'SERVEROFF' then StopServer()
 else if UpperCase(Command) = 'FORCESERVER' then ForceServer()
 else if UpperCase(Command) = 'NODES' then ShowNodes()
 else if UpperCase(Command) = 'BOTS' then ShowBots()
-else if UpperCase(Command) = 'SLOTS' then ShowSlots()
 {else if UpperCase(Command) = 'CONNECT' then ConnectToServers()}
 else if UpperCase(Command) = 'DISCONNECT' then CerrarClientes()
 else if UpperCase(Command) = 'OFFSET' then ToLog('console','Server: '+NosoT_LastServer+SLINEBREAK+
@@ -363,25 +361,6 @@ for contador := 0 to length(ListadoBots) - 1 do
    ToLog('console',IntToStr(contador)+'- '+ListadoBots[contador].ip);
 ToLog('console',IntToStr(length(ListadoBots))+' bots registered.');  // bots registered
 End;
-
-// muestra la informacion de los slots
-Procedure ShowSlots();
-var
-  contador : integer = 0;
-Begin
-ToLog('console','Number Type ConnectedTo ChannelUsed LinesOnWait SumHash LBHash Offset ConStatus'); //Number Type ConnectedTo ChannelUsed LinesOnWait SumHash LBHash Offset ConStatus
-for contador := 1 to MaxConecciones do
-   begin
-   if IsSlotConnected(contador) then
-      begin
-      ToLog('console',IntToStr(contador)+' '+conexiones[contador].tipo+
-      ' '+conexiones[contador].ip+
-      ' '+BoolToStr(CanalCliente[contador].connected,true)+' '+IntToStr(LengthIncoming(contador))+
-      ' '+conexiones[contador].SumarioHash+' '+conexiones[contador].LastblockHash+' '+
-      IntToStr(conexiones[contador].offset)+' '+IntToStr(conexiones[contador].ConexStatus));
-      end;
-   end;
-end;
 
 // Muestras las opciones del usuario
 Procedure ShowUser_Options();

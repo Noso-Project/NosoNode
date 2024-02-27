@@ -17,8 +17,8 @@ Function ProtocolLine(tipo:integer):String;
 Procedure ParseProtocolLines();
 function IsValidProtocol(line:String):Boolean;
 Procedure PTC_SendLine(Slot:int64;Message:String);
-Procedure ClearOutTextToSlot(slot:integer);
-Function GetTextToSlot(slot:integer):string;
+//Procedure ClearOutTextToSlot(slot:integer);
+//Function GetTextToSlot(slot:integer):string;
 Procedure ProcessPing(LineaDeTexto: string; Slot: integer; Responder:boolean);
 function GetPingString():string;
 procedure PTC_SendPending(Slot:int64);
@@ -238,21 +238,21 @@ Begin
       UsedVersion := Parameter(ProcessLine,2);
       PeerTime := Parameter(ProcessLine,3);
       LineComando := Parameter(ProcessLine,4);
-      if ((not IsValidProtocol(ProcessLine)) and (not Conexiones[contador].Autentic)) then
+      if ((not IsValidProtocol(ProcessLine)) and (not GetConexIndex(contador).Autentic)) then
          // La linea no es valida y proviene de una conexion no autentificada
          begin
-         ToLog('console','CONNECTION REJECTED: INVALID PROTOCOL -> '+conexiones[contador].ip+'->'+ProcessLine); //CONNECTION REJECTED: INVALID PROTOCOL ->
-         UpdateBotData(conexiones[contador].ip);
+         ToLog('console','CONNECTION REJECTED: INVALID PROTOCOL -> '+GetConexIndex(contador).ip+'->'+ProcessLine); //CONNECTION REJECTED: INVALID PROTOCOL ->
+         UpdateBotData(GetConexIndex(contador).ip);
          CerrarSlot(contador);
          end
       else if UpperCase(LineComando) = 'DUPLICATED' then
          begin
-         ToLog('Console','You are already connected to '+conexiones[contador].ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
+         ToLog('Console','You are already connected to '+GetConexIndex(contador).ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
          CerrarSlot(contador);
          end
       else if UpperCase(LineComando) = 'OLDVERSION' then
          begin
-         ToLog('Console','You need update your node to connect to '+conexiones[contador].ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
+         ToLog('Console','You need update your node to connect to '+GetConexIndex(contador).ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
          CerrarSlot(contador);
          end
       else if UpperCase(LineComando) = '$PING' then ProcessPing(ProcessLine,contador,true)
@@ -297,30 +297,42 @@ End;
 // Envia una linea a un determinado slot
 Procedure PTC_SendLine(Slot:int64;Message:String);
 Begin
-if slot <= length(conexiones)-1 then
-   begin
-   if ((conexiones[Slot].tipo='CLI') and (not conexiones[Slot].IsBusy)) then
+  if ( (slot >= 1) and (Slot <= MaxConecciones) ) then
+    begin
+    if ((GetConexIndex(Slot).tipo='CLI') and (not GetConexIndex(Slot).IsBusy)) then
       begin
+      TextToSlot(slot,message);
+      {
       EnterCriticalSection(CSOutGoingArr[slot]);
       Insert(Message,ArrayOutgoing[slot],length(ArrayOutgoing[slot]));
       LeaveCriticalSection(CSOutGoingArr[slot]);
+      }
       end;
-   if ((conexiones[Slot].tipo='SER') and (not conexiones[Slot].IsBusy)) then
+    if ((GetConexIndex(Slot).tipo='SER') and (not GetConexIndex(Slot).IsBusy)) then
       begin
+      TextToSlot(slot,message);
+      {
+      EnterCriticalSection(CSOutGoingArr[slot]);
+      Insert(Message,ArrayOutgoing[slot],length(ArrayOutgoing[slot]));
+      LeaveCriticalSection(CSOutGoingArr[slot]);
+      }
+      {
       TRY
       CanalCliente[Slot].IOHandler.WriteLn(Message);
       EXCEPT On E :Exception do
-         begin
-         ToLog('Console',E.Message);
-         ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error sending line: '+E.Message);
-         CerrarSlot(Slot);
-         end;
+        begin
+        ToLog('Console',E.Message);
+        ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error sending line: '+E.Message);
+        CerrarSlot(Slot);
+        end;
       END;{TRY}
+      }
       end;
-   end
-else ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Invalid PTC_SendLine slot: '+IntToStr(slot));
+    end
+  else ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Invalid PTC_SendLine slot: '+IntToStr(slot));
 end;
 
+{
 Procedure ClearOutTextToSlot(slot:integer);
 Begin
 EnterCriticalSection(CSOutGoingArr[slot]);
@@ -342,54 +354,43 @@ if ( (Slot>=1) and (slot<=MaxConecciones) ) then
    LeaveCriticalSection(CSOutGoingArr[slot]);
    end;
 End;
+}
 
 // Procesa un ping recibido y envia el PONG si corresponde.
 Procedure ProcessPing(LineaDeTexto: string; Slot: integer; Responder:boolean);
 var
-  PProtocol, PVersion, PConexiones, PTime, PLastBlock, PLastBlockHash, PSumHash, PPending : string;
-  PResumenHash, PConStatus, PListenPort, PMNsHash, PMNsCount, BestHashDiff, MnsCheckCount : String;
+  NewData : Tconectiondata;
 Begin
-PProtocol      := Parameter(LineaDeTexto,1);
-PVersion       := Parameter(LineaDeTexto,2);
-PTime          := Parameter(LineaDeTexto,3);
-PConexiones    := Parameter(LineaDeTexto,5);
-PLastBlock     := Parameter(LineaDeTexto,6);
-PLastBlockHash := Parameter(LineaDeTexto,7);
-PSumHash       := Parameter(LineaDeTexto,8);
-PPending       := Parameter(LineaDeTexto,9);
-PResumenHash   := Parameter(LineaDeTexto,10);
-PConStatus     := Parameter(LineaDeTexto,11);
-PListenPort    := Parameter(LineaDeTexto,12);
-PMNsHash       := Parameter(LineaDeTexto,13);
-PMNsCount      := Parameter(LineaDeTexto,14);
-BestHashDiff   := Parameter(LineaDeTexto,15);
-MnsCheckCount  := Parameter(LineaDeTexto,16);
-conexiones[slot].Autentic     :=true;
-conexiones[slot].Connections  :=StrToIntDef(PConexiones,1);
-conexiones[slot].Version      :=PVersion;
-conexiones[slot].Lastblock    :=PLastBlock;
-conexiones[slot].LastblockHash:=PLastBlockHash;
-conexiones[slot].SumarioHash  :=PSumHash;
-conexiones[slot].Pending      :=StrToIntDef(PPending,0);
-conexiones[slot].Protocol     :=StrToIntDef(PProtocol,0);
-conexiones[slot].offset       :=StrToInt64(PTime)-UTCTime;
-conexiones[slot].lastping     :=UTCTimeStr;
-conexiones[slot].ResumenHash  :=PResumenHash;
-conexiones[slot].ConexStatus  :=StrToIntDef(PConStatus,0);
-conexiones[slot].ListeningPort:=StrToIntDef(PListenPort,-1);
-conexiones[slot].MNsHash      :=PMNsHash;
-conexiones[slot].MNsCount     :=StrToIntDef(PMNsCount,0);
-conexiones[slot].BestHashDiff := BestHashDiff;
-conexiones[slot].MNChecksCount:=StrToIntDef(MnsCheckCount,0);
-conexiones[slot].GVTsHash     :=Parameter(LineaDeTexto,17);
-conexiones[slot].CFGHash      :=Parameter(LineaDeTexto,18);
-conexiones[slot].PSOHash      :=Parameter(LineaDeTexto,19);;
-conexiones[slot].MerkleHash   :=HashMD5String(PLastBlock+copy(PResumenHash,0,5)+copy(PMNsHash,0,5)+
-                                copy(PLastBlockHash,0,5)+copy(PSumHash,0,5)+
-                                copy(Parameter(LineaDeTexto,17),0,5)+copy(Parameter(LineaDeTexto,18),0,5));
-
-if responder then PTC_SendLine(slot,ProtocolLine(4));
-if responder then G_TotalPings := G_TotalPings+1;
+  NewData               := GetConexIndex(Slot);
+  NewData.Autentic      := true;
+  NewData.Protocol      := StrToIntDef(Parameter(LineaDeTexto,1),0);
+  NewData.Version       := Parameter(LineaDeTexto,2);
+  NewData.offset        := StrToInt64Def(Parameter(LineaDeTexto,3),UTCTime)-UTCTime;
+  NewData.Connections   := StrToIntDef(Parameter(LineaDeTexto,5),0);
+  NewData.Lastblock     := Parameter(LineaDeTexto,6);
+  NewData.LastblockHash := Parameter(LineaDeTexto,7);
+  NewData.SumarioHash   := Parameter(LineaDeTexto,8);
+  NewData.Pending       := StrToIntDef(Parameter(LineaDeTexto,9),0);
+  NewData.ResumenHash   := Parameter(LineaDeTexto,10);
+  NewData.ConexStatus   := StrToIntDef(Parameter(LineaDeTexto,11),0);
+  NewData.ListeningPort := StrToIntDef(Parameter(LineaDeTexto,12),-1);
+  NewData.MNsHash       := Parameter(LineaDeTexto,13);
+  NewData.MNsCount      := StrToIntDef(Parameter(LineaDeTexto,14),0);
+  NewData.BestHashDiff  := 'null'{15};
+  NewData.MNChecksCount := StrToIntDef(Parameter(LineaDeTexto,16),0);
+  NewData.lastping      := UTCTimeStr;
+  NewData.GVTsHash      := Parameter(LineaDeTexto,17);
+  NewData.CFGHash       := Parameter(LineaDeTexto,18);
+  NewData.PSOHash       := Parameter(LineaDeTexto,19);;
+  NewData.MerkleHash    := HashMD5String(NewData.Lastblock+copy(NewData.ResumenHash,0,5)+copy(NewData.MNsHash,0,5)+
+                                copy(NewData.LastblockHash,0,5)+copy(NewData.SumarioHash,0,5)+
+                                copy(NewData.GVTsHash,0,5)+copy(NewData.CFGHash,0,5));
+  SetConexIndex(Slot,NewData);
+  if responder then
+    begin
+    PTC_SendLine(slot,ProtocolLine(4));
+    Inc(G_TotalPings);
+    end;
 End;
 
 // Devuelve la informacion contenida en un ping
@@ -455,7 +456,6 @@ if GetPendingCount > 0 then
          PTC_SendLine(slot,Encab+'$'+TextLine);
          end;
       end;
-   ToLog('events',TimeToStr(now)+'Sent '+IntToStr(Length(CopyPendingTXs))+' pendingTxs to '+conexiones[slot].ip);
    SetLength(CopyPendingTXs,0);
    end;
 End;
@@ -467,19 +467,19 @@ var
 Begin
 MemStream := TMemoryStream.Create;
 GetHeadersAsMemStream(MemStream);
-if conexiones[slot].tipo='CLI' then
+if GetConexIndex(slot).tipo='CLI' then
    begin
       TRY
-      Conexiones[slot].context.Connection.IOHandler.WriteLn('RESUMENFILE');
-      Conexiones[slot].context.connection.IOHandler.Write(MemStream,0,true);
+      GetConexIndex(slot).context.Connection.IOHandler.WriteLn('RESUMENFILE');
+      GetConexIndex(slot).context.connection.IOHandler.Write(MemStream,0,true);
       EXCEPT on E:Exception do
          begin
-         Form1.TryCloseServerConnection(Conexiones[Slot].context);
+         Form1.TryCloseServerConnection(GetConexIndex(Slot).context);
          ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Error sending headers file ('+E.Message+')');
          end;
       END; {TRY}
    end;
-if conexiones[slot].tipo='SER' then
+if GetConexIndex(slot).tipo='SER' then
    begin
       TRY
       CanalCliente[slot].IOHandler.WriteLn('RESUMENFILE');
@@ -500,19 +500,19 @@ var
 Begin
 MemStream := TMemoryStream.Create;
 GetSummaryAsMemStream(MemStream);
-if conexiones[slot].tipo='CLI' then
+if GetConexIndex(slot).tipo='CLI' then
    begin
       TRY
-      Conexiones[slot].context.Connection.IOHandler.WriteLn('SUMARYFILE');
-      Conexiones[slot].context.connection.IOHandler.Write(MemStream,0,true);
+      GetConexIndex(slot).context.Connection.IOHandler.WriteLn('SUMARYFILE');
+      GetConexIndex(slot).context.connection.IOHandler.Write(MemStream,0,true);
       EXCEPT on E:Exception do
          begin
-         Form1.TryCloseServerConnection(Conexiones[Slot].context);
+         Form1.TryCloseServerConnection(GetConexIndex(Slot).context);
          ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Error sending sumary file ('+E.Message+')');
          end;
       END; {TRY}
    end;
-if conexiones[slot].tipo='SER' then
+if GetConexIndex(slot).tipo='SER' then
    begin
       TRY
       CanalCliente[slot].IOHandler.WriteLn('SUMARYFILE');
@@ -533,19 +533,19 @@ var
 Begin
 MemStream := TMemoryStream.Create;
 GetPSOsAsMemStream(MemStream);
-if conexiones[slot].tipo='CLI' then
+if GetConexIndex(slot).tipo='CLI' then
    begin
       TRY
-      Conexiones[slot].context.Connection.IOHandler.WriteLn('PSOSFILE');
-      Conexiones[slot].context.connection.IOHandler.Write(MemStream,0,true);
+      GetConexIndex(slot).context.Connection.IOHandler.WriteLn('PSOSFILE');
+      GetConexIndex(slot).context.connection.IOHandler.Write(MemStream,0,true);
       EXCEPT on E:Exception do
          begin
-         Form1.TryCloseServerConnection(Conexiones[Slot].context);
+         Form1.TryCloseServerConnection(GetConexIndex(Slot).context);
          ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Error sending PSOs file ('+E.Message+')');
          end;
       END; {TRY}
    end;
-if conexiones[slot].tipo='SER' then
+if GetConexIndex(slot).tipo='SER' then
    begin
       TRY
       CanalCliente[slot].IOHandler.WriteLn('PSOSFILE');
@@ -651,20 +651,20 @@ MemStream := TMemoryStream.Create;
    END; {TRY}
    if GetFileOk then
       begin
-      if conexiones[Slot].tipo='CLI' then
+      if GetConexIndex(Slot).tipo='CLI' then
          begin
             TRY
-            Conexiones[Slot].context.Connection.IOHandler.WriteLn('BLOCKZIP');
-            Conexiones[Slot].context.connection.IOHandler.Write(MemStream,0,true);
+            GetConexIndex(Slot).context.Connection.IOHandler.WriteLn('BLOCKZIP');
+            GetConexIndex(Slot).context.connection.IOHandler.Write(MemStream,0,true);
             FileSentOk := true;
             EXCEPT on E:Exception do
                begin
-               Form1.TryCloseServerConnection(Conexiones[Slot].context);
+               Form1.TryCloseServerConnection(GetConexIndex(Slot).context);
                ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Error sending ZIP blocks file ('+E.Message+')');
                end;
             END; {TRY}
          end;
-      if conexiones[Slot].tipo='SER' then
+      if GetConexIndex(Slot).tipo='SER' then
          begin
             TRY
             CanalCliente[Slot].IOHandler.WriteLn('BLOCKZIP');
