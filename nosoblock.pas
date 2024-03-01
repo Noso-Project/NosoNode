@@ -54,9 +54,11 @@ function GetMyLastUpdatedBlock():int64;
 function GetBlockTrxs(BlockNumber:integer):TBlockOrdersArray;
 function LoadBlockDataHeader(BlockNumber:integer):BlockHeaderData;
 
+Function SaveStreamAsZipBlocks(Const LStream:TMemoryStream):boolean;
 
 var
   BlockDirectory      : string = 'NOSODATA'+DirectorySeparator+'BLOCKS'+DirectorySeparator;
+  BlocksZipFile       : string = 'blocks.zip';
   DBDirectory         : string = 'DB'+DirectorySeparator;
   DataBaseFilename    : string = 'blocks_db.nos';
   DBFile              : file of TDBRecord;
@@ -395,6 +397,23 @@ Result := header;
 End;
 
 {$ENDREGION Blocks Information}
+
+{$REGION Blocks Files management}
+
+Function SaveStreamAsZipBlocks(Const LStream:TMemoryStream):boolean;
+Begin
+  result := false;
+  TRY
+    LStream.SaveToFile(BlockDirectory+BlocksZipFile);
+    Result := true;
+  EXCEPT ON E:Exception do
+    begin
+    ToDeepDeb('NosoBlock,SaveStreamAsZipBlocks,'+E.Message);
+    end;
+  END{Try};
+End;
+
+{$ENDREGION Blocks Files management}
 
 INITIALIZATION
 Assignfile(DBFile,BlockDirectory+DBDirectory+DataBaseFilename);

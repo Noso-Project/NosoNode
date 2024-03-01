@@ -8,7 +8,8 @@ uses
   Classes, SysUtils, strutils,
   IdContext, IdGlobal, IdTCPClient,
   nosodebug, nosotime, nosogeneral, nosoheaders, nosocrypto, nosoblock,nosoconsensus,
-  nosounit,nosonosoCFG,nosogvts,nosomasternodes,nosopsos;
+  nosounit,nosonosoCFG,nosogvts,nosomasternodes,nosopsos
+  ;
 
 Type
 
@@ -55,6 +56,15 @@ Type
    LastRefused : int64;
    end;
 
+  Function GetPendingCount():integer;
+  Procedure ClearAllPending();
+
+  function IsValidProtocol(line:String):Boolean;
+  function GetPingString():string;
+  Function ProtocolLine(LCode:integer):String;
+  Procedure ProcessPing(LineaDeTexto: string; Slot: integer; Responder:boolean);
+  Procedure ProcessIncomingLine(FSlot:integer;LLine:String);
+
   Procedure ClearOutTextToSlot(slot:integer);
   Function GetTextToSlot(slot:integer):string;
   Procedure TextToSlot(Slot:integer;LText:String);
@@ -65,6 +75,9 @@ Type
   Procedure SetConexIndexLastPing(LSlot:integer;value:string);
   procedure SetConexReserved(LSlot:Integer;Reserved:boolean);
   procedure StartConexThread(LSlot:Integer);
+  Procedure CloseSlot(Slot:integer);
+  function GetTotalConexiones():integer;
+  Function IsSlotConnected(number:integer):Boolean;
 
   Procedure UpdateMyData();
   Procedure IncClientReadThreads();
@@ -85,7 +98,8 @@ Type
 
 CONST
   MaxConecciones   = 99;
-
+  Protocolo        = 2;
+  MainnetVersion   = '0.4.2';
 var
   // General
   Conexiones       : array [1..MaxConecciones] of Tconectiondata;
@@ -93,6 +107,7 @@ var
   CanalCliente     : array [1..MaxConecciones] of TIdTCPClient;
   ArrayOutgoing    : array [1..MaxConecciones] of array of string;
   BotsList         : array of TBotData;
+  ArrayPoolTXs     : Array of TOrderData;
   // Donwloading files
   DownloadHeaders  : boolean = false;
   DownloadSumary   : Boolean = false;
@@ -130,8 +145,147 @@ var
   CSOutGoingArr         : array[1..MaxConecciones] of TRTLCriticalSection;
   CSConexiones          : TRTLCriticalSection;
   CSBotsList            : TRTLCriticalSection;
+  CSPending             : TRTLCriticalSection;
 
 IMPLEMENTATION
+
+Uses
+  MasterPaskalForm;    // To be removed, only due to server dependancy until it is implemented
+
+{$REGION Pool transactions}
+
+Function GetPendingCount():integer;
+Begin
+  EnterCriticalSection(CSPending);
+  result := Length(ArrayPoolTXs);
+  LeaveCriticalSection(CSPending);
+End;
+
+// Clear the pending transactions array safely
+Procedure ClearAllPending();
+Begin
+  EnterCriticalSection(CSPending);
+  SetLength(ArrayPoolTXs,0);
+  LeaveCriticalSection(CSPending);
+End;
+
+{$ENDREGION Pool transactions}
+
+
+{$REGION Protocol}
+
+function IsValidProtocol(line:String):Boolean;
+Begin
+  if ( (copy(line,1,4) = 'PSK ') or (copy(line,1,4) = 'NOS ') ) then result := true
+  else result := false;
+End;
+
+function GetPingString():string;
+var
+  LPort : integer = 0;
+Begin
+  if Form1.Server.Active then Lport := Form1.Server.DefaultPort else Lport:= -1 ;
+  result :=IntToStr(GetTotalConexiones())+' '+ //
+         IntToStr(MyLastBlock)+' '+
+         MyLastBlockHash+' '+
+         MySumarioHash+' '+
+         GetPendingCount.ToString+' '+
+         MyResumenHash+' '+
+         IntToStr(MyConStatus)+' '+
+         IntToStr(Lport)+' '+
+         copy(MyMNsHash,0,5)+' '+
+         IntToStr(GetMNsListLength)+' '+
+         'null'+' '+ //GetNMSData.Diff
+         GetMNsChecksCount.ToString+' '+
+         MyGVTsHash+' '+
+         Copy(HashMD5String(GetCFGDataStr),0,5)+' '+
+         Copy(PSOFileHash,0,5);
+End;
+
+Function ProtocolLine(LCode:integer):String;
+var
+  Specific      : String = '';
+  Header        : String = '';
+Begin
+  Header := 'PSK '+IntToStr(protocolo)+' '+MainnetVersion+'zzz '+UTCTimeStr+' ';
+  if LCode = 0 then Specific := '';                                 //OnlyHeaders
+  if LCode = 3 then Specific := '$PING '+GetPingString;             //Ping
+  if LCode = 4 then Specific := '$PONG '+GetPingString;             //Pong
+  if LCode = 5 then Specific := '$GETPENDING';                      //GetPending
+  if LCode = 6 then Specific := '$GETSUMARY';                       //GetSumary
+  if LCode = 7 then Specific := '$GETRESUMEN';                      //GetResumen
+  if LCode = 8 then Specific := '$LASTBLOCK '+IntToStr(mylastblock);//LastBlock
+  if LCode = 9 then Specific := '$CUSTOM ';                        //Custom
+  if LCode = 11 then Specific := '$GETMNS';                         //GetMNs
+  if LCode = 12 then Specific := '$BESTHASH';                       //BestHash
+  if LCode = 13 then Specific := '$MNREPO '+GetMNReportString;      //MNReport
+  if LCode = 14 then Specific := '$MNCHECK ';                       //MNCheck
+  if LCode = 15 then Specific := '$GETCHECKS';                      //GetChecks
+  if LCode = 16 then Specific := 'GETMNSFILE';                      //GetMNsFile
+  if LCode = 17 then Specific := 'MNFILE';                              //MNFile
+  if LCode = 18 then Specific := 'GETHEADUPDATE '+MyLastBlock.ToString; //GetHeadUpdate
+  if LCode = 19 then Specific := 'HEADUPDATE';                      //HeadUpdate
+  if LCode = 20 then Specific := '$GETGVTS';                        //GetGVTs
+  if LCode = 21 then Specific := '$SNDGVT ';
+  if LCode = 30 then Specific := 'GETCFGDATA';                      //GetCFG
+  if LCode = 31 then Specific := 'SETCFGDATA $';                    //SETCFG
+  if LCode = 32 then Specific := '$GETPSOS';                        //GetPSOs
+Result := Header+Specific;
+End;
+
+Procedure ProcessPing(LineaDeTexto: string; Slot: integer; Responder:boolean);
+var
+  NewData : Tconectiondata;
+Begin
+  NewData               := GetConexIndex(Slot);
+  NewData.Autentic      := true;
+  NewData.Protocol      := StrToIntDef(Parameter(LineaDeTexto,1),0);
+  NewData.Version       := Parameter(LineaDeTexto,2);
+  NewData.offset        := StrToInt64Def(Parameter(LineaDeTexto,3),UTCTime)-UTCTime;
+  NewData.Connections   := StrToIntDef(Parameter(LineaDeTexto,5),0);
+  NewData.Lastblock     := Parameter(LineaDeTexto,6);
+  NewData.LastblockHash := Parameter(LineaDeTexto,7);
+  NewData.SumarioHash   := Parameter(LineaDeTexto,8);
+  NewData.Pending       := StrToIntDef(Parameter(LineaDeTexto,9),0);
+  NewData.ResumenHash   := Parameter(LineaDeTexto,10);
+  NewData.ConexStatus   := StrToIntDef(Parameter(LineaDeTexto,11),0);
+  NewData.ListeningPort := StrToIntDef(Parameter(LineaDeTexto,12),-1);
+  NewData.MNsHash       := Parameter(LineaDeTexto,13);
+  NewData.MNsCount      := StrToIntDef(Parameter(LineaDeTexto,14),0);
+  NewData.BestHashDiff  := 'null'{15};
+  NewData.MNChecksCount := StrToIntDef(Parameter(LineaDeTexto,16),0);
+  NewData.lastping      := UTCTimeStr;
+  NewData.GVTsHash      := Parameter(LineaDeTexto,17);
+  NewData.CFGHash       := Parameter(LineaDeTexto,18);
+  NewData.PSOHash       := Parameter(LineaDeTexto,19);;
+  NewData.MerkleHash    := HashMD5String(NewData.Lastblock+copy(NewData.ResumenHash,0,5)+copy(NewData.MNsHash,0,5)+
+                                copy(NewData.LastblockHash,0,5)+copy(NewData.SumarioHash,0,5)+
+                                copy(NewData.GVTsHash,0,5)+copy(NewData.CFGHash,0,5));
+  SetConexIndex(Slot,NewData);
+  if responder then
+    begin
+    TextToSlot(slot,ProtocolLine(4));
+    end;
+End;
+
+Procedure ProcessIncomingLine(FSlot:integer;LLine:String);
+var
+  Protocol, PeerVersion, PeerTime, Command : string;
+Begin
+  Protocol    := Parameter(LLine,1);
+  PeerVersion := Parameter(LLine,2);
+  PeerTime    := Parameter(LLine,3);
+  Command     := Parameter(LLine,4);
+  if ((not IsValidProtocol(LLine)) and (not GetConexIndex(FSlot).Autentic)) then
+    begin
+    UpdateBotData(GetConexIndex(Fslot).ip);
+    CloseSlot(FSlot);
+    end
+  else if UpperCase(LLine) = 'DUPLICATED' then CloseSlot(FSlot)
+  else if Copy(UpperCase(LLine),1,10) = 'OLDVERSION' then CloseSlot(FSlot)
+End;
+
+{$ENDREGION Protocol}
 
 {$REGION ArrayOutgoing}
 
@@ -159,9 +313,12 @@ End;
 
 Procedure TextToSlot(Slot:integer;LText:String);
 Begin
-  EnterCriticalSection(CSOutGoingArr[slot]);
-  Insert(LText,ArrayOutgoing[slot],length(ArrayOutgoing[slot]));
-  LeaveCriticalSection(CSOutGoingArr[slot]);
+  if ( (Slot >= 1) and (Slot <=99) ) then
+    begin
+    EnterCriticalSection(CSOutGoingArr[slot]);
+    Insert(LText,ArrayOutgoing[slot],length(ArrayOutgoing[slot]));
+    LeaveCriticalSection(CSOutGoingArr[slot]);
+    end;
 End;
 
 {$ENDREGION ArrayOutgoing}
@@ -216,6 +373,46 @@ Begin
   LeaveCriticalSection(CSConexiones);
 End;
 
+Procedure CloseSlot(Slot:integer);
+Begin
+  BeginPerformance('CloseSlot');
+    TRY
+    if GetConexIndex(Slot).tipo='CLI' then
+      begin
+      ClearIncoming(slot);
+      GetConexIndex(Slot).context.Connection.Disconnect;
+      Sleep(10);
+      end;
+    if GetConexIndex(Slot).tipo='SER' then
+      begin
+      ClearIncoming(slot);
+      CanalCliente[Slot].IOHandler.InputBuffer.Clear;
+      CanalCliente[Slot].Disconnect;
+      end;
+    EXCEPT on E:Exception do
+      ToDeepDeb('NosoNetwork,CloseSlot,'+E.Message);
+    END;{Try}
+  SetConexIndex(Slot,Default(Tconectiondata));
+  EndPerformance('CloseSlot');
+End;
+
+function GetTotalConexiones():integer;
+var
+  counter:integer;
+Begin
+  BeginPerformance('GetTotalConexiones');
+  result := 0;
+  for counter := 1 to MaxConecciones do
+    if IsSlotConnected(Counter) then result := result + 1;
+  EndPerformance('GetTotalConexiones');
+End;
+
+Function IsSlotConnected(number:integer):Boolean;
+Begin
+  result := false;
+  if ((GetConexIndex(number).tipo = 'SER') or (GetConexIndex(number).tipo = 'CLI')) then result := true;
+End;
+
 {$ENDREGION Conexiones control}
 
 {$REGION General Data}
@@ -242,6 +439,17 @@ Begin
   FSlot:= ConexSlot;
 End;
 
+Function LineToClient(Slot:Integer;LLine:String):boolean;
+Begin
+  Result := false;
+  TRY
+    CanalCliente[Slot].IOHandler.WriteLn(LLine);
+    Result := true;
+  EXCEPT on E:Exception do
+    ToDeepDeb('NosoNetwork,LineToClient,'+E.Message);
+  END;
+End;
+
 Function GetStreamFromClient(Slot:integer;out LStream:TMemoryStream):boolean;
 Begin
   result := false;
@@ -250,30 +458,24 @@ Begin
     CanalCliente[Slot].IOHandler.ReadStream(LStream);
     Result := True;
   EXCEPT on E:Exception do
-    ToDeepDeb('');
+    ToDeepDeb('NosoNetwork,GetStreamFromClient,'+E.Message);
   END;
-
 End;
 
 procedure TThreadClientRead.Execute;
 var
   LLine        : String;
   MemStream    : TMemoryStream;
-  BlockZipName : string = '';
   OnBuffer     : boolean = true;
   Errored      : Boolean;
   downloaded   : boolean;
   LineToSend   : string;
-  LineSent     : boolean;
   KillIt       : boolean = false;
   SavedToFile  : boolean;
-  FTPTime      : int64;
-  FTPSize      : int64;
-  FTPSpeed     : int64;
-  ErrMsg       : string;
 begin
   CanalCliente[FSlot].ReadTimeout:=1000;
   CanalCliente[FSlot].IOHandler.MaxLineLength:=Maxint;
+  IncClientReadThreads;
   AddNewOpenThread('ReadClient '+FSlot.ToString,UTCTime);
   REPEAT
     sleep(10);
@@ -300,16 +502,15 @@ begin
         SetConexIndexBusy(FSlot,true);
         SetConexIndexLastPing(fSlot,UTCTimeStr);
         LLine := '';
-          TRY
+        TRY
           LLine := CanalCliente[FSlot].IOHandler.ReadLn(IndyTextEncoding_UTF8);
-          EXCEPT on E:Exception do
-            begin
-            ErrMsg := E.Message;
-            SetConexIndexBusy(FSlot,false);
-            KillIt := true;
-            continue;
-            end;
-          END; {TRY}
+        EXCEPT on E:Exception do
+          begin
+          SetConexIndexBusy(FSlot,false);
+          KillIt := true;
+          continue;
+          end;
+        END; {TRY}
         if LLine <> '' then
           begin
           CanalCliente[FSlot].ReadTimeout:=10000;
@@ -321,10 +522,10 @@ begin
             else SavedToFile := false;
             if SavedToFile then
               begin
-              LastTimeRequestResumen := 0;
               UpdateMyData();
               end
             else killit := true;
+            LastTimeRequestResumen := 0;
             MemStream.Free;
             DownloadHeaders := false;
             end
@@ -339,9 +540,9 @@ begin
               begin
               UpdateMyData();
               CreateSumaryIndex();
-              LastTimeRequestSumary := 0;
               end
             else killit := true;
+            LastTimeRequestSumary := 0;
             MemStream.Free;
             DownloadSumary := false;
             end
@@ -356,9 +557,9 @@ begin
               begin
               LoadPSOFileFromDisk;
               UpdateMyData();
-              LasTimePSOsRequest := 0;
               end
             else killit := true;
+            LasTimePSOsRequest := 0;
             MemStream.Free;
             DownloadPSOs := false;
             end
@@ -366,86 +567,42 @@ begin
           else if Parameter(LLine,0) = 'GVTSFILE' then
             begin
             DownloadGVTs := true;
-            AddFileProcess('Get','GVTFile',CanalCliente[FSlot].Host,GetTickCount64);
-            //ToLog('events',TimeToStr(now)+rs0089); //'Receiving GVTs'
-            ToLog('console','Receiving GVTs file'); //'Receiving GVTs'
             MemStream := TMemoryStream.Create;
-              TRY
-              CanalCliente[FSlot].IOHandler.ReadStream(MemStream);
-              FTPsize := MemStream.Size;
-              downloaded := True;
-              EXCEPT ON E:Exception do
-                begin
-                ToLog('console',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format('Error Receiving GVTs from %s (%s)',[GetConexIndex(fSlot).ip,E.Message])); //'Error Receiving GVTs from
-                downloaded := false;
-                end;
-              END; {TRY}
-            if Downloaded then
+            if GetStreamFromClient(FSlot,MemStream) then SavedToFile := SaveStreamAsGVTs(MemStream)
+            else SavedToFile := false;
+            if SavedToFile then
               begin
-              Errored := false;
-              EnterCriticalSection(CSGVTsArray);
-                TRY
-                MemStream.SaveToFile(GVTsFilename);
-                Errored := False;
-                EXCEPT on E:Exception do
-                  begin
-                    Errored := true;
-                    ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error saving GVTs to file: '+E.Message);
-                  end;
-                END; {TRY}
-              LeaveCriticalSection(CSGVTsArray);
-              end;
-            if Downloaded and not errored then
-              begin
-              //ToLog('console','GVTS file downloaded');
               GetGVTsFileData;
-              //UpdateMyGVTsList;
-              end;
+              end
+            else killit := true;
+            LasTimeGVTsRequest := 0;
             MemStream.Free;
             DownloadGVTs := false;
-            FTPTime := CloseFileProcess('Get','GVTFile',CanalCliente[FSlot].Host,GetTickCount64);
-            FTPSpeed := (FTPSize div FTPTime);
-            //ToLog('nodeftp','Downloaded GVTs from '+CanalCliente[FSlot].Host+' at '+FTPTime.ToString+' kb/s');
             end
 
           else if Parameter(LLine,0) = 'BLOCKZIP' then
-            begin  // START RECEIVING BLOCKS
-            AddFileProcess('Get','Blocks',CanalCliente[FSlot].Host,GetTickCount64);
-            //ToLog('events',TimeToStr(now)+rs0006); //'Receiving blocks'
-            BlockZipName := BlockDirectory+'blocks.zip';
-            TryDeleteFile(BlockZipName);
-            MemStream := TMemoryStream.Create;
+            begin
             DownLoadBlocks := true;
-              TRY
-              CanalCliente[FSlot].IOHandler.ReadStream(MemStream);
-              FTPsize := MemStream.Size;
-              MemStream.SaveToFile(BlockZipName);
-              Errored := false;
-              EXCEPT ON E:Exception do
-                begin
-                //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs0007,[conexiones[fSlot].ip,E.Message])); //'Error Receiving blocks from %s (%s)',[conexiones[fSlot].ip,E.Message]));
-                Errored := true;
-                end;
-              END; {TRY}
-            If not Errored then
+            MemStream := TMemoryStream.Create;
+            if GetStreamFromClient(FSlot,MemStream) then SavedToFile := SaveStreamAsZipBlocks(MemStream)
+            else SavedToFile := false;
+            if SavedToFile then
               begin
               if UnzipFile(BlockDirectory+'blocks.zip',true) then
                 begin
                 MyLastBlock := GetMyLastUpdatedBlock();
                 MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
-                //ToLog('events',TimeToStr(now)+format(rs0021,[IntToStr(MyLastBlock)])); //'Blocks received up to '+IntToStr(MyLastBlock));
-                LastTimeRequestBlock := 0;
                 UpdateMyData();
                 end;
-              end;
+              end
+            else killit := true;
+            LastTimeRequestBlock := 0;
             MemStream.Free;
             DownLoadBlocks := false;
-            FTPTime := CloseFileProcess('Get','Blocks',CanalCliente[FSlot].Host,GetTickCount64);
-            FTPSpeed := (FTPSize div FTPTime);
-            //ToLog('nodeftp','Downloaded blocks from '+CanalCliente[FSlot].Host+' at '+FTPTime.ToString+' kb/s');
             end // END RECEIVING BLOCKS
           else
             begin
+            ProcessIncomingLine(FSlot,LLine);
             AddToIncoming(FSlot,LLine);
             end;
           end;
@@ -453,6 +610,7 @@ begin
       end; // end while client is not empty
     end; // End OnBuffer
   UNTIL ( (terminated) or (not CanalCliente[FSlot].Connected) or (KillIt) );
+  CloseSlot(Fslot);
   DecClientReadThreads;
   CloseOpenThread('ReadClient '+FSlot.ToString);
 End;
@@ -585,7 +743,9 @@ Begin
   InitCriticalSection(CSClientReads);
   InitCriticalSection(CSConexiones);
   InitCriticalSection(CSBotsList);
+  InitCriticalSection(CSPending);
   SetLength(BotsList,0);
+  Setlength(ArrayPoolTXs,0);
   for counter := 1 to MaxConecciones do
     begin
     InitCriticalSection(CSIncomingArr[counter]);
@@ -603,6 +763,7 @@ Begin
   DoneCriticalSection(CSClientReads);
   DoneCriticalSection(CSConexiones);
   DoneCriticalSection(CSBotsList);
+  DoneCriticalSection(CSPending);
   for counter := 1 to MaxConecciones do
     begin
     DoneCriticalSection(CSIncomingArr[counter]);

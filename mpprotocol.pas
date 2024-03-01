@@ -13,13 +13,13 @@ function GetPTCEcn():String;
 Function GetOrderFromString(textLine:String):TOrderData;
 function GetStringFromOrder(order:Torderdata):String;
 function GetStringFromBlockHeader(blockheader:BlockHeaderdata):String;
-Function ProtocolLine(tipo:integer):String;
+//Function ProtocolLine(tipo:integer):String;
 Procedure ParseProtocolLines();
-function IsValidProtocol(line:String):Boolean;
+//function IsValidProtocol(line:String):Boolean;
 Procedure PTC_SendLine(Slot:int64;Message:String);
 //Procedure ClearOutTextToSlot(slot:integer);
 //Function GetTextToSlot(slot:integer):string;
-Procedure ProcessPing(LineaDeTexto: string; Slot: integer; Responder:boolean);
+//Procedure ProcessPing(LineaDeTexto: string; Slot: integer; Responder:boolean);
 function GetPingString():string;
 procedure PTC_SendPending(Slot:int64);
 Procedure PTC_SendResumen(Slot:int64);
@@ -53,10 +53,11 @@ CONST
   Ping = 3;
   Pong = 4;
   GetPending = 5;
+  GetSumary  = 6;
   GetResumen = 7;
   LastBlock = 8;
   Custom = 9;
-  NodeReport = 10;
+  //NodeReport = 10;
   GetMNs = 11;
   BestHash = 12;
   MNReport =13;
@@ -66,7 +67,7 @@ CONST
   MNFile = 17;
   GetHeadUpdate = 18;
   HeadUpdate = 19;
-  GetSumary  = 6;
+
   GetGVTs    = 20;
   GetCFG     = 30;
   SETCFG     = 31;
@@ -80,7 +81,7 @@ uses
 // Devuelve el puro encabezado con espacio en blanco al final
 function GetPTCEcn():String;
 Begin
-result := 'PSK '+IntToStr(protocolo)+' '+ProgramVersion+subversion+' '+UTCTimeStr+' ';
+result := 'PSK '+IntToStr(protocolo)+' '+MainnetVersion+NodeRelease+' '+UTCTimeStr+' ';
 End;
 
 // convierte los datos de la cadena en una order
@@ -149,76 +150,39 @@ result := 'Number:'+IntToStr(BlockHeader.Number)+' '+
 
 End;
 
+{
 //Devuelve la linea de protocolo solicitada
 Function ProtocolLine(tipo:integer):String;
 var
-  Resultado     : String = '';
-  Encabezado    : String = '';
-  TempStr       : string = '';
-  LastDownBlock : integer =0;
+  Specific      : String = '';
+  Header        : String = '';
 Begin
-Encabezado := 'PSK '+IntToStr(protocolo)+' '+ProgramVersion+subversion+' '+UTCTimeStr+' ';
-if tipo = OnlyHeaders then
-   resultado := '';
-if tipo = Ping then
-   Resultado := '$PING '+GetPingString;
-if tipo = Pong then
-   Resultado := '$PONG '+GetPingString;
-if tipo = GetPending then
-   Resultado := '$GETPENDING';
-if tipo = GetResumen then
-   Resultado := '$GETRESUMEN';
-if tipo = LastBlock then
-   if WO_FullNode then Resultado := '$LASTBLOCK '+IntToStr(mylastblock)
-   else
-      begin
-      LastDownBlock := StrToIntDef(GetConsensus(2),0)-SecurityBlocks;
-      if LastDownBlock<MyLastBlock then LastDownBlock:=MyLastBlock;
-      Resultado := '$LASTBLOCK '+IntToStr(LastDownBlock);
-      end;
-if tipo = Custom then
-   Resultado := '$CUSTOM ';
-if tipo = NodeReport then    // DEPRECATED
-   begin
-   Resultado := '$MNREPORT '+MN_IP+' '+MN_Port+' '+TempStr+' '+MN_Sign+' '+MyLastBlock.ToString+' '+
-      MyLastBlockHash+' '+GetMNSignature;
-   end;
-if tipo = GetMNs then
-   Resultado := '$GETMNS';
-if tipo = BestHash then
-   Resultado := '$BESTHASH';
-if tipo = MNReport then
-   Resultado := '$MNREPO '+GetMNReportString;
-if tipo = MNCheck then
-   Resultado := '$MNCHECK ';
-if Tipo = GetChecks then
-   Resultado := '$GETCHECKS';
-if tipo = GetMNsFile then
-   Resultado := 'GETMNSFILE';
-if tipo = MNFile then
-   Resultado := 'MNFILE';
-if tipo = GetHeadUpdate then
-   Resultado := 'GETHEADUPDATE '+MyLastBlock.ToString;
-if tipo = HeadUpdate then
-   Resultado := 'HEADUPDATE';
-if tipo = GetSumary then
-   Resultado := '$GETSUMARY';
-if tipo = GetGVTs then
-   Resultado := '$GETGVTS';
-if tipo = 21 then
-   Resultado := '$SNDGVT ';
-if tipo = GetCFG then
-   Resultado := 'GETCFGDATA';
-if tipo = SETCFG then
-   Resultado := 'SETCFGDATA $';
-if tipo = GetPSOs then
-   Resultado := '$GETPSOS';
-
-
-Resultado := Encabezado+Resultado;
-Result := resultado;
+  Header := 'PSK '+IntToStr(protocolo)+' '+MainnetVersion+NodeRelease+' '+UTCTimeStr+' ';
+  if tipo = 0 then Specific := '';                                 //OnlyHeaders
+  if tipo = 3 then Specific := '$PING '+GetPingString;             //Ping
+  if tipo = 4 then Specific := '$PONG '+GetPingString;             //Pong
+  if tipo = 5 then Specific := '$GETPENDING';                      //GetPending
+  if tipo = 6 then Specific := '$GETSUMARY';                       //GetSumary
+  if tipo = 7 then Specific := '$GETRESUMEN';                      //GetResumen
+  if tipo = 8 then Specific := '$LASTBLOCK '+IntToStr(mylastblock) //LastBlock
+  if tipo = 9 then Resultado := '$CUSTOM ';                        //Custom
+  if tipo = 11 then Specific := '$GETMNS';                         //GetMNs
+  if tipo = 12 then Specific := '$BESTHASH';                       //BestHash
+  if tipo = 13 then Specific := '$MNREPO '+GetMNReportString;      //MNReport
+  if tipo = 14 then Specific := '$MNCHECK ';                       //MNCheck
+  if Tipo = 15 then Specific := '$GETCHECKS';                      //GetChecks
+  if tipo = 16 then Specific := 'GETMNSFILE';                      //GetMNsFile
+  if tipo = 17 then Specific := 'MNFILE';                              //MNFile
+  if tipo = 18 then Specific := 'GETHEADUPDATE '+MyLastBlock.ToString; //GetHeadUpdate
+  if tipo = 19 then Specific := 'HEADUPDATE';                      //HeadUpdate
+  if tipo = 20 then Specific := '$GETGVTS';                        //GetGVTs
+  if tipo = 21 then Specific := '$SNDGVT ';
+  if tipo = 30 then Specific := 'GETCFGDATA';                      //GetCFG
+  if tipo = 31 then Specific := 'SETCFGDATA $';                    //SETCFG
+  if tipo = 32 then Specific := '$GETPSOS';                        //GetPSOs
+Result := Header+Specific;
 End;
-
+}
 // Procesa todas las lineas procedentes de las conexiones
 Procedure ParseProtocolLines();
 var
@@ -243,17 +207,17 @@ Begin
          begin
          ToLog('console','CONNECTION REJECTED: INVALID PROTOCOL -> '+GetConexIndex(contador).ip+'->'+ProcessLine); //CONNECTION REJECTED: INVALID PROTOCOL ->
          UpdateBotData(GetConexIndex(contador).ip);
-         CerrarSlot(contador);
+         CloseSlot(contador);
          end
       else if UpperCase(LineComando) = 'DUPLICATED' then
          begin
          ToLog('Console','You are already connected to '+GetConexIndex(contador).ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
-         CerrarSlot(contador);
+         CloseSlot(contador);
          end
       else if UpperCase(LineComando) = 'OLDVERSION' then
          begin
          ToLog('Console','You need update your node to connect to '+GetConexIndex(contador).ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
-         CerrarSlot(contador);
+         CloseSlot(contador);
          end
       else if UpperCase(LineComando) = '$PING' then ProcessPing(ProcessLine,contador,true)
       else if UpperCase(LineComando) = '$PONG' then ProcessPing(ProcessLine,contador,false)
@@ -287,12 +251,14 @@ Begin
    end;
 End;
 
+{
 // Verifica si una linea recibida en una conexion es una linea valida de protocolo
 function IsValidProtocol(line:String):Boolean;
 Begin
-if copy(line,1,4) = 'PSK ' then result := true
-else result := false;
+  if copy(line,1,4) = 'PSK ' then result := true
+  else result := false;
 End;
+}
 
 // Envia una linea a un determinado slot
 Procedure PTC_SendLine(Slot:int64;Message:String);
@@ -323,7 +289,7 @@ Begin
         begin
         ToLog('Console',E.Message);
         ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error sending line: '+E.Message);
-        CerrarSlot(Slot);
+        CloseSlot(Slot);
         end;
       END;{TRY}
       }
@@ -355,7 +321,7 @@ if ( (Slot>=1) and (slot<=MaxConecciones) ) then
    end;
 End;
 }
-
+{
 // Procesa un ping recibido y envia el PONG si corresponde.
 Procedure ProcessPing(LineaDeTexto: string; Slot: integer; Responder:boolean);
 var
@@ -392,7 +358,7 @@ Begin
     Inc(G_TotalPings);
     end;
 End;
-
+}
 // Devuelve la informacion contenida en un ping
 function GetPingString():string;
 var
@@ -423,40 +389,40 @@ var
   Encab : string;
   Textline : String;
   TextOrder : String;
-  CopyPendingTXs : Array of TOrderData;
+  CopyArrayPoolTXs : Array of TOrderData;
 Begin
 Encab := GetPTCEcn;
 TextOrder := encab+'ORDER ';
 if GetPendingCount > 0 then
    begin
    EnterCriticalSection(CSPending);
-   SetLength(CopyPendingTXs,0);
-   CopyPendingTXs := copy(PendingTXs,0,length(PendingTXs));
+   SetLength(CopyArrayPoolTXs,0);
+   CopyArrayPoolTXs := copy(ArrayPoolTXs,0,length(ArrayPoolTXs));
    LeaveCriticalSection(CSPending);
-   for contador := 0 to Length(CopyPendingTXs)-1 do
+   for contador := 0 to Length(CopyArrayPoolTXs)-1 do
       begin
-      Textline := GetStringFromOrder(CopyPendingTXs[contador]);
-      if (CopyPendingTXs[contador].OrderType='CUSTOM') then
+      Textline := GetStringFromOrder(CopyArrayPoolTXs[contador]);
+      if (CopyArrayPoolTXs[contador].OrderType='CUSTOM') then
          begin
          PTC_SendLine(slot,Encab+'$'+TextLine);
          end;
-      if (CopyPendingTXs[contador].OrderType='TRFR') then
+      if (CopyArrayPoolTXs[contador].OrderType='TRFR') then
          begin
-         if CopyPendingTXs[contador].TrxLine=1 then TextOrder:= TextOrder+IntToStr(CopyPendingTXs[contador].OrderLines)+' ';
-         TextOrder := TextOrder+'$'+GetStringfromOrder(CopyPendingTXs[contador])+' ';
-         if CopyPendingTXs[contador].OrderLines=CopyPendingTXs[contador].TrxLine then
+         if CopyArrayPoolTXs[contador].TrxLine=1 then TextOrder:= TextOrder+IntToStr(CopyArrayPoolTXs[contador].OrderLines)+' ';
+         TextOrder := TextOrder+'$'+GetStringfromOrder(CopyArrayPoolTXs[contador])+' ';
+         if CopyArrayPoolTXs[contador].OrderLines=CopyArrayPoolTXs[contador].TrxLine then
             begin
             Setlength(TextOrder,length(TextOrder)-1);
             PTC_SendLine(slot,TextOrder);
             TextOrder := encab+'ORDER ';
             end;
          end;
-      if (CopyPendingTXs[contador].OrderType='SNDGVT') then
+      if (CopyArrayPoolTXs[contador].OrderType='SNDGVT') then
          begin
          PTC_SendLine(slot,Encab+'$'+TextLine);
          end;
       end;
-   SetLength(CopyPendingTXs,0);
+   SetLength(CopyArrayPoolTXs,0);
    end;
 End;
 
@@ -487,7 +453,7 @@ if GetConexIndex(slot).tipo='SER' then
       EXCEPT on E:Exception do
          begin
          ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'CLIENT: Error sending Headers file ('+E.Message+')');
-         CerrarSlot(slot);
+         CloseSlot(slot);
          end;
       END;{TRY}
    end;
@@ -520,7 +486,7 @@ if GetConexIndex(slot).tipo='SER' then
       EXCEPT on E:Exception do
          begin
          ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'CLIENT: Error sending Sumary file ('+E.Message+')');
-         CerrarSlot(slot);
+         CloseSlot(slot);
          end;
       END;{TRY}
    end;
@@ -553,7 +519,7 @@ if GetConexIndex(slot).tipo='SER' then
       EXCEPT on E:Exception do
          begin
          ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'CLIENT: Error sending PSOs file ('+E.Message+')');
-         CerrarSlot(slot);
+         CloseSlot(slot);
          end;
       END;{TRY}
    end;
@@ -673,7 +639,7 @@ MemStream := TMemoryStream.Create;
             EXCEPT on E:Exception do
                begin
                ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'CLIENT: Error sending ZIP blocks file ('+E.Message+')');
-               CerrarSlot(slot);
+               CloseSlot(slot);
                END; {TRY}
             end;
          end;
@@ -711,7 +677,7 @@ if not VerifySignedString('Customize this '+Address+' '+OrderInfo.Receiver,Order
 if ErrorCode = 0 then
    begin
    OpData := GetOpData(TextLine); // Eliminar el encabezado
-   AddPendingTxs(OrderInfo);
+   AddArrayPoolTXs(OrderInfo);
    if form1.Server.Active then OutgoingMsjsAdd(GetPTCEcn+opdata);
    end;
 Result := ErrorCode;
@@ -875,7 +841,7 @@ if proceder then
    Textbak := GetOpData(TextLine);
    Textbak := GetPTCEcn+'ORDER '+IntToStr(NumTransfers)+' '+Textbak;
    for cont := 0 to NumTransfers-1 do
-      AddPendingTxs(TrxArray[cont]);
+      AddArrayPoolTXs(TrxArray[cont]);
    if form1.Server.Active then OutgoingMsjsAdd(Textbak);
    U_DirPanel := true;
    Result := Parameter(Textbak,7); // send order ID as result
@@ -923,7 +889,7 @@ if OrderInfo.sender <> AdminPubKey then ErrorCode := 8;
 if ErrorCode= 0 then
    begin
    OpData := GetOpData(TextLine); // remove trx header
-   AddPendingTxs(OrderInfo);
+   AddArrayPoolTXs(OrderInfo);
    if form1.Server.Active then OutgoingMsjsAdd(GetPTCEcn+opdata);
    end;
 Result := ErrorCode;

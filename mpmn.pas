@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, MasterPaskalform, mpcoin, mpgui, IdTCPClient, IdGlobal,
   strutils, nosodebug, nosogeneral, nosocrypto, nosotime, nosounit,nosowallcon,
   nosonetwork,nosomasternodes;
-
+{
 Type
 
    TThreadMNVerificator = class(TThread)
@@ -19,7 +19,7 @@ Type
       public
         constructor Create(const CreatePaused: Boolean; const ConexSlot:Integer);
       end;
-
+}
 Function NoVerificators():integer;
 Function RunMNVerification():String;
 Function GetMNCheckFromString(Linea:String):TMNCheck;
@@ -69,14 +69,15 @@ Function GetWaitingMNs():String;
 var
   ArrayIPsProcessed : array of string;
   OpenVerificators : integer;
-  MNsListCopy : array of TMnode;       // Contains the Nodes data to run the verification
+  MNsListCopy        : array of TMnode;       // Contains the Nodes data to run the verification
+  MNsList            : array of TMnode;
   CurrSynctus : string;
   VerifiedNodes : String;
   UnconfirmedIPs : integer;
   TopVerificators : string;
   CSVerNodes    : TRTLCriticalSection;
   CSMNsChecks   : TRTLCriticalSection;
-  DecVerThreads : TRTLCriticalSection;
+  //DecVerThreads : TRTLCriticalSection;
   CSMNsFile     : TRTLCriticalSection;
   CSMNsIPCheck  : TRTLCriticalSection;
   CSMN_FileText : TRTLCriticalSection;
@@ -88,7 +89,7 @@ Uses
   mpParser, mpProtocol, mpDisk, mpRed;
 
 {$REGION ThreadVerificator}
-
+{
 constructor TThreadMNVerificator.Create(const CreatePaused: Boolean; const ConexSlot:Integer);
 begin
   inherited Create(CreatePaused);
@@ -159,8 +160,8 @@ Dec(OpenVerificators);
 LeaveCriticalSection(DecVerThreads);
 CloseOpenThread('VerifyMN '+FSlot.ToString);
 End;
-
-{$ENDREGION}
+}
+{$ENDREGION ThreadVerificator}
 
 Function NoVerificators():integer;
 Begin

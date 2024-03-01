@@ -19,13 +19,13 @@ function SaveConection(tipo,ipuser:String;contextdata:TIdContext;toSlot:integer=
 Procedure ForceServer();
 procedure StartServer();
 function StopServer():boolean;
-procedure CerrarSlot(Slot:integer);
+//procedure CloseSlot(Slot:integer);
 Function IsSlotFree(number:integer):Boolean;
-Function IsSlotConnected(number:integer):Boolean;
+//Function IsSlotConnected(number:integer):Boolean;
 function GetFreeSlot():integer;
 function ReserveSlot():integer;
 function ConnectClient(Address,Port:String):integer;
-function GetTotalConexiones():integer;
+//function GetTotalConexiones():integer;
 //function GetTotalVerifiedConnections():Integer;
 function GetTotalSyncedConnections():Integer;
 function CerrarClientes(ServerToo:Boolean=True):string;
@@ -34,7 +34,6 @@ Procedure VerifyConnectionStatus();
 Function IsAllSynced():integer;
 //Procedure UpdateMyData();
 Procedure SyncWithMainnet();
-Procedure AddNewBot(linea:string);
 function GetOutGoingConnections():integer;
 function GetIncomingConnections():integer;
 Function GetSeedConnections():integer;
@@ -240,10 +239,11 @@ KeepServerOn := false;
    END{Try};
 end;
 
+{
 // Cierra la conexion del slot especificado
-Procedure CerrarSlot(Slot:integer);
+Procedure CloseSlot(Slot:integer);
 Begin
-  BeginPerformance('CerrarSlot');
+  BeginPerformance('CloseSlot');
   TRY
   if GetConexIndex(Slot).tipo='CLI' then
     begin
@@ -262,8 +262,9 @@ Begin
     ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error: Closing slot '+IntToStr(Slot)+SLINEBREAK+E.Message);
   END;{Try}
   SetConexIndex(Slot,Default(Tconectiondata));
-  EndPerformance('CerrarSlot');
+  EndPerformance('CloseSlot');
 End;
+}
 
 Function IsSlotFree(number:integer):Boolean;
 Begin
@@ -271,11 +272,13 @@ Begin
   if GetConexIndex(number).tipo <> '' then result := false;
 End;
 
+{
 Function IsSlotConnected(number:integer):Boolean;
 Begin
   result := false;
   if ((GetConexIndex(number).tipo = 'SER') or (GetConexIndex(number).tipo = 'CLI')) then result := true;
 End;
+}
 
 // Returns first available slot
 function GetFreeSlot():integer;
@@ -316,7 +319,7 @@ Begin
   if GetConexIndex(number).tipo ='RES' then
     begin
     SetConexReserved(number,False);
-    CerrarSlot(Number);
+    CloseSlot(Number);
     end
   else
     begin
@@ -372,15 +375,15 @@ if not errored then
       //Conexiones[slot].Thread := TThreadClientRead.Create(true, slot);
       //Conexiones[slot].Thread.FreeOnTerminate:=true;
       //Conexiones[slot].Thread.Start;
-      IncClientReadThreads;
+      //IncClientReadThreads;
       result := Slot;
          TRY
-         CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address+' '+ProgramVersion+subversion+' '+UTCTimeStr);
+         CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address+' '+MainnetVersion+NodeRelease+' '+UTCTimeStr);
          CanalCliente[Slot].IOHandler.WriteLn(ProtocolLine(3));   // Send PING
          EXCEPT on E:Exception do
             begin
             result := 0;
-            CerrarSlot(slot);
+            CloseSlot(slot);
             end;
          END;{TRY}
       end
@@ -388,7 +391,7 @@ if not errored then
       begin
       result := 0;
       UnReserveSlot(Slot);
-      CerrarSlot(slot);
+      CloseSlot(slot);
       end;
    {
    EXCEPT on E:Exception do
@@ -402,6 +405,7 @@ if not errored then
 else UnReserveSlot(Slot);
 End;
 
+{
 // Retuns the number of active peers connections
 function GetTotalConexiones():integer;
 var
@@ -413,6 +417,7 @@ Begin
     if IsSlotConnected(Counter) then result := result + 1;
   EndPerformance('GetTotalConexiones');
 End;
+}
 
 {
 function GetTotalVerifiedConnections():Integer;
@@ -443,7 +448,7 @@ result := '';
    TRY
    for contador := 1 to MaxConecciones do
       begin
-      if GetConexIndex(contador).tipo='SER' then CerrarSlot(contador);
+      if GetConexIndex(contador).tipo='SER' then CloseSlot(contador);
       end;
    Result := 'Clients connections closed'
    EXCEPT on E:EXCEPTION do
@@ -471,7 +476,7 @@ for contador := 1 to Maxconecciones do
         (not GetConexIndex(contador).IsBusy) and (not REbuildingSumary) )then
         begin
         ToLog('events',TimeToStr(now)+'Conection closed: Time Out Auth -> '+GetConexIndex(contador).ip);   //Conection closed: Time Out Auth ->
-        CerrarSlot(contador);
+        CloseSlot(contador);
         end;
      if GetConexIndex(contador).IsBusy then SetConexIndexLastPing(contador,UTCTimeStr);
      end;
@@ -543,7 +548,7 @@ if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = Getco
    if WO_AutoServer then ProcessLinesAdd('serveron');
    if StrToIntDef(GetConsensus(3),0)<GetPendingCount then
       begin
-      setlength(PendingTxs,0);
+      setlength(ArrayPoolTXs,0);
       end;
    // Get MNS
    PTC_SendLine(ValidSlot,ProtocolLine(11));  // Get MNs
@@ -812,22 +817,6 @@ else if ((copy(MyResumenhash,0,5) <> GetConsensus(5)) and (NLBV=mylastblock) and
 if IsAllSynced=0 then Last_SyncWithMainnet := UTCTime;
 End;
 
-Procedure AddNewBot(linea:string);
-var
-  iptoadd: string;
-Begin
-IpToAdd := Parameter(Linea,1);
-if not IsValidIP(IpToAdd) then
-   begin
-   ToLog('console','Invalid IP');
-   end
-else
-   begin
-   UpdateBotData(iptoadd);
-   if GetSlotFromIP(iptoadd)>0 then CerrarSlot(GetSlotFromIP(iptoadd));
-   end;
-End;
-
 function GetOutGoingConnections():integer;
 var
   contador : integer;
@@ -902,7 +891,7 @@ if GetPendingCount>0 then
    begin
    EnterCriticalSection(CSPending);
    SetLength(CopyPendings,0);
-   CopyPendings := copy(PendingTxs,0,length(PendingTxs));
+   CopyPendings := copy(ArrayPoolTXs,0,length(ArrayPoolTXs));
    LeaveCriticalSection(CSPending);
    for counter := 0 to length(CopyPendings)-1 do
       begin
@@ -1009,7 +998,7 @@ Begin
 //           20{PSOHash}
 result := {1}IntToStr(GetTotalConexiones)+' '+{2}IntToStr(MyLastBlock)+' '+{3}GetPendingCount.ToString+' '+
           {4}IntToStr(UTCTime-EngineLastUpdate)+' '+{5}copy(myResumenHash,0,5)+' '+
-          {6}ProgramVersion+SubVersion+' '+{7}UTCTimeStr+' '+{8}copy(MyMnsHash,0,5)+' '+{9}GetMNsListLength.ToString+' '+
+          {6}MainnetVersion+NodeRelease+' '+{7}UTCTimeStr+' '+{8}copy(MyMnsHash,0,5)+' '+{9}GetMNsListLength.ToString+' '+
           {10}MyLastBlockHash+' '+{11}{GetNMSData.Diff}'null'+' '+{12}IntToStr(LastBlockData.TimeEnd)+' '+
           {13}LastBlockData.AccountMiner+' '+{14}GetMNsChecksCount.ToString+' '+{15}Parameter(LastBlockData.Solution,2)+' '+
           {16}Parameter(LastBlockData.Solution,1)+' '+{17}copy(MySumarioHash,0,5)+' '+{18}copy(MyGVTsHash,0,5)+' '+
@@ -1108,14 +1097,14 @@ End;
 
 Function GetSyncTus():String;
 Begin
-result := '';
-TRY
-Result := MyLastBlock.ToString+Copy(MyResumenHash,1,3)+Copy(MySumarioHash,1,3)+Copy(MyLastBlockHash,1,3);
-EXCEPT ON E:EXCEPTION do
-   begin
-   ToLog('console','****************************************'+slinebreak+'GetSyncTus:'+e.Message);
-   end;
-END; {TRY}
+  result := '';
+  TRY
+    Result := MyLastBlock.ToString+Copy(MyResumenHash,1,3)+Copy(MySumarioHash,1,3)+Copy(MyLastBlockHash,1,3);
+  EXCEPT ON E:EXCEPTION do
+    begin
+    ToLog('console','****************************************'+slinebreak+'GetSyncTus:'+e.Message);
+    end;
+  END; {TRY}
 End;
 
 function GetMiIP():String;

@@ -432,7 +432,7 @@ Begin
         end;
       Inc(added);
       end;
-    if DeleteSources then Deletefile(ListFiles[count]);
+    if DeleteSources then TryDeletefile(ListFiles[count]);
     Inc(Count);
     end;
   if Added > 0 then

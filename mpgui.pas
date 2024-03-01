@@ -60,7 +60,7 @@ End;
 Procedure CreateFormInicio();
 Begin
 FormInicio := TFormInicio.Createnew(form1);
-FormInicio.caption := 'Noso '+ProgramVersion+SubVersion;
+FormInicio.caption := 'Noso '+MainnetVersion+NodeRelease;
 FormInicio.SetBounds(0, 0, 350, 200);
 FormInicio.BorderStyle := bssingle;
 FormInicio.Position:=poOwnerFormCenter;

@@ -75,7 +75,6 @@ Procedure ShowSystemInfo(Linetext:string);
 // EXCHANGE
 Procedure PostOffer(LineText:String);
 
-Procedure DebugTest(linetext:string);
 Procedure DebugTest2(linetext:string);
 Procedure OrdInfo(linetext:string);
 
@@ -185,7 +184,7 @@ var
 begin
 Command :=Parameter(Linetext,0);
 if not AnsiContainsStr(HideCommands,Uppercase(command)) then ToLog('Console','>> '+Linetext);
-if UpperCase(Command) = 'VER' then ToLog('console',ProgramVersion+SubVersion)
+if UpperCase(Command) = 'VER' then ToLog('console',MainnetVersion+NodeRelease)
 else if UpperCase(Command) = 'SERVERON' then StartServer()
 else if UpperCase(Command) = 'SERVEROFF' then StopServer()
 else if UpperCase(Command) = 'FORCESERVER' then ForceServer()
@@ -225,7 +224,6 @@ else if UpperCase(Command) = 'RESTART' then Parse_RestartNoso()
 else if UpperCase(Command) = 'OSVERSION' then ToLog('console',OsVersion)
 else if UpperCase(Command) = 'DIRECTIVE' then SendAdminMessage(linetext)
 else if UpperCase(Command) = 'MYHASH' then ToLog('console',HashMD5File('noso.exe'))
-else if UpperCase(Command) = 'ADDBOT' then AddNewBot(LineText)
 else if UpperCase(Command) = 'STATUS' then ToLog('console',GetCurrentStatus(1))
 else if UpperCase(Command) = 'GETCERT' then GetOwnerHash(LineText)
 else if UpperCase(Command) = 'CHECKCERT' then CheckOwnerHash(LineText)
@@ -253,7 +251,6 @@ else if UpperCase(Command) = 'GETPOS' then ToLog('console', GetPoSPercentage(Str
 else if UpperCase(Command) = 'GETMNS' then ToLog('console', GetMNsPercentage(StrToIntdef(Parameter(linetext,1),Mylastblock),GetCFGDataStr(0)).ToString )
 else if UpperCase(Command) = 'CLOSESTARTON' then WO_CloseStart := true
 else if UpperCase(Command) = 'CLOSESTARTOFF' then WO_CloseStart := false
-else if UpperCase(Command) = 'DT' then DebugTest(LineText)
 else if UpperCase(Command) = 'TT' then DebugTest2(LineText)
 else if UpperCase(Command) = 'BASE58SUM' then ToLog('console',BMB58resumen(parameter(linetext,1)))
 else if UpperCase(Command) = 'PENDING' then ToLog('console',PendingRawInfo)
@@ -1052,7 +1049,7 @@ if TArch = '' then TArch := GetOS;
 ToLog('console',Format('Trying upgrade to version %s (%s)',[TVersion,TArch]));
 if ansicontainsstr(linea,' /or') then overRule := true;
 Application.ProcessMessages;
-if ( (Tversion = ProgramVersion+Subversion) and (not overRule) ) then
+if ( (Tversion = MainnetVersion+NodeRelease) and (not overRule) ) then
    begin
    ToLog('console','Version '+TVersion+' already installed');
    exit;
@@ -1090,7 +1087,7 @@ if TArch = '' then TArch := GetOS;
 ToLog('console',Format('Trying Install beta %s (%s)',[TVersion,TArch]));
 if ansicontainsstr(linea,' /or') then overRule := true;
 Application.ProcessMessages;
-if ( (Tversion = ProgramVersion+Subversion) and (not overRule) ) then
+if ( (Tversion = MainnetVersion+NodeRelease) and (not overRule) ) then
    begin
    ToLog('console','Version '+TVersion+' already installed');
    exit;
@@ -1588,23 +1585,6 @@ else
 
    end;
 
-End;
-
-Procedure DebugTest(linetext:string);
-var
-  Texto : string;
-Begin
-{
-if Myconstatus<3 then
-  begin
-  ToLog('console','Must be synced');
-  exit;
-  end;
-Texto := GetMNsFileData;
-if AnsiContainsStr(Texto,MN_Funds) then ToLog('console',MN_Funds+' got MN Reward on block '+MyLastBlock.ToString)
-else ToLog('console',MN_Funds+' not paid')
-}
-ToLog('console',GetDiffHashrate('0000001').ToString);
 End;
 
 Procedure DebugTest2(linetext:string);

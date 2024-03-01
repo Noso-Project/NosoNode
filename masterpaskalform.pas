@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, LCLType,
   Grids, ExtCtrls, Buttons, IdTCPServer, IdContext, IdGlobal, IdTCPClient,
-  fileutil, Clipbrd, Menus, formexplore, lclintf, ComCtrls, Spin,
+  fileutil, Clipbrd, Menus, formexplore, lclintf, ComCtrls,
   strutils, math, IdHTTPServer, IdCustomHTTPServer,
   IdHTTP, fpJSON, Types, DefaultTranslator, LCLTranslator, translation, nosodebug,
   IdComponent,nosogeneral,nosocrypto, nosounit, nosoconsensus, nosopsos, NosoWallCon,
@@ -201,6 +201,7 @@ type
        ReportHash  : string[32];
        end;
 
+  {
   TMNode = Packed Record
        Ip           : string[15];
        Port         : integer;
@@ -212,6 +213,7 @@ type
        Validations  : integer;
        Hash         : String[32];
        end;
+   }
 
   TMNCheck = Record
        ValidatorIP  : string;      // Validator IP
@@ -566,7 +568,7 @@ CONST
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS DELBOTS';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
 
-  ProgramVersion = '0.4.2';
+  //MainnetVersion = '0.4.2';
   {$IFDEF WINDOWS}
   RestartFileName = 'launcher.bat';
   updateextension = 'zip';
@@ -575,11 +577,11 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  SubVersion = 'Cb2';
+  NodeRelease = 'Cb2';
   OficialRelease = true;
   BetaRelease    = false;
-  VersionRequired = '0.4.2Ba7';
-  BuildDate = 'Febraury 2024';
+  VersionRequired = '0.4.2';
+  BuildDate = 'March 2024';
   {Developer addresses}
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
@@ -587,7 +589,7 @@ CONST
 
   DefaultServerPort = 8080;
   MaxConecciones  = 99;
-  Protocolo = 2;
+  //Protocolo = 2;
   DefaultDonation = 10;
   // Custom values for coin
   SecondsPerBlock = 600;            // 10 minutes
@@ -630,7 +632,7 @@ var
   WO_MultiSend     : boolean = false;
   WO_HideEmpty     : boolean = false;
   WO_Language      : string = 'en';
-    WO_LastPoUpdate: string = ProgramVersion+Subversion;
+    WO_LastPoUpdate: string = MainnetVersion+NodeRelease;
   WO_CloseStart    : boolean = true;
   WO_AutoUpdate    : Boolean = true;
   WO_SendReport    : boolean = false;
@@ -657,7 +659,7 @@ var
   }
   //ListadoBots      : array of BotData;
   ListaNodos       : array of NodeData;
-  PendingTXs       : Array of TOrderData;
+  //ArrayPoolTXs     : Array of TOrderData;
   ArrayOrderIDsProcessed : array of string;
   OutgoingMsjs     : TStringlist;
   KeepServerOn     : Boolean = false;
@@ -718,7 +720,7 @@ var
   U_MNsGrid          : boolean = false;
   U_MNsGrid_Last     : int64 = 0;
 
-  MNsList       : array of TMnode;
+  //MNsList       : array of TMnode;
   ArrMNChecks   : array of TMNCheck;
   MNsRandomWait : Integer= 0;
 
@@ -778,7 +780,7 @@ var
   CSProcessLines: TRTLCriticalSection;
   CSOutgoingMsjs: TRTLCriticalSection;
   CSBlocksAccess: TRTLCriticalSection;
-  CSPending     : TRTLCriticalSection;
+  //CSPending     : TRTLCriticalSection;
   CSCriptoThread: TRTLCriticalSection;
   CSClosingApp  : TRTLCriticalSection;
   //CSClientReads : TRTLCriticalSection;
@@ -786,7 +788,7 @@ var
   CSNosoCFGStr  : TRTLCriticalSection;
 
   //MNs system
-  CSMNsArray    : TRTLCriticalSection;
+  //CSMNsArray    : TRTLCriticalSection;
   CSWaitingMNs  : TRTLCriticalSection;
   CSMNsChecks   : TRTLCriticalSection;
 
@@ -1453,9 +1455,9 @@ Begin
   InitCriticalSection(CSProcessLines);
   InitCriticalSection(CSOutgoingMsjs);
   InitCriticalSection(CSBlocksAccess);
-  InitCriticalSection(CSPending);
+  //InitCriticalSection(CSPending);
   InitCriticalSection(CSCriptoThread);
-  InitCriticalSection(CSMNsArray);
+  //InitCriticalSection(CSMNsArray);
   InitCriticalSection(CSWaitingMNs);
   InitCriticalSection(CSMNsChecks);
   InitCriticalSection(CSClosingApp);
@@ -1473,7 +1475,7 @@ Begin
   CreateFormSlots();
   SetLength(ArrayOrderIDsProcessed,0);
   SetLength(ArrayMNsData,0);
-  Setlength(PendingTXs,0);
+  //Setlength(ArrayPoolTXs,0);
 End;
 
 procedure TForm1.FormDestroy(sender: TObject);
@@ -1483,9 +1485,9 @@ Begin
   DoneCriticalSection(CSProcessLines);
   DoneCriticalSection(CSOutgoingMsjs);
   DoneCriticalSection(CSBlocksAccess);
-  DoneCriticalSection(CSPending);
+  //DoneCriticalSection(CSPending);
   DoneCriticalSection(CSCriptoThread);
-  DoneCriticalSection(CSMNsArray);
+  //DoneCriticalSection(CSMNsArray);
   DoneCriticalSection(CSWaitingMNs);
   DoneCriticalSection(CSMNsChecks);
   DoneCriticalSection(CSClosingApp);
@@ -1576,7 +1578,7 @@ Begin
   Form1.imagenes.GetBitMap(54,form1.ImgRotor.picture.BitMap);
   form1.LabAbout.Caption:=CoinName+' project'+SLINEBREAK+'Designed by bermello (imAOG)'+SLINEBREAK+
                           'Crypto routines by Xor-el'+SLINEBREAK+
-                          'Version '+ProgramVersion+subVersion+SLINEBREAK+'Protocol '+IntToStr(Protocolo)+SLINEBREAK+BuildDate;
+                          'Version '+MainnetVersion+NodeRelease+SLINEBREAK+'Protocol '+IntToStr(Protocolo)+SLINEBREAK+BuildDate;
   form1.SG_Performance.FocusRectVisible:=false;
   form1.SG_Performance.ColWidths[0]:= 142;form1.SG_Performance.ColWidths[1]:= 73;
   form1.SG_Performance.ColWidths[2]:= 73;form1.SG_Performance.ColWidths[3]:= 73;
@@ -1618,7 +1620,7 @@ Begin
     Halt();
     end;
   MixTxtFiles([DeepDebLogFilename,ConsoleLogFilename,EventLogFilename,ExceptLogFilename,NodeFTPLogFilename,PerformanceFIlename],ResumeLogFilename,true);
-  InitDeepDeb(DeepDebLogFilename,format('( %s - %s )',[ProgramVersion+subversion, OSVersion]));
+  InitDeepDeb(DeepDebLogFilename,format('( %s - %s )',[MainnetVersion+NodeRelease, OSVersion]));
   NosoDebug_UsePerformance := true;
   UpdateLogsThread := TUpdateLogs.Create(true);
   UpdateLogsThread.FreeOnTerminate:=true;
@@ -1646,10 +1648,10 @@ Begin
   UpdateMyData();
   OutText(rs0024,false,1); //'✓ My data updated'
   LoadOptionsToPanel();
-  form1.Caption:=coinname+format(rs0027,[ProgramVersion,SubVersion]);
-  Application.Title := coinname+format(rs0027,[ProgramVersion,SubVersion]);   // Wallet
-  ToLog('console',coinname+format(rs0027,[ProgramVersion,SubVersion]));
-  If BetaRelease then ToLog('console','*** WARNING ***'+slinebreak+'This is a beta version ('+ProgramVersion+SubVersion+') Use it carefully, do not store funds on its wallet and report any issue to development team.');
+  form1.Caption:=coinname+format(rs0027,[MainnetVersion,NodeRelease]);
+  Application.Title := coinname+format(rs0027,[MainnetVersion,NodeRelease]);   // Wallet
+  ToLog('console',coinname+format(rs0027,[MainnetVersion,NodeRelease]));
+  If BetaRelease then ToLog('console','*** WARNING ***'+slinebreak+'This is a beta version ('+MainnetVersion+NodeRelease+') Use it carefully, do not store funds on its wallet and report any issue to development team.');
   UpdateMyGVTsList;
   OutText(rs0088,false,1); // '✓ My GVTs grid updated';
   if fileexists(RestartFileName) then
@@ -2597,20 +2599,13 @@ Begin
     TryCloseServerConnection(AContext,'Closing NODE');
     exit;
     end;
+  LLine := '';
   TRY
     LLine := AContext.Connection.IOHandler.ReadLn('',1000,-1,IndyTextEncoding_UTF8);
-    if AContext.Connection.IOHandler.ReadLnTimedout then
-      begin
-      TryCloseServerConnection(AContext);
-      ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+rs0056);
-      //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Timeout reading line from new connection');
-      GoAhead := false;
-      end;
   EXCEPT on E:Exception do
     begin
     TryCloseServerConnection(AContext);
     ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs0057,[E.Message]));
-    //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Can not read line from new connection ('+E.Message+')');
     GoAhead := false;
     end;
   END{Try};
@@ -2712,7 +2707,7 @@ Begin
       TryCloseServerConnection(AContext,GetPTCEcn+'DUPLICATED');
       UpdateBotData(IPUser);
       end
-   else if Peerversion < VersionRequired then
+   else if Copy(Peerversion,1,3) < Copy(VersionRequired,1,3) then
       begin
       TryCloseServerConnection(AContext,GetPTCEcn+'OLDVERSION->REQUIRED_'+VersionRequired);
       end
@@ -2747,13 +2742,13 @@ var
 Begin
   ContextData:= TServerTipo(AContext.Data);
   if ContextData.Slot>0 then
-    CerrarSlot(ContextData.Slot);
+    CloseSlot(ContextData.Slot);
 End;
 
 // Excepcion en el servidor
 procedure TForm1.IdTCPServer1Exception(AContext: TIdContext;AException: Exception);
 Begin
-  CerrarSlot(GetSlotFromContext(AContext));
+  CloseSlot(GetSlotFromContext(AContext));
   ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Server Excepcion: '+AException.Message);    //Server Excepcion:
 End;
 

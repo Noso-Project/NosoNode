@@ -14,7 +14,7 @@ function GetAddressIncomingpays(Address:string):int64;
 function TranxAlreadyPending(TrxHash:string):boolean;
 function TrxExistsInLastBlock(trfrhash:String):boolean;
 function GetLastPendingTime():int64;
-function AddPendingTxs(order:TOrderData):boolean;
+function AddArrayPoolTXs(order:TOrderData):boolean;
 Procedure VerifyIfPendingIsMine(order:Torderdata);
 function AddressAlreadyCustomized(address:string):boolean;
 Function GVTAlreadyTransfered(NumberStr:String):boolean;
@@ -28,8 +28,10 @@ function GetCurrentStatus(mode:integer):String;
 function GetBlockHeaders(numberblock:integer):string;
 function ValidRPCHost(hoststr:string):boolean;
 function PendingRawInfo(ForRPC : boolean = true):String;
+{
 Function GetPendingCount():integer;
 Procedure ClearAllPending();
+}
 
 implementation
 
@@ -53,7 +55,7 @@ if GetPendingCount>0 then
    begin
    EnterCriticalSection(CSPending);
    SetLength(CopyPendings,0);
-   CopyPendings := copy(PendingTxs,0,length(PendingTxs));
+   CopyPendings := copy(ArrayPoolTXs,0,length(ArrayPoolTXs));
    LeaveCriticalSection(CSPending);
    for cont := 0 to length(CopyPendings)-1 do
       begin
@@ -76,12 +78,12 @@ if GetPendingCount>0 then
    begin
    EnterCriticalSection(CSPending);
    SetLength(CopyPendings,0);
-   CopyPendings := copy(PendingTxs,0,length(PendingTxs));
+   CopyPendings := copy(ArrayPoolTXs,0,length(ArrayPoolTXs));
    LeaveCriticalSection(CSPending);
    for cont := 0 to length(CopyPendings)-1 do
       begin
-      if address = PendingTXS[cont].receiver then
-         result := result+PendingTXS[cont].AmmountTrf;
+      if address = ArrayPoolTXs[cont].receiver then
+         result := result+ArrayPoolTXs[cont].AmmountTrf;
       end;
    end;
 End;
@@ -94,7 +96,7 @@ Begin
 Result := false;
 for cont := 0 to GetPendingCount-1 do
    begin
-   if TrxHash = PendingTXS[cont].TrfrID then
+   if TrxHash = ArrayPoolTXs[cont].TrfrID then
       begin
       result := true;
       break;
@@ -126,18 +128,18 @@ function GetLastPendingTime():int64;
 Begin
   result := 0;
   EnterCriticalSection(CSPending);
-  if length(PendingTxs) > 0 then result := PendingTxs[length(PendingTxs)-1].TimeStamp;
+  if length(ArrayPoolTXs) > 0 then result := ArrayPoolTXs[length(ArrayPoolTXs)-1].TimeStamp;
   LeaveCriticalSection(CSPending);
 End;
 
 // Añade la transaccion pendiente en su lugar
-function AddPendingTxs(order:TOrderData):boolean;
+function AddArrayPoolTXs(order:TOrderData):boolean;
 var
   cont : integer = 0;
   insertar : boolean = false;
   resultado : integer = 0;
 Begin
-BeginPerformance('AddPendingTxs');
+BeginPerformance('AddArrayPoolTXs');
 //if order.OrderType='FEE' then exit;
 if order.TimeStamp < LastBlockData.TimeStart then exit;
 if TrxExistsInLastBlock(order.TrfrID) then exit;
@@ -145,25 +147,25 @@ if ((BlockAge>585) and (order.TimeStamp < LastBlockData.TimeStart+540) ) then ex
 if not TranxAlreadyPending(order.TrfrID) then
    begin
    EnterCriticalSection(CSPending);
-   while cont < length(PendingTxs) do
+   while cont < length(ArrayPoolTXs) do
      begin
-     if order.TimeStamp < PendingTxs[cont].TimeStamp then
+     if order.TimeStamp < ArrayPoolTXs[cont].TimeStamp then
         begin
         insertar := true;
         resultado := cont;
         break;
         end
-     else if order.TimeStamp = PendingTxs[cont].TimeStamp then
+     else if order.TimeStamp = ArrayPoolTXs[cont].TimeStamp then
         begin
-        if order.OrderID < PendingTxs[cont].OrderID then
+        if order.OrderID < ArrayPoolTXs[cont].OrderID then
            begin
            insertar := true;
            resultado := cont;
            break;
            end
-        else if order.OrderID = PendingTxs[cont].OrderID then
+        else if order.OrderID = ArrayPoolTXs[cont].OrderID then
            begin
-           if order.TrxLine < PendingTxs[cont].TrxLine then
+           if order.TrxLine < ArrayPoolTXs[cont].TrxLine then
               begin
               insertar := true;
               resultado := cont;
@@ -173,13 +175,13 @@ if not TranxAlreadyPending(order.TrfrID) then
         end;
      cont := cont+1;
      end;
-   if not insertar then resultado := length(pendingTXs);
-   Insert(order,PendingTxs,resultado);
+   if not insertar then resultado := length(ArrayPoolTXs);
+   Insert(order,ArrayPoolTXs,resultado);
    LeaveCriticalSection(CSPending);
    result := true;
    VerifyIfPendingIsMine(order);
    end;
-EndPerformance('AddPendingTxs');
+EndPerformance('AddArrayPoolTXs');
 End;
 
 // Verifica si una orden especifica es del usuario
@@ -213,7 +215,7 @@ Begin
 Result := false;
 if GetAddressAlias(address) <> '' then Exit(True);
 for cont := 0 to GetPendingCount-1 do
-   if ((PendingTxs[cont].Address=address) and (PendingTxs[cont].OrderType = 'CUSTOM')) then
+   if ((ArrayPoolTXs[cont].Address=address) and (ArrayPoolTXs[cont].OrderType = 'CUSTOM')) then
       exit(true);
 End;
 
@@ -231,7 +233,7 @@ if number < 0 then
    end;
 for counter := 0 to GetPendingCount-1 do
    begin
-   if ((PendingTxs[counter].reference=NumberStr) and (PendingTxs[counter].OrderType = 'SNDGVT')) then
+   if ((ArrayPoolTXs[counter].reference=NumberStr) and (ArrayPoolTXs[counter].OrderType = 'SNDGVT')) then
          begin
          result := true;
          break;
@@ -248,7 +250,7 @@ Begin
 Result := false;
 if GetIndexPosition(AddAlias,LRecord,True) >= 0 then Exit(True);
 for cont := 0 to GetPendingCount-1 do
-   if ((PendingTxs[cont].OrderType='CUSTOM') and (PendingTxs[cont].Receiver = Addalias)) then
+   if ((ArrayPoolTXs[cont].OrderType='CUSTOM') and (ArrayPoolTXs[cont].Receiver = Addalias)) then
       Exit(True);
 End;
 
@@ -311,16 +313,16 @@ else
    begin
    for counter := 0 to GetPendingCount-1 do
       begin
-      DireccionEnvia := PendingTxs[counter].Address;
+      DireccionEnvia := ArrayPoolTXs[counter].Address;
       AddIndex := WallAddIndex(DireccionEnvia);
       if AddIndex >= 0 then
          begin
-         MontoOutgoing := MontoOutgoing+PendingTxs[counter].AmmountFee+PendingTxs[counter].AmmountTrf;
-         SetPendingForAddress(AddIndex,GetWallArrIndex(AdDIndex).Pending+PendingTxs[counter].AmmountFee+PendingTxs[counter].AmmountTrf);
-         //WalletArray[WallAddIndex(DireccionEnvia)].Pending:=WalletArray[WallAddIndex(DireccionEnvia)].Pending+PendingTxs[counter].AmmountFee+PendingTxs[counter].AmmountTrf;
+         MontoOutgoing := MontoOutgoing+ArrayPoolTXs[counter].AmmountFee+ArrayPoolTXs[counter].AmmountTrf;
+         SetPendingForAddress(AddIndex,GetWallArrIndex(AdDIndex).Pending+ArrayPoolTXs[counter].AmmountFee+ArrayPoolTXs[counter].AmmountTrf);
+         //WalletArray[WallAddIndex(DireccionEnvia)].Pending:=WalletArray[WallAddIndex(DireccionEnvia)].Pending+ArrayPoolTXs[counter].AmmountFee+ArrayPoolTXs[counter].AmmountTrf;
          end;
-      If WallAddIndex(PendingTxs[counter].Receiver)>=0 then
-         MontoIncoming := MontoIncoming+PendingTxs[counter].AmmountTrf;
+      If WallAddIndex(ArrayPoolTXs[counter].Receiver)>=0 then
+         MontoIncoming := MontoIncoming+ArrayPoolTXs[counter].AmmountTrf;
       end;
    if MontoIncoming>0 then form1.ImageInc.Visible := true else form1.ImageInc.Visible:= false;
    if MontoOutgoing>0 then form1.ImageOut.Visible := true else form1.ImageOut.Visible:= false;
@@ -361,7 +363,7 @@ if mode = 1 then
    resultado := resultado+'Date        : '+FormatDateTime('dd MMMM YYYY HH:MM:SS.zzz', Now)+slinebreak;
    resultado := resultado+'MyConStatus : '+IntToStr(myConStatus)+slinebreak;
    Resultado := resultado+'OS          : '+OSVersion +slinebreak;
-   Resultado := resultado+'WalletVer   : '+ProgramVersion+SubVersion+slinebreak;
+   Resultado := resultado+'WalletVer   : '+MainnetVersion+NodeRelease+slinebreak;
    end;
 result := resultado;
 End;
@@ -407,38 +409,38 @@ End;
 // Returns the basic info of the pending orders
 function PendingRawInfo(ForRPC : boolean = true):String;
 var
-  CopyPendingTXs : Array of TOrderData;
+  CopyArrayPoolTXs : Array of TOrderData;
   counter : integer;
   ThisPending : string;
 Begin
 result := '';
-if Length(PendingTXs) > 0 then
+if Length(ArrayPoolTXs) > 0 then
    begin
    EnterCriticalSection(CSPending);
-   SetLength(CopyPendingTXs,0);
-   CopyPendingTXs := copy(PendingTXs,0,length(PendingTXs));
+   SetLength(CopyArrayPoolTXs,0);
+   CopyArrayPoolTXs := copy(ArrayPoolTXs,0,length(ArrayPoolTXs));
    LeaveCriticalSection(CSPending);
-   for counter := 0 to Length(CopyPendingTXs)-1 do
+   for counter := 0 to Length(CopyArrayPoolTXs)-1 do
       begin
       if ForRPC then
          begin
-         ThisPending:=CopyPendingTXs[counter].OrderID+','+
-                      CopyPendingTXs[counter].TimeStamp.ToString+','+
-                      CopyPendingTXs[counter].OrderType+','+
-                      CopyPendingTXs[counter].Address+','+
-                      CopyPendingTXs[counter].Receiver+','+
-                      CopyPendingTXs[counter].AmmountTrf.ToString+','+
-                      CopyPendingTXs[counter].AmmountFee.ToString+','+
-                      CopyPendingTXs[counter].Reference{+','+CopyPendingTXs[counter].TimeStamp.ToString};
+         ThisPending:=CopyArrayPoolTXs[counter].OrderID+','+
+                      CopyArrayPoolTXs[counter].TimeStamp.ToString+','+
+                      CopyArrayPoolTXs[counter].OrderType+','+
+                      CopyArrayPoolTXs[counter].Address+','+
+                      CopyArrayPoolTXs[counter].Receiver+','+
+                      CopyArrayPoolTXs[counter].AmmountTrf.ToString+','+
+                      CopyArrayPoolTXs[counter].AmmountFee.ToString+','+
+                      CopyArrayPoolTXs[counter].Reference{+','+CopyArrayPoolTXs[counter].TimeStamp.ToString};
 
          end
       else
          begin
-         ThisPending:=CopyPendingTXs[counter].OrderType+','+
-                      CopyPendingTXs[counter].Address+','+
-                      CopyPendingTXs[counter].Receiver+','+
-                      CopyPendingTXs[counter].AmmountTrf.ToString+','+
-                      CopyPendingTXs[counter].AmmountFee.ToString{+','+CopyPendingTXs[counter].TimeStamp.ToString};
+         ThisPending:=CopyArrayPoolTXs[counter].OrderType+','+
+                      CopyArrayPoolTXs[counter].Address+','+
+                      CopyArrayPoolTXs[counter].Receiver+','+
+                      CopyArrayPoolTXs[counter].AmmountTrf.ToString+','+
+                      CopyArrayPoolTXs[counter].AmmountFee.ToString{+','+CopyArrayPoolTXs[counter].TimeStamp.ToString};
          end;
       result := result+ThisPending+' ';
       end;
@@ -446,11 +448,12 @@ if Length(PendingTXs) > 0 then
    end;
 End;
 
+{
 // Returns the length of the pending transactions array safely
 Function GetPendingCount():integer;
 Begin
 EnterCriticalSection(CSPending);
-result := Length(PendingTXs);
+result := Length(ArrayPoolTXs);
 LeaveCriticalSection(CSPending);
 End;
 
@@ -458,9 +461,10 @@ End;
 Procedure ClearAllPending();
 Begin
 EnterCriticalSection(CSPending);
-SetLength(PendingTXs,0);
+SetLength(ArrayPoolTXs,0);
 LeaveCriticalSection(CSPending);
 End;
+}
 
 END. // END UNIT
 

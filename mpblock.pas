@@ -12,10 +12,10 @@ uses
 
 Procedure CrearBloqueCero();
 Procedure BuildNewBlock(Numero,TimeStamp: Int64; TargetHash, Minero, Solucion:String);
-Function GetDiffHashrate(bestdiff:String):integer;
-Function BestHashReadeable(BestDiff:String):string;
-function GetDiffForNextBlock(UltimoBloque,Last20Average,lastblocktime,previous:integer):integer;
-function GetLast20Time(LastBlTime:integer):integer;
+//Function GetDiffHashrate(bestdiff:String):integer;
+//Function BestHashReadeable(BestDiff:String):string;
+//function GetDiffForNextBlock(UltimoBloque,Last20Average,lastblocktime,previous:integer):integer;
+//function GetLast20Time(LastBlTime:integer):integer;
 function GetBlockReward(BlNumber:int64):Int64;
 Function GuardarBloque(NombreArchivo:string;Cabezera:BlockHeaderData;Ordenes:array of TOrderData;
                         PosPay:Int64;PoSnumber:integer;PosAddresses:array of TArrayPos;
@@ -166,63 +166,63 @@ if not errored then
    ArrayLastBlockTrxs := Default(TBlockOrdersArray);
    ArrayLastBlockTrxs := GetBlockTrxs(MyLastBlock);
    ResetBlockRecords;
-   for contador := 0 to length(pendingTXs)-1 do
+   for contador := 0 to length(ArrayPoolTXs)-1 do
       begin
       // Version 0.2.1Ga1 reverification starts
-      if PendingTXs[contador].TimeStamp < LastBlockData.TimeStart then
+      if ArrayPoolTXs[contador].TimeStamp < LastBlockData.TimeStart then
          continue;
       //{
       ExistsInLastBlock := false;
       for count2 := 0 to length(ArrayLastBlockTrxs)-1 do
          begin
-         if ArrayLastBlockTrxs[count2].TrfrID = PendingTXs[contador].TrfrID then
+         if ArrayLastBlockTrxs[count2].TrfrID = ArrayPoolTXs[contador].TrfrID then
             begin
             ExistsInLastBlock := true ;
             break;
             end;
          end;
       if ExistsInLastBlock then continue;
-      if PendingTXs[contador].TimeStamp+60 > TimeStamp then
+      if ArrayPoolTXs[contador].TimeStamp+60 > TimeStamp then
          begin
-         if PendingTXs[contador].TimeStamp < TimeStamp+600 then
-            insert(PendingTXs[contador],IgnoredTrxs,length(IgnoredTrxs));
+         if ArrayPoolTXs[contador].TimeStamp < TimeStamp+600 then
+            insert(ArrayPoolTXs[contador],IgnoredTrxs,length(IgnoredTrxs));
          continue;
          end;
-      if PendingTXs[contador].OrderType='CUSTOM' then
+      if ArrayPoolTXs[contador].OrderType='CUSTOM' then
          begin
-         OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].sender);
-         if IsCustomizacionValid(OperationAddress,PendingTXs[contador].Receiver,numero) then
+         OperationAddress := GetAddressFromPublicKey(ArrayPoolTXs[contador].sender);
+         if IsCustomizacionValid(OperationAddress,ArrayPoolTXs[contador].Receiver,numero) then
             begin
-            minerfee := minerfee+PendingTXs[contador].AmmountFee;
-            PendingTXs[contador].Block:=numero;
-            PendingTXs[contador].sender:=OperationAddress;
-            insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
+            minerfee := minerfee+ArrayPoolTXs[contador].AmmountFee;
+            ArrayPoolTXs[contador].Block:=numero;
+            ArrayPoolTXs[contador].sender:=OperationAddress;
+            insert(ArrayPoolTXs[contador],ListaOrdenes,length(listaordenes));
             end;
          end;
-      if PendingTXs[contador].OrderType='TRFR' then
+      if ArrayPoolTXs[contador].OrderType='TRFR' then
          begin
-         OperationAddress := PendingTXs[contador].Address;
-         if SummaryValidPay(OperationAddress,PendingTXs[contador].AmmountFee+PendingTXs[contador].AmmountTrf,numero) then
+         OperationAddress := ArrayPoolTXs[contador].Address;
+         if SummaryValidPay(OperationAddress,ArrayPoolTXs[contador].AmmountFee+ArrayPoolTXs[contador].AmmountTrf,numero) then
             begin
-            minerfee := minerfee+PendingTXs[contador].AmmountFee;
-            CreditTo(PendingTXs[contador].Receiver,PendingTXs[contador].AmmountTrf,numero);
-            PendingTXs[contador].Block:=numero;
-            PendingTXs[contador].sender:=OperationAddress;
-            insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
+            minerfee := minerfee+ArrayPoolTXs[contador].AmmountFee;
+            CreditTo(ArrayPoolTXs[contador].Receiver,ArrayPoolTXs[contador].AmmountTrf,numero);
+            ArrayPoolTXs[contador].Block:=numero;
+            ArrayPoolTXs[contador].sender:=OperationAddress;
+            insert(ArrayPoolTXs[contador],ListaOrdenes,length(listaordenes));
             end;
          end;
-      if ( (PendingTXs[contador].OrderType='SNDGVT') and ( PendingTXs[contador].sender = AdminPubKey) ) then
+      if ( (ArrayPoolTXs[contador].OrderType='SNDGVT') and ( ArrayPoolTXs[contador].sender = AdminPubKey) ) then
          begin
-         OperationAddress := GetAddressFromPublicKey(PendingTXs[contador].sender);
-         if GetAddressBalanceIndexed(OperationAddress)< PendingTXs[contador].AmmountFee then continue;
-         if ChangeGVTOwner(StrToIntDef(PendingTXs[contador].Reference,100),OperationAddress,PendingTXs[contador].Receiver)=0 then
+         OperationAddress := GetAddressFromPublicKey(ArrayPoolTXs[contador].sender);
+         if GetAddressBalanceIndexed(OperationAddress)< ArrayPoolTXs[contador].AmmountFee then continue;
+         if ChangeGVTOwner(StrToIntDef(ArrayPoolTXs[contador].Reference,100),OperationAddress,ArrayPoolTXs[contador].Receiver)=0 then
             begin
-            minerfee := minerfee+PendingTXs[contador].AmmountFee;
+            minerfee := minerfee+ArrayPoolTXs[contador].AmmountFee;
             Inc(GVTsTransfered);
-            SummaryValidPay(OperationAddress,PendingTXs[contador].AmmountFee,numero);
-            PendingTXs[contador].Block:=numero;
-            PendingTXs[contador].sender:=OperationAddress;
-            insert(PendingTXs[contador],ListaOrdenes,length(listaordenes));
+            SummaryValidPay(OperationAddress,ArrayPoolTXs[contador].AmmountFee,numero);
+            ArrayPoolTXs[contador].Block:=numero;
+            ArrayPoolTXs[contador].sender:=OperationAddress;
+            insert(ArrayPoolTXs[contador],ListaOrdenes,length(listaordenes));
             end;
          end;
       end;
@@ -267,8 +267,8 @@ if not errored then
       UpdateMyGVTsList;
       end;
    TRY
-      SetLength(PendingTXs,0);
-      PendingTXs := copy(IgnoredTrxs,0,length(IgnoredTrxs));
+      SetLength(ArrayPoolTXs,0);
+      ArrayPoolTXs := copy(IgnoredTrxs,0,length(IgnoredTrxs));
    EXCEPT on E:Exception do
       begin
       ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error asigning pending to Ignored');
@@ -416,6 +416,7 @@ BuildingBlock := 0;
 U_DataPanel := true;
 End;
 
+{
 Function GetDiffHashrate(bestdiff:String):integer;
 var
   counter :integer= 0;
@@ -430,7 +431,8 @@ if bestdiff[counter]='3' then Result := Result+12;
 if bestdiff[counter]='4' then Result := Result+6;
 //if bestdiff[counter]='5' then Result := Result+3;
 End;
-
+}
+{
 Function BestHashReadeable(BestDiff:String):string;
 var
   counter :integer = 0;
@@ -442,7 +444,8 @@ until bestdiff[counter]<> '0';
 Result := (Counter-1).ToString+'.';
 if counter<length(BestDiff) then Result := Result+bestdiff[counter];
 End;
-
+}
+{
 // Devuelve cuantos caracteres compondran el targethash del siguiente bloque
 function GetDiffForNextBlock(UltimoBloque,Last20Average, lastblocktime,previous:integer):integer;
 Begin
@@ -461,7 +464,8 @@ else
    else result := previous;
    end;
 End;
-
+}
+{
 // Hace el calculo del tiempo promedio empleado en los ultimos 20 bloques
 function GetLast20Time(LastBlTime:integer):integer;
 var
@@ -475,7 +479,7 @@ else
    result := Part1 + Part2;
    end;
 End;
-
+}
 // RETURNS THE MINING REWARD FOR A BLOCK
 function GetBlockReward(BlNumber:int64):Int64;
 var
