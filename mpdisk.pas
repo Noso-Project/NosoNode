@@ -258,14 +258,14 @@ BeginPerformance('CreateADV');
    writeln(FileAdvOptions,'//Download the complete blockchain');
    writeln(FileAdvOptions,'WO_FullNode '+BoolToStr(WO_FullNode,true));
    writeln(FileAdvOptions,'//Masternode static IP');
-   writeln(FileAdvOptions,'MNIP '+(MN_IP));
+   writeln(FileAdvOptions,'MNIP '+(LocalMN_IP));
    writeln(FileAdvOptions,'//Masternode port');
-   writeln(FileAdvOptions,'MNPort '+(MN_Port));
+   writeln(FileAdvOptions,'MNPort '+(LocalMN_Port));
    writeln(FileAdvOptions,'//Masternode funds address');
-   writeln(FileAdvOptions,'MNFunds '+(MN_Funds));
-   if MN_Sign = '' then MN_Sign := GetWallArrIndex(0).Hash;
+   writeln(FileAdvOptions,'MNFunds '+(LocalMN_Funds));
+   if LocalMN_Sign = '' then LocalMN_Sign := GetWallArrIndex(0).Hash;
    writeln(FileAdvOptions,'//Masternode sign address');
-   writeln(FileAdvOptions,'MNSign '+MN_Sign);
+   writeln(FileAdvOptions,'MNSign '+LocalMN_Sign);
    writeln(FileAdvOptions,'//Use automatic IP detection for masternode');
    writeln(FileAdvOptions,'MNAutoIp '+BoolToStr(MN_AutoIP,true));
    writeln(FileAdvOptions,'');
@@ -353,10 +353,10 @@ Begin
             end;
          end;
 
-      if parameter(linea,0) ='MNIP' then MN_IP:=Parameter(linea,1);
-      if parameter(linea,0) ='MNPort' then MN_Port:=Parameter(linea,1);
-      if parameter(linea,0) ='MNFunds' then MN_Funds:=Parameter(linea,1);
-      if parameter(linea,0) ='MNSign' then MN_Sign:=Parameter(linea,1);
+      if parameter(linea,0) ='MNIP' then LocalMN_IP:=Parameter(linea,1);
+      if parameter(linea,0) ='MNPort' then LocalMN_Port:=Parameter(linea,1);
+      if parameter(linea,0) ='MNFunds' then LocalMN_Funds:=Parameter(linea,1);
+      if parameter(linea,0) ='MNSign' then LocalMN_Sign:=Parameter(linea,1);
       if parameter(linea,0) ='MNAutoIp' then MN_AutoIP:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='WO_FullNode' then WO_FullNode:=StrToBool(Parameter(linea,1));
 

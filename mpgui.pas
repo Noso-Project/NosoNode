@@ -7,7 +7,8 @@ interface
 uses
   Classes, SysUtils, MasterPaskalForm, nosotime, graphics, strutils, forms, controls, grids,stdctrls,
   ExtCtrls, buttons, editbtn , menus, Clipbrd, IdContext, LCLTranslator, nosodebug, nosogeneral,
-  nosocrypto, nosoconsensus,nosounit, nosopsos, nosowallcon,nosoblock,nosonetwork,nosonosocfg,nosogvts;
+  nosocrypto, nosoconsensus,nosounit, nosopsos, nosowallcon,nosoblock,nosonetwork,nosonosocfg,nosogvts,
+  nosomasternodes;
 
 type
   TFormInicio = class(Tform)

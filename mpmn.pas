@@ -20,11 +20,11 @@ Type
         constructor Create(const CreatePaused: Boolean; const ConexSlot:Integer);
       end;
 }
-Function NoVerificators():integer;
-Function RunMNVerification():String;
+//Function NoVerificators():integer;
+//Function RunMNVerification():String;
 Function GetMNCheckFromString(Linea:String):TMNCheck;
 
-Function GetMNsChecksCount():integer;
+//Function GetMNsChecksCount():integer;
 Procedure ClearMNsChecks();
 Function MnsCheckExists(Ip:String):Boolean;
 Procedure AddMNCheck(ThisData:TMNCheck);
@@ -36,20 +36,20 @@ Procedure PTC_SendChecks(Slot:integer);
 Function MNVerificationDone():Boolean;
 Function ValidatorsCount():Integer;
 Function IsValidator(Ip:String):boolean;
-Function GetMNReportString():String;
-Function GetStringFromMN(Node:TMNode):String;
-Function GetMNsListLength():Integer;
-function MyMNIsListed():boolean;
-Procedure ClearMNsList();
-Function GetMNodeFromString(const StringData:String; out ToMNode:TMNode):Boolean;
-Function IsLegitNewNode(ThisNode:TMNode):Boolean;
-Procedure CheckMNRepo(LineText:String);
-Procedure SendMNsList(Slot:Integer);
+//Function GetMNReportString():String;
+//Function GetStringFromMN(Node:TMNode):String;
+//Function GetMNsListLength():Integer;
+//function MyMNIsListed():boolean;
+//Procedure ClearMNsList();
+//Function GetMNodeFromString(const StringData:String; out ToMNode:TMNode):Boolean;
+//Function IsLegitNewNode(ThisNode:TMNode):Boolean;
+//Procedure CheckMNReport(LineText:String);
+//Procedure SendMNsList(Slot:Integer);
 Function GetVerificationMNLine(ToIp:String):String;
 
-Procedure CreditMNVerifications();
+//Procedure CreditMNVerifications();
 
-Function GetMNsAddresses():String;
+//Function GetMNsAddresses():String;
 Function GetMNsFileData():String;
 Procedure FillMNsArray(TValue:String);
 Function GetVerificatorsText():string;
@@ -61,25 +61,25 @@ Procedure PTC_MNFile(Linea:String);
 // Waiting MNs
 
 Function LengthWaitingMNs():Integer;
-Function IsIPMNAlreadyProcessed(OrderText:string):Boolean;
+//Function IsIPMNAlreadyProcessed(OrderText:string):Boolean;
 Function GetMNSignature():string;
 Procedure AddWaitingMNs(Linea:String);
 Function GetWaitingMNs():String;
 
 var
-  ArrayIPsProcessed : array of string;
+  //ArrayIPsProcessed : array of string;
   OpenVerificators : integer;
   MNsListCopy        : array of TMnode;       // Contains the Nodes data to run the verification
-  MNsList            : array of TMnode;
+  //MNsList            : array of TMnode;
   CurrSynctus : string;
   VerifiedNodes : String;
   UnconfirmedIPs : integer;
   TopVerificators : string;
   CSVerNodes    : TRTLCriticalSection;
-  CSMNsChecks   : TRTLCriticalSection;
+  //CSMNsChecks   : TRTLCriticalSection;
   //DecVerThreads : TRTLCriticalSection;
   CSMNsFile     : TRTLCriticalSection;
-  CSMNsIPCheck  : TRTLCriticalSection;
+  //CSMNsIPCheck  : TRTLCriticalSection;
   CSMN_FileText : TRTLCriticalSection;
   CSMN_Contract : TRTLCriticalSection;
 
@@ -163,13 +163,15 @@ End;
 }
 {$ENDREGION ThreadVerificator}
 
+{
 Function NoVerificators():integer;
 Begin
 EnterCriticalSection(DecVerThreads);
 result := OpenVerificators;
 LeaveCriticalSection(DecVerThreads);
 End;
-
+}
+{
 function RunMNVerification():String;
 var
   counter : integer;
@@ -219,6 +221,7 @@ DataLine := MN_IP+' '+MyLastBlock.ToString+' '+MN_Sign+' '+GetWallArrIndex(WallA
 OutGoingMsjsAdd(ProtocolLine(MNCheck)+DataLine);
 Result := Launched.ToString+':'+VerifiedNodes
 End;
+}
 
 // Converts a string into a TMNChekc data
 Function GetMNCheckFromString(Linea:String):TMNCheck;
@@ -231,6 +234,7 @@ Result.ValidNodes     :=Parameter(Linea,9);
 Result.Signature      :=Parameter(Linea,10);
 End;
 
+{
 // Returns the number of MNs checks
 Function GetMNsChecksCount():integer;
 Begin
@@ -238,6 +242,7 @@ EnterCriticalSection(CSMNsChecks);
 result := Length(ArrMNChecks);
 LeaveCriticalSection(CSMNsChecks);
 End;
+}
 
 // Clears all the MNS checks
 Procedure ClearMNsChecks();
@@ -337,7 +342,7 @@ result := false;
 EnterCriticalSection(CSMNsChecks);
 for counter := 0 to length(ArrMNChecks)-1 do
    begin
-   if ArrMNChecks[counter].ValidatorIP = MN_IP then
+   if ArrMNChecks[counter].ValidatorIP = LocalMN_IP then
       begin
       result := true;
       break;
@@ -357,6 +362,7 @@ result := false;
 if IsSeedNode(IP) then result := true;
 End;
 
+{
 // Returns the string to send the own MN report
 Function GetMNReportString():String;
 var
@@ -383,22 +389,26 @@ if IPToUse <> MN_IP then
 result := IpToUse+' '+MN_Port+' '+MN_Sign+' '+MN_Funds+' '+MyLastBlock.ToString+' '+MyLastBlock.ToString+' '+
    '0'+' '+'0'+' '+HashMD5String(IpToUse+MN_Port+MN_Sign+MN_Funds);
 End;
-
+}
+{
 // Converst a MNNode data into a string
 Function GetStringFromMN(Node:TMNode):String;
 Begin
-result := Node.Ip+' '+Node.Port.ToString+' '+Node.Sign+' '+Node.Fund+' '+Node.First.ToString+' '+Node.Last.ToString+' '+
+  result := Node.Ip+' '+Node.Port.ToString+' '+Node.Sign+' '+Node.Fund+' '+Node.First.ToString+' '+Node.Last.ToString+' '+
           Node.Total.ToString+' '+Node.Validations.ToString+' '+Node.Hash;
 End;
-
+}
+{
 // Returns the count of reported MNs
 Function GetMNsListLength():Integer;
 Begin
-EnterCriticalSection(CSMNsArray);
-Result := Length(MNsList);
-LeaveCriticalSection(CSMNsArray);
+  EnterCriticalSection(CSMNsArray);
+  Result := Length(MNsList);
+  LeaveCriticalSection(CSMNsArray);
 End;
+}
 
+{
 // Clears all the reported MNs
 Procedure ClearMNsList();
 Begin
@@ -409,7 +419,9 @@ EnterCriticalSection(CSMNsIPCheck);
 Setlength(ArrayIPsProcessed,0);
 LeaveCriticalSection(CSMNsIPCheck);
 End;
+}
 
+{
 // Returns if the user MN is already reported
 function MyMNIsListed():boolean;
 var
@@ -430,7 +442,8 @@ if GetMNsListLength > 0 then
    LeaveCriticalSection(CSMNsArray);
    end;
 End;
-
+}
+{
 Function GetMNodeFromString(const StringData:String; out ToMNode:TMNode):Boolean;
 var
   ErrCode : integer = 0;
@@ -461,16 +474,17 @@ if ErrCode>0 then
    //ToLog('console','MASTERNODE REJECTED ERROR: '+ErrCode.ToString);
    end;
 End;
-
+}
+{
 Function IsLegitNewNode(ThisNode:TMNode):Boolean;
 var
   counter : integer;
 Begin
-result := true;
-if GetMNsListLength>0 then
-   begin
-   EnterCriticalSection(CSMNsArray);
-   For counter := 0 to length(MNsList)-1 do
+  result := true;
+  if GetMNsListLength>0 then
+    begin
+    EnterCriticalSection(CSMNsArray);
+    For counter := 0 to length(MNsList)-1 do
       begin
       if ( (ThisNode.Ip = MNsList[counter].Ip) or
            (ThisNode.Sign = MNsList[counter].Sign) or
@@ -488,8 +502,9 @@ if GetMNsListLength>0 then
    LeaveCriticalSection(CSMNsArray);
    end;
 End;
-
-Procedure CheckMNRepo(LineText:String);
+}
+{
+Procedure CheckMNReport(LineText:String;block:integer);
 var
   StartPos   : integer;
   ReportInfo : string = '';
@@ -497,11 +512,11 @@ var
   counter    : integer;
   Added      : boolean = false;
 Begin
-StartPos := Pos('$',LineText);
-ReportInfo := copy (LineText,StartPos,length(LineText));
-if GetMNodeFromString(ReportInfo,NewNode) then
-   Begin
-   if IsLegitNewNode(NewNode) then
+  StartPos := Pos('$',LineText);
+  ReportInfo := copy (LineText,StartPos,length(LineText));
+  if GetMNodeFromString(ReportInfo,NewNode) then
+    Begin
+    if IsLegitNewNode(NewNode,block) then
       begin
       EnterCriticalSection(CSMNsArray);
       if LEngth(MNsList) = 0 then
@@ -533,7 +548,8 @@ else
    //ToLog('console','REJECTED Masternode: '+Reportinfo);
    end;
 End;
-
+}
+{
 Procedure SendMNsList(Slot:Integer);
 var
   Counter : integer;
@@ -550,38 +566,42 @@ if GetMNsListLength>0 then
    LeaveCriticalSection(CSMNsArray);
    end;
 End;
+}
 
 {Returns the response to the validators request}
 Function GetVerificationMNLine(ToIp:String):String;
 Begin
 if IsAllSynced=0 then
    begin
-   Result := 'True '+GetSyncTus+' '+MN_Funds+' '+ToIp;
+   Result := 'True '+GetSyncTus+' '+LocalMN_Funds+' '+ToIp;
    Inc(G_MNVerifications);
    end
 else Result := 'False';
 End;
 
+{
 Function GetMNAgeCount(TNode:TMNode):string;
 var
   TIpandPort : string;
   counter    : integer;
   Number     : integer=0;
 Begin
-result := '';
-//if MyLastBlock < 65500 then exit;
-TIpandPort := TNode.Ip+';'+IntToStr(TNode.Port);
-for counter := 0 to length(ArrayMNsData)-1 do
-   begin
-   if ( (TIpandPort = ArrayMNsData[counter].ipandport) and (TNode.Fund=ArrayMNsData[counter].address) ) then
+  result := '';
+  //if MyLastBlock < 65500 then exit;
+  TIpandPort := TNode.Ip+';'+IntToStr(TNode.Port);
+  for counter := 0 to length(ArrayMNsData)-1 do
+    begin
+    if ( (TIpandPort = ArrayMNsData[counter].ipandport) and (TNode.Fund=ArrayMNsData[counter].address) ) then
       begin
       Number := ArrayMNsData[counter].age;
       break;
       end;
-   end;
-result := ':'+IntToStr(number+1);
+    end;
+  result := ':'+IntToStr(number+1);
 End;
+}
 
+{
 Function GetMNsAddresses():String;
 var
   MinValidations : integer;
@@ -589,22 +609,22 @@ var
   Resultado      : string = '';
   AddAge         : string = '';
 Begin
-MinValidations := (GetMNsChecksCount div 2) - 1;
-Resultado := MyLastBlock.ToString+' ';
-EnterCriticalSection(CSMNsArray);
-For counter := 0 to length(MNsList)-1 do
+  MinValidations := (GetMNsChecksCount div 2) - 1;
+  Resultado := MyLastBlock.ToString+' ';
+  EnterCriticalSection(CSMNsArray);
+  For counter := 0 to length(MNsList)-1 do
+    begin
+    if MNsList[counter].Validations>= MinValidations then
       begin
-      if MNsList[counter].Validations>= MinValidations then
-         begin
-         AddAge := GetMNAgeCount(MNsList[counter]);
-         Resultado := Resultado + MNsList[counter].Ip+';'+MNsList[counter].Port.ToString+':'+MNsList[counter].Fund+
-            AddAge+' ';
-         end;
+      AddAge := GetMNAgeCount(MNsList[counter]);
+      Resultado := Resultado + MNsList[counter].Ip+';'+MNsList[counter].Port.ToString+':'+MNsList[counter].Fund+AddAge+' ';
       end;
-LeaveCriticalSection(CSMNsArray);
-SetLength(Resultado, Length(Resultado)-1);
-result := Resultado;
+    end;
+  LeaveCriticalSection(CSMNsArray);
+  SetLength(Resultado, Length(Resultado)-1);
+  result := Resultado;
 End;
+}
 
 Function GetMNsFileData():String;
 var
@@ -624,7 +644,7 @@ EXCEPT on E:Exception do
    end;
 END {TRY};
 LeaveCriticalSection(CSMNsFile);
-if AnsiContainsStr(Linea,MN_IP) then
+if AnsiContainsStr(Linea,LocalMN_IP) then
    begin
    Form1.imagenes.GetBitMap(68,Form1.StaSerImg.Picture.Bitmap);
    Form1.StaSerImg.Hint:='Masternode Earning!';
@@ -738,7 +758,7 @@ EXCEPT on E:Exception do
 END {TRY};
 LeaveCriticalSection(CSMNsFile);
 MyMNsHash     := HashMD5File(MasterNodesFilename);
-if AnsiContainsStr(GotText,MN_IP) then
+if AnsiContainsStr(GotText,LocalMN_IP) then
    begin
    Form1.imagenes.GetBitMap(68,Form1.StaSerImg.Picture.Bitmap);
    Form1.StaSerImg.Hint:='Masternode Earning!';
@@ -760,6 +780,7 @@ Content := Copy(Linea,Startpos+1,Length(linea));
 SaveMNsFile(content);
 end;
 
+{
 Procedure CreditMNVerifications();
 var
   counter     : integer;
@@ -782,30 +803,31 @@ var
   End;
 
 Begin
-EnterCriticalSection(CSMNsArray);
-EnterCriticalSection(CSMNsChecks);
-for counter := 0 to length(ArrMNChecks)-1 do
-   begin
-   NodesString := ArrMNChecks[counter].ValidNodes;
-   NodesString := StringReplace(NodesString,':',' ',[rfReplaceAll]);
-   //ToLog('console',NodesString);
-   IPIndex := 0;
-   REPEAT
+  EnterCriticalSection(CSMNsArray);
+  EnterCriticalSection(CSMNsChecks);
+  for counter := 0 to length(ArrMNChecks)-1 do
+    begin
+    NodesString := ArrMNChecks[counter].ValidNodes;
+    NodesString := StringReplace(NodesString,':',' ',[rfReplaceAll]);
+    //ToLog('console',NodesString);
+    IPIndex := 0;
+    REPEAT
       begin
       ThisIP := Parameter(NodesString,IPIndex);
       ThisIP := StringReplace(ThisIP,';',' ',[rfReplaceAll]);
       ThisIP := Parameter(ThisIP,0);
       if ThisIP <> '' then
-         begin
-         AddCheckToIP(ThisIP);
-         end;
+        begin
+        AddCheckToIP(ThisIP);
+        end;
       Inc(IPIndex);
       end;
-   UNTIL ThisIP = '';
-   end;
-LeaveCriticalSection(CSMNsChecks);
-LeaveCriticalSection(CSMNsArray);
+    UNTIL ThisIP = '';
+    end;
+  LeaveCriticalSection(CSMNsChecks);
+  LeaveCriticalSection(CSMNsArray);
 End;
+}
 
 Function LengthWaitingMNs():Integer;
 Begin
@@ -814,6 +836,7 @@ result := Length(WaitingMNs);
 LeaveCriticalSection(CSWaitingMNs);
 End;
 
+{
 Function IsIPMNAlreadyProcessed(OrderText:string):Boolean;
 var
   ThisIP : string;
@@ -836,6 +859,7 @@ if length(ArrayIPsProcessed) > 0 then
 if result = false then Insert(ThisIP,ArrayIPsProcessed,length(ArrayIPsProcessed));
 LeaveCriticalSection(CSMNsIPCheck);
 End;
+}
 
 // Returns the signature for the masternode report
 Function GetMNSignature():string;
@@ -846,19 +870,19 @@ var
   CurrentTime : string;
   ReportHash : string;
 Begin
-BeginPerformance('GetMNSignature');
-result := '';
-CurrentTime := UTCTimeStr;
-TextToSign := CurrentTime+' '+MN_IP+' '+MyLastBlock.ToString+' '+MyLastBlockHash;
-ReportHash := HashMD5String(TextToSign);
-SignAddressIndex := WallAddIndex(MN_Sign);
-if SignAddressIndex<0 then result := ''
-else
-   begin
-   PublicKey := GetWallArrIndex(SignAddressIndex).PublicKey;
-   result := CurrentTime+' '+PublicKey+' '+GetStringSigned(TextToSign,GetWallArrIndex(SignAddressIndex).PrivateKey)+' '+ReportHash;
-   end;
-EndPerformance('GetMNSignature');
+  BeginPerformance('GetMNSignature');
+  result := '';
+  CurrentTime := UTCTimeStr;
+  TextToSign := CurrentTime+' '+LocalMN_IP+' '+MyLastBlock.ToString+' '+MyLastBlockHash;
+  ReportHash := HashMD5String(TextToSign);
+  SignAddressIndex := WallAddIndex(LocalMN_Sign);
+  if SignAddressIndex<0 then result := ''
+  else
+    begin
+    PublicKey := GetWallArrIndex(SignAddressIndex).PublicKey;
+    result := CurrentTime+' '+PublicKey+' '+GetStringSigned(TextToSign,GetWallArrIndex(SignAddressIndex).PrivateKey)+' '+ReportHash;
+    end;
+  EndPerformance('GetMNSignature');
 End;
 
 Procedure AddWaitingMNs(Linea:String);
@@ -882,21 +906,21 @@ End;
 
 Initialization
 InitCriticalSection(CSVerNodes);
-InitCriticalSection(DecVerThreads);
+//InitCriticalSection(DecVerThreads);
 InitCriticalSection(CSMNsChecks);
 InitCriticalSection(CSMNsFile);
-InitCriticalSection(CSMNsIPCheck);
+//InitCriticalSection(CSMNsIPCheck);
 InitCriticalSection(CSMN_FileText);
 InitCriticalSection(CSMN_Contract);
 
-SetLength(ArrayIPsProcessed,0);
+//SetLength(ArrayIPsProcessed,0);
 
 Finalization
 DoneCriticalSection(CSVerNodes);
-DoneCriticalSection(DecVerThreads);
+//DoneCriticalSection(DecVerThreads);
 DoneCriticalSection(CSMNsChecks);
 DoneCriticalSection(CSMNsFile);
-DoneCriticalSection(CSMNsIPCheck);
+//DoneCriticalSection(CSMNsIPCheck);
 DoneCriticalSection(CSMN_FileText);
 DoneCriticalSection(CSMN_Contract);
 

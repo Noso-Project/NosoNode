@@ -21,6 +21,8 @@ type
     function  GetString: String;
   end;
 
+  TStringArray = Array of String;
+
 {Generic}
 Function Parameter(LineText:String;ParamNumber:int64;de_limit:string=' '):String;
 Function IsValidIP(IpString:String):boolean;

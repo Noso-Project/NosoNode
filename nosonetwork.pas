@@ -218,7 +218,7 @@ Begin
   if LCode = 9 then Specific := '$CUSTOM ';                        //Custom
   if LCode = 11 then Specific := '$GETMNS';                         //GetMNs
   if LCode = 12 then Specific := '$BESTHASH';                       //BestHash
-  if LCode = 13 then Specific := '$MNREPO '+GetMNReportString;      //MNReport
+  if LCode = 13 then Specific := '$MNREPO '+GetMNReportString(MyLastBlock);      //MNReport
   if LCode = 14 then Specific := '$MNCHECK ';                       //MNCheck
   if LCode = 15 then Specific := '$GETCHECKS';                      //GetChecks
   if LCode = 16 then Specific := 'GETMNSFILE';                      //GetMNsFile
@@ -388,6 +388,8 @@ Begin
       ClearIncoming(slot);
       CanalCliente[Slot].IOHandler.InputBuffer.Clear;
       CanalCliente[Slot].Disconnect;
+      If Assigned(Conexiones[Slot].Thread) then
+        Conexiones[Slot].Thread.Terminate;
       end;
     EXCEPT on E:Exception do
       ToDeepDeb('NosoNetwork,CloseSlot,'+E.Message);
@@ -602,14 +604,14 @@ begin
             end // END RECEIVING BLOCKS
           else
             begin
-            ProcessIncomingLine(FSlot,LLine);
+            //ProcessIncomingLine(FSlot,LLine);
             AddToIncoming(FSlot,LLine);
             end;
           end;
       SetConexIndexBusy(FSlot,false);
       end; // end while client is not empty
     end; // End OnBuffer
-  UNTIL ( (terminated) or (not CanalCliente[FSlot].Connected) or (KillIt) );
+  UNTIL ( (terminated) or (Conexiones[Fslot].tipo='') or (KillIt) );
   CloseSlot(Fslot);
   DecClientReadThreads;
   CloseOpenThread('ReadClient '+FSlot.ToString);

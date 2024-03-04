@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, mpRed, MasterPaskalForm, mpParser, StrUtils, mpDisk, nosotime, mpBlock,
   Zipper, mpcoin, mpMn, nosodebug, nosogeneral, nosocrypto, nosounit,nosoconsensus,nosopsos,
-  nosoheaders, NosoNosoCFG, nosoblock, nosonetwork,nosogvts;
+  nosoheaders, NosoNosoCFG, nosoblock, nosonetwork,nosogvts,nosoMasternodes;
 
 function GetPTCEcn():String;
 Function GetOrderFromString(textLine:String):TOrderData;
@@ -39,6 +39,7 @@ Procedure INC_PTC_SendGVT(TextLine:String;connection:integer);
 Function PTC_SendGVT(TextLine:String):integer;
 Procedure PTC_AdminMSG(TextLine:String);
 Procedure PTC_CFGData(Linea:String);
+Procedure PTC_SendMNsList(slot:integer);
 Procedure PTC_SendUpdateHeaders(Slot:integer;Linea:String);
 Procedure PTC_HeadUpdate(linea:String);
 
@@ -222,7 +223,7 @@ Begin
       else if UpperCase(LineComando) = '$PING' then ProcessPing(ProcessLine,contador,true)
       else if UpperCase(LineComando) = '$PONG' then ProcessPing(ProcessLine,contador,false)
       else if UpperCase(LineComando) = '$GETPENDING' then PTC_SendPending(contador)
-      else if UpperCase(LineComando) = '$GETMNS' then SendMNsList(contador)
+      else if UpperCase(LineComando) = '$GETMNS' then PTC_SendMNsList(contador) //SendMNsList(contador)
       else if UpperCase(LineComando) = '$GETRESUMEN' then PTC_SendResumen(contador)
       else if UpperCase(LineComando) = '$LASTBLOCK' then PTC_SendBlocks(contador,ProcessLine)
       else if UpperCase(LineComando) = '$CUSTOM' then INC_PTC_Custom(GetOpData(ProcessLine),contador)
@@ -990,6 +991,18 @@ if Copy(HAshMD5String(Content),0,5) = GetCOnsensus(19) then
    end
 else
    ToLog('events',Format('Failed CFG: %s <> %s',[Copy(HAshMD5String(Content),0,5),GetCOnsensus(19)]));
+End;
+
+Procedure PTC_SendMNsList(slot:integer);
+var
+  DataArray : array of string;
+  counter   : integer;
+Begin
+  if FillMnsListArray(DataArray) then
+    begin
+    for counter := 0 to length(DataArray)-1 do
+      PTC_SendLine(slot,GetPTCEcn+'$MNREPO '+DataArray[counter]);
+    end;
 End;
 
 Procedure PTC_SendUpdateHeaders(Slot:integer;Linea:String);

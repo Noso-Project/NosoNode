@@ -302,7 +302,7 @@ if not errored then
    // Masternodes processing
    BeginPerformance('NewBLOCK_MNs');
    CreditMNVerifications();
-   MNsFileText := GetMNsAddresses();
+   MNsFileText := GetMNsAddresses(MyLastBlock);
    SaveMNsFile(MNsFileText);
    ClearMNsChecks();
    ClearMNsList();

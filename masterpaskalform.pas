@@ -215,6 +215,7 @@ type
        end;
    }
 
+   {
   TMNCheck = Record
        ValidatorIP  : string;      // Validator IP
        Block        : integer;
@@ -223,6 +224,7 @@ type
        ValidNodes   : string;
        Signature    : string;
        end;
+   }
 
   TArrayCriptoOp = Packed record
        tipo: integer;
@@ -241,11 +243,13 @@ type
        end;
   }
 
+  {
   TMNsData  = Packed Record
        ipandport  : string;
        address    : string;
        age        : integer;
        end;
+  }
   {
   TGVT = packed record
        number   : string[2];
@@ -568,7 +572,7 @@ CONST
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS DELBOTS';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
 
-  //MainnetVersion = '0.4.2';
+  MainnetVersion = '0.4.2';
   {$IFDEF WINDOWS}
   RestartFileName = 'launcher.bat';
   updateextension = 'zip';
@@ -643,10 +647,10 @@ var
   RPCBanned        : string = '';
   RPCAuto          : boolean = false;
   RPCSaveNew       : boolean = false;
-  MN_IP            : string = 'localhost';
-  MN_Port          : string = '8080';
-  MN_Funds         : string = '';
-  MN_Sign          : string = '';
+  //MN_IP            : string = 'localhost';
+  //MN_Port          : string = '8080';
+  //MN_Funds         : string = '';
+  //MN_Sign          : string = '';
   MN_AutoIP        : Boolean = false;
   MN_FileText      : String = '';
   WO_FullNode      : boolean = true;
@@ -713,7 +717,7 @@ var
 
   // Masternodes
   G_MNVerifications  : integer = 0;
-  ArrayMNsData       : array of TMNsData;
+  //ArrayMNsData       : array of TMNsData;
   LastTimeReportMyMN : int64 = 0;
   MNsArray           : array of TMasterNode;
   WaitingMNs         : array of String;
@@ -721,7 +725,7 @@ var
   U_MNsGrid_Last     : int64 = 0;
 
   //MNsList       : array of TMnode;
-  ArrMNChecks   : array of TMNCheck;
+  //ArrMNChecks   : array of TMNCheck;
   MNsRandomWait : Integer= 0;
 
 
@@ -1199,7 +1203,8 @@ End;
 // Process the Masternodes reports
 procedure TUpdateMNs.Execute;
 var
-  TextLine : String;
+  TextLine   : String;
+  ReportInfo : String = '';
 Begin
   AddNewOpenThread('Masternodes',UTCTime);
   Randomize;
@@ -1208,11 +1213,12 @@ Begin
     begin
     if UTCTime mod 10 = 0 then
       begin
-      if ( (IsValidator(MN_Ip)) and (BlockAge>500+(MNsRandomWait div 4)) and (Not MNVerificationDone) and
-        (BlockAge<575)and(LastRunMNVerification<>UTCTime) and (MyConStatus = 3) and(NoVerificators=0) ) then
+      if ( (IsValidator(LocalMN_IP)) and (BlockAge>500+(MNsRandomWait div 4)) and (Not MNVerificationDone) and
+        (BlockAge<575)and(LastRunMNVerification<>UTCTime) and (MyConStatus = 3) and(VerifyThreadsCount=0) ) then
         begin
         LastRunMNVerification := UTCTime;
-        RunMNVerification();
+        TextLine := RunMNVerification(MyLastBlock,GetSynctus,LocalMN_IP);
+        OutGoingMsjsAdd(ProtocolLine(MNCheck)+TextLine);
         end;
       end;
     While LengthWaitingMNs > 0 do
@@ -1220,7 +1226,9 @@ Begin
       TextLine := GetWaitingMNs;
       if not IsIPMNAlreadyProcessed(TextLine) then
         begin
-        CheckMNRepo(TextLine);
+        ReportInfo := CheckMNReport(TextLine,MyLastBlock);
+        if  ReportInfo <> '' then
+          outGOingMsjsAdd(GetPTCEcn+ReportInfo);
         sleep(1);
         end;
       end;
@@ -1397,7 +1405,7 @@ Begin
       begin
       Inc(LastTrySlot);
       if LastTrySlot >=length(ListaNodos) then LastTrySlot := 0;
-      if ((GetSlotFromIP(ListaNodos[LastTrySlot].ip)=0) AND (GetFreeSlot()>0) and (ListaNodos[LastTrySlot].ip<>MN_Ip)) then
+      if ((GetSlotFromIP(ListaNodos[LastTrySlot].ip)=0) AND (GetFreeSlot()>0) and (ListaNodos[LastTrySlot].ip<>LocalMN_IP)) then
         ConnectClient(ListaNodos[LastTrySlot].ip,ListaNodos[LastTrySlot].port);
       end;
     sleep(1500);
@@ -1474,7 +1482,7 @@ Begin
   CreateFormInicio();
   CreateFormSlots();
   SetLength(ArrayOrderIDsProcessed,0);
-  SetLength(ArrayMNsData,0);
+  //SetLength(ArrayMNsData,0);
   //Setlength(ArrayPoolTXs,0);
 End;
 
@@ -3267,21 +3275,21 @@ procedure TForm1.TabNodeOptionsShow(sender: TObject);
 Begin
   CBAutoIP.checked:=MN_AutoIP;
   CheckBox4.Checked:=WO_AutoServer;
-  LabeledEdit5.Text:=MN_IP;
-  LabeledEdit5.visible:=not MN_AutoIP;
-  LabeledEdit6.Text:=MN_Port;
-  LabeledEdit8.Text:=MN_Funds;
-  LabeledEdit9.Text:=MN_Sign;
+  LabeledEdit5.Text:=LocalMN_IP;
+  //LabeledEdit5.visible:=not MN_AutoIP;
+  LabeledEdit6.Text:=LocalMN_Port;
+  LabeledEdit8.Text:=LocalMN_Funds;
+  LabeledEdit9.Text:=LocalMN_Sign;
 End;
 
 // Save Node options
 procedure TForm1.BSaveNodeOptionsClick(sender: TObject);
 Begin
   WO_AutoServer :=CheckBox4.Checked;
-  MN_IP         :=Trim(LabeledEdit5.Text);
-  MN_Port       :=Trim(LabeledEdit6.Text);
-  MN_Funds      :=Trim(LabeledEdit8.Text);
-  MN_Sign       :=Trim(LabeledEdit9.Text);
+  LocalMN_IP         :=Trim(LabeledEdit5.Text);
+  LocalMN_Port       :=Trim(LabeledEdit6.Text);
+  LocalMN_Funds      :=Trim(LabeledEdit8.Text);
+  LocalMN_Sign       :=Trim(LabeledEdit9.Text);
   MN_AutoIP     :=CBAutoIP.Checked;
   S_AdvOpt := true;
   if not WO_AutoServer and form1.Server.Active then processlinesadd('serveroff');
@@ -3422,9 +3430,19 @@ End;
 
 // Set MN IP to Auto
 procedure TForm1.CBAutoIPClick(sender: TObject);
+var
+  MyIP : string;
 Begin
-  if CBAutoIP.Checked then LabeledEdit5.Visible:=false
-  else LabeledEdit5.Visible:=true;
+  if CBAutoIP.Checked then
+    begin
+    MyIP := GetMiIP();
+    if MyIP <> '' then
+      begin
+      LabeledEdit5.Caption:=MyIP;
+      end;
+    end;
+  //LabeledEdit5.Visible:=false
+  //else LabeledEdit5.Visible:=true;
 End;
 
 // Editing RPC filter memo

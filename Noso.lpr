@@ -26,8 +26,8 @@ begin
      FolderCreated := true;
      end;
   //language := GetLanguage;
-  if ((WO_LastPoUpdate<>Programversion+SubVersion) or (FolderCreated)) then ExtractPoFiles;
-  WO_LastPoUpdate := Programversion+SubVersion;
+  if ((WO_LastPoUpdate<>MainnetVersion+NodeRelease) or (FolderCreated)) then ExtractPoFiles;
+  WO_LastPoUpdate := MainnetVersion+NodeRelease;
   SetDefaultLang(language);
   RequireDerivedFormResource:=True;
   Application.Scaled:=True;

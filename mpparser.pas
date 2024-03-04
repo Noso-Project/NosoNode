@@ -8,7 +8,8 @@ uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, nosotime, mpblock, mpcoin,
   dialogs, fileutil, forms, idglobal, strutils, mpRPC, DateUtils, Clipbrd,translation,
   idContext, math, mpMN, MPSysCheck, nosodebug, nosogeneral, nosocrypto, nosounit,
-  nosoconsensus, nosopsos,nosowallcon, nosoheaders, nosoblock, nosonosocfg,nosonetwork,nosogvts;
+  nosoconsensus, nosopsos,nosowallcon, nosoheaders, nosoblock, nosonosocfg,nosonetwork,
+  nosogvts,nosomasternodes;
 
 procedure ProcessLinesAdd(const ALine: String);
 procedure OutgoingMsjsAdd(const ALine: String);
@@ -71,6 +72,7 @@ Procedure ShowBlockPos(LineText:string);
 Procedure ShowBlockMNs(LineText:string);
 Procedure showgmts(LineText:string);
 Procedure ShowSystemInfo(Linetext:string);
+Procedure ShowMNsChecks();
 
 // EXCHANGE
 Procedure PostOffer(LineText:String);
@@ -282,6 +284,7 @@ else if UpperCase(Command) = 'FUNDS' then ToLog('console','Project funds '+lineE
   'NpryectdevepmentfundsGE: '+Int2curr(GetAddressAvailable('NpryectdevepmentfundsGE'))+lineEnding+
   'NPrjectPrtcRandmJacptE5: '+Int2curr(GetAddressAvailable('NPrjectPrtcRandmJacptE5')))
 else if UpperCase(Command) = 'SUMINDEXSIZE' then ToLog('console',IntToStr(SumIndexLength))
+else if UpperCase(Command) = 'MNSCHECKS' then ShowMNsChecks()
 
 // 0.2.1 DEBUG
 else if UpperCase(Command) = 'BLOCKPOS' then ShowBlockPos(LineText)
@@ -362,7 +365,7 @@ End;
 Procedure ShowUser_Options();
 Begin
 ToLog('console','Language    : '+WO_Language);
-ToLog('console','Server Port : '+MN_Port);
+ToLog('console','Server Port : '+LocalMN_Port);
 ToLog('console','Wallet      : '+WalletFilename);
 ToLog('console','AutoServer  : '+BoolToStr(WO_AutoServer,true));
 End;
@@ -931,7 +934,7 @@ if ((StrToIntDef(NewPort,0) < 1) or (StrToIntDef(NewPort,0)>65535)) then
    end
 else
    begin
-   MN_Port := NewPort;
+   LocalMN_Port := NewPort;
    OutText('New listening port: '+NewPort,false,2);
    end;
 End;
@@ -1886,6 +1889,17 @@ Procedure ShowConsensusStats();
 Begin
   ToLog('Console',GetConsensus(8)+' '+Copy(MyMNsHash,1,5));
   ImportAddressesFromBackup(RPCBakDirectory);
+End;
+
+Procedure ShowMNsChecks();
+var
+  counter : integer;
+Begin
+for counter := 0 to length(ArrMNChecks)-1 do
+  begin
+  ToLog('console',ArrMNChecks[counter].ValidatorIP+','+GetValidNodesCountOnCheck(ArrMNChecks[counter].ValidNodes).ToString);
+  end;
+
 End;
 
 END. // END UNIT

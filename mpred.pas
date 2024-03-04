@@ -9,7 +9,7 @@ uses
   mpBlock, fileutil, graphics,  dialogs, strutils, mpcoin, fphttpclient,
   opensslsockets,translation, IdHTTP, IdComponent, IdSSLOpenSSL, mpmn, IdTCPClient,
   nosodebug,nosogeneral, nosocrypto, nosounit, nosoconsensus, nosopsos,nosowallcon,
-  nosoheaders, nosoblock, nosonosocfg,nosonetwork,nosogvts;
+  nosoheaders, nosoblock, nosonosocfg,nosonetwork,nosogvts,nosomasternodes;
 
 function GetSlotFromIP(Ip:String):int64;
 function GetSlotFromContext(Context:TidContext):int64;
@@ -162,7 +162,7 @@ var
   PortNumber : integer;
 Begin
 KeepServerOn := true;
-PortNumber := StrToIntDef(MN_Port,8080);
+PortNumber := StrToIntDef(LocalMN_Port,8080);
 if Form1.Server.Active then
    begin
    ToLog('console','Server Already active'); //'Server Already active'
@@ -188,8 +188,8 @@ procedure StartServer();
 var
   PortNumber : integer;
 Begin
-PortNumber := StrToIntDef(MN_Port,8080);
-if WallAddIndex(MN_Sign)<0 then
+PortNumber := StrToIntDef(LocalMN_Port,8080);
+if WallAddIndex(LocalMN_Sign)<0 then
    begin
    ToLog('console',rs2000); //Sign address not valid
    exit;
@@ -567,8 +567,8 @@ if MyConStatus = 3 then
       PTC_SendLine(ValidSlot,ProtocolLine(5));  // Get pending
       LastTimePendingRequested := UTCTime;
       end;
-   if GetAddressBalanceIndexed(MN_Funds) < GetStackRequired(MyLastBlock) then LastTimeReportMyMN := NextBlockTimeStamp+5;
-   if ( (not MyMNIsListed) and (Form1.Server.Active) and (UTCTime>LastTimeReportMyMN+5)
+   if GetAddressBalanceIndexed(LocalMN_Funds) < GetStackRequired(MyLastBlock) then LastTimeReportMyMN := NextBlockTimeStamp+5;
+   if ( (not IsMyMNListed(LocalMN_IP)) and (Form1.Server.Active) and (UTCTime>LastTimeReportMyMN+5)
         and (BlockAge>10+MNsRandomWait) and (BlockAge<495) and(1=1) ) then
      begin
      OutGoingMsjsAdd(ProtocolLine(MNReport));
@@ -763,9 +763,7 @@ if ( (StrToIntDef(GetConsensus(9),0)>GetMNsListLength) and (LastTimeMNsRequested
    begin
    if GetValidSlotForSeed(ValidSlot) then
       begin
-      EnterCriticalSection(CSMNsIPCheck);
-      Setlength(ArrayIPsProcessed,0);
-      LeaveCriticalSection(CSMNsIPCheck);
+      ClearMNIPProcessed;
       PTC_SendLine(ValidSlot,ProtocolLine(11));  // Get MNsList
       LastTimeMNsRequested := UTCTime;
       ToLog('console','MNs reports requested');
@@ -1113,22 +1111,22 @@ var
   LineText  : String = '';
   NodeToUse : integer;
 Begin
-NodeToUse := Random(Length(ListaNodos));
-Result := '';
-TCPClient := TidTCPClient.Create(nil);
-TCPclient.Host:=ListaNodos[NodeToUse].ip;
-TCPclient.Port:=StrToIntDef(ListaNodos[NodeToUse].port,8080);
-TCPclient.ConnectTimeout:= 1000;
-TCPclient.ReadTimeout:=1000;
-TRY
-TCPclient.Connect;
-TCPclient.IOHandler.WriteLn('GETMIIP');
-Result := TCPclient.IOHandler.ReadLn(IndyTextEncoding_UTF8);
-TCPclient.Disconnect();
-EXCEPT on E:Exception do
-   ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error on GetMiIP: '+E.Message)
-END{try};
-TCPClient.Free;
+  NodeToUse := Random(Length(ListaNodos));
+  Result := '';
+  TCPClient := TidTCPClient.Create(nil);
+  TCPclient.Host:=ListaNodos[NodeToUse].ip;
+  TCPclient.Port:=StrToIntDef(ListaNodos[NodeToUse].port,8080);
+  TCPclient.ConnectTimeout:= 1000;
+  TCPclient.ReadTimeout:=1000;
+  TRY
+    TCPclient.Connect;
+    TCPclient.IOHandler.WriteLn('GETMIIP');
+    Result := TCPclient.IOHandler.ReadLn(IndyTextEncoding_UTF8);
+    TCPclient.Disconnect();
+  EXCEPT on E:Exception do
+    ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error on GetMiIP: '+E.Message)
+  END{try};
+  TCPClient.Free;
 End;
 
 Function NodeServerInfo():String;
