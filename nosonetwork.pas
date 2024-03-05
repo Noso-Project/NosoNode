@@ -152,7 +152,7 @@ IMPLEMENTATION
 Uses
   MasterPaskalForm;    // To be removed, only due to server dependancy until it is implemented
 
-{$REGION Pool transactions}
+{$REGION Pending Pool transactions}
 
 Function GetPendingCount():integer;
 Begin
@@ -169,7 +169,7 @@ Begin
   LeaveCriticalSection(CSPending);
 End;
 
-{$ENDREGION Pool transactions}
+{$ENDREGION Pending Pool transactions}
 
 
 {$REGION Protocol}
@@ -335,6 +335,7 @@ End;
 
 Procedure SetConexIndex(Slot: integer; LData:Tconectiondata);
 Begin
+  if ( (slot < 1) or (Slot > MaxConecciones) ) then exit;
   EnterCriticalSection(CSConexiones);
   Conexiones[Slot] := LData;
   LeaveCriticalSection(CSConexiones);
@@ -342,6 +343,7 @@ End;
 
 Procedure SetConexIndexBusy(LSlot:integer;value:Boolean);
 Begin
+  if ( (Lslot < 1) or (LSlot > MaxConecciones) ) then exit;
   EnterCriticalSection(CSConexiones);
   Conexiones[LSlot].IsBusy := value;
   LeaveCriticalSection(CSConexiones);
@@ -349,6 +351,7 @@ End;
 
 Procedure SetConexIndexLastPing(LSlot:integer;value:string);
 Begin
+  if ( (Lslot < 1) or (LSlot > MaxConecciones) ) then exit;
   EnterCriticalSection(CSConexiones);
   Conexiones[LSlot].lastping := value;
   LeaveCriticalSection(CSConexiones);
@@ -358,6 +361,7 @@ procedure SetConexReserved(LSlot:Integer;Reserved:boolean);
 var
   ToShow : string = '';
 Begin
+  if ( (Lslot < 1) or (LSlot > MaxConecciones) ) then exit;
   if reserved then ToShow := 'RES';
   EnterCriticalSection(CSConexiones);
   Conexiones[LSlot].tipo := ToShow;
@@ -366,6 +370,7 @@ End;
 
 procedure StartConexThread(LSlot:Integer);
 Begin
+  if ( (Lslot < 1) or (LSlot > MaxConecciones) ) then exit;
   EnterCriticalSection(CSConexiones);
   Conexiones[Lslot].Thread := TThreadClientRead.Create(true, Lslot);
   Conexiones[Lslot].Thread.FreeOnTerminate:=true;
@@ -375,6 +380,7 @@ End;
 
 Procedure CloseSlot(Slot:integer);
 Begin
+  if ( (slot < 1) or (Slot > MaxConecciones) ) then exit;
   BeginPerformance('CloseSlot');
     TRY
     if GetConexIndex(Slot).tipo='CLI' then
@@ -412,6 +418,7 @@ End;
 Function IsSlotConnected(number:integer):Boolean;
 Begin
   result := false;
+  if ( (number < 1) or (number > MaxConecciones) ) then exit;
   if ((GetConexIndex(number).tipo = 'SER') or (GetConexIndex(number).tipo = 'CLI')) then result := true;
 End;
 
@@ -474,11 +481,13 @@ var
   LineToSend   : string;
   KillIt       : boolean = false;
   SavedToFile  : boolean;
+  LastActive   : int64 = 0;
 begin
   CanalCliente[FSlot].ReadTimeout:=1000;
   CanalCliente[FSlot].IOHandler.MaxLineLength:=Maxint;
   IncClientReadThreads;
   AddNewOpenThread('ReadClient '+FSlot.ToString,UTCTime);
+  LastActive := UTCTime;
   REPEAT
     sleep(10);
     OnBuffer := true;
@@ -515,6 +524,7 @@ begin
         END; {TRY}
         if LLine <> '' then
           begin
+          LastActive := UTCTime;
           CanalCliente[FSlot].ReadTimeout:=10000;
           if Parameter(LLine,0) = 'RESUMENFILE' then
             begin
@@ -611,7 +621,8 @@ begin
       SetConexIndexBusy(FSlot,false);
       end; // end while client is not empty
     end; // End OnBuffer
-  UNTIL ( (terminated) or (Conexiones[Fslot].tipo='') or (KillIt) );
+    if LastActive + 30 < UTCTime then killit := true;
+  UNTIL ( (terminated) or (Conexiones[Fslot].tipo='') or  (not CanalCliente[FSlot].Connected) or (KillIt) );
   CloseSlot(Fslot);
   DecClientReadThreads;
   CloseOpenThread('ReadClient '+FSlot.ToString);

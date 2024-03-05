@@ -50,7 +50,7 @@ Type
   Procedure SetMN_Sign(SignAddress,lPublicKey,lPrivateKey:String);
   Function GetMNReportString(block:integer):String;
   Function VerifyThreadsCount:integer;
-  function RunMNVerification(Block:integer;CurrSynctus:String;LocalIP:String):String;
+  function RunMNVerification(Block:integer;LocSynctus:String;LocalIP:String;publicK,privateK:String):String;
 
   Function GetMNsListLength():Integer;
   Procedure ClearMNsList();
@@ -205,7 +205,7 @@ End;
 
 {$ENDREGION ThreadVerificator}
 
-function RunMNVerification(Block:integer;CurrSynctus:String;LocalIP:String):String;
+function RunMNVerification(Block:integer;LocSynctus:String;LocalIP:String;publicK,privateK:String):String;
 var
   counter : integer;
   ThisThread : TThreadMNVerificator;
@@ -214,6 +214,7 @@ var
   DataLine : String;
 Begin
   Result := '';
+  CurrSynctus := LocSynctus;
   SetLocalIP(LocalIP);
   VerifiedNodes := '';
   setlength(MNsListCopy,0);
@@ -246,8 +247,8 @@ Begin
     OpenVerificators := 0;
     LeaveCriticalSection(CSVerifyThread);
     end;
-  Result := LocalIP+' '+Block.ToString+' '+LocalMN_Sign+' '+LocalMN_Public+' '+
-            VerifiedNodes+' '+GetStringSigned(VerifiedNodes,LocalMN_Private);
+  Result := LocalIP+' '+Block.ToString+' '+LocalMN_Sign+' '+publicK+' '+
+            VerifiedNodes+' '+GetStringSigned(VerifiedNodes,privateK);
 End;
 
 {$REGION MNsList handling}
@@ -520,7 +521,7 @@ Begin
       Inc(IPIndex);
       end;
     UNTIL ThisIP = '';
-    ToLog('Console',ArrMNChecks[counter].ValidatorIP+': '+Checknodes.ToString);
+    //ToLog('Console',ArrMNChecks[counter].ValidatorIP+': '+Checknodes.ToString);
     end;
   LeaveCriticalSection(CSMNsChecks);
   LeaveCriticalSection(CSMNsList);
@@ -549,8 +550,7 @@ Begin
   REPEAT
     begin
     ThisIP := Parameter(StringNodes,IPIndex);
-    ThisIP := StringReplace(ThisIP,';',' ',[rfReplaceAll]);
-    ThisIP := Parameter(ThisIP,0);
+    if ThisIP <> '' then Inc(Result);
     Inc(IPIndex);
     end;
   UNTIL ThisIP = '';

@@ -1214,11 +1214,12 @@ Begin
     if UTCTime mod 10 = 0 then
       begin
       if ( (IsValidator(LocalMN_IP)) and (BlockAge>500+(MNsRandomWait div 4)) and (Not MNVerificationDone) and
-        (BlockAge<575)and(LastRunMNVerification<>UTCTime) and (MyConStatus = 3) and(VerifyThreadsCount=0) ) then
+        (BlockAge<575)and(LastRunMNVerification<>UTCTime) and (MyConStatus = 3) and(VerifyThreadsCount<=0) ) then
         begin
         LastRunMNVerification := UTCTime;
-        TextLine := RunMNVerification(MyLastBlock,GetSynctus,LocalMN_IP);
+        TextLine := RunMNVerification(MyLastBlock,GetSynctus,LocalMN_IP,GetWallArrIndex(WallAddIndex(LocalMN_Sign)).PublicKey,GetWallArrIndex(WallAddIndex(LocalMN_Sign)).PrivateKey);
         OutGoingMsjsAdd(ProtocolLine(MNCheck)+TextLine);
+        ToLog('console','Masternodes Verification completed: '+TextLine)
         end;
       end;
     While LengthWaitingMNs > 0 do
@@ -1408,7 +1409,7 @@ Begin
       if ((GetSlotFromIP(ListaNodos[LastTrySlot].ip)=0) AND (GetFreeSlot()>0) and (ListaNodos[LastTrySlot].ip<>LocalMN_IP)) then
         ConnectClient(ListaNodos[LastTrySlot].ip,ListaNodos[LastTrySlot].port);
       end;
-    sleep(1500);
+    sleep(3000);
     end;
   CloseOpenThread('KeepConnect');
 End;
