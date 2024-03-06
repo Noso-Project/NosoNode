@@ -797,7 +797,8 @@ if procesar then
       end;
    Setlength(orderstring,length(orderstring)-2);
    OrderString := StringReplace(OrderString,'PSK','NSLORDER',[]);
-   result := SendOrderToNode(OrderString);
+   ToLog('console','Send to Node '+OrderString);
+   //result := SendOrderToNode(OrderString);
    ToLog('console','Node result: '+result);
    //OutgoingMsjsAdd(OrderString);
    EndPerformance('SendFunds');

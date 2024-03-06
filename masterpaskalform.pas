@@ -1219,7 +1219,7 @@ Begin
         LastRunMNVerification := UTCTime;
         TextLine := RunMNVerification(MyLastBlock,GetSynctus,LocalMN_IP,GetWallArrIndex(WallAddIndex(LocalMN_Sign)).PublicKey,GetWallArrIndex(WallAddIndex(LocalMN_Sign)).PrivateKey);
         OutGoingMsjsAdd(ProtocolLine(MNCheck)+TextLine);
-        ToLog('console','Masternodes Verification completed: '+TextLine)
+        //ToLog('console','Masternodes Verification completed: '+TextLine)
         end;
       end;
     While LengthWaitingMNs > 0 do
@@ -2825,9 +2825,12 @@ End;
 // Copy address button
 Procedure TForm1.BCopyAddrClick(sender: TObject);
 Begin
+  Clipboard.AsText:= DireccionesPanel.Cells[0,DireccionesPanel.Row];
+  {
   if GetWallArrIndex(DireccionesPanel.Row-1).custom <> '' then
     Clipboard.AsText:= GetWallArrIndex(DireccionesPanel.Row-1).custom
   else Clipboard.AsText:= GetWallArrIndex(DireccionesPanel.Row-1).Hash;
+  }
   info('Copied to clipboard');//'Copied to clipboard'
 End;
 

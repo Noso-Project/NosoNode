@@ -42,6 +42,7 @@ Function RPC_ValidateAddress(NosoPParams:string):string;
 Function RPC_SetDefault(NosoPParams:string):string;
 Function RPC_GVTInfo(NosoPParams:string):string;
 Function RPC_CheckCertificate(NosoPParams:string):string;
+Function RPC_SubmitOrder(NosoPParams:string;waitresponse:boolean=false):string;
 function RPC_SendFunds(NosoPParams:string):string;
 
 
@@ -425,6 +426,15 @@ else if objecttype = 'setdefault' then
 else if objecttype = 'walletbalance' then
    begin
    resultado.Add('balance',StrToInt64(parameter(mystring,1)))
+   end
+else if objecttype = 'submitorder' then
+   begin
+   resultado.Add('result',StrToBool(parameter(mystring,1)))
+   end
+else if objecttype = 'submitorderwr' then
+   begin
+   resultado.Add('result',StrToBool(parameter(mystring,1)));
+   resultado.Add('response',StringReplace(parameter(mystring,2),'_',' ',[rfReplaceAll, rfIgnoreCase]))
    end;
 
 result := resultado.AsJSON;
@@ -479,6 +489,8 @@ else
       else if method = 'getgvtinfo' then result := GetJSONResponse(RPC_GVTInfo(NosoPParams),jsonid)
       else if method = 'sendfunds' then result := GetJSONResponse(RPC_SendFunds(NosoPParams),jsonid)
       else if method = 'checkcertificate' then result := GetJSONResponse(RPC_CheckCertificate(NosoPParams),jsonid)
+      else if method = 'submitorder' then result := GetJSONResponse(RPC_SubmitOrder(NosoPParams),jsonid)
+      else if method = 'submitorderwr' then result := GetJSONResponse(RPC_SubmitOrder(NosoPParams,true),jsonid)
       else result := GetJSONErrorCode(402,-1);
       Except on E:Exception do
          ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'JSON RPC error: '+E.Message);
@@ -876,6 +888,21 @@ Begin
   else
     begin
     Result := Result+'False';
+    end;
+End;
+
+
+Function RPC_SubmitOrder(NosoPParams:string;waitresponse:boolean=false):string;
+var
+  ResultLine : string;
+Begin
+  //ToLog('Console',NosoPParams);
+  ResultLine := SendOrderToNode(NosoPParams);
+  ResultLine := StringReplace(ResultLine,' ','_',[rfReplaceAll, rfIgnoreCase]);
+  if not waitresponse then result := 'submitorder'#127'True'
+  else
+    begin
+    result := 'submitorderwr'#127'True'#127+ResultLine;
     end;
 End;
 
