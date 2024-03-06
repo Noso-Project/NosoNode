@@ -1,4 +1,4 @@
-Version 0.4.2 Cb2
+Version 0.4.2 Cb3
 
 Not mandatory.
 Provide services update to use built-in database and includes RPC method to submit orders directly to mainnet.

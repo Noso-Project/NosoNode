@@ -518,6 +518,7 @@ type
 
     // NODE SERVER
     Function TryMessageToNode(AContext: TIdContext;message:string):boolean;
+    Function GetStreamFromContext(AContext: TIdContext;out LStream:TMemoryStream):boolean;
 
     // RPC
     procedure RPCServerExecute(AContext: TIdContext;
@@ -581,7 +582,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  NodeRelease = 'Cb2';
+  NodeRelease = 'Cb3';
   OficialRelease = true;
   BetaRelease    = false;
   VersionRequired = '0.4.2';
@@ -2330,6 +2331,19 @@ Begin
   END;{Try}
 End;
 
+// Get stream from client
+Function TForm1.GetStreamFromContext(AContext: TIdContext;out LStream:TMemoryStream):boolean;
+Begin
+  result := false;
+  LStream.Clear;
+  TRY
+    AContext.Connection.IOHandler.ReadStream(LStream);
+    Result := True;
+  EXCEPT on E:Exception do
+    ToDeepDeb('NosoServer,GetStreamFromContext,'+E.Message);
+  END;
+End;
+
 // Trys to close a server connection safely
 Procedure TForm1.TryCloseServerConnection(AContext: TIdContext; closemsg:string='');
 Begin
@@ -2558,6 +2572,24 @@ Begin
          FTPSpeed := (FTPSize div FTPTime);
          ToLog('nodeftp','Uploaded GVTs to '+IPUser+' at '+FTPSpeed.ToString+' kb/s');
          end // SENDING GVTS FILE
+
+      else if parameter(LLine,0) = 'PSOSFILE' then
+        begin
+        DownloadPSOs := true;
+        MemStream := TMemoryStream.Create;
+        if GetStreamFromContext(Acontext,MemStream) then
+          begin
+          if SavePSOsToFile(MemStream) then
+            begin
+            LoadPSOFileFromDisk;
+            UpdateMyData();
+            ToLog('console','PSOs file received on server');
+            end;
+          end;
+        MemStream.Free;
+        DownloadPSOs := false;
+        LasTimePSOsRequest := 0;
+        end
 
    else if AnsiContainsStr(ValidProtocolCommands,Uppercase(parameter(LLine,4))) then
       begin

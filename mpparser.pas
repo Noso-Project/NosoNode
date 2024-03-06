@@ -797,10 +797,10 @@ if procesar then
       end;
    Setlength(orderstring,length(orderstring)-2);
    OrderString := StringReplace(OrderString,'PSK','NSLORDER',[]);
-   ToLog('console','Send to Node '+OrderString);
-   //result := SendOrderToNode(OrderString);
+   //ToLog('console','Send to Node '+OrderString);
+   result := SendOrderToNode(OrderString);
    ToLog('console','Node result: '+result);
-   //OutgoingMsjsAdd(OrderString);
+   OutgoingMsjsAdd(OrderString);
    EndPerformance('SendFunds');
    end // End procesar
 else
@@ -1487,7 +1487,7 @@ else
   Randomize;
   for contador := 1 to numero do
      begin
-     Monto := 100000+contador;
+     Monto := 1000000+contador;
      ProcesslinesAdd('SENDTO devteam_donations '+IntToStr(Monto)+' '+contador.ToString);
      end;
   end;
