@@ -763,7 +763,7 @@ Begin
   inc(counter);
   until thisdata = '';
   Result := 'getmasternodes'#127+Block+#127+IntToStr(Total)+#127+Nodes;
-  Tolog('console',result);
+  //Tolog('console',result);
 End;
 
 function RPC_Blockmns(NosoPParams:string):string;

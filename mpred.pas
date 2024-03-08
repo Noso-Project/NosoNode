@@ -766,7 +766,7 @@ if ( (StrToIntDef(GetConsensus(9),0)>GetMNsListLength) and (LastTimeMNsRequested
       ClearMNIPProcessed;
       PTC_SendLine(ValidSlot,ProtocolLine(11));  // Get MNsList
       LastTimeMNsRequested := UTCTime;
-      ToLog('console','MNs reports requested');
+      ToLog('console','MNs reports requested to '+GetConexIndex(ValidSlot).ip);
       end;
    end;
 

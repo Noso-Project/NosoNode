@@ -2,7 +2,7 @@ UNIT nosogeneral;
 
 {
 nosogeneral 1.2
-December 27th, 2022
+March 7th 2024
 Noso Unit for general functions
 Requires: Not dependencyes
 }
@@ -13,6 +13,7 @@ INTERFACE
 
 uses
   Classes, SysUtils, Process, StrUtils, IdTCPClient, IdGlobal, fphttpclient,
+  {$IFDEF WINDOWS}Win32Proc, {$ENDIF}
   opensslsockets, fileutil, nosodebug, Zipper;
 
 type
@@ -37,6 +38,8 @@ Function GetPoSPercentage(block:integer):integer;
 Function GetDevPercentage(block:integer):integer;
 Function GetMinimumFee(amount:int64):Int64;
 Function GetMaximunToSend(amount:int64):int64;
+function OSVersion: string;
+{$IFDEF WINDOWS} Function GetWinVer():string; {$ENDIF}
 
 {Network}
 Function RequestLineToPeer(host:String;port:integer;command:string):string;
@@ -285,6 +288,50 @@ Begin
   Diferencia := amount-envio;
   result     := maximo+diferencia;
 End;
+
+// Gets OS version
+function OSVersion: string;
+begin
+  {$IFDEF LCLcarbon}
+  OSVersion := 'Mac OS X 10.';
+  {$ELSE}
+  {$IFDEF UNIX}
+  OSVersion := 'Linux Kernel ';
+  {$ELSE}
+  {$IFDEF UNIX}
+  OSVersion := 'Unix ';
+  {$ELSE}
+  {$IFDEF WINDOWS}
+  OSVersion:= GetWinVer;
+  {$ENDIF}
+  {$ENDIF}
+  {$ENDIF}
+  {$ENDIF}
+end;
+
+// Returns the windows version
+{$IFDEF WINDOWS}
+Function GetWinVer():string;
+Begin
+if WindowsVersion = wv95 then result := 'Windows95'
+  else if WindowsVersion = wvNT4 then result := 'Windows NTv.4'
+  else if WindowsVersion = wv98 then result := 'Windows 98'
+  else if WindowsVersion = wvMe then result := 'Windows ME'
+  else if WindowsVersion = wv2000 then result := 'Windows 2000'
+  else if WindowsVersion = wvXP then result := 'Windows XP'
+  else if WindowsVersion = wvServer2003 then result := 'Windows Server 2003 / Windows XP 64'
+  else if WindowsVersion = wvVista then result := 'Windows Vista'
+  else if WindowsVersion = wv7 then result := 'Windows 7'
+  else if WindowsVersion = wv10 then result := 'Windows 10'
+  else result := 'WindowsUnknown';
+{$IFDEF WIN32}
+result := Result+' / 32 Bits';
+{$ENDIF}
+{$IFDEF WIN64}
+result := Result+' / 64 Bits';
+{$ENDIF}
+End;
+{$ENDIF}
 
 {$ENDREGION}
 

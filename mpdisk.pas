@@ -7,7 +7,6 @@ interface
 uses
   Classes, SysUtils, MasterPaskalForm, Dialogs, Forms, nosotime, FileUtil, LCLType,
   lclintf, controls, mpBlock, Zipper, mpcoin, mpMn, nosodebug,
-  {$IFDEF WINDOWS}Win32Proc, {$ENDIF}
   translation, strutils,nosogeneral, nosocrypto, nosounit, nosoconsensus, nosopsos,
   nosowallcon, nosoheaders, nosonosocfg, nosoblock,nosonetwork,nosomasternodes,nosogvts;
 
@@ -56,8 +55,6 @@ Procedure CreateLauncherFile(IncludeUpdate:boolean = false);
 Procedure RestartNoso();
 Procedure CrearRestartfile();
 Procedure RestartConditions();
-function OSVersion: string;
-{$IFDEF WINDOWS} Function GetWinVer():string; {$ENDIF}
 Procedure RestoreBlockChain();
 Procedure RestoreSumary(fromBlock:integer=0);
 function AppFileName():string;
@@ -367,7 +364,7 @@ Begin
    end;
 End;
 
-{$ENDREGION}
+{$ENDREGION Options File}
 
 
 // *** LANGUAGE HANDLING ***
@@ -807,49 +804,7 @@ if connect then ProcessLinesAdd('CONNECT');
 tryDeletefile('restart.txt');
 End;
 
-// Gets OS version
-function OSVersion: string;
-begin
-  {$IFDEF LCLcarbon}
-  OSVersion := 'Mac OS X 10.';
-  {$ELSE}
-  {$IFDEF UNIX}
-  OSVersion := 'Linux Kernel ';
-  {$ELSE}
-  {$IFDEF UNIX}
-  OSVersion := 'Unix ';
-  {$ELSE}
-  {$IFDEF WINDOWS}
-  OSVersion:= GetWinVer;
-  {$ENDIF}
-  {$ENDIF}
-  {$ENDIF}
-  {$ENDIF}
-end;
 
-// Returns the windows version
-{$IFDEF WINDOWS}
-Function GetWinVer():string;
-Begin
-if WindowsVersion = wv95 then result := 'Windows95'
-  else if WindowsVersion = wvNT4 then result := 'Windows NTv.4'
-  else if WindowsVersion = wv98 then result := 'Windows 98'
-  else if WindowsVersion = wvMe then result := 'Windows ME'
-  else if WindowsVersion = wv2000 then result := 'Windows 2000'
-  else if WindowsVersion = wvXP then result := 'Windows XP'
-  else if WindowsVersion = wvServer2003 then result := 'Windows Server 2003 / Windows XP 64'
-  else if WindowsVersion = wvVista then result := 'Windows Vista'
-  else if WindowsVersion = wv7 then result := 'Windows 7'
-  else if WindowsVersion = wv10 then result := 'Windows 10'
-  else result := 'WindowsUnknown';
-{$IFDEF WIN32}
-result := Result+' / 32 Bits';
-{$ENDIF}
-{$IFDEF WIN64}
-result := Result+' / 64 Bits';
-{$ENDIF}
-End;
-{$ENDIF}
 
 // Executes the required steps to restore the blockchain
 Procedure RestoreBlockChain();

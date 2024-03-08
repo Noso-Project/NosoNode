@@ -582,7 +582,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  NodeRelease = 'Cb3';
+  NodeRelease = 'Cb4';
   OficialRelease = true;
   BetaRelease    = false;
   VersionRequired = '0.4.2';
@@ -1435,7 +1435,7 @@ Begin
        sleep(1000);
        continue;
        end;
-    if GetMyLastUpdatedBlock > GetDBLastBlock then
+    if MyLastBlock > GetDBLastBlock then
       begin
       if ( (blockAge>60) and (copy(MyLastBlockHash,1,5) =copy(getconsensus(10),1,5)) ) then
         begin
@@ -3326,7 +3326,8 @@ Begin
   LocalMN_Port       :=Trim(LabeledEdit6.Text);
   LocalMN_Funds      :=Trim(LabeledEdit8.Text);
   LocalMN_Sign       :=Trim(LabeledEdit9.Text);
-  MN_AutoIP     :=CBAutoIP.Checked;
+  MN_AutoIP          :=CBAutoIP.Checked;
+  LastTimeReportMyMN := 0;
   S_AdvOpt := true;
   if not WO_AutoServer and form1.Server.Active then processlinesadd('serveroff');
   if WO_AutoServer and not form1.Server.Active then processlinesadd('serveron');

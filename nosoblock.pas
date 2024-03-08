@@ -40,6 +40,8 @@ Type
 
   IntArray = array of integer;
 
+Procedure SetBlockDirectory(NewFolder:String);
+
 Procedure CreateDBFile();
 Function GetDBRecords():Integer;
 Function AddRecordToDBFile(block,order,source,target:integer):boolean;
@@ -67,6 +69,12 @@ var
   OrderIDIndex        : Array of TindexRecord;
 
 IMPLEMENTATION
+
+Procedure SetBlockDirectory(NewFolder:String);
+Begin
+  BlockDirectory := NewFolder;
+  Assignfile(DBFile,BlockDirectory+DBDirectory+DataBaseFilename);
+End;
 
 {$REGION blocks database}
 
