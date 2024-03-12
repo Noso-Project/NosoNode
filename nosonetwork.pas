@@ -58,12 +58,15 @@ Type
 
   Function GetPendingCount():integer;
   Procedure ClearAllPending();
+  procedure SendPendingsToPeer(Slot:int64);
 
+  function GetPTCEcn():String;
   function IsValidProtocol(line:String):Boolean;
   function GetPingString():string;
   Function ProtocolLine(LCode:integer):String;
   Procedure ProcessPing(LineaDeTexto: string; Slot: integer; Responder:boolean);
   Procedure ProcessIncomingLine(FSlot:integer;LLine:String);
+  Procedure SendMNsListToPeer(slot:integer);
 
   Procedure ClearOutTextToSlot(slot:integer);
   Function GetTextToSlot(slot:integer):string;
@@ -131,7 +134,7 @@ var
   // Local data hashes
   MyLastBlock     : integer = 0;
   MyLastBlockHash : String = '';
-  MyResumenHash   : String = '';
+  //
   //MyGVTsHash      : string = '';
   MyCFGHash       : string = '';
   MyPublicIP      : String = '';
@@ -169,10 +172,61 @@ Begin
   LeaveCriticalSection(CSPending);
 End;
 
+// Send pending transactions to peer, former PTC_SendPending
+
+procedure SendPendingsToPeer(Slot:int64);
+var
+  contador : integer;
+  Encab : string;
+  Textline : String;
+  TextOrder : String;
+  CopyArrayPoolTXs : Array of TOrderData;
+Begin
+  Encab := GetPTCEcn;
+  TextOrder := encab+'ORDER ';
+  if GetPendingCount > 0 then
+    begin
+    EnterCriticalSection(CSPending);
+    SetLength(CopyArrayPoolTXs,0);
+    CopyArrayPoolTXs := copy(ArrayPoolTXs,0,length(ArrayPoolTXs));
+    LeaveCriticalSection(CSPending);
+    for contador := 0 to Length(CopyArrayPoolTXs)-1 do
+      begin
+      Textline := GetStringFromOrder(CopyArrayPoolTXs[contador]);
+      if (CopyArrayPoolTXs[contador].OrderType='CUSTOM') then
+        begin
+        TextToSlot(slot,Encab+'$'+TextLine);
+        end;
+      if (CopyArrayPoolTXs[contador].OrderType='TRFR') then
+        begin
+        if CopyArrayPoolTXs[contador].TrxLine=1 then TextOrder:= TextOrder+IntToStr(CopyArrayPoolTXs[contador].OrderLines)+' ';
+        TextOrder := TextOrder+'$'+GetStringfromOrder(CopyArrayPoolTXs[contador])+' ';
+        if CopyArrayPoolTXs[contador].OrderLines=CopyArrayPoolTXs[contador].TrxLine then
+          begin
+          Setlength(TextOrder,length(TextOrder)-1);
+          TextToSlot(slot,TextOrder);
+          TextOrder := encab+'ORDER ';
+          end;
+        end;
+      if (CopyArrayPoolTXs[contador].OrderType='SNDGVT') then
+        begin
+        TextToSlot(slot,Encab+'$'+TextLine);
+        end;
+      end;
+    SetLength(CopyArrayPoolTXs,0);
+    end;
+End;
+
 {$ENDREGION Pending Pool transactions}
 
 
 {$REGION Protocol}
+
+// Returns protocolo message header
+function GetPTCEcn():String;
+Begin
+  result := 'PSK '+IntToStr(protocolo)+' '+MainnetVersion+NodeRelease+' '+UTCTimeStr+' ';
+End;
 
 function IsValidProtocol(line:String):Boolean;
 Begin
@@ -190,7 +244,7 @@ Begin
          MyLastBlockHash+' '+
          MySumarioHash+' '+
          GetPendingCount.ToString+' '+
-         MyResumenHash+' '+
+         GetResumenHash+' '+
          IntToStr(MyConStatus)+' '+
          IntToStr(Lport)+' '+
          copy(MyMNsHash,0,5)+' '+
@@ -275,7 +329,7 @@ Begin
   Protocol    := Parameter(LLine,1);
   PeerVersion := Parameter(LLine,2);
   PeerTime    := Parameter(LLine,3);
-  Command     := Parameter(LLine,4);
+  Command     := ProCommand(LLine);
   if ((not IsValidProtocol(LLine)) and (not GetConexIndex(FSlot).Autentic)) then
     begin
     UpdateBotData(GetConexIndex(Fslot).ip);
@@ -283,6 +337,21 @@ Begin
     end
   else if UpperCase(LLine) = 'DUPLICATED' then CloseSlot(FSlot)
   else if Copy(UpperCase(LLine),1,10) = 'OLDVERSION' then CloseSlot(FSlot)
+  else if Command = '$PING' then ProcessPing(LLine,FSlot,true)
+  else if Command = '$PONG' then ProcessPing(LLine,FSlot,false)
+  else if Command = '$GETPENDING' then SendPendingsToPeer(FSlot)
+End;
+
+Procedure SendMNsListToPeer(slot:integer);
+var
+  DataArray : array of string;
+  counter   : integer;
+Begin
+  if FillMnsListArray(DataArray) then
+    begin
+    for counter := 0 to length(DataArray)-1 do
+      TextToSlot(slot,GetPTCEcn+'$MNREPO '+DataArray[counter]);
+    end;
 End;
 
 {$ENDREGION Protocol}
@@ -391,11 +460,11 @@ Begin
       end;
     if GetConexIndex(Slot).tipo='SER' then
       begin
+      If Assigned(Conexiones[Slot].Thread) then
+        Conexiones[Slot].Thread.Terminate;
       ClearIncoming(slot);
       CanalCliente[Slot].IOHandler.InputBuffer.Clear;
       CanalCliente[Slot].Disconnect;
-      If Assigned(Conexiones[Slot].Thread) then
-        Conexiones[Slot].Thread.Terminate;
       end;
     EXCEPT on E:Exception do
       ToDeepDeb('NosoNetwork,CloseSlot,'+E.Message);
@@ -431,8 +500,8 @@ Procedure UpdateMyData();
 Begin
   MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
   LastBlockData   := LoadBlockDataHeader(MyLastBlock);
-  MyResumenHash   := HashMD5File(ResumenFilename);
-  if MyResumenHash = GetConsensus(5) then
+  SetResumenHash;
+  if GetResumenHash = GetConsensus(5) then
     ForceCompleteHeadersDownload := false;
   MyMNsHash       := HashMD5File(MasterNodesFilename);
   MyCFGHash       := Copy(HAshMD5String(GetCFGDataStr),1,5);

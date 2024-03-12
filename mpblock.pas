@@ -396,7 +396,7 @@ if not errored then
    MyMNsHash     := HashMD5File(MasterNodesFilename);
    // Actualizar el arvhivo de cabeceras
    AddRecordToHeaders(Numero,MyLastBlockHash,MySumarioHash);
-   MyResumenHash := HashMD5File(ResumenFilename);
+   SetResumenHash;
    if ( (Numero>0) and (form1.Server.Active) ) then
       begin
       OutgoingMsjsAdd(ProtocolLine(ping));
@@ -729,7 +729,7 @@ trydeletefile(BlockDirectory +IntToStr(MyLastBlock)+'.blk');
 MyLastBlock := GetMyLastUpdatedBlock;
 MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
 LastBlockData := LoadBlockDataHeader(MyLastBlock);
-MyResumenHash := HashMD5File(ResumenFilename);
+SetResumenHAsh;
 ToLog('console','****************************');
 ToLog('console','Block undone: '+IntToStr(blocknumber)); //'Block undone: '
 ToLog('console','****************************');

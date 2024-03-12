@@ -96,6 +96,10 @@ Procedure ShowGVTInfo();
 Procedure ClearPSOs();
 Procedure ShowMNsLocked();
 
+// Specific Tests
+
+Procedure Test_Headers();
+
 implementation
 
 uses
@@ -285,6 +289,8 @@ else if UpperCase(Command) = 'FUNDS' then ToLog('console','Project funds '+lineE
   'NPrjectPrtcRandmJacptE5: '+Int2curr(GetAddressAvailable('NPrjectPrtcRandmJacptE5')))
 else if UpperCase(Command) = 'SUMINDEXSIZE' then ToLog('console',IntToStr(SumIndexLength))
 else if UpperCase(Command) = 'MNSCHECKS' then ShowMNsChecks()
+else if UpperCase(Command) = 'TESTHEAD' then Test_Headers()
+
 
 // 0.2.1 DEBUG
 else if UpperCase(Command) = 'BLOCKPOS' then ShowBlockPos(LineText)
@@ -797,10 +803,10 @@ if procesar then
       end;
    Setlength(orderstring,length(orderstring)-2);
    OrderString := StringReplace(OrderString,'PSK','NSLORDER',[]);
-   //ToLog('console','Send to Node '+OrderString);
-   result := SendOrderToNode(OrderString);
+   ToLog('console','Send to Node '+OrderString);
+   //result := SendOrderToNode(OrderString);
    //ToLog('console','Node result: '+result);
-   OutgoingMsjsAdd(OrderString);
+   //OutgoingMsjsAdd(OrderString);
    EndPerformance('SendFunds');
    end // End procesar
 else
@@ -1902,6 +1908,24 @@ for counter := 0 to length(ArrMNChecks)-1 do
   end;
 
 End;
+
+{$REGION Specific tests}
+
+Procedure Test_Headers();
+var
+  MyStream : TmemoryStream;
+  Fsize    : int64;
+Begin
+  MyStream := TMemoryStream.Create;
+  FSize := GetHeadersAsMemStream(MyStream);
+  ToLog('Console','File size: '+Fsize.ToString());
+  SaveStreamAsHeaders(MyStream);
+  UpdateMyData();
+  MyStream.Free;
+End;
+
+{$ENDREGION Specific tests}
+
 
 END. // END UNIT
 

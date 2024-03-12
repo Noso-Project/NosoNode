@@ -713,8 +713,8 @@ var
   counter  : integer;
   VerCount : integer;
 Begin
-if length(ArrayMNsData)<3 then exit;
 Result := '';
+if length(ArrayMNsData)<3 then exit;
 VerCount :=  (length(ArrayMNsData) div 10)+3;
 for counter := 0 to VerCount-1 do
   begin

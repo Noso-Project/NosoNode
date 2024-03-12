@@ -11,7 +11,7 @@ Stand alone unit to control headers file.
 interface
 
 uses
-  Classes, SysUtils, Nosodebug;
+  Classes, SysUtils, Nosodebug,nosocrypto;
 
 Type
 
@@ -21,26 +21,45 @@ Type
     SumHash : String[32];
   end;
 
+Procedure SetResumenHash();
+function GetResumenHash():String;
 Function SetHeadersFileName(Filename:String):Boolean;
 Function CreateHeadersFile():boolean;
 Function AddRecordToHeaders(BlockNumber:int64;BlockHash,SumHash:String):boolean;
 Function RemoveHeadersLastRecord():Boolean;
 Function GetHeadersHeigth():integer;
 Function GetHeadersLastBlock():Integer;
-Function GetHeadersAsMemStream(out LMs:TMemoryStream):int64;
-Function SaveStreamAsHeaders(Const LStream:TMemoryStream):Boolean;
+Function GetHeadersAsMemStream(var LMs:TMemoryStream):int64;
+Function SaveStreamAsHeaders(var LStream:TMemoryStream):Boolean;
 Function LastHeadersString(FromBlock:integer):String;
 
 
 
 var
   FileResumen     : file of ResumenData;
-  ResumenFilename : string = 'NOSODATA'+DirectorySeparator+'blchhead.nos';
+  MyResumenHash   : String = '';
+  ResumenFilename : string = {'NOSODATA'+DirectorySeparator+}'blchhead.nos';
   CS_HeadersFile  : TRTLCriticalSection;
 
 IMPLEMENTATION
 
 {$REGION Headers file access}
+
+// Sets the hash value
+Procedure SetResumenHash();
+Begin
+  EnterCriticalSection(CS_HeadersFile);
+  MyResumenHash := HashMD5File(ResumenFilename);
+  LeaveCriticalSection(CS_HeadersFile);
+End;
+
+// Returns the hash of the file
+function GetResumenHash():String;
+Begin
+  EnterCriticalSection(CS_HeadersFile);
+  result := MyResumenHash;
+  LeaveCriticalSection(CS_HeadersFile);
+End;
 
 // Sets the headers file path and name
 Function SetHeadersFileName(Filename:String):Boolean;
@@ -48,6 +67,7 @@ Begin
   Result := true;
   ResumenFilename := Filename;
   assignfile(FileResumen,ResumenFilename);
+  SetResumenHash();
 End;
 
 // Creates a headers file. If it already exists, rewrite a new empty one.
@@ -176,9 +196,10 @@ Begin
 End;
 
 // Returns the headers file as a STREAM
-Function GetHeadersAsMemStream(out LMs:TMemoryStream):int64;
+Function GetHeadersAsMemStream(var LMs:TMemoryStream):int64;
 Begin
   Result := 0;
+  BeginPerformance('GetHeadersAsMemStream');
   EnterCriticalSection(CS_HeadersFile);
     TRY
       LMs.LoadFromFile(ResumenFilename);
@@ -190,10 +211,11 @@ Begin
       end;
     END;
   LeaveCriticalSection(CS_HeadersFile);
+  EndPerformance('GetHeadersAsMemStream');
 End;
 
 // Save a provided stream as the headers file
-Function SaveStreamAsHeaders(Const LStream:TMemoryStream):Boolean;
+Function SaveStreamAsHeaders(var LStream:TMemoryStream):Boolean;
 Begin
   result := false;
   EnterCriticalSection(CS_HeadersFile);

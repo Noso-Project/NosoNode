@@ -92,13 +92,14 @@ var
   defseeds : string = '';
 
 Begin
+  SetHeadersFileName('NOSODATA'+DirectorySeparator+'blchhead.nos');
 
-if not FileExists (AdvOptionsFilename) then CreateADV(false) else LoadADV();
-OutText('✓ Advanced options loaded',false,1);
+  if not FileExists (AdvOptionsFilename) then CreateADV(false) else LoadADV();
+  OutText('✓ Advanced options loaded',false,1);
 
-if not FileExists(MasterNodesFilename) then CreateMasterNodesFile;
-GetMNsFileData;
-OutText('✓ Masternodes file ok',false,1);
+  if not FileExists(MasterNodesFilename) then CreateMasterNodesFile;
+  GetMNsFileData;
+  OutText('✓ Masternodes file ok',false,1);
 
 if not FileExists(GVTsFilename) then CreateGVTsFile;
 GetGVTsFileData;

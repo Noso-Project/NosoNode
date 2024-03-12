@@ -9,9 +9,9 @@ uses
   Zipper, mpcoin, mpMn, nosodebug, nosogeneral, nosocrypto, nosounit,nosoconsensus,nosopsos,
   nosoheaders, NosoNosoCFG, nosoblock, nosonetwork,nosogvts,nosoMasternodes;
 
-function GetPTCEcn():String;
+//function GetPTCEcn():String;
 Function GetOrderFromString(textLine:String):TOrderData;
-function GetStringFromOrder(order:Torderdata):String;
+//function GetStringFromOrder(order:Torderdata):String;
 function GetStringFromBlockHeader(blockheader:BlockHeaderdata):String;
 //Function ProtocolLine(tipo:integer):String;
 Procedure ParseProtocolLines();
@@ -21,7 +21,7 @@ Procedure PTC_SendLine(Slot:int64;Message:String);
 //Function GetTextToSlot(slot:integer):string;
 //Procedure ProcessPing(LineaDeTexto: string; Slot: integer; Responder:boolean);
 function GetPingString():string;
-procedure PTC_SendPending(Slot:int64);
+//procedure PTC_SendPending(Slot:int64);
 Procedure PTC_SendResumen(Slot:int64);
 Procedure PTC_SendSumary(Slot:int64);
 Procedure PTC_SendPSOS(Slot:int64);
@@ -39,7 +39,7 @@ Procedure INC_PTC_SendGVT(TextLine:String;connection:integer);
 Function PTC_SendGVT(TextLine:String):integer;
 Procedure PTC_AdminMSG(TextLine:String);
 Procedure PTC_CFGData(Linea:String);
-Procedure PTC_SendMNsList(slot:integer);
+//Procedure PTC_SendMNsList(slot:integer);
 Procedure PTC_SendUpdateHeaders(Slot:integer;Linea:String);
 Procedure PTC_HeadUpdate(linea:String);
 
@@ -79,11 +79,13 @@ implementation
 uses
   mpGui;
 
+{
 // Devuelve el puro encabezado con espacio en blanco al final
 function GetPTCEcn():String;
 Begin
 result := 'PSK '+IntToStr(protocolo)+' '+MainnetVersion+NodeRelease+' '+UTCTimeStr+' ';
 End;
+}
 
 // convierte los datos de la cadena en una order
 Function GetOrderFromString(textLine:String):TOrderData;
@@ -113,6 +115,7 @@ END;{TRY}
 Result := OrderInfo;
 End;
 
+{
 // Convierte una orden en una cadena para compartir
 function GetStringFromOrder(order:Torderdata):String;
 Begin
@@ -131,6 +134,7 @@ result:= Order.OrderType+' '+
          Order.Signature+' '+
          Order.TrfrID;
 End;
+}
 
 // devuelve una cadena con los datos de la cabecera de un bloque
 function GetStringFromBlockHeader(BlockHeader:blockheaderdata):String;
@@ -220,10 +224,10 @@ Begin
          ToLog('Console','You need update your node to connect to '+GetConexIndex(contador).ip); //CONNECTION REJECTED: INVALID PROTOCOL ->
          CloseSlot(contador);
          end
-      else if UpperCase(LineComando) = '$PING' then ProcessPing(ProcessLine,contador,true)
-      else if UpperCase(LineComando) = '$PONG' then ProcessPing(ProcessLine,contador,false)
-      else if UpperCase(LineComando) = '$GETPENDING' then PTC_SendPending(contador)
-      else if UpperCase(LineComando) = '$GETMNS' then PTC_SendMNsList(contador) //SendMNsList(contador)
+      else if UpperCase(LineComando) = '$PING' then ProcessPing(ProcessLine,contador,true)                        // Done
+      else if UpperCase(LineComando) = '$PONG' then ProcessPing(ProcessLine,contador,false)                       // Done
+      else if UpperCase(LineComando) = '$GETPENDING' then SendPendingsToPeer(contador)//PTC_SendPending(contador) // Done
+      else if UpperCase(LineComando) = '$GETMNS' then SendMNsListToPeer(contador) //SendMNsList(contador)         // Done
       else if UpperCase(LineComando) = '$GETRESUMEN' then PTC_SendResumen(contador)
       else if UpperCase(LineComando) = '$LASTBLOCK' then PTC_SendBlocks(contador,ProcessLine)
       else if UpperCase(LineComando) = '$CUSTOM' then INC_PTC_Custom(GetOpData(ProcessLine),contador)
@@ -371,7 +375,7 @@ result :=IntToStr(GetTotalConexiones())+' '+ //
          MyLastBlockHash+' '+
          MySumarioHash+' '+
          GetPendingCount.ToString+' '+
-         MyResumenHash+' '+
+         GetResumenHash+' '+
          IntToStr(MyConStatus)+' '+
          IntToStr(port)+' '+
          copy(MyMNsHash,0,5)+' '+
@@ -383,6 +387,7 @@ result :=IntToStr(GetTotalConexiones())+' '+ //
          Copy(PSOFileHash,0,5);
 End;
 
+{
 // Envia las TXs pendientes al slot indicado
 procedure PTC_SendPending(Slot:int64);
 var
@@ -426,6 +431,7 @@ if GetPendingCount > 0 then
    SetLength(CopyArrayPoolTXs,0);
    end;
 End;
+}
 
 // Send headers file to peer
 Procedure PTC_SendResumen(Slot:int64);
@@ -993,6 +999,7 @@ else
    ToLog('events',Format('Failed CFG: %s <> %s',[Copy(HAshMD5String(Content),0,5),GetCOnsensus(19)]));
 End;
 
+{
 Procedure PTC_SendMNsList(slot:integer);
 var
   DataArray : array of string;
@@ -1004,6 +1011,7 @@ Begin
       PTC_SendLine(slot,GetPTCEcn+'$MNREPO '+DataArray[counter]);
     end;
 End;
+}
 
 Procedure PTC_SendUpdateHeaders(Slot:integer;Linea:String);
 var
@@ -1025,7 +1033,7 @@ var
   TotalErrors : integer = 0;
   TotalReceived: integer = 0;
 Begin
-if MyResumenHash =GetConsensus(5) then exit;
+if GetResumenHash =GetConsensus(5) then exit;
 startpos := Pos('$',Linea);
 Content := Copy(Linea,Startpos+1,Length(linea));
 //ToLog('console','Content: '+Linea);
@@ -1048,11 +1056,11 @@ REPEAT
       end;
    inc(counter);
 UNTIL ThisHeader='';
-MyResumenHash := HashMD5File(ResumenFilename);
-if copy(MyResumenHash,0,5) <> GetConsensus(5) then
+SetResumenHash;
+if copy(GetResumenHash,0,5) <> GetConsensus(5) then
    begin
    ForceCompleteHeadersDownload := true;
-   ToLog('Console',Format('Update headers failed (%d) : %s <> %s',[TotalErrors,Copy(MyResumenHash,0,5),GetConsensus(5)]));
+   ToLog('Console',Format('Update headers failed (%d) : %s <> %s',[TotalErrors,Copy(GetResumenHash,0,5),GetConsensus(5)]));
    end
 else
    begin

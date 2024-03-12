@@ -11,7 +11,7 @@ All block related controls
 INTERFACE
 
 uses
-  Classes, SysUtils, FileUtil, NosoDebug, NosoUnit, Nosocrypto;
+  Classes, SysUtils, FileUtil, NosoDebug, NosoUnit, Nosocrypto,nosogeneral;
 
 Type
   TDBRecord = record

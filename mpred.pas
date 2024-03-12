@@ -336,21 +336,18 @@ var
   SavedSlot : integer;
   ConnectOk : boolean = false;
 Begin
-result := 0;
-ConContext := Default(TIdContext);
-Slot := ReserveSlot();
-if Address = '127.0.0.1' then
-   begin
-   ToLog('events',TimeToStr(now)+'127.0.0.1 is an invalid server address');    //127.0.0.1 is an invalid server address
-   errored := true;
-   end
-else if Slot = 0 then // No free slots
-   begin
-   errored := true;
-   end;
-if not errored then
-   begin
-   if CanalCliente[Slot].Connected then
+  result := 0;
+  ConContext := Default(TIdContext);
+  Slot := ReserveSlot();
+  if Address = '127.0.0.1' then
+    begin
+    ToLog('events',TimeToStr(now)+'127.0.0.1 is an invalid server address');    //127.0.0.1 is an invalid server address
+    errored := true;
+    end
+  else if Slot = 0 then errored := true;  // No free slots
+  if not errored then
+    begin
+    if CanalCliente[Slot].Connected then
       begin // Close Slot if it is connected
 
       end;
@@ -358,36 +355,37 @@ if not errored then
    CanalCliente[Slot].Port:=StrToIntDef(Port,8080);
    CanalCliente[Slot].ConnectTimeout:= 1000;
    ClearOutTextToSlot(slot);
-      TRY
-      CanalCliente[Slot].Connect;
-      ConnectOk := true;
-      EXCEPT on E:Exception do
-         begin
-         ConnectOk := False;
-         end;
-      END;{TRY}
+     TRY
+     CanalCliente[Slot].Connect;
+     ConnectOk := true;
+     EXCEPT on E:Exception do
+       begin
+       ConnectOk := False;
+       //ToLog('Console','ConnectClient: '+Address+':'+port+' '+e.Message);
+       end;
+     END;{TRY}
    if connectok then
-      begin
-      SavedSlot := SaveConection('SER',Address,ConContext,slot);
+     begin
+     SavedSlot := SaveConection('SER',Address,ConContext,slot);
       //ToLog('console',SavedSlot.ToString);
-      ToLog('events',TimeToStr(now)+'Connected TO: '+Address);          //Connected TO:
-      StartConexThread(Slot);
-      //Conexiones[slot].Thread := TThreadClientRead.Create(true, slot);
-      //Conexiones[slot].Thread.FreeOnTerminate:=true;
-      //Conexiones[slot].Thread.Start;
-      //IncClientReadThreads;
-      result := Slot;
-         TRY
-         CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address+' '+MainnetVersion+NodeRelease+' '+UTCTimeStr);
-         CanalCliente[Slot].IOHandler.WriteLn(ProtocolLine(3));   // Send PING
-         EXCEPT on E:Exception do
-            begin
-            result := 0;
-            CloseSlot(slot);
-            end;
-         END;{TRY}
-      end
-   else
+     ToLog('events',TimeToStr(now)+'Connected TO: '+Address);          //Connected TO:
+     StartConexThread(Slot);
+     //Conexiones[slot].Thread := TThreadClientRead.Create(true, slot);
+     //Conexiones[slot].Thread.FreeOnTerminate:=true;
+     //Conexiones[slot].Thread.Start;
+     //IncClientReadThreads;
+     result := Slot;
+       TRY
+       CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address+' '+MainnetVersion+NodeRelease+' '+UTCTimeStr);
+       CanalCliente[Slot].IOHandler.WriteLn(ProtocolLine(3));   // Send PING
+       EXCEPT on E:Exception do
+         begin
+         result := 0;
+         CloseSlot(slot);
+         end;
+       END;{TRY}
+     end
+    else
       begin
       result := 0;
       UnReserveSlot(Slot);
@@ -401,8 +399,8 @@ if not errored then
       end;
    END;{Try}
    }
-   end
-else UnReserveSlot(Slot);
+    end
+  else UnReserveSlot(Slot);
 End;
 
 {
@@ -538,7 +536,7 @@ if STATUS_Connected then
    if Last_SyncWithMainnet+4<UTCTime then SyncWithMainnet();
    end;
 if ( (MyConStatus = 2) and (STATUS_Connected) and (IntToStr(MyLastBlock) = Getconsensus(2))
-     and (copy(MySumarioHash,0,5)=GetConsensus(17)) and(copy(MyResumenhash,0,5) = GetConsensus(5)) ) then
+     and (copy(MySumarioHash,0,5)=GetConsensus(17)) and(copy(GetResumenHash,0,5) = GetConsensus(5)) ) then
    begin
    GetValidSlotForSeed(ValidSlot);
    ClearReceivedOrdersIDs;
@@ -589,7 +587,7 @@ result := 0;
 if MyLastBlock     <> StrToIntDef(GetConsensus(cLastBlock),0) then result := 1;
 if MyLastBlockHash <> GetConsensus(cLBHash) then result := 2;
 if Copy(MySumarioHash,0,5)   <> GetConsensus(cSumHash) then result := 3;
-if Copy(MyResumenHash,0,5)   <> GetConsensus(cHeaders) then result := 4;
+if Copy(GetResumenHash,0,5)   <> GetConsensus(cHeaders) then result := 4;
 {
 if Copy(MyMNsHash,1,5) <>  NetMNsHash.value then result := 5;
 if MyGVTsHash <> NetGVTSHash.Value then result := 6;
@@ -604,12 +602,14 @@ Begin
 MySumarioHash := HashMD5File(SummaryFileName);
 MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
 LastBlockData := LoadBlockDataHeader(MyLastBlock);
-MyResumenHash := HashMD5File(ResumenFilename);
-  if MyResumenHash = GetConsensus(5) then ForceCompleteHeadersDownload := false;
+SetResumenHash := HashMD5File(ResumenFilename);
+  if SetResumenHash = GetConsensus(5) then ForceCompleteHeadersDownload := false;
 MyMNsHash     := HashMD5File(MasterNodesFilename);
 MyCFGHash     := Copy(HAshMD5String(GetCFGDataStr),1,5);
 End;
 }
+
+
 
 // Request necessary files/info to update
 Procedure SyncWithMainnet();
@@ -660,7 +660,7 @@ if ( (GetConsensus(8)<>Copy(MyMNsHash,1,5)) and (LastTimeMNHashRequestes+5<UTCTi
   end;
 
 // *** update headers
-if Copy(MyResumenhash,0,5) <> GetConsensus(cHeaders) then  // Request headers
+if Copy(GetResumenhash,0,5) <> GetConsensus(cHeaders) then  // Request headers
    begin
    ClearAllPending;
    ClearMNsChecks();
@@ -689,7 +689,7 @@ if Copy(MyResumenhash,0,5) <> GetConsensus(cHeaders) then  // Request headers
    end;
 
 // *** Update blocks
-if ((Copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock <NLBV)) then  // request up to 100 blocks
+if ((Copy(GetResumenhash,0,5) = GetConsensus(5)) and (mylastblock <NLBV)) then  // request up to 100 blocks
    begin
    ClearAllPending;
    ClearMNsChecks();
@@ -712,7 +712,7 @@ if ((Copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock <NLBV)) then  /
    end;
 
 // Update summary
-if ((copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) and
+if ((copy(GetResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) and
         (MySumarioHash<>GetConsensus(17)) and (SummaryLastop < mylastblock)) then
    begin  // complete or download summary
    if (SummaryLastop+(2*SumMarkInterval) < mylastblock) then
@@ -782,7 +782,7 @@ if ((StrToIntDef(GetConsensus(14),0)>GetMNsChecksCount) and (LastTimeChecksReque
    end;
 
 // Blockchain status issues starts here
-if ((copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) and
+if ((copy(GetResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) and
         (copy(MySumarioHash,0,5)<>GetConsensus(17)) and (SummaryLastop = mylastblock) and (LastTimeRequestsumary+5 < UTCTime)) then
    begin
    if GetValidSlotForSeed(ValidSlot) then
@@ -793,14 +793,14 @@ if ((copy(MyResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) and
      LastTimeRequestsumary := UTCTime;
      end;
    end
-else if ( (mylastblock = NLBV) and ( (copy(MyResumenhash,0,5) <> GetConsensus(5)) or
+else if ( (mylastblock = NLBV) and ( (copy(GetResumenhash,0,5) <> GetConsensus(5)) or
    (MyLastBlockHash<>GetConsensus(10)) ) ) then
    begin
    ToLog('console',MyLastBlockHash+' '+MyLastBlockHash);
    UndoneLastBlock();
    end
 // Update headers
-else if ((copy(MyResumenhash,0,5) <> GetConsensus(5)) and (NLBV=mylastblock) and (MyLastBlockHash=GetConsensus(10))
+else if ((copy(GetResumenhash,0,5) <> GetConsensus(5)) and (NLBV=mylastblock) and (MyLastBlockHash=GetConsensus(10))
    and (copy(MySumarioHash,0,5)=GetConsensus(17)) and (not DownloadHeaders) ) then
    begin
    if GetValidSlotForSeed(ValidSlot) then
@@ -995,7 +995,7 @@ Begin
 //           14{ChecksCount} 15{LastBlockPoW} 16{LastBlockDiff} 17{summary} 18{GVTs} 19{nosoCFG}
 //           20{PSOHash}
 result := {1}IntToStr(GetTotalConexiones)+' '+{2}IntToStr(MyLastBlock)+' '+{3}GetPendingCount.ToString+' '+
-          {4}IntToStr(UTCTime-EngineLastUpdate)+' '+{5}copy(myResumenHash,0,5)+' '+
+          {4}IntToStr(UTCTime-EngineLastUpdate)+' '+{5}copy(GetResumenHash,0,5)+' '+
           {6}MainnetVersion+NodeRelease+' '+{7}UTCTimeStr+' '+{8}copy(MyMnsHash,0,5)+' '+{9}GetMNsListLength.ToString+' '+
           {10}MyLastBlockHash+' '+{11}{GetNMSData.Diff}'null'+' '+{12}IntToStr(LastBlockData.TimeEnd)+' '+
           {13}LastBlockData.AccountMiner+' '+{14}GetMNsChecksCount.ToString+' '+{15}Parameter(LastBlockData.Solution,2)+' '+
@@ -1097,7 +1097,7 @@ Function GetSyncTus():String;
 Begin
   result := '';
   TRY
-    Result := MyLastBlock.ToString+Copy(MyResumenHash,1,3)+Copy(MySumarioHash,1,3)+Copy(MyLastBlockHash,1,3);
+    Result := MyLastBlock.ToString+Copy(GetResumenHash,1,3)+Copy(MySumarioHash,1,3)+Copy(MyLastBlockHash,1,3);
   EXCEPT ON E:EXCEPTION do
     begin
     ToLog('console','****************************************'+slinebreak+'GetSyncTus:'+e.Message);

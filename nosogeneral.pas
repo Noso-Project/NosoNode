@@ -24,8 +24,29 @@ type
 
   TStringArray = Array of String;
 
+  TOrderData = Packed Record
+    Block      : integer;
+    OrderID    : String[64];
+    OrderLines : Integer;
+    OrderType  : String[6];
+    TimeStamp  : Int64;
+    Reference  : String[64];
+      TrxLine    : integer;
+      sender     : String[120];
+      Address    : String[40];
+      Receiver   : String[40];
+      AmmountFee : Int64;
+      AmmountTrf : Int64;
+      Signature  : String[120];
+      TrfrID     : String[64];
+    end;
+
+  TBlockOrdersArray = Array of TOrderData;
+
 {Generic}
 Function Parameter(LineText:String;ParamNumber:int64;de_limit:string=' '):String;
+Function GetCommand(LineText:String):String;
+Function ProCommand(LineText:String):String;
 Function IsValidIP(IpString:String):boolean;
 Function GetSupply(block:integer):int64;
 Function Restar(number:int64):int64;
@@ -55,6 +76,8 @@ Function MixTxtFiles(ListFiles : array of string;Destination:String;DeleteSource
 Function SendFileViaTCP(filename,message,host:String;Port:integer):Boolean;
 Function UnzipFile(filename:String;delFile:boolean):boolean;
 
+{Orders Related}
+function GetStringFromOrder(order:Torderdata):String;
 
 IMPLEMENTATION
 
@@ -137,6 +160,16 @@ Begin
     end;
   if temp = de_limit then temp := '';
   Result := Temp;
+End;
+
+Function GetCommand(LineText:String):String;
+Begin
+  result := uppercase(parameter(linetext,0));
+End;
+
+Function ProCommand(LineText:String):String;
+Begin
+  result := uppercase(parameter(linetext,4));
 End;
 
 {Verify if a string is valid IPv4 address}
@@ -543,6 +576,29 @@ Begin
 End;
 
 {$ENDREGION}
+
+{$REGION Orders related}
+
+// Convierte una orden en una cadena para compartir
+function GetStringFromOrder(order:Torderdata):String;
+Begin
+  result:= Order.OrderType+' '+
+         Order.OrderID+' '+
+         IntToStr(order.OrderLines)+' '+
+         order.OrderType+' '+
+         IntToStr(Order.TimeStamp)+' '+
+         Order.reference+' '+
+         IntToStr(order.TrxLine)+' '+
+         order.sender+' '+
+         Order.Address+' '+
+         Order.Receiver+' '+
+         IntToStr(Order.AmmountFee)+' '+
+         IntToStr(Order.AmmountTrf)+' '+
+         Order.Signature+' '+
+         Order.TrfrID;
+End;
+
+{$ENDREGION Orders related}
 
 
 END.{UNIT}

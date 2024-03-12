@@ -213,6 +213,7 @@ var
   WaitCycles : integer = 0;
   DataLine : String;
 Begin
+  BeginPerformance('RunMNVerification');
   Result := '';
   CurrSynctus := LocSynctus;
   SetLocalIP(LocalIP);
@@ -249,6 +250,7 @@ Begin
     end;
   Result := LocalIP+' '+Block.ToString+' '+LocalMN_Sign+' '+publicK+' '+
             VerifiedNodes+' '+GetStringSigned(VerifiedNodes,privateK);
+  EndPerformance('RunMNVerification');
 End;
 
 {$REGION MNsList handling}

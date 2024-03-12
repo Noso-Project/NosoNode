@@ -1,6 +1,10 @@
-Version 0.4.2 Cb3
+Version 0.4.2 Cb5
 
-Not mandatory.
-Provide services update to use built-in database and includes RPC method to submit orders directly to mainnet.
+Beta version
+
+Do not use this release. Only for testnet and beta-testers.
+
+- Summary locked while index creation.
+- MyResumenhash thread protected.
 
 

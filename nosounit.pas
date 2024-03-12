@@ -36,24 +36,6 @@ Type
     AmmountTrf : Int64;
     end;
 
-  TOrderData = Packed Record
-    Block      : integer;
-    OrderID    : String[64];
-    OrderLines : Integer;
-    OrderType  : String[6];
-    TimeStamp  : Int64;
-    Reference  : String[64];
-      TrxLine    : integer;
-      sender     : String[120];
-      Address    : String[40];
-      Receiver   : String[40];
-      AmmountFee : Int64;
-      AmmountTrf : Int64;
-      Signature  : String[120];
-      TrfrID     : String[64];
-    end;
-
-  TBlockOrdersArray = Array of TOrderData;
   TIndexRecord      = array of integer;
 
   TBlockRecords = record
@@ -104,7 +86,8 @@ IMPLEMENTATION
 var
   IndexLength     : int64 = 10;
   SumaryIndex     : Array of TindexRecord;
-  CS_SummaryDisk  : TRTLCriticalSection;   {Disk access to summary}
+  CS_SummaryDisk  : TRTLCriticalSection;    {Disk access to summary}
+  CS_SumIndex     : TRTLCriticalSection;    {Access to index}
   BlockRecords    : array of TBlockRecords;
   CS_BlockRecs    : TRTLCriticalSection;
   CS_SummaryHashV : TRTLCriticalSection;
@@ -295,15 +278,20 @@ End;
 {Creates the summary index from the disk}
 Function CreateSumaryIndex():int64;
 var
-  SumFile : File;
+  SumFile    : File;
   ThisRecord : TSummaryData;
-  CurrPos       : int64 = 0;
+  CurrPos    : int64 = 0;
+  Opened     : boolean = false;
+  Closed     : boolean = false;
 Begin
   beginperformance('CreateSumaryIndex');
   AssignFile(SumFile,SummaryFileName);
+  EnterCriticalSection(CS_SumIndex);
   SetLength(SumaryIndex,0,0);
+  EnterCriticalSection(CS_SummaryDisk);
     TRY
     Reset(SumFile,1);
+    Opened := true;
     IndexLength := GetIndexSize(FileSize(SumFile) div Sizeof(TSummaryData));
     SetLength(SumaryIndex,IndexLength);
     While not eof(SumFile) do
@@ -313,8 +301,11 @@ Begin
       Inc(currpos);
       end;
     CloseFile(SumFile);
+    Closed := true;
     EXCEPT
     END;{Try}
+  LeaveCriticalSection(CS_SummaryDisk);
+  LeaveCriticalSection(CS_SumIndex);
   Result := EndPerformance('CreateSumaryIndex');
   SummaryLastop := ReadSumaryRecordFromDisk(0).LastOp;
   SetSummaryHash;
@@ -323,7 +314,9 @@ End;
 {Returns the summary index length}
 Function SumIndexLength():int64;
 Begin
+  EnterCriticalSection(CS_SumIndex);
   result := IndexLength;
+  LeaveCriticalSection(CS_SumIndex);
 End;
 
 {If found, returns the record}
@@ -338,6 +331,7 @@ Begin
   IndexPos := IndexFunction(LText,IndexLength);
   if length(SumaryIndex[IndexPos])>0 then
     begin
+    EnterCriticalSection(CS_SumIndex);
     for counter := 0 to high(SumaryIndex[IndexPos]) do
       begin
       ThisRecord := ReadSumaryRecordFromDisk(SumaryIndex[IndexPos][counter]);
@@ -348,6 +342,7 @@ Begin
         break;
         end;
       end;
+    LeaveCriticalSection(CS_SumIndex);
     end;
 End;
 
@@ -363,12 +358,17 @@ IndexPos := IndexFunction(address,length(SumaryIndex));
 If IndexPos > Length(SumaryIndex) then Exit;
 if length(SumaryIndex[IndexPos])>0 then
    begin
+   EnterCriticalSection(CS_SumIndex);
    for counter := 0 to high(SumaryIndex[IndexPos]) do
      begin
      ThisRecord := ReadSumaryRecordFromDisk(SumaryIndex[IndexPos][counter]);
      if Thisrecord.Hash = address then
-       Exit(ThisRecord.Balance)
+       begin
+       result := ThisRecord.Balance;
+       break;
+       end;
      end;
+   LeaveCriticalSection(CS_SumIndex);
    end;
 End;
 
@@ -600,13 +600,13 @@ SetLength(BlockRecords,0);
 InitCriticalSection(CS_SummaryDisk);
 InitCriticalSection(CS_BlockRecs);
 InitCriticalSection(CS_SummaryHashV);
-
-
+InitCriticalSection(CS_SumIndex);
 
 FINALIZATION
 DoneCriticalSection(CS_SummaryDisk);
 DoneCriticalSection(CS_BlockRecs);
 DoneCriticalSection(CS_SummaryHashV);
+DoneCriticalSection(CS_SumIndex);
 
 
 END. {End unit}

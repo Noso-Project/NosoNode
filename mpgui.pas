@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, MasterPaskalForm, nosotime, graphics, strutils, forms, controls, grids,stdctrls,
   ExtCtrls, buttons, editbtn , menus, Clipbrd, IdContext, LCLTranslator, nosodebug, nosogeneral,
   nosocrypto, nosoconsensus,nosounit, nosopsos, nosowallcon,nosoblock,nosonetwork,nosonosocfg,nosogvts,
-  nosomasternodes;
+  nosomasternodes,nosoheaders;
 
 type
   TFormInicio = class(Tform)
@@ -398,7 +398,7 @@ if LastUpdateDataPanel <> UTCTime then
    form1.DataPanel.Cells[1,0]:= copy(GetConHash('NODESTATUS '+GetNodeStatusString),0,5) + '/'+copy(GetConsensus(0),0,5);
    form1.DataPanel.Cells[1,1]:= NodeServerInfo;
    form1.DataPanel.Cells[1,2]:= IntToStr(GetTotalConexiones)+' ('+IntToStr(MyConStatus)+') ['+IntToStr(G_TotalPings)+']';
-   form1.DataPanel.Cells[1,3]:= Format('%s / %s',[copy(myResumenHash,0,5),GetConsensus(5)]);
+   form1.DataPanel.Cells[1,3]:= Format('%s / %s',[copy(GetResumenHash,0,5),GetConsensus(5)]);
    form1.DataPanel.Cells[1,4]:= format('%s / %s',[Copy(MySumarioHash,0,5),GetConsensus(17)]);
    form1.DataPanel.Cells[1,5]:= format('%s / %s',[Copy(MyLastBlockHash,0,5),copy(GetConsensus(10),0,5)]);
    form1.DataPanel.Cells[1,6]:= format('%d / %s',[MyLastBlock,GetConsensus(2)]);
