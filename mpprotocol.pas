@@ -236,10 +236,10 @@ Begin
       else if UpperCase(LineComando) = '$MNREPO' then AddWaitingMNs(ProcessLine)//
       else if UpperCase(LineComando) = '$MNCHECK' then PTC_MNCheck(ProcessLine)
       else if UpperCase(LineComando) = '$GETCHECKS' then PTC_SendChecks(contador)
-      else if UpperCase(LineComando) = 'GETMNSFILE' then PTC_SendLine(contador,ProtocolLine(MNFILE)+' $'+GetMNsFileData)
+      else if UpperCase(LineComando) = 'GETMNSFILE' then PTC_SendLine(contador,ProtocolLine(MNFILE)+' $'+LoadMNsFile)
       else if UpperCase(LineComando) = 'GETCFGDATA' then PTC_SendLine(contador,ProtocolLine(SETCFG)+GetCFGDataStr)
 
-      else if UpperCase(LineComando) = 'MNFILE' then PTC_MNFile(ProcessLine)
+      else if UpperCase(LineComando) = 'MNFILE' then SaveMNsFile(ExtractMNsText(ProcessLine))//PTC_MNFile(ProcessLine)
       else if UpperCase(LineComando) = 'SETCFGDATA' then PTC_CFGData(ProcessLine)
 
       else if UpperCase(LineComando) = 'GETHEADUPDATE' then PTC_SendUpdateHeaders(contador,ProcessLine)
@@ -378,7 +378,7 @@ result :=IntToStr(GetTotalConexiones())+' '+ //
          GetResumenHash+' '+
          IntToStr(MyConStatus)+' '+
          IntToStr(port)+' '+
-         copy(MyMNsHash,0,5)+' '+
+         copy(GetMNsHash,0,5)+' '+
          IntToStr(GetMNsListLength)+' '+
          'null'+' '+ //GetNMSData.Diff
          GetMNsChecksCount.ToString+' '+

@@ -13,7 +13,6 @@ INTERFACE
 
 uses
   Classes, SysUtils, Process, StrUtils, IdTCPClient, IdGlobal, fphttpclient,
-  {$IFDEF WINDOWS}Win32Proc, {$ENDIF}
   opensslsockets, fileutil, nosodebug, Zipper;
 
 type
@@ -60,7 +59,6 @@ Function GetDevPercentage(block:integer):integer;
 Function GetMinimumFee(amount:int64):Int64;
 Function GetMaximunToSend(amount:int64):int64;
 function OSVersion: string;
-{$IFDEF WINDOWS} Function GetWinVer():string; {$ENDIF}
 
 {Network}
 Function RequestLineToPeer(host:String;port:integer;command:string):string;
@@ -75,9 +73,11 @@ function TryDeleteFile(filename:string):boolean;
 Function MixTxtFiles(ListFiles : array of string;Destination:String;DeleteSources:boolean=true):boolean ;
 Function SendFileViaTCP(filename,message,host:String;Port:integer):Boolean;
 Function UnzipFile(filename:String;delFile:boolean):boolean;
+Function CreateEmptyFile(lFilename:String):Boolean;
 
-{Orders Related}
+{Protocol specific}
 function GetStringFromOrder(order:Torderdata):String;
+function ExtractMNsText(lText:String):String;
 
 IMPLEMENTATION
 
@@ -324,7 +324,7 @@ End;
 
 // Gets OS version
 function OSVersion: string;
-begin
+Begin
   {$IFDEF LCLcarbon}
   OSVersion := 'Mac OS X 10.';
   {$ELSE}
@@ -335,36 +335,12 @@ begin
   OSVersion := 'Unix ';
   {$ELSE}
   {$IFDEF WINDOWS}
-  OSVersion:= GetWinVer;
+  OSVersion:= 'Windows';
   {$ENDIF}
   {$ENDIF}
   {$ENDIF}
   {$ENDIF}
-end;
-
-// Returns the windows version
-{$IFDEF WINDOWS}
-Function GetWinVer():string;
-Begin
-if WindowsVersion = wv95 then result := 'Windows95'
-  else if WindowsVersion = wvNT4 then result := 'Windows NTv.4'
-  else if WindowsVersion = wv98 then result := 'Windows 98'
-  else if WindowsVersion = wvMe then result := 'Windows ME'
-  else if WindowsVersion = wv2000 then result := 'Windows 2000'
-  else if WindowsVersion = wvXP then result := 'Windows XP'
-  else if WindowsVersion = wvServer2003 then result := 'Windows Server 2003 / Windows XP 64'
-  else if WindowsVersion = wvVista then result := 'Windows Vista'
-  else if WindowsVersion = wv7 then result := 'Windows 7'
-  else if WindowsVersion = wv10 then result := 'Windows 10'
-  else result := 'WindowsUnknown';
-{$IFDEF WIN32}
-result := Result+' / 32 Bits';
-{$ENDIF}
-{$IFDEF WIN64}
-result := Result+' / 64 Bits';
-{$ENDIF}
 End;
-{$ENDIF}
 
 {$ENDREGION}
 
@@ -575,9 +551,23 @@ Begin
   UnZipper.Free;
 End;
 
+// Creates an empty file
+Function CreateEmptyFile(lFilename:String):Boolean;
+var
+  lFile : textfile;
+Begin
+  TRY
+    Assignfile(lFile, lFilename);
+    rewrite(lFile);
+    Closefile(lFile);
+  EXCEPT on E:Exception do
+    ToDeepDeb('Nosogeneral,CreateEmptyFile,'+E.Message);
+  END;
+End;
+
 {$ENDREGION}
 
-{$REGION Orders related}
+{$REGION Protocol specific}
 
 // Convierte una orden en una cadena para compartir
 function GetStringFromOrder(order:Torderdata):String;
@@ -598,7 +588,17 @@ Begin
          Order.TrfrID;
 End;
 
-{$ENDREGION Orders related}
+function ExtractMNsText(lText:String):String;
+  var
+  startpos : integer;
+  content : string;
+Begin
+  Result := '';
+  startpos := Pos('$',lText);
+  Result := Copy(lText,Startpos+1,Length(lText));
+End;
+
+{$ENDREGION Protocol specific}
 
 
 END.{UNIT}

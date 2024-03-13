@@ -34,7 +34,7 @@ Procedure PTC_SendChecks(Slot:integer);
 
 
 Function MNVerificationDone():Boolean;
-Function ValidatorsCount():Integer;
+//Function ValidatorsCount():Integer;
 Function IsValidator(Ip:String):boolean;
 //Function GetMNReportString():String;
 //Function GetStringFromMN(Node:TMNode):String;
@@ -50,13 +50,13 @@ Function GetVerificationMNLine(ToIp:String):String;
 //Procedure CreditMNVerifications();
 
 //Function GetMNsAddresses():String;
-Function GetMNsFileData():String;
-Procedure FillMNsArray(TValue:String);
-Function GetVerificatorsText():string;
-Procedure SetMN_FileText(Tvalue:String);
-Function GetMN_FileText():String;
-Procedure SaveMNsFile(GotText:string);
-Procedure PTC_MNFile(Linea:String);
+//Function LoadMNsFile():String;
+//Procedure FillMNsArray(TValue:String);
+//Function GetVerificatorsText():string;
+//Procedure SetMN_FileText(Tvalue:String);
+//Function GetMN_FileText():String;
+//Procedure SaveMNsFile(GotText:string);
+//Procedure PTC_MNFile(Linea:String);
 
 // Waiting MNs
 
@@ -78,9 +78,9 @@ var
   CSVerNodes    : TRTLCriticalSection;
   //CSMNsChecks   : TRTLCriticalSection;
   //DecVerThreads : TRTLCriticalSection;
-  CSMNsFile     : TRTLCriticalSection;
+  //CSMNsFile     : TRTLCriticalSection;
   //CSMNsIPCheck  : TRTLCriticalSection;
-  CSMN_FileText : TRTLCriticalSection;
+  //CSMN_FileText : TRTLCriticalSection;
   CSMN_Contract : TRTLCriticalSection;
 
 implementation
@@ -351,15 +351,17 @@ for counter := 0 to length(ArrMNChecks)-1 do
 LeaveCriticalSection(CSMNsChecks);
 End;
 
+{
 Function ValidatorsCount():Integer;
 Begin
-Result := length(ListaNodos);
+  Result := length(ListaNodos);
 End;
+}
 
 Function IsValidator(Ip:String):boolean;
 Begin
-result := false;
-if IsSeedNode(IP) then result := true;
+  result := false;
+  if IsSeedNode(IP) then result := true;
 End;
 
 {
@@ -573,7 +575,7 @@ Function GetVerificationMNLine(ToIp:String):String;
 Begin
 if IsAllSynced=0 then
    begin
-   Result := 'True '+GetSyncTus+' '+LocalMN_Funds+' '+ToIp;
+   Result := 'True '+GetSyncTus+' '+LocalMN_Funds+' '+ToIp+' '+LocalMN_Sign;
    Inc(G_MNVerifications);
    end
 else Result := 'False';
@@ -625,8 +627,8 @@ Begin
   result := Resultado;
 End;
 }
-
-Function GetMNsFileData():String;
+{
+Function LoadMNsFile():String;
 var
   archivo : textfile;
   Linea   : string = '';
@@ -659,7 +661,9 @@ Result := Linea;
 MyMNsHash     := HashMD5File(MasterNodesFilename);
 //MyMNsHash     := HashMD5File(GetMN_FileText);
 End;
+}
 
+{
 Procedure FillMNsArray(TValue:String);
 var
   counter   : integer = 1;
@@ -707,7 +711,9 @@ for counter := 0 to length(TempArray)-1 do
    end;
 EndPerformance('FillMNsArray');
 End;
+}
 
+{
 Function GetVerificatorsText():string;
 var
   counter  : integer;
@@ -721,16 +727,19 @@ for counter := 0 to VerCount-1 do
   Result:= Result+ArrayMNsData[counter].ipandport+':';
   end;
 End;
-
+}
+{
 Procedure SetMN_FileText(Tvalue:String);
 Begin
-EnterCriticalSection(CSMN_FileText);
-MN_FileText := Tvalue;
-FillMNsArray(TValue);
-FillNodeList;
-LeaveCriticalSection(CSMN_FileText);
+  EnterCriticalSection(CSMN_FileText);
+  MN_FileText := Tvalue;
+  FillMNsArray(TValue);
+  FillNodeList;
+  LeaveCriticalSection(CSMN_FileText);
 End;
+}
 
+{
 Function GetMN_FileText():String;
 Begin
 EnterCriticalSection(CSMN_FileText);
@@ -738,7 +747,9 @@ Result := MN_FileText;
 FillMNsArray(result);
 LeaveCriticalSection(CSMN_FileText);
 End;
+}
 
+{
 Procedure SaveMNsFile(GotText:string);
 var
   archivo        : textfile;
@@ -757,7 +768,7 @@ EXCEPT on E:Exception do
    end;
 END {TRY};
 LeaveCriticalSection(CSMNsFile);
-MyMNsHash     := HashMD5File(MasterNodesFilename);
+SetMNsHash;
 if AnsiContainsStr(GotText,LocalMN_IP) then
    begin
    Form1.imagenes.GetBitMap(68,Form1.StaSerImg.Picture.Bitmap);
@@ -769,7 +780,9 @@ else
    Form1.StaSerImg.Hint:='Check your Masternode config';
    end;
 End;
+}
 
+{
 Procedure PTC_MNFile(Linea:String);
 var
   startpos : integer;
@@ -779,6 +792,7 @@ startpos := Pos('$',Linea);
 Content := Copy(Linea,Startpos+1,Length(linea));
 SaveMNsFile(content);
 end;
+}
 
 {
 Procedure CreditMNVerifications();
@@ -908,7 +922,7 @@ Initialization
 InitCriticalSection(CSVerNodes);
 //InitCriticalSection(DecVerThreads);
 InitCriticalSection(CSMNsChecks);
-InitCriticalSection(CSMNsFile);
+//InitCriticalSection(CSMNsFile);
 //InitCriticalSection(CSMNsIPCheck);
 InitCriticalSection(CSMN_FileText);
 InitCriticalSection(CSMN_Contract);
@@ -919,7 +933,7 @@ Finalization
 DoneCriticalSection(CSVerNodes);
 //DoneCriticalSection(DecVerThreads);
 DoneCriticalSection(CSMNsChecks);
-DoneCriticalSection(CSMNsFile);
+//DoneCriticalSection(CSMNsFile);
 //DoneCriticalSection(CSMNsIPCheck);
 DoneCriticalSection(CSMN_FileText);
 DoneCriticalSection(CSMN_Contract);

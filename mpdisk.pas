@@ -15,7 +15,7 @@ Procedure VerifyFiles();
 
 // *** New files system
 // Nodes file
-Procedure FillNodeList();
+//Procedure FillNodeList();
 Function IsSeedNode(IP:String):boolean;
 
 // GVTs file handling
@@ -97,8 +97,9 @@ Begin
   if not FileExists (AdvOptionsFilename) then CreateADV(false) else LoadADV();
   OutText('✓ Advanced options loaded',false,1);
 
-  if not FileExists(MasterNodesFilename) then CreateMasterNodesFile;
-  GetMNsFileData;
+  SetMasternodesFilename('NOSODATA'+DirectorySeparator+'masternodes.txt');
+  //if not FileExists(MasterNodesFilename) then CreateMasterNodesFile;
+  LoadMNsFile;
   OutText('✓ Masternodes file ok',false,1);
 
 if not FileExists(GVTsFilename) then CreateGVTsFile;
@@ -161,6 +162,7 @@ End;
 
 // *** NODE FILE ***
 
+{
 // Fills hardcoded seed nodes list
 Procedure FillNodeList(); // 0.2.1Lb2 revisited
 var
@@ -168,11 +170,12 @@ var
   ThisNode : string = '';
   Thisport  : integer;
   continuar : boolean = true;
-  NodeToAdd : NodeData;
+  NodeToAdd : TNodeData;
   SourceStr : String = '';
 Begin
 counter := 0;
 SourceStr := Parameter(GetCFGDataStr,1)+GetVerificatorsText;
+//ToLog('console',sourcestr);
 SourceStr := StringReplace(SourceStr,':',' ',[rfReplaceAll, rfIgnoreCase]);
 SetLength(ListaNodos,0);
 Repeat
@@ -191,12 +194,13 @@ Repeat
       end;
 until not continuar;
 End;
+}
 
 // If the specified IP a seed node
 Function IsSeedNode(IP:String):boolean;
 Begin
-Result := false;
-if AnsiContainsStr(GetCFGDataStr(1),ip) then result := true;
+  Result := false;
+  if AnsiContainsStr(GetCFGDataStr(1),ip) then result := true;
 End;
 
 Procedure CreateMasterNodesFile();

@@ -589,7 +589,7 @@ if MyLastBlockHash <> GetConsensus(cLBHash) then result := 2;
 if Copy(MySumarioHash,0,5)   <> GetConsensus(cSumHash) then result := 3;
 if Copy(GetResumenHash,0,5)   <> GetConsensus(cHeaders) then result := 4;
 {
-if Copy(MyMNsHash,1,5) <>  NetMNsHash.value then result := 5;
+if Copy(GetMNsHash,1,5) <>  NetMNsHash.value then result := 5;
 if MyGVTsHash <> NetGVTSHash.Value then result := 6;
 if MyCFGHash <> NETCFGHash.Value then result := 7;
 }
@@ -648,7 +648,7 @@ if ( (GetConsensus(19)<>Copy(HashMd5String(GetCFGDataStr),0,5)) and (LasTimeCFGR
   end;
 
 // *** Update MNs file
-if ( (GetConsensus(8)<>Copy(MyMNsHash,1,5)) and (LastTimeMNHashRequestes+5<UTCTime) and
+if ( (GetConsensus(8)<>Copy(GetMNsHash,1,5)) and (LastTimeMNHashRequestes+5<UTCTime) and
           (GetConsensus(8)<>'') ) then
   begin
   if GetValidSlotForSeed(ValidSlot) then
@@ -996,7 +996,7 @@ Begin
 //           20{PSOHash}
 result := {1}IntToStr(GetTotalConexiones)+' '+{2}IntToStr(MyLastBlock)+' '+{3}GetPendingCount.ToString+' '+
           {4}IntToStr(UTCTime-EngineLastUpdate)+' '+{5}copy(GetResumenHash,0,5)+' '+
-          {6}MainnetVersion+NodeRelease+' '+{7}UTCTimeStr+' '+{8}copy(MyMnsHash,0,5)+' '+{9}GetMNsListLength.ToString+' '+
+          {6}MainnetVersion+NodeRelease+' '+{7}UTCTimeStr+' '+{8}copy(GetMnsHash,0,5)+' '+{9}GetMNsListLength.ToString+' '+
           {10}MyLastBlockHash+' '+{11}{GetNMSData.Diff}'null'+' '+{12}IntToStr(LastBlockData.TimeEnd)+' '+
           {13}LastBlockData.AccountMiner+' '+{14}GetMNsChecksCount.ToString+' '+{15}Parameter(LastBlockData.Solution,2)+' '+
           {16}Parameter(LastBlockData.Solution,1)+' '+{17}copy(MySumarioHash,0,5)+' '+{18}copy(MyGVTsHash,0,5)+' '+
@@ -1111,11 +1111,11 @@ var
   LineText  : String = '';
   NodeToUse : integer;
 Begin
-  NodeToUse := Random(Length(ListaNodos));
+  NodeToUse := Random(NodesListLen);
   Result := '';
   TCPClient := TidTCPClient.Create(nil);
-  TCPclient.Host:=ListaNodos[NodeToUse].ip;
-  TCPclient.Port:=StrToIntDef(ListaNodos[NodeToUse].port,8080);
+  TCPclient.Host:=NodesIndex(NodeToUse).ip;
+  TCPclient.Port:=StrToIntDef(NodesIndex(NodeToUse).port,8080);
   TCPclient.ConnectTimeout:= 1000;
   TCPclient.ReadTimeout:=1000;
   TRY
@@ -1161,7 +1161,7 @@ function SendOrderToNode(OrderString:String):String;
 var
   Client    : TidTCPClient;
   RanNode   : integer;
-  ThisNode  : NodeData;
+  ThisNode  : TNodeData;
   TrysCount : integer = 0;
   WasOk     : Boolean = false;
 Begin

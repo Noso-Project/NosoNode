@@ -22,6 +22,11 @@ Type
       constructor Create(const CreatePaused: Boolean; const ConexSlot:Integer);
   end;
 
+  TNodeData = Packed Record
+     ip           : string[15];
+     port         : string[8];
+     end;
+
   Tconectiondata = Packed Record
     Autentic        : boolean;                 // si la conexion esta autenticada por un ping
     Connections     : Integer;             // A cuantos pares esta conectado
@@ -96,6 +101,10 @@ Type
   Procedure DeleteBots();
   function BotExists(IPUser:String):Boolean;
 
+  Procedure FillNodeList();
+  Function NodesListLen():integer;
+  Function NodesIndex(lIndex:integer):TNodeData;
+
   Procedure InitializeElements();
   Procedure ClearElements();
 
@@ -138,7 +147,6 @@ var
   //MyGVTsHash      : string = '';
   MyCFGHash       : string = '';
   MyPublicIP      : String = '';
-  MyMNsHash       : String = '';
   // Local information
   LastBlockData         : BlockHeaderData;
   OpenReadClientThreads : integer = 0;
@@ -149,6 +157,9 @@ var
   CSConexiones          : TRTLCriticalSection;
   CSBotsList            : TRTLCriticalSection;
   CSPending             : TRTLCriticalSection;
+  // nodes list
+  NodesList             : array of TNodeData;
+  CSNodesList           : TRTLCriticalSection;
 
 IMPLEMENTATION
 
@@ -247,7 +258,7 @@ Begin
          GetResumenHash+' '+
          IntToStr(MyConStatus)+' '+
          IntToStr(Lport)+' '+
-         copy(MyMNsHash,0,5)+' '+
+         copy(GetMNsHash,0,5)+' '+
          IntToStr(GetMNsListLength)+' '+
          'null'+' '+ //GetNMSData.Diff
          GetMNsChecksCount.ToString+' '+
@@ -503,7 +514,7 @@ Begin
   SetResumenHash;
   if GetResumenHash = GetConsensus(5) then
     ForceCompleteHeadersDownload := false;
-  MyMNsHash       := HashMD5File(MasterNodesFilename);
+  //MyMNsHash       := HashMD5File(MasterNodesFilename);
   MyCFGHash       := Copy(HAshMD5String(GetCFGDataStr),1,5);
 End;
 
@@ -816,6 +827,57 @@ End;
 
 {$ENDREGION Bots array}
 
+{$REGION Nodes list}
+
+Procedure FillNodeList();
+var
+  counter : integer;
+  ThisNode : string = '';
+  Thisport  : integer;
+  continuar : boolean = true;
+  NodeToAdd : TNodeData;
+  SourceStr : String = '';
+Begin
+  counter := 0;
+  SourceStr := Parameter(GetCFGDataStr,1)+GetVerificatorsText;
+  SourceStr := StringReplace(SourceStr,':',' ',[rfReplaceAll, rfIgnoreCase]);
+  EnterCriticalSection(CSNodesList);
+  SetLength(NodesList,0);
+  Repeat
+    ThisNode := parameter(SourceStr,counter);
+    ThisNode := StringReplace(ThisNode,';',' ',[rfReplaceAll, rfIgnoreCase]);
+    ThisPort := StrToIntDef(Parameter(ThisNode,1),8080);
+    ThisNode := Parameter(ThisNode,0);
+    if thisnode = '' then continuar := false
+    else
+      begin
+      NodeToAdd.ip:=ThisNode;
+      NodeToAdd.port:=IntToStr(ThisPort);
+      Insert(NodeToAdd,NodesList,Length(NodesList));
+      counter+=1;
+      end;
+  until not continuar;
+  LeaveCriticalSection(CSNodesList);
+End;
+
+Function NodesListLen():integer;
+Begin
+  EnterCriticalSection(CSNodesList);
+  result := Length(NodesList);
+  LeaveCriticalSection(CSNodesList);
+End;
+
+Function NodesIndex(lIndex:integer):TNodeData;
+Begin
+  result := Default(TNodeData);
+  if lIndex >=NodesListLen then exit;
+  EnterCriticalSection(CSNodesList);
+  result := NodesList[lIndex];
+  LeaveCriticalSection(CSNodesList);
+End;
+
+{$ENDREGION Nodes list}
+
 {$REGION Unit related}
 
 Procedure InitializeElements();
@@ -826,8 +888,10 @@ Begin
   InitCriticalSection(CSConexiones);
   InitCriticalSection(CSBotsList);
   InitCriticalSection(CSPending);
+  InitCriticalSection(CSNodesList);
   SetLength(BotsList,0);
   Setlength(ArrayPoolTXs,0);
+  Setlength(NodesList,0);
   for counter := 1 to MaxConecciones do
     begin
     InitCriticalSection(CSIncomingArr[counter]);
@@ -846,6 +910,7 @@ Begin
   DoneCriticalSection(CSConexiones);
   DoneCriticalSection(CSBotsList);
   DoneCriticalSection(CSPending);
+  DoneCriticalSection(CSNodesList);
   for counter := 1 to MaxConecciones do
     begin
     DoneCriticalSection(CSIncomingArr[counter]);

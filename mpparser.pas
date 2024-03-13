@@ -352,9 +352,8 @@ Procedure ShowNodes();
 var
   contador : integer = 0;
 Begin
-for contador := 0 to length(ListaNodos) - 1 do
-   ToLog('console',IntToStr(contador)+'- '+Listanodos[contador].ip+':'+Listanodos[contador].port+
-   ' '+TimeSinceStamp(StrToInt64Def(Listanodos[contador].LastConexion,0)));
+  for contador := 0 to NodesListLen - 1 do
+    ToLog('console',IntToStr(contador)+'- '+NodesIndex(contador).ip+':'+NodesIndex(contador).port);
 End;
 
 // muestra los Bots
@@ -803,10 +802,10 @@ if procesar then
       end;
    Setlength(orderstring,length(orderstring)-2);
    OrderString := StringReplace(OrderString,'PSK','NSLORDER',[]);
-   ToLog('console','Send to Node '+OrderString);
-   //result := SendOrderToNode(OrderString);
-   //ToLog('console','Node result: '+result);
-   //OutgoingMsjsAdd(OrderString);
+   //ToLog('console','Send to Node '+OrderString);
+   result := SendOrderToNode(OrderString);
+   ToLog('console','Node result: '+result);
+   OutgoingMsjsAdd(OrderString);
    EndPerformance('SendFunds');
    end // End procesar
 else
@@ -1894,7 +1893,7 @@ End;
 
 Procedure ShowConsensusStats();
 Begin
-  ToLog('Console',GetConsensus(8)+' '+Copy(MyMNsHash,1,5));
+  ToLog('Console',GetConsensus(8)+' '+Copy(GetMNsHash,1,5));
   ImportAddressesFromBackup(RPCBakDirectory);
 End;
 

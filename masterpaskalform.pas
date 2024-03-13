@@ -109,12 +109,13 @@ type
      end;
   }
 
+  {
   NodeData = Packed Record
      ip: string[15];
      port: string[8];
      LastConexion : string[17];
      end;
-
+  }
   {
   conectiondata = Packed Record
      Autentic: boolean;                 // si la conexion esta autenticada por un ping
@@ -582,7 +583,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  NodeRelease = 'Cb5';
+  NodeRelease = 'Cb6';
   OficialRelease = true;
   BetaRelease    = false;
   VersionRequired = '0.4.2';
@@ -653,7 +654,7 @@ var
   //MN_Funds         : string = '';
   //MN_Sign          : string = '';
   MN_AutoIP        : Boolean = false;
-  MN_FileText      : String = '';
+  //MN_FileText      : String = '';
   WO_FullNode      : boolean = true;
 
   {Network}
@@ -663,7 +664,7 @@ var
   CanalCliente     : array [1..MaxConecciones] of TIdTCPClient;
   }
   //ListadoBots      : array of BotData;
-  ListaNodos       : array of NodeData;
+  //ListaNodos       : array of NodeData;
   //ArrayPoolTXs     : Array of TOrderData;
   ArrayOrderIDsProcessed : array of string;
   OutgoingMsjs     : TStringlist;
@@ -894,7 +895,7 @@ While not terminated do
   end;
 End;
 
-{$ENDREGION}
+{$ENDREGION Thread update logs}
 
 {$REGION Thread Client read}
  {
@@ -1159,7 +1160,7 @@ begin
   CloseOpenThread('ReadClient '+FSlot.ToString);
 End;
 }
-{$ENDREGION}
+{$ENDREGION Thread Client read}
 
 {$REGION Thread Directive}
 
@@ -1192,7 +1193,7 @@ While not Tfinished do
    end;
 End;
 
-{$ENDREGION}
+{$ENDREGION Thread Directive}
 
 {$REGION Thread Update MNs}
 
@@ -1238,7 +1239,7 @@ Begin
     end;
 End;
 
-{$ENDREGION}
+{$ENDREGION Thread Update MNs}
 
 {$REGION Thread Crypto}
 
@@ -1337,7 +1338,7 @@ Begin
     end;
 End;
 
-{$ENDREGION}
+{$ENDREGION Thread Crypto}
 
 {$REGION Thread Send outgoing msgs}
 
@@ -1377,7 +1378,7 @@ While not terminated do
    End;
 End;
 
-{$ENDREGION}
+{$ENDREGION Thread Send outgoing msgs}
 
 {$REGION Thread keepConnected}
 
@@ -1406,16 +1407,16 @@ Begin
     if trythis then
       begin
       Inc(LastTrySlot);
-      if LastTrySlot >=length(ListaNodos) then LastTrySlot := 0;
-      if ((GetSlotFromIP(ListaNodos[LastTrySlot].ip)=0) AND (GetFreeSlot()>0) and (ListaNodos[LastTrySlot].ip<>LocalMN_IP)) then
-        ConnectClient(ListaNodos[LastTrySlot].ip,ListaNodos[LastTrySlot].port);
+      if LastTrySlot >= NodesListLen then LastTrySlot := 0;
+      if ((GetSlotFromIP(NodesIndex(LastTrySlot).ip)=0) AND (GetFreeSlot()>0) and (NodesIndex(LastTrySlot).ip<>LocalMN_IP)) then
+        ConnectClient(NodesIndex(LastTrySlot).ip,NodesIndex(LastTrySlot).port);
       end;
     sleep(3000);
     end;
   CloseOpenThread('KeepConnect');
 End;
 
-{$ENDREGION}
+{$ENDREGION Thread keepConnected}
 
 {$REGION Thread Indexer}
 
@@ -1447,7 +1448,7 @@ Begin
   CloseOpenThread('Indexer');
 End;
 
-{$ENDREGION}
+{$ENDREGION Thread Indexer}
 
 //***********************
 // *** FORM RELATIVES ***

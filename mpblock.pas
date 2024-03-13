@@ -393,7 +393,7 @@ if not errored then
    MyLastBlockHash := HashMD5File(BlockDirectory+IntToStr(MyLastBlock)+'.blk');
    LastBlockData := LoadBlockDataHeader(MyLastBlock);
    SetSummaryHash;
-   MyMNsHash     := HashMD5File(MasterNodesFilename);
+   SetMNsHash;
    // Actualizar el arvhivo de cabeceras
    AddRecordToHeaders(Numero,MyLastBlockHash,MySumarioHash);
    SetResumenHash;

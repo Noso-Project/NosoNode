@@ -5,7 +5,7 @@ unit nosomasternodes;
 INTERFACE
 
 uses
-  Classes, SysUtils,IdTCPClient, IdGlobal,
+  Classes, SysUtils,IdTCPClient, IdGlobal,strutils,
   NosoDebug,NosoTime,NosoGeneral,nosocrypto,nosounit;
 
 Type
@@ -46,6 +46,8 @@ Type
     age        : integer;
     end;
 
+  Procedure SetMasternodesFilename(LText:String);
+
   Procedure SetLocalIP(NewValue:String);
   Procedure SetMN_Sign(SignAddress,lPublicKey,lPrivateKey:String);
   Function GetMNReportString(block:integer):String;
@@ -69,10 +71,22 @@ Type
   Function GetValidNodesCountOnCheck(StringNodes:String):integer;
 
 
+  Procedure SetMNsHash();
+  Function GetMNsHash():String;
+
   Function GetMNAgeCount(TNode:TMNode):string;
+  Function LoadMNsFile():String;
+  Procedure SaveMNsFile(GotText:string);
+  Procedure SetMN_FileText(Tvalue:String);
+  Function GetMN_FileText():String;
+  Procedure FillMNsArray(TValue:String);
+  Function GetVerificatorsText():string;
 
 var
-  MasterNodesFilename : string= 'NOSODATA'+DirectorySeparator+'masternodes.txt';
+  MasterNodesFilename : string= '';
+  MNFileHandler       : textfile;
+  CSMNsFile           : TRTLCriticalSection;
+
   MNsListCopy         : array of TMnode;
   CurrSynctus         : string;
   LocalMN_IP          : string = '';
@@ -82,6 +96,9 @@ var
   LocalMN_Public      : string = '';
   LocalMN_Private     : string = '';
   UnconfirmedIPs      : integer;
+
+  MyMNsHash           : String = '';
+  CS_MNsHash          : TRTLCriticalSection;
 
   VerifiedNodes       : String;
   CSVerNodes          : TRTLCriticalSection;
@@ -100,7 +117,18 @@ var
 
   ArrayMNsData        : array of TMNsData;
 
+  MN_FileText         : String = '';
+  CSMN_FileText       : TRTLCriticalSection;
+
 IMPLEMENTATION
+
+Procedure SetMasternodesFilename(LText:String);
+Begin
+  MasterNodesFilename := LText;
+  AssignFile(MNFileHandler,MasterNodesFilename);
+  if not FileExists(MasterNodesFilename) then CreateEmptyFile(MasterNodesFilename);
+
+End;
 
 Procedure SetLocalIP(NewValue:String);
 Begin
@@ -584,6 +612,141 @@ End;
 
 {$ENDREGION MNs FileData handling}
 
+{$REGION MNs hash}
+
+Procedure SetMNsHash();
+Begin
+  EnterCriticalSection(CS_MNsHash);
+  MyMNsHash := HashMD5File(MasterNodesFilename);
+  LeaveCriticalSection(CS_MNsHash);
+End;
+
+Function GetMNsHash():String;
+Begin
+  EnterCriticalSection(CS_MNsHash);
+  Result := HashMD5File(MasterNodesFilename);
+  LeaveCriticalSection(CS_MNsHash);
+End;
+
+{$ENDREGION MNs hash}
+
+Function LoadMNsFile():String;
+var
+  lText   : string = '';
+Begin
+  Result := '';
+  EnterCriticalSection(CSMNsFile);
+  TRY
+    reset(MNFileHandler);
+    Readln(MNFileHandler,Result);
+    Closefile(MNFileHandler);
+  EXCEPT on E:Exception do
+    begin
+    ToDeepDeb('Nosomasternodes,LoadMNsFile,'+E.Message);
+    end;
+  END {TRY};
+  LeaveCriticalSection(CSMNsFile);
+  SetMN_FileText(result);
+  SetMNsHash;
+End;
+
+Procedure SaveMNsFile(GotText:string);
+Begin
+  EnterCriticalSection(CSMNsFile);
+  TRY
+    rewrite(MNFileHandler);
+    write(MNFileHandler,GotText,#13#10);
+    Closefile(MNFileHandler);
+    SetMN_FileText(GotText);
+  EXCEPT on E:Exception do
+    begin
+    ToDeepDeb('Nosomasternodes,SaveMNsFile,'+E.Message);
+    SetMN_FileText('');
+    end;
+  END {TRY};
+  LeaveCriticalSection(CSMNsFile);
+  SetMNsHash;
+End;
+
+Procedure SetMN_FileText(Tvalue:String);
+Begin
+  EnterCriticalSection(CSMN_FileText);
+  MN_FileText := Tvalue;
+  FillMNsArray(TValue);
+  //FillNodeList; <- Critical: needs to be redone
+  LeaveCriticalSection(CSMN_FileText);
+End;
+
+Function GetMN_FileText():String;
+Begin
+  EnterCriticalSection(CSMN_FileText);
+  Result := MN_FileText;
+  FillMNsArray(result);
+  LeaveCriticalSection(CSMN_FileText);
+End;
+
+Procedure FillMNsArray(TValue:String);
+var
+  counter   : integer = 1;
+  count2    : integer = 0;
+  ThisData  : string  = '';
+  ThisMN    : TMNsData;
+  TempArray : array of TMNsData;
+  Added     : boolean = false;
+  VerificatorsCount : integer;
+Begin
+  BeginPerformance('FillMNsArray');
+  SetLength(ArrayMNsData,0);
+  SetLength(TempArray,0);
+  Repeat
+    ThisData := Parameter(Tvalue,counter);
+    if ThisData <> '' then
+      begin
+      ThisData := StringReplace(ThisData,':',' ',[rfReplaceAll]);
+      ThisMN.ipandport:=Parameter(ThisData,0);
+      ThisMN.address  :=Parameter(ThisData,1);
+      ThisMN.age      :=StrToIntDef(Parameter(ThisData,2),1);
+      Insert(ThisMN,TempArray,length(TempArray));
+      end;
+    inc(counter);
+  until thisData = '';
+  for counter := 0 to length(TempArray)-1 do
+    begin
+    ThisMN := TempArray[counter];
+    Added := false;
+    if length(ArrayMNsData) = 0 then
+      Insert(ThisMN,ArrayMNsData,0)
+    else
+      begin
+      for count2 := 0 to length(ArrayMNsData)-1 do
+        begin
+        if ThisMN.age > ArrayMNsData[count2].age then
+          begin
+          Insert(ThisMN,ArrayMNsData,count2);
+          added := true;
+          break;
+          end;
+        end;
+      if not added then Insert(ThisMN,ArrayMNsData,length(ArrayMNsData));
+      end;
+    end;
+  EndPerformance('FillMNsArray');
+End;
+
+Function GetVerificatorsText():string;
+var
+  counter  : integer;
+  VerCount : integer;
+Begin
+  Result := '';
+  if length(ArrayMNsData)<3 then exit;
+  VerCount :=  (length(ArrayMNsData) div 10)+3;
+  for counter := 0 to VerCount-1 do
+    begin
+    Result:= Result+ArrayMNsData[counter].ipandport+':';
+    end;
+End;
+
 
 INITIALIZATION
 SetLength(MNsListCopy,0);
@@ -596,6 +759,9 @@ InitCriticalSection(CSMNsList);
 InitCriticalSection(CSVerNodes);
 InitCriticalSection(CSVerifyThread);
 InitCriticalSection(CSMNsChecks);
+InitCriticalSection(CSMNsFile);
+InitCriticalSection(CS_MNsHash);
+
 
 FINALIZATION
 DoneCriticalSection(CSMNsIPProc);
@@ -603,6 +769,8 @@ DoneCriticalSection(CSMNsList);
 DoneCriticalSection(CSVerNodes);
 DoneCriticalSection(CSVerifyThread);
 DoneCriticalSection(CSMNsChecks);
+DoneCriticalSection(CSMNsFile);
+DoneCriticalSection(CS_MNsHash);
 
 
 END. // End unit
