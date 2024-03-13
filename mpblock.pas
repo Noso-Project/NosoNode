@@ -304,6 +304,7 @@ if not errored then
    CreditMNVerifications();
    MNsFileText := GetMNsAddresses(MyLastBlock);
    SaveMNsFile(MNsFileText);
+   FillNodeList;
    ClearMNsChecks();
    ClearMNsList();
    if numero >= MNBlockStart then

@@ -675,6 +675,7 @@ Begin
   FillMNsArray(TValue);
   //FillNodeList; <- Critical: needs to be redone
   LeaveCriticalSection(CSMN_FileText);
+  SetMNsHash;
 End;
 
 Function GetMN_FileText():String;

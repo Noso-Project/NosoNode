@@ -41,6 +41,7 @@ Procedure PTC_AdminMSG(TextLine:String);
 Procedure PTC_CFGData(Linea:String);
 //Procedure PTC_SendMNsList(slot:integer);
 Procedure PTC_SendUpdateHeaders(Slot:integer;Linea:String);
+Procedure PTC_ProcessMNFileIncoming(LText:String);
 Procedure PTC_HeadUpdate(linea:String);
 
 Procedure AddCriptoOp(tipo:integer;proceso, resultado:string);
@@ -239,7 +240,7 @@ Begin
       else if UpperCase(LineComando) = 'GETMNSFILE' then PTC_SendLine(contador,ProtocolLine(MNFILE)+' $'+LoadMNsFile)
       else if UpperCase(LineComando) = 'GETCFGDATA' then PTC_SendLine(contador,ProtocolLine(SETCFG)+GetCFGDataStr)
 
-      else if UpperCase(LineComando) = 'MNFILE' then SaveMNsFile(ExtractMNsText(ProcessLine))//PTC_MNFile(ProcessLine)
+      else if UpperCase(LineComando) = 'MNFILE' then PTC_ProcessMNFileIncoming(ProcessLine)//SaveMNsFile(ExtractMNsText(ProcessLine))//PTC_MNFile(ProcessLine)
       else if UpperCase(LineComando) = 'SETCFGDATA' then PTC_CFGData(ProcessLine)
 
       else if UpperCase(LineComando) = 'GETHEADUPDATE' then PTC_SendUpdateHeaders(contador,ProcessLine)
@@ -1019,6 +1020,24 @@ var
 Begin
 Block := StrToIntDef(Parameter(Linea,5),0);
 PTC_SendLine(slot,ProtocolLine(headupdate)+' $'+LastHeadersString(Block));
+End;
+
+Procedure PTC_ProcessMNFileIncoming(LText:String);
+var
+  MNText: String;
+Begin
+  MNText := ExtractMNsText(LText);
+  if copy(HashMD5String(MNText+#13#10),1,5) = GetConsensus(8) then
+    begin
+    //ToLog('console','Received MNs hash match!');
+    SaveMNsFile(MNText);
+    FillNodeList;
+    end
+  else
+    begin
+    //ToLog('console',' Wrong MN hash received');
+    //ToLog('console',MNText);
+    end;
 End;
 
 // This function must go to NosoHeaders

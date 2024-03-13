@@ -556,12 +556,16 @@ Function CreateEmptyFile(lFilename:String):Boolean;
 var
   lFile : textfile;
 Begin
+  result := true;
   TRY
     Assignfile(lFile, lFilename);
     rewrite(lFile);
     Closefile(lFile);
   EXCEPT on E:Exception do
+    begin
     ToDeepDeb('Nosogeneral,CreateEmptyFile,'+E.Message);
+    result := false;
+    end;
   END;
 End;
 

@@ -68,13 +68,13 @@ Function GetWaitingMNs():String;
 
 var
   //ArrayIPsProcessed : array of string;
-  OpenVerificators : integer;
-  MNsListCopy        : array of TMnode;       // Contains the Nodes data to run the verification
+  //OpenVerificators : integer;
+  //MNsListCopy        : array of TMnode;       // Contains the Nodes data to run the verification
   //MNsList            : array of TMnode;
   CurrSynctus : string;
   VerifiedNodes : String;
-  UnconfirmedIPs : integer;
-  TopVerificators : string;
+  //UnconfirmedIPs : integer;
+  //TopVerificators : string;
   CSVerNodes    : TRTLCriticalSection;
   //CSMNsChecks   : TRTLCriticalSection;
   //DecVerThreads : TRTLCriticalSection;
@@ -226,12 +226,12 @@ End;
 // Converts a string into a TMNChekc data
 Function GetMNCheckFromString(Linea:String):TMNCheck;
 Begin
-Result.ValidatorIP    :=Parameter(Linea,5);
-Result.Block          :=StrToIntDef(Parameter(Linea,6),0);
-Result.SignAddress    :=Parameter(Linea,7);
-Result.PubKey         :=Parameter(Linea,8);
-Result.ValidNodes     :=Parameter(Linea,9);
-Result.Signature      :=Parameter(Linea,10);
+  Result.ValidatorIP    :=Parameter(Linea,5);
+  Result.Block          :=StrToIntDef(Parameter(Linea,6),0);
+  Result.SignAddress    :=Parameter(Linea,7);
+  Result.PubKey         :=Parameter(Linea,8);
+  Result.ValidNodes     :=Parameter(Linea,9);
+  Result.Signature      :=Parameter(Linea,10);
 End;
 
 {
