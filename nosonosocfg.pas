@@ -11,7 +11,8 @@ Stand alone unit to control nosocfg file and functionalitys
 interface
 
 uses
-  Classes, SysUtils, nosodebug, nosogeneral, nosotime;
+  Classes, SysUtils, strutils,
+  nosodebug, nosogeneral, nosotime;
 
 Function SaveCFGToFile(Content:String):Boolean;
 Procedure GetCFGFromFile();
@@ -22,6 +23,7 @@ Procedure RemoveCFGData(DataToRemove:String;CFGIndex:Integer);
 Procedure SetCFGData(DataToSet:String;CFGIndex:Integer);
 Procedure RestoreCFGData();
 Procedure ClearCFGData(Index:string);
+Function IsSeedNode(IP:String):boolean;
 
 var
   CFGFilename       : string= 'NOSODATA'+DirectorySeparator+'nosocfg.psk';
@@ -194,6 +196,17 @@ Begin
 End;
 
 {$ENDREGION Management}
+
+{$REGION Information}
+
+// If the specified IP a seed node
+Function IsSeedNode(IP:String):boolean;
+Begin
+  Result := false;
+  if AnsiContainsStr(GetCFGDataStr(1),ip) then result := true;
+End;
+
+{$REGION Information}
 
 INITIALIZATION
 InitCriticalSection(CS_CFGFile);

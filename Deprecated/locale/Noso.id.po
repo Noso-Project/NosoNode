@@ -1,0 +1,1068 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: Tuns\n"
+"MIME-Version: 1.0\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: id_ID\n"
+"X-Generator: Poedit 3.0\n"
+
+#: tform1.barcodeqr1.hint
+msgid "Click on image to close it"
+msgstr "Klik pada gambar untuk menutupnya"
+
+#: tform1.bcopyaddr.hint
+msgid "Copy address to clipboard"
+msgstr "Salin alamat ke papan klip"
+
+#: tform1.bcustomaddr.hint
+msgid "Customize address"
+msgstr "Mengkustomisasi alamat"
+
+#: tform1.bdefaddr.hint
+msgid "Set address as Default"
+msgstr "Atur alamat sebagai Bawaan"
+
+#: tform1.bitbtnblocks.caption
+msgctxt "tform1.bitbtnblocks.caption"
+msgid "000000"
+msgstr "000000"
+
+#: tform1.bitbtnblocks.hint
+msgctxt "tform1.bitbtnblocks.hint"
+msgid "Last downloaded block"
+msgstr "Blok terakhir yang diunduh"
+
+#: tform1.bitbtndonate.caption
+msgctxt "tform1.bitbtndonate.caption"
+msgid "Donate"
+msgstr "Donasi"
+
+#: tform1.bitbtnpending.caption
+msgid "00"
+msgstr "00"
+
+#: tform1.bitbtnpending.hint
+msgid "Network pending orders"
+msgstr "Pesanan jaringan yang tertunda"
+
+#: tform1.bitbtnweb.caption
+msgctxt "tform1.bitbtnweb.caption"
+msgid "Web"
+msgstr "Jaringan"
+
+#: tform1.bnewaddr.hint
+msgid "Generate new address"
+msgstr "Buat alamat baru"
+
+#: tform1.bokcustom.hint
+msgctxt "tform1.bokcustom.hint"
+msgid "Confirm"
+msgstr "Konfirmasi"
+
+#: tform1.bqrcode.hint
+msgid "Show QR code"
+msgstr "Tampilkan QR code"
+
+#: tform1.bsavenodeoptions.caption
+msgid "Save"
+msgstr "Simpan"
+
+#: tform1.btestnode.caption
+msgid "Test"
+msgstr ""
+
+#: tform1.butstartdoctor.caption
+msgid "Start"
+msgstr "Mulai"
+
+#: tform1.butstopdoctor.caption
+msgid "Stop"
+msgstr "Berhenti"
+
+#: tform1.caption
+msgid "Noso"
+msgstr "Noso"
+
+#: tform1.cbblockexists.caption
+msgid "Block file"
+msgstr "Berkas blok"
+
+#: tform1.cbblockhash.caption
+msgid "Block hash"
+msgstr "Hash blok"
+
+#: tform1.cbpool_restart.caption
+msgid "Restart after mine block"
+msgstr ""
+
+#: tform1.cbsummaryhash.caption
+msgid "Summary hash"
+msgstr "Ringkasan hash"
+
+#: tform1.cb_autorpc.caption
+msgid "Active JSON-RPC server at launch"
+msgstr "Server JSON-RPC aktif saat diluncurkan"
+
+#: tform1.cb_rpcfilter.caption
+msgid "Accept only whitelist requests"
+msgstr "Hanya terima permintaan daftar putih"
+
+#: tform1.cb_rpc_on.caption
+msgid "Enable JSON-RPC server"
+msgstr "Aktifkan server JSON-RPC"
+
+#: tform1.cb_wo_antifreeze.caption
+msgid "Anti freeze (s)"
+msgstr "Anti beku"
+
+#: tform1.cb_wo_autoconnect.caption
+msgid "Auto connect at start"
+msgstr "Sambungkan otomatis saat mulai"
+
+#: tform1.cb_wo_autoupdate.caption
+#, fuzzy
+msgctxt "tform1.cb_wo_autoupdate.caption"
+msgid "Install automatically new official releases"
+msgstr "Pasang rilis resmi baru secara otomatis"
+
+#: tform1.cb_wo_multisend.caption
+msgid "Send coins only from default address"
+msgstr "Kirim koin hanya dari alamat bawaan"
+
+#: tform1.cb_wo_totray.caption
+msgid "Minimize to tray"
+msgstr "Minimalkan ke baki"
+
+#: tform1.checkbox1.caption
+msgid "Download blockchain"
+msgstr "Unduh blockchain"
+
+#: tform1.checkbox4.caption
+msgid "Run MasterNode"
+msgstr "Jalankan MasterNode"
+
+#: tform1.checkbox7.caption
+msgid "Enable sound alerts"
+msgstr "Aktifkan peringatan suara"
+
+#: tform1.checkbox8.caption
+msgid "Coins filter"
+msgstr "Saring koin"
+
+#: tform1.checkbox9.caption
+msgid "Use my default addresses"
+msgstr "Gunakan alamat bawaan saya"
+
+#: tform1.editscmont.text
+msgid "0.00000000"
+msgstr "0.00000000"
+
+#: tform1.lababout.caption
+msgid "About message"
+msgstr "Tentang pesan"
+
+#: tform1.label1.caption
+msgid "Post offer"
+msgstr "Pasang penawaran"
+
+#: tform1.label10.caption
+msgctxt "tform1.label10.caption"
+msgid "Funds address"
+msgstr "Alamat dana"
+
+#: tform1.label11.caption
+msgctxt "tform1.label11.caption"
+msgid "Sign address"
+msgstr "Tanda tangan alamat"
+
+#: tform1.label12.caption
+msgctxt "tform1.label12.caption"
+msgid "Port"
+msgstr "Port"
+
+#: tform1.label13.caption
+msgctxt "tform1.label13.caption"
+msgid "Funds password"
+msgstr "Sandi dana"
+
+#: tform1.label2.caption
+msgid "Minimum connections to work"
+msgstr "Koneksi minimum untuk bekerja"
+
+#: tform1.label3.caption
+msgid "Connect time out (ms)"
+msgstr "Waktu sambung habis (ms)"
+
+#: tform1.label4.caption
+msgid "Read time out (ms)"
+msgstr "Waktu baca habis (ms)"
+
+#: tform1.label5.caption
+msgid "History orders showed"
+msgstr "Riwayat pesanan ditampilkan"
+
+#: tform1.label6.caption
+msgid "PoS addresses warning days"
+msgstr "Peringatan hari alamat PoS"
+
+#: tform1.label7.caption
+msgid "Wallet language"
+msgstr "Bahasa dompet"
+
+#: tform1.label8.caption
+msgid "IP"
+msgstr "IP"
+
+#: tform1.label9.caption
+msgctxt "tform1.label9.caption"
+msgid "Port"
+msgstr "Port"
+
+#: tform1.labelbigbalance.caption
+msgctxt "tform1.labelbigbalance.caption"
+msgid "0 NOS"
+msgstr "0 NOS"
+
+#: tform1.labeldoctor.caption
+msgid "Waiting"
+msgstr "Menunggu"
+
+#: tform1.labelnobiexaverage.caption
+msgctxt "tform1.labelnobiexaverage.caption"
+msgid "Average: -.-"
+msgstr "Rata-rata: -.-"
+
+#: tform1.labelnobiexlast.caption
+msgctxt "tform1.labelnobiexlast.caption"
+msgid "Last: -.-"
+msgstr "Terakhir: -.-"
+
+#: tform1.labelnodeshash.caption
+msgid "Hash: "
+msgstr ""
+
+#: tform1.labeltransactiondetails.caption
+msgid "Transaction details"
+msgstr "Detil transaksi"
+
+#: tform1.lsctop.caption
+msgid "Send coins"
+msgstr "Kirim koin"
+
+#: tform1.menuitem1.caption
+msgid "Network"
+msgstr "Jaringan"
+
+#: tform1.menuitem10.caption
+msgid "Development"
+msgstr "Pengembang"
+
+#: tform1.menuitem11.caption
+msgid "View"
+msgstr "Lihat"
+
+#: tform1.menuitem12.caption
+msgctxt "tform1.menuitem12.caption"
+msgid "Console"
+msgstr "Konsol"
+
+#: tform1.menuitem13.caption
+msgctxt "tform1.menuitem13.caption"
+msgid "Log"
+msgstr "Catatan"
+
+#: tform1.menuitem14.caption
+msgctxt "tform1.menuitem14.caption"
+msgid "Monitor"
+msgstr "Monitor"
+
+#: tform1.menuitem15.caption
+msgid "WebPage"
+msgstr "Halaman web"
+
+#: tform1.menuitem16.caption
+msgid "ConSlots"
+msgstr "ConSlots"
+
+#: tform1.menuitem17.caption
+msgctxt "tform1.menuitem17.caption"
+msgid "Pool"
+msgstr "Kolam"
+
+#: tform1.menuitem18.caption
+msgid "Language"
+msgstr "Bahasa"
+
+#: tform1.menuitem19.caption
+msgid "Import"
+msgstr "Impor"
+
+#: tform1.menuitem2.caption
+msgid "Start Server"
+msgstr "Mulai Server"
+
+#: tform1.menuitem20.caption
+msgid "New file"
+msgstr "Berkas baru"
+
+#: tform1.menuitem21.caption
+msgid "Updates"
+msgstr "Pembaruan"
+
+#: tform1.menuitem22.caption
+msgid "Messages"
+msgstr "Pesan"
+
+#: tform1.menuitem23.caption
+msgid "CLear"
+msgstr "Bersihkan"
+
+#: tform1.menuitem24.caption
+msgctxt "tform1.menuitem24.caption"
+msgid "Copy"
+msgstr "Salin"
+
+#: tform1.menuitem25.caption
+msgctxt "tform1.menuitem25.caption"
+msgid "Clear"
+msgstr "Bersihkan"
+
+#: tform1.menuitem26.caption
+msgctxt "tform1.menuitem26.caption"
+msgid "Copy"
+msgstr "Salin"
+
+#: tform1.menuitem27.caption
+msgid "Paste"
+msgstr "Tempel"
+
+#: tform1.menuitem3.caption
+msgctxt "tform1.menuitem3.caption"
+msgid "Connect"
+msgstr "Sambung"
+
+#: tform1.menuitem4.caption
+msgctxt "tform1.menuitem4.caption"
+msgid "Miner"
+msgstr "Penambang"
+
+#: tform1.menuitem5.caption
+msgid "Import Wallet"
+msgstr "Impor Dompet"
+
+#: tform1.menuitem6.caption
+msgid "Export Wallet"
+msgstr "Ekspor Dompet"
+
+#: tform1.menuitem7.caption
+msgctxt "tform1.menuitem7.caption"
+msgid "About..."
+msgstr "Tentang..."
+
+#: tform1.menuitem8.caption
+msgid "Restart"
+msgstr "Mulai ulang"
+
+#: tform1.menuitem9.caption
+msgid "Quit"
+msgstr "Berhenti"
+
+#: tform1.sbscmax.hint
+msgid "Send all"
+msgstr "Kirim semua"
+
+#: tform1.sbscpaste.hint
+msgid "Paste destination"
+msgstr "Tempel tujuan"
+
+#: tform1.scbitcancel.caption
+msgid "Cancel"
+msgstr "Batal"
+
+#: tform1.scbitclea.caption
+msgctxt "tform1.scbitclea.caption"
+msgid "Clear"
+msgstr "Bersihkan"
+
+#: tform1.scbitconf.caption
+msgctxt "tform1.scbitconf.caption"
+msgid "Confirm"
+msgstr "Konfirmasi"
+
+#: tform1.scbitsend.caption
+msgid "Send"
+msgstr "Kirim"
+
+#: tform1.speedbutton1.hint
+msgid "Copy Order ID"
+msgstr "Salin ID Pesanan"
+
+#: tform1.speedbutton2.caption
+msgid "A"
+msgstr ""
+
+#: tform1.speedbutton2.hint
+msgid "Show address"
+msgstr ""
+
+#: tform1.speedbutton3.caption
+msgid "K"
+msgstr ""
+
+#: tform1.speedbutton3.hint
+msgid "Show Keys"
+msgstr ""
+
+#: tform1.staconlab.caption
+msgid "0"
+msgstr "0"
+
+#: tform1.staconlab.hint
+msgid "Connected peers"
+msgstr "Rekan-rekan yang terhubung"
+
+#: tform1.stapoolser.hint
+msgid "Pool server active"
+msgstr "Server kolam aktif"
+
+#: tform1.starpcimg.hint
+msgid "RPC server active"
+msgstr "Server RPC aktif"
+
+#: tform1.staserimg.hint
+msgid "Masternode active"
+msgstr "Masternode aktif"
+
+#: tform1.statimelab.caption
+msgid "00-00-00 00:00:00 (0)"
+msgstr "00-00-00 00:00:00 (0)"
+
+#: tform1.statimelab.hint
+msgid "Noso network time"
+msgstr "Waktu jaringan Noso"
+
+#: tform1.tabaddresses.caption
+msgid "Addresses"
+msgstr "Alamat"
+
+#: tform1.tabconsole.caption
+msgctxt "tform1.tabconsole.caption"
+msgid "Console"
+msgstr "Konsol"
+
+#: tform1.tabdoctor.caption
+msgid "Doctor"
+msgstr "Dokter"
+
+#: tform1.tabexbuy.caption
+msgid "LTC"
+msgstr "LTC"
+
+#: tform1.tabexchange.caption
+msgid "NoBiEx"
+msgstr "NoBiEx"
+
+#: tform1.tabhistory.caption
+msgid "History"
+msgstr "Riwayat"
+
+#: tform1.tabmainpool.caption
+msgctxt "tform1.tabmainpool.caption"
+msgid "Pool"
+msgstr "Kolam"
+
+#: tform1.tabmonitor.caption
+msgctxt "tform1.tabmonitor.caption"
+msgid "Monitor"
+msgstr "Monitor"
+
+#: tform1.tabmonitormonitor.caption
+msgctxt "tform1.tabmonitormonitor.caption"
+msgid "Monitor"
+msgstr "Monitor"
+
+#: tform1.tabnodeoptions.caption
+msgctxt "tform1.tabnodeoptions.caption"
+msgid "Node"
+msgstr "Simpul"
+
+#: tform1.tabnodes.caption
+msgid "Nodes"
+msgstr "Simpul"
+
+#: tform1.taboptions.caption
+msgid "Options"
+msgstr "Pilihan"
+
+#: tform1.tabpoollog.caption
+msgctxt "tform1.tabpoollog.caption"
+msgid "Log"
+msgstr "Catatan"
+
+#: tform1.tabpoolminers.caption
+msgid "Miners"
+msgstr "Penambang"
+
+#: tform1.tabpoolpays.caption
+msgid "Pays"
+msgstr "Bayar"
+
+#: tform1.tabpoolstats.caption
+msgid "Stats"
+msgstr "Statistik"
+
+#: tform1.tabsheet1.caption
+msgctxt "tform1.tabsheet1.caption"
+msgid "Wallet"
+msgstr "Dompet"
+
+#: tform1.tabsheet10.caption
+msgid "Peers"
+msgstr "Rekan-rekan"
+
+#: tform1.tabsheet3.caption
+msgid "RPC"
+msgstr "RPC"
+
+#: tform1.tabsheet5.caption
+msgid "Trade"
+msgstr "Dagang"
+
+#: tform1.tabsheet6.caption
+msgctxt "tform1.tabsheet6.caption"
+msgid "Miner"
+msgstr "Penambang"
+
+#: tform1.tabsheet7.caption
+msgctxt "tform1.tabsheet7.caption"
+msgid "Log"
+msgstr "Catatan"
+
+#: tform1.tabsheet8.caption
+msgid "Except"
+msgstr "Kecuali"
+
+#: tform1.tabsheet9.caption
+msgctxt "tform1.tabsheet9.caption"
+msgid "About..."
+msgstr "Tentang..."
+
+#: tform1.tabwallet.caption
+msgctxt "tform1.tabwallet.caption"
+msgid "Wallet"
+msgstr "Dompet"
+
+#: translation.rs0001
+msgid "TimeOut reading from slot: %s"
+msgstr "TimeOut membaca dari slot: %s"
+
+#: translation.rs0002
+msgid "Error Reading lines from slot: %s"
+msgstr "Kesalahan Membaca baris dari slot: %s"
+
+#: translation.rs0003
+msgid "Receiving headers"
+msgstr "Menerima tajuk"
+
+#: translation.rs0004
+msgid "Error Receiving headers from %s (%s)"
+msgstr "Kesalahan Menerima tajuk dari %s (%s)"
+
+#: translation.rs0005
+msgctxt "translation.rs0005"
+msgid "Headers file received: %s"
+msgstr "Berkas Tajuk diterima: %s"
+
+#: translation.rs0006
+msgid "Receiving blocks"
+msgstr "Menerima blok"
+
+#: translation.rs0007
+msgid "Error Receiving blocks from %s (%s)"
+msgstr "Kesalahan Menerima blok dari %s (%s)"
+
+#: translation.rs0008
+msgid "Error sending outgoing message: %s"
+msgstr "Kesalahan saat mengirim pesan keluar: %s"
+
+#: translation.rs0009
+msgid "ERROR: Deleting OutGoingMessage-> %s"
+msgstr "KESALAHAN: Menghapus OutGoingMessage-> %s"
+
+#: translation.rs0010
+msgid "Auto restart enabled"
+msgstr "Mulai ulang otomatis diaktifkan"
+
+#: translation.rs0011
+msgid "BAT file created"
+msgstr "Berkas BAT dibuat"
+
+#: translation.rs0012
+msgid "Crash info file created"
+msgstr "Berkas info kerusakan dibuat"
+
+#: translation.rs0013
+msgid "Data restart file created"
+msgstr "Berkas muat ulang data dibuat"
+
+#: translation.rs0014
+msgid "All forms closed"
+msgstr "Semua formulir ditutup"
+
+#: translation.rs0015
+msgid "Outgoing connections closed"
+msgstr "Koneksi keluar ditutup"
+
+#: translation.rs0016
+msgid "Node server closed"
+msgstr "Server simpul ditutup"
+
+#: translation.rs0017
+msgid "Closing pool server..."
+msgstr "Menutup server kolam..."
+
+#: translation.rs0018
+msgid "Pool server closed"
+msgstr "Server kolam ditutup"
+
+#: translation.rs0019
+msgid "Pool members file saved"
+msgstr "Berkas anggota kolam disimpan"
+
+#: translation.rs0020
+msgid "Noso launcher executed"
+msgstr "Peluncur Noso dieksekusi"
+
+#: translation.rs0021
+msgid "Blocks received up to %s"
+msgstr "Blok diterima hingga %s"
+
+#: translation.rs0022
+msgid "✓ Data directory ok"
+msgstr "✓ Direktori data ok"
+
+#: translation.rs0023
+msgid "✓ GUI initialized"
+msgstr "✓ GUI diinisialisasi"
+
+#: translation.rs0024
+msgid "✓ My data updated"
+msgstr "✓ Data saya diperbarui"
+
+#: translation.rs0025
+msgid "✓ Miner configuration set"
+msgstr "✓ Atur konfigurasi penambang"
+
+#: translation.rs0026
+msgid "✓ %s languages available"
+msgstr "✓ %s bahasa tersedia"
+
+#: translation.rs0027
+#, fuzzy,badformat
+msgid "Wallet %s%s"
+msgstr "Dompet %s%"
+
+#: translation.rs0028
+msgid "✓ %s CPUs found"
+msgstr "✓ %s CPU ditemukan"
+
+#: translation.rs0029
+msgid "Noso session started"
+msgstr "Sesi Noso dimulai"
+
+#: translation.rs0030
+msgid "Closing wallet"
+msgstr "Menutup dompet"
+
+#: translation.rs0031
+msgid "POOL: Error trying close a pool client connection (%s)"
+msgstr "KOLAM: Kesalahan saat mencoba menutup koneksi klien kolam (%s)"
+
+#: translation.rs0032
+msgid "POOL: Error sending message to miner (%s)"
+msgstr "KOLAM: Kesalahan mengirim pesan ke penambang (%s)"
+
+#: translation.rs0033
+msgid "POOL: Rejected not registered user"
+msgstr "KOLAM: Pengguna yang tidak terdaftar ditolak"
+
+#: translation.rs0034
+msgid "Pool: Error registering a ping-> %s"
+msgstr "Kolam: Kesalahan mendaftarkan ping-> %s"
+
+#: translation.rs0035
+msgid "Pool solution verified!"
+msgstr "Solusi kolam diverifikasi!"
+
+#: translation.rs0036
+msgid "Pool solution FAILED at step %s"
+msgstr "Solusi kolam GAGAL pada langkah %s"
+
+#: translation.rs0037
+msgid "Pool: Error inside CSPoolStep-> %s"
+msgstr "Kolam: Kesalahan di dalam CSPoolStep-> %s"
+
+#: translation.rs0038
+msgid "POOL: Unexpected command from: %s -> %s"
+msgstr "KOLAM: Perintah tak terduga dari: %s -> %s"
+
+#: translation.rs0039
+msgid "POOL: Status requested from %s"
+msgstr "KOLAM: Status diminta dari %s"
+
+#: translation.rs0040
+msgid "Pool: closed incoming %s (%s)"
+msgstr "Kolam: menutup yang sedang masuk %s (%s)"
+
+#: translation.rs0041
+#, fuzzy,badformat
+#| msgid "Pool: Error inside MinerJoin-> %s"
+msgid "Pool: Error inside MinerJoin (%s) -> %s"
+msgstr "Kolam: Kesalahan di dalam MinerJoin-> %s"
+
+#: translation.rs0042
+msgid "SERVER: Error trying close a server client connection (%s)"
+msgstr "SERVER: Kesalahan saat mencoba menutup koneksi klien server (%s)"
+
+#: translation.rs0043
+msgid "SERVER: Received a line from a client without and assigned slot: %s"
+msgstr "SERVER: Menerima sambungan dari klien tanpa dan slot yang ditetapkan: %s"
+
+#: translation.rs0044
+msgid "SERVER: Timeout reading line from connection"
+msgstr "SERVER: Waktu habis membaca baris dari koneksi"
+
+#: translation.rs0045
+msgid "SERVER: Can not read line from connection %s (%s)"
+msgstr "SERVER: Tidak dapat membaca baris dari koneksi %s (%s)"
+
+#: translation.rs0046
+msgid "SERVER: Server error receiving headers file (%s)"
+msgstr "SERVER: Kesalahan server menerima tajuk berkas (%s)"
+
+#: translation.rs0047
+msgctxt "translation.rs0047"
+msgid "Headers file received: %s"
+msgstr "Berkas tajuk diterima: %s"
+
+#: translation.rs0048
+msgid "SERVER: Server error receiving block file (%s)"
+msgstr "SERVER: Kesalahan server menerima berkas blok (%s)"
+
+#: translation.rs0049
+msgid "SERVER: Error creating stream from headers: %s"
+msgstr "SERVER: Kesalahan membuat aliran dari tajuk: %s"
+
+#: translation.rs0050
+msgid "Headers file sent to: %s"
+msgstr "Berkas tajuk dikirim ke: %s"
+
+#: translation.rs0051
+msgid "SERVER: Error sending headers file (%s)"
+msgstr "SERVER: Kesalahan saat mengirim berkas tajuk (%s)"
+
+#: translation.rs0052
+msgid "SERVER: BlockZip send to %s: %s"
+msgstr "SERVER: BlockZip kirim ke %s: %s"
+
+#: translation.rs0053
+msgid "SERVER: Error sending ZIP blocks file (%s)"
+msgstr "SERVER: Kesalahan mengirim berkas blok ZIP (%s)"
+
+#: translation.rs0054
+msgid "SERVER: Error adding received line (%s)"
+msgstr "SERVER: Kesalahan menambahkan baris yang diterima (%s)"
+
+#: translation.rs0055
+msgid "SERVER: Got unexpected line: %s"
+msgstr "SERVER: Mendapat baris tak terduga: %s"
+
+#: translation.rs0056
+msgid "SERVER: Timeout reading line from new connection"
+msgstr "SERVER: Batas waktu membaca baris dari koneksi baru"
+
+#: translation.rs0057
+msgid "SERVER: Can not read line from new connection (%s)"
+msgstr "SERVER: Tidak dapat membaca baris dari koneksi baru (%s)"
+
+#: translation.rs0058
+msgid "SERVER: Invalid client -> %s"
+msgstr "SERVER: Klien tidak valid -> %s"
+
+#: translation.rs0059
+msgid "SERVER: Own connected"
+msgstr "SERVER: Terhubung sendiri"
+
+#: translation.rs0060
+msgid "SERVER: Duplicated connection -> %s"
+msgstr "SERVER: Koneksi duplikat -> %s"
+
+#: translation.rs0061
+msgid "New Connection from: %s"
+msgstr "Koneksi Baru dari: %s"
+
+#: translation.rs0062
+msgid "SERVER: Closed unhandled incoming connection -> %s"
+msgstr "SERVER: Koneksi masuk yang tidak tertangani tertutup -> %s"
+
+#: translation.rs0063
+msgid "Next block required"
+msgstr "Dibutuhkan blok berikutnya"
+
+#: translation.rs0064
+msgid "My PoS addresses"
+msgstr "Alamat PoS saya"
+
+#: translation.rs0065
+msgid "My PoS earnings"
+msgstr "Pendapatan PoS saya"
+
+#: translation.rs0066
+msgid "Rebuilding my transactions..."
+msgstr "Membangun kembali transaksi saya..."
+
+#: translation.rs0067
+msgid "✓ My transactions rebuilded"
+msgstr "✓ Transaksi saya dibangun kembali"
+
+#: translation.rs0068
+msgid "✓ My transactions grid updated"
+msgstr "✓ Kisi transaksi saya diperbarui"
+
+#: translation.rs0069
+msgid "✓ Launcher file deleted"
+msgstr "✓ Berkas peluncur dihapus"
+
+#: translation.rs0070
+msgid "✓ Restart file deleted"
+msgstr "✓ Mulai ulang berkas yang dihapus"
+
+#: translation.rs0071
+msgid "Checking last release available..."
+msgstr "Memeriksa rilis terakhir yang tersedia..."
+
+#: translation.rs0072
+msgid "✗ Failed connecting with project repo"
+msgstr "✗ Gagal terhubung dengan repo proyek"
+
+#: translation.rs0073
+msgid "✓ Running last release version"
+msgstr "✓ Menjalankan versi rilis terakhir"
+
+#: translation.rs0074
+msgid "✗ New version available on project repo"
+msgstr "✗ Versi baru tersedia di repo proyek"
+
+#: translation.rs0075
+msgid "✓ Running a development version"
+msgstr "✓ Menjalankan versi pengembang"
+
+#: translation.rs0076
+msgid "Start server"
+msgstr "Mulai server"
+
+#: translation.rs0077
+msgid "Stop server"
+msgstr "Hentikan server"
+
+#: translation.rs0078
+msgctxt "translation.rs0078"
+msgid "Connect"
+msgstr "Hubungkan"
+
+#: translation.rs0079
+msgid "Disconnect"
+msgstr "Memutus"
+
+#: translation.rs0080
+msgid "You can not test while server is active"
+msgstr ""
+
+#: translation.rs0081
+msgid "Invalid sign address"
+msgstr ""
+
+#: translation.rs0082
+msgid "Funds address do not owns enough coins"
+msgstr ""
+
+#: translation.rs0083
+msgid "You need update the wallet"
+msgstr ""
+
+#: translation.rs0084
+msgid "Not valid ASCII message received: %s"
+msgstr ""
+
+#: translation.rs0500
+msgid "Noso Launcher"
+msgstr "Peluncur Noso"
+
+#: translation.rs0501
+msgid "Destination"
+msgstr "Destinasi"
+
+#: translation.rs0502
+msgid "Amount"
+msgstr "Jumlah"
+
+#: translation.rs0503
+msgid "Reference"
+msgstr "Referensi"
+
+#: translation.rs0504
+msgctxt "translation.rs0504"
+msgid "Balance"
+msgstr "Saldo"
+
+#: translation.rs0505
+msgid "Server"
+msgstr "Server"
+
+#: translation.rs0506
+msgid "Connections"
+msgstr "Koneksi"
+
+#: translation.rs0507
+msgid "Headers"
+msgstr "Tajuk"
+
+#: translation.rs0508
+msgid "Summary"
+msgstr "Ringkasan"
+
+#: translation.rs0509
+msgid "LastBlock"
+msgstr "BlokTerakhir"
+
+#: translation.rs0510
+msgid "Blocks"
+msgstr "Blok"
+
+#: translation.rs0511
+msgid "Pending"
+msgstr "Tertunda"
+
+#: translation.rs0512
+msgid "Invalid language: %s"
+msgstr "Bahasa tidak valid: %s"
+
+#: translation.rs0513
+msgid "Wallet restart needed"
+msgstr "Diperlukan mulai ulang dompet"
+
+#: translation.rs0514
+msgid "Address"
+msgstr "Alamat"
+
+#: translation.rs0515
+msgctxt "translation.rs0515"
+msgid "Balance"
+msgstr "Saldo"
+
+#: translation.rs0516
+msgid "Masternodes: (%d) %s"
+msgstr ""
+
+#: translation.rs0517
+msgid "(%d)  %d/%s"
+msgstr ""
+
+#: translation.rs1000
+msgid "Processing block %d (%d %%)"
+msgstr "Memproses blok %d (%d %%)"
+
+#: translation.rs1001
+msgid ""
+"----- ERROR ----\n"
+"Block: %d\n"
+msgstr ""
+"----- KESALAHAN ----\n"
+"Blok: %d\n"
+
+#: translation.rs1002
+msgid ""
+"Wrong block hash\n"
+"File: %s\n"
+"Headers: %s\n"
+msgstr ""
+"Salah blok hash\n"
+"Berkas: %s\n"
+"Tajuk: %s\n"
+
+#: translation.rs1003
+msgid "File not found: %s"
+msgstr "Berkas tidak ditemukan: %s"
+
+#: translation.rs1004
+msgid ""
+"Wrong summary hash\n"
+"Summary: %s\n"
+"Headers: %s\n"
+msgstr ""
+"Ringkasan hash yang salah\n"
+"Ringkasan: %s\n"
+"Tajuk: %s\n"
+
+#: translation.rs1501
+msgid "Invalid address"
+msgstr ""
+
+#: translation.rs1502
+msgid "You can not do it while pool is active."
+msgstr ""
+
+#: translation.rs1503
+msgid "Totals: %d connections, %d IPs"
+msgstr ""
+
+#: translation.rs1504
+msgid "Address do not exists in wallet."
+msgstr ""
+
+#: translation.rs1505
+msgid "Keys pasted to clipboard."
+msgstr ""
+
+#: translation.rs2000
+msgid "Sign address not valid"
+msgstr ""
+
+#: translation.rs2001
+msgid "Wallet not updated"
+msgstr ""
+
+#: translation.rs2002
+msgid ""
+"*****CRITICAL*****\n"
+"Error inside VerifyConnectionStatus: %s\n"
+"*****CRITICAL*****\n"
+msgstr ""
+
+#: translation.rs2501
+msgid ""
+"*****CRITICAL*****\n"
+"Error type 3 on crypto thread: %s\n"
+"*****CRITICAL*****\n"
+msgstr ""
+
+#: translation.rs2502
+msgid ""
+"*****CRITICAL*****\n"
+"Error type 4 on crypto thread: %s\n"
+"*****CRITICAL*****\n"
+msgstr ""
+
+#: translation.rs2503
+msgid ""
+"*****CRITICAL*****\n"
+"Error type 5 on crypto thread: %s\n"
+"*****CRITICAL*****\n"
+msgstr ""
+

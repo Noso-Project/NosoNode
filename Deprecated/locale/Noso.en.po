@@ -1,0 +1,1045 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+#: tform1.barcodeqr1.hint
+msgid "Click on image to close it"
+msgstr ""
+
+#: tform1.bcopyaddr.hint
+msgid "Copy address to clipboard"
+msgstr ""
+
+#: tform1.bcustomaddr.hint
+msgid "Customize address"
+msgstr ""
+
+#: tform1.bdefaddr.hint
+msgid "Set address as Default"
+msgstr ""
+
+#: tform1.bitbtnblocks.caption
+msgctxt "tform1.bitbtnblocks.caption"
+msgid "000000"
+msgstr ""
+
+#: tform1.bitbtnblocks.hint
+msgctxt "tform1.bitbtnblocks.hint"
+msgid "Last downloaded block"
+msgstr ""
+
+#: tform1.bitbtndonate.caption
+msgctxt "tform1.bitbtndonate.caption"
+msgid "Donate"
+msgstr ""
+
+#: tform1.bitbtnpending.caption
+msgid "00"
+msgstr ""
+
+#: tform1.bitbtnpending.hint
+msgid "Network pending orders"
+msgstr ""
+
+#: tform1.bitbtnweb.caption
+msgctxt "tform1.bitbtnweb.caption"
+msgid "Web"
+msgstr ""
+
+#: tform1.bnewaddr.hint
+msgid "Generate new address"
+msgstr ""
+
+#: tform1.bokcustom.hint
+msgctxt "tform1.bokcustom.hint"
+msgid "Confirm"
+msgstr ""
+
+#: tform1.bqrcode.hint
+msgid "Show QR code"
+msgstr ""
+
+#: tform1.bsavenodeoptions.caption
+msgid "Save"
+msgstr ""
+
+#: tform1.btestnode.caption
+msgid "Test"
+msgstr ""
+
+#: tform1.butstartdoctor.caption
+msgid "Start"
+msgstr ""
+
+#: tform1.butstopdoctor.caption
+msgid "Stop"
+msgstr ""
+
+#: tform1.caption
+msgid "Noso"
+msgstr ""
+
+#: tform1.cbblockexists.caption
+msgid "Block file"
+msgstr ""
+
+#: tform1.cbblockhash.caption
+msgid "Block hash"
+msgstr ""
+
+#: tform1.cbpool_restart.caption
+msgid "Restart after mine block"
+msgstr ""
+
+#: tform1.cbsummaryhash.caption
+msgid "Summary hash"
+msgstr ""
+
+#: tform1.cb_autorpc.caption
+msgid "Active JSON-RPC server at launch"
+msgstr ""
+
+#: tform1.cb_rpcfilter.caption
+msgid "Accept only whitelist requests"
+msgstr ""
+
+#: tform1.cb_rpc_on.caption
+msgid "Enable JSON-RPC server"
+msgstr ""
+
+#: tform1.cb_wo_antifreeze.caption
+msgid "Anti freeze (s)"
+msgstr ""
+
+#: tform1.cb_wo_autoconnect.caption
+msgid "Auto connect at start"
+msgstr ""
+
+#: tform1.cb_wo_autoupdate.caption
+msgctxt "tform1.cb_wo_autoupdate.caption"
+msgid "Install automatically new official releases"
+msgstr ""
+
+#: tform1.cb_wo_multisend.caption
+msgid "Send coins only from default address"
+msgstr ""
+
+#: tform1.cb_wo_totray.caption
+msgid "Minimize to tray"
+msgstr ""
+
+#: tform1.checkbox1.caption
+msgid "Download blockchain"
+msgstr ""
+
+#: tform1.checkbox4.caption
+msgid "Run MasterNode"
+msgstr ""
+
+#: tform1.checkbox7.caption
+msgid "Enable sound alerts"
+msgstr ""
+
+#: tform1.checkbox8.caption
+msgid "Coins filter"
+msgstr ""
+
+#: tform1.checkbox9.caption
+msgid "Use my default addresses"
+msgstr ""
+
+#: tform1.editscmont.text
+msgid "0.00000000"
+msgstr ""
+
+#: tform1.lababout.caption
+msgid "About message"
+msgstr ""
+
+#: tform1.label1.caption
+msgid "Post offer"
+msgstr ""
+
+#: tform1.label10.caption
+msgctxt "tform1.label10.caption"
+msgid "Funds address"
+msgstr ""
+
+#: tform1.label11.caption
+msgctxt "tform1.label11.caption"
+msgid "Sign address"
+msgstr ""
+
+#: tform1.label12.caption
+msgctxt "tform1.label12.caption"
+msgid "Port"
+msgstr ""
+
+#: tform1.label13.caption
+msgctxt "tform1.label13.caption"
+msgid "Funds password"
+msgstr ""
+
+#: tform1.label2.caption
+msgid "Minimum connections to work"
+msgstr ""
+
+#: tform1.label3.caption
+msgid "Connect time out (ms)"
+msgstr ""
+
+#: tform1.label4.caption
+msgid "Read time out (ms)"
+msgstr ""
+
+#: tform1.label5.caption
+msgid "History orders showed"
+msgstr ""
+
+#: tform1.label6.caption
+msgid "PoS addresses warning days"
+msgstr ""
+
+#: tform1.label7.caption
+msgid "Wallet language"
+msgstr ""
+
+#: tform1.label8.caption
+msgid "IP"
+msgstr ""
+
+#: tform1.label9.caption
+msgctxt "tform1.label9.caption"
+msgid "Port"
+msgstr ""
+
+#: tform1.labelbigbalance.caption
+msgctxt "tform1.labelbigbalance.caption"
+msgid "0 NOS"
+msgstr ""
+
+#: tform1.labeldoctor.caption
+msgid "Waiting"
+msgstr ""
+
+#: tform1.labelnobiexaverage.caption
+msgctxt "tform1.labelnobiexaverage.caption"
+msgid "Average: -.-"
+msgstr ""
+
+#: tform1.labelnobiexlast.caption
+msgctxt "tform1.labelnobiexlast.caption"
+msgid "Last: -.-"
+msgstr ""
+
+#: tform1.labelnodeshash.caption
+msgid "Hash: "
+msgstr ""
+
+#: tform1.labeltransactiondetails.caption
+msgid "Transaction details"
+msgstr ""
+
+#: tform1.lsctop.caption
+msgid "Send coins"
+msgstr ""
+
+#: tform1.menuitem1.caption
+msgid "Network"
+msgstr ""
+
+#: tform1.menuitem10.caption
+msgid "Development"
+msgstr ""
+
+#: tform1.menuitem11.caption
+msgid "View"
+msgstr ""
+
+#: tform1.menuitem12.caption
+msgctxt "tform1.menuitem12.caption"
+msgid "Console"
+msgstr ""
+
+#: tform1.menuitem13.caption
+msgctxt "tform1.menuitem13.caption"
+msgid "Log"
+msgstr ""
+
+#: tform1.menuitem14.caption
+msgctxt "tform1.menuitem14.caption"
+msgid "Monitor"
+msgstr ""
+
+#: tform1.menuitem15.caption
+msgid "WebPage"
+msgstr ""
+
+#: tform1.menuitem16.caption
+msgid "ConSlots"
+msgstr ""
+
+#: tform1.menuitem17.caption
+msgctxt "tform1.menuitem17.caption"
+msgid "Pool"
+msgstr ""
+
+#: tform1.menuitem18.caption
+msgid "Language"
+msgstr ""
+
+#: tform1.menuitem19.caption
+msgid "Import"
+msgstr ""
+
+#: tform1.menuitem2.caption
+msgid "Start Server"
+msgstr ""
+
+#: tform1.menuitem20.caption
+msgid "New file"
+msgstr ""
+
+#: tform1.menuitem21.caption
+msgid "Updates"
+msgstr ""
+
+#: tform1.menuitem22.caption
+msgid "Messages"
+msgstr ""
+
+#: tform1.menuitem23.caption
+msgid "CLear"
+msgstr ""
+
+#: tform1.menuitem24.caption
+msgctxt "tform1.menuitem24.caption"
+msgid "Copy"
+msgstr ""
+
+#: tform1.menuitem25.caption
+msgctxt "tform1.menuitem25.caption"
+msgid "Clear"
+msgstr ""
+
+#: tform1.menuitem26.caption
+msgctxt "tform1.menuitem26.caption"
+msgid "Copy"
+msgstr ""
+
+#: tform1.menuitem27.caption
+msgid "Paste"
+msgstr ""
+
+#: tform1.menuitem3.caption
+msgctxt "tform1.menuitem3.caption"
+msgid "Connect"
+msgstr ""
+
+#: tform1.menuitem4.caption
+msgctxt "tform1.menuitem4.caption"
+msgid "Miner"
+msgstr ""
+
+#: tform1.menuitem5.caption
+msgid "Import Wallet"
+msgstr ""
+
+#: tform1.menuitem6.caption
+msgid "Export Wallet"
+msgstr ""
+
+#: tform1.menuitem7.caption
+msgctxt "tform1.menuitem7.caption"
+msgid "About..."
+msgstr ""
+
+#: tform1.menuitem8.caption
+msgid "Restart"
+msgstr ""
+
+#: tform1.menuitem9.caption
+msgid "Quit"
+msgstr ""
+
+#: tform1.sbscmax.hint
+msgid "Send all"
+msgstr ""
+
+#: tform1.sbscpaste.hint
+msgid "Paste destination"
+msgstr ""
+
+#: tform1.scbitcancel.caption
+msgid "Cancel"
+msgstr ""
+
+#: tform1.scbitclea.caption
+msgctxt "tform1.scbitclea.caption"
+msgid "Clear"
+msgstr ""
+
+#: tform1.scbitconf.caption
+msgctxt "tform1.scbitconf.caption"
+msgid "Confirm"
+msgstr ""
+
+#: tform1.scbitsend.caption
+msgid "Send"
+msgstr ""
+
+#: tform1.speedbutton1.hint
+msgid "Copy Order ID"
+msgstr ""
+
+#: tform1.speedbutton2.caption
+msgid "A"
+msgstr ""
+
+#: tform1.speedbutton2.hint
+msgid "Show address"
+msgstr ""
+
+#: tform1.speedbutton3.caption
+msgid "K"
+msgstr ""
+
+#: tform1.speedbutton3.hint
+msgid "Show Keys"
+msgstr ""
+
+#: tform1.staconlab.caption
+msgid "0"
+msgstr ""
+
+#: tform1.staconlab.hint
+msgid "Connected peers"
+msgstr ""
+
+#: tform1.stapoolser.hint
+msgid "Pool server active"
+msgstr ""
+
+#: tform1.starpcimg.hint
+msgid "RPC server active"
+msgstr ""
+
+#: tform1.staserimg.hint
+msgid "Masternode active"
+msgstr ""
+
+#: tform1.statimelab.caption
+msgid "00-00-00 00:00:00 (0)"
+msgstr ""
+
+#: tform1.statimelab.hint
+msgid "Noso network time"
+msgstr ""
+
+#: tform1.tabaddresses.caption
+msgid "Addresses"
+msgstr ""
+
+#: tform1.tabconsole.caption
+msgctxt "tform1.tabconsole.caption"
+msgid "Console"
+msgstr ""
+
+#: tform1.tabdoctor.caption
+msgid "Doctor"
+msgstr ""
+
+#: tform1.tabexbuy.caption
+msgid "LTC"
+msgstr ""
+
+#: tform1.tabexchange.caption
+msgid "NoBiEx"
+msgstr ""
+
+#: tform1.tabhistory.caption
+msgid "History"
+msgstr ""
+
+#: tform1.tabmainpool.caption
+msgctxt "tform1.tabmainpool.caption"
+msgid "Pool"
+msgstr ""
+
+#: tform1.tabmonitor.caption
+msgctxt "tform1.tabmonitor.caption"
+msgid "Monitor"
+msgstr ""
+
+#: tform1.tabmonitormonitor.caption
+msgctxt "tform1.tabmonitormonitor.caption"
+msgid "Monitor"
+msgstr ""
+
+#: tform1.tabnodeoptions.caption
+msgctxt "tform1.tabnodeoptions.caption"
+msgid "Node"
+msgstr ""
+
+#: tform1.tabnodes.caption
+msgid "Nodes"
+msgstr ""
+
+#: tform1.taboptions.caption
+msgid "Options"
+msgstr ""
+
+#: tform1.tabpoollog.caption
+msgctxt "tform1.tabpoollog.caption"
+msgid "Log"
+msgstr ""
+
+#: tform1.tabpoolminers.caption
+msgid "Miners"
+msgstr ""
+
+#: tform1.tabpoolpays.caption
+msgid "Pays"
+msgstr ""
+
+#: tform1.tabpoolstats.caption
+msgid "Stats"
+msgstr ""
+
+#: tform1.tabsheet1.caption
+msgctxt "tform1.tabsheet1.caption"
+msgid "Wallet"
+msgstr ""
+
+#: tform1.tabsheet10.caption
+msgid "Peers"
+msgstr ""
+
+#: tform1.tabsheet3.caption
+msgid "RPC"
+msgstr ""
+
+#: tform1.tabsheet5.caption
+msgid "Trade"
+msgstr ""
+
+#: tform1.tabsheet6.caption
+msgctxt "tform1.tabsheet6.caption"
+msgid "Miner"
+msgstr ""
+
+#: tform1.tabsheet7.caption
+msgctxt "tform1.tabsheet7.caption"
+msgid "Log"
+msgstr ""
+
+#: tform1.tabsheet8.caption
+msgid "Except"
+msgstr ""
+
+#: tform1.tabsheet9.caption
+msgctxt "tform1.tabsheet9.caption"
+msgid "About..."
+msgstr ""
+
+#: tform1.tabwallet.caption
+msgctxt "tform1.tabwallet.caption"
+msgid "Wallet"
+msgstr ""
+
+#: translation.rs0001
+msgid "TimeOut reading from slot: %s"
+msgstr ""
+
+#: translation.rs0002
+msgid "Error Reading lines from slot: %s"
+msgstr ""
+
+#: translation.rs0003
+msgid "Receiving headers"
+msgstr ""
+
+#: translation.rs0004
+msgid "Error Receiving headers from %s (%s)"
+msgstr ""
+
+#: translation.rs0005
+msgctxt "translation.rs0005"
+msgid "Headers file received: %s"
+msgstr ""
+
+#: translation.rs0006
+msgid "Receiving blocks"
+msgstr ""
+
+#: translation.rs0007
+msgid "Error Receiving blocks from %s (%s)"
+msgstr ""
+
+#: translation.rs0008
+msgid "Error sending outgoing message: %s"
+msgstr ""
+
+#: translation.rs0009
+msgid "ERROR: Deleting OutGoingMessage-> %s"
+msgstr ""
+
+#: translation.rs0010
+msgid "Auto restart enabled"
+msgstr ""
+
+#: translation.rs0011
+msgid "BAT file created"
+msgstr ""
+
+#: translation.rs0012
+msgid "Crash info file created"
+msgstr ""
+
+#: translation.rs0013
+msgid "Data restart file created"
+msgstr ""
+
+#: translation.rs0014
+msgid "All forms closed"
+msgstr ""
+
+#: translation.rs0015
+msgid "Outgoing connections closed"
+msgstr ""
+
+#: translation.rs0016
+msgid "Node server closed"
+msgstr ""
+
+#: translation.rs0017
+msgid "Closing pool server..."
+msgstr ""
+
+#: translation.rs0018
+msgid "Pool server closed"
+msgstr ""
+
+#: translation.rs0019
+msgid "Pool members file saved"
+msgstr ""
+
+#: translation.rs0020
+msgid "Noso launcher executed"
+msgstr ""
+
+#: translation.rs0021
+msgid "Blocks received up to %s"
+msgstr ""
+
+#: translation.rs0022
+msgid "✓ Data directory ok"
+msgstr ""
+
+#: translation.rs0023
+msgid "✓ GUI initialized"
+msgstr ""
+
+#: translation.rs0024
+msgid "✓ My data updated"
+msgstr ""
+
+#: translation.rs0025
+msgid "✓ Miner configuration set"
+msgstr ""
+
+#: translation.rs0026
+msgid "✓ %s languages available"
+msgstr ""
+
+#: translation.rs0027
+msgid "Wallet %s%s"
+msgstr ""
+
+#: translation.rs0028
+msgid "✓ %s CPUs found"
+msgstr ""
+
+#: translation.rs0029
+msgid "Noso session started"
+msgstr ""
+
+#: translation.rs0030
+msgid "Closing wallet"
+msgstr ""
+
+#: translation.rs0031
+msgid "POOL: Error trying close a pool client connection (%s)"
+msgstr ""
+
+#: translation.rs0032
+msgid "POOL: Error sending message to miner (%s)"
+msgstr ""
+
+#: translation.rs0033
+msgid "POOL: Rejected not registered user"
+msgstr ""
+
+#: translation.rs0034
+msgid "Pool: Error registering a ping-> %s"
+msgstr ""
+
+#: translation.rs0035
+msgid "Pool solution verified!"
+msgstr ""
+
+#: translation.rs0036
+msgid "Pool solution FAILED at step %s"
+msgstr ""
+
+#: translation.rs0037
+msgid "Pool: Error inside CSPoolStep-> %s"
+msgstr ""
+
+#: translation.rs0038
+msgid "POOL: Unexpected command from: %s -> %s"
+msgstr ""
+
+#: translation.rs0039
+msgid "POOL: Status requested from %s"
+msgstr ""
+
+#: translation.rs0040
+msgid "Pool: closed incoming %s (%s)"
+msgstr ""
+
+#: translation.rs0041
+msgid "Pool: Error inside MinerJoin (%s) -> %s"
+msgstr ""
+
+#: translation.rs0042
+msgid "SERVER: Error trying close a server client connection (%s)"
+msgstr ""
+
+#: translation.rs0043
+msgid "SERVER: Received a line from a client without and assigned slot: %s"
+msgstr ""
+
+#: translation.rs0044
+msgid "SERVER: Timeout reading line from connection"
+msgstr ""
+
+#: translation.rs0045
+msgid "SERVER: Can not read line from connection %s (%s)"
+msgstr ""
+
+#: translation.rs0046
+msgid "SERVER: Server error receiving headers file (%s)"
+msgstr ""
+
+#: translation.rs0047
+msgctxt "translation.rs0047"
+msgid "Headers file received: %s"
+msgstr ""
+
+#: translation.rs0048
+msgid "SERVER: Server error receiving block file (%s)"
+msgstr ""
+
+#: translation.rs0049
+msgid "SERVER: Error creating stream from headers: %s"
+msgstr ""
+
+#: translation.rs0050
+msgid "Headers file sent to: %s"
+msgstr ""
+
+#: translation.rs0051
+msgid "SERVER: Error sending headers file (%s)"
+msgstr ""
+
+#: translation.rs0052
+msgid "SERVER: BlockZip send to %s: %s"
+msgstr ""
+
+#: translation.rs0053
+msgid "SERVER: Error sending ZIP blocks file (%s)"
+msgstr ""
+
+#: translation.rs0054
+msgid "SERVER: Error adding received line (%s)"
+msgstr ""
+
+#: translation.rs0055
+msgid "SERVER: Got unexpected line: %s"
+msgstr ""
+
+#: translation.rs0056
+msgid "SERVER: Timeout reading line from new connection"
+msgstr ""
+
+#: translation.rs0057
+msgid "SERVER: Can not read line from new connection (%s)"
+msgstr ""
+
+#: translation.rs0058
+msgid "SERVER: Invalid client -> %s"
+msgstr ""
+
+#: translation.rs0059
+msgid "SERVER: Own connected"
+msgstr ""
+
+#: translation.rs0060
+msgid "SERVER: Duplicated connection -> %s"
+msgstr ""
+
+#: translation.rs0061
+msgid "New Connection from: %s"
+msgstr ""
+
+#: translation.rs0062
+msgid "SERVER: Closed unhandled incoming connection -> %s"
+msgstr ""
+
+#: translation.rs0063
+msgid "Next block required"
+msgstr ""
+
+#: translation.rs0064
+msgid "My PoS addresses"
+msgstr ""
+
+#: translation.rs0065
+msgid "My PoS earnings"
+msgstr ""
+
+#: translation.rs0066
+msgid "Rebuilding my transactions..."
+msgstr ""
+
+#: translation.rs0067
+msgid "✓ My transactions rebuilded"
+msgstr ""
+
+#: translation.rs0068
+msgid "✓ My transactions grid updated"
+msgstr ""
+
+#: translation.rs0069
+msgid "✓ Launcher file deleted"
+msgstr ""
+
+#: translation.rs0070
+msgid "✓ Restart file deleted"
+msgstr ""
+
+#: translation.rs0071
+msgid "Checking last release available..."
+msgstr ""
+
+#: translation.rs0072
+msgid "✗ Failed connecting with project repo"
+msgstr ""
+
+#: translation.rs0073
+msgid "✓ Running last release version"
+msgstr ""
+
+#: translation.rs0074
+msgid "✗ New version available on project repo"
+msgstr ""
+
+#: translation.rs0075
+msgid "✓ Running a development version"
+msgstr ""
+
+#: translation.rs0076
+msgid "Start server"
+msgstr ""
+
+#: translation.rs0077
+msgid "Stop server"
+msgstr ""
+
+#: translation.rs0078
+msgctxt "translation.rs0078"
+msgid "Connect"
+msgstr ""
+
+#: translation.rs0079
+msgid "Disconnect"
+msgstr ""
+
+#: translation.rs0080
+msgid "You can not test while server is active"
+msgstr ""
+
+#: translation.rs0081
+msgid "Invalid sign address"
+msgstr ""
+
+#: translation.rs0082
+msgid "Funds address do not owns enough coins"
+msgstr ""
+
+#: translation.rs0083
+msgid "You need update the wallet"
+msgstr ""
+
+#: translation.rs0084
+msgid "Not valid ASCII message received: %s"
+msgstr ""
+
+#: translation.rs0500
+msgid "Noso Launcher"
+msgstr ""
+
+#: translation.rs0501
+msgid "Destination"
+msgstr ""
+
+#: translation.rs0502
+msgid "Amount"
+msgstr ""
+
+#: translation.rs0503
+msgid "Reference"
+msgstr ""
+
+#: translation.rs0504
+msgctxt "translation.rs0504"
+msgid "Balance"
+msgstr ""
+
+#: translation.rs0505
+msgid "Server"
+msgstr ""
+
+#: translation.rs0506
+msgid "Connections"
+msgstr ""
+
+#: translation.rs0507
+msgid "Headers"
+msgstr ""
+
+#: translation.rs0508
+msgid "Summary"
+msgstr ""
+
+#: translation.rs0509
+msgid "LastBlock"
+msgstr ""
+
+#: translation.rs0510
+msgid "Blocks"
+msgstr ""
+
+#: translation.rs0511
+msgid "Pending"
+msgstr ""
+
+#: translation.rs0512
+msgid "Invalid language: %s"
+msgstr ""
+
+#: translation.rs0513
+msgid "Wallet restart needed"
+msgstr ""
+
+#: translation.rs0514
+msgid "Address"
+msgstr ""
+
+#: translation.rs0515
+msgctxt "translation.rs0515"
+msgid "Balance"
+msgstr ""
+
+#: translation.rs0516
+msgid "Masternodes: (%d) %s"
+msgstr ""
+
+#: translation.rs0517
+msgid "(%d)  %d/%s"
+msgstr ""
+
+#: translation.rs1000
+msgid "Processing block %d (%d %%)"
+msgstr ""
+
+#: translation.rs1001
+msgid ""
+"----- ERROR ----\n"
+"Block: %d\n"
+msgstr ""
+
+#: translation.rs1002
+msgid ""
+"Wrong block hash\n"
+"File: %s\n"
+"Headers: %s\n"
+msgstr ""
+
+#: translation.rs1003
+msgid "File not found: %s"
+msgstr ""
+
+#: translation.rs1004
+msgid ""
+"Wrong summary hash\n"
+"Summary: %s\n"
+"Headers: %s\n"
+msgstr ""
+
+#: translation.rs1501
+msgid "Invalid address"
+msgstr ""
+
+#: translation.rs1502
+msgid "You can not do it while pool is active."
+msgstr ""
+
+#: translation.rs1503
+msgid "Totals: %d connections, %d IPs"
+msgstr ""
+
+#: translation.rs1504
+msgid "Address do not exists in wallet."
+msgstr ""
+
+#: translation.rs1505
+msgid "Keys pasted to clipboard."
+msgstr ""
+
+#: translation.rs2000
+msgid "Sign address not valid"
+msgstr ""
+
+#: translation.rs2001
+msgid "Wallet not updated"
+msgstr ""
+
+#: translation.rs2002
+msgid ""
+"*****CRITICAL*****\n"
+"Error inside VerifyConnectionStatus: %s\n"
+"*****CRITICAL*****\n"
+msgstr ""
+
+#: translation.rs2501
+msgid ""
+"*****CRITICAL*****\n"
+"Error type 3 on crypto thread: %s\n"
+"*****CRITICAL*****\n"
+msgstr ""
+
+#: translation.rs2502
+msgid ""
+"*****CRITICAL*****\n"
+"Error type 4 on crypto thread: %s\n"
+"*****CRITICAL*****\n"
+msgstr ""
+
+#: translation.rs2503
+msgid ""
+"*****CRITICAL*****\n"
+"Error type 5 on crypto thread: %s\n"
+"*****CRITICAL*****\n"
+msgstr ""
+

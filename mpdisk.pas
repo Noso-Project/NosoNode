@@ -16,7 +16,7 @@ Procedure VerifyFiles();
 // *** New files system
 // Nodes file
 //Procedure FillNodeList();
-Function IsSeedNode(IP:String):boolean;
+//Function IsSeedNode(IP:String):boolean;
 
 // GVTs file handling
 //Procedure CreateGVTsFile();
@@ -27,12 +27,12 @@ Function IsSeedNode(IP:String):boolean;
 //Function GetGVTPrice(available:integer;ToSell:boolean = false):int64;
 
 
-Procedure CreateMasterNodesFile();
+//Procedure CreateMasterNodesFile();
 Procedure CreateADV(saving:boolean);
 Procedure LoadADV();
-Function GetLanguage():string;
-Procedure ExtractPoFiles();
-Procedure CreateFileFromResource(resourcename,filename:string);
+//Function GetLanguage():string;
+//Procedure ExtractPoFiles();
+//Procedure CreateFileFromResource(resourcename,filename:string);
 
 
 //Procedure UpdateBotData(IPUser:String);
@@ -57,7 +57,7 @@ Procedure CrearRestartfile();
 Procedure RestartConditions();
 Procedure RestoreBlockChain();
 Procedure RestoreSumary(fromBlock:integer=0);
-function AppFileName():string;
+//function AppFileName():string;
 
 implementation
 
@@ -195,14 +195,15 @@ Repeat
 until not continuar;
 End;
 }
-
+{
 // If the specified IP a seed node
 Function IsSeedNode(IP:String):boolean;
 Begin
   Result := false;
   if AnsiContainsStr(GetCFGDataStr(1),ip) then result := true;
 End;
-
+}
+{
 Procedure CreateMasterNodesFile();
 var
   archivo : textfile;
@@ -215,6 +216,7 @@ EXCEPT on E:Exception do
   ToLog('events',TimeToStr(now)+'Error creating the masternodes file');
 END;
 End;
+}
 
 // *** OPTIONS FILE ***
 // *****************************************************************************
@@ -375,6 +377,7 @@ End;
 // *** LANGUAGE HANDLING ***
 // *****************************************************************************
 {$REGION LANGUAGE}
+{
 // returns the language to load the
 Function GetLanguage():string;
 var
@@ -401,7 +404,8 @@ else
    Closefile(archivo);
    end;
 End;
-
+}
+{
 Procedure ExtractPoFiles();
 Begin
 CreateFileFromResource('Noso.en','locale'+DirectorySeparator+'Noso.en.po');
@@ -413,7 +417,8 @@ CreateFileFromResource('Noso.ro','locale'+DirectorySeparator+'Noso.ro.po');
 CreateFileFromResource('Noso.id','locale'+DirectorySeparator+'Noso.id.po');
 CreateFileFromResource('Noso.ru','locale'+DirectorySeparator+'Noso.ru.po');
 End;
-
+}
+{
 Procedure CreateFileFromResource(resourcename,filename:string);
 var
   Resource: TResourceStream;
@@ -423,8 +428,8 @@ begin
   Resource.SaveToFile(filename);
   Resource.Free;
 End;
-
-{$ENDREGION}
+}
+{$ENDREGION LANGUAGE}
 
 // *** BOTS FILE ***
 // *****************************************************************************
@@ -837,13 +842,14 @@ ToLog('console','Restoring sumary from '+StartMark.ToString);
 CompleteSumary;
 End;
 
+{
 // Returns the name of the app file without path
 function AppFileName():string;
 Begin
   result := ExtractFileName(ParamStr(0));
   // For working path: ExtractFilePAth
 End;
-
+}
 
 END. // END UNIT
 

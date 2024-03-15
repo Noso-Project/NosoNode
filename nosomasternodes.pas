@@ -70,7 +70,6 @@ Type
   Function GetMNsChecksCount():integer;
   Function GetValidNodesCountOnCheck(StringNodes:String):integer;
 
-
   Procedure SetMNsHash();
   Function GetMNsHash():String;
 

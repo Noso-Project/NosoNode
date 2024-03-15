@@ -88,6 +88,8 @@ Type
   Function IsSlotConnected(number:integer):Boolean;
 
   Procedure UpdateMyData();
+  Function IsValidator(Ip:String):boolean;
+
   Procedure IncClientReadThreads();
   Procedure DecClientReadThreads();
   Function GetClientReadThreads():integer;
@@ -516,6 +518,12 @@ Begin
     ForceCompleteHeadersDownload := false;
   //MyMNsHash       := HashMD5File(MasterNodesFilename);
   MyCFGHash       := Copy(HAshMD5String(GetCFGDataStr),1,5);
+End;
+
+Function IsValidator(Ip:String):boolean;
+Begin
+  result := false;
+  if IsSeedNode(IP) then result := true;
 End;
 
 {$ENDREGION General Data}

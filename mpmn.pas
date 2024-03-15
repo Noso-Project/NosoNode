@@ -35,7 +35,7 @@ Procedure PTC_SendChecks(Slot:integer);
 
 Function MNVerificationDone():Boolean;
 //Function ValidatorsCount():Integer;
-Function IsValidator(Ip:String):boolean;
+//Function IsValidator(Ip:String):boolean;
 //Function GetMNReportString():String;
 //Function GetStringFromMN(Node:TMNode):String;
 //Function GetMNsListLength():Integer;
@@ -358,12 +358,13 @@ Begin
 End;
 }
 
+{
 Function IsValidator(Ip:String):boolean;
 Begin
   result := false;
   if IsSeedNode(IP) then result := true;
 End;
-
+}
 {
 // Returns the string to send the own MN report
 Function GetMNReportString():String;

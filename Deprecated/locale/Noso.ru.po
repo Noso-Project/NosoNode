@@ -1,0 +1,1066 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: Andrii Pasichnik <pasichDev@outlook.com>\n"
+"Language-Team: \n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.0.1\n"
+
+#: tform1.barcodeqr1.hint
+msgid "Click on image to close it"
+msgstr "Нажмите на изображение, чтобы закрыть его"
+
+#: tform1.bcopyaddr.hint
+msgid "Copy address to clipboard"
+msgstr "Скопировать адрес в буфер обмена"
+
+#: tform1.bcustomaddr.hint
+msgid "Customize address"
+msgstr "Настроить адрес"
+
+#: tform1.bdefaddr.hint
+msgid "Set address as Default"
+msgstr "Установить адрес по умолчанию"
+
+#: tform1.bitbtnblocks.caption
+msgctxt "tform1.bitbtnblocks.caption"
+msgid "000000"
+msgstr "000000"
+
+#: tform1.bitbtnblocks.hint
+msgctxt "tform1.bitbtnblocks.hint"
+msgid "Last downloaded block"
+msgstr "Последний загруженный блок"
+
+#: tform1.bitbtndonate.caption
+msgctxt "tform1.bitbtndonate.caption"
+msgid "Donate"
+msgstr "Пожертвовать"
+
+#: tform1.bitbtnpending.caption
+msgid "00"
+msgstr "00"
+
+#: tform1.bitbtnpending.hint
+msgid "Network pending orders"
+msgstr "Отложенные заказы в сети"
+
+#: tform1.bitbtnweb.caption
+msgctxt "tform1.bitbtnweb.caption"
+msgid "Web"
+msgstr "Web"
+
+#: tform1.bnewaddr.hint
+msgid "Generate new address"
+msgstr "Создать новый адрес"
+
+#: tform1.bokcustom.hint
+msgctxt "tform1.bokcustom.hint"
+msgid "Confirm"
+msgstr "Подтвердить"
+
+#: tform1.bqrcode.hint
+msgid "Show QR code"
+msgstr "Показать QR-код"
+
+#: tform1.bsavenodeoptions.caption
+msgid "Save"
+msgstr "Сохранить"
+
+#: tform1.btestnode.caption
+msgid "Test"
+msgstr "Тест"
+
+#: tform1.butstartdoctor.caption
+msgid "Start"
+msgstr "Стоп"
+
+#: tform1.butstopdoctor.caption
+msgid "Stop"
+msgstr "Стоп"
+
+#: tform1.caption
+msgid "Noso"
+msgstr "Noso"
+
+#: tform1.cbblockexists.caption
+msgid "Block file"
+msgstr "Заблокировать файл"
+
+#: tform1.cbblockhash.caption
+msgid "Block hash"
+msgstr "Блочный хэш"
+
+#: tform1.cbpool_restart.caption
+msgid "Restart after mine block"
+msgstr ""
+
+#: tform1.cbsummaryhash.caption
+msgid "Summary hash"
+msgstr "Сводный хэш"
+
+#: tform1.cb_autorpc.caption
+msgid "Active JSON-RPC server at launch"
+msgstr "Включить сервер JSON-RPC при запуске"
+
+#: tform1.cb_rpcfilter.caption
+msgid "Accept only whitelist requests"
+msgstr "Принимать запросы только с авторизованных адресов"
+
+#: tform1.cb_rpc_on.caption
+msgid "Enable JSON-RPC server"
+msgstr "Разрешить сервер JSON-RPC"
+
+#: tform1.cb_wo_antifreeze.caption
+msgid "Anti freeze (s)"
+msgstr "Приложения для защиты от замерзания"
+
+#: tform1.cb_wo_autoconnect.caption
+msgid "Auto connect at start"
+msgstr "Автоматически подключаться при запуске"
+
+#: tform1.cb_wo_autoupdate.caption
+msgctxt "tform1.cb_wo_autoupdate.caption"
+msgid "Install automatically new official releases"
+msgstr "Автоматическая установка новых официальных релизов"
+
+#: tform1.cb_wo_multisend.caption
+msgid "Send coins only from default address"
+msgstr "Отправлять монеты только с адреса по умолчанию"
+
+#: tform1.cb_wo_totray.caption
+msgid "Minimize to tray"
+msgstr "Свернуть в трей"
+
+#: tform1.checkbox1.caption
+msgid "Download blockchain"
+msgstr "Скачать Блокчейн"
+
+#: tform1.checkbox4.caption
+msgid "Run MasterNode"
+msgstr "Запустить MasterNode"
+
+#: tform1.checkbox7.caption
+msgid "Enable sound alerts"
+msgstr "Включить звуковые оповещения"
+
+#: tform1.checkbox8.caption
+msgid "Coins filter"
+msgstr "Фильтр монет"
+
+#: tform1.checkbox9.caption
+msgid "Use my default addresses"
+msgstr "Использовать мои адреса по умолчанию"
+
+#: tform1.editscmont.text
+msgid "0.00000000"
+msgstr "0.00000000"
+
+#: tform1.lababout.caption
+msgid "About message"
+msgstr "О сообщении"
+
+#: tform1.label1.caption
+msgid "Post offer"
+msgstr "Разместить предложение"
+
+#: tform1.label10.caption
+msgctxt "tform1.label10.caption"
+msgid "Funds address"
+msgstr "Адрес средств"
+
+#: tform1.label11.caption
+msgctxt "tform1.label11.caption"
+msgid "Sign address"
+msgstr "Адрес для криптографической подписи"
+
+#: tform1.label12.caption
+msgctxt "tform1.label12.caption"
+msgid "Port"
+msgstr "Порт"
+
+#: tform1.label13.caption
+msgctxt "tform1.label13.caption"
+msgid "Funds password"
+msgstr "Пароль средств"
+
+#: tform1.label2.caption
+msgid "Minimum connections to work"
+msgstr "Минимум подключений для работы"
+
+#: tform1.label3.caption
+msgid "Connect time out (ms)"
+msgstr "Время ожидания подключения (мс)"
+
+#: tform1.label4.caption
+msgid "Read time out (ms)"
+msgstr "Время ожидания чтения (мс)"
+
+#: tform1.label5.caption
+msgid "History orders showed"
+msgstr "История заказов показана"
+
+#: tform1.label6.caption
+msgid "PoS addresses warning days"
+msgstr "Дни предупреждений об адресах PoS"
+
+#: tform1.label7.caption
+msgid "Wallet language"
+msgstr "Язык приложения"
+
+#: tform1.label8.caption
+msgid "IP"
+msgstr "IP"
+
+#: tform1.label9.caption
+msgctxt "tform1.label9.caption"
+msgid "Port"
+msgstr "Порт"
+
+#: tform1.labelbigbalance.caption
+msgctxt "tform1.labelbigbalance.caption"
+msgid "0 NOS"
+msgstr "0 NOS"
+
+#: tform1.labeldoctor.caption
+msgid "Waiting"
+msgstr "Ожидание"
+
+#: tform1.labelnobiexaverage.caption
+msgctxt "tform1.labelnobiexaverage.caption"
+msgid "Average: -.-"
+msgstr "В среднем: -.-"
+
+#: tform1.labelnobiexlast.caption
+msgctxt "tform1.labelnobiexlast.caption"
+msgid "Last: -.-"
+msgstr "Последнее: -.-"
+
+#: tform1.labelnodeshash.caption
+msgid "Hash: "
+msgstr ""
+
+#: tform1.labeltransactiondetails.caption
+msgid "Transaction details"
+msgstr "Детали транзакции"
+
+#: tform1.lsctop.caption
+msgid "Send coins"
+msgstr "Отправить монеты"
+
+#: tform1.menuitem1.caption
+msgid "Network"
+msgstr "Сеть"
+
+#: tform1.menuitem10.caption
+msgid "Development"
+msgstr "Разработка"
+
+#: tform1.menuitem11.caption
+msgid "View"
+msgstr "Просмотр"
+
+#: tform1.menuitem12.caption
+msgctxt "tform1.menuitem12.caption"
+msgid "Console"
+msgstr "Консоль"
+
+#: tform1.menuitem13.caption
+msgctxt "tform1.menuitem13.caption"
+msgid "Log"
+msgstr "Журнал"
+
+#: tform1.menuitem14.caption
+msgctxt "tform1.menuitem14.caption"
+msgid "Monitor"
+msgstr "Монитор"
+
+#: tform1.menuitem15.caption
+msgid "WebPage"
+msgstr "Веб-страница"
+
+#: tform1.menuitem16.caption
+msgid "ConSlots"
+msgstr "Список подключений"
+
+#: tform1.menuitem17.caption
+msgctxt "tform1.menuitem17.caption"
+msgid "Pool"
+msgstr "Pool"
+
+#: tform1.menuitem18.caption
+msgid "Language"
+msgstr "Язык"
+
+#: tform1.menuitem19.caption
+msgid "Import"
+msgstr "Импортировать"
+
+#: tform1.menuitem2.caption
+msgid "Start Server"
+msgstr "Запустить сервер"
+
+#: tform1.menuitem20.caption
+msgid "New file"
+msgstr "Новый файл"
+
+#: tform1.menuitem21.caption
+msgid "Updates"
+msgstr "Обновления"
+
+#: tform1.menuitem22.caption
+msgid "Messages"
+msgstr "Сообщения"
+
+#: tform1.menuitem23.caption
+msgid "CLear"
+msgstr "Очистить"
+
+#: tform1.menuitem24.caption
+msgctxt "tform1.menuitem24.caption"
+msgid "Copy"
+msgstr "Копировать"
+
+#: tform1.menuitem25.caption
+msgctxt "tform1.menuitem25.caption"
+msgid "Clear"
+msgstr "Очистить"
+
+#: tform1.menuitem26.caption
+msgctxt "tform1.menuitem26.caption"
+msgid "Copy"
+msgstr "Копировать"
+
+#: tform1.menuitem27.caption
+msgid "Paste"
+msgstr "Вставить"
+
+#: tform1.menuitem3.caption
+msgctxt "tform1.menuitem3.caption"
+msgid "Connect"
+msgstr "Подключиться"
+
+#: tform1.menuitem4.caption
+msgctxt "tform1.menuitem4.caption"
+msgid "Miner"
+msgstr "Шахтер"
+
+#: tform1.menuitem5.caption
+msgid "Import Wallet"
+msgstr "Импорт кошелька"
+
+#: tform1.menuitem6.caption
+msgid "Export Wallet"
+msgstr "Экспорт кошелька"
+
+#: tform1.menuitem7.caption
+msgctxt "tform1.menuitem7.caption"
+msgid "About..."
+msgstr "Другое..."
+
+#: tform1.menuitem8.caption
+msgid "Restart"
+msgstr "Перезагрузить"
+
+#: tform1.menuitem9.caption
+msgid "Quit"
+msgstr "Выход"
+
+#: tform1.sbscmax.hint
+msgid "Send all"
+msgstr "Отправить все"
+
+#: tform1.sbscpaste.hint
+msgid "Paste destination"
+msgstr "Вставить пункт назначения"
+
+#: tform1.scbitcancel.caption
+msgid "Cancel"
+msgstr "Отмена"
+
+#: tform1.scbitclea.caption
+msgctxt "tform1.scbitclea.caption"
+msgid "Clear"
+msgstr "Очистить"
+
+#: tform1.scbitconf.caption
+msgctxt "tform1.scbitconf.caption"
+msgid "Confirm"
+msgstr "Подтвердить"
+
+#: tform1.scbitsend.caption
+msgid "Send"
+msgstr "Отправить"
+
+#: tform1.speedbutton1.hint
+msgid "Copy Order ID"
+msgstr "Копировать идентификатор заказа"
+
+#: tform1.speedbutton2.caption
+msgid "A"
+msgstr ""
+
+#: tform1.speedbutton2.hint
+msgid "Show address"
+msgstr "Показать адрес"
+
+#: tform1.speedbutton3.caption
+msgid "K"
+msgstr ""
+
+#: tform1.speedbutton3.hint
+msgid "Show Keys"
+msgstr "Показать ключи"
+
+#: tform1.staconlab.caption
+msgid "0"
+msgstr "0"
+
+#: tform1.staconlab.hint
+msgid "Connected peers"
+msgstr "Подключенные пиры"
+
+#: tform1.stapoolser.hint
+msgid "Pool server active"
+msgstr "Сервер пула активен"
+
+#: tform1.starpcimg.hint
+msgid "RPC server active"
+msgstr "RPC-сервер активен"
+
+#: tform1.staserimg.hint
+msgid "Masternode active"
+msgstr "Мастернода активна"
+
+#: tform1.statimelab.caption
+msgid "00-00-00 00:00:00 (0)"
+msgstr "00-00-00 00:00:00 (0)"
+
+#: tform1.statimelab.hint
+msgid "Noso network time"
+msgstr "Наше сетевое время"
+
+#: tform1.tabaddresses.caption
+msgid "Addresses"
+msgstr "Адреса"
+
+#: tform1.tabconsole.caption
+msgctxt "tform1.tabconsole.caption"
+msgid "Console"
+msgstr "Консоль"
+
+#: tform1.tabdoctor.caption
+msgid "Doctor"
+msgstr "Доктор"
+
+#: tform1.tabexbuy.caption
+msgid "LTC"
+msgstr "LTC"
+
+#: tform1.tabexchange.caption
+msgid "NoBiEx"
+msgstr "NoBiEx"
+
+#: tform1.tabhistory.caption
+msgid "History"
+msgstr "История"
+
+#: tform1.tabmainpool.caption
+msgctxt "tform1.tabmainpool.caption"
+msgid "Pool"
+msgstr "Pool"
+
+#: tform1.tabmonitor.caption
+msgctxt "tform1.tabmonitor.caption"
+msgid "Monitor"
+msgstr "Мониторинг"
+
+#: tform1.tabmonitormonitor.caption
+msgctxt "tform1.tabmonitormonitor.caption"
+msgid "Monitor"
+msgstr "Мониторинг"
+
+#: tform1.tabnodeoptions.caption
+msgctxt "tform1.tabnodeoptions.caption"
+msgid "Node"
+msgstr "Узел"
+
+#: tform1.tabnodes.caption
+msgid "Nodes"
+msgstr "Узлы"
+
+#: tform1.taboptions.caption
+msgid "Options"
+msgstr "Параметры"
+
+#: tform1.tabpoollog.caption
+msgctxt "tform1.tabpoollog.caption"
+msgid "Log"
+msgstr "Журнал"
+
+#: tform1.tabpoolminers.caption
+msgid "Miners"
+msgstr "Miners"
+
+#: tform1.tabpoolpays.caption
+msgid "Pays"
+msgstr "Платежи"
+
+#: tform1.tabpoolstats.caption
+msgid "Stats"
+msgstr "Статистика"
+
+#: tform1.tabsheet1.caption
+msgctxt "tform1.tabsheet1.caption"
+msgid "Wallet"
+msgstr "Кошелек"
+
+#: tform1.tabsheet10.caption
+msgid "Peers"
+msgstr "Peers"
+
+#: tform1.tabsheet3.caption
+msgid "RPC"
+msgstr "RPC"
+
+#: tform1.tabsheet5.caption
+msgid "Trade"
+msgstr "Торговля"
+
+#: tform1.tabsheet6.caption
+msgctxt "tform1.tabsheet6.caption"
+msgid "Miner"
+msgstr "Miner"
+
+#: tform1.tabsheet7.caption
+msgctxt "tform1.tabsheet7.caption"
+msgid "Log"
+msgstr "Журнал"
+
+#: tform1.tabsheet8.caption
+msgid "Except"
+msgstr "Исключения (ошибки)"
+
+#: tform1.tabsheet9.caption
+msgctxt "tform1.tabsheet9.caption"
+msgid "About..."
+msgstr "Другое..."
+
+#: tform1.tabwallet.caption
+msgctxt "tform1.tabwallet.caption"
+msgid "Wallet"
+msgstr "Кошелек"
+
+#: translation.rs0001
+msgid "TimeOut reading from slot: %s"
+msgstr "Время ожидания чтения из индекса: %s"
+
+#: translation.rs0002
+msgid "Error Reading lines from slot: %s"
+msgstr "Ошибка чтения строк из индекса: %s"
+
+#: translation.rs0003
+msgid "Receiving headers"
+msgstr "Получение заголовков"
+
+#: translation.rs0004
+msgid "Error Receiving headers from %s (%s)"
+msgstr "Ошибка получения заголовков от %s(%s)"
+
+#: translation.rs0005
+#, fuzzy
+msgctxt "translation.rs0005"
+msgid "Headers file received: %s"
+msgstr "Файл заголовков получен: %s"
+
+#: translation.rs0006
+msgid "Receiving blocks"
+msgstr "Получение блоков"
+
+#: translation.rs0007
+msgid "Error Receiving blocks from %s (%s)"
+msgstr "Ошибка получения блоков от %s(%s)"
+
+#: translation.rs0008
+msgid "Error sending outgoing message: %s"
+msgstr "Ошибка отправки исходящего сообщения: %s"
+
+#: translation.rs0009
+msgid "ERROR: Deleting OutGoingMessage-> %s"
+msgstr "ОШИБКА: Удаление исходящего сообщения->%s"
+
+#: translation.rs0010
+msgid "Auto restart enabled"
+msgstr "Автоматический перезапуск разрешен"
+
+#: translation.rs0011
+msgid "BAT file created"
+msgstr "BAT-файл создан"
+
+#: translation.rs0012
+msgid "Crash info file created"
+msgstr "Создан файл информации о сбое"
+
+#: translation.rs0013
+msgid "Data restart file created"
+msgstr "Создан перезапуск файла данных"
+
+#: translation.rs0014
+msgid "All forms closed"
+msgstr "Все формы закрыты"
+
+#: translation.rs0015
+msgid "Outgoing connections closed"
+msgstr "Исходящие соединения закрыты"
+
+#: translation.rs0016
+msgid "Node server closed"
+msgstr "Сервер Node закрыт"
+
+#: translation.rs0017
+msgid "Closing pool server..."
+msgstr "Закрытие сервера пула..."
+
+#: translation.rs0018
+msgid "Pool server closed"
+msgstr "Сервер пула закрыт"
+
+#: translation.rs0019
+msgid "Pool members file saved"
+msgstr "Файл участников пула сохранен"
+
+#: translation.rs0020
+msgid "Noso launcher executed"
+msgstr "Выполнена программа запуска приложений Noso"
+
+#: translation.rs0021
+msgid "Blocks received up to %s"
+msgstr "Блоков получено до %s"
+
+#: translation.rs0022
+msgid "✓ Data directory ok"
+msgstr "✓ Папка данных в порядке"
+
+#: translation.rs0023
+msgid "✓ GUI initialized"
+msgstr "✓ Графический интерфейс инициализирован"
+
+#: translation.rs0024
+msgid "✓ My data updated"
+msgstr "✓ Мои данные обновлены"
+
+#: translation.rs0025
+msgid "✓ Miner configuration set"
+msgstr "✓ Конфигурация майнера установлена"
+
+#: translation.rs0026
+msgid "✓ %s languages available"
+msgstr "✓ Доступно %s языков"
+
+#: translation.rs0027
+msgid "Wallet %s%s"
+msgstr "Кошелек %s%s"
+
+#: translation.rs0028
+msgid "✓ %s CPUs found"
+msgstr "✓ Найдено ЦП: %s"
+
+#: translation.rs0029
+msgid "Noso session started"
+msgstr "Наш сеанс начался"
+
+#: translation.rs0030
+msgid "Closing wallet"
+msgstr "Закрытие кошелька"
+
+#: translation.rs0031
+msgid "POOL: Error trying close a pool client connection (%s)"
+msgstr "POOL: Ошибка при попытке закрыть соединение с клиентом пула (%s)"
+
+#: translation.rs0032
+msgid "POOL: Error sending message to miner (%s)"
+msgstr "POOL: Ошибка отправки сообщения майнеру (%s)"
+
+#: translation.rs0033
+msgid "POOL: Rejected not registered user"
+msgstr "POOL: отклонен незарегистрированный пользователь"
+
+#: translation.rs0034
+msgid "Pool: Error registering a ping-> %s"
+msgstr "POOL: Ошибка при получении ping->%s"
+
+#: translation.rs0035
+msgid "Pool solution verified!"
+msgstr "Решение пула проверено!"
+
+#: translation.rs0036
+msgid "Pool solution FAILED at step %s"
+msgstr "ОШИБКА решения пула на шаге %s"
+
+#: translation.rs0037
+msgid "Pool: Error inside CSPoolStep-> %s"
+msgstr "Пул: ошибка внутри CSPoolStep-> %s"
+
+#: translation.rs0038
+msgid "POOL: Unexpected command from: %s -> %s"
+msgstr "POOL: Неожиданная команда от: %s -> %s"
+
+#: translation.rs0039
+msgid "POOL: Status requested from %s"
+msgstr "POOL: Статус запрашивается у %s"
+
+#: translation.rs0040
+msgid "Pool: closed incoming %s (%s)"
+msgstr "Пул: закрытие входа %s (%s)"
+
+#: translation.rs0041
+#, fuzzy,badformat
+#| msgid "Pool: Error inside MinerJoin-> %s"
+msgid "Pool: Error inside MinerJoin (%s) -> %s"
+msgstr "Пул: ошибка внутри MinerJoin->%s"
+
+#: translation.rs0042
+msgid "SERVER: Error trying close a server client connection (%s)"
+msgstr "СЕРВЕР: Ошибка при попытке разорвать клиентское соединение (%s)"
+
+#: translation.rs0043
+msgid "SERVER: Received a line from a client without and assigned slot: %s"
+msgstr "СЕРВЕР: Получена строка без назначенного индекса: %s"
+
+#: translation.rs0044
+msgid "SERVER: Timeout reading line from connection"
+msgstr "СЕРВЕР: Тайм-аут чтения строки из подключения"
+
+#: translation.rs0045
+msgid "SERVER: Can not read line from connection %s (%s)"
+msgstr "СЕРВЕР: Невозможно прочитать строку из ссылки %s (%s)"
+
+#: translation.rs0046
+msgid "SERVER: Server error receiving headers file (%s)"
+msgstr "СЕРВЕР: ошибка сервера при получении файла заголовков (%s)"
+
+#: translation.rs0047
+msgctxt "translation.rs0047"
+msgid "Headers file received: %s"
+msgstr "Файл заголовков получен: %s"
+
+#: translation.rs0048
+msgid "SERVER: Server error receiving block file (%s)"
+msgstr "SERVER: Oшибка сервера при получении блочного файла (%s)"
+
+#: translation.rs0049
+msgid "SERVER: Error creating stream from headers: %s"
+msgstr "SERVER: Oшибка создания потока из заголовков: %s"
+
+#: translation.rs0050
+msgid "Headers file sent to: %s"
+msgstr "Файл заголовка отправлен: %s"
+
+#: translation.rs0051
+msgid "SERVER: Error sending headers file (%s)"
+msgstr "СЕРВЕР: Ошибка отправки файла заголовка (%s)"
+
+#: translation.rs0052
+msgid "SERVER: BlockZip send to %s: %s"
+msgstr "СЕРВЕР: Заблокировать zip-файл, отправленный на %s: %s"
+
+#: translation.rs0053
+msgid "SERVER: Error sending ZIP blocks file (%s)"
+msgstr "СЕРВЕР: Ошибка отправки блочного zip-файла (%s)"
+
+#: translation.rs0054
+msgid "SERVER: Error adding received line (%s)"
+msgstr "СЕРВЕР: Ошибка добавления полученной строки (%s)"
+
+#: translation.rs0055
+msgid "SERVER: Got unexpected line: %s"
+msgstr "СЕРВЕР: Получена непредвиденная строка: %s"
+
+#: translation.rs0056
+msgid "SERVER: Timeout reading line from new connection"
+msgstr "СЕРВЕР: истекло время ожидания при попытке чтения строки из новой ссылки"
+
+#: translation.rs0057
+msgid "SERVER: Can not read line from new connection (%s)"
+msgstr "СЕРВЕР: Невозможно прочитать строку из новой ссылки (%s)"
+
+#: translation.rs0058
+msgid "SERVER: Invalid client -> %s"
+msgstr "СЕРВЕР: Неверный клиент -> %s"
+
+#: translation.rs0059
+msgid "SERVER: Own connected"
+msgstr "СЕРВЕР: Подключен собственный"
+
+#: translation.rs0060
+msgid "SERVER: Duplicated connection -> %s"
+msgstr "СЕРВЕР: Двойная привязка -> %s"
+
+#: translation.rs0061
+msgid "New Connection from: %s"
+msgstr "Новое подключение от: %s"
+
+#: translation.rs0062
+msgid "SERVER: Closed unhandled incoming connection -> %s"
+msgstr "СЕРВЕР: Закрытие необработанной входящей ссылки -> %s"
+
+#: translation.rs0063
+msgid "Next block required"
+msgstr "Требуется следующий блок"
+
+#: translation.rs0064
+msgid "My PoS addresses"
+msgstr "Мой PoS-адрес"
+
+#: translation.rs0065
+msgid "My PoS earnings"
+msgstr "Мои доходы от PoS"
+
+#: translation.rs0066
+msgid "Rebuilding my transactions..."
+msgstr "Восстановление личных транзакций..."
+
+#: translation.rs0067
+msgid "✓ My transactions rebuilded"
+msgstr "✓ Реконструированные личные транзакции"
+
+#: translation.rs0068
+msgid "✓ My transactions grid updated"
+msgstr "✓ Персональная таблица транзакций обновлена"
+
+#: translation.rs0069
+msgid "✓ Launcher file deleted"
+msgstr "✓ Файл запуска удален"
+
+#: translation.rs0070
+msgid "✓ Restart file deleted"
+msgstr "✓ Файл сброса удален"
+
+#: translation.rs0071
+msgid "Checking last release available..."
+msgstr "Проверка новой версии..."
+
+#: translation.rs0072
+msgid "✗ Failed connecting with project repo"
+msgstr "✗ Не удалось подключиться к репозиторию проекта"
+
+#: translation.rs0073
+msgid "✓ Running last release version"
+msgstr "✓ Запущена последняя последняя версия"
+
+#: translation.rs0074
+msgid "✗ New version available on project repo"
+msgstr "✗ Новая версия доступна в репозитории проекта"
+
+#: translation.rs0075
+msgid "✓ Running a development version"
+msgstr "✓ Запуск разрабатываемой версии"
+
+#: translation.rs0076
+msgid "Start server"
+msgstr "Запустить сервер"
+
+#: translation.rs0077
+msgid "Stop server"
+msgstr "Остановить сервер"
+
+#: translation.rs0078
+msgctxt "translation.rs0078"
+msgid "Connect"
+msgstr "Подключиться"
+
+#: translation.rs0079
+msgid "Disconnect"
+msgstr "Отключиться"
+
+#: translation.rs0080
+msgid "You can not test while server is active"
+msgstr "Вы не можете тестировать, пока сервер активен"
+
+#: translation.rs0081
+msgid "Invalid sign address"
+msgstr "Неверный адрес знака"
+
+#: translation.rs0082
+msgid "Funds address do not owns enough coins"
+msgstr "Недостаточно денег!"
+
+#: translation.rs0083
+msgid "You need update the wallet"
+msgstr "Вам необходимо обновить кошелек"
+
+#: translation.rs0084
+msgid "Not valid ASCII message received: %s"
+msgstr ""
+
+#: translation.rs0500
+msgid "Noso Launcher"
+msgstr "Носо-лаунчер"
+
+#: translation.rs0501
+msgid "Destination"
+msgstr "Пункт назначения"
+
+#: translation.rs0502
+msgid "Amount"
+msgstr "Сумма"
+
+#: translation.rs0503
+msgid "Reference"
+msgstr "Справочник"
+
+#: translation.rs0504
+msgctxt "translation.rs0504"
+msgid "Balance"
+msgstr "Баланс"
+
+#: translation.rs0505
+msgid "Server"
+msgstr "Сервер"
+
+#: translation.rs0506
+msgid "Connections"
+msgstr "Ссылки"
+
+#: translation.rs0507
+msgid "Headers"
+msgstr "Заголовки"
+
+#: translation.rs0508
+msgid "Summary"
+msgstr "Сводка"
+
+#: translation.rs0509
+msgid "LastBlock"
+msgstr "Последний блок"
+
+#: translation.rs0510
+msgid "Blocks"
+msgstr "Блоки"
+
+#: translation.rs0511
+msgid "Pending"
+msgstr "В ожидании"
+
+#: translation.rs0512
+msgid "Invalid language: %s"
+msgstr "Недопустимый язык: %s"
+
+#: translation.rs0513
+msgid "Wallet restart needed"
+msgstr "Кошелек необходимо повторно инициализировать"
+
+#: translation.rs0514
+msgid "Address"
+msgstr "Адрес"
+
+#: translation.rs0515
+msgctxt "translation.rs0515"
+msgid "Balance"
+msgstr "Баланс"
+
+#: translation.rs0516
+msgid "Masternodes: (%d) %s"
+msgstr "Мастерноды: (%d) %s"
+
+#: translation.rs0517
+msgid "(%d)  %d/%s"
+msgstr ""
+
+#: translation.rs1000
+msgid "Processing block %d (%d %%)"
+msgstr "Обрабатывается блок %d (%d %%)"
+
+#: translation.rs1001
+msgid ""
+"----- ERROR ----\n"
+"Block: %d\n"
+msgstr ""
+"----- ОШИБКА ----\n"
+"Заблокировать: %d\n"
+
+#: translation.rs1002
+msgid ""
+"Wrong block hash\n"
+"File: %s\n"
+"Headers: %s\n"
+msgstr ""
+"Неверный блочный шифр\n"
+"Файл: %s\n"
+"Заголовки: %s\n"
+
+#: translation.rs1003
+msgid "File not found: %s"
+msgstr "Файл не найден: %s"
+
+#: translation.rs1004
+msgid ""
+"Wrong summary hash\n"
+"Summary: %s\n"
+"Headers: %s\n"
+msgstr ""
+"Неверный итоговый шифр\n"
+"Сводка: %s\n"
+"Заголовки: %s\n"
+
+#: translation.rs1501
+msgid "Invalid address"
+msgstr "Неверный адрес"
+
+#: translation.rs1502
+msgid "You can not do it while pool is active."
+msgstr "Вы не можете сделать это, пока активен пул."
+
+#: translation.rs1503
+msgid "Totals: %d connections, %d IPs"
+msgstr "Всего: %d подключений, %d IP-адресов"
+
+#: translation.rs1504
+msgid "Address do not exists in wallet."
+msgstr "Адрес не существует в кошельке."
+
+#: translation.rs1505
+msgid "Keys pasted to clipboard."
+msgstr "Ключи вставлены в буфер обмена."
+
+#: translation.rs2000
+msgid "Sign address not valid"
+msgstr "Адрес подписи недействителен"
+
+#: translation.rs2001
+msgid "Wallet not updated"
+msgstr "Кошелек не обновлен"
+
+#: translation.rs2002
+msgid ""
+"*****CRITICAL*****\n"
+"Error inside VerifyConnectionStatus: %s\n"
+"*****CRITICAL*****\n"
+msgstr ""
+
+#: translation.rs2501
+msgid ""
+"*****CRITICAL*****\n"
+"Error type 3 on crypto thread: %s\n"
+"*****CRITICAL*****\n"
+msgstr ""
+
+#: translation.rs2502
+msgid ""
+"*****CRITICAL*****\n"
+"Error type 4 on crypto thread: %s\n"
+"*****CRITICAL*****\n"
+msgstr ""
+
+#: translation.rs2503
+msgid ""
+"*****CRITICAL*****\n"
+"Error type 5 on crypto thread: %s\n"
+"*****CRITICAL*****\n"
+msgstr ""
+

@@ -1,0 +1,1066 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: Gustavo Carreno <guscarreno@gmail.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: pt\n"
+"X-Generator: Poedit 3.0\n"
+
+#: tform1.barcodeqr1.hint
+msgid "Click on image to close it"
+msgstr "Clique na imagem para fecha-la"
+
+#: tform1.bcopyaddr.hint
+msgid "Copy address to clipboard"
+msgstr "Copiar endereço para a área de transferência"
+
+#: tform1.bcustomaddr.hint
+msgid "Customize address"
+msgstr "Personalizar endereço"
+
+#: tform1.bdefaddr.hint
+msgid "Set address as Default"
+msgstr "Definir endereço como padrão"
+
+#: tform1.bitbtnblocks.caption
+msgctxt "tform1.bitbtnblocks.caption"
+msgid "000000"
+msgstr "000000"
+
+#: tform1.bitbtnblocks.hint
+msgctxt "tform1.bitbtnblocks.hint"
+msgid "Last downloaded block"
+msgstr "Último bloco baixado"
+
+#: tform1.bitbtndonate.caption
+msgctxt "tform1.bitbtndonate.caption"
+msgid "Donate"
+msgstr "Doar"
+
+#: tform1.bitbtnpending.caption
+msgid "00"
+msgstr "00"
+
+#: tform1.bitbtnpending.hint
+msgid "Network pending orders"
+msgstr "Ordens pendentes na rede"
+
+#: tform1.bitbtnweb.caption
+msgctxt "tform1.bitbtnweb.caption"
+msgid "Web"
+msgstr "Web"
+
+#: tform1.bnewaddr.hint
+msgid "Generate new address"
+msgstr "Gerar novo endereço"
+
+#: tform1.bokcustom.hint
+msgctxt "tform1.bokcustom.hint"
+msgid "Confirm"
+msgstr "Confirmar"
+
+#: tform1.bqrcode.hint
+msgid "Show QR code"
+msgstr "Mostrar código QR"
+
+#: tform1.bsavenodeoptions.caption
+msgid "Save"
+msgstr "Guardar"
+
+#: tform1.btestnode.caption
+msgid "Test"
+msgstr ""
+
+#: tform1.butstartdoctor.caption
+msgid "Start"
+msgstr "Começar"
+
+#: tform1.butstopdoctor.caption
+msgid "Stop"
+msgstr "Parar"
+
+#: tform1.caption
+msgid "Noso"
+msgstr "Noso"
+
+#: tform1.cbblockexists.caption
+msgid "Block file"
+msgstr "Ficheiro de bloco"
+
+#: tform1.cbblockhash.caption
+msgid "Block hash"
+msgstr "Cifra de bloco"
+
+#: tform1.cbpool_restart.caption
+msgid "Restart after mine block"
+msgstr ""
+
+#: tform1.cbsummaryhash.caption
+msgid "Summary hash"
+msgstr "Cifra do summario"
+
+#: tform1.cb_autorpc.caption
+msgid "Active JSON-RPC server at launch"
+msgstr "Ativar servidor JSON-RPC no arranque"
+
+#: tform1.cb_rpcfilter.caption
+msgid "Accept only whitelist requests"
+msgstr "Somente aceitar pedidos de endereços autorizados"
+
+#: tform1.cb_rpc_on.caption
+msgid "Enable JSON-RPC server"
+msgstr "Permitir servidor JSON-RPC"
+
+#: tform1.cb_wo_antifreeze.caption
+msgid "Anti freeze (s)"
+msgstr "Anti congelamento da aplicação (s)"
+
+#: tform1.cb_wo_autoconnect.caption
+msgid "Auto connect at start"
+msgstr "Conectar automaticamente no arranque"
+
+#: tform1.cb_wo_autoupdate.caption
+#, fuzzy
+msgctxt "tform1.cb_wo_autoupdate.caption"
+msgid "Install automatically new official releases"
+msgstr "Instalar lançamentos oficiais automaticamente"
+
+#: tform1.cb_wo_multisend.caption
+msgid "Send coins only from default address"
+msgstr "Enviar moedas somente do endereço por defeito"
+
+#: tform1.cb_wo_totray.caption
+msgid "Minimize to tray"
+msgstr "Minimizar para a barra"
+
+#: tform1.checkbox1.caption
+msgid "Download blockchain"
+msgstr "Baixar a cadeia de blocos"
+
+#: tform1.checkbox4.caption
+msgid "Run MasterNode"
+msgstr "Ativar o nó mestre"
+
+#: tform1.checkbox7.caption
+msgid "Enable sound alerts"
+msgstr "Permitir alertas sonoros"
+
+#: tform1.checkbox8.caption
+msgid "Coins filter"
+msgstr "Filtro de moedas"
+
+#: tform1.checkbox9.caption
+msgid "Use my default addresses"
+msgstr "Usar meu endereço por defeito"
+
+#: tform1.editscmont.text
+msgid "0.00000000"
+msgstr "0.00000000"
+
+#: tform1.lababout.caption
+msgid "About message"
+msgstr "Sobre a mensagem"
+
+#: tform1.label1.caption
+msgid "Post offer"
+msgstr "Postar oferta"
+
+#: tform1.label10.caption
+msgctxt "tform1.label10.caption"
+msgid "Funds address"
+msgstr "Endereço de fundos"
+
+#: tform1.label11.caption
+msgctxt "tform1.label11.caption"
+msgid "Sign address"
+msgstr "Endereço para assinar criptograficamente"
+
+#: tform1.label12.caption
+msgctxt "tform1.label12.caption"
+msgid "Port"
+msgstr "Porto"
+
+#: tform1.label13.caption
+msgctxt "tform1.label13.caption"
+msgid "Funds password"
+msgstr "Palavra-passe dos fundos"
+
+#: tform1.label2.caption
+msgid "Minimum connections to work"
+msgstr "Mínimo de ligações para funcionar"
+
+#: tform1.label3.caption
+msgid "Connect time out (ms)"
+msgstr "Tempo esgotado para conectar (ms)"
+
+#: tform1.label4.caption
+msgid "Read time out (ms)"
+msgstr "Tempo esgotado para leitura (ms)"
+
+#: tform1.label5.caption
+msgid "History orders showed"
+msgstr "Mostrando histórico de ordens"
+
+#: tform1.label6.caption
+msgid "PoS addresses warning days"
+msgstr "Número de dias para aviso de PoS"
+
+#: tform1.label7.caption
+msgid "Wallet language"
+msgstr "Língua da carteira"
+
+#: tform1.label8.caption
+msgid "IP"
+msgstr "IP"
+
+#: tform1.label9.caption
+msgctxt "tform1.label9.caption"
+msgid "Port"
+msgstr "Porto"
+
+#: tform1.labelbigbalance.caption
+msgctxt "tform1.labelbigbalance.caption"
+msgid "0 NOS"
+msgstr "0 NOS"
+
+#: tform1.labeldoctor.caption
+msgid "Waiting"
+msgstr "Esperando"
+
+#: tform1.labelnobiexaverage.caption
+msgctxt "tform1.labelnobiexaverage.caption"
+msgid "Average: -.-"
+msgstr "Média: -.-"
+
+#: tform1.labelnobiexlast.caption
+msgctxt "tform1.labelnobiexlast.caption"
+msgid "Last: -.-"
+msgstr "Último: -.-"
+
+#: tform1.labelnodeshash.caption
+msgid "Hash: "
+msgstr ""
+
+#: tform1.labeltransactiondetails.caption
+msgid "Transaction details"
+msgstr "Detalhes de transação"
+
+#: tform1.lsctop.caption
+msgid "Send coins"
+msgstr "Enviar moedas"
+
+#: tform1.menuitem1.caption
+msgid "Network"
+msgstr "Rede"
+
+#: tform1.menuitem10.caption
+msgid "Development"
+msgstr "Desenvolvimento"
+
+#: tform1.menuitem11.caption
+msgid "View"
+msgstr "Vista"
+
+#: tform1.menuitem12.caption
+msgctxt "tform1.menuitem12.caption"
+msgid "Console"
+msgstr "Consola"
+
+#: tform1.menuitem13.caption
+msgctxt "tform1.menuitem13.caption"
+msgid "Log"
+msgstr "Diário"
+
+#: tform1.menuitem14.caption
+msgctxt "tform1.menuitem14.caption"
+msgid "Monitor"
+msgstr "Monitorização"
+
+#: tform1.menuitem15.caption
+msgid "WebPage"
+msgstr "Página Web"
+
+#: tform1.menuitem16.caption
+msgid "ConSlots"
+msgstr "Lista de conexões"
+
+#: tform1.menuitem17.caption
+msgctxt "tform1.menuitem17.caption"
+msgid "Pool"
+msgstr "Pool"
+
+#: tform1.menuitem18.caption
+msgid "Language"
+msgstr "Linguagem"
+
+#: tform1.menuitem19.caption
+msgid "Import"
+msgstr "Importar"
+
+#: tform1.menuitem2.caption
+msgid "Start Server"
+msgstr "Iniciar Servidor"
+
+#: tform1.menuitem20.caption
+msgid "New file"
+msgstr "Novo Ficheiro"
+
+#: tform1.menuitem21.caption
+msgid "Updates"
+msgstr "Actualizações"
+
+#: tform1.menuitem22.caption
+msgid "Messages"
+msgstr "Mensagens"
+
+#: tform1.menuitem23.caption
+msgid "CLear"
+msgstr "Limpar"
+
+#: tform1.menuitem24.caption
+msgctxt "tform1.menuitem24.caption"
+msgid "Copy"
+msgstr "Copiar"
+
+#: tform1.menuitem25.caption
+msgctxt "tform1.menuitem25.caption"
+msgid "Clear"
+msgstr "Limpar"
+
+#: tform1.menuitem26.caption
+msgctxt "tform1.menuitem26.caption"
+msgid "Copy"
+msgstr "Copiar"
+
+#: tform1.menuitem27.caption
+msgid "Paste"
+msgstr "Colar"
+
+#: tform1.menuitem3.caption
+msgctxt "tform1.menuitem3.caption"
+msgid "Connect"
+msgstr "Conectar"
+
+#: tform1.menuitem4.caption
+msgctxt "tform1.menuitem4.caption"
+msgid "Miner"
+msgstr "Mineiro"
+
+#: tform1.menuitem5.caption
+msgid "Import Wallet"
+msgstr "Importar Carteira"
+
+#: tform1.menuitem6.caption
+msgid "Export Wallet"
+msgstr "Exportar Carteira"
+
+#: tform1.menuitem7.caption
+msgctxt "tform1.menuitem7.caption"
+msgid "About..."
+msgstr "Sobre..."
+
+#: tform1.menuitem8.caption
+msgid "Restart"
+msgstr "Reiniciar"
+
+#: tform1.menuitem9.caption
+msgid "Quit"
+msgstr "Sair"
+
+#: tform1.sbscmax.hint
+msgid "Send all"
+msgstr "Enviar todos"
+
+#: tform1.sbscpaste.hint
+msgid "Paste destination"
+msgstr "Colar destino"
+
+#: tform1.scbitcancel.caption
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: tform1.scbitclea.caption
+msgctxt "tform1.scbitclea.caption"
+msgid "Clear"
+msgstr "Limpar"
+
+#: tform1.scbitconf.caption
+msgctxt "tform1.scbitconf.caption"
+msgid "Confirm"
+msgstr "Confirmar"
+
+#: tform1.scbitsend.caption
+msgid "Send"
+msgstr "Enviar"
+
+#: tform1.speedbutton1.hint
+msgid "Copy Order ID"
+msgstr "Copiar Número de Ordem"
+
+#: tform1.speedbutton2.caption
+msgid "A"
+msgstr ""
+
+#: tform1.speedbutton2.hint
+msgid "Show address"
+msgstr ""
+
+#: tform1.speedbutton3.caption
+msgid "K"
+msgstr ""
+
+#: tform1.speedbutton3.hint
+msgid "Show Keys"
+msgstr ""
+
+#: tform1.staconlab.caption
+msgid "0"
+msgstr "0"
+
+#: tform1.staconlab.hint
+msgid "Connected peers"
+msgstr "Pares conectados"
+
+#: tform1.stapoolser.hint
+msgid "Pool server active"
+msgstr "Servidor pool ativo"
+
+#: tform1.starpcimg.hint
+msgid "RPC server active"
+msgstr "Servidor RPC ativo"
+
+#: tform1.staserimg.hint
+msgid "Masternode active"
+msgstr "Masternode ativo"
+
+#: tform1.statimelab.caption
+msgid "00-00-00 00:00:00 (0)"
+msgstr "00-00-00 00:00:00 (0)"
+
+#: tform1.statimelab.hint
+msgid "Noso network time"
+msgstr "Horas da rede Noso"
+
+#: tform1.tabaddresses.caption
+msgid "Addresses"
+msgstr "Endereços"
+
+#: tform1.tabconsole.caption
+msgctxt "tform1.tabconsole.caption"
+msgid "Console"
+msgstr "Consola"
+
+#: tform1.tabdoctor.caption
+msgid "Doctor"
+msgstr "Doutor"
+
+#: tform1.tabexbuy.caption
+msgid "LTC"
+msgstr "LTC"
+
+#: tform1.tabexchange.caption
+msgid "NoBiEx"
+msgstr "NoBiEx"
+
+#: tform1.tabhistory.caption
+msgid "History"
+msgstr "Histórico"
+
+#: tform1.tabmainpool.caption
+msgctxt "tform1.tabmainpool.caption"
+msgid "Pool"
+msgstr "Pool"
+
+#: tform1.tabmonitor.caption
+msgctxt "tform1.tabmonitor.caption"
+msgid "Monitor"
+msgstr "Monitorização"
+
+#: tform1.tabmonitormonitor.caption
+msgctxt "tform1.tabmonitormonitor.caption"
+msgid "Monitor"
+msgstr "Monitorização"
+
+#: tform1.tabnodeoptions.caption
+msgctxt "tform1.tabnodeoptions.caption"
+msgid "Node"
+msgstr "Nó"
+
+#: tform1.tabnodes.caption
+msgid "Nodes"
+msgstr "Nós"
+
+#: tform1.taboptions.caption
+msgid "Options"
+msgstr "Opções"
+
+#: tform1.tabpoollog.caption
+msgctxt "tform1.tabpoollog.caption"
+msgid "Log"
+msgstr "Diário"
+
+#: tform1.tabpoolminers.caption
+msgid "Miners"
+msgstr "Mineiros"
+
+#: tform1.tabpoolpays.caption
+msgid "Pays"
+msgstr "Pagamentos"
+
+#: tform1.tabpoolstats.caption
+msgid "Stats"
+msgstr "Estatísticas"
+
+#: tform1.tabsheet1.caption
+msgctxt "tform1.tabsheet1.caption"
+msgid "Wallet"
+msgstr "Carteira"
+
+#: tform1.tabsheet10.caption
+msgid "Peers"
+msgstr "Pares"
+
+#: tform1.tabsheet3.caption
+msgid "RPC"
+msgstr "RPC"
+
+#: tform1.tabsheet5.caption
+msgid "Trade"
+msgstr "Intercâmbio"
+
+#: tform1.tabsheet6.caption
+msgctxt "tform1.tabsheet6.caption"
+msgid "Miner"
+msgstr "Mineiro"
+
+#: tform1.tabsheet7.caption
+msgctxt "tform1.tabsheet7.caption"
+msgid "Log"
+msgstr "Diário"
+
+#: tform1.tabsheet8.caption
+msgid "Except"
+msgstr "Exceções(Erros)"
+
+#: tform1.tabsheet9.caption
+msgctxt "tform1.tabsheet9.caption"
+msgid "About..."
+msgstr "Sobre..."
+
+#: tform1.tabwallet.caption
+msgctxt "tform1.tabwallet.caption"
+msgid "Wallet"
+msgstr "Carteira"
+
+#: translation.rs0001
+msgid "TimeOut reading from slot: %s"
+msgstr "Tempo esgotado lendo do índice: %s"
+
+#: translation.rs0002
+msgid "Error Reading lines from slot: %s"
+msgstr "Erro ao ler linhas do índice: %s"
+
+#: translation.rs0003
+msgid "Receiving headers"
+msgstr "Recebendo cabeçalhos"
+
+#: translation.rs0004
+msgid "Error Receiving headers from %s (%s)"
+msgstr "Erro ao receber cabeçalhos de %s(%s)"
+
+#: translation.rs0005
+msgctxt "translation.rs0005"
+msgid "Headers file received: %s"
+msgstr "Ficheiro de cabeçalhos recebido: %s"
+
+#: translation.rs0006
+msgid "Receiving blocks"
+msgstr "Recebendo blocos"
+
+#: translation.rs0007
+msgid "Error Receiving blocks from %s (%s)"
+msgstr "Erro ao receber blocos de %s(%s)"
+
+#: translation.rs0008
+msgid "Error sending outgoing message: %s"
+msgstr "Erro ao enviar mensagem de saída: %s"
+
+#: translation.rs0009
+msgid "ERROR: Deleting OutGoingMessage-> %s"
+msgstr "ERRO: Apagando mensagem de saída-> %s"
+
+#: translation.rs0010
+msgid "Auto restart enabled"
+msgstr "Reinicio automático permitido"
+
+#: translation.rs0011
+msgid "BAT file created"
+msgstr "Ficheiro BAT creado"
+
+#: translation.rs0012
+msgid "Crash info file created"
+msgstr "Ficheiro informativo de falha criado"
+
+#: translation.rs0013
+msgid "Data restart file created"
+msgstr "Ficheiro de dados de reinicio criado"
+
+#: translation.rs0014
+msgid "All forms closed"
+msgstr "Todos os formulários fechados"
+
+#: translation.rs0015
+msgid "Outgoing connections closed"
+msgstr "Conexões de saída fechadas"
+
+#: translation.rs0016
+msgid "Node server closed"
+msgstr "Servidor nó fechado"
+
+#: translation.rs0017
+msgid "Closing pool server..."
+msgstr "Fechando servidor pool..."
+
+#: translation.rs0018
+msgid "Pool server closed"
+msgstr "Servidor pool fechado"
+
+#: translation.rs0019
+msgid "Pool members file saved"
+msgstr "Ficheiro de membros da pool guardado"
+
+#: translation.rs0020
+msgid "Noso launcher executed"
+msgstr "Inicializador da aplicação Noso executado"
+
+#: translation.rs0021
+msgid "Blocks received up to %s"
+msgstr "Blocos recebidos até %s"
+
+#: translation.rs0022
+msgid "✓ Data directory ok"
+msgstr "✓ Pasta de dados Ok"
+
+#: translation.rs0023
+msgid "✓ GUI initialized"
+msgstr "✓ GUI Inicializada"
+
+#: translation.rs0024
+msgid "✓ My data updated"
+msgstr "✓ Meus dados actualizados"
+
+#: translation.rs0025
+msgid "✓ Miner configuration set"
+msgstr "✓ Configuração de mineiro establecida"
+
+#: translation.rs0026
+msgid "✓ %s languages available"
+msgstr "✓ %s línguas disponíveis"
+
+#: translation.rs0027
+msgid "Wallet %s%s"
+msgstr "Carteira %s%s"
+
+#: translation.rs0028
+msgid "✓ %s CPUs found"
+msgstr "✓ %s CPUs encontrados"
+
+#: translation.rs0029
+msgid "Noso session started"
+msgstr "Sessão Noso iníciada"
+
+#: translation.rs0030
+msgid "Closing wallet"
+msgstr "Fechando Carteira"
+
+#: translation.rs0031
+msgid "POOL: Error trying close a pool client connection (%s)"
+msgstr "POOL: Erro ao tentar fechar uma ligação ao cliente da pool (%s)"
+
+#: translation.rs0032
+msgid "POOL: Error sending message to miner (%s)"
+msgstr "POOL: Erro ao tentar enviar mensagem ao mineiro (%s)"
+
+#: translation.rs0033
+msgid "POOL: Rejected not registered user"
+msgstr "POOL: Rejeitando utilizador não registado"
+
+#: translation.rs0034
+msgid "Pool: Error registering a ping-> %s"
+msgstr "POOL: Error recebendo um ping-> %s"
+
+#: translation.rs0035
+msgid "Pool solution verified!"
+msgstr "Solução verificada na Pool!"
+
+#: translation.rs0036
+msgid "Pool solution FAILED at step %s"
+msgstr "Falha na solução da Pool no passo %s"
+
+#: translation.rs0037
+msgid "Pool: Error inside CSPoolStep-> %s"
+msgstr "Pool: Erro no dentro do CSPoolStep-> %s"
+
+#: translation.rs0038
+msgid "POOL: Unexpected command from: %s -> %s"
+msgstr "POOL: Comando imprevisto de: %s -> %s"
+
+#: translation.rs0039
+msgid "POOL: Status requested from %s"
+msgstr "Pool: Estado requisitado de %s"
+
+#: translation.rs0040
+msgid "Pool: closed incoming %s (%s)"
+msgstr "Pool: fechando entrada %s (%s)"
+
+#: translation.rs0041
+#, fuzzy,badformat
+#| msgid "Pool: Error inside MinerJoin-> %s"
+msgid "Pool: Error inside MinerJoin (%s) -> %s"
+msgstr "Pool: Erro dentro de MinerJoin-> %s"
+
+#: translation.rs0042
+msgid "SERVER: Error trying close a server client connection (%s)"
+msgstr "SERVIDOR: Erro ao tentar terminar ligação a cliente (%s)"
+
+#: translation.rs0043
+msgid "SERVER: Received a line from a client without and assigned slot: %s"
+msgstr "SERVIDOR: Linha recebida sem um índice designado: %s"
+
+#: translation.rs0044
+msgid "SERVER: Timeout reading line from connection"
+msgstr "SERVIDOR: Esgotado tempo de leitura de uma ligação"
+
+#: translation.rs0045
+msgid "SERVER: Can not read line from connection %s (%s)"
+msgstr "SERVIDOR: Incapaz de ler linha da ligação %s (%s)"
+
+#: translation.rs0046
+msgid "SERVER: Server error receiving headers file (%s)"
+msgstr "SERVIDOR: Erro ao receber ficheiro de cabeçalhos (%s)"
+
+#: translation.rs0047
+msgctxt "translation.rs0047"
+msgid "Headers file received: %s"
+msgstr "Ficheiro de cabeçalhos recebido: %s"
+
+#: translation.rs0048
+msgid "SERVER: Server error receiving block file (%s)"
+msgstr "SERVIDOR: Erro ao receber ficheiro de bloco (%s)"
+
+#: translation.rs0049
+msgid "SERVER: Error creating stream from headers: %s"
+msgstr "SERVIDOR: Erro ao criar fluxo a partir dos cabeçalhos: %s"
+
+#: translation.rs0050
+msgid "Headers file sent to: %s"
+msgstr "Ficheiro de cabeçalhos enviado para: %s"
+
+#: translation.rs0051
+msgid "SERVER: Error sending headers file (%s)"
+msgstr "SERVIDOR: Erro ao enviar ficheiro de cabeçalhos (%s)"
+
+#: translation.rs0052
+msgid "SERVER: BlockZip send to %s: %s"
+msgstr "SERVIDOR: Arquivo zip de blocos enviado para %s: %s"
+
+#: translation.rs0053
+msgid "SERVER: Error sending ZIP blocks file (%s)"
+msgstr "SERVIDOR: Erro ao enviar arquivo zip de blocos (%s)"
+
+#: translation.rs0054
+msgid "SERVER: Error adding received line (%s)"
+msgstr "SERVIDOR: Erro ao adicionar linha recebida (%s)"
+
+#: translation.rs0055
+msgid "SERVER: Got unexpected line: %s"
+msgstr "SERVIDOR: Linha inesperada recebida: %s"
+
+#: translation.rs0056
+msgid "SERVER: Timeout reading line from new connection"
+msgstr "SERVIDOR: Tempo esgotado ao tentar ler linha de uma nova ligação"
+
+#: translation.rs0057
+msgid "SERVER: Can not read line from new connection (%s)"
+msgstr "SERVIDOR: Incapaz de ler linha de uma nova ligação (%s)"
+
+#: translation.rs0058
+msgid "SERVER: Invalid client -> %s"
+msgstr "SERVIDOR: Cliente inválido -> %s"
+
+#: translation.rs0059
+msgid "SERVER: Own connected"
+msgstr "SERVIDOR: Ligação a si mesmo"
+
+#: translation.rs0060
+msgid "SERVER: Duplicated connection -> %s"
+msgstr "SERVIDOR: Ligação em duplicado -> %s"
+
+#: translation.rs0061
+msgid "New Connection from: %s"
+msgstr "Nova ligação de: %s"
+
+#: translation.rs0062
+msgid "SERVER: Closed unhandled incoming connection -> %s"
+msgstr "SERVIDOR: Fechando ligação de entrada não tratada -> %s"
+
+#: translation.rs0063
+msgid "Next block required"
+msgstr "Bloco seguinte requisitado"
+
+#: translation.rs0064
+msgid "My PoS addresses"
+msgstr "Meu endereço PoS"
+
+#: translation.rs0065
+msgid "My PoS earnings"
+msgstr "Meus ganhos PoS"
+
+#: translation.rs0066
+msgid "Rebuilding my transactions..."
+msgstr "Reconstruindo transações pessoais..."
+
+#: translation.rs0067
+msgid "✓ My transactions rebuilded"
+msgstr "✓ Transações pessoais reconstruidas"
+
+#: translation.rs0068
+msgid "✓ My transactions grid updated"
+msgstr "✓ Tabela de transações pessoais actualizada"
+
+#: translation.rs0069
+msgid "✓ Launcher file deleted"
+msgstr "✓ Ficheiro de lançamento apagado"
+
+#: translation.rs0070
+msgid "✓ Restart file deleted"
+msgstr "✓ Ficheiro de reinicio apagado"
+
+#: translation.rs0071
+msgid "Checking last release available..."
+msgstr "Verificando se existe uma nova versão..."
+
+#: translation.rs0072
+msgid "✗ Failed connecting with project repo"
+msgstr "✗ Falha ao tentar ligar ao repositório do projeto"
+
+#: translation.rs0073
+msgid "✓ Running last release version"
+msgstr "✓ Esta é a ultima versão"
+
+#: translation.rs0074
+msgid "✗ New version available on project repo"
+msgstr "✗ Nova versão disponível no repositório do projeto"
+
+#: translation.rs0075
+msgid "✓ Running a development version"
+msgstr "✓ Esta é uma versão de desenvolvimento"
+
+#: translation.rs0076
+msgid "Start server"
+msgstr "Inicializar servidor"
+
+#: translation.rs0077
+msgid "Stop server"
+msgstr "Parar servidor"
+
+#: translation.rs0078
+msgctxt "translation.rs0078"
+msgid "Connect"
+msgstr "Conectar"
+
+#: translation.rs0079
+msgid "Disconnect"
+msgstr "Desconectar"
+
+#: translation.rs0080
+msgid "You can not test while server is active"
+msgstr ""
+
+#: translation.rs0081
+msgid "Invalid sign address"
+msgstr ""
+
+#: translation.rs0082
+msgid "Funds address do not owns enough coins"
+msgstr ""
+
+#: translation.rs0083
+msgid "You need update the wallet"
+msgstr ""
+
+#: translation.rs0084
+msgid "Not valid ASCII message received: %s"
+msgstr ""
+
+#: translation.rs0500
+msgid "Noso Launcher"
+msgstr "Lançador Noso"
+
+#: translation.rs0501
+msgid "Destination"
+msgstr "Destino"
+
+#: translation.rs0502
+msgid "Amount"
+msgstr "Quantia"
+
+#: translation.rs0503
+msgid "Reference"
+msgstr "Referencia"
+
+#: translation.rs0504
+msgctxt "translation.rs0504"
+msgid "Balance"
+msgstr "Saldo"
+
+#: translation.rs0505
+msgid "Server"
+msgstr "Servidor"
+
+#: translation.rs0506
+msgid "Connections"
+msgstr "Ligações"
+
+#: translation.rs0507
+msgid "Headers"
+msgstr "Cabeçalhos"
+
+#: translation.rs0508
+msgid "Summary"
+msgstr "Sumário"
+
+#: translation.rs0509
+msgid "LastBlock"
+msgstr "Último Bloco"
+
+#: translation.rs0510
+msgid "Blocks"
+msgstr "Blocos"
+
+#: translation.rs0511
+msgid "Pending"
+msgstr "Pendentes"
+
+#: translation.rs0512
+msgid "Invalid language: %s"
+msgstr "Língua inválida: %s"
+
+#: translation.rs0513
+msgid "Wallet restart needed"
+msgstr "A carteira precisa de re-inicializar"
+
+#: translation.rs0514
+msgid "Address"
+msgstr "Endereço"
+
+#: translation.rs0515
+msgctxt "translation.rs0515"
+msgid "Balance"
+msgstr "Saldo"
+
+#: translation.rs0516
+msgid "Masternodes: (%d) %s"
+msgstr ""
+
+#: translation.rs0517
+msgid "(%d)  %d/%s"
+msgstr ""
+
+#: translation.rs1000
+msgid "Processing block %d (%d %%)"
+msgstr "Processando bloco %d (%d %%)"
+
+#: translation.rs1001
+msgid ""
+"----- ERROR ----\n"
+"Block: %d\n"
+msgstr ""
+"----- ERRO ----\n"
+"Bloco: %d\n"
+
+#: translation.rs1002
+msgid ""
+"Wrong block hash\n"
+"File: %s\n"
+"Headers: %s\n"
+msgstr ""
+"Cifra de bloco errada\n"
+"Ficheiro: %s\n"
+"Cabeçalhos: %s\n"
+
+#: translation.rs1003
+msgid "File not found: %s"
+msgstr "Ficheiro não encontrado: %s"
+
+#: translation.rs1004
+msgid ""
+"Wrong summary hash\n"
+"Summary: %s\n"
+"Headers: %s\n"
+msgstr ""
+"Cifra de sumario errada\n"
+"Sumario: %s\n"
+"Cabeçalhos: %s\n"
+
+#: translation.rs1501
+msgid "Invalid address"
+msgstr ""
+
+#: translation.rs1502
+msgid "You can not do it while pool is active."
+msgstr ""
+
+#: translation.rs1503
+msgid "Totals: %d connections, %d IPs"
+msgstr ""
+
+#: translation.rs1504
+msgid "Address do not exists in wallet."
+msgstr ""
+
+#: translation.rs1505
+msgid "Keys pasted to clipboard."
+msgstr ""
+
+#: translation.rs2000
+msgid "Sign address not valid"
+msgstr ""
+
+#: translation.rs2001
+msgid "Wallet not updated"
+msgstr ""
+
+#: translation.rs2002
+msgid ""
+"*****CRITICAL*****\n"
+"Error inside VerifyConnectionStatus: %s\n"
+"*****CRITICAL*****\n"
+msgstr ""
+
+#: translation.rs2501
+msgid ""
+"*****CRITICAL*****\n"
+"Error type 3 on crypto thread: %s\n"
+"*****CRITICAL*****\n"
+msgstr ""
+
+#: translation.rs2502
+msgid ""
+"*****CRITICAL*****\n"
+"Error type 4 on crypto thread: %s\n"
+"*****CRITICAL*****\n"
+msgstr ""
+
+#: translation.rs2503
+msgid ""
+"*****CRITICAL*****\n"
+"Error type 5 on crypto thread: %s\n"
+"*****CRITICAL*****\n"
+msgstr ""
+

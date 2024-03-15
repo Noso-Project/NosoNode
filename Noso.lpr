@@ -19,17 +19,18 @@ var
   FolderCreated : boolean = false;
 
 begin
-
+  {
   if not directoryexists('locale'+DirectorySeparator) then
      begin
      CreateDir('locale'+DirectorySeparator);
      FolderCreated := true;
      end;
   //language := GetLanguage;
-  if ((WO_LastPoUpdate<>MainnetVersion+NodeRelease) or (FolderCreated)) then ExtractPoFiles;
-  WO_LastPoUpdate := MainnetVersion+NodeRelease;
-  SetDefaultLang(language);
-  RequireDerivedFormResource:=True;
+  }
+  //if ((WO_LastPoUpdate<>MainnetVersion+NodeRelease) or (FolderCreated)) then ExtractPoFiles;
+  //WO_LastPoUpdate := MainnetVersion+NodeRelease;
+  //SetDefaultLang(language);
+  //RequireDerivedFormResource:=True;
   Application.Scaled:=True;
   Application.Initialize;
 

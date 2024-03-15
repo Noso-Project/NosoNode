@@ -70,6 +70,7 @@ function SaveTextToDisk(const aFileName: TFileName; const aText: String): Boolea
 Function LoadTextFromDisk(const aFileName: TFileName): string;
 function TryCopyFile(Source, destination:string):boolean;
 function TryDeleteFile(filename:string):boolean;
+function AppFileName():string;
 Function MixTxtFiles(ListFiles : array of string;Destination:String;DeleteSources:boolean=true):boolean ;
 Function SendFileViaTCP(filename,message,host:String;Port:integer):Boolean;
 Function UnzipFile(filename:String;delFile:boolean):boolean;
@@ -462,6 +463,13 @@ End;
 function TryDeleteFile(filename:string):boolean;
 Begin
   result := deletefile(filename);
+End;
+
+// Returns the name of the app file without path
+function AppFileName():string;
+Begin
+  result := ExtractFileName(ParamStr(0));
+  // For working path: ExtractFilePAth
 End;
 
 Function MixTxtFiles(ListFiles : array of string;Destination:String;DeleteSources:boolean=true):boolean ;
