@@ -2254,7 +2254,7 @@ Begin
     END{Try};
     sleep(100);
     if ((not EarlyRestart) and (RestartNosoAfterQuit)) then RestartNoso;
-    CreateProperlyClosedAppFile(ClosedAppFilename);
+    CreateEmptyFile(ClosedAppFilename);
     form1.Close;
     end;
 End;

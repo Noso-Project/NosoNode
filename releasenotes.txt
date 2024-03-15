@@ -1,10 +1,9 @@
-Version 0.4.2 Cb5
+Version 0.4.2 Cb6
 
-Beta version
+Official release.
 
-Do not use this release. Only for testnet and beta-testers.
-
-- Summary locked while index creation.
-- MyResumenhash thread protected.
+- Multi language support removed.
+- Advanced masternodes protection.
+- Summary multi thread protected.
 
 

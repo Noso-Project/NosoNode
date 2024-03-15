@@ -46,7 +46,7 @@ Procedure CompleteSumary();
 Procedure SaveUpdatedFiles();
 
 //function GetMyLastUpdatedBlock():int64;
-Function CreateProperlyClosedAppFile(filename:String):Boolean;
+//Function CreateProperlyClosedAppFile(filename:String):Boolean;
 
 //Function UnzipBlockFile(filename:String;delFile:boolean):boolean;
 function UnZipUpdateFromRepo(Tver,TArch:String):boolean;
@@ -545,6 +545,7 @@ BlockFiles.Free;
 end;
 }
 
+{
 Function CreateProperlyClosedAppFile(filename:String):Boolean;
 var
   MyStream : TMemoryStream;
@@ -561,7 +562,7 @@ Begin
   END;
   MyStream.Free;
 End;
-
+}
 Function deleteBlockFiles(fromnumber:integer):integer;
 Begin
 
