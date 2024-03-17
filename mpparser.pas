@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, MasterPaskalForm, mpGUI, mpRed, mpDisk, nosotime, mpblock, mpcoin,
   dialogs, fileutil, forms, idglobal, strutils, mpRPC, DateUtils, Clipbrd,translation,
-  idContext, math, mpMN, MPSysCheck, nosodebug, nosogeneral, nosocrypto, nosounit,
+  idContext, math, MPSysCheck, nosodebug, nosogeneral, nosocrypto, nosounit,
   nosoconsensus, nosopsos,nosowallcon, nosoheaders, nosoblock, nosonosocfg,nosonetwork,
   nosogvts,nosomasternodes;
 

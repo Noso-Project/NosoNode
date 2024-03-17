@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils,MasterPaskalForm, fileutil, mpcoin, dialogs, math,
-  nosotime, mpMN, nosodebug,nosogeneral,nosocrypto, nosounit, strutils,
+  nosotime, nosodebug,nosogeneral,nosocrypto, nosounit, strutils,
   nosopsos,nosowallcon,nosoheaders, nosoblock,nosonosocfg,nosonetwork,nosogvts,
   nosomasternodes;
 

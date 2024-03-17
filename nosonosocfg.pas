@@ -201,9 +201,12 @@ End;
 
 // If the specified IP a seed node
 Function IsSeedNode(IP:String):boolean;
+var
+  SeedNodesStr : string;
 Begin
   Result := false;
-  if AnsiContainsStr(GetCFGDataStr(1),ip) then result := true;
+  SeedNodesStr := ':'+GetCFGDataStr(1);
+  if AnsiContainsStr(SeedNodesStr,':'+ip+';') then result := true;
 End;
 
 {$REGION Information}

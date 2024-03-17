@@ -583,7 +583,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  NodeRelease = 'Cb6';
+  NodeRelease = 'Cb7';
   OficialRelease = true;
   BetaRelease    = false;
   VersionRequired = '0.4.2';
@@ -718,11 +718,11 @@ var
   FormState_Status : integer;
 
   // Masternodes
-  G_MNVerifications  : integer = 0;
+  //G_MNVerifications  : integer = 0;
   //ArrayMNsData       : array of TMNsData;
   LastTimeReportMyMN : int64 = 0;
   MNsArray           : array of TMasterNode;
-  WaitingMNs         : array of String;
+  //WaitingMNs         : array of String;
   U_MNsGrid          : boolean = false;
   U_MNsGrid_Last     : int64 = 0;
 
@@ -795,7 +795,7 @@ var
 
   //MNs system
   //CSMNsArray    : TRTLCriticalSection;
-  CSWaitingMNs  : TRTLCriticalSection;
+  //CSWaitingMNs  : TRTLCriticalSection;
   CSMNsChecks   : TRTLCriticalSection;
 
   CSIdsProcessed: TRTLCriticalSection;
@@ -832,7 +832,7 @@ IMPLEMENTATION
 
 Uses
   mpgui, mpdisk, mpParser, mpRed, nosotime, mpProtocol, mpcoin,
-  mpRPC,mpblock, mpMN;
+  mpRPC,mpblock;
 
 {$R *.lfm}
 
@@ -1215,7 +1215,7 @@ Begin
     begin
     if UTCTime mod 10 = 0 then
       begin
-      if ( (IsValidator(LocalMN_IP)) and (BlockAge>500+(MNsRandomWait div 4)) and (Not MNVerificationDone) and
+      if ( (IsValidator(LocalMN_IP)) and (BlockAge>500+(MNsRandomWait div 4)) and (Not IsMyMNCheckDone) and
         (BlockAge<575)and(LastRunMNVerification<>UTCTime) and (MyConStatus = 3) and(VerifyThreadsCount<=0) ) then
         begin
         LastRunMNVerification := UTCTime;
@@ -1400,6 +1400,7 @@ Begin
   AddNewOpenThread('KeepConnect',UTCTime);
   while not terminated do
     begin
+    UpdateOpenThread('KeepConnect',UTCTime);
     TryThis := true;
     if getTotalConexiones >= MaxConecciones then TryThis := false;
     if GetTotalSyncedConnections>=3 then TryThis := false;
@@ -1469,7 +1470,7 @@ Begin
   //InitCriticalSection(CSPending);
   InitCriticalSection(CSCriptoThread);
   //InitCriticalSection(CSMNsArray);
-  InitCriticalSection(CSWaitingMNs);
+  //InitCriticalSection(CSWaitingMNs);
   InitCriticalSection(CSMNsChecks);
   InitCriticalSection(CSClosingApp);
   //InitCriticalSection(CSNosoCFGStr);
@@ -1499,7 +1500,7 @@ Begin
   //DoneCriticalSection(CSPending);
   DoneCriticalSection(CSCriptoThread);
   //DoneCriticalSection(CSMNsArray);
-  DoneCriticalSection(CSWaitingMNs);
+  //DoneCriticalSection(CSWaitingMNs);
   DoneCriticalSection(CSMNsChecks);
   DoneCriticalSection(CSClosingApp);
   //DoneCriticalSection(CSNosoCFGStr);
@@ -1688,7 +1689,7 @@ Begin
     Setlength(MNsArray,0);
     Setlength(MNsList,0);
     Setlength(ArrMNChecks,0);
-    Setlength(WaitingMNs,0);
+    //Setlength(WaitingMNs,0);
       ThreadMNs := TUpdateMNs.Create(true);
       ThreadMNs.FreeOnTerminate:=true;
       ThreadMNs.Start;
@@ -1731,7 +1732,7 @@ Begin
   Setlength(MNsArray,0);
   Setlength(MNsList,0);
   Setlength(ArrMNChecks,0);
-  Setlength(WaitingMNs,0);
+  //Setlength(WaitingMNs,0);
     ThreadMNs := TUpdateMNs.Create(true);
     ThreadMNs.FreeOnTerminate:=true;
     ThreadMNs.Start;
@@ -1965,8 +1966,9 @@ var
   GridWidth : integer;
 Begin
   GridWidth := form1.SG_Performance.Width;
-  form1.SG_OpenThreads.ColWidths[0]:= thispercent(70,GridWidth);
-  form1.SG_OpenThreads.ColWidths[1]:= thispercent(30,GridWidth,true);
+  form1.SG_OpenThreads.ColWidths[0]:= thispercent(50,GridWidth);
+  form1.SG_OpenThreads.ColWidths[1]:= thispercent(30,GridWidth);
+  form1.SG_OpenThreads.ColWidths[2]:= thispercent(20,GridWidth,true);
 End;
 
 // Resize: Processes Files

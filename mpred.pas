@@ -7,7 +7,7 @@ interface
 uses
   Classes, forms, SysUtils, MasterPaskalForm, nosotime, IdContext, IdGlobal, mpGUI, mpDisk,
   mpBlock, fileutil, graphics,  dialogs, strutils, mpcoin, fphttpclient,
-  opensslsockets,translation, IdHTTP, IdComponent, IdSSLOpenSSL, mpmn, IdTCPClient,
+  opensslsockets,translation, IdHTTP, IdComponent, IdSSLOpenSSL, IdTCPClient,
   nosodebug,nosogeneral, nosocrypto, nosounit, nosoconsensus, nosopsos,nosowallcon,
   nosoheaders, nosoblock, nosonosocfg,nosonetwork,nosogvts,nosomasternodes;
 
@@ -31,7 +31,7 @@ function GetTotalSyncedConnections():Integer;
 function CerrarClientes(ServerToo:Boolean=True):string;
 Procedure LeerLineasDeClientes();
 Procedure VerifyConnectionStatus();
-Function IsAllSynced():integer;
+//Function IsAllSynced():integer;
 //Procedure UpdateMyData();
 Procedure SyncWithMainnet();
 function GetOutGoingConnections():integer;
@@ -46,7 +46,7 @@ Function GetLastRelease():String;
 Function GetRepoFile(LurL:String):String;
 Function GetOS():string;
 Function GetLastVerZipFile(version,LocalOS:string):boolean;
-Function GetSyncTus():String;
+//Function GetSyncTus():String;
 function GetMiIP():String;
 Function NodeServerInfo():String;
 Procedure ClearReceivedOrdersIDs();
@@ -339,68 +339,40 @@ Begin
   result := 0;
   ConContext := Default(TIdContext);
   Slot := ReserveSlot();
-  if Address = '127.0.0.1' then
-    begin
-    ToLog('events',TimeToStr(now)+'127.0.0.1 is an invalid server address');    //127.0.0.1 is an invalid server address
-    errored := true;
-    end
-  else if Slot = 0 then errored := true;  // No free slots
-  if not errored then
-    begin
-    if CanalCliente[Slot].Connected then
-      begin // Close Slot if it is connected
-
-      end;
-   CanalCliente[Slot].Host:=Address;
-   CanalCliente[Slot].Port:=StrToIntDef(Port,8080);
-   CanalCliente[Slot].ConnectTimeout:= 1000;
-   ClearOutTextToSlot(slot);
-     TRY
-     CanalCliente[Slot].Connect;
-     ConnectOk := true;
-     EXCEPT on E:Exception do
-       begin
-       ConnectOk := False;
-       //ToLog('Console','ConnectClient: '+Address+':'+port+' '+e.Message);
-       end;
-     END;{TRY}
-   if connectok then
-     begin
-     SavedSlot := SaveConection('SER',Address,ConContext,slot);
-      //ToLog('console',SavedSlot.ToString);
-     ToLog('events',TimeToStr(now)+'Connected TO: '+Address);          //Connected TO:
-     StartConexThread(Slot);
-     //Conexiones[slot].Thread := TThreadClientRead.Create(true, slot);
-     //Conexiones[slot].Thread.FreeOnTerminate:=true;
-     //Conexiones[slot].Thread.Start;
-     //IncClientReadThreads;
-     result := Slot;
-       TRY
-       CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address+' '+MainnetVersion+NodeRelease+' '+UTCTimeStr);
-       CanalCliente[Slot].IOHandler.WriteLn(ProtocolLine(3));   // Send PING
-       EXCEPT on E:Exception do
-         begin
-         result := 0;
-         CloseSlot(slot);
-         end;
-       END;{TRY}
-     end
-    else
+  if Slot = 0 then exit;  // No free slots
+  CanalCliente[Slot].Host:=Address;
+  CanalCliente[Slot].Port:=StrToIntDef(Port,8080);
+  CanalCliente[Slot].ConnectTimeout:= 1000;
+  ClearOutTextToSlot(slot);
+    TRY
+    CanalCliente[Slot].Connect;
+    ConnectOk := true;
+    EXCEPT on E:Exception do
       begin
-      result := 0;
-      UnReserveSlot(Slot);
-      CloseSlot(slot);
+      ConnectOk := False;
       end;
-   {
-   EXCEPT on E:Exception do
-      begin
-      ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error Connecting to '+Address+': '+E.Message);
-      UnReserveSlot(Slot);
-      end;
-   END;{Try}
-   }
+    END;{TRY}
+  if connectok then
+    begin
+    SavedSlot := SaveConection('SER',Address,ConContext,slot);
+    ToLog('events',TimeToStr(now)+'Connected TO: '+Address);          //Connected TO:
+    StartConexThread(Slot);
+    result := Slot;
+      TRY
+      CanalCliente[Slot].IOHandler.WriteLn('PSK '+Address+' '+MainnetVersion+NodeRelease+' '+UTCTimeStr);
+      CanalCliente[Slot].IOHandler.WriteLn(ProtocolLine(3));   // Send PING
+      EXCEPT on E:Exception do
+        begin
+        result := 0;
+        CloseSlot(slot);
+        end;
+      END;{TRY}
     end
-  else UnReserveSlot(Slot);
+  else
+    begin
+    result := 0;
+    UnReserveSlot(Slot);
+    end;
 End;
 
 {
@@ -581,6 +553,7 @@ EXCEPT ON E:Exception do
 END{Try};
 End;
 
+{
 Function IsAllSynced():integer;
 Begin
 result := 0;
@@ -594,7 +567,7 @@ if MyGVTsHash <> NetGVTSHash.Value then result := 6;
 if MyCFGHash <> NETCFGHash.Value then result := 7;
 }
 End;
-
+}
 {
 // Actualiza mi informacion para compoartirla en la red
 Procedure UpdateMyData();
@@ -960,7 +933,6 @@ var
   LastBlockToCheck : integer;
   Counter          : integer;
   counter2         : integer;
-  resultorder      : Torderdata;
   ArrTrxs          : TBlockOrdersArray;
   orderfound       : boolean = false;
 Begin
@@ -1093,6 +1065,7 @@ MS.Free;
 conector.free;
 End;
 
+{
 Function GetSyncTus():String;
 Begin
   result := '';
@@ -1104,11 +1077,10 @@ Begin
     end;
   END; {TRY}
 End;
-
+}
 function GetMiIP():String;
 var
   TCPClient : TidTCPClient;
-  LineText  : String = '';
   NodeToUse : integer;
 Begin
   NodeToUse := Random(NodesListLen);
@@ -1161,7 +1133,6 @@ function SendOrderToNode(OrderString:String):String;
 var
   Client    : TidTCPClient;
   RanNode   : integer;
-  ThisNode  : TNodeData;
   TrysCount : integer = 0;
   WasOk     : Boolean = false;
 Begin

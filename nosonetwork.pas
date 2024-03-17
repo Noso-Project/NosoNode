@@ -72,6 +72,10 @@ Type
   Procedure ProcessPing(LineaDeTexto: string; Slot: integer; Responder:boolean);
   Procedure ProcessIncomingLine(FSlot:integer;LLine:String);
   Procedure SendMNsListToPeer(slot:integer);
+  Procedure SendMNChecksToPeer(Slot:integer);
+  Function GetVerificationMNLine(ToIp:String):String;
+  Function IsAllSynced():integer;
+  Function GetSyncTus():String;
 
   Procedure ClearOutTextToSlot(slot:integer);
   Function GetTextToSlot(slot:integer):string;
@@ -89,6 +93,7 @@ Type
 
   Procedure UpdateMyData();
   Function IsValidator(Ip:String):boolean;
+  Function ValidateMNCheck(Linea:String):string;
 
   Procedure IncClientReadThreads();
   Procedure DecClientReadThreads();
@@ -142,6 +147,7 @@ var
   LasTimePSOsRequest           : int64 = 0;
   LastBotClear                 : int64 = 0;
   ForceCompleteHeadersDownload : boolean = false;
+  G_MNVerifications            : integer = 0;
   // Local data hashes
   MyLastBlock     : integer = 0;
   MyLastBlockHash : String = '';
@@ -231,7 +237,6 @@ Begin
 End;
 
 {$ENDREGION Pending Pool transactions}
-
 
 {$REGION Protocol}
 
@@ -365,6 +370,59 @@ Begin
     for counter := 0 to length(DataArray)-1 do
       TextToSlot(slot,GetPTCEcn+'$MNREPO '+DataArray[counter]);
     end;
+End;
+
+Procedure SendMNChecksToPeer(Slot:integer);
+var
+  Counter : integer;
+  Texto : string;
+Begin
+  if GetMNsChecksCount>0 then
+    begin
+    EnterCriticalSection(CSMNsChecks);
+    for counter := 0 to length(ArrMNChecks)-1 do
+      begin
+      Texto := ProtocolLine(14)+GetStringFromMNCheck(ArrMNChecks[counter]);
+      TextToSlot(slot,Texto);
+      end;
+    LeaveCriticalSection(CSMNsChecks);
+    end;
+End;
+
+Function GetVerificationMNLine(ToIp:String):String;
+Begin
+  if IsAllSynced=0 then
+    begin
+    Result := 'True '+GetSyncTus+' '+LocalMN_Funds+' '+ToIp+' '+LocalMN_Sign;
+    Inc(G_MNVerifications);
+    end
+  else Result := 'False';
+End;
+
+Function IsAllSynced():integer;
+Begin
+  result := 0;
+  if MyLastBlock     <> StrToIntDef(GetConsensus(cLastBlock),0) then result := 1;
+  if MyLastBlockHash <> GetConsensus(cLBHash) then result := 2;
+  if Copy(MySumarioHash,0,5)   <> GetConsensus(cSumHash) then result := 3;
+  if Copy(GetResumenHash,0,5)   <> GetConsensus(cHeaders) then result := 4;
+  {
+  if Copy(GetMNsHash,1,5) <>  NetMNsHash.value then result := 5;
+  if MyGVTsHash <> NetGVTSHash.Value then result := 6;
+  if MyCFGHash <> NETCFGHash.Value then result := 7;
+  }
+End;
+
+Function GetSyncTus():String;
+Begin
+  result := '';
+  TRY
+    Result := MyLastBlock.ToString+Copy(GetResumenHash,1,3)+Copy(MySumarioHash,1,3)+Copy(MyLastBlockHash,1,3);
+  EXCEPT ON E:EXCEPTION do
+    begin
+    ToDeepDeb('NosoNetwork,GetSyncTus,'+e.Message);
+    end;
+  END; {TRY}
 End;
 
 {$ENDREGION Protocol}
@@ -526,6 +584,32 @@ Begin
   if IsSeedNode(IP) then result := true;
 End;
 
+// Verify if a validation report is correct
+Function ValidateMNCheck(Linea:String):string;
+var
+  CheckData : TMNCheck;
+  StartPos : integer;
+  ReportInfo : String;
+  ErrorCode : integer = 0;
+Begin
+  Result := '';
+  StartPos := Pos('$',Linea);
+  ReportInfo := copy (Linea,StartPos,length(Linea));
+  CheckData := GetMNCheckFromString(Linea);
+  if MnsCheckExists(CheckData.ValidatorIP) then exit;
+  if not IsValidator(CheckData.ValidatorIP) then ErrorCode := 1;
+  if CheckData.Block <> MyLastBlock then ErrorCode := 2;
+  if GetAddressFromPublicKey(CheckData.PubKey)<>CheckData.SignAddress then ErrorCode := 3;
+  if not VerifySignedString(CheckData.ValidNodes,CheckData.Signature,CheckData.PubKey) then ErrorCode := 4;
+  if ErrorCode = 0 then
+    begin
+    Result := ReportInfo;
+    AddMNCheck(CheckData);
+    //if form1.Server.Active then
+    //  outGOingMsjsAdd(GetPTCEcn+ReportInfo);
+    end
+End;
+
 {$ENDREGION General Data}
 
 {$REGION Thread Client read}
@@ -569,12 +653,15 @@ var
   LineToSend   : string;
   KillIt       : boolean = false;
   SavedToFile  : boolean;
+  ThreadName   : string = '';
   LastActive   : int64 = 0;
+
 begin
+  ThreadName := 'ReadClient '+FSlot.ToString+' '+UTCTimeStr;
   CanalCliente[FSlot].ReadTimeout:=1000;
   CanalCliente[FSlot].IOHandler.MaxLineLength:=Maxint;
   IncClientReadThreads;
-  AddNewOpenThread('ReadClient '+FSlot.ToString,UTCTime);
+  AddNewOpenThread(ThreadName,UTCTime);
   LastActive := UTCTime;
   REPEAT
     sleep(10);
@@ -613,6 +700,7 @@ begin
         if LLine <> '' then
           begin
           LastActive := UTCTime;
+          UpdateOpenThread(ThreadName,UTCTime);
           CanalCliente[FSlot].ReadTimeout:=10000;
           if Parameter(LLine,0) = 'RESUMENFILE' then
             begin
@@ -713,7 +801,7 @@ begin
   UNTIL ( (terminated) or (Conexiones[Fslot].tipo='') or  (not CanalCliente[FSlot].Connected) or (KillIt) );
   CloseSlot(Fslot);
   DecClientReadThreads;
-  CloseOpenThread('ReadClient '+FSlot.ToString);
+  CloseOpenThread(ThreadName);
 End;
 
 //Procedure ProcessLine(LLine:String;)

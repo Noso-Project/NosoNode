@@ -48,7 +48,7 @@ var
 implementation
 
 Uses
-  mpParser, mpDisk, mpRed, mpProtocol,mpcoin, mpblock, formexplore, translation, mpMN;
+  mpParser, mpDisk, mpRed, mpProtocol,mpcoin, mpblock, formexplore, translation;
 
 // Returns the X percentage of a specified number
 function ThisPercent(percent, thiswidth : integer;RestarBarra : boolean = false):integer;
@@ -367,6 +367,7 @@ if LastUpdateProcesses<> UTCTime then
          begin
          Form1.SG_OpenThreads.Cells[0,contador+1]:=LocalPRocesses[contador].ThName;
          Form1.SG_OpenThreads.Cells[1,contador+1]:=TimeSinceStamp(LocalPRocesses[contador].ThStart);
+         Form1.SG_OpenThreads.Cells[2,contador+1]:=TimeSinceStamp(LocalPRocesses[contador].ThLast);
          end;
       end;
    end;

@@ -318,7 +318,7 @@ object Form1: TForm1
     Height = 488
     Top = 38
     Width = 640
-    ActivePage = tabOptions
+    ActivePage = TabMonitor
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
     Font.CharSet = ANSI_CHARSET
@@ -327,7 +327,7 @@ object Form1: TForm1
     Font.Pitch = fpVariable
     Font.Quality = fqDraft
     ParentFont = False
-    TabIndex = 2
+    TabIndex = 3
     TabOrder = 0
     object TabWallet: TTabSheet
       Caption = 'Wallet'
@@ -1911,9 +1911,9 @@ object Form1: TForm1
         Height = 460
         Top = 0
         Width = 632
-        ActivePage = TabMonitorMonitor
+        ActivePage = TabProcesses
         Align = alClient
-        TabIndex = 2
+        TabIndex = 3
         TabOrder = 0
         object TabDebug_Log: TTabSheet
           Caption = 'Log'
@@ -2069,7 +2069,7 @@ object Form1: TForm1
                 Top = 0
                 Width = 616
                 Align = alClient
-                ColCount = 2
+                ColCount = 3
                 FixedCols = 0
                 Font.CharSet = ANSI_CHARSET
                 Font.Height = -11
@@ -2082,13 +2082,16 @@ object Form1: TForm1
                 TabOrder = 0
                 OnResize = SG_OpenThreadsResize
                 Cells = (
-                  2
+                  3
                   0
                   0
                   'Thread'
                   1
                   0
                   'Age'
+                  2
+                  0
+                  'Active'
                 )
               end
             end

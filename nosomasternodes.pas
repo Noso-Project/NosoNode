@@ -69,9 +69,19 @@ Type
 
   Function GetMNsChecksCount():integer;
   Function GetValidNodesCountOnCheck(StringNodes:String):integer;
+  Function GetMNCheckFromString(Linea:String):TMNCheck;
+  Procedure ClearMNsChecks();
+  Function MnsCheckExists(Ip:String):Boolean;
+  Procedure AddMNCheck(ThisData:TMNCheck);
+  Function GetStringFromMNCheck(Data:TMNCheck): String;
+  Function IsMyMNCheckDone():Boolean;
 
   Procedure SetMNsHash();
   Function GetMNsHash():String;
+
+  Function LengthWaitingMNs():Integer;
+  Procedure AddWaitingMNs(Linea:String);
+  Function GetWaitingMNs():String;
 
   Function GetMNAgeCount(TNode:TMNode):string;
   Function LoadMNsFile():String;
@@ -118,6 +128,9 @@ var
 
   MN_FileText         : String = '';
   CSMN_FileText       : TRTLCriticalSection;
+
+  ArrWaitMNs          : array of String;
+  CSWaitingMNs        : TRTLCriticalSection;
 
 IMPLEMENTATION
 
@@ -586,6 +599,75 @@ Begin
   UNTIL ThisIP = '';
 End;
 
+// Converts a string into a TMNChekc data
+Function GetMNCheckFromString(Linea:String):TMNCheck;
+Begin
+  Result := Default(TMNCheck);
+  Result.ValidatorIP    :=Parameter(Linea,5);
+  Result.Block          :=StrToIntDef(Parameter(Linea,6),0);
+  Result.SignAddress    :=Parameter(Linea,7);
+  Result.PubKey         :=Parameter(Linea,8);
+  Result.ValidNodes     :=Parameter(Linea,9);
+  Result.Signature      :=Parameter(Linea,10);
+End;
+
+// Clears all the MNS checks
+Procedure ClearMNsChecks();
+Begin
+  EnterCriticalSection(CSMNsChecks);
+  SetLength(ArrMNChecks,0);
+  LeaveCriticalSection(CSMNsChecks);
+End;
+
+// Verify if an IP already sent a verification
+Function MnsCheckExists(Ip:String):Boolean;
+var
+  Counter : integer;
+Begin
+  result := false;
+  EnterCriticalSection(CSMNsChecks);
+  For counter := 0 to length(ArrMNChecks)-1 do
+    begin
+    if ArrMNChecks[counter].ValidatorIP = IP then
+      begin
+      result := true;
+      break;
+      end;
+    end;
+  LeaveCriticalSection(CSMNsChecks);
+End;
+
+// Adds a new MNCheck
+Procedure AddMNCheck(ThisData:TMNCheck);
+Begin
+  EnterCriticalSection(CSMNsChecks);
+  Insert(ThisData,ArrMNChecks,Length(ArrMNChecks));
+  LeaveCriticalSection(CSMNsChecks);
+End;
+
+Function GetStringFromMNCheck(Data:TMNCheck): String;
+Begin
+  result := Data.ValidatorIP+' '+IntToStr(Data.Block)+' '+Data.SignAddress+' '+Data.PubKey+' '+
+         Data.ValidNodes+' '+Data.Signature;
+End;
+
+Function IsMyMNCheckDone():Boolean;
+var
+  counter : integer;
+Begin
+  result := false;
+  EnterCriticalSection(CSMNsChecks);
+  for counter := 0 to length(ArrMNChecks)-1 do
+    begin
+    if ArrMNChecks[counter].ValidatorIP = LocalMN_IP then
+      begin
+      result := true;
+      break;
+      end;
+    end;
+  LeaveCriticalSection(CSMNsChecks);
+End;
+
 {$ENDREGION MNs check handling}
 
 {$REGION MNs FileData handling}
@@ -628,6 +710,36 @@ Begin
 End;
 
 {$ENDREGION MNs hash}
+
+{$REGION Waiting Masternodes}
+
+Function LengthWaitingMNs():Integer;
+Begin
+  EnterCriticalSection(CSWaitingMNs);
+  result := Length(ArrWaitMNs);
+  LeaveCriticalSection(CSWaitingMNs);
+End;
+
+Procedure AddWaitingMNs(Linea:String);
+Begin
+  EnterCriticalSection(CSWaitingMNs);
+  Insert(Linea,ArrWaitMNs,Length(ArrWaitMNs));
+  LeaveCriticalSection(CSWaitingMNs);
+End;
+
+Function GetWaitingMNs():String;
+Begin
+  result := '';
+  if LengthWaitingMNs>0 then
+    begin
+    EnterCriticalSection(CSWaitingMNs);
+    Result := ArrWaitMNs[0];
+    Delete(ArrWaitMNs,0,1);
+    end;
+  LeaveCriticalSection(CSWaitingMNs);
+End;
+
+{$ENDREGION Waiting Masternodes}
 
 Function LoadMNsFile():String;
 var
@@ -748,12 +860,14 @@ Begin
 End;
 
 
+
 INITIALIZATION
 SetLength(MNsListCopy,0);
 SetLength(MNsList,0);
 SetLength(ArrayIPsProcessed,0);
 SetLength(ArrMNChecks,0);
 SetLength(ArrayMNsData,0);
+Setlength(ArrWaitMNs,0);
 InitCriticalSection(CSMNsIPProc);
 InitCriticalSection(CSMNsList);
 InitCriticalSection(CSVerNodes);
@@ -761,6 +875,7 @@ InitCriticalSection(CSVerifyThread);
 InitCriticalSection(CSMNsChecks);
 InitCriticalSection(CSMNsFile);
 InitCriticalSection(CS_MNsHash);
+InitCriticalSection(CSWaitingMNs);
 
 
 FINALIZATION
@@ -771,6 +886,7 @@ DoneCriticalSection(CSVerifyThread);
 DoneCriticalSection(CSMNsChecks);
 DoneCriticalSection(CSMNsFile);
 DoneCriticalSection(CS_MNsHash);
+DoneCriticalSection(CSWaitingMNs);
 
 
 END. // End unit

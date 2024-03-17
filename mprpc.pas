@@ -5,7 +5,7 @@ unit mpRPC;
 interface
 
 uses
-  Classes, SysUtils, mpgui, FPJSON, jsonparser,strutils, mpCoin, mpRed, mpBlock,mpmn,nosodebug,
+  Classes, SysUtils, mpgui, FPJSON, jsonparser,strutils, mpCoin, mpRed, mpBlock,nosodebug,
   nosogeneral, nosocrypto, nosounit, nosoconsensus, nosowallcon,nosopsos,nosonetwork,nosoblock,
   nosogvts,nosomasternodes;
 

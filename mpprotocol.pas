@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, mpRed, MasterPaskalForm, mpParser, StrUtils, mpDisk, nosotime, mpBlock,
-  Zipper, mpcoin, mpMn, nosodebug, nosogeneral, nosocrypto, nosounit,nosoconsensus,nosopsos,
+  Zipper, mpcoin, nosodebug, nosogeneral, nosocrypto, nosounit,nosoconsensus,nosopsos,
   nosoheaders, NosoNosoCFG, nosoblock, nosonetwork,nosogvts,nosoMasternodes;
 
 //function GetPTCEcn():String;
@@ -198,6 +198,7 @@ var
   PeerTime: String = '';
   Linecomando : string = '';
   ProcessLine : String;
+  ValidMNCheck : String;
 Begin
   for contador := 1 to MaxConecciones do
     begin
@@ -235,8 +236,13 @@ Begin
       else if UpperCase(LineComando) = 'ORDER' then INC_PTC_Order(ProcessLine, contador)
       else if UpperCase(LineComando) = 'ADMINMSG' then PTC_AdminMSG(ProcessLine)
       else if UpperCase(LineComando) = '$MNREPO' then AddWaitingMNs(ProcessLine)//
-      else if UpperCase(LineComando) = '$MNCHECK' then PTC_MNCheck(ProcessLine)
-      else if UpperCase(LineComando) = '$GETCHECKS' then PTC_SendChecks(contador)
+      else if UpperCase(LineComando) = '$MNCHECK' then
+         begin
+         ValidMNCheck := ValidateMNCheck(ProcessLine);
+         if ValidMNCheck<>'' then outGOingMsjsAdd(GetPTCEcn+ValidMNCheck)
+         //PTC_MNCheck(ProcessLine)
+         end
+      else if UpperCase(LineComando) = '$GETCHECKS' then SendMNChecksToPeer(contador)
       else if UpperCase(LineComando) = 'GETMNSFILE' then PTC_SendLine(contador,ProtocolLine(MNFILE)+' $'+LoadMNsFile)
       else if UpperCase(LineComando) = 'GETCFGDATA' then PTC_SendLine(contador,ProtocolLine(SETCFG)+GetCFGDataStr)
 

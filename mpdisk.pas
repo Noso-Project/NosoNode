@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MasterPaskalForm, Dialogs, Forms, nosotime, FileUtil, LCLType,
-  lclintf, controls, mpBlock, Zipper, mpcoin, mpMn, nosodebug,
+  lclintf, controls, mpBlock, Zipper, mpcoin, nosodebug,
   translation, strutils,nosogeneral, nosocrypto, nosounit, nosoconsensus, nosopsos,
   nosowallcon, nosoheaders, nosonosocfg, nosoblock,nosonetwork,nosomasternodes,nosogvts;
 

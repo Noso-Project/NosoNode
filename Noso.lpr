@@ -9,15 +9,16 @@ uses
   Interfaces, // this includes the LCL widgetset
   Forms, MasterPaskalForm, mpGUI, mpdisk, mpParser, mpRed, mpProtocol, mpBlock,
   mpCoin, mpsignerutils, mpRPC, translation, indylaz, sysutils, LCLTranslator,
-  mpMN, mpsyscheck, NosoTime, nosodebug, nosogeneral, nosocrypto, nosounit,
+  mpsyscheck, NosoTime, nosodebug, nosogeneral, nosocrypto, nosounit,
   nosoconsensus, nosopsos, nosowallcon, NosoHeaders, NosoNosoCFG, NosoBlock,
   NosoNetwork, NosoClient, nosogvts, nosomasternodes;
 
 {$R *.res}
+{
 var
   language : string = '';
   FolderCreated : boolean = false;
-
+}
 begin
   {
   if not directoryexists('locale'+DirectorySeparator) then
