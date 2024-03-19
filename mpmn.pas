@@ -930,23 +930,23 @@ LeaveCriticalSection(CSWaitingMNs);
 End;
 }
 Initialization
-InitCriticalSection(CSVerNodes);
+//InitCriticalSection(CSVerNodes);
 //InitCriticalSection(DecVerThreads);
-InitCriticalSection(CSMNsChecks);
+//InitCriticalSection(CSMNsChecks);
 //InitCriticalSection(CSMNsFile);
 //InitCriticalSection(CSMNsIPCheck);
-InitCriticalSection(CSMN_FileText);
+//InitCriticalSection(CSMN_FileText);
 //InitCriticalSection(CSMN_Contract);
 
 //SetLength(ArrayIPsProcessed,0);
 
 Finalization
-DoneCriticalSection(CSVerNodes);
+//DoneCriticalSection(CSVerNodes);
 //DoneCriticalSection(DecVerThreads);
-DoneCriticalSection(CSMNsChecks);
+//DoneCriticalSection(CSMNsChecks);
 //DoneCriticalSection(CSMNsFile);
 //DoneCriticalSection(CSMNsIPCheck);
-DoneCriticalSection(CSMN_FileText);
+//DoneCriticalSection(CSMN_FileText);
 //DoneCriticalSection(CSMN_Contract);
 
 END. // End UNIT

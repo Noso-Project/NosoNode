@@ -11,10 +11,10 @@ uses
 function GetAddressAvailable(address:string):int64;
 function GetAddressPendingPays(Address:string):int64;
 function GetAddressIncomingpays(Address:string):int64;
-function TranxAlreadyPending(TrxHash:string):boolean;
-function TrxExistsInLastBlock(trfrhash:String):boolean;
-function GetLastPendingTime():int64;
-function AddArrayPoolTXs(order:TOrderData):boolean;
+//function TranxAlreadyPending(TrxHash:string):boolean;
+//function TrxExistsInLastBlock(trfrhash:String):boolean;
+//function GetLastPendingTime():int64;
+//function AddArrayPoolTXs(order:TOrderData):boolean;
 Procedure VerifyIfPendingIsMine(order:Torderdata);
 function AddressAlreadyCustomized(address:string):boolean;
 Function GVTAlreadyTransfered(NumberStr:String):boolean;
@@ -88,6 +88,7 @@ if GetPendingCount>0 then
    end;
 End;
 
+{
 //Devuelve si una transaccion ya se encuentra pendiente
 function TranxAlreadyPending(TrxHash:string):boolean;
 var
@@ -103,7 +104,9 @@ for cont := 0 to GetPendingCount-1 do
       end;
    end;
 End;
+}
 
+{
 // Devuelve si una transaccion existe en el ultimo bloque
 function TrxExistsInLastBlock(trfrhash:String):boolean;
 var
@@ -123,7 +126,9 @@ for cont := 0 to length(ArrayLastBlockTrxs)-1 do
    end;
 SetLength(ArrayLastBlockTrxs,0);
 End;
+}
 
+{
 function GetLastPendingTime():int64;
 Begin
   result := 0;
@@ -131,7 +136,9 @@ Begin
   if length(ArrayPoolTXs) > 0 then result := ArrayPoolTXs[length(ArrayPoolTXs)-1].TimeStamp;
   LeaveCriticalSection(CSPending);
 End;
+}
 
+{
 // Añade la transaccion pendiente en su lugar
 function AddArrayPoolTXs(order:TOrderData):boolean;
 var
@@ -183,6 +190,7 @@ if not TranxAlreadyPending(order.TrfrID) then
    end;
 EndPerformance('AddArrayPoolTXs');
 End;
+}
 
 // Verifica si una orden especifica es del usuario
 Procedure VerifyIfPendingIsMine(order:Torderdata);
@@ -195,7 +203,6 @@ Begin
   if SendIndex>=0 then
     begin
     SetPendingForAddress(SendIndex,GetWallArrIndex(SendIndex).Pending+Order.AmmountFee+order.AmmountTrf);
-    //WalletArray[WallAddIndex(DireccionEnvia)].Pending:=WalletArray[WallAddIndex(DireccionEnvia)].Pending+Order.AmmountFee+order.AmmountTrf;
     montooutgoing := montooutgoing+Order.AmmountFee+order.AmmountTrf;
     if not form1.ImageOut.Visible then form1.ImageOut.Visible:= true;
     end;

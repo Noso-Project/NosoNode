@@ -86,7 +86,7 @@ Type
   Function GetMNAgeCount(TNode:TMNode):string;
   Function LoadMNsFile():String;
   Procedure SaveMNsFile(GotText:string);
-  Procedure SetMN_FileText(Tvalue:String);
+  Procedure SetMN_FileText(lvalue:String);
   Function GetMN_FileText():String;
   Procedure FillMNsArray(TValue:String);
   Function GetVerificatorsText():string;
@@ -139,7 +139,6 @@ Begin
   MasterNodesFilename := LText;
   AssignFile(MNFileHandler,MasterNodesFilename);
   if not FileExists(MasterNodesFilename) then CreateEmptyFile(MasterNodesFilename);
-
 End;
 
 Procedure SetLocalIP(NewValue:String);
@@ -758,7 +757,7 @@ Begin
   END {TRY};
   LeaveCriticalSection(CSMNsFile);
   SetMN_FileText(result);
-  SetMNsHash;
+  //SetMNsHash;
 End;
 
 Procedure SaveMNsFile(GotText:string);
@@ -779,11 +778,11 @@ Begin
   SetMNsHash;
 End;
 
-Procedure SetMN_FileText(Tvalue:String);
+Procedure SetMN_FileText(lvalue:String);
 Begin
   EnterCriticalSection(CSMN_FileText);
-  MN_FileText := Tvalue;
-  FillMNsArray(TValue);
+  MN_FileText := lvalue;
+  FillMNsArray(lValue);
   //FillNodeList; <- Critical: needs to be redone
   LeaveCriticalSection(CSMN_FileText);
   SetMNsHash;
@@ -793,8 +792,8 @@ Function GetMN_FileText():String;
 Begin
   EnterCriticalSection(CSMN_FileText);
   Result := MN_FileText;
-  FillMNsArray(result);
   LeaveCriticalSection(CSMN_FileText);
+  FillMNsArray(result);
 End;
 
 Procedure FillMNsArray(TValue:String);
@@ -808,6 +807,7 @@ var
   VerificatorsCount : integer;
 Begin
   BeginPerformance('FillMNsArray');
+  TRY
   SetLength(ArrayMNsData,0);
   SetLength(TempArray,0);
   Repeat
@@ -842,6 +842,9 @@ Begin
       if not added then Insert(ThisMN,ArrayMNsData,length(ArrayMNsData));
       end;
     end;
+  EXCEPT on E:Exception do
+    ToDeepDeb('Nosomasternodes,FillMNsArray,'+E.Message);
+  END;
   EndPerformance('FillMNsArray');
 End;
 
@@ -876,6 +879,8 @@ InitCriticalSection(CSMNsChecks);
 InitCriticalSection(CSMNsFile);
 InitCriticalSection(CS_MNsHash);
 InitCriticalSection(CSWaitingMNs);
+InitCriticalSection(CSMN_FileText);
+InitCriticalSection(CSMNsChecks);
 
 
 FINALIZATION
@@ -887,6 +892,8 @@ DoneCriticalSection(CSMNsChecks);
 DoneCriticalSection(CSMNsFile);
 DoneCriticalSection(CS_MNsHash);
 DoneCriticalSection(CSWaitingMNs);
+DoneCriticalSection(CSMN_FileText);
+DoneCriticalSection(CSMNsChecks);
 
 
 END. // End unit

@@ -53,8 +53,6 @@ function UnZipUpdateFromRepo(Tver,TArch:String):boolean;
 
 Procedure CreateLauncherFile(IncludeUpdate:boolean = false);
 Procedure RestartNoso();
-Procedure CrearRestartfile();
-Procedure RestartConditions();
 Procedure RestoreBlockChain();
 Procedure RestoreSumary(fromBlock:integer=0);
 //function AppFileName():string;
@@ -776,46 +774,6 @@ Begin
 CreateLauncherFile();
 RunExternalProgram(RestartFilename);
 End;
-
-// Creates autorestart file
-Procedure CrearRestartfile();
-var
-  archivo : textfile;
-Begin
-Assignfile(archivo, 'restart.txt');
-   try
-   rewrite(archivo);
-   writeln(archivo,GetCurrentStatus(0));
-   Closefile(archivo);
-   Except on E:Exception do
-      ToLog('events',TimeToStr(now)+'Error creating restart file');
-   end;
-End;
-
-// apply restart conditions
-Procedure RestartConditions();
-var
-  archivo : textfile;
-  linea : string = '';
-  Server,connect : boolean;
-Begin
-Assignfile(archivo, 'restart.txt');
-reset(archivo);
-TRY
-ReadLn(archivo,linea);
-EXCEPT ON E:Exception do
-   begin
-
-   end;
-END{Try};
-Closefile(archivo);
-server := StrToBoolDef(parameter(linea,1),WO_AutoServer);
-if server then ProcessLinesAdd('SERVERON');
-if connect then ProcessLinesAdd('CONNECT');
-tryDeletefile('restart.txt');
-End;
-
-
 
 // Executes the required steps to restore the blockchain
 Procedure RestoreBlockChain();

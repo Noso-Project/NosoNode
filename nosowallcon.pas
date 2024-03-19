@@ -11,7 +11,7 @@ Stand alone unit to control wallet addresses file and array
 interface
 
 uses
-  Classes, SysUtils, fileutil, nosodebug,nosocrypto,nosogeneral;
+  Classes, SysUtils, fileutil, nosodebug,nosocrypto,nosogeneral,nosoheaders,nosonetwork;
 
 TYPE
 
@@ -345,6 +345,12 @@ Begin
   else result := false;
   MyStream.Free;
 End;
+
+{$REGION Summary related}
+
+
+
+{$ENDREGION Summary related}
 
 INITIALIZATION
 InitCriticalSection(CS_WalletArray);

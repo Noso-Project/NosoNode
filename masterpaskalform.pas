@@ -796,7 +796,7 @@ var
   //MNs system
   //CSMNsArray    : TRTLCriticalSection;
   //CSWaitingMNs  : TRTLCriticalSection;
-  CSMNsChecks   : TRTLCriticalSection;
+  //CSMNsChecks   : TRTLCriticalSection;
 
   CSIdsProcessed: TRTLCriticalSection;
 
@@ -1204,9 +1204,12 @@ End;
 
 // Process the Masternodes reports
 procedure TUpdateMNs.Execute;
+const
+  LastIPVerify : int64 = 0;
 var
   TextLine   : String;
   ReportInfo : String = '';
+  MyIP       : string;
 Begin
   AddNewOpenThread('Masternodes',UTCTime);
   Randomize;
@@ -1222,6 +1225,18 @@ Begin
         TextLine := RunMNVerification(MyLastBlock,GetSynctus,LocalMN_IP,GetWallArrIndex(WallAddIndex(LocalMN_Sign)).PublicKey,GetWallArrIndex(WallAddIndex(LocalMN_Sign)).PrivateKey);
         OutGoingMsjsAdd(ProtocolLine(MNCheck)+TextLine);
         //ToLog('console','Masternodes Verification completed: '+TextLine)
+        end;
+      end;
+    if ( (BlockAge > 10) and (LastIPVerify<UTCtime) ) then
+      begin
+      LastIPVerify := NextBlockTimeStamp;
+      MyIP := GetMiIP();
+      //ToLog('console','Auto IP executed');
+      if  ( (MyIP <> '') and (MyIP <> LocalMN_IP) and (MyIP <> 'Closing NODE') ) then
+        begin
+        ToLog('console','Auto IP: updated to '+MyIp);
+        LocalMN_IP := MyIP;
+        S_AdvOpt := true;
         end;
       end;
     While LengthWaitingMNs > 0 do
@@ -1402,7 +1417,7 @@ Begin
     begin
     UpdateOpenThread('KeepConnect',UTCTime);
     TryThis := true;
-    if getTotalConexiones >= MaxConecciones then TryThis := false;
+    if getTotalConexiones >= 99 then TryThis := false;
     if GetTotalSyncedConnections>=3 then TryThis := false;
     if ((BlockAge <10) or (blockAge>595)) then TryThis := false;
     if trythis then
@@ -1670,11 +1685,6 @@ Begin
     begin
     Deletefile(RestartFileName);
     OutText(rs0069,false,1); // '✓ Launcher file deleted';
-    end;
-  if fileexists('restart.txt') then
-    begin
-    RestartConditions();
-    OutText(rs0070,false,1); // '✓ Restart file deleted';
     end;
   Form1.Latido.Enabled:=true;
   OutText('Noso is ready',false,1);
@@ -2168,7 +2178,6 @@ Begin
     CloseLine(rs0030);  //   Closing wallet
     CreateADV(false); // save advopt
     sleep(100);
-    if RestartNosoAfterQuit then CrearRestartfile();
     CloseAllforms();
     CloseLine('Forms closed');
     sleep(100);
@@ -3476,9 +3485,13 @@ Begin
   if CBAutoIP.Checked then
     begin
     MyIP := GetMiIP();
-    if MyIP <> '' then
       begin
       LabeledEdit5.Caption:=MyIP;
+      if  MyIP <> LocalMN_IP then
+        begin
+        LocalMN_IP := MyIP;
+        S_AdvOpt := true;
+        end
       end;
     end;
   //LabeledEdit5.Visible:=false

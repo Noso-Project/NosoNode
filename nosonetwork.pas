@@ -6,7 +6,7 @@ INTERFACE
 
 uses
   Classes, SysUtils, strutils,
-  IdContext, IdGlobal, IdTCPClient,
+  IdContext, IdGlobal, IdTCPClient, IdTCPServer,
   nosodebug, nosotime, nosogeneral, nosoheaders, nosocrypto, nosoblock,nosoconsensus,
   nosounit,nosonosoCFG,nosogvts,nosomasternodes,nosopsos
   ;
@@ -57,13 +57,23 @@ Type
     end;
 
   TBotData = Packed Record
-   ip          : string[15];
-   LastRefused : int64;
-   end;
+    ip          : string[15];
+    LastRefused : int64;
+    end;
+
+  NodeServerEvents = class
+    class procedure OnExecute(AContext: TIdContext);
+    class procedure OnConnect(AContext: TIdContext);
+    class procedure OnDisconnect(AContext: TIdContext);
+    class procedure OnException(AContext: TIdContext);
+    end;
 
   Function GetPendingCount():integer;
   Procedure ClearAllPending();
   procedure SendPendingsToPeer(Slot:int64);
+  function TranxAlreadyPending(TrxHash:string):boolean;
+  function AddArrayPoolTXs(order:TOrderData):boolean;
+  function TrxExistsInLastBlock(trfrhash:String):boolean;
 
   function GetPTCEcn():String;
   function IsValidProtocol(line:String):Boolean;
@@ -94,6 +104,13 @@ Type
   Procedure UpdateMyData();
   Function IsValidator(Ip:String):boolean;
   Function ValidateMNCheck(Linea:String):string;
+
+  Procedure InitNodeServer();
+  function ClientsCount : Integer ;
+  Function TryMessageToClient(AContext: TIdContext;message:string):boolean;
+  Function GetStreamFromClient(AContext: TIdContext;out LStream:TMemoryStream):boolean;
+  Procedure TryCloseServerConnection(AContext: TIdContext; closemsg:string='');
+
 
   Procedure IncClientReadThreads();
   Procedure DecClientReadThreads();
@@ -168,6 +185,8 @@ var
   // nodes list
   NodesList             : array of TNodeData;
   CSNodesList           : TRTLCriticalSection;
+  // Node server
+  NodeServer            : TIdTCPServer;
 
 IMPLEMENTATION
 
@@ -233,6 +252,96 @@ Begin
         end;
       end;
     SetLength(CopyArrayPoolTXs,0);
+    end;
+End;
+
+function TranxAlreadyPending(TrxHash:string):boolean;
+var
+  cont : integer;
+Begin
+  Result := false;
+  if GetPendingCount > 0 then
+    begin
+    EnterCriticalSection(CSPending);
+    for cont := 0 to GetPendingCount-1 do
+      begin
+      if TrxHash = ArrayPoolTXs[cont].TrfrID then
+        begin
+        result := true;
+        break;
+        end;
+      end;
+    LeaveCriticalSection(CSPending);
+    end;
+End;
+
+// Add a new trx to the pending pool
+function AddArrayPoolTXs(order:TOrderData):boolean;
+var
+  counter    : integer = 0;
+  ToInsert   : boolean = false;
+  LResult    : integer = 0;
+Begin
+  BeginPerformance('AddArrayPoolTXs');
+  if order.TimeStamp < LastBlockData.TimeStart then exit;
+  if TrxExistsInLastBlock(order.TrfrID) then exit;
+  if ((BlockAge>585) and (order.TimeStamp < LastBlockData.TimeStart+540) ) then exit;
+  if not TranxAlreadyPending(order.TrfrID) then
+    begin
+    EnterCriticalSection(CSPending);
+    while counter < length(ArrayPoolTXs) do
+      begin
+      if order.TimeStamp < ArrayPoolTXs[counter].TimeStamp then
+        begin
+        ToInsert := true;
+        LResult := counter;
+        break;
+        end
+      else if order.TimeStamp = ArrayPoolTXs[counter].TimeStamp then
+        begin
+        if order.OrderID < ArrayPoolTXs[counter].OrderID then
+          begin
+          ToInsert := true;
+          LResult := counter;
+          break;
+          end
+        else if order.OrderID = ArrayPoolTXs[counter].OrderID then
+          begin
+          if order.TrxLine < ArrayPoolTXs[counter].TrxLine then
+            begin
+            ToInsert := true;
+            LResult := counter;
+            break;
+            end;
+          end;
+        end;
+      Inc(counter);
+      end;
+    if not ToInsert then LResult := length(ArrayPoolTXs);
+    Insert(order,ArrayPoolTXs,LResult);
+    LeaveCriticalSection(CSPending);
+    result := true;
+    //VerifyIfPendingIsMine(order);
+    end;
+  EndPerformance('AddArrayPoolTXs');
+End;
+
+// Check if the TRxID exists in the last block
+function TrxExistsInLastBlock(trfrhash:String):boolean;
+var
+  ArrayLastBlockTrxs : TBlockOrdersArray;
+  cont : integer;
+Begin
+  Result := false;
+  ArrayLastBlockTrxs := Default(TBlockOrdersArray);
+  ArrayLastBlockTrxs := GetBlockTrxs(MyLastBlock);
+  for cont := 0 to length(ArrayLastBlockTrxs)-1 do
+    begin
+    if ArrayLastBlockTrxs[cont].TrfrID = trfrhash then
+      begin
+      result := true ;
+      break
+      end;
     end;
 End;
 
@@ -531,8 +640,6 @@ Begin
       end;
     if GetConexIndex(Slot).tipo='SER' then
       begin
-      If Assigned(Conexiones[Slot].Thread) then
-        Conexiones[Slot].Thread.Terminate;
       ClearIncoming(slot);
       CanalCliente[Slot].IOHandler.InputBuffer.Clear;
       CanalCliente[Slot].Disconnect;
@@ -551,7 +658,7 @@ Begin
   BeginPerformance('GetTotalConexiones');
   result := 0;
   for counter := 1 to MaxConecciones do
-    if IsSlotConnected(Counter) then result := result + 1;
+    if IsSlotConnected(Counter) then Inc(result);
   EndPerformance('GetTotalConexiones');
 End;
 
@@ -611,6 +718,347 @@ Begin
 End;
 
 {$ENDREGION General Data}
+
+{$REGION Node Server}
+
+Procedure InitNodeServer();
+Begin
+  NodeServer := TIdTCPServer.Create(nil);
+  NodeServer.DefaultPort:=8080;
+  NodeServer.Active:=false;
+  NodeServer.UseNagle:=true;
+  NodeServer.TerminateWaitTime:=10000;
+  NodeServer.OnExecute:=@NodeServerEvents.OnExecute;
+  NodeServer.OnConnect:=@NodeServerEvents.OnConnect;
+  NodeServer.OnDisconnect:=@form1.IdTCPServer1Disconnect;
+  NodeServer.OnException:=@Form1.IdTCPServer1Exception;
+End;
+
+// returns the number of active connections
+function ClientsCount : Integer ;
+var
+  Clients : TList;
+Begin
+  Clients:= Nodeserver.Contexts.LockList;
+    TRY
+    Result := Clients.Count ;
+    EXCEPT ON E:Exception do
+      ToDeepDeb('NosoNetwork,ClientsCount,'+E.Message);
+    END; {TRY}
+  Nodeserver.Contexts.UnlockList;
+End ;
+
+// Try message to client safely
+Function TryMessageToClient(AContext: TIdContext;message:string):boolean;
+Begin
+  result := true;
+  TRY
+  Acontext.Connection.IOHandler.WriteLn(message);
+  EXCEPT on E:Exception do
+    begin
+    result := false
+    end;
+  END;{Try}
+End;
+
+// Get stream from client
+Function GetStreamFromClient(AContext: TIdContext;out LStream:TMemoryStream):boolean;
+Begin
+  result := false;
+  LStream.Clear;
+  TRY
+    AContext.Connection.IOHandler.ReadStream(LStream);
+    Result := True;
+  EXCEPT on E:Exception do
+    ToDeepDeb('NosoNetwork,GetStreamFromClient,'+E.Message);
+  END;
+End;
+
+// Trys to close a server connection safely
+Procedure TryCloseServerConnection(AContext: TIdContext; closemsg:string='');
+Begin
+  TRY
+  if closemsg <>'' then
+    Acontext.Connection.IOHandler.WriteLn(closemsg);
+  AContext.Connection.Disconnect();
+  Acontext.Connection.IOHandler.InputBuffer.Clear;
+  EXCEPT on E:Exception do
+    ToDeepDeb('NosoNetwork,TryCloseServerConnection,'+E.Message);
+  END; {TRY}
+End;
+
+Class Procedure NodeServerEvents.OnExecute(AContext: TIdContext);
+var
+  LLine : String = '';
+  IPUser : String = '';
+  slot : integer = 0;
+  UpdateZipName : String = ''; UpdateVersion : String = ''; UpdateHash:string ='';
+  UpdateClavePublica :string ='';UpdateFirma : string = '';
+  MemStream   : TMemoryStream;
+  BlockZipName: string = '';
+  GetFileOk : boolean = false;
+  GoAhead : boolean;
+  NextLines : array of string;
+  LineToSend : string;
+  LinesSent : integer = 0;
+  FTPTime, FTPSize, FTPSpeed : int64;
+Begin
+  {
+  GoAhead := true;
+  IPUser := AContext.Connection.Socket.Binding.PeerIP;
+  slot := GetSlotFromIP(IPUser);
+    REPEAT
+    LineToSend := GetTextToSlot(slot);
+    if LineToSend <> '' then
+      begin
+      TryMessageToNode(AContext,LineToSend);
+      Inc(LinesSent);
+      end;
+    UNTIL LineToSend='' ;
+  if LinesSent >0 then exit;
+  if slot = 0 then
+    begin
+    TryCloseServerConnection(AContext);
+    exit;
+    end;
+  if ( (MyConStatus <3) and (not IsSeedNode(IPUser)) ) then
+    begin
+    TryCloseServerConnection(AContext,'Closing NODE');
+    exit;
+    end;
+  TRY
+  LLine := AContext.Connection.IOHandler.ReadLn(IndyTextEncoding_UTF8);
+  EXCEPT on E:Exception do
+    begin
+    TryCloseServerConnection(AContext);
+    ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+format(rs0045,[IPUser,E.Message]));
+    GoAhead := false;
+    end;
+  END{Try};
+  if GoAhead then
+    begin
+    SetConexIndexBusy(Slot,true);
+    if Parameter(LLine,0) = 'RESUMENFILE' then
+      begin
+      MemStream := TMemoryStream.Create;
+      DownloadHeaders := true;
+        TRY
+        AContext.Connection.IOHandler.ReadStream(MemStream);
+        GetFileOk := true;
+        EXCEPT ON E:EXCEPTION do
+          begin
+          TryCloseServerConnection(AContext);
+          GetFileOk := false;
+          end;
+        END; {TRY}
+      if GetfileOk then
+        begin
+        if SaveStreamAsHeaders(MemStream) then
+          ToLog('console',Format(rs0047,[copy(HashMD5File(ResumenFilename),1,5)]));//'Headers file received'
+        end;
+      UpdateMyData();
+      LastTimeRequestResumen := 0;
+      DownloadHeaders := false;
+      MemStream.Free;
+      end // END GET RESUMEN FILE
+   else if LLine = 'BLOCKZIP' then
+     begin
+     BlockZipName := BlockDirectory+'blocks.zip';
+     TryDeleteFile(BlockZipName);
+     MemStream := TMemoryStream.Create;
+     DownLoadBlocks := true;
+       TRY
+       AContext.Connection.IOHandler.ReadStream(MemStream);
+       MemStream.SaveToFile(BlockZipName);
+       GetFileOk := true;
+       EXCEPT ON E:Exception do
+         begin
+         GetFileOk := false;
+         TryCloseServerConnection(AContext);
+         end;
+       END; {TRY}
+       if GetFileOk then
+         begin
+         if UnzipFile(BlockDirectory+'blocks.zip',true) then
+           begin
+           MyLastBlock := GetMyLastUpdatedBlock();
+           LastTimeRequestBlock := 0;
+           ToLog('events',TimeToStr(now)+format(rs0021,[IntToStr(MyLastBlock)])); //'Blocks received up to '+IntToStr(MyLastBlock));
+           end
+         end;
+       MemStream.Free;
+       DownLoadBlocks := false;
+     end
+   else if parameter(LLine,4) = '$GETRESUMEN' then
+      begin
+      AddFileProcess('Send','Headers',IPUser,GetTickCount64);
+      MemStream := TMemoryStream.Create;
+      FTPSize := GetHeadersAsMemStream(MemStream);
+      if FTPSize>0 then
+         begin
+            TRY
+            Acontext.Connection.IOHandler.WriteLn('RESUMENFILE');
+            Acontext.connection.IOHandler.Write(MemStream,0,true);
+            EXCEPT on E:Exception do
+               begin
+               Form1.TryCloseServerConnection(GetConexIndex(Slot).context);
+               ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0051,[E.Message]));
+               end;
+            END; {TRY}
+         end;
+      MemStream.Free;
+      FTPTime := CloseFileProcess('Send','Headers',IPUser,GetTickCount64);
+      FTPSpeed := (FTPSize div FTPTime);
+      ToLog('nodeftp','Uploaded headers to '+IPUser+' at '+FTPSpeed.ToString+' kb/s');
+      end
+   else if parameter(LLine,4) = '$GETSUMARY' then
+      begin
+      AddFileProcess('Send','Summary',IPUser,GetTickCount64);
+      MemStream := TMemoryStream.Create;
+      FTPSize := GetSummaryAsMemStream(MemStream);
+      if FTPSize>0 then
+         begin
+           TRY
+           Acontext.Connection.IOHandler.WriteLn('SUMARYFILE');
+           Acontext.connection.IOHandler.Write(MemStream,0,true);
+           EXCEPT on E:Exception do
+           END; {TRY}
+         end;
+      MemStream.Free;
+      FTPTime := CloseFileProcess('Send','Summary',IPUser,GetTickCount64);
+      FTPSpeed := (FTPSize div FTPTime);
+      ToLog('nodeftp','Uploaded Summary to '+IPUser+' at '+FTPSpeed.ToString+' kb/s');
+      end
+   else if parameter(LLine,4) = '$GETPSOS' then
+      begin
+      AddFileProcess('Send','PSOs',IPUser,GetTickCount64);
+      MemStream := TMemoryStream.Create;
+      FTPSize := GetPSOsAsMemStream(MemStream);
+      if FTPSize>0 then
+         begin
+           TRY
+           Acontext.Connection.IOHandler.WriteLn('PSOSFILE');
+           Acontext.connection.IOHandler.Write(MemStream,0,true);
+           EXCEPT on E:Exception do
+           END; {TRY}
+         end;
+      MemStream.Free;
+      FTPTime := CloseFileProcess('Send','PSOs',IPUser,GetTickCount64);
+      FTPSpeed := (FTPSize div FTPTime);
+      ToLog('nodeftp','Uploaded PSOs to '+IPUser+' at '+FTPSpeed.ToString+' kb/s');
+      end
+   else if parameter(LLine,4) = '$LASTBLOCK' then
+      begin // START SENDING BLOCKS
+      AddFileProcess('Send','Blocks',IPUser,GetTickCount64);
+      BlockZipName := CreateZipBlockfile(StrToIntDef(parameter(LLine,5),0));
+      if BlockZipName <> '' then
+         begin
+         MemStream := TMemoryStream.Create;
+            TRY
+            MemStream.LoadFromFile(BlockZipName);
+            GetFileOk := true;
+            EXCEPT ON E:Exception do
+               begin
+               GetFileOk := false;
+               end;
+            END; {TRY}
+         FTPSize := MemStream.Size;
+         If GetFileOk then
+            begin
+               TRY
+               Acontext.Connection.IOHandler.WriteLn('BLOCKZIP');
+               Acontext.connection.IOHandler.Write(MemStream,0,true);
+               ToLog('events',TimeToStr(now)+Format(rs0052,[IPUser,BlockZipName])); //SERVER: BlockZip send to '+IPUser+':'+BlockZipName);
+               EXCEPT ON E:Exception do
+                  begin
+                  Form1.TryCloseServerConnection(GetConexIndex(Slot).context);
+                  //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0053,[E.Message])); //'SERVER: Error sending ZIP blocks file ('+E.Message+')');
+                  end
+               END; {TRY}
+            end;
+         MemStream.Free;
+         FTPTime := CloseFileProcess('Send','Blocks',IPUser,GetTickCount64);
+         FTPSpeed := (FTPSize div FTPTime);
+         ToLog('nodeftp','Uploaded Blocks to '+IPUser+' at '+FTPSpeed.ToString+' kb/s');
+         Trydeletefile(BlockZipName); // safe function to delete files
+         end
+      end // END SENDING BLOCKS
+
+      else if parameter(LLine,4) = '$GETGVTS' then
+         begin
+         AddFileProcess('Send','GVTs',IPUser,GetTickCount64);
+         MemStream := TMemoryStream.Create;
+         FTPSize := GetGVTsAsStream(MemStream);
+         if FTPSize>0 then
+           begin
+             TRY
+             Acontext.Connection.IOHandler.WriteLn('GVTSFILE');
+             Acontext.connection.IOHandler.Write(MemStream,0,true);
+             EXCEPT on E:Exception do
+             END; {TRY}
+           end;
+         MemStream.Free;
+         FTPTime := CloseFileProcess('Send','GVTs',IPUser,GetTickCount64);
+         FTPSpeed := (FTPSize div FTPTime);
+         ToLog('nodeftp','Uploaded GVTs to '+IPUser+' at '+FTPSpeed.ToString+' kb/s');
+         end // SENDING GVTS FILE
+
+      else if parameter(LLine,0) = 'PSOSFILE' then
+        begin
+        DownloadPSOs := true;
+        MemStream := TMemoryStream.Create;
+        if GetStreamFromContext(Acontext,MemStream) then
+          begin
+          if SavePSOsToFile(MemStream) then
+            begin
+            LoadPSOFileFromDisk;
+            UpdateMyData();
+            ToLog('console','PSOs file received on server');
+            end;
+          end;
+        MemStream.Free;
+        DownloadPSOs := false;
+        LasTimePSOsRequest := 0;
+        end
+
+   else if AnsiContainsStr(ValidProtocolCommands,Uppercase(parameter(LLine,4))) then
+      begin
+         TRY
+         AddToIncoming(slot,LLine);
+         EXCEPT
+         On E :Exception do
+            ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0054,[E.Message]));
+            //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Server error adding received line ('+E.Message+')');
+         END; {TRY}
+      end
+   else
+      begin
+      TryCloseServerConnection(AContext);
+      ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+Format(rs0055,[LLine]));
+      //ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'SERVER: Got unexpected line: '+LLine);
+      end;
+   SetConexIndexBusy(Slot,false);
+   end;
+  }
+
+  End;
+
+Class Procedure NodeServerEvents.OnConnect(AContext: TIdContext);
+  Begin
+
+  End;
+
+Class Procedure NodeServerEvents.OnDisconnect(AContext: TIdContext);
+  Begin
+
+  End;
+
+Class Procedure NodeServerEvents.OnException(AContext: TIdContext);
+  Begin
+
+  End;
+
+{$ENDREGION Node Server}
 
 {$REGION Thread Client read}
 
@@ -798,7 +1246,9 @@ begin
       end; // end while client is not empty
     end; // End OnBuffer
     if LastActive + 30 < UTCTime then killit := true;
-  UNTIL ( (terminated) or (Conexiones[Fslot].tipo='') or  (not CanalCliente[FSlot].Connected) or (KillIt) );
+    if GetConexIndex(Fslot).tipo <> 'SER' then killit := true;
+    if not CanalCliente[FSlot].Connected  then killit := true;
+  UNTIL ( (terminated) or (KillIt) );
   CloseSlot(Fslot);
   DecClientReadThreads;
   CloseOpenThread(ThreadName);
