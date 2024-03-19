@@ -290,7 +290,6 @@ type
     CBAutoIP: TCheckBox;
     CBRunNodeAlone: TCheckBox;
     CB_WO_HideEmpty: TCheckBox;
-    ComboBoxLang: TComboBox;
     Edit2: TEdit;
     Label19: TLabel;
     Memobannedmethods: TMemo;
@@ -314,7 +313,6 @@ type
     Label8: TLabel;
     Label9: TLabel;
     LabeledEdit5: TEdit;
-    Label7: TLabel;
     PageControl2: TPageControl;
     PCNodes: TPageControl;
     PC_Processes: TPageControl;
@@ -357,7 +355,6 @@ type
     SCBitSend: TBitBtn;
     SCBitClea: TBitBtn;
     CB_AUTORPC: TCheckBox;
-    CB_FullNode: TCheckBox;
     CB_WO_Multisend: TCheckBox;
     CheckBox4: TCheckBox;
     CB_RPCFilter: TCheckBox;
@@ -455,11 +452,7 @@ type
     procedure CB_RPCFilterChange(sender: TObject);
     procedure CB_WO_AutoupdateChange(sender: TObject);
     procedure CBAutoIPClick(sender: TObject);
-    procedure CB_FullNodeChange(sender: TObject);
     procedure CB_WO_HideEmptyChange(Sender: TObject);
-    procedure ComboBoxLangChange(sender: TObject);
-    procedure ComboBoxLangDrawItem(Control: TWinControl; Index: Integer;
-      ARect: TRect; State: TOwnerDrawState);
     procedure DataPanelResize(sender: TObject);
     procedure DireccionesPanelDrawCell(sender: TObject; aCol, aRow: Integer;
       aRect: TRect; aState: TGridDrawState);
@@ -1771,7 +1764,6 @@ Begin
   CB_WO_HideEmpty.Checked   := WO_HideEmpty;
   CB_WO_Multisend.Checked   := WO_Multisend;
   CB_WO_Autoupdate.Checked  := WO_AutoUpdate;
-  CB_FullNode.Checked       := WO_FullNode;
   CBSendReports.checked     := WO_SendReport;
   // RPC
   LE_Rpc_Port.Text := IntToStr(RPCPort);
@@ -1784,7 +1776,6 @@ Begin
   Memobannedmethods.Text:=RPCBanned;
   if not RPCFilter then MemoRPCWhitelist.Enabled:=false;
   CB_AUTORPC.Checked:= RPCAuto;
-  ComboBoxLang.Text:=WO_Language;
 End;
 
 {$ENDREGION}
@@ -3220,59 +3211,6 @@ Begin
     end;
 End;
 
-// Change Language (To be deprecated)
-procedure TForm1.ComboBoxLangChange(sender: TObject);
-Begin
-  Processlinesadd('lang '+ComboBoxLang.Text);
-End;
-
-// Draw item on combobox language
-procedure TForm1.ComboBoxLangDrawItem(Control: TWinControl; Index: Integer;
-  ARect: TRect; State: TOwnerDrawState);
-begin
-  ComboBoxLang.Canvas.FillRect(ARect);
-  if ComboBoxLang.Items[Index] ='en' then
-    begin
-    ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'English');
-    Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 36);
-    end;
-  if ComboBoxLang.Items[Index] ='es' then
-    begin
-    ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Español');
-    Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 37);
-    end;
-  if ComboBoxLang.Items[Index] ='pt' then
-    begin
-    ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Português');
-    Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 61);
-    end;
-  if ComboBoxLang.Items[Index] ='de' then
-    begin
-    ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Deutsch');
-    Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 62);
-    end;
-  if ComboBoxLang.Items[Index] ='zh' then
-    begin
-    ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, '中文');
-    Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 63);
-    end;
-  if ComboBoxLang.Items[Index] ='ro' then
-    begin
-    ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Română');
-    Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 65);
-    end;
-  if ComboBoxLang.Items[Index] ='id' then
-    begin
-    ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Bahasa Indonesia');
-    Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 66);
-    end;
-  if ComboBoxLang.Items[Index] ='ru' then
-    begin
-    ComboBoxLang.Canvas.TextRect(ARect, 20, ARect.Top, 'Русский');
-    Imagenes.Draw(ComboBoxLang.Canvas, ARect.Left + 1, ARect.Top + 1, 67);
-    end;
-End;
-
 // Options Wallet: Keep blocks Database
 procedure TForm1.CBKeepBlocksDBChange(Sender: TObject);
 Begin
@@ -3300,17 +3238,6 @@ Begin
     begin
     if CBSendReports.Checked then WO_SendReport := true
     else WO_SendReport := false;
-    end;
-End;
-
-// Options Wallet: Download complete blockchain
-procedure TForm1.CB_FullNodeChange(sender: TObject);
-Begin
-  if not G_Launching then
-    begin
-    if CB_FullNode.Checked then WO_FullNode := true
-    else WO_FullNode := false;
-    S_AdvOpt := true;
     end;
 End;
 
