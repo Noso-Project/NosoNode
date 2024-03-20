@@ -1091,6 +1091,19 @@ Begin
   END;
 End;
 
+Function SendLineToClient(FSlot:Integer;LLine:String):boolean;
+Begin
+  result := true;
+  TRY
+    CanalCliente[FSlot].IOHandler.Writeln(LLine);
+  EXCEPT ON E:EXCEPTION DO
+    begin
+    Result := false;
+    ToDeepDeb('NosoNetwork,SendLineToClient,'+E.Message);
+    end;
+  END;
+End;
+
 procedure TThreadClientRead.Execute;
 var
   LLine        : String;
@@ -1124,7 +1137,11 @@ begin
           LineToSend := GetTextToSlot(Fslot);
           if LineToSend <> '' then
             begin
-            CanalCliente[FSlot].IOHandler.Writeln(LineToSend);
+            if not SendLineToClient(FSlot,LineToSend) then
+              begin
+              killit := true;
+              break;
+              end;
             end;
         UNTIL LineToSend='' ;
         end;

@@ -527,6 +527,7 @@ var
   valid : string;
   LRecord : TSummaryData;
 Begin
+BeginPerformance('RPC_AddressBalance');
 result := '';
 if NosoPParams <> '' then
    begin
@@ -563,6 +564,7 @@ if NosoPParams <> '' then
    until ThisAddress = '';
    trim(result);
    end;
+EndPerformance('RPC_AddressBalance');
 End;
 
 function RPC_OrderInfo(NosoPParams:string):string;
@@ -570,6 +572,7 @@ var
   thisOr : TOrderGroup;
   validID : string = 'true';
 Begin
+BeginPerformance('RPC_OrderInfo');
 ToLog('events',TimeToStr(now)+'GetOrderDetails requested: '+NosoPParams);
 NosoPParams := Trim(NosoPParams);
 ThisOr := Default(TOrderGroup);
@@ -596,6 +599,7 @@ result := format('orderinfo'#127'%s'#127'%s'#127+
                 thisor.timestamp,thisor.block,thisor.OrderType,
                 thisor.OrderLines,thisor.Receiver,thisor.AmmountTrf,
                 thisor.AmmountFee,thisor.reference,thisor.sender]);
+EndPerformance('RPC_OrderInfo');
 End;
 
 function RPC_Blockinfo(NosoPParams:string):string;
@@ -603,6 +607,7 @@ var
   thisblock : string;
   counter : integer = 0;
 Begin
+BeginPerformance('RPC_Blockinfo');
 result := '';
 if NosoPParams <> '' then
    begin
@@ -620,40 +625,49 @@ if NosoPParams <> '' then
    until thisblock = '';
    trim(result);
    end;
+EndPerformance('RPC_Blockinfo');
 End;
 
 function RPC_Mainnetinfo(NosoPParams:string):string;
 Begin
+BeginPerformance('RPC_Mainnetinfo');
 result := format('mainnetinfo'#127'%s'#127'%s'#127'%s'#127'%s'#127'%s'#127'%d',
        [GetConsensus(2),Copy(GetConsensus(10),0,5),copy(GetConsensus(15),0,5),copy(GetConsensus(17),0,5),
        GetConsensus(3),GetSupply(StrToIntDef(GetConsensus(2),0))]);
+EndPerformance('RPC_Mainnetinfo');
 End;
 
 function RPC_PendingOrders(NosoPParams:string):string;
 var
   LData : String;
 Begin
+BeginPerformance('RPC_PendingOrders');
 LData :=PendingRawInfo;
 LData := StringReplace(LData,' ',#127,[rfReplaceAll, rfIgnoreCase]);
 result := format('pendingorders'#127'%s',[LData]);
+EndPerformance('RPC_PendingOrders');
 End;
 
 function RPC_LockedMNs(NosoPParams:string):String;
 var
   LData : String;
 Begin
+  BeginPerformance('RPC_LockedMNs');
   LData := LockedMNsRawString;
   LData := StringReplace(LData,' ',#127,[rfReplaceAll, rfIgnoreCase]);
   result := format('lockedmns'#127'%s',[LData]);
+  EndPerformance('RPC_LockedMNs');
 End;
 
 function RPC_GetPeers(NosoPParams:string):string;
 var
   LData : String;
 Begin
-LData := GetConnectedPeers;
-LData := StringReplace(LData,' ',#127,[rfReplaceAll, rfIgnoreCase]);
-result := format('peers'#127'%s',[LData]);
+  BeginPerformance('RPC_GetPeers');
+  LData := GetConnectedPeers;
+  LData := StringReplace(LData,' ',#127,[rfReplaceAll, rfIgnoreCase]);
+  result := format('peers'#127'%s',[LData]);
+  EndPerformance('RPC_GetPeers');
 End;
 
 function RPC_BlockOrders(NosoPParams:string):string;
@@ -705,6 +719,7 @@ var
   end;
 
 Begin
+BeginPerformance('RPC_BlockOrders');
 result := '';
 setlength(arrayOrds,0);
 blocknumber := StrToIntDef(NosoPParams,-1);
@@ -732,6 +747,7 @@ else
    else result := result+'0'#127;
    trim(result);
    end;
+EndPerformance('RPC_BlockOrders');
 End;
 
 function RPC_Masternodes(NosoPParams:string):string;
@@ -744,6 +760,7 @@ var
   Total    : integer = 0;
   IpAndport,Ip,port,address,age : string;
 Begin
+  BeginPerformance('RPC_Masternodes');
   Result := '';
   source:= GetMN_FileText;
   Block := parameter(source,0);
@@ -765,6 +782,7 @@ Begin
   until thisdata = '';
   Result := 'getmasternodes'#127+Block+#127+IntToStr(Total)+#127+Nodes;
   //Tolog('console',result);
+  EndPerformance('RPC_Masternodes');
 End;
 
 function RPC_Blockmns(NosoPParams:string):string;
@@ -776,6 +794,7 @@ var
   counter : integer;
   AddressesString : string = '';
 Begin
+BeginPerformance('RPC_Blockmns');
 result := '';
 blocknumber := StrToIntDef(NosoPParams,-1);
 if ((blocknumber<48010) or (blocknumber>MyLastblock)) then
@@ -794,15 +813,17 @@ else
    result := 'blockmns'#127'true'#127+blocknumber.ToString+#127+MNSCount.ToString+#127+
               MNsReward.ToString+#127+TotalPAid.ToString+#127+AddressesString;
    end;
-
+EndPerformance('RPC_Blockmns');
 End;
 
 Function RPC_WalletBalance(NosoPParams:string):string;
 var
   LData : int64;
 Begin
+  BeginPerformance('RPC_WalletBalance');
   LData := GetWalletBalance;
   result := format('walletbalance'#127'%d',[LData]);
+  EndPerformance('RPC_WalletBalance');
 End;
 
 function RPC_NewAddress(NosoPParams:string):string;
@@ -812,6 +833,7 @@ var
   NewAddress : WalletData;
   PubKey,PriKey : string;
 Begin
+BeginPerformance('RPC_NewAddress');
 TotalNumber := StrToIntDef(NosoPParams,1);
 if TotalNumber > 100 then TotalNumber := 100;
 result := 'newaddress'#127'true'#127+IntToStr(TotalNumber)+#127;
@@ -828,6 +850,7 @@ for counter := 1 to totalnumber do
 trim(result);
 S_Wallet := true;
 U_DirPanel := true;
+EndPerformance('RPC_NewAddress');
 End;
 
 function RPC_NewAddressFull(NosoPParams:string):string;
@@ -836,6 +859,7 @@ var
   NewAddress : WalletData;
   PubKey,PriKey : string;
 Begin
+  BeginPerformance('RPC_NewAddressFull');
   result := 'newaddressfull'#127;
   NewAddress := Default(WalletData);
   NewAddress.Hash:=GenerateNewAddress(PubKey,PriKey);
@@ -847,30 +871,37 @@ Begin
   trim(result);
   S_Wallet := true;
   U_DirPanel := true;
+  EndPerformance('RPC_NewAddressFull');
 End;
 
 Function RPC_ValidateAddress(NosoPParams:string):string;
 Begin
+  BeginPerformance('RPC_NewAddressFull');
   If VerifyAddressOnDisk(Parameter(NosoPParams,0)) then
     result := 'islocaladdress'#127'True'
   else result := 'islocaladdress'#127'False';
+  EndPerformance('RPC_NewAddressFull');
 End;
 
 Function RPC_SetDefault(NosoPParams:string):string;
 var
   address : string;
 Begin
+  BeginPerformance('RPC_SetDefault');
   address := Parameter(NosoPParams,0);
   if SetDefaultAddress('SETDEFAULT '+Address) then result := 'setdefault'#127'True'
   else result  := 'setdefault'#127'False';
+  EndPerformance('RPC_SetDefault');
 End;
 
 Function RPC_GVTInfo(NosoPParams:string):string;
 var
   available:int64;
 Begin
+  BeginPerformance('RPC_GVTInfo');
   available := CountAvailableGVTs;
   result := 'gvtinfo'#127+IntToStr(available)+#127+IntToStr(GetGVTPrice(Available))+#127+IntToStr(GetGVTPrice(Available,True));
+  EndPerformance('RPC_GVTInfo');
 End;
 
 Function RPC_CheckCertificate(NosoPParams:string):string;
@@ -879,6 +910,7 @@ var
   SignTime : string;
   Address  : string;
 Begin
+  BeginPerformance('RPC_CheckCertificate');
   result  := 'checkcertificate'#127;
   cert := Parameter(NosoPParams,0);
   Address := CheckCertificate(cert,SignTime);
@@ -890,6 +922,7 @@ Begin
     begin
     Result := Result+'False';
     end;
+  EndPerformance('RPC_CheckCertificate');
 End;
 
 
@@ -897,6 +930,7 @@ Function RPC_SubmitOrder(NosoPParams:string;waitresponse:boolean=false):string;
 var
   ResultLine : string;
 Begin
+  BeginPerformance('RPC_SubmitOrder');
   //ToLog('Console',NosoPParams);
   ResultLine := SendOrderToNode(NosoPParams);
   ResultLine := StringReplace(ResultLine,' ','_',[rfReplaceAll, rfIgnoreCase]);
@@ -905,6 +939,7 @@ Begin
     begin
     result := 'submitorderwr'#127'True'#127+ResultLine;
     end;
+  EndPerformance('RPC_SubmitOrder');
 End;
 
 function RPC_SendFunds(NosoPParams:string):string;
@@ -914,25 +949,26 @@ var
   resultado : string;
   ErrorCode : integer;
 Begin
-destination := Parameter(NosoPParams,0);
-amount := StrToInt64Def(Parameter(NosoPParams,1),0);
-reference := Parameter(NosoPParams,2); if reference = '' then reference := 'null';
-//ToLog('console','Send to '+destination+' '+int2curr(amount)+' with reference: '+reference);
-Resultado := SendFunds('sendto '+destination+' '+IntToStr(amount)+' '+Reference);
-
-if ( (Resultado <>'') and (Parameter(Resultado,0)<>'ERROR') and (copy(resultado,0,2)='OR')) then
-     begin
-     result := 'sendfunds'#127+resultado;
-     end
+  BeginPerformance('RPC_SendFunds');
+  destination := Parameter(NosoPParams,0);
+  amount := StrToInt64Def(Parameter(NosoPParams,1),0);
+  reference := Parameter(NosoPParams,2); if reference = '' then reference := 'null';
+  //ToLog('console','Send to '+destination+' '+int2curr(amount)+' with reference: '+reference);
+  Resultado := SendFunds('sendto '+destination+' '+IntToStr(amount)+' '+Reference);
+  if ( (Resultado <>'') and (Parameter(Resultado,0)<>'ERROR') and (copy(resultado,0,2)='OR')) then
+    begin
+    result := 'sendfunds'#127+resultado;
+    end
   else if (Parameter(Resultado,0)='ERROR') then
-     begin
-     ErrorCode := StrToIntDef(Parameter(Resultado,1),0);
-     result := 'sendfunds'#127+'ERROR'#127+IntToStr(ErrorCode);
-     end
+    begin
+    ErrorCode := StrToIntDef(Parameter(Resultado,1),0);
+    result := 'sendfunds'#127+'ERROR'#127+IntToStr(ErrorCode);
+    end
   else
-     begin
-     result := 'sendfunds'#127+'ERROR'#127+'999';
-     end;
+    begin
+    result := 'sendfunds'#127+'ERROR'#127+'999';
+    end;
+  EndPerformance('RPC_SendFunds');
 End;
 
 

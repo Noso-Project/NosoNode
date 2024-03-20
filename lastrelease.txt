@@ -1,1 +1,1 @@
-0.4.2Cb6 0.4.2Cb6 x {LastOfficial} {LastBeta} {TestNet}
+0.4.2Cb6 0.4.2Cb7 x {LastOfficial} {LastBeta} {TestNet}

@@ -529,7 +529,7 @@ Begin
   EXCEPT on E:Exception do
     begin
     Result := false;
-    ToDeepDeb('NosoGeneral,SendFile,'+E.Message);
+    ToDeepDeb('NosoGeneral,SendFile,'+filename+' Error: '+E.Message);
     end;
   END;{Try}
   if client.Connected then Client.Disconnect();

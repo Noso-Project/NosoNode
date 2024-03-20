@@ -1,9 +1,10 @@
-Version 0.4.2 Cb6
+Version 0.4.2 Cb7
 
-Official release.
+Beta release. Use it ONLY if you are a beta tester.
 
-- Multi language support removed.
-- Advanced masternodes protection.
-- Summary multi thread protected.
+- RPC performance.
+- Updated options
+- Protected client write.
+
 
 
