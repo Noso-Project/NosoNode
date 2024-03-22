@@ -279,8 +279,8 @@ Begin
     sleep(100);
     Inc(WaitCycles);
   until ( (VerifyThreadsCount= 0) or (WaitCycles = 250) );
-  ToDeepDeb(Format('MNs verification finish: %d launched, %d Open, %d cycles',[Launched,VerifyThreadsCount,WaitCycles ]));
-  ToDeepDeb(Format('Unconfirmed IPs: %d',[UnconfirmedIPs ]));
+  //ToDeepDeb(Format('MNs verification finish: %d launched, %d Open, %d cycles',[Launched,VerifyThreadsCount,WaitCycles ]));
+  //ToDeepDeb(Format('Unconfirmed IPs: %d',[UnconfirmedIPs ]));
   if VerifyThreadsCount>0 then
     begin
     EnterCriticalSection(CSVerifyThread);

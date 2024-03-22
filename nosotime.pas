@@ -149,7 +149,7 @@ var
   Elapsed : Int64 = 0;
 Begin
 Elapsed := UTCTime - Lvalue;
-if Elapsed div 60 < 1 then result := '<1m'
+if Elapsed div 60 < 1 then result := IntToStr(Elapsed)+'s'
 else if Elapsed div 3600 < 1 then result := IntToStr(Elapsed div 60)+'m'
 else if Elapsed div 86400 < 1 then result := IntToStr(Elapsed div 3600)+'h'
 else if Elapsed div 2592000 < 1 then result := IntToStr(Elapsed div 86400)+'d'

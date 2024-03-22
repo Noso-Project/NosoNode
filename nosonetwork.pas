@@ -1125,11 +1125,12 @@ begin
   AddNewOpenThread(ThreadName,UTCTime);
   LastActive := UTCTime;
   REPEAT
+  TRY
     sleep(10);
     OnBuffer := true;
     if CanalCliente[FSlot].IOHandler.InputBufferIsEmpty then
       begin
-      CanalCliente[FSlot].IOHandler.CheckForDataOnSource(100);
+      CanalCliente[FSlot].IOHandler.CheckForDataOnSource(1000);
       if CanalCliente[FSlot].IOHandler.InputBufferIsEmpty then
         begin
         OnBuffer := false;
@@ -1265,6 +1266,12 @@ begin
     if LastActive + 30 < UTCTime then killit := true;
     if GetConexIndex(Fslot).tipo <> 'SER' then killit := true;
     if not CanalCliente[FSlot].Connected  then killit := true;
+  EXCEPT ON E:Exception do
+    begin
+    ToDeepDeb('NosoNetwork,TThreadClientRead,'+E.Message);
+    KillIt := True;
+    end;
+  END;
   UNTIL ( (terminated) or (KillIt) );
   CloseSlot(Fslot);
   DecClientReadThreads;

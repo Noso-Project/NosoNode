@@ -1,10 +1,8 @@
-Version 0.4.2 Cb7
+Version 0.4.2Da1
 
-Beta release. Use it ONLY if you are a beta tester.
+Official release. Valid for masternodes and servcie providers.
 
-- RPC performance.
-- Updated options
-- Protected client write.
+- Client thread protected.
 
 
 

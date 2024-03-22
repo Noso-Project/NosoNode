@@ -576,7 +576,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  NodeRelease = 'Cb7';
+  NodeRelease = 'Da1';
   OficialRelease = true;
   BetaRelease    = false;
   VersionRequired = '0.4.2';
@@ -874,18 +874,19 @@ End;
 
 procedure TUpdateLogs.Execute;
 Begin
-AddNewOpenThread('UpdateLogs',UTCTime);
-While not terminated do
-  begin
-  sleep(10);
-  while GetLogLine('console',lastlogline) do Synchronize(@UpdateConsole);
-  while GetLogLine('events',lastlogline) do Synchronize(@UpdateEvents);
-  while GetLogLine('exceps',lastlogline) do Synchronize(@UpdateExceps);
-  GetLogLine('nodeftp',lastlogline);
-  // Deep debug
-  Repeat
-  until not GetDeepDebLine(lastlogline);
-  end;
+  AddNewOpenThread('UpdateLogs',UTCTime);
+  While not terminated do
+    begin
+    sleep(10);
+    UpdateOpenThread('UpdateLogs',UTCTime);
+    while GetLogLine('console',lastlogline) do Synchronize(@UpdateConsole);
+    while GetLogLine('events',lastlogline) do Synchronize(@UpdateEvents);
+    while GetLogLine('exceps',lastlogline) do Synchronize(@UpdateExceps);
+    GetLogLine('nodeftp',lastlogline);
+    // Deep debug
+    Repeat
+    until not GetDeepDebLine(lastlogline);
+    end;
 End;
 
 {$ENDREGION Thread update logs}
@@ -1209,6 +1210,7 @@ Begin
   MNsRandomWait := Random(21);
   While not terminated do
     begin
+    UpdateOpenThread('Masternodes',UTCTime);
     if UTCTime mod 10 = 0 then
       begin
       if ( (IsValidator(LocalMN_IP)) and (BlockAge>500+(MNsRandomWait div 4)) and (Not IsMyMNCheckDone) and
@@ -1266,6 +1268,7 @@ Begin
   AddNewOpenThread('Crypto',UTCTime);
   While not terminated do
     begin
+    UpdateOpenThread('Crypto',UTCTime);
     NewAddrss := 0;
     if length(ArrayCriptoOp)>0 then
       begin
@@ -1365,6 +1368,7 @@ Begin
 AddNewOpenThread('SendMSGS',UTCTime);
 While not terminated do
    begin
+   UpdateOpenThread('SendMSGS',UTCTime);
    if OutgoingMsjs.Count > 0 then
       begin
       Linea := OutgoingMsjsGet();
@@ -2027,6 +2031,7 @@ End;
 // App heartbeat
 Procedure TForm1.heartbeat(sender: TObject);
 Begin
+  UpdateOpenThread('Main',UTCTime);
   if EngineLastUpdate <> UTCtime then EngineLastUpdate := UTCtime;
   Form1.Latido.Enabled:=false;
   if ( (UTCTime >= BuildNMSBlock) and (BuildNMSBlock>0) and (MyConStatus=3) and (MyLastBlock=StrToIntDef(GetCOnsensus(2),-1)) ) then
