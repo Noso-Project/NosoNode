@@ -267,7 +267,7 @@ else if UpperCase(Command) = 'COMPARE' then CompareHashes(LineText)
 else if UpperCase(Command) = 'GETREPOSEEDS' then ToLog('console',GetRepoFile('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos'))
 else if UpperCase(Command) = 'FORCEREPOSEEDS' then
   begin
-  SetCFGData(GetRepoFile('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos'),1);
+  ToLog('console',GetRepoFile('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos'))
   end
 else if UpperCase(Command) = 'SENDREPORT' then SEndFileViaTCP(ResumeLogFilename,'REPORT','debuglogs.nosocoin.com:18081',18081)
 else if UpperCase(Command) = 'GETDBLB' then ToLog('console',GetDBLastBlock.ToString)

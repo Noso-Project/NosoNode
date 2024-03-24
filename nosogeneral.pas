@@ -404,7 +404,7 @@ Begin
     EXCEPT on E: Exception do
 
     END;//TRY
-Conector.Free;
+  Conector.Free;
 End;
 
 {$ENDREGION}

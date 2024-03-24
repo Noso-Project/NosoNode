@@ -409,7 +409,7 @@ if LastUpdateDataPanel <> UTCTime then
    form1.DataPanel.Cells[3,1]:= Format('[%s] %s Noso',[BlockAge.ToString,Copy(Int2curr(GetBlockReward(Mylastblock+1)),0,5)]);
    form1.DataPanel.Cells[3,2]:= GEtOutgoingconnections.ToString+'/'+GetClientReadThreads.ToString;
    form1.DataPanel.Cells[3,3]:= Format('%d (%d)',[GetDBLastBlock,GetDBRecords]);
-   form1.DataPanel.Cells[3,4]:= format('%s / %s',[Copy(HashMd5String(GetCFGDataStr),0,5),GetConsensus(19)]);
+   form1.DataPanel.Cells[3,4]:= format('%s / %s',[Copy(GetCFGHash,0,5),GetConsensus(19)]);
    form1.DataPanel.Cells[3,5]:= format('%s / %s',[Copy(MyGVTsHash,0,5),GetConsensus(18)]);
    form1.DataPanel.Cells[3,6]:= format('%s / %s',[Copy(GetMNsHash,0,5),GetConsensus(8)]);
    form1.DataPanel.Cells[3,7]:= format('(%d)  %d/%s (%d)',[GetMNsChecksCount,GetMNsListLength,GetConsensus(9),LengthWaitingMNs]);

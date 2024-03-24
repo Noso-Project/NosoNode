@@ -2,7 +2,7 @@ unit NosoNosoCFG;
 
 {
 NosoNosoCFG 1.1
-Febraury 1, 2024
+March 23, 2024
 Stand alone unit to control nosocfg file and functionalitys
 }
 
@@ -12,8 +12,12 @@ interface
 
 uses
   Classes, SysUtils, strutils,
-  nosodebug, nosogeneral, nosotime;
+  nosodebug, nosogeneral, nosotime, nosocrypto;
 
+Procedure SetCFGHash();
+Function GetCFGHash():String;
+
+Procedure SetCFGFilename(Fname:String);
 Function SaveCFGToFile(Content:String):Boolean;
 Procedure GetCFGFromFile();
 Procedure SetCFGDataStr(Content:String);
@@ -28,8 +32,10 @@ Function IsSeedNode(IP:String):boolean;
 var
   CFGFilename       : string= 'NOSODATA'+DirectorySeparator+'nosocfg.psk';
   CFGFile           : Textfile;
+  MyCFGHash         : string = '';
   CS_CFGFile        : TRTLCriticalSection;
   CS_CFGData        : TRTLCriticalSection;
+  CS_CFGHash        : TRTLCriticalSection;
   NosoCFGString     : string = '';
   LasTimeCFGRequest : int64 = 0;
   DefaultNosoCFG    : String = // CFG parameters
@@ -43,7 +49,32 @@ var
 
 IMPLEMENTATION
 
+{$REGION CFG hash}
+
+Procedure SetCFGHash();
+Begin
+  EnterCriticalSection(CS_CFGHash);
+  MyCFGHash := HashMD5String(GetCFGDataStr);
+  LeaveCriticalSection(CS_CFGHash);
+End;
+
+Function GetCFGHash():String;
+Begin
+  EnterCriticalSection(CS_CFGHash);
+  Result := MyCFGHash;
+  LeaveCriticalSection(CS_CFGHash);
+End;
+
+{$ENDREGION CFG hash}
+
 {$REGION File access}
+
+Procedure SetCFGFilename(Fname:String);
+Begin
+  CFGFilename := Fname;
+  AssignFile(CFGFile, CFGFilename);
+  SetCFGHash();
+End;
 
 Function SaveCFGToFile(Content:String):Boolean;
 Begin
@@ -69,6 +100,7 @@ Begin
   EnterCriticalSection(CS_CFGData);
   NosoCFGString := Content;
   LeaveCriticalSection(CS_CFGData);
+  SetCFGHash;
 End;
 
 Function GetCFGDataStr(LParam:integer=-1):String;
@@ -214,10 +246,13 @@ End;
 INITIALIZATION
 InitCriticalSection(CS_CFGFile);
 InitCriticalSection(CS_CFGData);
+InitCriticalSection(CS_CFGHash);
+
 
 FINALIZATION
 DoneCriticalSection(CS_CFGFile);
 DoneCriticalSection(CS_CFGData);
+DoneCriticalSection(CS_CFGHash);
 
 END.
 

@@ -170,7 +170,7 @@ var
   MyLastBlockHash : String = '';
   //
   //MyGVTsHash      : string = '';
-  MyCFGHash       : string = '';
+  //MyCFGHash       : string = '';
   MyPublicIP      : String = '';
   // Local information
   LastBlockData         : BlockHeaderData;
@@ -682,7 +682,7 @@ Begin
   if GetResumenHash = GetConsensus(5) then
     ForceCompleteHeadersDownload := false;
   //MyMNsHash       := HashMD5File(MasterNodesFilename);
-  MyCFGHash       := Copy(HAshMD5String(GetCFGDataStr),1,5);
+  //MyCFGHash       := Copy(HAshMD5String(GetCFGDataStr),1,5);
 End;
 
 Function IsValidator(Ip:String):boolean;

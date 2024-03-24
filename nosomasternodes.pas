@@ -139,6 +139,7 @@ Begin
   MasterNodesFilename := LText;
   AssignFile(MNFileHandler,MasterNodesFilename);
   if not FileExists(MasterNodesFilename) then CreateEmptyFile(MasterNodesFilename);
+  LoadMNsFile;
 End;
 
 Procedure SetLocalIP(NewValue:String);

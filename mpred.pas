@@ -578,7 +578,7 @@ LastBlockData := LoadBlockDataHeader(MyLastBlock);
 SetResumenHash := HashMD5File(ResumenFilename);
   if SetResumenHash = GetConsensus(5) then ForceCompleteHeadersDownload := false;
 MyMNsHash     := HashMD5File(MasterNodesFilename);
-MyCFGHash     := Copy(HAshMD5String(GetCFGDataStr),1,5);
+MyCFGHash     := Copy(HashMD5String(GetCFGDataStr),1,5);
 End;
 }
 
@@ -609,7 +609,7 @@ NLBV := StrToIntDef(GetConsensus(cLastBlock),0);
 // *** New Synchronization methods
 
 // *** Update CFG file.
-if ( (GetConsensus(19)<>Copy(HashMd5String(GetCFGDataStr),0,5)) and (LasTimeCFGRequest+5<UTCTime) and
+if ( (GetConsensus(19)<>Copy(GetCFGHash,0,5)) and (LasTimeCFGRequest+5<UTCTime) and
           (GetConsensus(19)<>'') ) then
   begin
   if GetValidSlotForSeed(ValidSlot) then
@@ -972,7 +972,7 @@ result := {1}IntToStr(GetTotalConexiones)+' '+{2}IntToStr(MyLastBlock)+' '+{3}Ge
           {10}MyLastBlockHash+' '+{11}{GetNMSData.Diff}'null'+' '+{12}IntToStr(LastBlockData.TimeEnd)+' '+
           {13}LastBlockData.AccountMiner+' '+{14}GetMNsChecksCount.ToString+' '+{15}Parameter(LastBlockData.Solution,2)+' '+
           {16}Parameter(LastBlockData.Solution,1)+' '+{17}copy(MySumarioHash,0,5)+' '+{18}copy(MyGVTsHash,0,5)+' '+
-          {19}Copy(HashMD5String(GetCFGDataStr),0,5)+' '+{20}copy(PSOFileHash,0,5);
+          {19}Copy(GetCFGHash,0,5)+' '+{20}copy(PSOFileHash,0,5);
 End;
 
 Function IsSafeIP(IP:String):boolean;
@@ -1007,18 +1007,18 @@ var
   readedLine : string = '';
   Conector : TFPHttpClient;
 Begin
-Conector := TFPHttpClient.Create(nil);
-conector.ConnectTimeout:=1000;
-conector.IOTimeout:=1000;
-TRY
-   readedLine := Conector.SimpleGet(LurL);
-EXCEPT on E: Exception do
-   begin
-   ToDeepDeb('mpRed,GetRepoFile,'+E.Message);
-   end;
-END;//TRY
-Conector.Free;
-result := readedLine;
+  Conector := TFPHttpClient.Create(nil);
+  conector.ConnectTimeout:=1000;
+  conector.IOTimeout:=1000;
+  TRY
+    readedLine := Conector.SimpleGet(LurL);
+  EXCEPT on E: Exception do
+    begin
+    ToDeepDeb('mpRed,GetRepoFile,'+E.Message);
+    end;
+  END;//TRY
+  Conector.Free;
+  result := readedLine;
 End;
 
 // Retrieves the OS for download the lastest version

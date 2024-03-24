@@ -993,17 +993,17 @@ var
   startpos : integer;
   content : string;
 Begin
-startpos := Pos('$',Linea);
-Content := Copy(Linea,Startpos+1,Length(linea));
-if Copy(HAshMD5String(Content),0,5) = GetCOnsensus(19) then
-   begin
-   SaveCFGToFile(content);
-   SetCFGDataStr(content);
-   FillNodeList;
-   ToLog('events','Noso CFG updated!');
-   end
-else
-   ToLog('events',Format('Failed CFG: %s <> %s',[Copy(HAshMD5String(Content),0,5),GetCOnsensus(19)]));
+  startpos := Pos('$',Linea);
+  Content := Copy(Linea,Startpos+1,Length(linea));
+  if Copy(HAshMD5String(Content),0,5) = GetCOnsensus(19) then
+    begin
+    SaveCFGToFile(content);
+    SetCFGDataStr(content);
+    FillNodeList;
+    ToLog('events','Noso CFG updated!');
+    end
+  else
+    ToLog('events',Format('Failed CFG: %s <> %s',[Copy(HAshMD5String(Content),0,5),GetCOnsensus(19)]));
 End;
 
 {

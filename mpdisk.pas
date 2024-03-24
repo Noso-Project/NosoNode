@@ -91,18 +91,20 @@ var
 
 Begin
   SetHeadersFileName('NOSODATA'+DirectorySeparator+'blchhead.nos');
+  //if not Fileexists(ResumenFilename) then CreateHeadersFile();
+  OutText('✓ Headers file ok',false,1);
 
   if not FileExists (AdvOptionsFilename) then CreateADV(false) else LoadADV();
   OutText('✓ Advanced options loaded',false,1);
 
   SetMasternodesFilename('NOSODATA'+DirectorySeparator+'masternodes.txt');
   //if not FileExists(MasterNodesFilename) then CreateMasterNodesFile;
-  LoadMNsFile;
+  //LoadMNsFile;
   OutText('✓ Masternodes file ok',false,1);
 
-if not FileExists(GVTsFilename) then CreateGVTsFile;
-GetGVTsFileData;
-OutText('✓ GVTs file ok',false,1);
+  if not FileExists(GVTsFilename) then CreateGVTsFile;
+  GetGVTsFileData;
+  OutText('✓ GVTs file ok',false,1);
 
 if not FileExists(CFGFilename) then
   begin
@@ -133,8 +135,7 @@ FillNodeList;  // Fills the hardcoded seed nodes list
 if not Fileexists(SummaryFileName) then CreateNewSummaryFile(FileExists(BlockDirectory+'0.blk'));
 CreateSumaryIndex();
 OutText('✓ Sumary file ok',false,1);
-if not Fileexists(ResumenFilename) then CreateHeadersFile();
-OutText('✓ Headers file ok',false,1);
+
 
 if not FileExists(BlockDirectory+DBDirectory+DataBaseFilename) then CreateDBFile;
 OutText('✓ Database file ok.',false,1);

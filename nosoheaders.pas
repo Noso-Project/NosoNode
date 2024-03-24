@@ -11,7 +11,7 @@ Stand alone unit to control headers file.
 interface
 
 uses
-  Classes, SysUtils, Nosodebug,nosocrypto;
+  Classes, SysUtils, Nosodebug,nosocrypto, nosogeneral;
 
 Type
 
@@ -67,6 +67,7 @@ Begin
   Result := true;
   ResumenFilename := Filename;
   assignfile(FileResumen,ResumenFilename);
+  if not Fileexists(ResumenFilename) then CreateEmptyFile(ResumenFilename);
   SetResumenHash();
 End;
 
