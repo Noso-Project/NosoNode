@@ -239,7 +239,7 @@ var
   MyArray : array of string;
 Begin
   Repeat
-    sleep(1);
+    sleep(5);
   until not RunningConsensus;
   setlength(NodesArray,0);
   NodesList := Trim(StringReplace(NodesList,':',' ',[rfReplaceAll, rfIgnoreCase]));
@@ -340,11 +340,11 @@ Begin
     ThisThread := TThreadNodeStatus.Create(True,counter);
     ThisThread.FreeOnTerminate:=true;
     ThisThread.Start;
-    Sleep(1);
+    Sleep(5);
     end;
   EndTime := UTCTime+5;
   Repeat
-    sleep(1);
+    sleep(5);
   until ( (OpenThreadsValue<= 0) or (UTCTime >= EndTime) );
   ActiveRound := 0;
   // Get the consensus hash

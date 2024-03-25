@@ -267,7 +267,7 @@ else if UpperCase(Command) = 'COMPARE' then CompareHashes(LineText)
 else if UpperCase(Command) = 'GETREPOSEEDS' then ToLog('console',GetRepoFile('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos'))
 else if UpperCase(Command) = 'FORCEREPOSEEDS' then
   begin
-  ToLog('console',GetRepoFile('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos'))
+  SetCFGData(GetRepoFile('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos'),1);
   end
 else if UpperCase(Command) = 'SENDREPORT' then SEndFileViaTCP(ResumeLogFilename,'REPORT','debuglogs.nosocoin.com:18081',18081)
 else if UpperCase(Command) = 'GETDBLB' then ToLog('console',GetDBLastBlock.ToString)
@@ -1654,22 +1654,22 @@ var
   ThisBal  : int64;
   LAstOP   : int64;
 Begin
-sourcestr := GetCFGDataStr(5);
-repeat
-Thisadd := Parameter(sourcestr,counter,':');
-if thisadd <> '' then
-   begin
-   ThisBal := GetAddressBalanceIndexed(ThisAdd);
-   Inc(Total,ThisBal);
-   Inc(count);
-   LastOP := GetAddressLastOP(ThisAdd);
-   if AnsiContainsStr(GetMN_FileText,Thisadd) then MNMsg := '[MN]'
-   else MNMsg := '';
-   ToLog('console',format('%-35s : %15s  [%5d] %s',[thisadd,int2curr(ThisBal),LastOP,MNMsg]));
-   end;
-inc(counter);
-until thisadd = '';
-ToLog('console',format('Freezed %d : %s',[count,int2curr(Total)]));
+  sourcestr := GetCFGDataStr(5);
+  repeat
+  Thisadd := Parameter(sourcestr,counter,':');
+  if thisadd <> '' then
+    begin
+    ThisBal := GetAddressBalanceIndexed(ThisAdd);
+    Inc(Total,ThisBal);
+    Inc(count);
+    LastOP := GetAddressLastOP(ThisAdd);
+    if AnsiContainsStr(GetMN_FileText,Thisadd) then MNMsg := '[MN]'
+    else MNMsg := '';
+    ToLog('console',format('%-35s : %15s  [%5d] %s',[thisadd,int2curr(ThisBal),LastOP,MNMsg]));
+    end;
+  inc(counter);
+  until thisadd = '';
+  ToLog('console',format('Freezed %d : %s',[count,int2curr(Total)]));
 End;
 
 {ShowsSummary file info}

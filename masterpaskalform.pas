@@ -576,7 +576,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  NodeRelease = 'Da1';
+  NodeRelease = 'Da2';
   OficialRelease = true;
   BetaRelease    = false;
   VersionRequired = '0.4.2';
@@ -1342,7 +1342,7 @@ Begin
         ToLog('exceps','Invalid cryptoop: '+ArrayCriptoOp[0].tipo.ToString);
         end;
       DeleteCriptoOp();
-      sleep(1);
+      sleep(10);
       end;
     if NewAddrss > 0 then OutText(IntToStr(NewAddrss)+' new addresses',false,2);
     Sleep(10);
@@ -1384,9 +1384,9 @@ While not terminated do
             END{Try};
             end;
          end;
-      Sleep(1);
+      Sleep(10);
       end;
-   Sleep(1);
+   Sleep(10);
    End;
 End;
 

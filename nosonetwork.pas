@@ -1141,6 +1141,7 @@ begin
             if not SendLineToClient(FSlot,LineToSend) then
               begin
               killit := true;
+              Conexiones[FSlot].Thread.Terminate;
               break;
               end;
             end;
@@ -1159,8 +1160,9 @@ begin
         EXCEPT on E:Exception do
           begin
           SetConexIndexBusy(FSlot,false);
+          Conexiones[FSlot].Thread.Terminate;
           KillIt := true;
-          continue;
+          break;
           end;
         END; {TRY}
         if LLine <> '' then
