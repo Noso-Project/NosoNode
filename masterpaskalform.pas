@@ -580,7 +580,7 @@ CONST
   OficialRelease = true;
   BetaRelease    = false;
   VersionRequired = '0.4.2';
-  BuildDate = 'March 2024';
+  BuildDate = 'April 2024';
   {Developer addresses}
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
@@ -637,6 +637,7 @@ var
   WO_SendReport    : boolean = false;
   WO_StopGUI    : boolean = false;
   WO_BlockDB       : boolean = false;
+  WO_PRestart      : int64 = 0;
   RPCFilter        : boolean = true;
   RPCWhitelist     : string = '127.0.0.1,localhost';
   RPCBanned        : string = '';
@@ -1401,15 +1402,21 @@ End;
 
 procedure TThreadKeepConnect.Execute;
 const
-  LastTrySlot : integer = 0;
-  LAstTryTime : int64 = 0;
-  Unables     : integer = 0;
+  LastTrySlot  : integer = 0;
+  LAstTryTime  : int64 = 0;
+  Unables      : integer = 0;
+  PRestartTime : int64 = 0;
 var
   TryThis   : boolean = true;
   Loops     : integer = 0;
   OutGoing  : integer;
 Begin
   AddNewOpenThread('KeepConnect',UTCTime);
+  if WO_PRestart > 0 then
+    begin
+    PRestartTime := UTCTime + (WO_PRestart*600);
+    ToLog('Console','PRestart set at '+TimestampToDate(PRestartTime));
+    end;
   while not terminated do
     begin
     UpdateOpenThread('KeepConnect',UTCTime);
@@ -1425,7 +1432,13 @@ Begin
         ConnectClient(NodesIndex(LastTrySlot).ip,NodesIndex(LastTrySlot).port);
       end;
     sleep(3000);
+    if PRestartTime > 0 then
+      begin
+      if ( (blockAge>120) and (blockAge<450) and (UTCTime>PRestartTime) ) then
+        ProcesslinesAdd('restart');
+      end;
     end;
+  if EngineLastUpdate+10 < UTCTime then Parse_RestartNoso;
   CloseOpenThread('KeepConnect');
 End;
 

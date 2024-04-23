@@ -106,31 +106,38 @@ Begin
   GetGVTsFileData;
   OutText('✓ GVTs file ok',false,1);
 
-if not FileExists(CFGFilename) then
-  begin
-  SaveCFGToFile(DefaultNosoCFG);
-  GetCFGFromFile;
-  Defseeds := GetRepoFile('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos');
-  if DefSeeds = '' then Defseeds := GetRepoFile('https://api.nosocoin.com/nodes/seed');
-  if defseeds <> '' then
+  SetCFGFilename('NOSODATA'+DirectorySeparator+CFGFilename);
+  {
+  if not FileExists(CFGFilename) then
     begin
-    SetCFGData(Defseeds,1);
-    Tolog('console','Defaults seeds downloaded from trustable source');
+    SaveCFGToFile(DefaultNosoCFG);
+    GetCFGFromFile;
+    Defseeds := GetRepoFile('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos');
+    if DefSeeds = '' then Defseeds := GetRepoFile('https://api.nosocoin.com/nodes/seed');
+    if defseeds <> '' then
+      begin
+      SetCFGData(Defseeds,1);
+      Tolog('console','Defaults seeds downloaded from trustable source');
+      end
+    else ToLog('console','Unable to download default seeds. Please, use a fallback');
+    end;
+  GetCFGFromFile;
+  }
+  OutText('✓ NosoCFG file ok',false,1);
+
+
+  if not SetWalletFilename('NOSODATA'+DirectorySeparator+'wallet.pkw') then S_AdvOpt := true;
+  {
+  if not FileExists (WalletFilename) then
+    begin
+    CreateNewWallet;
+    S_AdvOpt := true;
     end
-  else ToLog('console','Unable to download default seeds. Please, use a fallback');
-  end;
-GetCFGFromFile;
-OutText('✓ NosoCFG file ok',false,1);
+  else LoadWallet(WalletFilename);
+  }
+  OutText('✓ Wallet file ok',false,1);
 
-if not FileExists (WalletFilename) then
-  begin
-  CreateNewWallet;
-  S_AdvOpt := true;
-  end
-else LoadWallet(WalletFilename);
-OutText('✓ Wallet file ok',false,1);
-
-FillNodeList;  // Fills the hardcoded seed nodes list
+  FillNodeList;  // Fills the hardcoded seed nodes list
 
 if not Fileexists(SummaryFileName) then CreateNewSummaryFile(FileExists(BlockDirectory+'0.blk'));
 CreateSumaryIndex();
@@ -248,6 +255,8 @@ BeginPerformance('CreateADV');
    writeln(FileAdvOptions,'SendReport '+BoolToStr(WO_SendReport,true));
    writeln(FileAdvOptions,'//Keep a blocks database');
    writeln(FileAdvOptions,'BlocksDB '+BoolToStr(WO_BlockDB,true));
+   writeln(FileAdvOptions,'//Restart periodically the node');
+   writeln(FileAdvOptions,'PRestart '+IntToStr(WO_PRestart));
 
    writeln(FileAdvOptions,'//Mainform coordinates. Do not manually change this values');
    writeln(FileAdvOptions,Format('FormState %d %d %d %d %d',[Form1.Top,form1.Left,form1.Width,form1.Height,form1.WindowState]));
@@ -320,6 +329,8 @@ Begin
       if parameter(linea,0) ='PosWarning' then WO_PosWarning:=StrToIntDef(Parameter(linea,1),WO_PosWarning);
       if parameter(linea,0) ='SendReport' then WO_SendReport:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='BlocksDB' then WO_BlockDB:=StrToBool(Parameter(linea,1));
+      if parameter(linea,0) ='PRestart' then WO_PRestart:=StrToIntDef(Parameter(linea,1),0);
+
 
       if parameter(linea,0) ='MultiSend' then WO_MultiSend:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='HideEmpty' then WO_HideEmpty:=StrToBool(Parameter(linea,1));

@@ -264,10 +264,10 @@ else if UpperCase(Command) = 'HEADSIZE' then ToLog('console',GetHeadersHeigth.To
 else if UpperCase(Command) = 'NEWFROMKEYS' then NewAddressFromKeys(LineText)
 else if UpperCase(Command) = 'TESTHASH' then TestHashGeneration(LineText)
 else if UpperCase(Command) = 'COMPARE' then CompareHashes(LineText)
-else if UpperCase(Command) = 'GETREPOSEEDS' then ToLog('console',GetRepoFile('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos'))
+else if UpperCase(Command) = 'GETREPOSEEDS' then ToLog('console',SendApiRequest('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos'))
 else if UpperCase(Command) = 'FORCEREPOSEEDS' then
   begin
-  SetCFGData(GetRepoFile('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos'),1);
+  SetCFGData(SendApiRequest('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos'),1);
   end
 else if UpperCase(Command) = 'SENDREPORT' then SEndFileViaTCP(ResumeLogFilename,'REPORT','debuglogs.nosocoin.com:18081',18081)
 else if UpperCase(Command) = 'GETDBLB' then ToLog('console',GetDBLastBlock.ToString)
@@ -802,7 +802,7 @@ if procesar then
       end;
    Setlength(orderstring,length(orderstring)-2);
    OrderString := StringReplace(OrderString,'PSK','NSLORDER',[]);
-   //ToLog('console','Send to Node '+OrderString);
+   ToLog('console','Send to Node '+OrderString);
    result := SendOrderToNode(OrderString);
    //ToLog('console','Node result: '+result);
    OutgoingMsjsAdd(OrderString);

@@ -26,6 +26,7 @@ TYPE
     LastOP : int64;           // tiempo de la ultima operacion en UnixTime.
     end;
 
+Function SetWalletFileName(Fname:String):Boolean;
 Procedure ClearWalletArray();
 function InsertToWallArr(LData:WalletData):boolean;
 Function GetWallArrIndex(Index:integer):WalletData;
@@ -54,6 +55,19 @@ var
   CS_WalletArray  : TRTLCriticalSection;
 
 IMPLEMENTATION
+
+// Set the wallet filename; if not exists, returns false
+Function SetWalletFileName(Fname:String):Boolean;
+Begin
+  Result := true;
+  WalletFilename := Fname;//'NOSODATA'+DirectorySeparator+'wallet.pkw';
+  if not FileExists(WalletFilename) then
+    begin
+    CreateNewWallet;
+    result := false;
+    end
+  else LoadWallet(WalletFilename);
+End;
 
 Procedure ClearWalletArray();
 Begin
@@ -173,6 +187,7 @@ Var
   ThisData    : WalletData;
 Begin
   Result := 0;
+  BeginPerformance('ImportAddressesFromBackup');
   BakFiles := TStringList.Create;
   TRY
     FindAllFiles(BakFiles, BakFolder, '*.pkw', true);
@@ -191,6 +206,7 @@ Begin
     end;
   END;
   BakFiles.free;
+  EndPerformance('ImportAddressesFromBackup');
 End;
 
 // Saves an address info to a specific file

@@ -30,7 +30,7 @@ Procedure ClearCFGData(Index:string);
 Function IsSeedNode(IP:String):boolean;
 
 var
-  CFGFilename       : string= 'NOSODATA'+DirectorySeparator+'nosocfg.psk';
+  CFGFilename       : string= 'nosocfg.psk';
   CFGFile           : Textfile;
   MyCFGHash         : string = '';
   CS_CFGFile        : TRTLCriticalSection;
@@ -40,7 +40,7 @@ var
   LasTimeCFGRequest : int64 = 0;
   DefaultNosoCFG    : String = // CFG parameters
                             {0 Mainnet mode}'NORMAL '+
-                            {1 Seed nodes  }'63.227.69.162;8080:20.199.50.27;8080:107.172.21.121;8080:107.172.214.53;8080:198.23.134.105;8080:107.173.210.55;8080:5.230.55.203;8080:141.11.192.215;8080:4.233.61.8;8080: '+
+                            {1 Seed nodes  }'20.199.50.27;8080:107.173.210.55;8080:5.230.55.203;8080:141.11.192.215;8080:4.233.61.8;8080:84.247.143.153;8080:23.95.216.80;8080:64.69.43.225;8080:142.171.231.9;8080: '+
                             {2 NTP servers }'ts2.aco.net:hora.roa.es:time.esa.int:time.stdtime.gov.tw:stratum-1.sjc02.svwh.net:ntp1.sp.se:1.de.pool.ntp.org:ntps1.pads.ufrj.br:utcnist2.colorado.edu:tick.usask.ca:ntp1.st.keio.ac.jp: '+
                             {3 DEPRECATED  }'null: '+
                             {4 DEPRECATED  }'null: '+
@@ -70,9 +70,27 @@ End;
 {$REGION File access}
 
 Procedure SetCFGFilename(Fname:String);
+var
+  defseeds : string = '';
 Begin
   CFGFilename := Fname;
   AssignFile(CFGFile, CFGFilename);
+  if not fileexists(CFGFilename) then
+    begin
+    SaveCFGToFile(DefaultNosoCFG);
+    GetCFGFromFile;
+    Defseeds := SendApiRequest('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos');
+    if defseeds <> '' then
+      begin
+      SetCFGData(Defseeds,1);
+      Tolog('console','Defaults seeds downloaded from trustable source');
+      end
+    else
+      begin
+      ToLog('console','Unable to download default seeds. Please, use a fallback');
+      end;
+    end;
+  GetCFGFromFile;
   SetCFGHash();
 End;
 
