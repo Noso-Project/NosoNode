@@ -567,7 +567,7 @@ CONST
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS DELBOTS';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
 
-  MainnetVersion = '0.4.2';
+  MainnetVersion = '0.4.3';
   {$IFDEF WINDOWS}
   RestartFileName = 'launcher.bat';
   updateextension = 'zip';
@@ -576,9 +576,9 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  NodeRelease = 'Da2';
-  OficialRelease = true;
-  BetaRelease    = false;
+  NodeRelease = 'Aa1';
+  OficialRelease = False;
+  BetaRelease    = True;
   VersionRequired = '0.4.2';
   BuildDate = 'April 2024';
   {Developer addresses}
@@ -619,7 +619,7 @@ CONST
 
 var
   Form1            : TForm1;
-  Customizationfee : int64 = InitialReward div ComisionCustom;
+  //Customizationfee : int64 = InitialReward div ComisionCustom;
   {Options}
   FileAdvOptions   : textfile;
   S_AdvOpt         : boolean = false;
@@ -638,6 +638,7 @@ var
   WO_StopGUI    : boolean = false;
   WO_BlockDB       : boolean = false;
   WO_PRestart      : int64 = 0;
+  WO_skipBlocks   : boolean = false;
   RPCFilter        : boolean = true;
   RPCWhitelist     : string = '127.0.0.1,localhost';
   RPCBanned        : string = '';
@@ -2645,6 +2646,8 @@ var
   ContextData : TServerTipo;
   ThisSlot    : integer;
   PeerUTC     : int64;
+  BlockZipName: string = '';
+  BlockZipsize: int64;
 Begin
   GoAhead := true;
   ContextData := TServerTipo.Create;
@@ -2717,6 +2720,23 @@ Begin
                end;
             END; {TRY}
          end;
+      MemStream.Free;
+      TryCloseServerConnection(AContext);
+      end
+    else if parameter(LLine,0) = 'NSLBLOCKS' then
+      begin
+      MemStream := TMemoryStream.Create;
+      BlockZipsize := GetBlocksAsStream(MemStream,StrToIntDef(parameter(LLine,1),-1),MyLastBlock);
+      If BlockZipsize > 0 then
+        begin
+          TRY
+          Acontext.Connection.IOHandler.WriteLn('BLOCKZIP '+inttoStr(BlockZipsize));
+          Acontext.connection.IOHandler.Write(MemStream,0,true);
+          EXCEPT on E:Exception do
+            begin
+            end;
+          END; {TRY}
+        end;
       MemStream.Free;
       TryCloseServerConnection(AContext);
       end
@@ -2833,7 +2853,7 @@ Begin
   Address := DireccionesPanel.Cells[0,DireccionesPanel.Row];
   if not IsValidHashAddress(address) then info('Address already customized')
   else if AddressAlreadyCustomized(address) then info('Address already customized')
-  else if GetAddressBalanceIndexed(Address)-GetAddressPendingPays(address)< Customizationfee then info('Insufficient funds')
+  else if GetAddressBalanceIndexed(Address)-GetAddressPendingPays(address)< GetCustFee(MyLastBlock) then info('Insufficient funds')
   else
     begin
     DireccionesPanel.Enabled:=false;

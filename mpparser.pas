@@ -63,6 +63,7 @@ Procedure ExportKeys(linea:string);
 Procedure NewAddressFromKeys(inputline:string);
 Procedure TestHashGeneration(inputline:string);
 Procedure CompareHashes(inputline:string);
+Procedure CreateMultiAddress(Inputline:String);
 
 // CONSULTING
 Procedure ListGVTs();
@@ -272,6 +273,7 @@ else if UpperCase(Command) = 'FORCEREPOSEEDS' then
 else if UpperCase(Command) = 'SENDREPORT' then SEndFileViaTCP(ResumeLogFilename,'REPORT','debuglogs.nosocoin.com:18081',18081)
 else if UpperCase(Command) = 'GETDBLB' then ToLog('console',GetDBLastBlock.ToString)
 else if UpperCase(Command) = 'ORDINFO' then OrdInfo(LineText)
+else if UpperCase(Command) = 'GETMULTI' then CreateMultiAddress(LineText)
 
 
 // New system
@@ -647,7 +649,7 @@ if IsValidHashAddress(addalias) then
    ToLog('console','Alias can not be a valid address'); //'Alias can not be a valid address'
    procesar := false;
    end;
-if GetWallArrIndex(WallAddIndex(address)).Balance < Customizationfee then
+if GetWallArrIndex(WallAddIndex(address)).Balance < GetCustFee(MyLastBlock) then
    begin
    ToLog('console','Insufficient balance'); //'Insufficient balance'
    procesar := false;
@@ -687,7 +689,7 @@ if procesar then
            GetWallArrIndex(WallAddIndex(address)).PublicKey+' '+    // sender
            GetWallArrIndex(WallAddIndex(address)).Hash+' '+    // address
            AddAlias+' '+   // receiver
-           IntToStr(Customizationfee)+' '+  // Amountfee
+           IntToStr(GetCustFee(MyLastBlock))+' '+  // Amountfee
            '0'+' '+                         // amount trfr
            '[[RESULT]] '+
            TrfrHash);      // trfrhash
@@ -852,7 +854,7 @@ If WallAddIndex(GVTOwner)<0 then
    if showOutput then ToLog('console','You do not own that GVT');
    exit;
    end;
-if GetAddressAvailable(GVTOwner)<Customizationfee then
+if GetAddressAvailable(GVTOwner)<GetCustFee(MyLastBlock) then
    begin
    if showOutput then ToLog('console','Inssuficient funds');
    exit;
@@ -887,7 +889,7 @@ ResultStr := ProtocolLine(21)+ // sndGVT
              GetWallArrIndex(WallAddIndex(GVTOwner)).PublicKey+' '+    // sender
              GetWallArrIndex(WallAddIndex(GVTOwner)).Hash+' '+        // address
              Destination+' '+   // receiver
-             IntToStr(Customizationfee)+' '+  // Amountfee
+             IntToStr(GetCustFee(MyLastBlock))+' '+  // Amountfee
              '0'+' '+                         // amount trfr
              Signature+' '+
              TrfrHash;      // trfrhash
@@ -1817,6 +1819,52 @@ Begin
   ToLog('console',format('BaseXtoX : %s',[hashnew]));
   ToLog('console',format('Future   : %s',[hashfuture]));
 
+End;
+
+// Creates a multiaddress
+// Example: >getmulti 2,3 Nxxx,Nxxxx,Nxxxx
+Procedure CreateMultiAddress(Inputline:String);
+var
+  source     : string = '';
+  FullSource : string = '';
+  AddType    : string;
+  NewAdd     : String;
+  AddsNeeded : integer;
+  AddsTotal  : integer;
+  ErrorMsg   : string = '';
+  NewAddress : WalletData;
+Begin
+  AddType := parameter(Inputline,1);
+  AddType := StringReplace(AddType,',',' ',[rfReplaceAll, rfIgnoreCase]);
+  AddsNeeded := StrToIntDef(Parameter(AddType,0),-1);
+  AddsTotal  := StrToIntDef(Parameter(AddType,1),-1);
+  if Addtype = '' then ErrorMsg := 'getmulti needed,total list,of,addresses';
+  if ( (AddsTotal<2) or (AddsTotal>7) ) then ErrorMsg := 'Wrong number of total addresses';
+  if ( (AddsNeeded <1) or (AddsNeeded>=AddsTotal) ) then ErrorMsg := 'Wrong number of needed addresses';
+  if ErrorMsg <> '' then
+    begin
+    ToLog('Console',ErrorMsg);
+    Exit;
+    end;
+  source  := parameter(Inputline,2);
+  if not GetMultiSource(Source,AddsTotal,FullSource) then
+    begin
+    ToLog('Console','Error: '+FullSource);
+    Exit;
+    end;
+  AddType := StringReplace(AddType,' ',',',[rfReplaceAll, rfIgnoreCase]);
+  NewAdd := GetAddressFromPublicKey(AddType+':'+FullSource,AddTypeMulti);
+  if IsValidHashAddress(NewAdd) then
+    begin
+    ToLog('Console','New multiAddress: '+NewAdd);
+    NewAddress := Default(WalletData);
+    NewAddress.Hash:= NewAdd;
+    NewAddress.PublicKey:=AddType+':'+FullSource;
+    InsertToWallArr(NewAddress);
+    S_Wallet := true;
+    U_DirPanel := true;
+    end
+  else ToLog('Console','Something went wrong...');
 End;
 
 // PSOs testing functions

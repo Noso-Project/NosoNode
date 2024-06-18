@@ -40,6 +40,22 @@ type
       TrfrID     : String[64];
     end;
 
+
+  TMultiOrder = record
+    Block      : integer;
+    TimeStamp  : Int64;
+    OrderID    : string[64];
+    OrderType  : String[6];
+    Reference  : String[64];
+    sender     : String[40];
+    PubKey     : String[255];
+    Receiver   : String[40];
+    Signer     : string[120];
+    Signature  : string[120];
+    AmmountFee : Int64;
+    AmmountTrf : Int64;
+    end;
+
   TBlockOrdersArray = Array of TOrderData;
 
 {Generic}
@@ -52,6 +68,7 @@ Function Restar(number:int64):int64;
 Function HashrateToShow(speed:int64):String;
 Function Int2Curr(LValue: int64): string;
 Procedure RunExternalProgram(ProgramToRun:String);
+Function GetCustFee(Block:integer):int64;
 Function GetStackRequired(block:integer):int64;
 Function GetMNsPercentage(block:integer;MainnetMode:String='NORMAL'):integer;
 Function GetPoSPercentage(block:integer):integer;
@@ -255,6 +272,13 @@ Begin
 
     END; {TRY}
   Process.Free;
+End;
+
+{Returns the custom fee amount}
+Function GetCustFee(Block:integer):int64;
+Begin
+  result := 1000000;
+  if block < 162000 then result := 25000;
 End;
 
 {Returns the required noso stack size}

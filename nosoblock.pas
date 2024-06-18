@@ -11,7 +11,8 @@ All block related controls
 INTERFACE
 
 uses
-  Classes, SysUtils, FileUtil, NosoDebug, NosoUnit, Nosocrypto,nosogeneral;
+  Classes, SysUtils, FileUtil, Zipper,
+  NosoDebug, NosoUnit, Nosocrypto,nosogeneral;
 
 Type
   TDBRecord = record
@@ -57,6 +58,7 @@ function GetBlockTrxs(BlockNumber:integer):TBlockOrdersArray;
 function LoadBlockDataHeader(BlockNumber:integer):BlockHeaderData;
 
 Function SaveStreamAsZipBlocks(Const LStream:TMemoryStream):boolean;
+function GetBlocksAsStream(out LMs:TMemoryStream;firstblock, CurrentLastblock:integer):Int64;
 
 var
   BlockDirectory      : string = 'NOSODATA'+DirectorySeparator+'BLOCKS'+DirectorySeparator;
@@ -419,6 +421,49 @@ Begin
     ToDeepDeb('NosoBlock,SaveStreamAsZipBlocks,'+E.Message);
     end;
   END{Try};
+End;
+
+// Creates the zip block file
+function GetBlocksAsStream(out LMs:TMemoryStream;firstblock, CurrentLastblock:integer):Int64;
+var
+  MyZipFile: TZipper;
+  ZipFileName:String;
+  LastBlock : integer;
+  contador : integer;
+  filename, archivename: String;
+Begin
+  result := 0;
+  LastBlock := FirstBlock + 100; if LastBlock>CurrentLastblock then LastBlock := CurrentLastblock;
+  MyZipFile := TZipper.Create;
+  ZipFileName := BlockDirectory+'Blocks_'+IntToStr(FirstBlock)+'_'+IntToStr(LastBlock)+'.zip';
+  MyZipFile.FileName := ZipFileName;
+    TRY
+    for contador := FirstBlock to LastBlock do
+      begin
+      filename := BlockDirectory+IntToStr(contador)+'.blk';
+      {$IFDEF WINDOWS}
+      archivename:= StringReplace(filename,'\','/',[rfReplaceAll]);
+      {$ENDIF}
+      {$IFDEF UNIX}
+      archivename:= filename;
+      {$ENDIF}
+      MyZipFile.Entries.AddFileEntry(filename, archivename);
+      end;
+    MyZipFile.ZipAllFiles;
+    //result := ZipFileName;
+    EXCEPT ON E:Exception do
+      begin
+      ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error zipping block files: '+E.Message);
+      end;
+    END;
+  MyZipFile.Free;
+    TRY
+    LMs.LoadFromFile(ZipFileName);
+    result:= LMs.Size;
+    LMs.Position:=0;
+    EXCEPT ON E:Exception do
+    END{Try};
+  Trydeletefile(ZipFileName);
 End;
 
 {$ENDREGION Blocks Files management}

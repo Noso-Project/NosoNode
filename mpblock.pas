@@ -124,6 +124,7 @@ var
 
 
 Begin
+if WO_skipBlocks then exit;
 if GetCFGDataStr(0) = 'STOP' then
    begin
    ClearAllPending;

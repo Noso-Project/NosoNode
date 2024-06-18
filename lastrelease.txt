@@ -1,1 +1,1 @@
-0.4.2Da1 0.4.2Da1 x {LastOfficial} {LastBeta} {TestNet}
+0.4.2Da2 0.4.2Da2 x {LastOfficial} {LastBeta} {TestNet}

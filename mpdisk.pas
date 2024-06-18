@@ -257,6 +257,8 @@ BeginPerformance('CreateADV');
    writeln(FileAdvOptions,'BlocksDB '+BoolToStr(WO_BlockDB,true));
    writeln(FileAdvOptions,'//Restart periodically the node');
    writeln(FileAdvOptions,'PRestart '+IntToStr(WO_PRestart));
+   writeln(FileAdvOptions,'//Skip new blocks creation');
+   writeln(FileAdvOptions,'SkipBlocks '+BoolToStr(WO_skipBlocks,true));
 
    writeln(FileAdvOptions,'//Mainform coordinates. Do not manually change this values');
    writeln(FileAdvOptions,Format('FormState %d %d %d %d %d',[Form1.Top,form1.Left,form1.Width,form1.Height,form1.WindowState]));
@@ -330,6 +332,8 @@ Begin
       if parameter(linea,0) ='SendReport' then WO_SendReport:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='BlocksDB' then WO_BlockDB:=StrToBool(Parameter(linea,1));
       if parameter(linea,0) ='PRestart' then WO_PRestart:=StrToIntDef(Parameter(linea,1),0);
+      if parameter(linea,0) ='SkipBlocks' then WO_skipBlocks:=StrToBool(Parameter(linea,1));
+
 
 
       if parameter(linea,0) ='MultiSend' then WO_MultiSend:=StrToBool(Parameter(linea,1));
@@ -683,7 +687,7 @@ for cont := 0 to length(ArrayOrders)-1 do
    if ArrayOrders[cont].OrderType='SNDGVT' then
       begin
       Inc(GVTsTrfer);
-      SummaryPay(ArrayOrders[cont].sender,Customizationfee,BlockNumber);
+      SummaryPay(ArrayOrders[cont].sender,GetCustFee(BlockNumber),BlockNumber);
       ChangeGVTOwner(StrToIntDef(ArrayOrders[cont].Reference,100),ArrayOrders[cont].sender,ArrayOrders[cont].Receiver);
       end;
    if ArrayOrders[cont].OrderType='TRFR' then

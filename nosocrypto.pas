@@ -15,7 +15,7 @@ uses
   Classes, SysUtils, strutils,
   HlpHashFactory, md5,
   ClpConverters,ClpBigInteger,SbpBase58,
-  mpsignerutils, base64, NosoDebug;
+  mpsignerutils, base64, NosoDebug, nosogeneral;
 
 Type
 
@@ -34,7 +34,7 @@ Function HashMD5File(FileToHash:String):String;
 Function IsValid58(base58text:string):boolean;
 Function GetStringSigned(StringtoSign, PrivateKey:String):String;
 Function VerifySignedString(StringToVerify,B64String,PublicKey:String):boolean;
-function GetAddressFromPublicKey(PubKey:String):String;
+function GetAddressFromPublicKey(PubKey:String;AddType : integer = 0):String;
 function NewGetAddressFromPublicKey(PubKey:String):String;
 function FutureGetAddressFromPublicKey(const PubKey: String): String;
 Function GenerateNewAddress(out pubkey:String;out privkey:String):String;
@@ -45,6 +45,7 @@ Function GetCertificateChecksum(certificate:String):String;
 Function GetCertificate(Pubkey,privkey,currtime:string):string;
 Function CheckCertificate(certificate:string;out TimeStamp:String):string;
 Function CheckHashDiff(Target,ThisHash:String):string;
+Function GetMultiSource(Source: String;AddsTotal:integer;Out OrderedSource:String) : boolean;
 
 {New base conversion functions}
 function B10ToB16(const sVal: String): String;
@@ -79,6 +80,8 @@ Const
   HexAlphabet : string = '0123456789ABCDEF';
   B36Alphabet : string = '0123456789abcdefghijklmnopqrstuvwxyz';
   B58Alphabet : string = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+  AddtypeReg   = 0;
+  AddTypeMulti = 1;
 
 IMPLEMENTATION
 
@@ -239,7 +242,7 @@ Begin
 End;
 
 // Generates the public hash from the public key
-function GetAddressFromPublicKey(PubKey:String):String;
+function GetAddressFromPublicKey(PubKey:String;AddType : integer = 0):String;
 var
   PubSHAHashed,Hash1,Hash2,clave:String;
   sumatoria : string;
@@ -250,7 +253,8 @@ hash1 := BMHexTo58(Hash1,58);
 sumatoria := BMB58resumen(Hash1);
 clave := BMDecTo58(sumatoria);
 hash2 := hash1+clave;
-Result := 'N'+hash2;
+if AddType = 0 then Result := 'N'+hash2
+else if Addtype = 1 then Result := 'M'+Hash2;
 End;
 
 function NewGetAddressFromPublicKey(PubKey:String):String;
@@ -322,14 +326,17 @@ End;
 {Checks if a string is a valid address hash}
 Function IsValidHashAddress(Address:String):boolean;
 var
-  OrigHash : String;
+  OrigHash  : String;
+  FirstChar : string;
 Begin
   result := false;
-  if ((length(address)>20) and (address[1] = 'N')) then
+  if length(Address) < 1 then exit;
+  FirstChar := address[1];
+  if ((length(address)>20) and ((address[1] = 'N') or (address[1] = 'M')) ) then
     begin
     OrigHash := Copy(Address,2,length(address)-3);
     if IsValid58(OrigHash) then
-      if 'N'+OrigHash+(B10toB58(BMB58resumen(OrigHash))) = Address then
+      if FirstChar+OrigHash+(B10toB58(BMB58resumen(OrigHash))) = Address then
         result := true;
     end
 End;
@@ -428,6 +435,66 @@ for counter := 1 to 32 do
    Resultado := Resultado+ResChar
    end;
 Result := Resultado;
+End;
+
+
+//getmulti 1,2 N31ThXmSR2gua5tfCFNLEkYK9yNQsDi,N31ThXmSR2gua5tfCFNLEkYK9yNQsDi
+Function GetMultiSource(Source: String;AddsTotal:integer;Out OrderedSource:String) : boolean;
+var
+  Addresses  : array of string;
+  Counter    : integer = 0;
+  Counter2   : integer = 0;
+  ThisSour   : string;
+  Inserted   : boolean = false;
+  LocSource  : string;
+  Existing   : string = '';
+Begin
+  Result := false;
+  OrderedSource := '';
+  LocSource := StringReplace(Source,',',' ',[rfReplaceAll, rfIgnoreCase]);
+  SetLength(Addresses,0);
+  Repeat
+    Inserted := false;
+    ThisSour := Parameter(LocSource,counter);
+    if thisSour <> '' then
+      begin
+      if AnsiContainsStr(Existing,ThisSour) then
+        begin
+        OrderedSource:= 'Duplicated address -> '+ThisSour;
+        Exit;
+        end;
+      Existing := Existing+','+thisSour;
+      if not IsValidHashAddress(ThisSour) then
+        begin
+        OrderedSource:= 'Invalid hash address -> '+ThisSour;
+        Exit;
+        end;
+      if length(Addresses) = 0 then Insert(ThisSour,Addresses,0)
+      else
+        begin
+        For counter2 := 0 to length(addresses)-1 do
+          begin
+          if ThisSour < Addresses[counter2] then
+            begin
+            Insert(ThisSour,Addresses,counter2);
+            Inserted := true;
+            end;
+          end;
+        if not inserted then Insert(ThisSour,Addresses,length(Addresses));
+        end;
+      end;
+    Inc(Counter);
+  until ( (ThisSour = '') or (Counter = AddsTotal) );
+  if length(Addresses) <> AddsTotal then OrderedSource:= format('Wrong addresses count %d/%d',[length(addresses),AddsTotal]);
+  if OrderedSource = '' then
+    begin
+    for counter := 0 to length(Addresses)-1 do
+      Begin
+      OrderedSource := OrderedSource+Addresses[counter];
+      if counter < LEngth(addresses)-1 then OrderedSource := OrderedSource+',';
+      end;
+    Result := true;
+    end;
 End;
 
 {** New base conversion functions **}

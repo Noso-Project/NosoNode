@@ -144,6 +144,7 @@ var
   ArrayOutgoing    : array [1..MaxConecciones] of array of string;
   BotsList         : array of TBotData;
   ArrayPoolTXs     : Array of TOrderData;
+  ArrayMultiTXs    : Array of TMultiOrder;
   // Donwloading files
   DownloadHeaders  : boolean = false;
   DownloadSumary   : Boolean = false;
@@ -346,6 +347,10 @@ Begin
 End;
 
 {$ENDREGION Pending Pool transactions}
+
+{$REGION Pending Multi transactions}
+
+{$ENDREGION}
 
 {$REGION Protocol}
 
@@ -1463,6 +1468,7 @@ Begin
   InitCriticalSection(CSNodesList);
   SetLength(BotsList,0);
   Setlength(ArrayPoolTXs,0);
+  SetLength(ArrayMultiTXs,0);
   Setlength(NodesList,0);
   for counter := 1 to MaxConecciones do
     begin
