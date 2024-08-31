@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, mpRed, MasterPaskalForm, mpParser, StrUtils, mpDisk, nosotime, mpBlock,
   Zipper, mpcoin, nosodebug, nosogeneral, nosocrypto, nosounit,nosoconsensus,nosopsos,
-  nosoheaders, NosoNosoCFG, nosoblock, nosonetwork,nosogvts,nosoMasternodes;
+  nosoheaders, NosoNosoCFG, nosoblock, nosonetwork,nosogvts,nosoMasternodes,NosoIPControl;
 
 //function GetPTCEcn():String;
 Function GetOrderFromString(textLine:String):TOrderData;
@@ -93,6 +93,7 @@ Function GetOrderFromString(textLine:String):TOrderData;
 var
   orderinfo : TOrderData;
 Begin
+BeginPerformance('GetOrderFromString');
 OrderInfo := Default(TOrderData);
 TRY
 OrderInfo.OrderID    := Parameter(textline,1);
@@ -114,6 +115,7 @@ EXCEPT ON E:Exception do
    end;
 END;{TRY}
 Result := OrderInfo;
+EndPerformance('GetOrderFromString');
 End;
 
 {
@@ -199,6 +201,7 @@ var
   Linecomando : string = '';
   ProcessLine : String;
   ValidMNCheck : String;
+  OrderError   : Boolean = false;
 Begin
   for contador := 1 to MaxConecciones do
     begin
@@ -228,7 +231,7 @@ Begin
          end
       else if UpperCase(LineComando) = '$PING' then ProcessPing(ProcessLine,contador,true)                        // Done
       else if UpperCase(LineComando) = '$PONG' then ProcessPing(ProcessLine,contador,false)                       // Done
-      else if BlockAge > 585 then
+      else if ( (blockage < 10) or (BlockAge > 585) ) then
          begin
          continue;
          end
@@ -236,8 +239,26 @@ Begin
       else if UpperCase(LineComando) = '$GETMNS' then SendMNsListToPeer(contador) //SendMNsList(contador)         // Done
       else if UpperCase(LineComando) = '$GETRESUMEN' then PTC_SendResumen(contador)
       else if UpperCase(LineComando) = '$LASTBLOCK' then PTC_SendBlocks(contador,ProcessLine)
-      else if UpperCase(LineComando) = '$CUSTOM' then INC_PTC_Custom(GetOpData(ProcessLine),contador)
-      else if UpperCase(LineComando) = 'ORDER' then INC_PTC_Order(ProcessLine, contador)
+      else if UpperCase(LineComando) = '$CUSTOM' then
+         begin
+         if addipcontrol(GetConexIndex(contador).ip)<100 then INC_PTC_Custom(GetOpData(ProcessLine),contador)
+         else
+            begin
+            UpdateBotData(GetConexIndex(contador).ip);
+            ToLog('console','IP spammer: '+GetConexIndex(contador).ip);
+            CloseSlot(contador);
+            end;
+         end
+      else if UpperCase(LineComando) = 'ORDER' then
+         begin
+         if addipcontrol(GetConexIndex(contador).ip)<100 then INC_PTC_Order(ProcessLine, contador)
+         else
+            begin
+            UpdateBotData(GetConexIndex(contador).ip);
+            ToLog('console','IP spammer: '+GetConexIndex(contador).ip);
+            CloseSlot(contador);
+            end;
+         end
       else if UpperCase(LineComando) = 'ADMINMSG' then PTC_AdminMSG(ProcessLine)
       else if UpperCase(LineComando) = '$MNREPO' then AddWaitingMNs(ProcessLine)//
       else if UpperCase(LineComando) = '$MNCHECK' then
@@ -256,7 +277,7 @@ Begin
       else if UpperCase(LineComando) = 'GETHEADUPDATE' then PTC_SendUpdateHeaders(contador,ProcessLine)
       else if UpperCase(LineComando) = 'HEADUPDATE' then PTC_HeadUpdate(ProcessLine)
       else if UpperCase(LineComando) = '$GETSUMARY' then PTC_SendSumary(contador)
-      else if UpperCase(LineComando) = '$SNDGVT' then INC_PTC_SendGVT(GetOpData(ProcessLine), contador)
+      //else if UpperCase(LineComando) = '$SNDGVT' then INC_PTC_SendGVT(GetOpData(ProcessLine), contador)
       else if UpperCase(LineComando) = '$GETPSOS' then PTC_SendPSOS(contador)
 
       else
@@ -802,6 +823,7 @@ Begin
 Result := '';
 TRY
 NumTransfers := StrToInt(Parameter(TextLine,5));
+ToLog('Console',format('Order with %d transfers',[Numtransfers]));
 RecOrderId   := Parameter(TextLine,7);
 GenOrderID   := Parameter(TextLine,5)+Parameter(TextLine,10);
 Textbak := GetOpData(TextLine);

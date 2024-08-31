@@ -601,6 +601,7 @@ if ( (MyLastBlock > ConsenLB) and (ConsenLB >= 0) ) then
    begin
    Removed := RemoveBlocks(ConsenLB);
    ToLog('console',format('%d blocks deleted',[Removed]));
+   UndoneLastBlock;
    //RestartNoso;
    Exit;
    end;

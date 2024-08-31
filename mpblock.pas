@@ -765,6 +765,7 @@ var
   Cont     : integer;
   ThisOrder   : string  = '';
 Begin
+BeginPErformance('GEtNSLBlkOrdInfo');
 Result := 'NSLBLKORD ';
 ParamBlock := UpperCase(Parameter(LineText,1));
 If paramblock = 'LAST' then BlkNumber := MyLastBlock
@@ -789,6 +790,7 @@ else
    Result := Result+ThisOrder;
    Result := Trim(Result)
    end;
+EndPErformance('GEtNSLBlkOrdInfo');
 End;
 
 END. // END UNIT
