@@ -205,11 +205,6 @@ Begin
     While LengthIncoming(contador) > 0 do
       begin
       ProcessLine := GetIncoming(contador);
-      if BlockAge > 585 then
-         begin
-         //ToLog ('console','Out of time request');
-         continue;
-         end;
       UsedProtocol := StrToIntDef(Parameter(ProcessLine,1),1);
       UsedVersion := Parameter(ProcessLine,2);
       PeerTime := Parameter(ProcessLine,3);
@@ -233,6 +228,10 @@ Begin
          end
       else if UpperCase(LineComando) = '$PING' then ProcessPing(ProcessLine,contador,true)                        // Done
       else if UpperCase(LineComando) = '$PONG' then ProcessPing(ProcessLine,contador,false)                       // Done
+      else if BlockAge > 585 then
+         begin
+         continue;
+         end
       else if UpperCase(LineComando) = '$GETPENDING' then SendPendingsToPeer(contador)//PTC_SendPending(contador) // Done
       else if UpperCase(LineComando) = '$GETMNS' then SendMNsListToPeer(contador) //SendMNsList(contador)         // Done
       else if UpperCase(LineComando) = '$GETRESUMEN' then PTC_SendResumen(contador)
