@@ -736,6 +736,7 @@ if ( (StrToIntDef(GetConsensus(9),0)>GetMNsListLength) and (LastTimeMNsRequested
    begin
    if GetValidSlotForSeed(ValidSlot) then
       begin
+      ClearReceivedMNs();
       ClearMNIPProcessed;
       PTC_SendLine(ValidSlot,ProtocolLine(11));  // Get MNsList
       LastTimeMNsRequested := UTCTime;
