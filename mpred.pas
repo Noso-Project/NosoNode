@@ -731,7 +731,7 @@ if ( (GetConsensus(20)<>Copy(PSOFileHash,0,5)) and (LasTimePSOsRequest+5<UTCTime
    end;
 
 // *** Request reported MNs
-if ( (StrToIntDef(GetConsensus(9),0)>GetMNsListLength) and (LastTimeMNsRequested+5<UTCTime)
+if ( (StrToIntDef(GetConsensus(9),0)>GetMNsListLength) and (LastTimeMNsRequested+15<UTCTime)
            and (LengthWaitingMNs = 0) and (BlockAge>30) and (IsAllSynced=0) ) then
    begin
    if GetValidSlotForSeed(ValidSlot) then

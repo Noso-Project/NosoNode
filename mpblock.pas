@@ -308,6 +308,7 @@ if not errored then
    FillNodeList;
    ClearMNsChecks();
    ClearMNsList();
+   ClearReceivedMNs();
    if numero >= MNBlockStart then
       begin
       SetLength(MNsAddressess,0);

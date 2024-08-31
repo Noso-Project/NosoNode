@@ -79,6 +79,10 @@ Type
   Procedure SetMNsHash();
   Function GetMNsHash():String;
 
+  Function LengthReceivedMNs():Integer;
+  Procedure ClearReceivedMNs();
+  Function IsMNIPReceived(DataSource:String):boolean;
+
   Function LengthWaitingMNs():Integer;
   Procedure AddWaitingMNs(Linea:String);
   Function GetWaitingMNs():String;
@@ -131,6 +135,9 @@ var
 
   ArrWaitMNs          : array of String;
   CSWaitingMNs        : TRTLCriticalSection;
+
+  ArrReceivedMNs      : array of String;
+  CSReceivedMNs       : TRTLCriticalSection;
 
 IMPLEMENTATION
 
@@ -711,6 +718,46 @@ End;
 
 {$ENDREGION MNs hash}
 
+{$REGION Received Masternodes}
+
+Function LengthReceivedMNs():Integer;
+Begin
+  EnterCriticalSection(CSReceivedMNs);
+  result := Length(ArrReceivedMNs);
+  LeaveCriticalSection(CSReceivedMNs);
+End;
+
+Procedure ClearReceivedMNs();
+Begin
+  EnterCriticalSection(CSReceivedMNs);
+  setlength(ArrReceivedMNs,0);
+  LeaveCriticalSection(CSReceivedMNs);
+End;
+
+Function IsMNIPReceived(DataSource:String):boolean;
+var
+  counter : integer;
+Begin
+  Result := false;
+  DataSource := Parameter(DataSource,5);
+  EnterCriticalSection(CSReceivedMNs);
+  for counter := 0 to length(ArrReceivedMNs)-1 do
+    begin
+    if ArrReceivedMNs[counter] = DataSource then
+      begin
+      Result := true;
+      Break
+      end;
+    end;
+  if not result then
+    begin
+    Insert(DataSource,ArrReceivedMNs,LEngth(ArrReceivedMNs))
+    end;
+  LeaveCriticalSection(CSReceivedMNs);
+End;
+
+{$ENDREGION Received Masternodes}
+
 {$REGION Waiting Masternodes}
 
 Function LengthWaitingMNs():Integer;
@@ -722,6 +769,7 @@ End;
 
 Procedure AddWaitingMNs(Linea:String);
 Begin
+  if IsMNIPReceived(linea) then exit;;
   EnterCriticalSection(CSWaitingMNs);
   Insert(Linea,ArrWaitMNs,Length(ArrWaitMNs));
   LeaveCriticalSection(CSWaitingMNs);
@@ -872,6 +920,7 @@ SetLength(ArrayIPsProcessed,0);
 SetLength(ArrMNChecks,0);
 SetLength(ArrayMNsData,0);
 Setlength(ArrWaitMNs,0);
+Setlength(ArrReceivedMNs,0);
 InitCriticalSection(CSMNsIPProc);
 InitCriticalSection(CSMNsList);
 InitCriticalSection(CSVerNodes);
@@ -882,6 +931,7 @@ InitCriticalSection(CS_MNsHash);
 InitCriticalSection(CSWaitingMNs);
 InitCriticalSection(CSMN_FileText);
 InitCriticalSection(CSMNsChecks);
+InitCriticalSection(CSReceivedMNs);
 
 
 FINALIZATION
@@ -895,6 +945,7 @@ DoneCriticalSection(CS_MNsHash);
 DoneCriticalSection(CSWaitingMNs);
 DoneCriticalSection(CSMN_FileText);
 DoneCriticalSection(CSMNsChecks);
+DoneCriticalSection(CSReceivedMNs);
 
 
 END. // End unit
