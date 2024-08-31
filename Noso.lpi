@@ -189,7 +189,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="29">
+    <Units Count="30">
       <Unit0>
         <Filename Value="Noso.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -326,6 +326,11 @@
         <Filename Value="nosomasternodes.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit28>
+      <Unit29>
+        <Filename Value="nosoipcontrol.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="NosoIPControl"/>
+      </Unit29>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -11,7 +11,7 @@ uses
   strutils, math, IdHTTPServer, IdCustomHTTPServer,
   IdHTTP, fpJSON, Types, DefaultTranslator, LCLTranslator, translation, nosodebug,
   IdComponent,nosogeneral,nosocrypto, nosounit, nosoconsensus, nosopsos, NosoWallCon,
-  nosoheaders, nosoblock,nosonetwork,nosogvts,nosomasternodes,nosonosocfg;
+  nosoheaders, nosoblock,nosonetwork,nosogvts,nosomasternodes,nosonosocfg,nosoIPControl;
 
 type
 
@@ -577,8 +577,8 @@ CONST
   updateextension = 'tgz';
   {$ENDIF}
   NodeRelease = 'Aa1';
-  OficialRelease = False;
-  BetaRelease    = True;
+  OficialRelease = true;
+  BetaRelease    = false;
   VersionRequired = '0.4.2';
   BuildDate = 'April 2024';
   {Developer addresses}
@@ -2076,6 +2076,7 @@ Begin
   if FormSlots.Visible then UpdateSlotsGrid();
   Inc(ConnectedRotor); if ConnectedRotor>6 then ConnectedRotor := 0;
   UpdateStatusBar;
+  if ((UTCTime mod 60 = 0) and (LastIPsClear<>UTCTime)) then ClearIPControls;
   if ( (UTCTime mod 3600=3590) and (LastBotClear<>UTCTime) and (Form1.Server.Active) ) then DeleteBots;
   if ( (UTCTime mod 600>=570) and (UTCTime>NosoT_LastUpdate+599) ) then
     UpdateOffset(PArameter(GetCFGDataStr,2));
@@ -2635,6 +2636,8 @@ End;
 
 // Un usuario intenta conectarse
 procedure TForm1.IdTCPServer1Connect(AContext: TIdContext);
+const
+  LastBlocksRequest : int64 = 0;
 var
   IPUser      : string;
   LLine       : String;
@@ -2654,6 +2657,18 @@ Begin
   ContextData.Slot:=0;
   AContext.Data:=ContextData;
   IPUser := AContext.Connection.Socket.Binding.PeerIP;
+  if BotExists(IPUser) then
+    begin
+    TryCloseServerConnection(AContext,'BANNED');
+    exit;
+    end;
+  if AddIPControl(IPUser) > 99 then
+    begin
+    TryCloseServerConnection(AContext,'');
+    UpdateBotData(IPUser);
+    ToLog('console','IP spammer: '+IPUser);
+    exit;
+    end;
   if ( (MyConStatus <3) and (not IsSeedNode(IPUser)) ) then
     begin
     TryCloseServerConnection(AContext,'Closing NODE');
@@ -2723,12 +2738,19 @@ Begin
       MemStream.Free;
       TryCloseServerConnection(AContext);
       end
+    {
     else if parameter(LLine,0) = 'NSLBLOCKS' then
       begin
+      if LastBlocksRequest+15>UTCTime then
+        begin
+        TryCloseServerConnection(AContext);
+        Exit;
+        end;
       MemStream := TMemoryStream.Create;
       BlockZipsize := GetBlocksAsStream(MemStream,StrToIntDef(parameter(LLine,1),-1),MyLastBlock);
       If BlockZipsize > 0 then
         begin
+        LastBlocksRequest := UTCTIme;
           TRY
           Acontext.Connection.IOHandler.WriteLn('BLOCKZIP '+inttoStr(BlockZipsize));
           Acontext.connection.IOHandler.Write(MemStream,0,true);
@@ -2740,6 +2762,7 @@ Begin
       MemStream.Free;
       TryCloseServerConnection(AContext);
       end
+    }
     else if parameter(LLine,0) = 'GETZIPSUMARY' then  //
       begin
       MemStream := TMemoryStream.Create;
@@ -2777,11 +2800,12 @@ Begin
       begin
       TryCloseServerConnection(AContext,'WRONG_TIME');
       end
-
+   {
    else if BotExists(IPUser) then // known bot
       begin
       TryCloseServerConnection(AContext,'BANNED');
       end
+   }
    else if GetSlotFromIP(IPUser) > 0 then
       begin
       ToLog('events',TimeToStr(now)+Format(rs0060,[IPUser]));

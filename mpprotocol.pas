@@ -205,6 +205,11 @@ Begin
     While LengthIncoming(contador) > 0 do
       begin
       ProcessLine := GetIncoming(contador);
+      if BlockAge > 585 then
+         begin
+         //ToLog ('console','Out of time request');
+         continue;
+         end;
       UsedProtocol := StrToIntDef(Parameter(ProcessLine,1),1);
       UsedVersion := Parameter(ProcessLine,2);
       PeerTime := Parameter(ProcessLine,3);
@@ -442,9 +447,13 @@ End;
 
 // Send headers file to peer
 Procedure PTC_SendResumen(Slot:int64);
+Const
+  LastRequest : Int64 = 0;
 var
   MemStream   : TMemoryStream;
 Begin
+If UTCTime < LastRequest + 10 then exit;
+LastRequest := UTCTime;
 MemStream := TMemoryStream.Create;
 GetHeadersAsMemStream(MemStream);
 if GetConexIndex(slot).tipo='CLI' then
@@ -475,9 +484,13 @@ MemStream.Free;
 End;
 
 Procedure PTC_SendSumary(Slot:int64);
+const
+  LastRequest : int64 = 0;
 var
   MemStream   : TMemoryStream;
 Begin
+If UTCtime < LastRequest + 10 then exit;
+LastRequest := UTCTime;
 MemStream := TMemoryStream.Create;
 GetSummaryAsMemStream(MemStream);
 if GetConexIndex(slot).tipo='CLI' then
@@ -606,6 +619,8 @@ End;
 
 // Send Zipped blocks to peer
 Procedure PTC_SendBlocks(Slot:integer;TextLine:String);
+const
+  LastRequest : int64 = 0;
 var
   FirstBlock, LastBlock : integer;
   MyZipFile: TZipper;
@@ -616,6 +631,8 @@ var
   FileSentOk : Boolean = false;
   ZipFileName:String;
 Begin
+if UTCTime < LastRequest + 10 then exit;
+LastRequest := UTCTime;
 ToLog('Console','********** DEBUG CHECK **********');
 FirstBlock := StrToIntDef(Parameter(textline,5),-1)+1;
 ZipFileName := CreateZipBlockfile(FirstBlock);
@@ -1021,9 +1038,13 @@ End;
 }
 
 Procedure PTC_SendUpdateHeaders(Slot:integer;Linea:String);
+const
+  LastRequest : int64 = 0;
 var
   Block : integer;
 Begin
+if UTCTime < LastRequest + 10 then exit;
+LastRequest := UTCTime;
 Block := StrToIntDef(Parameter(Linea,5),0);
 PTC_SendLine(slot,ProtocolLine(headupdate)+' $'+LastHeadersString(Block));
 End;

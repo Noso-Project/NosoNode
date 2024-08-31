@@ -1695,6 +1695,7 @@ var
   NanoAmount    : int64 = 0;
   ShortAdd       : integer = 0;
   TotalOld      : int64 = 0;
+  NanoAddres    : integer = 0;
 Begin
   AssignFile(SumFile,SummaryFileName);
     TRY
@@ -1711,6 +1712,7 @@ Begin
         Inc(ShortAdd);
         ToLog('console',ThisRecord.Hash);
         end;
+      if ( (ThisRecord.Balance > 0) and (ThisREcord.Balance<101) ) then Inc(NanoAddres);
       if ThisRecord.Balance >= 1050000000000 then
         begin
         Inc(NodeAddresses);
@@ -1746,6 +1748,7 @@ Begin
   ToLog('console',format('>= 10500      : %d (%s Noso)',[NodeAddresses,int2curr(NodeAmount)]));
   ToLog('console',format('105 - 10500   : %d (%s Noso)',[SNAddresses,int2curr(SNAmount)]));
   ToLog('console',format('<105          : %d (%s Noso)',[NanoAddresses,int2curr(NanoAmount)]));
+  ToLog('console',format('Nano          : %d ',[NanoAddres]));
 End;
 
 Procedure ShowConsensus();

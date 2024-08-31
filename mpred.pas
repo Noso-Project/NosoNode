@@ -686,7 +686,7 @@ if ((Copy(GetResumenhash,0,5) = GetConsensus(5)) and (mylastblock <NLBV)) then  
 
 // Update summary
 if ((copy(GetResumenhash,0,5) = GetConsensus(5)) and (mylastblock = NLBV) and
-        (MySumarioHash<>GetConsensus(17)) and (SummaryLastop < mylastblock)) then
+        (MySumarioHash<>GetConsensus(17)) {and (SummaryLastop < mylastblock)}) then
    begin  // complete or download summary
    if (SummaryLastop+(2*SumMarkInterval) < mylastblock) then
       begin

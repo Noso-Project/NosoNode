@@ -135,7 +135,8 @@ Type
 CONST
   MaxConecciones   = 99;
   Protocolo        = 2;
-  MainnetVersion   = '0.4.2';
+  MainnetVersion   = '0.4.3';
+
 var
   // General
   Conexiones       : array [1..MaxConecciones] of Tconectiondata;
@@ -183,6 +184,7 @@ var
   CSConexiones          : TRTLCriticalSection;
   CSBotsList            : TRTLCriticalSection;
   CSPending             : TRTLCriticalSection;
+  CS_MultiTRX           : TRTLCriticalSection;
   // nodes list
   NodesList             : array of TNodeData;
   CSNodesList           : TRTLCriticalSection;
@@ -212,7 +214,6 @@ Begin
 End;
 
 // Send pending transactions to peer, former PTC_SendPending
-
 procedure SendPendingsToPeer(Slot:int64);
 var
   contador : integer;
@@ -349,6 +350,21 @@ End;
 {$ENDREGION Pending Pool transactions}
 
 {$REGION Pending Multi transactions}
+
+Function GetMultiTrxCount():integer;
+Begin
+  EnterCriticalSection(CS_MultiTRX);
+  result := Length(ArrayMultiTXs);
+  LeaveCriticalSection(CS_MultiTRX);
+End;
+
+// Clear the pending transactions array safely
+Procedure ClearAllMultiTrx();
+Begin
+  EnterCriticalSection(CS_MultiTRX);
+  SetLength(ArrayMultiTXs,0);
+  LeaveCriticalSection(CS_MultiTRX);
+End;
 
 {$ENDREGION}
 
@@ -1465,6 +1481,7 @@ Begin
   InitCriticalSection(CSConexiones);
   InitCriticalSection(CSBotsList);
   InitCriticalSection(CSPending);
+  InitCriticalSection(CS_MultiTRX);
   InitCriticalSection(CSNodesList);
   SetLength(BotsList,0);
   Setlength(ArrayPoolTXs,0);
@@ -1487,7 +1504,7 @@ Begin
   DoneCriticalSection(CSClientReads);
   DoneCriticalSection(CSConexiones);
   DoneCriticalSection(CSBotsList);
-  DoneCriticalSection(CSPending);
+  DoneCriticalSection(CS_MultiTRX);
   DoneCriticalSection(CSNodesList);
   for counter := 1 to MaxConecciones do
     begin
