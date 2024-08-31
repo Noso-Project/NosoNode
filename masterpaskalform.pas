@@ -576,7 +576,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  NodeRelease = 'Aa2';
+  NodeRelease = 'Aa3';
   OficialRelease = true;
   BetaRelease    = false;
   VersionRequired = '0.4.2';

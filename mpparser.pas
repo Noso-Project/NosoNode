@@ -274,6 +274,7 @@ else if UpperCase(Command) = 'SENDREPORT' then SEndFileViaTCP(ResumeLogFilename,
 else if UpperCase(Command) = 'GETDBLB' then ToLog('console',GetDBLastBlock.ToString)
 else if UpperCase(Command) = 'ORDINFO' then OrdInfo(LineText)
 else if UpperCase(Command) = 'GETMULTI' then CreateMultiAddress(LineText)
+else if UpperCase(Command) = 'DELBOTS' then DeleteBots
 
 
 // New system
