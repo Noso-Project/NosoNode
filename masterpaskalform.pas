@@ -576,11 +576,11 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  NodeRelease = 'Aa1';
+  NodeRelease = 'Aa2';
   OficialRelease = true;
   BetaRelease    = false;
   VersionRequired = '0.4.2';
-  BuildDate = 'April 2024';
+  BuildDate = 'August 2024';
   {Developer addresses}
   ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
   AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
@@ -2781,7 +2781,13 @@ Begin
       MemStream.Free;
       TryCloseServerConnection(AContext);
       end
-
+   {
+   else if not IsSeedNode(IPUser) then
+     begin
+     TryCloseServerConnection(AContext,'');
+     exit;
+     end
+   }
    else if Copy(LLine,1,4) <> 'PSK ' then  // invalid protocol
       begin
       ToLog('events',TimeToStr(now)+format(rs0058,[IPUser])); //ToLog('events',TimeToStr(now)+'SERVER: Invalid client->'+IPUser);

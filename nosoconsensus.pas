@@ -398,10 +398,14 @@ Begin
   Css_ValidNodes := ValidNodes;
   if ReachedNodes >0 then Css_Percentage := (ValidNodes * 100) div ReachedNodes
   else Css_Percentage := 0;
-  EnterCriticalSection(CSConsensus);
-  setlength(consensus,0);
-  Consensus := copy(result,0,length(result));
-  LeaveCriticalSection(CSConsensus);
+  if StrToIntDef(result[cLastBlock],0) >= StrToIntDef(Consensus[cLastBlock],0) then
+    begin
+    EnterCriticalSection(CSConsensus);
+    setlength(consensus,0);
+    Consensus := copy(result,0,length(result));
+    LeaveCriticalSection(CSConsensus);
+    end;
+
   Css_Completed := true;
   RunningConsensus := false;
   EndPerformance('CalculateConsensus');
