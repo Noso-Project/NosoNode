@@ -276,7 +276,6 @@ else if UpperCase(Command) = 'ORDINFO' then OrdInfo(LineText)
 else if UpperCase(Command) = 'GETMULTI' then CreateMultiAddress(LineText)
 else if UpperCase(Command) = 'DELBOTS' then DeleteBots
 
-
 // New system
 
 else if UpperCase(Command) = 'SUMARY' then ShowSumary()

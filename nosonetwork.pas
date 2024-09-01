@@ -1240,7 +1240,6 @@ begin
             MemStream.Free;
             DownloadPSOs := false;
             end
-
           else if Parameter(LLine,0) = 'GVTSFILE' then
             begin
             DownloadGVTs := true;

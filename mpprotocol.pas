@@ -10,7 +10,7 @@ uses
   nosoheaders, NosoNosoCFG, nosoblock, nosonetwork,nosogvts,nosoMasternodes,NosoIPControl;
 
 //function GetPTCEcn():String;
-Function GetOrderFromString(textLine:String):TOrderData;
+Function GetOrderFromString(textLine:String;out ThisData:TOrderData):boolean;
 //function GetStringFromOrder(order:Torderdata):String;
 function GetStringFromBlockHeader(blockheader:BlockHeaderdata):String;
 //Function ProtocolLine(tipo:integer):String;
@@ -25,6 +25,7 @@ function GetPingString():string;
 Procedure PTC_SendResumen(Slot:int64);
 Procedure PTC_SendSumary(Slot:int64);
 Procedure PTC_SendPSOS(Slot:int64);
+Procedure PTC_SendGVTs(Slot:int64);
 Function ZipHeaders():boolean;
 function CreateZipBlockfile(firstblock:integer):string;
 Procedure PTC_SendBlocks(Slot:integer;TextLine:String);
@@ -89,33 +90,34 @@ End;
 }
 
 // convierte los datos de la cadena en una order
-Function GetOrderFromString(textLine:String):TOrderData;
+Function GetOrderFromString(textLine:String;out ThisData:TOrderData):boolean;
 var
   orderinfo : TOrderData;
 Begin
-BeginPerformance('GetOrderFromString');
-OrderInfo := Default(TOrderData);
-TRY
-OrderInfo.OrderID    := Parameter(textline,1);
-OrderInfo.OrderLines := StrToInt(Parameter(textline,2));
-OrderInfo.OrderType  := Parameter(textline,3);
-OrderInfo.TimeStamp  := StrToInt64(Parameter(textline,4));
-OrderInfo.reference  := Parameter(textline,5);
-OrderInfo.TrxLine    := StrToInt(Parameter(textline,6));
-OrderInfo.sender     := Parameter(textline,7);
-OrderInfo.Address    := Parameter(textline,8);
-OrderInfo.Receiver   := Parameter(textline,9);
-OrderInfo.AmmountFee := StrToInt64(Parameter(textline,10));
-OrderInfo.AmmountTrf := StrToInt64(Parameter(textline,11));
-OrderInfo.Signature  := Parameter(textline,12);
-OrderInfo.TrfrID     := Parameter(textline,13);
-EXCEPT ON E:Exception do
-   begin
-   ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error GetOrderFromString : '+E.Message);
-   end;
-END;{TRY}
-Result := OrderInfo;
-EndPerformance('GetOrderFromString');
+  BeginPerformance('GetOrderFromString');
+  Result := true;
+  ThisData := Default(TOrderData);
+    TRY
+    ThisData.OrderID    := Parameter(textline,1);
+    ThisData.OrderLines := StrToInt(Parameter(textline,2));
+    ThisData.OrderType  := Parameter(textline,3);
+    ThisData.TimeStamp  := StrToInt64(Parameter(textline,4));
+    ThisData.reference  := Parameter(textline,5);
+    ThisData.TrxLine    := StrToInt(Parameter(textline,6));
+    ThisData.sender     := Parameter(textline,7);
+    ThisData.Address    := Parameter(textline,8);
+    ThisData.Receiver   := Parameter(textline,9);
+    ThisData.AmmountFee := StrToInt64(Parameter(textline,10));
+    ThisData.AmmountTrf := StrToInt64(Parameter(textline,11));
+    ThisData.Signature  := Parameter(textline,12);
+    ThisData.TrfrID     := Parameter(textline,13);
+    EXCEPT ON E:Exception do
+      begin
+      ToLog('exceps',FormatDateTime('dd mm YYYY HH:MM:SS.zzz', Now)+' -> '+'Error GetOrderFromString : '+E.Message);
+      Result := False;
+      end;
+    END;{TRY}
+  EndPerformance('GetOrderFromString');
 End;
 
 {
@@ -279,6 +281,7 @@ Begin
       else if UpperCase(LineComando) = '$GETSUMARY' then PTC_SendSumary(contador)
       //else if UpperCase(LineComando) = '$SNDGVT' then INC_PTC_SendGVT(GetOpData(ProcessLine), contador)
       else if UpperCase(LineComando) = '$GETPSOS' then PTC_SendPSOS(contador)
+      else if UpperCase(LineComando) = '$GETGVTS' then PTC_SendGVTs(contador)
 
       else
          Begin  // El comando recibido no se reconoce. Verificar protocolos posteriores.
@@ -573,6 +576,39 @@ if GetConexIndex(slot).tipo='SER' then
 MemStream.Free;
 End;
 
+Procedure PTC_SendGVTs(Slot:int64);
+var
+  MemStream   : TMemoryStream;
+Begin
+  MemStream := TMemoryStream.Create;
+  GetGVTsAsStream(MemStream);
+  if GetConexIndex(slot).tipo='CLI' then
+    begin
+    TRY
+    GetConexIndex(slot).context.Connection.IOHandler.WriteLn('GVTSFILE');
+    GetConexIndex(slot).context.connection.IOHandler.Write(MemStream,0,true);
+    EXCEPT on E:Exception do
+      begin
+      Form1.TryCloseServerConnection(GetConexIndex(Slot).context);
+      ToDeepDeb('Error sending GVTs file: '+E.Message);
+      end;
+    END; {TRY}
+    end;
+  if GetConexIndex(slot).tipo='SER' then
+    begin
+    TRY
+    CanalCliente[slot].IOHandler.WriteLn('GVTSFILE');
+    CanalCliente[slot].IOHandler.Write(MemStream,0,true);
+    EXCEPT on E:Exception do
+      begin
+      ToDeepDeb('Error sending GVTs file: '+E.Message);
+      CloseSlot(slot);
+      end;
+    END;{TRY}
+    end;
+  MemStream.Free;
+End;
+
 // Zips the headers file. Uses deprecated methods, to be removed...
 Function ZipHeaders():boolean;
 var
@@ -713,8 +749,7 @@ var
   ErrorCode : Integer = 0;
 Begin
 Result := 0;
-OrderInfo := Default(TOrderData);
-OrderInfo := GetOrderFromString(TextLine);
+if not GetOrderFromString(TextLine,OrderInfo) then exit;
 Address := GetAddressFromPublicKey(OrderInfo.sender);
 if address <> OrderInfo.Address then ErrorCode := 1;
 // La direccion no dispone de fondos
@@ -824,6 +859,7 @@ Result := '';
 TRY
 NumTransfers := StrToInt(Parameter(TextLine,5));
 ToLog('Console',format('Order with %d transfers',[Numtransfers]));
+ToLog('Console',format('Complete line: %s',[TextLine]));
 RecOrderId   := Parameter(TextLine,7);
 GenOrderID   := Parameter(TextLine,5)+Parameter(TextLine,10);
 Textbak := GetOpData(TextLine);
@@ -831,8 +867,11 @@ SetLength(TrxArray,0);SetLength(senderTrx,0);
 for cont := 0 to NumTransfers-1 do
    begin
    SetLength(TrxArray,length(TrxArray)+1);SetLength(senderTrx,length(senderTrx)+1);
-   TrxArray[cont] := default (Torderdata);
-   TrxArray[cont] := GetOrderFromString(Textbak);
+   if not GetOrderFromString(Textbak,TrxArray[cont]) then
+      begin
+      Proceder := false;
+      ErrorCode := 96;
+      end;
    Inc(TotalSent,TrxArray[cont].AmmountTrf);
    Inc(TotalFee,TrxArray[cont].AmmountFee);
    GenOrderID := GenOrderID+TrxArray[cont].TrfrID;
@@ -856,6 +895,7 @@ for cont := 0 to NumTransfers-1 do
    sendersString := sendersString + senderTrx[cont];
    Textbak := copy(textBak,2,length(textbak));
    Textbak := GetOpData(Textbak);
+   if not Proceder then Break;
    end;
 GenOrderID := GetOrderHash(GenOrderID);
 if TotalFee >= GetMinimumFee(TotalSent) then
@@ -924,29 +964,27 @@ var
   ErrorCode  : Integer = 0;
   StrTosign  : String = '';
 Begin
-OrderInfo := Default(TOrderData);
-//ToLog('console',TextLine);
-OrderInfo := GetOrderFromString(TextLine);
-Address := GetAddressFromPublicKey(OrderInfo.sender);
-if address <> OrderInfo.Address then ErrorCode := 1;
-// La direccion no dispone de fondos
-if GetAddressBalanceIndexed(Address)-GetAddressPendingPays(Address) < GetCustFee(MyLastBlock) then ErrorCode:=2;
-if TranxAlreadyPending(OrderInfo.TrfrID ) then ErrorCode:=3;
-if OrderInfo.TimeStamp < LastBlockData.TimeStart then ErrorCode:=4;
-if TrxExistsInLastBlock(OrderInfo.TrfrID) then ErrorCode:=5;
-  if GVTAlreadyTransfered(OrderInfo.Reference) then ErrorCode := 6;
-StrTosign := 'Transfer GVT '+OrderInfo.Reference+' '+OrderInfo.Receiver+OrderInfo.TimeStamp.ToString;
-if not VerifySignedString(StrToSign,OrderInfo.Signature,OrderInfo.sender ) then ErrorCode:=7;
-if OrderInfo.sender <> AdminPubKey then ErrorCode := 8;
-if ErrorCode= 0 then
-   begin
-   OpData := GetOpData(TextLine); // remove trx header
-   AddArrayPoolTXs(OrderInfo);
-   if form1.Server.Active then OutgoingMsjsAdd(GetPTCEcn+opdata);
-   end;
-Result := ErrorCode;
-if ErrorCode > 0 then
-   ToLog('events',TimeToStr(now)+'SendGVT error: '+ErrorCode.ToString);
+  if not GetOrderFromString(TextLine,OrderInfo) then exit;
+  Address := GetAddressFromPublicKey(OrderInfo.sender);
+  if address <> OrderInfo.Address then ErrorCode := 1;
+  // La direccion no dispone de fondos
+  if GetAddressBalanceIndexed(Address)-GetAddressPendingPays(Address) < GetCustFee(MyLastBlock) then ErrorCode:=2;
+  if TranxAlreadyPending(OrderInfo.TrfrID ) then ErrorCode:=3;
+  if OrderInfo.TimeStamp < LastBlockData.TimeStart then ErrorCode:=4;
+  if TrxExistsInLastBlock(OrderInfo.TrfrID) then ErrorCode:=5;
+    if GVTAlreadyTransfered(OrderInfo.Reference) then ErrorCode := 6;
+  StrTosign := 'Transfer GVT '+OrderInfo.Reference+' '+OrderInfo.Receiver+OrderInfo.TimeStamp.ToString;
+  if not VerifySignedString(StrToSign,OrderInfo.Signature,OrderInfo.sender ) then ErrorCode:=7;
+  if OrderInfo.sender <> AdminPubKey then ErrorCode := 8;
+  if ErrorCode= 0 then
+    begin
+    OpData := GetOpData(TextLine); // remove trx header
+    AddArrayPoolTXs(OrderInfo);
+    if form1.Server.Active then OutgoingMsjsAdd(GetPTCEcn+opdata);
+    end;
+  Result := ErrorCode;
+  if ErrorCode > 0 then
+    ToLog('events',TimeToStr(now)+'SendGVT error: '+ErrorCode.ToString);
 End;
 
 Procedure PTC_AdminMSG(TextLine:String);
