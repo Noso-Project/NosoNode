@@ -293,7 +293,6 @@ type
     Edit2: TEdit;
     Label19: TLabel;
     Memobannedmethods: TMemo;
-    OffersGrid: TStringGrid;
     Label1: TLabel;
     Label14: TLabel;
     Label15: TLabel;
@@ -348,7 +347,6 @@ type
     TabSheet1: TTabSheet;
     TabNodesReported: TTabSheet;
     TabNodesVerified: TTabSheet;
-    TabSheet2: TTabSheet;
     TabThreads: TTabSheet;
     TabFiles: TTabSheet;
     StaTimeLab: TLabel;
@@ -470,7 +468,6 @@ type
     procedure MemobannedmethodsEditingDone(Sender: TObject);
 
     procedure MemoRPCWhitelistEditingDone(sender: TObject);
-    procedure OffersGridResize(Sender: TObject);
     procedure PC_ProcessesResize(Sender: TObject);
     Procedure RestartTimerEjecutar(sender: TObject);
     Procedure StartProgram();
@@ -576,7 +573,7 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  NodeRelease = 'Aa7';
+  NodeRelease = 'Aa8';
   OficialRelease = true;
   BetaRelease    = false;
   VersionRequired = '0.4.2';
@@ -2024,18 +2021,6 @@ Begin
   GridWidth := form1.GVTsGrid.Width;
   form1.GVTsGrid.ColWidths[0]:= thispercent(20,GridWidth);
   form1.GVTsGrid.ColWidths[1]:= thispercent(80,GridWidth,true);
-End;
-
-// Resize: Offers grid
-procedure TForm1.OffersGridResize(Sender: TObject);
-var
-  GridWidth : integer;
-Begin
-  GridWidth := form1.OffersGrid.Width;
-  form1.OffersGrid.ColWidths[0]:= thispercent(15,GridWidth);
-  form1.OffersGrid.ColWidths[1]:= thispercent(15,GridWidth);
-  form1.OffersGrid.ColWidths[2]:= thispercent(15,GridWidth);
-  form1.OffersGrid.ColWidths[3]:= thispercent(55,GridWidth,true);
 End;
 
 {$ENDREGION}

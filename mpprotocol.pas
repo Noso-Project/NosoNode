@@ -858,14 +858,20 @@ Begin
 Result := '';
 TRY
 NumTransfers := StrToInt(Parameter(TextLine,5));
-ToLog('Console',format('Order with %d transfers',[Numtransfers]));
-ToLog('Console',format('Complete line: %s',[TextLine]));
+ToLog('events',format('Order with %d transfers',[Numtransfers]));
+ToLog('events',format('Complete line: %s',[TextLine]));
 RecOrderId   := Parameter(TextLine,7);
 GenOrderID   := Parameter(TextLine,5)+Parameter(TextLine,10);
 Textbak := GetOpData(TextLine);
 SetLength(TrxArray,0);SetLength(senderTrx,0);
+if NumTransfers > 30 then
+   begin
+   Proceder := false;
+   ErrorCode := 89;
+   end;
 for cont := 0 to NumTransfers-1 do
    begin
+   if not Proceder then Break;
    SetLength(TrxArray,length(TrxArray)+1);SetLength(senderTrx,length(senderTrx)+1);
    if not GetOrderFromString(Textbak,TrxArray[cont]) then
       begin
@@ -887,33 +893,25 @@ for cont := 0 to NumTransfers-1 do
       ErrorCode := 97;
       //ToLog('console',format('error: %s <> %s',[senderTrx[cont],TrxArray[cont].Address ]))
       end;
-   if pos(sendersString,senderTrx[cont]) > 0 then
+   if AnsiContainsstr(sendersString,senderTrx[cont]) then
       begin
-      Proceder:=false; // hay una direccion de envio repetida
+      Proceder:=false; // sender duplicated
       ErrorCode := 99;
       end;
    sendersString := sendersString + senderTrx[cont];
    Textbak := copy(textBak,2,length(textbak));
    Textbak := GetOpData(Textbak);
-   if not Proceder then Break;
    end;
 GenOrderID := GetOrderHash(GenOrderID);
-if TotalFee >= GetMinimumFee(TotalSent) then
+if TotalFee < GetMinimumFee(TotalSent) then
    begin
-   //ToLog('console',Format('Order fees match : %d >= %d',[TotalFee,GetFee(TotalSent)]))
-   end
-else
-   begin
-   //ToLog('console',Format('WRONG ORDER FEES : %d >= %d',[TotalFee,GetFee(TotalSent)]));
    TodoValido := false;
    ErrorCode := 100;
    end;
 if RecOrderId<>GenOrderID then
    begin
-   //ToLog('console','<-'+RecOrderId);
-   //ToLog('console','->'+GenOrderID);
-   if mylastblock >= 56000 then TodoValido := false;
-   if mylastblock >= 56000 then ErrorCode := 101;
+   TodoValido := false;
+   ErrorCode := 101;
    end;
 if TodoValido then
    begin
@@ -940,8 +938,7 @@ if proceder then
    end
 else
    begin
-   if ErrorCode>0 then
-      if mylastblock >= 56000 then Result := 'ERROR '+ErrorCode.ToString;
+   if ErrorCode>0 then Result := 'ERROR '+ErrorCode.ToString;
    end;
 EXCEPT ON E:EXCEPTION DO
    begin

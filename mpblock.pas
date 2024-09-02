@@ -121,7 +121,7 @@ var
     NPDSource    : string;
     NPDTarget    : string;
     NPDAmount    : int64;
-
+    BlockTrfrs   : integer = 0;
 
 Begin
 if WO_skipBlocks then exit;
@@ -183,7 +183,7 @@ if not errored then
             end;
          end;
       if ExistsInLastBlock then continue;
-      if ArrayPoolTXs[contador].TimeStamp+60 > TimeStamp then
+      if ( (ArrayPoolTXs[contador].TimeStamp+60 > TimeStamp) or (BlockTrfrs>=2000) ) then
          begin
          if ArrayPoolTXs[contador].TimeStamp < TimeStamp+600 then
             insert(ArrayPoolTXs[contador],IgnoredTrxs,length(IgnoredTrxs));
@@ -198,6 +198,7 @@ if not errored then
             ArrayPoolTXs[contador].Block:=numero;
             ArrayPoolTXs[contador].sender:=OperationAddress;
             insert(ArrayPoolTXs[contador],ListaOrdenes,length(listaordenes));
+            Inc(BlockTrfrs);
             end;
          end;
       if ArrayPoolTXs[contador].OrderType='TRFR' then
@@ -210,6 +211,7 @@ if not errored then
             ArrayPoolTXs[contador].Block:=numero;
             ArrayPoolTXs[contador].sender:=OperationAddress;
             insert(ArrayPoolTXs[contador],ListaOrdenes,length(listaordenes));
+            Inc(BlockTrfrs);
             end;
          end;
       if ( (ArrayPoolTXs[contador].OrderType='SNDGVT') and ( ArrayPoolTXs[contador].sender = AdminPubKey) ) then

@@ -257,11 +257,6 @@ form1.GVTsGrid.Cells[0,0] := '#';
 form1.GVTsGrid.Cells[1,0] := 'Address';
 form1.GVTsGrid.FocusRectVisible:=false;
 
-form1.OffersGrid.Cells[0,0] := 'Mode';
-form1.OffersGrid.Cells[1,0] := 'Expire';
-form1.OffersGrid.Cells[2,0] := 'Fee';
-form1.OffersGrid.Cells[3,0] := 'Owner';
-form1.OffersGrid.FocusRectVisible:=false;
 End;
 
 // Ordena las salidas de informacion
@@ -291,7 +286,6 @@ Const
   LastUpdateProcesses : int64 = 0;
   LastUpdateConsensus : int64 = 0;
   LastUpdateDataPanel : int64 = 0;
-  LastUpdatePSO       : int64 = 0;
 var
   contador : integer = 0;
   LocalProcesses      : TProcessCopy;
@@ -340,20 +334,6 @@ if LastUpdateProcesses<> UTCTime then
          Form1.SG_FileProcs.Cells[2,contador+1]:=FileProcs[contador].FiPeer;
          end;
       end;
-   end;
-
-if LastUpdatePSO <> UTCTime then
-   begin
-   LPSOs := GetPSOsCopy;
-   Form1.OffersGrid.RowCount:=Length(LPSOs)+1;
-   for contador := 0 to length(LPSOs)-1 do
-      begin
-      Form1.OffersGrid.Cells[0,contador+1]:=LPSOs[contador].Mode.ToString;
-      Form1.OffersGrid.Cells[1,contador+1]:=LPSOs[contador].Expire.ToString;
-      Form1.OffersGrid.Cells[2,contador+1]:=GetPSOValue(PSOFee,LPSOs[contador].Params);
-      Form1.OffersGrid.Cells[3,contador+1]:=LPSOs[contador].owner;
-      end;
-   LAstUpdatePSO := UTCTime;
    end;
 
 if LastUpdateProcesses<> UTCTime then

@@ -720,6 +720,7 @@ var
   ResultOrderID : String = '';
   CoinsAvailable : int64;
   DestinationRecord : TSummaryData;
+  SendersString     : string = '';
 Begin
 result := '';
 BeginPerformance('SendFunds');
@@ -772,6 +773,12 @@ if procesar then
    while monto > 0 do
       begin
       BeginPerformance('SendFundsVerify');
+      if AnsiContainsstr(SendersString,GetWallArrIndex(contador).Hash) then
+         begin
+         ToLog('console','Duplicated address on order');
+         Exit;
+         end;
+      SendersString := SendersString+GetWallArrIndex(contador).Hash;
       if GetAddressBalanceIndexed(GetWallArrIndex(contador).Hash)-GetAddressPendingPays(GetWallArrIndex(contador).Hash) > 0 then
          begin
          trxLinea := TrxLinea+1;
