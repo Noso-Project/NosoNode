@@ -1226,7 +1226,7 @@ Begin
       LastIPVerify := NextBlockTimeStamp;
       MyIP := GetMiIP();
       //ToLog('console','Auto IP executed');
-      if  ( (MyIP <> '') and (MyIP <> LocalMN_IP) and (MyIP <> 'Closing NODE') ) then
+      if  ( (MyIP <> '') and (MyIP <> LocalMN_IP) and (MyIP <> 'Closing NODE') and (MyIP <> 'BANNED') and (IsValidIP(MyIP))) then
         begin
         ToLog('console','Auto IP: updated to '+MyIp);
         LocalMN_IP := MyIP;
@@ -2818,7 +2818,7 @@ Begin
          ToLog('events',TimeToStr(now)+format(rs0061,[IPUser])); //New Connection from:
          ContextData.Slot:=ThisSlot;
          AContext.Data:=ContextData;
-         MyPublicIP := MiIp;
+         if IsValidIP(MiIp) then MyPublicIP := MiIp;
          U_DataPanel := true;
          ClearOutTextToSlot(ThisSlot);
          end;

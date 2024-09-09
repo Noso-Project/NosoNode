@@ -863,12 +863,12 @@ ToLog('events',format('Complete line: %s',[TextLine]));
 RecOrderId   := Parameter(TextLine,7);
 GenOrderID   := Parameter(TextLine,5)+Parameter(TextLine,10);
 Textbak := GetOpData(TextLine);
-SetLength(TrxArray,0);SetLength(senderTrx,0);
 if NumTransfers > 30 then
    begin
    Proceder := false;
    ErrorCode := 89;
    end;
+SetLength(TrxArray,0);SetLength(senderTrx,0);
 for cont := 0 to NumTransfers-1 do
    begin
    if not Proceder then Break;

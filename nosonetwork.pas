@@ -1374,6 +1374,7 @@ var
   contador : integer = 0;
   updated : boolean = false;
 Begin
+  if IsSeedNode(IPUser) then exit;
   EnterCriticalSection(CSBotsList);
   for contador := 0 to length(BotsList)-1 do
     begin

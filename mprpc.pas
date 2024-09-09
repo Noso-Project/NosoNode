@@ -732,7 +732,10 @@ else
    if length(ArraTrxs) > 0 then
       begin
       for counter := 0 to length(ArraTrxs)-1 do
+         begin
+
          AddOrder(ArraTrxs[counter]);
+         end;
       result := result+IntToStr(length(arrayOrds))+#127;
       for counter := 0 to length(arrayOrds)-1 do
          begin
@@ -924,7 +927,6 @@ Begin
     end;
   EndPerformance('RPC_CheckCertificate');
 End;
-
 
 Function RPC_SubmitOrder(NosoPParams:string;waitresponse:boolean=false):string;
 var
