@@ -581,7 +581,7 @@ CONST
   {Developer addresses}
   ADMINHash = 'N3DthVsfEUtqrgWFHTEB6F88xLkT3Df';
   AdminPubKey = 'BACo0LC7mWDn53orLANA2zKVSC1HfSe/jc/Ih7+cBQ1oh53Bu2Zo655WFmWnoKHEeaNflb1CR9WcfXuhmkKaY8Y=';
-  Authorizedaddresses = 'N4HgivS84xzgG6uPAnhQprLVsfry6GM N4GvsJ7SjBw6Ls8XNk6gELpXoLTt5Dv';
+  Authorizedaddresses = 'N3DthVsfEUtqrgWFHTEB6F88xLkT3Df N4ZR3fKhTUod34evnEcDQX3i6XufBDU';
 
   DefaultServerPort = 8080;
   MaxConecciones  = 99;
