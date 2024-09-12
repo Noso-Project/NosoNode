@@ -1053,8 +1053,8 @@ if not errored then
    }
    if UpperCase(TCommand) = 'ADDLOCKED' then AddCFGData(TParam,5);
    if UpperCase(TCommand) = 'DELLOCKED' then RemoveCFGData(TParam,5);
-   if UpperCase(TCommand) = 'ADDNOSOPAY' then AddCFGData(TParam,6);
-   if UpperCase(TCommand) = 'DELNOSOPAY' then RemoveCFGData(TParam,6);
+  // if UpperCase(TCommand) = 'ADDNOSOPAY' then AddCFGData(TParam,6);
+  // if UpperCase(TCommand) = 'DELNOSOPAY' then RemoveCFGData(TParam,6);
    if UpperCase(TCommand) = 'CLEARCFG' then ClearCFGData(TParam);
    if UpperCase(TCommand) = 'RESTORECFG' then RestoreCFGData;
    OutgoingMsjsAdd(TextLine);

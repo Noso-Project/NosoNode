@@ -112,7 +112,7 @@ Begin
     begin
     SaveCFGToFile(DefaultNosoCFG);
     GetCFGFromFile;
-    Defseeds := GetRepoFile('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos');
+    Defseeds := GetRepoFile('https://raw.githubusercontent.com/nosocoin/NosoNode/main/defseeds.nos');
     if DefSeeds = '' then Defseeds := GetRepoFile('https://api.nosocoin.com/nodes/seed');
     if defseeds <> '' then
       begin

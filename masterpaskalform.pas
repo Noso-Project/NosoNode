@@ -564,7 +564,7 @@ CONST
   HideCommands : String = 'CLEAR SENDPOOLSOLUTION SENDPOOLSTEPS DELBOTS';
   CustomValid : String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@*+-_:';
 
-  MainnetVersion = '0.4.3';
+  MainnetVersion = '0.4.4';
   {$IFDEF WINDOWS}
   RestartFileName = 'launcher.bat';
   updateextension = 'zip';
@@ -573,14 +573,14 @@ CONST
   RestartFileName = 'launcher.sh';
   updateextension = 'tgz';
   {$ENDIF}
-  NodeRelease = 'Aa8';
+  NodeRelease = 'Ab1';
   OficialRelease = true;
   BetaRelease    = false;
-  VersionRequired = '0.4.2';
-  BuildDate = 'August 2024';
+  VersionRequired = '0.4.4';
+  BuildDate = 'September 2024';
   {Developer addresses}
-  ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
-  AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
+  ADMINHash = 'N3DthVsfEUtqrgWFHTEB6F88xLkT3Df';
+  AdminPubKey = 'BACo0LC7mWDn53orLANA2zKVSC1HfSe/jc/Ih7+cBQ1oh53Bu2Zo655WFmWnoKHEeaNflb1CR9WcfXuhmkKaY8Y=';
   Authorizedaddresses = 'N4HgivS84xzgG6uPAnhQprLVsfry6GM N4GvsJ7SjBw6Ls8XNk6gELpXoLTt5Dv';
 
   DefaultServerPort = 8080;

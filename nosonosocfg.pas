@@ -79,7 +79,7 @@ Begin
     begin
     SaveCFGToFile(DefaultNosoCFG);
     GetCFGFromFile;
-    Defseeds := SendApiRequest('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/defseeds.nos');
+    Defseeds := SendApiRequest('https://raw.githubusercontent.com/nosocoin/NosoNode/main/defseeds.nos');
     if defseeds <> '' then
       begin
       SetCFGData(Defseeds,1);

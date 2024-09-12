@@ -100,7 +100,7 @@ var
   trys     : integer = 0;
 Begin
 result := 0;
-DownLink := 'https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/1mb.dat';
+DownLink := 'https://raw.githubusercontent.com/nosocoin/NosoNode/main/1mb.dat';
 MS := TMemoryStream.Create;
 Conector := TFPHttpClient.Create(nil);
 conector.ConnectTimeout:=1000;

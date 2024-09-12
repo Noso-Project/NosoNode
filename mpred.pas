@@ -993,7 +993,7 @@ Conector := TFPHttpClient.Create(nil);
 conector.ConnectTimeout:=1000;
 conector.IOTimeout:=1000;
 TRY
-   readedLine := Conector.SimpleGet('https://raw.githubusercontent.com/Noso-Project/NosoWallet/main/lastrelease.txt');
+   readedLine := Conector.SimpleGet('https://raw.githubusercontent.com/nosocoin/NosoNode/main/lastrelease.txt');
    // Binance API example
    //readedLine := Conector.SimpleGet('https://api.binance.com/api/v3/ticker/price?symbol=LTCUSDT');
 EXCEPT on E: Exception do
@@ -1044,9 +1044,9 @@ var
 Begin
 result := false;
 if Uppercase(localOS) = 'WIN' then
-   DownLink := 'https://github.com/Noso-Project/NosoWallet/releases/download/v'+version+'/noso-v'+version+'-x86_64-win64.zip';
+   DownLink := 'https://github.com/nosocoin/NosoNode/releases/download/v'+version+'/noso-v'+version+'-x86_64-win64.zip';
 if Uppercase(localOS) = 'LINUX' then
-   DownLink := 'https://github.com/Noso-Project/NosoWallet/releases/download/v'+version+'/noso-v'+version+'-x86_64-linux.zip';
+   DownLink := 'https://github.com/nosocoin/NosoNode/releases/download/v'+version+'/noso-v'+version+'-x86_64-linux.zip';
 MS := TMemoryStream.Create;
 Conector := TFPHttpClient.Create(nil);
 conector.ConnectTimeout:=1000;
