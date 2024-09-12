@@ -7,6 +7,7 @@ Official release. Valid for masternodes and servcie providers.
 - Changed the wallet that corresponds to and owns the rasmus keys.
 - All links leading to the old version of the repository have been changed, now update from the new version.
 - The ability to send funds using a directive has been removed.
+- Fix bermelo
 
 
 
