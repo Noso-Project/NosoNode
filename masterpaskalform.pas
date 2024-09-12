@@ -579,8 +579,8 @@ CONST
   VersionRequired = '0.4.2';
   BuildDate = 'August 2024';
   {Developer addresses}
-  ADMINHash = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
-  AdminPubKey = 'BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=';
+  ADMINHash = 'N2kydpxwvFRv8mM3SXD2tpNKwbpKrGo';
+  AdminPubKey = 'BKh0UNjUmbPDuApWPxEL9mzoMUwe0Xf3jGi5FnP7N044dOc1k2PGrd5Xq/5LW+xYog1Pi3P6KBiwi1Y7oo/KN7U=';
   Authorizedaddresses = 'N4HgivS84xzgG6uPAnhQprLVsfry6GM N4GvsJ7SjBw6Ls8XNk6gELpXoLTt5Dv';
 
   DefaultServerPort = 8080;

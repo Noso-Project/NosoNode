@@ -1492,6 +1492,7 @@ var
   numero : integer;
   monto : integer;
   contador : integer;
+  str1,str2 : string;
 Begin
 numero := StrToIntDef(Parameter(linetext,1),0);
 if ((numero <1) or (numero >1000)) then
