@@ -40,8 +40,8 @@ var
   LasTimeCFGRequest : int64 = 0;
   DefaultNosoCFG    : String = // CFG parameters
                             {0 Mainnet mode}'NORMAL '+
-                            {1 Seed nodes  }'20.199.50.27;8080:107.173.210.55;8080:5.230.55.203;8080:141.11.192.215;8080:4.233.61.8;8080:84.247.143.153;8080:23.95.216.80;8080:64.69.43.225;8080:142.171.231.9;8080: '+
-                            {2 NTP servers }'ts2.aco.net:hora.roa.es:time.esa.int:time.stdtime.gov.tw:stratum-1.sjc02.svwh.net:ntp1.sp.se:1.de.pool.ntp.org:ntps1.pads.ufrj.br:utcnist2.colorado.edu:tick.usask.ca:ntp1.st.keio.ac.jp: '+
+                            {1 Seed nodes  }'204.10.194.22;8080:204.10.194.29;8080:204.10.194.32;8080:204.10.194.36;8080:204.10.194.33;8080:'+
+                            {2 NTP servers }'null: '+
                             {3 DEPRECATED  }'null: '+
                             {4 DEPRECATED  }'null: '+
                             {5 FREZZED     }'NpryectdevepmentfundsGE:';

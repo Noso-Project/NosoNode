@@ -113,7 +113,7 @@ Begin
     SaveCFGToFile(DefaultNosoCFG);
     GetCFGFromFile;
     Defseeds := GetRepoFile('https://raw.githubusercontent.com/nosocoin/NosoNode/main/defseeds.nos');
-    if DefSeeds = '' then Defseeds := GetRepoFile('https://api.nosocoin.com/nodes/seed');
+   // if DefSeeds = '' then Defseeds := GetRepoFile('https://api.nosocoin.com/nodes/seed');
     if defseeds <> '' then
       begin
       SetCFGData(Defseeds,1);
