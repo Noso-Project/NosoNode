@@ -61,21 +61,21 @@ jobs:
         
     - name: Upload binary (Windows)
       if: ${{ (matrix.operating-system == 'windows-latest')  &&  (matrix.lazarus-versions == 'stable') }}
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: noso-windows
         path: Noso.exe
 
     - name: Upload binary (Ubuntu)
       if: ${{ (matrix.operating-system == 'ubuntu-latest')  &&  (matrix.lazarus-versions == 'stable') }}
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: noso-linuxnew
         path: Noso
         
     - name: Upload binary (Ubuntu)
       if: ${{ (matrix.operating-system == 'ubuntu-20.04')  &&  (matrix.lazarus-versions == 'stable') }}
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: noso-linux
         path: Noso
@@ -96,7 +96,7 @@ jobs:
       run: echo "tag=${GITHUB_REF#refs/*/}" >> ${GITHUB_OUTPUT}
 
     - name: Download the Release binary
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
 
     - name: List files
       run: |
