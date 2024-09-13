@@ -135,7 +135,7 @@ Type
 CONST
   MaxConecciones   = 99;
   Protocolo        = 2;
-  MainnetVersion   = '0.4.3';
+  MainnetVersion   = '0.4.4';
 
 var
   // General
