@@ -1611,7 +1611,7 @@ Begin
   Form1.BNewAddr.Parent:=form1.DireccionesPanel;
   Form1.SGridSC.FocusRectVisible:=false;
   Form1.imagenes.GetBitMap(54,form1.ImgRotor.picture.BitMap);
-  form1.LabAbout.Caption:=CoinName+' project'+SLINEBREAK+'Designed by bermello (imAOG)'+SLINEBREAK+
+  form1.LabAbout.Caption:=CoinName+' project'+SLINEBREAK+'Brought to you by the Noso Team'+SLINEBREAK+
                           'Crypto routines by Xor-el'+SLINEBREAK+
                           'Version '+MainnetVersion+NodeRelease+SLINEBREAK+'Protocol '+IntToStr(Protocolo)+SLINEBREAK+BuildDate;
   form1.SG_Performance.FocusRectVisible:=false;
