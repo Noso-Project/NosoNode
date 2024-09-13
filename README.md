@@ -1,10 +1,10 @@
 # Nosonode
-[![Build Status](https://github.com/Noso-Project/NosoWallet/workflows/Build%20NosoWallet/badge.svg?branch=main)](https://github.com/Noso-Project/NosoWallet/actions)
-[![Supports Windows](https://img.shields.io/badge/support-Windows-blue?logo=Windows)](https://github.com/Noso-Project/NosoWallet/releases/latest)
-[![Supprts Linux](https://img.shields.io/badge/support-Linux-yellow?logo=Linux)](https://github.com/Noso-Project/NosoWallet/releases/latest)
-[![License](https://img.shields.io/github/license/Noso-Project/NosoWallet)](https://github.com/Noso-Project/NosoWallet/blob/master/LICENSE)
-[![Latest Release](https://img.shields.io/github/v/release/Noso-Project/NosoWallet?label=latest%20release)](https://github.com/Noso-Project/NosoWallet/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/Noso-Project/NosoWallet/total)](https://github.com/Noso-Project/NosoWallet/releases)
+[![Build Status](https://github.comnosocoin/NosoNode/workflows/Build%20NosoWallet/badge.svg?branch=main)](https://github.com/nosocoin/NosoNode/actions)
+[![Supports Windows](https://img.shields.io/badge/support-Windows-blue?logo=Windows)](https://github.comnosocoin/NosoNode/releases/latest)
+[![Supprts Linux](https://img.shields.io/badge/support-Linux-yellow?logo=Linux)](https://github.comnosocoin/NosoNode/releases/latest)
+[![License](https://img.shields.io/github/license/nosocoin/NosoNode)](https://github.com/nosocoin/NosoNode/blob/master/LICENSE)
+[![Latest Release](https://img.shields.io/github/v/release/nosocoin/NosoNode?label=latest%20release)](https://github.com/nosocoin/NosoNode/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/nosocoin/NosoNode/total)](https://github.com/nosocoin/NosoNode/releases)
 
 ## Running the node
 
